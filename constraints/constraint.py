@@ -14,10 +14,10 @@ class Constraint(object):
         self.rhs = rhs
         self.type = type
 
-    def name(self):
-        return ' '.join([self.lhs.name(), 
+    def __repr__(self):
+        return ' '.join([self.lhs.__repr__(), 
                          self.type, 
-                         self.rhs.name()])
+                         self.rhs.__repr__()])
 
     def coefficients(self):
         return (self.lhs - self.rhs).coefficients()

@@ -22,6 +22,9 @@ class Expression(object):
         self.variables = variables
         self.subexpressions = subexpressions
 
+    def __repr__(self):
+        return self.name()
+
     # Cast to Parameter if not an Expression.
     @staticmethod
     def const_to_param(expr):
@@ -91,9 +94,6 @@ class Parameter(Expression):
     def __init__(self, value, name=None):
         self.value = value
         self.param_name = name
-
-    def __repr__(self):
-        return "Parameter(%s)" % (self.value)
 
     def name(self):
         return str(self.value) if self.param_name is None else self.param_name

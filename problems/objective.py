@@ -7,8 +7,8 @@ class Minimize(object):
     def __init__(self, expr):
         self.expr = expr
 
-    def name(self):
-        return ' '.join(self.NAME, self.expr.name())
+    def __repr__(self):
+        return ' '.join([self.NAME, self.expr.name()])
 
     def coefficients(self):
         return self.expr.coefficients()

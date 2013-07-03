@@ -18,6 +18,7 @@ class Problem(object):
     # Solves the problem and returns the value of the objective.
     # Saves the values of variables.
     def solve(self):
+        self.objective.validate() # Check that objective is valid.
         variables = self.variables()
         eq_constraints = [c for c in self.constraints if c.type == settings.EQ_CONSTR]
         ineq_constraints = [c for c in self.constraints if c.type == settings.INEQ_CONSTR]
@@ -71,7 +72,7 @@ class Problem(object):
                 height = aff.shape().rows
                 if name in aff.coefficients().coeff_dict: # TODO getter and setter for coeff_dict?
                     coeff = aff.coefficients().coeff_dict.get(name)
-                    Problem.add_coefficient(coeff, matrix, width, height, 
+                    Problem.add_coefficient(coeff, matrix, height, width,
                                         horiz_offset, vert_offset)
                 vert_offset += height
             horiz_offset += width
@@ -80,10 +81,5 @@ class Problem(object):
     # Writes the coefficient's values to the appropriate space in the matrix.
     @staticmethod
     def add_coefficient(coeff, matrix, rows, cols, horiz_offset, vert_offset):
-        # Scalar
-        if rows == 1 and cols == 1:
-            matrix[vert_offset, horiz_offset] = coeff
-        else: # Matrix
-            for i in range(rows):
-                for j in range(cols):
-                    matrix[vert_offset + i, horiz_offset + j] = coeff[i][j]
+        print coeff
+        matrix[range(vert_offset,vert_offset + rows), range(horiz_offset,horiz_offset + cols)] = cvxopt.matrix(coeff)

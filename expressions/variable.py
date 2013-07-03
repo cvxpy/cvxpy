@@ -15,9 +15,6 @@ class Variable(Expression):
         self.rows = rows
         self.var_name = Variable.next_var_name() if name is None else name
 
-    def __repr__(self):
-        return "Variable(%s, %s)" % (self.rows, self.var_name)
-
     # Returns a new variable name based on a global counter.
     @staticmethod
     def next_var_name():
