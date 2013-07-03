@@ -1,62 +1,53 @@
-import settings
+import settings as s
+import interface.matrices as intf
+from interface.shapeset import ShapeSet
 
 class Coeff(object):
     """
-    From Scoop/QCML
-    A class / container for storing coefficients. These are stored in the 
-    form of c + a1*p1 + a2*p2 + ... , where pi are expression names.
-    
-    This assumes that expressions are uniquely identified by their names. That
-    is, we can't have a variable named 'x' that is a positive scalar and
-    another variable named 'x' that is suddenly a negative matrix.
+    Utility class for building dictionaries of coefficients in an expression.
     """
-    def __init__(self, coeff_dict):
-        self.coeff_dict = coeff_dict
+    # Is the given coeff_dict that of a constant expression?
+    @staticmethod 
+    def is_constant(coeff_dict):
+        return s.CONSTANT in coeff_dict and len(coeff_dict) == 1
 
-    def __repr__(self):
-        return "Coeff(%s)" % (self.coeff_dict)
-
-    # Is the only non-zero coefficient the constant term?
-    def is_constant(self):
-        return (settings.CONSTANT in self.coeff_dict and len(self.coeff_dict) == 1)
-
-    # Get the constant term.
-    def constant(self):
-        return self.coeff_dict.get(settings.CONSTANT, 0)
-    
-    def __add__(self, other):
-        # add the constants
-        a = self.coeff_dict
-        b = other.coeff_dict
-        # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
-        d = dict( (n, a.get(n, 0) + b.get(n, 0)) for n in set(a)|set(b) )
-        
-        return Coeff(d)
-    
-    def __neg__(self):
-        d = {}
-        for k in self.coeff_dict:
-            d[k] = -self.coeff_dict[k]
-        return Coeff(d)
-    
-    def __sub__(self,other):
-        return self + (-other)
-    
-    # Multiply a parameter by an expression.
-    def __mul__(self,other):
-        if not self.is_constant():
-            raise Exception("Cannot multiply by a non-constant on the left.") # TODO get name?
-        if self.is_constant():
-            const_term,coeffs = (self.constant(),other.coeff_dict)
-        else:
-            const_term,coeffs = (other.constant(),self.coeff_dict)
-        d = dict( ( k,Coeff.constant_mul(const_term,v) ) for k,v in coeffs.iteritems() )
-        return Coeff(d)
-
-    # Handles matrix and scalar multiplication.
+    # Returns a new dict with all coefficients conformed to the given shapes.
     @staticmethod
-    def constant_mul(constant, value):
-        try:
-            return constant.dot(value)
-        except Exception, e:
-            return constant * value
+    def conform_coeffs_to_shapes(coeff_dict, shapes):
+        return dict( 
+            (k,intf.conform_to_shapes(v, shapes)) for (k,v) in coeff_dict.items() 
+        )
+
+    # Evaluates the left hand and right hand expressions,
+    # finds the possible shapes of the sum, converts all coefficients
+    # to that shape and sums the dicts.
+    # Returns (coefficient dict, set(possible shapes)).
+    @staticmethod
+    def add(lh_exp, rh_exp):
+        (lh_coeff, lh_shapes) = lh_exp.coefficients()
+        (rh_coeff, rh_shapes) = rh_exp.coefficients()
+        shapes = lh_shapes + rh_shapes
+        lh_coeff = Coeff.conform_coeffs_to_shapes(lh_coeff, shapes)
+        rh_coeff = Coeff.conform_coeffs_to_shapes(rh_coeff, shapes)
+        # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
+        coeffs = dict( 
+            (n, lh_coeff.get(n, 0) + rh_coeff.get(n, 0)) for n in set(lh_coeff)|set(rh_coeff) 
+        )
+        return (coeffs, shapes)
+
+    # Evaluates the left hand and right hand expressions,
+    # checks the left hand expression is constant,
+    # finds the possible shapes of the left hand expression and converts it,
+    # then multiplies all coefficients by the left hand value.
+    # Returns (coefficient dict, set(possible shapes)).
+    @staticmethod
+    def mul(lh_exp, rh_exp):
+        (lh_coeff, lh_shapes) = lh_exp.coefficients()
+        if not Coeff.is_constant(lh_coeff): 
+            raise Exception("Cannot multiply on the left by a non-constant.")
+        (rh_coeff,rh_shapes) = rh_exp.coefficients()
+        lh_shapes,result_shapes,rh_shapes = lh_shapes * rh_shapes
+        lh_coeff = Coeff.conform_coeffs_to_shapes(lh_coeff, shapes)
+        rh_coeff = Coeff.conform_coeffs_to_shapes(rh_coeff, shapes)
+        coeffs = dict((k,lh_coeff[s.CONSTANT]*v) for v in rh_coeff.items())
+        return (coeffs, result_shapes)

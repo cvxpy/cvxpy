@@ -4,13 +4,14 @@ import cvxopt.solvers
 from expressions.expression import Parameter
 
 class Problem(object):
-    # Dummy variable list with the constant key for constructing b and h.
-    CONST_VAR = (settings.CONSTANT,Parameter(1))
     """
     An optimization problem.
-    objective - the problem objective.
-    constraints - the problem constraints.
     """
+    # Dummy variable list with the constant key for constructing b and h.
+    CONST_VAR = (settings.CONSTANT,Parameter(1))
+
+    # objective - the problem objective.
+    # constraints - the problem constraints.
     def __init__(self, objective, constraints=[]):
         self.objective = objective
         self.constraints = constraints
@@ -18,11 +19,14 @@ class Problem(object):
     # Solves the problem and returns the value of the objective.
     # Saves the values of variables.
     def solve(self):
-        self.objective.validate() # Check that objective is valid.
         variables = self.variables()
+
+        c = Problem.constraints_matrix(c, variables)
         eq_constraints = [c for c in self.constraints if c.type == settings.EQ_CONSTR]
+        eq_constr_matrices = Problem.linear_op_matrices(eq_constraints, variables)
         ineq_constraints = [c for c in self.constraints if c.type == settings.INEQ_CONSTR]
-        c = Problem.constraints_matrix([self.objective], variables)
+        ineq_constr_matrices = Problem.linear_op_matrices(ineq_constraints, variables)
+        
         A = Problem.constraints_matrix(eq_constraints, variables)
         b = -Problem.constraints_matrix(eq_constraints, [Problem.CONST_VAR])
         G = Problem.constraints_matrix(ineq_constraints, variables)
@@ -32,8 +36,7 @@ class Problem(object):
             Problem.save_values(results['x'], variables)
             return results['primal objective']
 
-    # A list of the variable names and objects in the problem,
-    # ordered alphabetically.
+    # A dict of variable name to (objects,offset) for the variables in the problem.
     def variables(self):
         vars = self.objective.variables()
         for constr in self.constraints:
@@ -46,40 +49,18 @@ class Problem(object):
     # as fields in the variable objects.
     @staticmethod
     def save_values(result_vec, variables):
-        offset = 0
-        for (name,var) in variables:
+        for (name,(obj,offset)) in variables.items():
             var.value = []
-            cols = var.shape().rows
-            for i in range(cols):
-                var.value.append(result_vec[offset+i])
+            for i in range(obj.rows):
+                var.value.append(result_vec[var[offset]+i])
             # Handle scalars
             var.value = var.value if len(var.value) > 1 else var.value[0]
-            offset += cols
 
 
-    # Returns a matrix built from the coefficients for each
-    # variable in each affine expression, e.g. A in A*x == 0.
+    # Returns a matrix where each variable coefficient is inserted as a block
+    # with upper left corner at matrix[variable offset, constraint offset].
     @staticmethod
     def constraints_matrix(aff_expressions, variables):
         rows = sum([aff.shape().rows for aff in aff_expressions])
-        cols = sum([var.shape().rows for (name,var) in variables])
+        cols = sum([obj.rows for (name,(obj,offset)) in variables.items()])
         matrix = cvxopt.matrix(0, (rows,cols), 'd') # Real matrix of zeros
-        horiz_offset = 0
-        for (name,var) in variables:
-            width = var.shape().rows
-            vert_offset = 0
-            for aff in aff_expressions:
-                height = aff.shape().rows
-                if name in aff.coefficients().coeff_dict: # TODO getter and setter for coeff_dict?
-                    coeff = aff.coefficients().coeff_dict.get(name)
-                    Problem.add_coefficient(coeff, matrix, height, width,
-                                        horiz_offset, vert_offset)
-                vert_offset += height
-            horiz_offset += width
-        return matrix
-
-    # Writes the coefficient's values to the appropriate space in the matrix.
-    @staticmethod
-    def add_coefficient(coeff, matrix, rows, cols, horiz_offset, vert_offset):
-        print coeff
-        matrix[range(vert_offset,vert_offset + rows), range(horiz_offset,horiz_offset + cols)] = cvxopt.matrix(coeff)

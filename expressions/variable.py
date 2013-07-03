@@ -1,6 +1,5 @@
-import settings
-from coefficients import Coeff
-from shape import Shape
+import settings as s
+import interface.matrices as intf
 from expression import Expression
 
 class Variable(Expression):
@@ -19,16 +18,16 @@ class Variable(Expression):
     @staticmethod
     def next_var_name():
         Variable.VAR_COUNT += 1
-        return "%s%d" % (settings.VAR_PREFIX, Variable.VAR_COUNT)
+        return "%s%d" % (s.VAR_PREFIX, Variable.VAR_COUNT)
 
     def name(self):
         return self.var_name
 
+    # Initialized with identity matrix as variable's coefficient.
     def coefficients(self):
-        return Coeff({self.name():1})
-
-    def shape(self):
-        return Shape(self.rows,1)
+        mat,sizes = intf.const_to_matrix(1, intf.TARGET_MATRIX)
+        mat = intf.conform_to_shapes( mat, set([(self.rows, self.rows)]) ) # TODO shapeset
+        return ( {self.name(): val}, set([(self.rows,1)]) )
 
     def variables(self):
         return {self.name(): self}
