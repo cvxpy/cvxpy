@@ -1,4 +1,4 @@
-from cvxpy.atoms.abs import abs
+from cvxpy.atoms import *
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -23,7 +23,15 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         else:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=5)
+            super(TestProblem, self).assertAlmostEqual(a,b,places=4)
+
+    # Test the is_dcp method.
+    def test_is_dcp(self):
+        p = Problem(Minimize(normInf(self.a)))
+        self.assertEqual(p.is_dcp(), True)
+
+        p = Problem(Maximize(normInf(self.a)))
+        self.assertEqual(p.is_dcp(), False)
 
     # Test scalar LP problems.
     def test_scalar_lp(self):
@@ -45,7 +53,7 @@ class TestProblem(unittest.TestCase):
              self.b + 5*self.c - 2 == self.a, 
              self.b <= 5 + self.c])
         result = p.solve()
-        #self.assertAlmostEqual(result, 101 + 1.0/6)
+        self.assertAlmostEqual(result, 101 + 1.0/6)
         self.assertAlmostEqual(self.a.value, 2)
         self.assertAlmostEqual(self.b.value, 5-1.0/6)
         self.assertAlmostEqual(self.c.value, -1.0/6)
@@ -80,16 +88,99 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.x.value, [8,8])
         self.assertAlmostEqual(self.z.value, [2,2])
 
-    # Test problems with abs
-    def test_abs(self):
-        p = Problem(Minimize(abs(self.a)), [self.a >= 2])
+    # Test problems with normInf
+    def test_normInf(self):
+        # Constant argument.
+        p = Problem(Minimize(normInf(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+
+        # Scalar arguments.
+        p = Problem(Minimize(normInf(self.a)), [self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
-        p = Problem(Minimize(3*abs(self.a + 2*self.b) + self.c), 
+        p = Problem(Minimize(3*normInf(self.a + 2*self.b) + self.c), 
             [self.a >= 2, self.b <= -1, self.c == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertAlmostEqual(self.a.value + 2*self.b.value, 0)
         self.assertAlmostEqual(self.c.value, 3)
+
+        # Maximize
+        p = Problem(Maximize(-normInf(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
+
+        # Vector arguments.
+        p = Problem(Minimize(normInf(self.x - self.z) + 5), 
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12)
+        self.assertAlmostEqual(self.x.value[1] - self.z.value[1], 7)
+
+    # Test problems with norm1
+    def test_norm1(self):
+        # Constant argument.
+        p = Problem(Minimize(norm1(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+
+        # Scalar arguments.
+        p = Problem(Minimize(norm1(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, -2)
+
+        # Maximize
+        p = Problem(Maximize(-norm1(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
+
+        # Vector arguments.
+        p = Problem(Minimize(norm1(self.x - self.z) + 5), 
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 15)
+        self.assertAlmostEqual(self.x.value[1] - self.z.value[1], 7)
+
+    # Test problems with norm2
+    def test_norm2(self):
+        # Constant argument.
+        p = Problem(Minimize(norm2(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+
+        # Scalar arguments.
+        p = Problem(Minimize(norm2(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, -2)
+
+        # Maximize
+        p = Problem(Maximize(-norm2(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
+
+        # Vector arguments.
+        p = Problem(Minimize(norm2(self.x - self.z) + 5), 
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12.6158)
+        self.assertAlmostEqual(self.x.value, [2,3])
+        self.assertAlmostEqual(self.z.value, [-1,-4])
+
+    # Test combining atoms
+    def test_mixed_atoms(self):
+        p = Problem(Minimize(norm2(5 + norm1(self.z) 
+                                  + norm1(self.x) + 
+                                  normInf(self.x - self.z) ) ), 
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 22)
+        self.assertAlmostEqual(self.x.value, [2,3])
+        self.assertAlmostEqual(self.z.value, [-1,-4])

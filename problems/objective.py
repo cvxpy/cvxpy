@@ -1,4 +1,5 @@
 import cvxpy.interface.matrices as intf
+from cvxpy.expressions.variable import Variable
 
 class Minimize(object):
     """
@@ -16,14 +17,15 @@ class Minimize(object):
     def name(self):
         return ' '.join([self.NAME, self.expr.name()])
 
-    # def size(self):
-    #     if self.expr.size() != (1,1):
-    #         raise Exception("The objective '%s' must resolve to a scalar." 
-    #                         % self.name())
-    #     return self.expr.size()
-
+    # Create a new objective to handle constants in the original objective.
+    # Raise exception if the original objective is not scalar.
     def canonicalize(self):
-        return self.expr.canonicalize()
+        if self.expr.size() != (1,1):
+            raise Exception("The objective '%s' must resolve to a scalar." 
+                            % self.name())
+        obj,constraints = self.expr.canonicalize()
+        t = Variable()
+        return (t, constraints + [t == obj])
 
     # Objective must be convex.
     def is_dcp(self):
@@ -31,21 +33,16 @@ class Minimize(object):
 
     # The value of the objective, taken from the solver results.
     def value(self, results):
-        return results['primal objective'] #+ self.constant
+        return results['primal objective']
 
 class Maximize(Minimize):
     NAME = "maximize"
     """
     An optimization objective for maximization.
     """
-    # # Store the constant term.
-    # def coefficients(self):
-    #     coeff_dict = (-self.expr).coefficients()
-    #     self.constant = self.expr.constant(coeff_dict)
-    #     return coeff_dict
-
     def canonicalize(self):
-        return (-self.expr).canonicalize()
+        obj,constraints = super(Maximize, self).canonicalize()
+        return (-obj, constraints)
 
     # Objective must be concave.
     def is_dcp(self):

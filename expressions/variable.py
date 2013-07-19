@@ -5,15 +5,15 @@ from curvature import Curvature
 
 class Variable(Expression):
     """
-    A vector variable.
-    name - unique identifier.
-    rows - vector dimension.
+    A matrix variable.
     """
     VAR_COUNT = 0
-
-    def __init__(self, rows=1,name=None):
+    # name - unique identifier.
+    # rows - variable height.
+    # cols - variable width.
+    def __init__(self, rows=1, cols=1, name=None):
         self.rows = rows
-        self.cols = 1 # TODO matrix variables.
+        self.cols = cols
         self.var_name = Variable.next_var_name() if name is None else name
 
     # Returns a new variable name based on a global counter.

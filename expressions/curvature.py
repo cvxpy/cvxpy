@@ -52,6 +52,14 @@ class Curvature(object):
     def is_concave(self):
         return self.is_affine() or self == Curvature.CONCAVE
 
+    # Sums list of curvatures
+    @staticmethod
+    def sum(curvatures):
+        sum_curvature = Curvature.CONSTANT
+        for curvature in curvatures:
+            sum_curvature = sum_curvature + curvature
+        return sum_curvature
+
     def __add__(self, other):
         curvature_val = Curvature.VEXITY_MAP[self.curvature_str] | \
                         Curvature.VEXITY_MAP[other.curvature_str]

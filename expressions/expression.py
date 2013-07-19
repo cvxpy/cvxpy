@@ -20,17 +20,15 @@ class Expression(object):
     def name(self):
         return NotImplemented
 
-    # # Returns a dict of term name to coefficient in the
-    # # expression and a set of possible expression sizes.
-    # @abc.abstractmethod
-    # def coefficients(self):
-    #     return NotImplemented
+    # Returns a dict of term name to coefficient in the
+    # expression and a set of possible expression sizes.
+    def coefficients(self):
+        return NotImplemented
 
-    # # Returns a dict of name to variable containing all the
-    # # variables in the expression.
-    # @abc.abstractmethod
-    # def variables(self):
-    #     return NotImplemented
+    # Returns a dict of name to variable containing all the
+    # variables in the expression.
+    def variables(self):
+        return NotImplemented
 
     # Returns the dimensions of the expression.
     @abc.abstractmethod
