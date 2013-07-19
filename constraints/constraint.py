@@ -1,26 +1,42 @@
-import settings
+import abc
+import cvxpy.settings
+import cvxpy.interface.matrices as intf
+from cvxpy.expressions.operators import BinaryOperator
 
-class Constraint(object):
+class Constraint(BinaryOperator):
+    __metaclass__ = abc.ABCMeta
     """
     A constraint on an optimization problem of the form
     affine == affine or affine <= affine.
     Stored internally as affine <=/== 0.
     """
-    # lhs - the expression on the left hand side of the constraint.
-    # rhs - the expression on the right hand side of the constraint.
-    # type - the type of constraint (a string).
-    def __init__(self, lhs, rhs, type):
-        self.lhs = lhs
-        self.rhs = rhs
-        self.type = type
 
     def __repr__(self):
-        return ' '.join([self.lhs.name(), 
-                         self.type, 
-                         self.rhs.name()])
+        return self.name()
 
-    def linear_ops(self):
-        return (self.lhs - self.rhs).linear_ops()
+    def coefficients(self):
+        return (self.lh_exp - self.rh_exp).coefficients()
 
-    def variables(self):
-        return (self.lhs - self.rhs).variables()
+    # Canonicalize the expression in the constraint and
+    # add a new constraint with the expression objective.
+    def canonicalize(self):
+        obj,constraints = (self.lh_exp - self.rh_exp).canonicalize()
+        constraints.append(self.__class__(obj, intf.zeros(*self.size())))
+        return (None, constraints)
+
+    # Does the constraint satisfy DCP requirements?
+    @abc.abstractmethod
+    def is_dcp(self):
+        return NotImplemented
+
+class EqConstraint(Constraint):
+    OP_NAME = "=="
+    # Both sides must be affine.
+    def is_dcp(self):
+        return (self.lh_exp - self.rh_exp).curvature().is_affine()
+
+class LeqConstraint(Constraint):
+    OP_NAME = "<="
+    # Left hand expression must be convex and right hand must be concave.
+    def is_dcp(self):
+        return (self.lh_exp - self.rh_exp).curvature().is_convex()

@@ -1,14 +1,16 @@
-import settings
-import cvxopt
+import cvxpy.settings as s
+import cvxpy.interface.matrices as intf
+from cvxpy.expressions.variable import Variable
+from cvxpy.constraints.constraint import EqConstraint, LeqConstraint
+
 import cvxopt.solvers
-from expressions.expression import Parameter
 
 class Problem(object):
     """
     An optimization problem.
     """
     # Dummy variable list with the constant key for constructing b and h.
-    CONST_VAR = (settings.CONSTANT,Parameter(1))
+    CONST_VAR = (s.CONSTANT,Variable())
 
     # objective - the problem objective.
     # constraints - the problem constraints.
@@ -16,30 +18,43 @@ class Problem(object):
         self.objective = objective
         self.constraints = constraints
 
+    # Does the problem satisfy DCP rules?
+    def is_dcp(self):
+        return all(exp.is_dcp for exp in self.constraints + [self.objective])
+
+    # Convert the problem into an affine objective and affine constraints.
+    def canonicalize(self):
+        obj,constraints = self.objective.canonicalize()
+        for constr in self.constraints:
+            constraints += constr.canonicalize()[1]
+        return (obj,constraints)
+
     # Solves the problem and returns the value of the objective.
     # Saves the values of variables.
     def solve(self):
-        variables = self.variables()
+        objective,constraints = self.canonicalize()
+        variables = self.variables(objective, constraints)
+        eq_constraints = [c for c in constraints if isinstance(c, EqConstraint)]
+        ineq_constraints = [c for c in constraints if isinstance(c, LeqConstraint)]
 
-        c = Problem.constraints_matrix(c, variables)
-        eq_constraints = [c for c in self.constraints if c.type == settings.EQ_CONSTR]
-        eq_constr_matrices = Problem.linear_op_matrices(eq_constraints, variables)
-        ineq_constraints = [c for c in self.constraints if c.type == settings.INEQ_CONSTR]
-        ineq_constr_matrices = Problem.linear_op_matrices(ineq_constraints, variables)
-        
+        c = Problem.constraints_matrix([objective], variables).T
+
         A = Problem.constraints_matrix(eq_constraints, variables)
         b = -Problem.constraints_matrix(eq_constraints, [Problem.CONST_VAR])
         G = Problem.constraints_matrix(ineq_constraints, variables)
         h = -Problem.constraints_matrix(ineq_constraints, [Problem.CONST_VAR])
-        results = cvxopt.solvers.conelp(c,G,h,A=A,b=b)
-        if results['x'] is not None:
-            Problem.save_values(results['x'], variables)
-            return results['primal objective']
 
-    # A dict of variable name to (objects,offset) for the variables in the problem.
-    def variables(self):
-        vars = self.objective.variables()
-        for constr in self.constraints:
+        results = cvxopt.solvers.conelp(c,G,h,A=A,b=b)
+        if results['status'] == 'optimal':
+            Problem.save_values(results['x'], variables)
+            return self.objective.value(results)
+        else:
+            return results['status']
+
+    # A list of variable name and object, sorted alphabetically.
+    def variables(self, objective, constraints):
+        vars = objective.variables()
+        for constr in constraints:
             vars = dict(vars.items() + constr.variables().items())
         names = vars.keys()
         names.sort()
@@ -49,18 +64,33 @@ class Problem(object):
     # as fields in the variable objects.
     @staticmethod
     def save_values(result_vec, variables):
-        for (name,(obj,offset)) in variables.items():
+        offset = 0
+        for (name,var) in variables:
             var.value = []
-            for i in range(obj.rows):
-                var.value.append(result_vec[var[offset]+i])
+            for i in range(var.rows):
+                var.value.append(result_vec[offset+i])
             # Handle scalars
             var.value = var.value if len(var.value) > 1 else var.value[0]
+            offset += var.rows
 
 
     # Returns a matrix where each variable coefficient is inserted as a block
     # with upper left corner at matrix[variable offset, constraint offset].
     @staticmethod
     def constraints_matrix(aff_expressions, variables):
-        rows = sum([aff.shape().rows for aff in aff_expressions])
-        cols = sum([obj.rows for (name,(obj,offset)) in variables.items()])
-        matrix = cvxopt.matrix(0, (rows,cols), 'd') # Real matrix of zeros
+        rows = sum([aff.size()[0] for aff in aff_expressions])
+        cols = sum([obj.size()[0] for (name,obj) in variables])
+        matrix = intf.zeros(rows,cols)
+        horiz_offset = 0
+        for (name, obj) in variables:
+            vert_offset = 0
+            for aff_exp in aff_expressions:
+                coefficients = aff_exp.coefficients()
+                if name in coefficients:
+                    intf.block_copy(matrix, 
+                                    coefficients[name],
+                                    horiz_offset, 
+                                    vert_offset)
+                vert_offset += aff_exp.size()[0]
+            horiz_offset += obj.size()[0]
+        return matrix

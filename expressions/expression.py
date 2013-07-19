@@ -1,79 +1,154 @@
-import settings as s
-import interface.matrices as intf
-from coefficients import Coeff
-from constraints.constraint import Constraint
+import abc
+import cvxpy.settings as s
+import cvxpy.interface.matrices as intf
+import cvxpy.constraints.constraint as c
+from operators import BinaryOperator, UnaryOperator
+from curvature import Curvature
 
 class Expression(object):
     """
     A mathematical expression in a convex optimization problem.
     All attributes are functions that recurse on subexpressions.
     """
-    # name - Returns string representation of the expression.
-    # coefficients - Returns a dict of term name to coefficient in the
-    #                expression and a set of possible expression shapes.
-    # variables - Returns a dict of name to variable containing all 
-    #             the variables in the expression.
+    __metaclass__ = abc.ABCMeta
     # TODO priority
-    def __init__(self, name, coefficients, variables):
-        self.name = name
-        self.coefficients = coefficients
-        self.variables = variables
-
     def __repr__(self):
         return self.name()
 
-    # Cast to Parameter if not an Expression.
-    @staticmethod
-    def const_to_param(expr):
-        return expr if isinstance(expr, Expression) else Parameter(expr)
+    # Returns string representation of the expression.
+    @abc.abstractmethod
+    def name(self):
+        return NotImplemented
 
-    # Helper for all binary arithmetic operators.
-    # op_name - string representation of operator.
-    # coefficients - function for coefficients.
-    def binary_op(self, other, op_name, coefficients):
-        other = Expression.const_to_param(other)
-        return Expression(lambda: ' '.join([self.name(), op_name, other.name()]),
-                          coefficients,
-                          lambda: dict(self.variables().items() + other.variables().items()))
+    # # Returns a dict of term name to coefficient in the
+    # # expression and a set of possible expression sizes.
+    # @abc.abstractmethod
+    # def coefficients(self):
+    #     return NotImplemented
+
+    # # Returns a dict of name to variable containing all the
+    # # variables in the expression.
+    # @abc.abstractmethod
+    # def variables(self):
+    #     return NotImplemented
+
+    # Returns the dimensions of the expression.
+    @abc.abstractmethod
+    def size(self):
+        return NotImplemented
+
+    # Returns the curvature of the expression.
+    @abc.abstractmethod
+    def curvature(self):
+        return NotImplemented
+
+    # Returns an affine expression and affine constraints
+    # representing the expression, creating new variables if necessary.
+    @abc.abstractmethod
+    def canonicalize(self):
+        return NotImplemented
+
+    # Cast to Constant if not an Expression.
+    @staticmethod
+    def cast_to_const(expr):
+        return expr if isinstance(expr, Expression) else Constant(expr)
+
+    # Get the coefficient of the constant in the expression.
+    @staticmethod 
+    def constant(coeff_dict):
+        return coeff_dict.get(s.CONSTANT, 0)
 
     """ Arithmetic operators """
     def __add__(self, other):
-        return self.binary_op(other, s.PLUS, lambda: Coeff.add(self, other))
+        return AddExpression(self, other)
 
     # Called for Number + Expression.
     def __radd__(self, other):
-        return Parameter(other) + self
+        return Constant(other) + self
 
     def __sub__(self, other):
-        return self.binary_op(other, s.MINUS, (self + -other).coefficients)
+        return SubExpression(self, other)
 
     # Called for Number - Expression.
     def __rsub__(self, other):
-        return Parameter(other) - self
+        return Constant(other) - self
 
     def __mul__(self, other):
-        return self.binary_op(other, s.MUL, lambda: Coeff.mul(self, other))
+        return MulExpression(self, other)
 
     # Called for Number * Expression.
     def __rmul__(self, other):
-        return Parameter(other) * self
+        return Constant(other) * self
 
     def __neg__(self):
-        return Expression(lambda: op_name + self.name(),
-                          lambda: (Parameter(-1)*self).coefficients(),
-                          self.variables)
+        return NegExpression(self)
 
     """ Comparison operators """
     def __eq__(self, other):
-        return Constraint(self, other, s.EQ_CONSTR)
+        return c.EqConstraint(self, other)
 
     def __le__(self, other):
-        return Constraint(self, other, s.INEQ_CONSTR)
+        return c.LeqConstraint(self, other)
 
     def __ge__(self, other):
-        return Expression.const_to_param(other) <= self
+        return Expression.cast_to_const(other) <= self
 
-class Parameter(Expression):
+
+class AddExpression(BinaryOperator, Expression):
+    OP_NAME = "+"
+    OP_FUNC = "__add__"
+    # Evaluates the left hand and right hand expressions and sums the dicts.
+    def coefficients(self):
+        lh = self.lh_exp.coefficients()
+        rh = self.rh_exp.coefficients()
+        # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
+        return dict( (n, lh.get(n, 0) + rh.get(n, 0)) for n in set(lh)|set(rh) )
+
+class SubExpression(BinaryOperator, Expression):
+    OP_NAME = "-"
+    OP_FUNC = "__sub__"
+    def coefficients(self):
+        return (self.lh_exp + -self.rh_exp).coefficients()
+
+class MulExpression(BinaryOperator, Expression):
+    OP_NAME = "*"
+    OP_FUNC = "__mul__"
+    # Evaluates the left hand and right hand expressions,
+    # checks the left hand expression is constant,
+    # and multiplies all the right hand coefficients by the left hand constant.
+    def coefficients(self):
+        if not isinstance(self.lh_exp, Constant): 
+            raise Exception("Cannot multiply on the left by a non-constant.")
+        lh_coeff = self.lh_exp.coefficients()
+        rh_coeff = self.rh_exp.coefficients()
+        return dict((k,lh_coeff[s.CONSTANT]*v) for k,v in rh_coeff.items())
+
+    # TODO scalar by vector/matrix
+    def size(self):
+        rh_rows,rh_cols = self.rh_exp.size() 
+        lh_rows,lh_cols = self.lh_exp.size()
+        if lh_cols != rh_rows:
+            raise Exception("'%s' has incompatible dimensions." % self.name())
+        return (lh_rows,rh_cols)
+
+    # Flips the curvature if the left hand expression is a negative scalar.
+    def curvature(self):
+        curvature = super(MulExpression, self).curvature()
+        if isinstance(self.lh_exp, Constant) and \
+           intf.is_scalar(self.lh_exp.value) and \
+           intf.scalar_value(self.lh_exp.value) < 0:
+           return -curvature
+        else:
+            return curvature
+
+class NegExpression(UnaryOperator, Expression):
+    OP_NAME = "-"
+    OP_FUNC = "__neg__"
+    # Negate all coefficients.
+    def coefficients(self):
+        return dict((k,-v) for k,v in self.expr.coefficients().items())
+
+class Constant(Expression):
     """
     A constant, either matrix or scalar.
     """
@@ -85,8 +160,16 @@ class Parameter(Expression):
         return str(self.value) if self.param_name is None else self.param_name
 
     def coefficients(self):
-        mat,shapes intf.const_to_matrix(self.value, intf.TARGET_MATRIX)
-        return ({s.CONSTANT: mat}, shapes)
+        return {s.CONSTANT: intf.const_to_matrix(self.value)}
 
     def variables(self):
         return {}
+
+    def size(self):
+        return intf.size(self.value)
+
+    def curvature(self):
+        return Curvature.CONSTANT
+
+    def canonicalize(self):
+        return (self,[])
