@@ -17,8 +17,16 @@ class TestProblem(unittest.TestCase):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
+        self.A = Variable(2,2,name='A')
+        self.B = Variable(2,2,name='B')
+        self.C = Variable(3,2,name='C')
+
     # Overriden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b):
+        if isinstance(a, intf.TARGET_MATRIX):
+            a = list(a)
+        if isinstance(b, intf.TARGET_MATRIX):
+            b = list(b)
         if isinstance(a, list) and isinstance(b, list):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
@@ -67,8 +75,8 @@ class TestProblem(unittest.TestCase):
         result = p.solve()
         self.assertEqual(result, 'primal infeasible')
 
-    # Test matrix LP problems.
-    def test_matrix_lp(self):
+    # Test vector LP problems.
+    def test_vector_lp(self):
         c = matrix([1,2])
         p = Problem(Minimize(c.T*self.x), [self.x >= c])
         result = p.solve()
@@ -87,6 +95,23 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.a.value, 2)
         self.assertAlmostEqual(self.x.value, [8,8])
         self.assertAlmostEqual(self.z.value, [2,2])
+
+    # Test matrix LP problems.
+    def test_matrix_lp(self):
+        T = matrix(1,(2,2))
+        p = Problem(Minimize(1), [self.A == T])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(self.A.value, T)
+
+        T = matrix(2,(2,3))
+        c = matrix([3,4])
+        p = Problem(Minimize(1), [self.A >= T*self.C, 
+            self.A == self.B, self.C == T.T])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(self.A.value, self.B.value)
+        self.assertAlmostEqual(self.C.value, T)
 
     # Test problems with normInf
     def test_normInf(self):
@@ -119,7 +144,7 @@ class TestProblem(unittest.TestCase):
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
         self.assertAlmostEqual(result, 12)
-        self.assertAlmostEqual(self.x.value[1] - self.z.value[1], 7)
+        self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
 
     # Test problems with norm1
     def test_norm1(self):
@@ -145,7 +170,7 @@ class TestProblem(unittest.TestCase):
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
-        self.assertAlmostEqual(self.x.value[1] - self.z.value[1], 7)
+        self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
 
     # Test problems with norm2
     def test_norm2(self):

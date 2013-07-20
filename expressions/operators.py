@@ -12,7 +12,8 @@ class BinaryOperator(object):
         return dict( self.lh_exp.variables().items() + \
                      self.rh_exp.variables().items() )
 
-    # The expression's sizes must match.
+    # The expression's sizes must match unless one is a scalar,
+    # in which case it is promoted to the size of the other.
     def size(self):
         if self.rh_exp.size() != self.lh_exp.size():
             raise Exception("'%s' has incompatible dimensions." % self.name())

@@ -9,7 +9,7 @@ class Minimize(object):
 
     # expr - the expression to minimize.
     def __init__(self, expr):
-        self.expr = expr
+        self.expr = Variable.cast_to_const(expr)
 
     def __repr__(self):
         return self.name()

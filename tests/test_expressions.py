@@ -9,6 +9,10 @@ class TestExpressions(unittest.TestCase):
         self.x = Variable(2, name='x')
         self.y = Variable(3, name='y')
 
+        self.A = Variable(2,2,name='A')
+        self.B = Variable(2,2,name='B')
+        self.C = Variable(3,2,name='C')
+
     # Test the Variable class.
     def test_variables(self):
         x = Variable(2)
@@ -46,6 +50,7 @@ class TestExpressions(unittest.TestCase):
 
     # Test the AddExpresion class.
     def test_add_expression(self):
+        # Vectors
         exp = self.x + [2,2]
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
@@ -61,8 +66,19 @@ class TestExpressions(unittest.TestCase):
             (self.x + self.y).size()
         self.assertEqual(str(cm.exception), "'x + y' has incompatible dimensions.")
 
+        # Matrices
+        exp = self.A + self.B
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEqual(exp.size(), (2,2))
+
+        with self.assertRaises(Exception) as cm:
+            (self.A + self.C).size()
+        self.assertEqual(str(cm.exception), "'A + C' has incompatible dimensions.")
+
+
     # Test the SubExpresion class.
     def test_sub_expression(self):
+        # Vectors
         exp = self.x - [2,2]
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
@@ -78,8 +94,18 @@ class TestExpressions(unittest.TestCase):
             (self.x - self.y).size()
         self.assertEqual(str(cm.exception), "'x - y' has incompatible dimensions.")
 
+        # Matrices
+        exp = self.A - self.B
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEqual(exp.size(), (2,2))
+
+        with self.assertRaises(Exception) as cm:
+            (self.A - self.C).size()
+        self.assertEqual(str(cm.exception), "'A - C' has incompatible dimensions.")
+
     # Test the MulExpresion class.
     def test_mul_expression(self):
+        # Vectors
         c = [[2],[2]]
         exp = c*self.x
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
@@ -98,8 +124,18 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(str(cm.exception), 
             "'%s * x' has incompatible dimensions." % const_name)
 
+        # Matrices
+        exp = self.C * self.B
+        self.assertEqual(exp.curvature(), Curvature.UNKNOWN)
+        self.assertEqual(exp.size(), (3,2))
+
+        with self.assertRaises(Exception) as cm:
+            (self.A * self.C).size()
+        self.assertEqual(str(cm.exception), "'A * C' has incompatible dimensions.")
+
     # Test the NegExpression class.
     def test_neg_expression(self):
+        # Vectors
         exp = -self.x
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
@@ -107,4 +143,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.size(), self.x.size())
         exp = self.x+self.y
         self.assertEquals((-exp).variables(), exp.variables())
-        self.assertEquals((-exp).coefficients()['x'][0,0], -1)
+
+        # Matrices
+        exp = -self.C
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEqual(exp.size(), (3,2))

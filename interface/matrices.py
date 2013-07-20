@@ -11,22 +11,34 @@ def const_to_matrix(value):
 
 # Return an identity matrix.
 def identity(size):
-    matrix = TARGET_MATRIX(0, (size,size), tc='d')
+    matrix = zeros(size, size)
     for i in range(size):
         matrix[i,i] = 1
     return matrix
 
 # Return a matrix with all 0's.
 def zeros(rows, cols):
-    return TARGET_MATRIX(0, (rows,cols), tc='d')
+    return scalar_matrix(0, rows, cols)
 
 # Return a matrix with all 1's.
 def ones(rows, cols):
-    return TARGET_MATRIX(1, (rows,cols), tc='d')
+    return scalar_matrix(1, rows, cols)
+
+# A matrix with all entries equal to the given scalar value.
+def scalar_matrix(value, rows, cols):
+    return TARGET_MATRIX(value, (rows,cols), tc='d')
 
 # Copy the block into the matrix at the given offset.
-def block_copy(matrix, block, horiz_offset, vert_offset):
-    rows,cols = block.size
+# If the block is a vector coerced into a matrix, promote it.
+# If the block is a matrix coerced into a vector, vectorize it.
+# If the block is a scalar, promote it.
+def block_copy(matrix, block, vert_offset, horiz_offset, rows, cols):
+    if is_scalar(block):
+        block = scalar_matrix(scalar_value(block), rows, cols)
+    elif is_vector(block) and cols > 1:
+        block = TARGET_MATRIX(list(block), (rows, cols), tc='d')
+    elif not is_vector(block) and cols == 1:
+        block = TARGET_MATRIX(list(block), tc='d')
     matrix[vert_offset:(rows+vert_offset), horiz_offset:(horiz_offset+cols)] = block
 
 # Get the dimensions of the constant.
@@ -42,6 +54,10 @@ def size(constant):
             return (len(constant[0]),len(constant))
     elif isinstance(constant, cvxopt.matrix):
         return constant.size
+
+# Is the constant a vector?
+def is_vector(constant):
+    return size(constant)[1] == 1
 
 # Is the constant a scalar?
 def is_scalar(constant):
