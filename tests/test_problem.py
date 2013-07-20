@@ -112,6 +112,7 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(result, 1)
         self.assertAlmostEqual(self.A.value, self.B.value)
         self.assertAlmostEqual(self.C.value, T)
+        self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
 
     # Test problems with normInf
     def test_normInf(self):
