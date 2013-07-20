@@ -9,7 +9,8 @@ Constants are converted internally to cvxopt dense matrices. This also could be 
 
 Example usage (execute in python prompt from above the cvxpy directory):
 
-`from cvxpy import *
+```
+from cvxpy import *
 
 x = Variable(2)
 z = Variable(2)
@@ -25,4 +26,5 @@ p.solve()
 # Variable values are stored in the same matrix type used internally, 
 # i.e. a cvxopt dense matrix.
 x.value
-z.value`
+z.value
+```
