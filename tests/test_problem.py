@@ -205,7 +205,7 @@ class TestProblem(unittest.TestCase):
         p = Problem(Minimize(norm2(5 + norm1(self.z) 
                                   + norm1(self.x) + 
                                   normInf(self.x - self.z) ) ), 
-            [self.x >= [2,3], self.z <= [-1,-4]])
+            [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 22)
         self.assertAlmostEqual(self.x.value, [2,3])
