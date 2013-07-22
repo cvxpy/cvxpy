@@ -115,7 +115,7 @@ class MulExpression(BinaryOperator, Expression):
     # checks the left hand expression is constant,
     # and multiplies all the right hand coefficients by the left hand constant.
     def coefficients(self):
-        if not isinstance(self.lh_exp, Constant): 
+        if not self.lh_exp.curvature().is_constant(): 
             raise Exception("Cannot multiply on the left by a non-constant.")
         lh_coeff = self.lh_exp.coefficients()
         rh_coeff = self.rh_exp.coefficients()
@@ -130,6 +130,7 @@ class MulExpression(BinaryOperator, Expression):
         return (lh_rows,rh_cols)
 
     # Flips the curvature if the left hand expression is a negative scalar.
+    # TODO is_constant instead of isinstance(...,Constant)
     def curvature(self):
         curvature = super(MulExpression, self).curvature()
         if isinstance(self.lh_exp, Constant) and \

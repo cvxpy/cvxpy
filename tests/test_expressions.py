@@ -27,8 +27,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.curvature(), Curvature.AFFINE)
         self.assertEqual(x.canonicalize(), (x, []))
 
-        self.assertEqual(x.variables()['x'], x)
-        identity = x.coefficients()['x']
+        self.assertEqual(x.variables()[x.id], x)
+        identity = x.coefficients()[x.id]
         self.assertEqual(identity.size, (2,2))
         self.assertEqual(identity[0,0], 1)
         self.assertEqual(identity[0,1], 0)
@@ -59,8 +59,8 @@ class TestExpressions(unittest.TestCase):
 
         z = Variable(2, name='z')
         exp = exp + z + self.x
-        self.assertEqual(exp.variables().keys(), ['x','z'])
-        self.assertEqual(exp.coefficients()['x'][0,0], 2)
+        self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
+        self.assertEqual(exp.coefficients()[self.x.id][0,0], 2)
 
         with self.assertRaises(Exception) as cm:
             (self.x + self.y).size()
@@ -87,8 +87,8 @@ class TestExpressions(unittest.TestCase):
 
         z = Variable(2, name='z')
         exp = exp - z - self.x
-        self.assertEqual(exp.variables().keys(), ['x','z'])
-        self.assertEqual(exp.coefficients()['x'][0,0], 0)
+        self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
+        self.assertEqual(exp.coefficients()[self.x.id][0,0], 0)
 
         with self.assertRaises(Exception) as cm:
             (self.x - self.y).size()
@@ -115,7 +115,7 @@ class TestExpressions(unittest.TestCase):
 
         new_exp = 2*(exp + 1)
         self.assertEqual(new_exp.variables(), exp.variables())
-        self.assertEqual(new_exp.coefficients()['x'][0,0], 4)
+        self.assertEqual(new_exp.coefficients()[self.x.id][0,0], 4)
         self.assertEqual(Expression.constant(new_exp.coefficients())[0,0], 2)
 
         with self.assertRaises(Exception) as cm:
@@ -132,6 +132,12 @@ class TestExpressions(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             (self.A * self.C).size()
         self.assertEqual(str(cm.exception), "'A * C' has incompatible dimensions.")
+
+        # Constant expressions
+        T = Constant([[1,2,3],[3,5,5]])
+        exp = (T + T) * self.B
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEqual(exp.size(), (3,2))
 
     # Test the NegExpression class.
     def test_neg_expression(self):

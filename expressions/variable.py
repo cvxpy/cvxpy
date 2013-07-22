@@ -1,3 +1,4 @@
+import inspect
 import cvxpy.settings as s
 import cvxpy.interface.matrices as intf
 from expression import Expression
@@ -14,7 +15,8 @@ class Variable(Expression):
     def __init__(self, rows=1, cols=1, name=None):
         self.rows = rows
         self.cols = cols
-        self.var_name = Variable.next_var_name() if name is None else name
+        self.id = Variable.next_var_name()
+        self.var_name = self.id if name is None else name
 
     # Returns a new variable name based on a global counter.
     @staticmethod
@@ -27,10 +29,10 @@ class Variable(Expression):
 
     # Initialized with identity matrix as variable's coefficient.
     def coefficients(self):
-        return {self.name(): intf.identity(self.rows)}
+        return {self.id: intf.identity(self.rows)}
 
     def variables(self):
-        return {self.name(): self}
+        return {self.id: self}
 
     def size(self):
         return (self.rows, self.cols)

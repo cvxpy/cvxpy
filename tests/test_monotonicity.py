@@ -8,7 +8,7 @@ class TestMonotonicity(object):
     def test_dcp_curvature(self):
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.AFFINE, Curvature.CONVEX), Curvature.CONVEX)
         assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.AFFINE, Curvature.AFFINE), Curvature.AFFINE)
-        assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.UNKNOWN, Curvature.CONSTANT), Curvature.CONSTANT)
+        assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.UNKNOWN, Curvature.CONSTANT), Curvature.UNKNOWN)
 
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONVEX, Curvature.CONVEX), Curvature.CONVEX)
         assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.CONVEX, Curvature.CONCAVE), Curvature.CONVEX)
@@ -19,4 +19,4 @@ class TestMonotonicity(object):
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONCAVE, Curvature.CONVEX), Curvature.UNKNOWN)
         assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONCAVE, Curvature.AFFINE), Curvature.CONCAVE)
 
-        assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONSTANT, Curvature.UNKNOWN), Curvature.CONSTANT)
+        assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONSTANT, Curvature.UNKNOWN), Curvature.UNKNOWN)

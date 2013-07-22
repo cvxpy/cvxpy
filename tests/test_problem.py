@@ -41,6 +41,15 @@ class TestProblem(unittest.TestCase):
         p = Problem(Maximize(normInf(self.a)))
         self.assertEqual(p.is_dcp(), False)
 
+    # Test problems involving variables with the same name.
+    def test_variable_name_conflict(self):
+        var = Variable(name='a')
+        p = Problem(Maximize(self.a + var), [var == 2 + self.a, var <= 3])
+        result = p.solve()
+        self.assertAlmostEqual(result, 4.0)
+        self.assertAlmostEqual(self.a.value, 1)
+        self.assertAlmostEqual(var.value, 3)
+
     # Test scalar LP problems.
     def test_scalar_lp(self):
         p = Problem(Minimize(3*self.a), [self.a >= 2])

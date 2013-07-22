@@ -1,5 +1,6 @@
 import cvxopt
 import numbers
+import numpy
 TARGET_MATRIX = cvxopt.matrix
 
 # Convert an arbitrary value into a matrix of type TARGET_MATRIX.
@@ -54,6 +55,8 @@ def size(constant):
             return (len(constant[0]),len(constant))
     elif isinstance(constant, cvxopt.matrix):
         return constant.size
+    elif isinstance(constant, numpy.ndarray):
+        return constant.shape
 
 # Is the constant a vector?
 def is_vector(constant):

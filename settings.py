@@ -11,7 +11,7 @@ END_MUL_OP = [(None, END_MUL, [])]
 VAR_PREFIX = "var"
 
 # Key for the constant term.
-CONSTANT = "1"
+CONSTANT = "CONSTANT"
 
 # Constraint types
 EQ_CONSTR = "=="

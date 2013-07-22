@@ -21,6 +21,8 @@ class Curvature(object):
                   UNKNOWN_KEY: 7
                  }
 
+    INVERSE_VEXITY_MAP = dict( (v,k) for k,v in VEXITY_MAP.items() )
+
     # For multiplying curvature by negative sign.
     NEGATION_MAP = {CONVEX_KEY: CONCAVE_KEY, CONCAVE_KEY: CONVEX_KEY}
     
@@ -37,10 +39,14 @@ class Curvature(object):
     def __str__(self):
         return self.curvature_str
 
+    # Returns whether the curvature is constant.
+    def is_constant(self):
+        return self == Curvature.CONSTANT
+
     # Returns whether the curvature is affine, 
     # counting constant expressions as affine.
     def is_affine(self):
-        return self == Curvature.CONSTANT or self == Curvature.AFFINE
+        return self.is_constant() or self == Curvature.AFFINE
 
     # Returns whether the curvature is convex, 
     # counting affine and constant expressions as convex.
@@ -63,9 +69,7 @@ class Curvature(object):
     def __add__(self, other):
         curvature_val = Curvature.VEXITY_MAP[self.curvature_str] | \
                         Curvature.VEXITY_MAP[other.curvature_str]
-        for key,val in Curvature.VEXITY_MAP.items():
-            if val == curvature_val:
-                return Curvature(key)
+        return Curvature(Curvature.INVERSE_VEXITY_MAP[curvature_val])
     
     def __sub__(self, other):
         return self + -other
