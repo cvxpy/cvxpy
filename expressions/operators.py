@@ -12,12 +12,32 @@ class BinaryOperator(object):
         return dict( self.lh_exp.variables().items() + \
                      self.rh_exp.variables().items() )
 
+    # Is the expression a scalar constant?
+    @staticmethod
+    def is_scalar_consant(expr):
+        return expr.curvature().is_constant() and expr.size() == (1,1)
+
+    # Returns the size of the expression if scalar constants were promoted.
+    # Returns None if neither the lefthand nor righthand expressions can be
+    # promoted.
+    def promoted_size(self):
+        if self.is_scalar_consant(self.rh_exp):
+            return self.lh_exp.size()
+        elif self.is_scalar_consant(self.lh_exp):
+            return self.rh_exp.size()
+        else:
+            return None
+
     # The expression's sizes must match unless one is a scalar,
     # in which case it is promoted to the size of the other.
     def size(self):
-        if self.rh_exp.size() != self.lh_exp.size():
+        size = self.promoted_size()
+        if size is not None:
+            return size
+        elif self.rh_exp.size() == self.lh_exp.size():
+            return self.lh_exp.size()   
+        else:
             raise Exception("'%s' has incompatible dimensions." % self.name())
-        return self.lh_exp.size()
 
     # Apply the appropriate arithmetic operator to the 
     # left hand and right hand curvatures.

@@ -116,7 +116,7 @@ class TestExpressions(unittest.TestCase):
         new_exp = 2*(exp + 1)
         self.assertEqual(new_exp.variables(), exp.variables())
         self.assertEqual(new_exp.coefficients()[self.x.id][0,0], 4)
-        self.assertEqual(Expression.constant(new_exp.coefficients())[0,0], 2)
+        self.assertEqual(Expression.constant(new_exp.coefficients()), 2)
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x).size()
@@ -154,3 +154,25 @@ class TestExpressions(unittest.TestCase):
         exp = -self.C
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.size(), (3,2))
+
+    # Test promotion of scalar constants.
+    def test_scalar_const_promotion(self):
+        # Vectors
+        exp = self.x + 2
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEqual(exp.canonicalize(), (exp, []))
+        self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
+        self.assertEqual(exp.size(), (2,1))
+
+        self.assertEqual((4 - self.x).size(), (2,1))
+        self.assertEqual((4 * self.x).size(), (2,1))
+        self.assertEqual((4 <= self.x).size(), (2,1))
+        self.assertEqual((4 == self.x).size(), (2,1))
+        self.assertEqual((self.x >= 4).size(), (2,1))
+
+        # Matrices
+        exp = (self.A + 2) + 4
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEqual((3 * self.A).size(), (2,2))
+
+        self.assertEqual(exp.size(), (2,2))

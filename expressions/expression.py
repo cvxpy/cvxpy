@@ -115,7 +115,7 @@ class MulExpression(BinaryOperator, Expression):
     # checks the left hand expression is constant,
     # and multiplies all the right hand coefficients by the left hand constant.
     def coefficients(self):
-        if not self.lh_exp.curvature().is_constant(): 
+        if not self.lh_exp.curvature().is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
         lh_coeff = self.lh_exp.coefficients()
         rh_coeff = self.rh_exp.coefficients()
@@ -123,14 +123,19 @@ class MulExpression(BinaryOperator, Expression):
 
     # TODO scalar by vector/matrix
     def size(self):
-        rh_rows,rh_cols = self.rh_exp.size() 
-        lh_rows,lh_cols = self.lh_exp.size()
-        if lh_cols != rh_rows:
-            raise Exception("'%s' has incompatible dimensions." % self.name())
-        return (lh_rows,rh_cols)
+        size = self.promoted_size()
+        if size is not None:
+            return size
+        else:
+            rh_rows,rh_cols = self.rh_exp.size()
+            lh_rows,lh_cols = self.lh_exp.size()
+            if lh_cols == rh_rows:
+                return (lh_rows,rh_cols)
+            else:
+                raise Exception("'%s' has incompatible dimensions." % self.name())
 
     # Flips the curvature if the left hand expression is a negative scalar.
-    # TODO is_constant instead of isinstance(...,Constant)
+    # TODO is_constant instead of isinstance(...,Constant) using Sign
     def curvature(self):
         curvature = super(MulExpression, self).curvature()
         if isinstance(self.lh_exp, Constant) and \

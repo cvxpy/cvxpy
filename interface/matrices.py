@@ -5,9 +5,8 @@ TARGET_MATRIX = cvxopt.matrix
 
 # Convert an arbitrary value into a matrix of type TARGET_MATRIX.
 def const_to_matrix(value):
-    # if isinstance(value, numbers.Number): TODO promotion
-    #     return value
-    # elif isinstance(value, cvxopt.matrix) or isinstance(value, list):
+    if isinstance(value, numbers.Number):
+        return value
     return TARGET_MATRIX(value, tc='d')
 
 # Return an identity matrix.

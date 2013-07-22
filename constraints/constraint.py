@@ -21,7 +21,7 @@ class Constraint(BinaryOperator):
     # add a new constraint with the expression objective.
     def canonicalize(self):
         obj,constraints = (self.lh_exp - self.rh_exp).canonicalize()
-        constraints.append(self.__class__(obj, intf.zeros(*self.size())))
+        constraints.append(self.__class__(obj, 0))
         return (None, constraints)
 
     # Does the constraint satisfy DCP requirements?

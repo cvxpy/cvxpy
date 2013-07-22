@@ -22,6 +22,7 @@ for func in __ARRAY_CREATION:
 class BinaryOpsWrapper(type):
     """
     Metaclass to wrap all binary ops for the classes created.
+    http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python
     """
     _WRAPPED_OPS = ["__add__", "__sub__", "__mul__", 
                     "__eq__", "__le__", "__ge__"]
@@ -29,8 +30,6 @@ class BinaryOpsWrapper(type):
         for func in BinaryOpsWrapper._WRAPPED_OPS:
             dct[func] = BinaryOpsWrapper._wrap_binary_op(func)
 
-        # reuse the type.__new__ method
-        # this is basic OOP, nothing magic in there
         return type.__new__(cls, name, bases, dct)
 
     @staticmethod
