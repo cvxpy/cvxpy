@@ -1,4 +1,9 @@
+import expression
+
 class BinaryOperator(object):
+    """
+    Base class for expressions involving binary operators.
+    """
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
         self.rh_exp = expression.Expression.cast_to_const(rh_exp)
@@ -54,6 +59,9 @@ class BinaryOperator(object):
         return (obj,lh_constraints + rh_constraints)
 
 class UnaryOperator(object):
+    """
+    Base class for expressions involving unary operators. 
+    """
     def __init__(self, expr):
         self.expr = expr
 
@@ -73,5 +81,3 @@ class UnaryOperator(object):
         obj,constraints = self.expr.canonicalize()
         obj = getattr(obj, self.OP_FUNC)()
         return (obj,constraints)
-
-import expression

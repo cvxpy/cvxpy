@@ -3,7 +3,7 @@ from atom import Atom
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
 from monotonicity import Monotonicity
-from cvxpy.constraints.soc import SOC
+from cvxpy.constraints.second_order import SOC
 
 class norm2(Atom):
     """ L2 norm (sum(x^2))^(1/2) """

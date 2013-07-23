@@ -1,17 +1,16 @@
 from cvxpy.expressions.variable import Variable
 import cvxpy.interface.matrices as intf
 
-class SOC(object):
+class SDC(object):
     """ 
-    A second-order cone constraint
-    norm2(x) <= t
+    A positive semidefinite cone constraint:
+        x'Ax >= 0 for all x
     """
-    def __init__(self, t, x):
-        self.x = x
-        self.t = t
+    def __init__(self, A):
+        self.A = A
 
-    # Reduce SOC to affine/basic SOC constraints and 
-    # a SOC with variables as arguments (i.e. basic).
+    # Reduce SDC to affine constraints and 
+    # a SDC with a single matrix variable as an argument.
     def canonicalize(self):
         x_obj,x_constraints = self.x.canonicalize()
         t_obj,t_constraints = self.t.canonicalize()
@@ -22,9 +21,9 @@ class SOC(object):
 
         scalar = Variable()
         constraints.append(scalar == t_obj)
-        return (None, constraints + [SOC(scalar,vector)])
+        return (None, constraints + [SDC(scalar,vector)])
 
-    # Formats SOC constraints for the solver.
+    # Formats SDC constraints for the solver.
     def format(self):
         return [-self.t <= 0,
                 -self.x <= intf.zeros(self.size()-1,1)]

@@ -1,4 +1,5 @@
 from cvxpy.atoms import *
+from cvxpy.expressions.expression import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -122,7 +123,7 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.A.value, self.B.value)
         self.assertAlmostEqual(self.C.value, T)
         self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
-
+        
     # Test problems with normInf
     def test_normInf(self):
         # Constant argument.

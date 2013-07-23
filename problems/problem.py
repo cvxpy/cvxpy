@@ -3,7 +3,7 @@ import cvxpy.interface.matrices as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.constraint import EqConstraint, LeqConstraint
-from cvxpy.constraints.soc import SOC
+from cvxpy.constraints.second_order import SOC
 
 import cvxopt.solvers
 
