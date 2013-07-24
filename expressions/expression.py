@@ -46,10 +46,10 @@ class Expression(object):
     def canonicalize(self):
         return NotImplemented
 
-    # Cast to Constant if not an Expression.
+    # Cast to Parameter if not an Expression.
     @staticmethod
     def cast_to_const(expr):
-        return expr if isinstance(expr, Expression) else Constant(expr)
+        return expr if isinstance(expr, Expression) else Parameter(expr)
 
     # Get the coefficient of the constant in the expression.
     @staticmethod 
@@ -62,21 +62,21 @@ class Expression(object):
 
     # Called for Number + Expression.
     def __radd__(self, other):
-        return Constant(other) + self
+        return Parameter(other) + self
 
     def __sub__(self, other):
         return SubExpression(self, other)
 
     # Called for Number - Expression.
     def __rsub__(self, other):
-        return Constant(other) - self
+        return Parameter(other) - self
 
     def __mul__(self, other):
         return MulExpression(self, other)
 
     # Called for Number * Expression.
     def __rmul__(self, other):
-        return Constant(other) * self
+        return Parameter(other) * self
 
     def __neg__(self):
         return NegExpression(self)
@@ -135,10 +135,10 @@ class MulExpression(BinaryOperator, Expression):
                 raise Exception("'%s' has incompatible dimensions." % self.name())
 
     # Flips the curvature if the left hand expression is a negative scalar.
-    # TODO is_constant instead of isinstance(...,Constant) using Sign
+    # TODO is_constant instead of isinstance(...,Parameter) using Sign
     def curvature(self):
         curvature = super(MulExpression, self).curvature()
-        if isinstance(self.lh_exp, Constant) and \
+        if isinstance(self.lh_exp, Parameter) and \
            intf.is_scalar(self.lh_exp.value) and \
            intf.scalar_value(self.lh_exp.value) < 0:
            return -curvature
@@ -152,7 +152,38 @@ class NegExpression(UnaryOperator, Expression):
     def coefficients(self):
         return dict((k,-v) for k,v in self.expr.coefficients().items())
 
-class Constant(Expression):
+class IndexExpression(Expression):
+    # key - a tuple of integers.
+    def __init__(self, expr, key):
+        self.expr = expr
+        self.key = key
+
+    def name(self):
+        return "%s[%s,%s]" % (self.expr.name(), self.key[0], self.key[1])
+
+    # TODO slices
+    def size(self):
+        return (1,1)
+
+    # Raise an Exception if the key is not a valid slice.
+    def validate_key(self):
+        rows,cols = self.expr.size()
+        if not (0 <= self.key[0] and self.key[0] < rows and \
+                0 <= self.key[1] and self.key[1] < cols): 
+           raise Exception("Invalid indices %s,%s for '%s'." % 
+                (self.key[0], self.key[1], self.expr.name()))
+
+    # TODO what happens to vectors/matrices of expressions?
+    def curvature(self):
+        return self.expr.curvature()
+
+    # TODO right place to error check?
+    def canonicalize(self):
+        self.validate_key()
+        return (None, [])
+
+
+class Parameter(Expression):
     """
     A constant, either matrix or scalar.
     """

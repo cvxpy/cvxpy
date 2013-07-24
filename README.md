@@ -3,28 +3,29 @@ cvxpy
 Supports norm2, normInf, and norm1 with vector arguments.
 Supports affine expressions with variables of any dimension.
 
-Currently supports numpy arrays and matrices, cvxopt matrices, numbers, and python lists as constants. For numpy arrays and matrices, the user must use the numpy module given by cvxpy import * or import cvxpy.interface.numpy_wrapper as \<chosen name\>.
+Currently supports numpy arrays and matrices, cvxopt matrices, numbers, and python lists as constants. Matrices and vectors must be declared as Parameters, i.e. A = Parameter(numpy array). 
 
-Constant values are converted internally to cvxopt dense matrices. This could be easily changed or made a user choice. The target solver is cvxopt.solvers.conelp.
+The alternative is that for numpy arrays and matrices, the user must use the numpy module given by cvxpy import * or import cvxpy.interface.numpy_wrapper as \<chosen name\>.
+
+Parameter values are converted internally to cvxopt dense matrices. This could be easily changed or made a user choice. The target solver is cvxopt.solvers.conelp.
 
 Example usage (execute in python prompt from above the cvxpy directory):
 
 ```
 from cvxpy import *
 
-x = Variable(2)
-z = Variable(2)
+v = Variables(('x',2),('z',2))
 
 p = Problem(
-        Minimize(5 + norm1(z) + norm1(self.x) + normInf(self.x - self.z) ) ), 
-        [x >= [2,3], 
-         z <= [-1,-4], 
-         norm2(x + z) <= 2]
+        Minimize(5 + norm1(v.z) + norm1(v.x) + normInf(v.x - v.z) ) ), 
+        [v.x >= [2,3], 
+         v.z <= [-1,-4], 
+         norm2(v.x + v.z) <= 2]
     )
 
 p.solve()
 # Variable values are stored in the same matrix type used internally, 
 # i.e. a cvxopt dense matrix.
-x.value
-z.value
+v.x.value
+v.z.value
 ```

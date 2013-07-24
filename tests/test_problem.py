@@ -1,5 +1,5 @@
 from cvxpy.atoms import *
-from cvxpy.expressions.expression import Constant
+from cvxpy.expressions.expression import Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -126,7 +126,7 @@ class TestProblem(unittest.TestCase):
         
     # Test problems with normInf
     def test_normInf(self):
-        # Constant argument.
+        # Parameter argument.
         p = Problem(Minimize(normInf(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
@@ -159,7 +159,7 @@ class TestProblem(unittest.TestCase):
 
     # Test problems with norm1
     def test_norm1(self):
-        # Constant argument.
+        # Parameter argument.
         p = Problem(Minimize(norm1(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
@@ -185,7 +185,7 @@ class TestProblem(unittest.TestCase):
 
     # Test problems with norm2
     def test_norm2(self):
-        # Constant argument.
+        # Parameter argument.
         p = Problem(Minimize(norm2(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)

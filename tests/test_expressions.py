@@ -35,12 +35,12 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(identity[1,0], 0)
         self.assertEqual(identity[1,1], 1)
 
-    # Test the Constant class.
+    # Test the Parameter class.
     def test_constants(self):
-        c = Constant(2)
+        c = Parameter(2)
         self.assertEqual(c.name(), str(2))
 
-        c = Constant(2, name="c")
+        c = Parameter(2, name="c")
         self.assertEqual(c.name(), "c")
         self.assertEqual(c.value, 2)
         self.assertEqual(c.size(), (1,1))
@@ -54,7 +54,7 @@ class TestExpressions(unittest.TestCase):
         exp = self.x + [2,2]
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
-        self.assertEqual(exp.name(), self.x.name() + " + " + Constant([2,2]).name())
+        self.assertEqual(exp.name(), self.x.name() + " + " + Parameter([2,2]).name())
         self.assertEqual(exp.size(), (2,1))
 
         z = Variable(2, name='z')
@@ -82,7 +82,7 @@ class TestExpressions(unittest.TestCase):
         exp = self.x - [2,2]
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
-        self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
+        self.assertEqual(exp.name(), self.x.name() + " - " + Parameter([2,2]).name())
         self.assertEqual(exp.size(), (2,1))
 
         z = Variable(2, name='z')
@@ -110,7 +110,7 @@ class TestExpressions(unittest.TestCase):
         exp = c*self.x
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
-        self.assertEqual(exp.name(), Constant(c).name() + " * " + self.x.name())
+        self.assertEqual(exp.name(), Parameter(c).name() + " * " + self.x.name())
         self.assertEqual(exp.size(), (1,1))
 
         new_exp = 2*(exp + 1)
@@ -120,7 +120,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x).size()
-        const_name = Constant([2,2,3]).name()
+        const_name = Parameter([2,2,3]).name()
         self.assertEqual(str(cm.exception), 
             "'%s * x' has incompatible dimensions." % const_name)
 
@@ -133,8 +133,8 @@ class TestExpressions(unittest.TestCase):
             (self.A * self.C).size()
         self.assertEqual(str(cm.exception), "'A * C' has incompatible dimensions.")
 
-        # Constant expressions
-        T = Constant([[1,2,3],[3,5,5]])
+        # Parameter expressions
+        T = Parameter([[1,2,3],[3,5,5]])
         exp = (T + T) * self.B
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.size(), (3,2))
@@ -161,7 +161,7 @@ class TestExpressions(unittest.TestCase):
         exp = self.x + 2
         self.assertEqual(exp.curvature(), Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
-        self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
+        self.assertEqual(exp.name(), self.x.name() + " + " + Parameter(2).name())
         self.assertEqual(exp.size(), (2,1))
 
         self.assertEqual((4 - self.x).size(), (2,1))
@@ -176,3 +176,15 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual((3 * self.A).size(), (2,2))
 
         self.assertEqual(exp.size(), (2,2))
+
+    # Test indexing expression.
+    def test_index_expression(self):
+        # Tuple of integers as key.
+        exp = self.x[1,0]
+        self.assertEqual(exp.name(), "x[1,0]")
+        self.assertEqual(exp.curvature(), Curvature.AFFINE)
+        self.assertEquals(exp.size(), (1,1))
+
+        with self.assertRaises(Exception) as cm:
+            (self.x[2,0]).canonicalize()
+        self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")

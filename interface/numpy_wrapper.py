@@ -1,4 +1,4 @@
-from cvxpy.expressions.expression import Expression, Constant
+from cvxpy.expressions.expression import Expression, Parameter
 from numpy import *
 import numpy
 import sys
@@ -37,7 +37,7 @@ class _BinaryOpsWrapper(type):
     def _wrap_binary_op(func):
         def wrapper(self, other):
             if isinstance(other, Expression):
-                return getattr(Constant(self), func)(other)
+                return getattr(Parameter(self), func)(other)
             else:
                 parent = super(self.__class__, self)
                 return getattr(parent, func)(other)

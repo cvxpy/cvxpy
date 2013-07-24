@@ -11,7 +11,7 @@ class Atom(Expression):
         # Throws error if args is empty.
         if len(args) == 0:
             raise TypeError("No arguments given to '%s'." % self.name())
-        # Convert raw values to Constants
+        # Convert raw values to Parameters
         self.args = map(Expression.cast_to_const, list(args))
 
     # Returns the 
