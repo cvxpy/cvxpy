@@ -1,4 +1,3 @@
-import cvxpy.interface.matrices as intf
 from atom import Atom
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature

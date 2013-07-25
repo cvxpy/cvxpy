@@ -1,7 +1,7 @@
 from cvxpy.atoms import *
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 import unittest
 
 class TestAtoms(unittest.TestCase):

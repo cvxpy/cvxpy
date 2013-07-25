@@ -1,5 +1,5 @@
 import cvxpy.settings as s
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.constraint import EqConstraint, LeqConstraint
@@ -13,9 +13,11 @@ class Problem(object):
     """
     # objective - the problem objective.
     # constraints - the problem constraints.
-    def __init__(self, objective, constraints=[]):
+    # target_matrix - the matrix type used internally.
+    def __init__(self, objective, constraints=[], interface=None):
         self.objective = objective
         self.constraints = constraints
+        self.interface = intf.get_matrix_interface(interface)
 
     # Does the problem satisfy DCP rules?
     def is_dcp(self):
@@ -51,13 +53,13 @@ class Problem(object):
         objective,eq_constr,ineq_constr,dims = self.canonicalize()
         variables = self.variables(objective, eq_constr + ineq_constr)
 
-        c,null = Problem.constraints_matrix([objective], variables)
-        A,b = Problem.constraints_matrix(eq_constr, variables)
-        G,h = Problem.constraints_matrix(ineq_constr, variables)
+        c,null = self.constraints_matrix([objective], variables)
+        A,b = self.constraints_matrix(eq_constr, variables)
+        G,h = self.constraints_matrix(ineq_constr, variables)
 
         results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,dims=dims)
         if results['status'] == 'optimal':
-            Problem.save_values(results['x'], variables)
+            self.save_values(results['x'], variables)
             return self.objective.value(results)
         else:
             return results['status']
@@ -73,13 +75,13 @@ class Problem(object):
 
     # Saves the values of the optimal variables 
     # as fields in the variable objects.
-    @staticmethod
-    def save_values(result_vec, variables):
+    def save_values(self, result_vec, variables):
         offset = 0
         for (name,var) in variables:
-            var.value = intf.zeros(*var.size())
-            intf.block_copy(var.value, result_vec[offset:offset+var.rows*var.cols], 
-                            0, 0, var.rows, var.cols)
+            var.value = self.interface.zeros(*var.size())
+            self.interface.block_copy(var.value, 
+                                      result_vec[offset:offset+var.rows*var.cols], 
+                                      0, 0, var.rows, var.cols)
             # Handle scalars
             if var.size() == (1,1):
                 var.value = var.value[0,0]
@@ -89,31 +91,30 @@ class Problem(object):
     # with upper left corner at matrix[variable offset, constraint offset].
     # Also returns a vector representing the constant value associated
     # with the matrix by variables product.
-    @staticmethod
-    def constraints_matrix(aff_expressions, variables):
+    def constraints_matrix(self, aff_expressions, variables):
         rows = sum([aff.size()[0]*aff.size()[1] for aff in aff_expressions])
         cols = sum([obj.size()[0]*obj.size()[1] for (name,obj) in variables])
-        matrix = intf.zeros(rows,cols)
-        constant_vec = intf.zeros(rows,1)
+        matrix = self.interface.zeros(rows,cols)
+        constant_vec = self.interface.zeros(rows,1)
         vert_offset = 0
         for aff_exp in aff_expressions:
-            coefficients = aff_exp.coefficients()
+            coefficients = aff_exp.coefficients(self.interface)
             horiz_offset = 0
             for (name, obj) in variables:
                 for i in range(obj.size()[1]):
                     if name in coefficients:
                         # Update the matrix.
-                        intf.block_copy(matrix, 
-                                        coefficients[name],
-                                        vert_offset + i*aff_exp.size()[0],
-                                        horiz_offset,
-                                        aff_exp.size()[0],
-                                        obj.size()[0])
+                        self.interface.block_copy(matrix, 
+                                                  coefficients[name],
+                                                  vert_offset + i*aff_exp.size()[0],
+                                                  horiz_offset,
+                                                  aff_exp.size()[0],
+                                                  obj.size()[0])
                     horiz_offset += obj.size()[0]
             # Update the constants vector.
-            intf.block_copy(constant_vec, 
-                            Expression.constant(coefficients),
-                            vert_offset, 0,
-                            aff_exp.size()[0] * aff_exp.size()[1], 1)
+            self.interface.block_copy(constant_vec, 
+                                      Expression.constant(coefficients),
+                                      vert_offset, 0,
+                                      aff_exp.size()[0] * aff_exp.size()[1], 1)
             vert_offset += aff_exp.size()[0] * aff_exp.size()[1]
         return (matrix,-constant_vec)

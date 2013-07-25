@@ -3,7 +3,7 @@ from cvxpy.expressions.expression import *
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 import cvxpy.interface.numpy_wrapper as numpy
 from cvxopt import matrix
 import unittest

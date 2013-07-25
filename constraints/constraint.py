@@ -1,6 +1,6 @@
 import abc
 import cvxpy.settings
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.operators import BinaryOperator
 
 class Constraint(BinaryOperator):
@@ -14,8 +14,8 @@ class Constraint(BinaryOperator):
     def __repr__(self):
         return self.name()
 
-    def coefficients(self):
-        return (self.lh_exp - self.rh_exp).coefficients()
+    def coefficients(self, interface):
+        return (self.lh_exp - self.rh_exp).coefficients(interface)
 
     # Canonicalize the expression in the constraint and
     # add a new constraint with the expression objective.

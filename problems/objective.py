@@ -1,4 +1,4 @@
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.variable import Variable
 
 class Minimize(object):

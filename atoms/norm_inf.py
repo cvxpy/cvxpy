@@ -1,5 +1,5 @@
-import cvxpy.interface.matrices as intf
 from atom import Atom
+import cvxpy.expressions.expression as e
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
 from monotonicity import Monotonicity
@@ -28,5 +28,5 @@ class normInf(Atom):
             raise Exception("The argument '%s' to normInf must resolve to a vector." 
                 % self.x.name())
         t = Variable()
-        ones = intf.ones(rows, cols)
+        ones = e.Parameter(rows*[1])
         return (t, [-ones*t <= self.x, self.x <= ones*t])

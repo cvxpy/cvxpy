@@ -3,7 +3,7 @@ from cvxpy.expressions.expression import Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 from cvxopt import matrix
 import unittest
 
@@ -23,10 +23,10 @@ class TestProblem(unittest.TestCase):
         self.C = Variable(3,2,name='C')
 
     # Overriden method to handle lists and lower accuracy.
-    def assertAlmostEqual(self, a, b):
-        if isinstance(a, intf.TARGET_MATRIX):
+    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
+        if isinstance(a, interface.TARGET_MATRIX):
             a = list(a)
-        if isinstance(b, intf.TARGET_MATRIX):
+        if isinstance(b, interface.TARGET_MATRIX):
             b = list(b)
         if isinstance(a, list) and isinstance(b, list):
             for i in range(len(a)):
@@ -94,7 +94,7 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.x.value, [1,2])
 
         A = matrix([[3,5],[1,2]])
-        I = intf.identity(2)
+        I = Parameter([[1,0],[0,1]])
         p = Problem(Minimize(c.T*self.x + self.a), 
             [A*self.x >= [-1,1],
              4*I*self.z == self.x,
@@ -123,7 +123,7 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.A.value, self.B.value)
         self.assertAlmostEqual(self.C.value, T)
         self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
-        
+
     # Test problems with normInf
     def test_normInf(self):
         # Parameter argument.

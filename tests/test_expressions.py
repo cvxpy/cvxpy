@@ -1,6 +1,7 @@
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.variable import Variable, Variables
 from cvxpy.expressions.curvature import Curvature
+import cvxpy.interface.matrix_utilities as intf
 import unittest
 
 class TestExpressions(unittest.TestCase):
@@ -12,9 +13,10 @@ class TestExpressions(unittest.TestCase):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
+        self.intf = intf.DEFAULT_INTERFACE()
 
     # Test the Variable class.
-    def test_variables(self):
+    def test_variable(self):
         x = Variable(2)
         y = Variable(2)
         assert y.name() != x.name()
@@ -28,12 +30,24 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.canonicalize(), (x, []))
 
         self.assertEqual(x.variables()[x.id], x)
-        identity = x.coefficients()[x.id]
+        identity = x.coefficients(self.intf)[x.id]
         self.assertEqual(identity.size, (2,2))
         self.assertEqual(identity[0,0], 1)
         self.assertEqual(identity[0,1], 0)
         self.assertEqual(identity[1,0], 0)
         self.assertEqual(identity[1,1], 1)
+
+    # Test the Variables class.
+    def test_variables(self):
+        v = Variables(('y',3),'x','z',('A',3,4))
+        self.assertEqual(v.y.name(), 'y')
+        self.assertEqual(v.y.size(), (3,1))
+        self.assertEqual(v.x.name(), 'x')
+        self.assertEqual(v.x.size(), (1,1))
+        self.assertEqual(v.z.name(), 'z')
+        self.assertEqual(v.z.size(), (1,1))
+        self.assertEqual(v.A.name(), 'A')
+        self.assertEqual(v.A.size(), (3,4))
 
     # Test the Parameter class.
     def test_constants(self):
@@ -60,7 +74,7 @@ class TestExpressions(unittest.TestCase):
         z = Variable(2, name='z')
         exp = exp + z + self.x
         self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
-        self.assertEqual(exp.coefficients()[self.x.id][0,0], 2)
+        self.assertEqual(exp.coefficients(self.intf)[self.x.id][0,0], 2)
 
         with self.assertRaises(Exception) as cm:
             (self.x + self.y).size()
@@ -88,7 +102,7 @@ class TestExpressions(unittest.TestCase):
         z = Variable(2, name='z')
         exp = exp - z - self.x
         self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
-        self.assertEqual(exp.coefficients()[self.x.id][0,0], 0)
+        self.assertEqual(exp.coefficients(self.intf)[self.x.id][0,0], 0)
 
         with self.assertRaises(Exception) as cm:
             (self.x - self.y).size()
@@ -115,8 +129,8 @@ class TestExpressions(unittest.TestCase):
 
         new_exp = 2*(exp + 1)
         self.assertEqual(new_exp.variables(), exp.variables())
-        self.assertEqual(new_exp.coefficients()[self.x.id][0,0], 4)
-        self.assertEqual(Expression.constant(new_exp.coefficients()), 2)
+        self.assertEqual(new_exp.coefficients(self.intf)[self.x.id][0,0], 4)
+        self.assertEqual(Expression.constant(new_exp.coefficients(self.intf)), 2)
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x).size()
@@ -177,14 +191,14 @@ class TestExpressions(unittest.TestCase):
 
         self.assertEqual(exp.size(), (2,2))
 
-    # Test indexing expression.
-    def test_index_expression(self):
-        # Tuple of integers as key.
-        exp = self.x[1,0]
-        self.assertEqual(exp.name(), "x[1,0]")
-        self.assertEqual(exp.curvature(), Curvature.AFFINE)
-        self.assertEquals(exp.size(), (1,1))
+    # # Test indexing expression.
+    # def test_index_expression(self):
+    #     # Tuple of integers as key.
+    #     exp = self.x[1,0]
+    #     self.assertEqual(exp.name(), "x[1,0]")
+    #     self.assertEqual(exp.curvature(), Curvature.AFFINE)
+    #     self.assertEquals(exp.size(), (1,1))
 
-        with self.assertRaises(Exception) as cm:
-            (self.x[2,0]).canonicalize()
-        self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
+    #     with self.assertRaises(Exception) as cm:
+    #         (self.x[2,0]).canonicalize()
+    #     self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")

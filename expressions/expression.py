@@ -1,6 +1,6 @@
 import abc
 import cvxpy.settings as s
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 import cvxpy.constraints.constraint as c
 from operators import BinaryOperator, UnaryOperator
 from curvature import Curvature
@@ -22,7 +22,9 @@ class Expression(object):
 
     # Returns a dict of term name to coefficient in the
     # expression and a set of possible expression sizes.
-    def coefficients(self):
+    # interface - the matrix interface to convert constants
+    #             into a matrix of the target class.
+    def coefficients(self, interface):
         return NotImplemented
 
     # Returns a dict of name to variable containing all the
@@ -96,17 +98,17 @@ class AddExpression(BinaryOperator, Expression):
     OP_NAME = "+"
     OP_FUNC = "__add__"
     # Evaluates the left hand and right hand expressions and sums the dicts.
-    def coefficients(self):
-        lh = self.lh_exp.coefficients()
-        rh = self.rh_exp.coefficients()
+    def coefficients(self, interface):
+        lh = self.lh_exp.coefficients(interface)
+        rh = self.rh_exp.coefficients(interface)
         # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
         return dict( (n, lh.get(n, 0) + rh.get(n, 0)) for n in set(lh)|set(rh) )
 
 class SubExpression(BinaryOperator, Expression):
     OP_NAME = "-"
     OP_FUNC = "__sub__"
-    def coefficients(self):
-        return (self.lh_exp + -self.rh_exp).coefficients()
+    def coefficients(self, interface):
+        return (self.lh_exp + -self.rh_exp).coefficients(interface)
 
 class MulExpression(BinaryOperator, Expression):
     OP_NAME = "*"
@@ -114,11 +116,11 @@ class MulExpression(BinaryOperator, Expression):
     # Evaluates the left hand and right hand expressions,
     # checks the left hand expression is constant,
     # and multiplies all the right hand coefficients by the left hand constant.
-    def coefficients(self):
+    def coefficients(self, interface):
         if not self.lh_exp.curvature().is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
-        lh_coeff = self.lh_exp.coefficients()
-        rh_coeff = self.rh_exp.coefficients()
+        lh_coeff = self.lh_exp.coefficients(interface)
+        rh_coeff = self.rh_exp.coefficients(interface)
         return dict((k,lh_coeff[s.CONSTANT]*v) for k,v in rh_coeff.items())
 
     # TODO scalar by vector/matrix
@@ -149,38 +151,38 @@ class NegExpression(UnaryOperator, Expression):
     OP_NAME = "-"
     OP_FUNC = "__neg__"
     # Negate all coefficients.
-    def coefficients(self):
-        return dict((k,-v) for k,v in self.expr.coefficients().items())
+    def coefficients(self, interface):
+        return dict((k,-v) for k,v in self.expr.coefficients(interface).items())
 
-class IndexExpression(Expression):
-    # key - a tuple of integers.
-    def __init__(self, expr, key):
-        self.expr = expr
-        self.key = key
+# class IndexExpression(Expression):
+#     # key - a tuple of integers.
+#     def __init__(self, expr, key):
+#         self.expr = expr
+#         self.key = key
 
-    def name(self):
-        return "%s[%s,%s]" % (self.expr.name(), self.key[0], self.key[1])
+#     def name(self):
+#         return "%s[%s,%s]" % (self.expr.name(), self.key[0], self.key[1])
 
-    # TODO slices
-    def size(self):
-        return (1,1)
+#     # TODO slices
+#     def size(self):
+#         return (1,1)
 
-    # Raise an Exception if the key is not a valid slice.
-    def validate_key(self):
-        rows,cols = self.expr.size()
-        if not (0 <= self.key[0] and self.key[0] < rows and \
-                0 <= self.key[1] and self.key[1] < cols): 
-           raise Exception("Invalid indices %s,%s for '%s'." % 
-                (self.key[0], self.key[1], self.expr.name()))
+#     # Raise an Exception if the key is not a valid slice.
+#     def validate_key(self):
+#         rows,cols = self.expr.size()
+#         if not (0 <= self.key[0] and self.key[0] < rows and \
+#                 0 <= self.key[1] and self.key[1] < cols): 
+#            raise Exception("Invalid indices %s,%s for '%s'." % 
+#                 (self.key[0], self.key[1], self.expr.name()))
 
-    # TODO what happens to vectors/matrices of expressions?
-    def curvature(self):
-        return self.expr.curvature()
+#     # TODO what happens to vectors/matrices of expressions?
+#     def curvature(self):
+#         return self.expr.curvature()
 
-    # TODO right place to error check?
-    def canonicalize(self):
-        self.validate_key()
-        return (None, [])
+#     # TODO right place to error check?
+#     def canonicalize(self):
+#         self.validate_key()
+#         return (None, [])
 
 
 class Parameter(Expression):
@@ -194,8 +196,8 @@ class Parameter(Expression):
     def name(self):
         return str(self.value) if self.param_name is None else self.param_name
 
-    def coefficients(self):
-        return {s.CONSTANT: intf.const_to_matrix(self.value)}
+    def coefficients(self, interface):
+        return {s.CONSTANT: interface.const_to_matrix(self.value)}
 
     def variables(self):
         return {}

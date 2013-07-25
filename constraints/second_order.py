@@ -1,5 +1,5 @@
 from cvxpy.expressions.variable import Variable
-import cvxpy.interface.matrices as intf
+import cvxpy.interface.matrix_utilities as intf
 
 class SOC(object):
     """ 

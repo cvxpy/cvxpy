@@ -1,7 +1,7 @@
 import inspect
 import cvxpy.settings as s
-import cvxpy.interface.matrices as intf
-from expression import Expression, IndexExpression
+import cvxpy.interface.matrix_utilities as intf
+from expression import Expression
 from curvature import Curvature
 
 class Variable(Expression):
@@ -18,10 +18,6 @@ class Variable(Expression):
         self.id = Variable.next_var_name()
         self.var_name = self.id if name is None else name
 
-    # Indexing
-    def __getitem__(self, key):
-        return IndexExpression(self, key)
-
     # Returns a new variable name based on a global counter.
     @staticmethod
     def next_var_name():
@@ -32,8 +28,8 @@ class Variable(Expression):
         return self.var_name
 
     # Initialized with identity matrix as variable's coefficient.
-    def coefficients(self):
-        return {self.id: intf.identity(self.rows)}
+    def coefficients(self, interface):
+        return {self.id: interface.identity(self.rows)}
 
     def variables(self):
         return {self.id: self}
