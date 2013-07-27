@@ -3,9 +3,9 @@ from cvxpy.expressions.expression import Constant
 
 class Variables(object):
     """
-    Constructs a namespace of variables from (name,rows,cols) tuples.
-    A string variable will be interpreted as (name,1,1), and
-    a tuple (name,rows) will be interpreted as (name,rows,1).
+    Constructs a namespace of variables from [name,rows,cols] lists.
+    A string variable will be interpreted as [name,1,1], and
+    a list [name,rows] will be interpreted as [name,rows,1].
     """
     def __init__(self, *args):
         for arg in args:
@@ -14,11 +14,11 @@ class Variables(object):
                 name = arg
                 var = Variable(name=arg)
             # Vector variable.
-            elif isinstance(arg, tuple) and len(arg) == 2:
+            elif isinstance(arg, list) and len(arg) == 2:
                 name = arg[0]
                 var = Variable(name=arg[0],rows=arg[1])
             # Matrix variable.
-            elif isinstance(arg, tuple) and len(arg) == 3:
+            elif isinstance(arg, list) and len(arg) == 3:
                 name = arg[0]
                 var = Variable(name=arg[0],rows=arg[1],cols=arg[2])
             else:
@@ -27,11 +27,11 @@ class Variables(object):
 
 class Constants(object):
     """
-    Constructs a namespace of constants from (name,value) tuples.
+    Constructs a namespace of constants from [name,value] lists.
     """
     def __init__(self, *args):
         for arg in args:
-            if isinstance(arg, tuple) and len(arg) == 2:
+            if isinstance(arg, list) and len(arg) == 2:
                 name = arg[0]
                 const = Constant(arg[1], name)
             else:

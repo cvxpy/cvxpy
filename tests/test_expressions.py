@@ -40,7 +40,7 @@ class TestExpressions(unittest.TestCase):
 
     # Test the Variables class.
     def test_variables(self):
-        v = Variables(('y',3),'x','z',('A',3,4))
+        v = Variables(['y',3],'x','z',['A',3,4])
         self.assertEqual(v.y.name(), 'y')
         self.assertEqual(v.y.size, (3,1))
         self.assertEqual(v.x.name(), 'x')
