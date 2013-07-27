@@ -21,22 +21,22 @@ class TestConstraints(unittest.TestCase):
     def test_eq_constraint(self):
         constr = self.x == self.z
         self.assertEqual(constr.name(), "x == z")
-        self.assertEqual(constr.size(), (2,1))
+        self.assertEqual(constr.size, (2,1))
         self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         
         with self.assertRaises(Exception) as cm:
-            (self.x == self.y).size()
+            (self.x == self.y).size
         self.assertEqual(str(cm.exception), "'x == y' has incompatible dimensions.")
 
     # Test the LeqConstraint class.
     def test_leq_constraint(self):
         constr = self.x <= self.z
         self.assertEqual(constr.name(), "x <= z")
-        self.assertEqual(constr.size(), (2,1))
+        self.assertEqual(constr.size, (2,1))
         self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         
         with self.assertRaises(Exception) as cm:
-            (self.x <= self.y).size()
+            (self.x <= self.y).size
         self.assertEqual(str(cm.exception), "'x <= y' has incompatible dimensions.")
 
     # Test the SOC class.
@@ -44,7 +44,7 @@ class TestConstraints(unittest.TestCase):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
         constr = SOC(exp, scalar_exp)
-        self.assertEqual(constr.size(), 3)
+        self.assertEqual(constr.size, 3)
         self.assertEqual(len(constr.format()), 2)
 
     # Test the SDC class.
@@ -52,5 +52,5 @@ class TestConstraints(unittest.TestCase):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
         constr = SOC(exp, scalar_exp)
-        self.assertEqual(constr.size(), 3)
+        self.assertEqual(constr.size, 3)
         self.assertEqual(len(constr.format()), 2)

@@ -5,6 +5,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.constraint import EqConstraint, LeqConstraint
 from cvxpy.constraints.second_order import SOC
 
+import cvxopt
 import cvxopt.solvers
 
 class Problem(object):
@@ -14,10 +15,11 @@ class Problem(object):
     # objective - the problem objective.
     # constraints - the problem constraints.
     # target_matrix - the matrix type used internally.
-    def __init__(self, objective, constraints=[], interface=None):
+    def __init__(self, objective, constraints=[], target_matrix=cvxopt.spmatrix):
         self.objective = objective
         self.constraints = constraints
-        self.interface = intf.get_matrix_interface(interface)
+        self.interface = intf.get_matrix_interface(target_matrix)
+        self.dense_interface = intf.get_matrix_interface(intf.DENSE_TARGET)
 
     # Does the problem satisfy DCP rules?
     def is_dcp(self):
@@ -35,13 +37,13 @@ class Problem(object):
     def canonicalize(self):
         obj,constraints = self.objective.canonicalize()
         for constr in self.constraints:
-            constraints += constr.canonicalize()[1]
+            constraints += constr.canonicalize(top_level=True)[1]
         eq_constr,ineq_constr,soc_constr = self.filter_constraints(constraints)
-        dims = {'l': sum(c.size()[0]*c.size()[1] for c in ineq_constr)}
+        dims = {'l': sum(c.size[0]*c.size[1] for c in ineq_constr)}
         # Formats SOC constraints for the solver.
         for constr in soc_constr:
             ineq_constr += constr.format()
-        dims['q'] = [c.size() for c in soc_constr]
+        dims['q'] = [c.size for c in soc_constr]
         dims['s'] = []
         return (obj,eq_constr,ineq_constr,dims)
 
@@ -54,12 +56,15 @@ class Problem(object):
         variables = self.variables(objective, eq_constr + ineq_constr)
 
         c,null = self.constraints_matrix([objective], variables)
+        # c must be dense.
+        c = self.dense_interface.const_to_matrix(c.T)
         A,b = self.constraints_matrix(eq_constr, variables)
         G,h = self.constraints_matrix(ineq_constr, variables)
 
-        results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,dims=dims)
+        results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
         if results['status'] == 'optimal':
-            self.save_values(results['x'], variables)
+            self.save_values(results['x'], [obj for (id,obj) in variables])
+            self.save_values(results['y'], eq_constr)
             return self.objective.value(results)
         else:
             return results['status']
@@ -73,48 +78,51 @@ class Problem(object):
         names.sort()
         return [(k,vars[k]) for k in names]
 
-    # Saves the values of the optimal variables 
-    # as fields in the variable objects.
-    def save_values(self, result_vec, variables):
+    # Saves the values of the optimal primary/dual variables 
+    # as fields in the variable/constraint objects.
+    def save_values(self, result_vec, objects):
         offset = 0
-        for (name,var) in variables:
-            var.value = self.interface.zeros(*var.size())
-            self.interface.block_copy(var.value, 
-                                      result_vec[offset:offset+var.rows*var.cols], 
-                                      0, 0, var.rows, var.cols)
+        for obj in objects:
+            rows,cols = obj.size
+            obj.value = self.dense_interface.zeros(rows, cols)
+            self.dense_interface.block_copy(obj.value, 
+                                            result_vec[offset:offset + rows*cols], 
+                                            0, 0, rows, cols)
             # Handle scalars
-            if var.size() == (1,1):
-                var.value = var.value[0,0]
-            offset += var.rows*var.cols
+            if (rows,cols) == (1,1):
+                obj.value = obj.value[0,0]
+            offset += rows*cols
 
     # Returns a matrix where each variable coefficient is inserted as a block
     # with upper left corner at matrix[variable offset, constraint offset].
     # Also returns a vector representing the constant value associated
     # with the matrix by variables product.
+    # aff_expressions - a list of affine expressions or constraints.
+    # variables - a list of variables in the form (id, object).
     def constraints_matrix(self, aff_expressions, variables):
-        rows = sum([aff.size()[0]*aff.size()[1] for aff in aff_expressions])
-        cols = sum([obj.size()[0]*obj.size()[1] for (name,obj) in variables])
+        rows = sum([aff.size[0]*aff.size[1] for aff in aff_expressions])
+        cols = sum([obj.size[0]*obj.size[1] for (id,obj) in variables])
         matrix = self.interface.zeros(rows,cols)
-        constant_vec = self.interface.zeros(rows,1)
+        constant_vec = self.dense_interface.zeros(rows,1)
         vert_offset = 0
         for aff_exp in aff_expressions:
             coefficients = aff_exp.coefficients(self.interface)
             horiz_offset = 0
-            for (name, obj) in variables:
-                for i in range(obj.size()[1]):
-                    if name in coefficients:
+            for (id, obj) in variables:
+                for i in range(obj.size[1]):
+                    if id in coefficients:
                         # Update the matrix.
                         self.interface.block_copy(matrix, 
-                                                  coefficients[name],
-                                                  vert_offset + i*aff_exp.size()[0],
+                                                  coefficients[id],
+                                                  vert_offset + i*aff_exp.size[0],
                                                   horiz_offset,
-                                                  aff_exp.size()[0],
-                                                  obj.size()[0])
-                    horiz_offset += obj.size()[0]
+                                                  aff_exp.size[0],
+                                                  obj.size[0])
+                    horiz_offset += obj.size[0]
             # Update the constants vector.
-            self.interface.block_copy(constant_vec, 
-                                      Expression.constant(coefficients),
-                                      vert_offset, 0,
-                                      aff_exp.size()[0] * aff_exp.size()[1], 1)
-            vert_offset += aff_exp.size()[0] * aff_exp.size()[1]
+            self.dense_interface.block_copy(constant_vec, 
+                                            Expression.constant(coefficients),
+                                            vert_offset, 0,
+                                            aff_exp.size[0] * aff_exp.size[1], 1)
+            vert_offset += aff_exp.size[0] * aff_exp.size[1]
         return (matrix,-constant_vec)

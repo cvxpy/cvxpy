@@ -20,7 +20,7 @@ class Minimize(object):
     # Create a new objective to handle constants in the original objective.
     # Raise exception if the original objective is not scalar.
     def canonicalize(self):
-        if self.expr.size() != (1,1):
+        if self.expr.size != (1,1):
             raise Exception("The objective '%s' must resolve to a scalar." 
                             % self.name())
         obj,constraints = self.expr.canonicalize()
@@ -29,7 +29,7 @@ class Minimize(object):
 
     # Objective must be convex.
     def is_dcp(self):
-        return self.expr.curvature().is_convex()
+        return self.expr.curvature.is_convex()
 
     # The value of the objective, taken from the solver results.
     def value(self, results):
@@ -46,7 +46,7 @@ class Maximize(Minimize):
 
     # Objective must be concave.
     def is_dcp(self):
-        return self.expr.curvature().is_concave()
+        return self.expr.curvature.is_concave()
 
     # The value of the objective, taken from the solver results.
     def value(self, results):

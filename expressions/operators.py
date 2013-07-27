@@ -20,34 +20,36 @@ class BinaryOperator(object):
     # Is the expression a scalar constant?
     @staticmethod
     def is_scalar_consant(expr):
-        return expr.curvature().is_constant() and expr.size() == (1,1)
+        return expr.curvature.is_constant() and expr.size == (1,1)
 
     # Returns the size of the expression if scalar constants were promoted.
     # Returns None if neither the lefthand nor righthand expressions can be
     # promoted.
     def promoted_size(self):
         if self.is_scalar_consant(self.rh_exp):
-            return self.lh_exp.size()
+            return self.lh_exp.size
         elif self.is_scalar_consant(self.lh_exp):
-            return self.rh_exp.size()
+            return self.rh_exp.size
         else:
             return None
 
     # The expression's sizes must match unless one is a scalar,
     # in which case it is promoted to the size of the other.
+    @property
     def size(self):
         size = self.promoted_size()
         if size is not None:
             return size
-        elif self.rh_exp.size() == self.lh_exp.size():
-            return self.lh_exp.size()   
+        elif self.rh_exp.size == self.lh_exp.size:
+            return self.lh_exp.size   
         else:
             raise Exception("'%s' has incompatible dimensions." % self.name())
 
     # Apply the appropriate arithmetic operator to the 
     # left hand and right hand curvatures.
+    @property
     def curvature(self):
-        return getattr(self.lh_exp.curvature(), self.OP_FUNC)(self.rh_exp.curvature())
+        return getattr(self.lh_exp.curvature, self.OP_FUNC)(self.rh_exp.curvature)
 
     # Canonicalize both sides, concatenate the constraints,
     # and apply the appropriate arithmetic operator to
@@ -71,11 +73,13 @@ class UnaryOperator(object):
     def variables(self):
         return self.expr.variables()
 
+    @property
     def size(self):
-        return self.expr.size()
+        return self.expr.size
 
+    @property
     def curvature(self):
-        return getattr(self.expr.curvature(), self.OP_FUNC)()
+        return getattr(self.expr.curvature, self.OP_FUNC)()
 
     def canonicalize(self):
         obj,constraints = self.expr.canonicalize()

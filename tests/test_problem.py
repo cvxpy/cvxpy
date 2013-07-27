@@ -1,5 +1,5 @@
 from cvxpy.atoms import *
-from cvxpy.expressions.expression import Parameter
+from cvxpy.expressions.expression import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -24,14 +24,12 @@ class TestProblem(unittest.TestCase):
 
     # Overriden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
-        if isinstance(a, interface.TARGET_MATRIX):
+        try:
             a = list(a)
-        if isinstance(b, interface.TARGET_MATRIX):
             b = list(b)
-        if isinstance(a, list) and isinstance(b, list):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
-        else:
+        except Exception:
             super(TestProblem, self).assertAlmostEqual(a,b,places=4)
 
     # Test the is_dcp method.
@@ -94,7 +92,7 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.x.value, [1,2])
 
         A = matrix([[3,5],[1,2]])
-        I = Parameter([[1,0],[0,1]])
+        I = Constant([[1,0],[0,1]])
         p = Problem(Minimize(c.T*self.x + self.a), 
             [A*self.x >= [-1,1],
              4*I*self.z == self.x,
@@ -124,9 +122,12 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.C.value, T)
         self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
 
+        # Test variables are dense.
+        self.assertEqual(type(self.A.value), self.A.interface.TARGET_MATRIX)
+
     # Test problems with normInf
     def test_normInf(self):
-        # Parameter argument.
+        # Constant argument.
         p = Problem(Minimize(normInf(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
@@ -159,7 +160,7 @@ class TestProblem(unittest.TestCase):
 
     # Test problems with norm1
     def test_norm1(self):
-        # Parameter argument.
+        # Constant argument.
         p = Problem(Minimize(norm1(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
@@ -185,7 +186,7 @@ class TestProblem(unittest.TestCase):
 
     # Test problems with norm2
     def test_norm2(self):
-        # Parameter argument.
+        # Constant argument.
         p = Problem(Minimize(norm2(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
@@ -220,3 +221,53 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(result, 22)
         self.assertAlmostEqual(self.x.value, [2,3])
         self.assertAlmostEqual(self.z.value, [-1,-4])
+
+    # Test using a cvxopt dense matrix as the target.
+    def test_dense_matrices(self):
+        p = Problem(Minimize(norm2(5 + norm1(self.z) 
+                                  + norm1(self.x) + 
+                                  normInf(self.x - self.z) ) ), 
+            [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2],
+            target_matrix=matrix)
+        result = p.solve()
+        self.assertAlmostEqual(result, 22)
+        self.assertAlmostEqual(self.x.value, [2,3])
+        self.assertAlmostEqual(self.z.value, [-1,-4])
+
+        T = matrix(2,(2,3))
+        c = matrix([3,4])
+        p = Problem(Minimize(1), [self.A >= T*self.C, 
+            self.A == self.B, self.C == T.T], target_matrix=matrix)
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(self.A.value, self.B.value)
+        self.assertAlmostEqual(self.C.value, T)
+        self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
+
+    # Test recovery of dual variables.
+    def test_dual_variables(self):
+        p = Problem(Minimize( norm1(self.x + self.z) ), 
+            [self.x >= [2,3],
+             [[1,2],[3,4]]*self.z == [-1,-4], 
+             norm2(self.x + self.z) <= 100])
+        result = p.solve()
+        self.assertAlmostEqual(result, 4)
+        self.assertAlmostEqual(self.x.value, [4,3])
+        self.assertAlmostEqual(self.z.value, [-4,1])
+        # Dual values
+        self.assertAlmostEqual(p.constraints[0].value, [0, 1])
+        self.assertAlmostEqual(p.constraints[1].value, [-1, 0.5])
+        self.assertAlmostEqual(p.constraints[2].value, 0)
+
+    
+        T = matrix(2,(2,3))
+        c = matrix([3,4])
+        p = Problem(Minimize(1), 
+            [self.A >= T*self.C, 
+             self.A == self.B, 
+             self.C == T.T])
+        result = p.solve()
+        # Dual values
+        self.assertAlmostEqual(p.constraints[0].value, 4*[0])
+        self.assertAlmostEqual(p.constraints[1].value, 4*[0])
+        self.assertAlmostEqual(p.constraints[2].value, 6*[0])

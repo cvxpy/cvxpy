@@ -12,11 +12,13 @@ class Variable(Expression):
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
-    def __init__(self, rows=1, cols=1, name=None):
+    # value_matrix - the matrix type used to store values.
+    def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
         self.rows = rows
         self.cols = cols
         self.id = Variable.next_var_name()
         self.var_name = self.id if name is None else name
+        self.interface = intf.get_matrix_interface(intf.DENSE_TARGET)
 
     # Returns a new variable name based on a global counter.
     @staticmethod
@@ -34,35 +36,13 @@ class Variable(Expression):
     def variables(self):
         return {self.id: self}
 
+    @property
     def size(self):
         return (self.rows, self.cols)
 
+    @property
     def curvature(self):
         return Curvature.AFFINE
 
     def canonicalize(self):
         return (self,[])
-
-class Variables(object):
-    """
-    Constructs a dictionary of variables from (name,rows,cols) tuples.
-    A string variable will be interpreted as (name,1,1), and
-    a tuple (name,rows) will be interpreted as (name,rows,1).
-    """
-    def __init__(self, *args):
-        for arg in args:
-            # Scalar variable.
-            if isinstance(arg, str):
-                name = arg
-                var = Variable(name=arg)
-            # Vector variable.
-            elif isinstance(arg, tuple) and len(arg) == 2:
-                name = arg[0]
-                var = Variable(name=arg[0],rows=arg[1])
-            # Matrix variable.
-            elif isinstance(arg, tuple) and len(arg) == 3:
-                name = arg[0]
-                var = Variable(name=arg[0],rows=arg[1],cols=arg[2])
-            else:
-                raise Exception("Invalid argument '%s' to 'variables'." % arg)
-            setattr(self, name, var)

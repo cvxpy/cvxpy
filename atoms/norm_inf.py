@@ -10,6 +10,7 @@ class normInf(Atom):
         super(normInf, self).__init__(x)
         self.x = self.args[0]
 
+    @property
     def size(self):
         return (1,1)
 
@@ -20,13 +21,17 @@ class normInf(Atom):
     def monotonicity(self):
         return [Monotonicity.NONMONOTONIC]
 
-    # Represent normInf as a linear objective and linear constraints.
     # Verify that the argument x is a vector.
-    def base_canonicalize(self):
-        rows,cols = self.x.size()
-        if cols != 1: #TODO put validation into Atom
+    def validate_arguments(self):
+        rows,cols = self.x.size
+        if cols != 1:
             raise Exception("The argument '%s' to normInf must resolve to a vector." 
                 % self.x.name())
+
+    @staticmethod
+    def graph_implementation(var_args):
+        x = var_args[0]
+        rows,cols = x.size
         t = Variable()
-        ones = e.Parameter(rows*[1])
-        return (t, [-ones*t <= self.x, self.x <= ones*t])
+        ones = e.Constant(rows*[1])
+        return (t, [-ones*t <= x, x <= ones*t])

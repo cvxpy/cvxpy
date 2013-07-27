@@ -1,9 +1,9 @@
-# Parameters for operators
+# Constants for operators
 PLUS = "+"
 MINUS = "-"
 MUL = "*"
 
-# Parameters for linear_ops
+# Constants for linear_ops
 END_MUL = "end *"
 END_MUL_OP = [(None, END_MUL, [])]
 

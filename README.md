@@ -3,11 +3,11 @@ cvxpy
 Supports norm2, normInf, and norm1 with vector arguments.
 Supports affine expressions with variables of any dimension.
 
-Currently supports numpy arrays and matrices, cvxopt matrices, numbers, and python lists as constants. Matrices and vectors must be declared as Parameters, i.e. A = Parameter(numpy array). 
+Currently supports numpy arrays and matrices, cvxopt matrices, numbers, and python lists as constants. Matrices and vectors must be declared as Constants, i.e. A = Constant(numpy array). 
 
 The alternative is that for numpy arrays and matrices, the user must use the numpy module given by cvxpy import * or import cvxpy.interface.numpy_wrapper as \<chosen name\>.
 
-Parameter values are converted internally to cvxopt dense matrices. This could be easily changed or made a user choice. The target solver is cvxopt.solvers.conelp.
+Constant values are converted internally to cvxopt dense matrices. This could be easily changed or made a user choice. The target solver is cvxopt.solvers.conelp.
 
 Example usage (execute in python prompt from above the cvxpy directory):
 

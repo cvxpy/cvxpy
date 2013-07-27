@@ -48,10 +48,10 @@ class Expression(object):
     def canonicalize(self):
         return NotImplemented
 
-    # Cast to Parameter if not an Expression.
+    # Cast to Constant if not an Expression.
     @staticmethod
     def cast_to_const(expr):
-        return expr if isinstance(expr, Expression) else Parameter(expr)
+        return expr if isinstance(expr, Expression) else Constant(expr)
 
     # Get the coefficient of the constant in the expression.
     @staticmethod 
@@ -64,21 +64,21 @@ class Expression(object):
 
     # Called for Number + Expression.
     def __radd__(self, other):
-        return Parameter(other) + self
+        return Constant(other) + self
 
     def __sub__(self, other):
         return SubExpression(self, other)
 
     # Called for Number - Expression.
     def __rsub__(self, other):
-        return Parameter(other) - self
+        return Constant(other) - self
 
     def __mul__(self, other):
         return MulExpression(self, other)
 
     # Called for Number * Expression.
     def __rmul__(self, other):
-        return Parameter(other) * self
+        return Constant(other) * self
 
     def __neg__(self):
         return NegExpression(self)
@@ -117,30 +117,32 @@ class MulExpression(BinaryOperator, Expression):
     # checks the left hand expression is constant,
     # and multiplies all the right hand coefficients by the left hand constant.
     def coefficients(self, interface):
-        if not self.lh_exp.curvature().is_constant():
+        if not self.lh_exp.curvature.is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
         lh_coeff = self.lh_exp.coefficients(interface)
         rh_coeff = self.rh_exp.coefficients(interface)
         return dict((k,lh_coeff[s.CONSTANT]*v) for k,v in rh_coeff.items())
 
     # TODO scalar by vector/matrix
+    @property
     def size(self):
         size = self.promoted_size()
         if size is not None:
             return size
         else:
-            rh_rows,rh_cols = self.rh_exp.size()
-            lh_rows,lh_cols = self.lh_exp.size()
+            rh_rows,rh_cols = self.rh_exp.size
+            lh_rows,lh_cols = self.lh_exp.size
             if lh_cols == rh_rows:
                 return (lh_rows,rh_cols)
             else:
                 raise Exception("'%s' has incompatible dimensions." % self.name())
 
     # Flips the curvature if the left hand expression is a negative scalar.
-    # TODO is_constant instead of isinstance(...,Parameter) using Sign
+    # TODO is_constant instead of isinstance(...,Constant) using Sign
+    @property
     def curvature(self):
-        curvature = super(MulExpression, self).curvature()
-        if isinstance(self.lh_exp, Parameter) and \
+        curvature = super(MulExpression, self).curvature
+        if isinstance(self.lh_exp, Constant) and \
            intf.is_scalar(self.lh_exp.value) and \
            intf.scalar_value(self.lh_exp.value) < 0:
            return -curvature
@@ -169,7 +171,7 @@ class NegExpression(UnaryOperator, Expression):
 
 #     # Raise an Exception if the key is not a valid slice.
 #     def validate_key(self):
-#         rows,cols = self.expr.size()
+#         rows,cols = self.expr.size
 #         if not (0 <= self.key[0] and self.key[0] < rows and \
 #                 0 <= self.key[1] and self.key[1] < cols): 
 #            raise Exception("Invalid indices %s,%s for '%s'." % 
@@ -177,7 +179,7 @@ class NegExpression(UnaryOperator, Expression):
 
 #     # TODO what happens to vectors/matrices of expressions?
 #     def curvature(self):
-#         return self.expr.curvature()
+#         return self.expr.curvature
 
 #     # TODO right place to error check?
 #     def canonicalize(self):
@@ -185,7 +187,7 @@ class NegExpression(UnaryOperator, Expression):
 #         return (None, [])
 
 
-class Parameter(Expression):
+class Constant(Expression):
     """
     A constant, either matrix or scalar.
     """
@@ -202,9 +204,11 @@ class Parameter(Expression):
     def variables(self):
         return {}
 
+    @property
     def size(self):
         return intf.size(self.value)
 
+    @property
     def curvature(self):
         return Curvature.CONSTANT
 

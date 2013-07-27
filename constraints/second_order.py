@@ -17,7 +17,7 @@ class SOC(object):
         t_obj,t_constraints = self.t.canonicalize()
         constraints = x_constraints + t_constraints
 
-        vector = Variable(self.x.size()[0])
+        vector = Variable(self.x.size[0])
         constraints.append(vector == x_obj)
 
         scalar = Variable()
@@ -29,5 +29,6 @@ class SOC(object):
         return [-self.t <= 0, -self.x <= 0]
 
     # The dimensions of the second-order cone.
+    @property
     def size(self):
-        return self.x.size()[0] + self.t.size()[0]
+        return self.x.size[0] + self.t.size[0]

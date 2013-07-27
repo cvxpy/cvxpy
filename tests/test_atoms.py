@@ -15,10 +15,10 @@ class TestAtoms(unittest.TestCase):
         exp = self.x+self.y
         atom = normInf(exp)
         self.assertEquals(atom.name(), "normInf(x + y)")
-        self.assertEquals(atom.size(), (1,1))
-        self.assertEquals(atom.curvature(), Curvature.CONVEX)
-        self.assertEquals(normInf(atom).curvature(), Curvature.UNKNOWN)
-        self.assertEquals(normInf(-atom).curvature(), Curvature.UNKNOWN)
+        self.assertEquals(atom.size, (1,1))
+        self.assertEquals(atom.curvature, Curvature.CONVEX)
+        self.assertEquals(normInf(atom).curvature, Curvature.UNKNOWN)
+        self.assertEquals(normInf(-atom).curvature, Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
             normInf([[1,2],[3,4]]).canonicalize()
@@ -30,10 +30,10 @@ class TestAtoms(unittest.TestCase):
         exp = self.x+self.y
         atom = norm1(exp)
         self.assertEquals(atom.name(), "norm1(x + y)")
-        self.assertEquals(atom.size(), (1,1))
-        self.assertEquals(atom.curvature(), Curvature.CONVEX)
-        self.assertEquals(norm1(atom).curvature(), Curvature.UNKNOWN)
-        self.assertEquals(norm1(-atom).curvature(), Curvature.UNKNOWN)
+        self.assertEquals(atom.size, (1,1))
+        self.assertEquals(atom.curvature, Curvature.CONVEX)
+        self.assertEquals(norm1(atom).curvature, Curvature.UNKNOWN)
+        self.assertEquals(norm1(-atom).curvature, Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
             norm1([[1,2],[3,4]]).canonicalize()
@@ -45,10 +45,10 @@ class TestAtoms(unittest.TestCase):
         exp = self.x+self.y
         atom = norm2(exp)
         self.assertEquals(atom.name(), "norm2(x + y)")
-        self.assertEquals(atom.size(), (1,1))
-        self.assertEquals(atom.curvature(), Curvature.CONVEX)
-        self.assertEquals(norm2(atom).curvature(), Curvature.UNKNOWN)
-        self.assertEquals(norm2(-atom).curvature(), Curvature.UNKNOWN)
+        self.assertEquals(atom.size, (1,1))
+        self.assertEquals(atom.curvature, Curvature.CONVEX)
+        self.assertEquals(norm2(atom).curvature, Curvature.UNKNOWN)
+        self.assertEquals(norm2(-atom).curvature, Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
             norm2([[1,2],[3,4]]).canonicalize()
