@@ -1,5 +1,5 @@
 from atom import Atom
-import cvxpy.expressions.expression as e
+import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
 from monotonicity import Monotonicity
@@ -33,5 +33,5 @@ class normInf(Atom):
         x = var_args[0]
         rows,cols = x.size
         t = Variable()
-        ones = e.Constant(rows*[1])
+        ones = types.constant()(rows*[1])
         return (t, [-ones*t <= x, x <= ones*t])

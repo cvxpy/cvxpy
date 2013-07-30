@@ -1,8 +1,11 @@
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.constant import Constant
+from cvxpy.expressions.parameter import Parameter
 from cvxpy.expressions.containers import Variables
 from cvxpy.expressions.curvature import Curvature
 import cvxpy.interface.matrix_utilities as intf
+from collections import deque
 import unittest
 
 class TestExpressions(unittest.TestCase):
@@ -31,12 +34,15 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.canonicalize(), (x, []))
 
         self.assertEqual(x.variables()[x.id], x)
-        identity = x.coefficients(self.intf)[x.id]
+
+        identity = x.coefficient(self.intf)
         self.assertEqual(identity.size, (2,2))
         self.assertEqual(identity[0,0], 1)
         self.assertEqual(identity[0,1], 0)
         self.assertEqual(identity[1,0], 0)
         self.assertEqual(identity[1,1], 1)
+        # Test terms
+        self.assertEqual(x.terms(), [(x, deque([x]))])
 
     # Test the Variables class.
     def test_variables(self):
@@ -62,20 +68,36 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.variables(), {})
         self.assertEqual(c.curvature, Curvature.CONSTANT)
         self.assertEqual(c.canonicalize(), (c, []))
+        self.assertEqual(c.terms(), [(c, deque([c]))])
+
+    # Test the Parameter class.
+    def test_parameters(self):
+        p = Parameter(1, 1, 'p')
+        self.assertEqual(p.name(), "p")
+        self.assertEqual(p.size, (1,1))
+        self.assertEqual(p.variables(), {})
+        self.assertEqual(p.curvature, Curvature.CONSTANT)
+        self.assertEqual(p.canonicalize(), (p, []))
+        self.assertEqual(p.terms(), [(p, deque([p]))])
 
     # Test the AddExpresion class.
     def test_add_expression(self):
         # Vectors
-        exp = self.x + [2,2]
+        c = Constant([2,2])
+        exp = self.x + c
         self.assertEqual(exp.curvature, Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
-        self.assertEqual(exp.name(), self.x.name() + " + " + Constant([2,2]).name())
+        self.assertEqual(exp.name(), self.x.name() + " + " + c.name())
         self.assertEqual(exp.size, (2,1))
 
         z = Variable(2, name='z')
         exp = exp + z + self.x
         self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
-        self.assertEqual(exp.coefficients(self.intf)[self.x.id][0,0], 2)
+
+        self.assertItemsEqual(exp.terms(), [(self.x, deque([self.x])),
+                                            (self.x, deque([self.x])),
+                                            (z, deque([z])),
+                                            (c, deque([c]))])
 
         with self.assertRaises(Exception) as cm:
             (self.x + self.y).size
@@ -94,7 +116,8 @@ class TestExpressions(unittest.TestCase):
     # Test the SubExpresion class.
     def test_sub_expression(self):
         # Vectors
-        exp = self.x - [2,2]
+        c = Constant([2,2])
+        exp = self.x - c
         self.assertEqual(exp.curvature, Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
         self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
@@ -103,7 +126,10 @@ class TestExpressions(unittest.TestCase):
         z = Variable(2, name='z')
         exp = exp - z - self.x
         self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
-        self.assertEqual(exp.coefficients(self.intf)[self.x.id][0,0], 0)
+
+        terms = exp.terms()
+        objects = [(obj,len(mult)) for obj,mult in terms]
+        self.assertItemsEqual(objects, [(self.x,1), (self.x,2), (c,2), (z,2)])
 
         with self.assertRaises(Exception) as cm:
             (self.x - self.y).size
@@ -121,17 +147,23 @@ class TestExpressions(unittest.TestCase):
     # Test the MulExpresion class.
     def test_mul_expression(self):
         # Vectors
-        c = [[2],[2]]
+        c = Constant([[2],[2]])
         exp = c*self.x
         self.assertEqual(exp.curvature, Curvature.AFFINE)
         self.assertEqual(exp.canonicalize(), (exp, []))
         self.assertEqual(exp.name(), Constant(c).name() + " * " + self.x.name())
         self.assertEqual(exp.size, (1,1))
+        terms = exp.terms()
+        self.assertItemsEqual(terms, [(self.x, deque([self.x, c]))])
 
-        new_exp = 2*(exp + 1)
+        one = Constant(1)
+        two = Constant(2)
+        new_exp = two*(exp + one)
         self.assertEqual(new_exp.variables(), exp.variables())
-        self.assertEqual(new_exp.coefficients(self.intf)[self.x.id][0,0], 4)
-        self.assertEqual(Expression.constant(new_exp.coefficients(self.intf)), 2)
+
+        terms = new_exp.terms()
+        self.assertItemsEqual(terms, [(self.x, deque([self.x, c, two])), 
+                                      (one, deque([one, two]))])
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x).size
@@ -154,6 +186,9 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.curvature, Curvature.AFFINE)
         self.assertEqual(exp.size, (3,2))
 
+        self.assertItemsEqual(exp.terms(), [(self.B, deque([self.B, T])),
+                                            (self.B, deque([self.B, T]))])
+
     # Test the NegExpression class.
     def test_neg_expression(self):
         # Vectors
@@ -162,6 +197,11 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.canonicalize(), (exp, []))
         self.assertEqual(exp.name(), "-%s" % self.x.name())
         self.assertEqual(exp.size, self.x.size)
+
+        self.assertEqual(exp.terms()[0][0], self.x)
+        term_vals = [val.name() for val in exp.terms()[0][1]]
+        self.assertEqual(term_vals, [self.x.name(), '-1'])
+
         exp = self.x+self.y
         self.assertEquals((-exp).variables(), exp.variables())
 
@@ -192,14 +232,14 @@ class TestExpressions(unittest.TestCase):
 
         self.assertEqual(exp.size, (2,2))
 
-    # # Test indexing expression.
-    # def test_index_expression(self):
-    #     # Tuple of integers as key.
-    #     exp = self.x[1,0]
-    #     self.assertEqual(exp.name(), "x[1,0]")
-    #     self.assertEqual(exp.curvature, Curvature.AFFINE)
-    #     self.assertEquals(exp.size, (1,1))
+    # # # Test indexing expression.
+    # # def test_index_expression(self):
+    # #     # Tuple of integers as key.
+    # #     exp = self.x[1,0]
+    # #     self.assertEqual(exp.name(), "x[1,0]")
+    # #     self.assertEqual(exp.curvature, Curvature.AFFINE)
+    # #     self.assertEquals(exp.size, (1,1))
 
-    #     with self.assertRaises(Exception) as cm:
-    #         (self.x[2,0]).canonicalize()
-    #     self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
+    # #     with self.assertRaises(Exception) as cm:
+    # #         (self.x[2,0]).canonicalize()
+    # #     self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")

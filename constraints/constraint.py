@@ -13,8 +13,8 @@ class Constraint(BinaryOperator):
     def __repr__(self):
         return self.name()
 
-    def coefficients(self, interface):
-        return (self.lh_exp - self.rh_exp).coefficients(interface)
+    def variables(self):
+        return (self.lh_exp - self.rh_exp).variables()
 
 class EqConstraint(Constraint):
     OP_NAME = "=="

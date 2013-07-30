@@ -1,4 +1,5 @@
-from cvxpy.expressions.expression import Expression, Constant
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.constant import Constant
 from numpy import *
 import numpy
 import sys

@@ -13,10 +13,6 @@ class BinaryOperator(object):
                          self.OP_NAME, 
                          self.rh_exp.name()])
 
-    def variables(self):
-        return dict( self.lh_exp.variables().items() + \
-                     self.rh_exp.variables().items() )
-
     # Is the expression a scalar constant?
     @staticmethod
     def is_scalar_consant(expr):
@@ -70,8 +66,8 @@ class UnaryOperator(object):
     def name(self):
         return self.OP_NAME + self.expr.name()
     
-    def variables(self):
-        return self.expr.variables()
+    def terms(self):
+        return self.expr.terms()
 
     @property
     def size(self):

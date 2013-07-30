@@ -1,14 +1,14 @@
 import abc
-import cvxpy.settings as s
-import cvxpy.interface.matrix_utilities as intf
 import cvxpy.constraints.constraint as c
+import cvxpy.settings as s
 from operators import BinaryOperator, UnaryOperator
-from curvature import Curvature
+import types
+import cvxpy.interface.matrix_utilities as intf
+from collections import deque
 
 class Expression(object):
     """
     A mathematical expression in a convex optimization problem.
-    All attributes are functions that recurse on subexpressions.
     """
     __metaclass__ = abc.ABCMeta
     # TODO priority
@@ -20,25 +20,27 @@ class Expression(object):
     def name(self):
         return NotImplemented
 
-    # Returns a dict of term name to coefficient in the
-    # expression and a set of possible expression sizes.
-    # interface - the matrix interface to convert constants
-    #             into a matrix of the target class.
-    def coefficients(self, interface):
-        return NotImplemented
-
-    # Returns a dict of name to variable containing all the
-    # variables in the expression.
+    # Returns a dictionary of name to variable.
+    # TODO necessary?
     def variables(self):
+        vars = {}
+        for term,mults in self.terms():
+            if not term.curvature.is_constant():
+                vars[term.id] = term
+        return vars
+
+    # Returns a list of (leaf, multiplication queue) for 
+    # each leaf in the expression.
+    def terms(self):
         return NotImplemented
 
     # Returns the dimensions of the expression.
-    @abc.abstractmethod
+    @abc.abstractproperty
     def size(self):
         return NotImplemented
 
     # Returns the curvature of the expression.
-    @abc.abstractmethod
+    @abc.abstractproperty
     def curvature(self):
         return NotImplemented
 
@@ -51,7 +53,7 @@ class Expression(object):
     # Cast to Constant if not an Expression.
     @staticmethod
     def cast_to_const(expr):
-        return expr if isinstance(expr, Expression) else Constant(expr)
+        return expr if isinstance(expr, Expression) else types.constant()(expr)
 
     # Get the coefficient of the constant in the expression.
     @staticmethod 
@@ -64,21 +66,21 @@ class Expression(object):
 
     # Called for Number + Expression.
     def __radd__(self, other):
-        return Constant(other) + self
+        return Expression.cast_to_const(other) + self
 
     def __sub__(self, other):
         return SubExpression(self, other)
 
     # Called for Number - Expression.
     def __rsub__(self, other):
-        return Constant(other) - self
+        return Expression.cast_to_const(other) - self
 
     def __mul__(self, other):
         return MulExpression(self, other)
 
     # Called for Number * Expression.
     def __rmul__(self, other):
-        return Constant(other) * self
+        return Expression.cast_to_const(other) * self
 
     def __neg__(self):
         return NegExpression(self)
@@ -97,31 +99,40 @@ class Expression(object):
 class AddExpression(BinaryOperator, Expression):
     OP_NAME = "+"
     OP_FUNC = "__add__"
-    # Evaluates the left hand and right hand expressions and sums the dicts.
-    def coefficients(self, interface):
-        lh = self.lh_exp.coefficients(interface)
-        rh = self.rh_exp.coefficients(interface)
-        # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
-        return dict( (n, lh.get(n, 0) + rh.get(n, 0)) for n in set(lh)|set(rh) )
+    def terms(self):
+        return self.lh_exp.terms() + self.rh_exp.terms()
+    # # Evaluates the left hand and right hand expressions and sums the dicts.
+    # def coefficients(self, interface):
+    #     lh = self.lh_exp.coefficients(interface)
+    #     rh = self.rh_exp.coefficients(interface)
+    #     # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
+    #     return dict( (n, lh.get(n, 0) + rh.get(n, 0)) for n in set(lh)|set(rh) )
 
 class SubExpression(BinaryOperator, Expression):
     OP_NAME = "-"
     OP_FUNC = "__sub__"
-    def coefficients(self, interface):
-        return (self.lh_exp + -self.rh_exp).coefficients(interface)
+    def terms(self):
+        return (self.lh_exp + -self.rh_exp).terms()
 
 class MulExpression(BinaryOperator, Expression):
     OP_NAME = "*"
     OP_FUNC = "__mul__"
-    # Evaluates the left hand and right hand expressions,
-    # checks the left hand expression is constant,
-    # and multiplies all the right hand coefficients by the left hand constant.
-    def coefficients(self, interface):
+    # Verify that left hand side is constant.
+    def canonicalize(self):
         if not self.lh_exp.curvature.is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
-        lh_coeff = self.lh_exp.coefficients(interface)
-        rh_coeff = self.rh_exp.coefficients(interface)
-        return dict((k,lh_coeff[s.CONSTANT]*v) for k,v in rh_coeff.items())
+        return super(MulExpression, self).canonicalize()
+
+    # Distribute left hand side across right hand side.
+    # Form multiplication stacks.
+    def terms(self):
+        terms = []
+        for rh_term,rh_mults in self.rh_exp.terms():
+            for lh_term,lh_mults in self.lh_exp.terms():
+                mults = deque(rh_mults)
+                mults.extend(lh_mults)
+                terms.append( (rh_term, mults) )
+        return terms
 
     # TODO scalar by vector/matrix
     @property
@@ -142,8 +153,8 @@ class MulExpression(BinaryOperator, Expression):
     @property
     def curvature(self):
         curvature = super(MulExpression, self).curvature
-        if isinstance(self.lh_exp, Constant) and \
-           intf.is_scalar(self.lh_exp.value) and \
+        if isinstance(self.lh_exp, types.constant()) and \
+           self.lh_exp.size == (1,1) and \
            intf.scalar_value(self.lh_exp.value) < 0:
            return -curvature
         else:
@@ -152,9 +163,13 @@ class MulExpression(BinaryOperator, Expression):
 class NegExpression(UnaryOperator, Expression):
     OP_NAME = "-"
     OP_FUNC = "__neg__"
-    # Negate all coefficients.
-    def coefficients(self, interface):
-        return dict((k,-v) for k,v in self.expr.coefficients(interface).items())
+    # Negate all the terms.
+    def terms(self):
+        terms = []
+        for term,mults in self.expr.terms():
+            mults.append(types.constant()(-1))
+            terms.append( (term, mults) )
+        return terms
 
 # class IndexExpression(Expression):
 #     # key - a tuple of integers.
@@ -185,32 +200,3 @@ class NegExpression(UnaryOperator, Expression):
 #     def canonicalize(self):
 #         self.validate_key()
 #         return (None, [])
-
-
-class Constant(Expression):
-    """
-    A constant, either matrix or scalar.
-    """
-    def __init__(self, value, name=None):
-        self.value = value
-        self.param_name = name
-
-    def name(self):
-        return str(self.value) if self.param_name is None else self.param_name
-
-    def coefficients(self, interface):
-        return {s.CONSTANT: interface.const_to_matrix(self.value)}
-
-    def variables(self):
-        return {}
-
-    @property
-    def size(self):
-        return intf.size(self.value)
-
-    @property
-    def curvature(self):
-        return Curvature.CONSTANT
-
-    def canonicalize(self):
-        return (self,[])

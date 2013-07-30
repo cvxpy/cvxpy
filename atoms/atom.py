@@ -61,7 +61,7 @@ class Atom(Expression):
     def canonicalize(self):
         # Validate arguments
         self.validate_arguments()
-        # canonicalize arguments.
+        # canonicalize arguments. TODO why does Grant do this?
         var_args = []
         final_constraints = []
         for arg in self.args:

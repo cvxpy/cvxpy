@@ -1,5 +1,5 @@
 from cvxpy.atoms import *
-from cvxpy.expressions.expression import Constant
+from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem

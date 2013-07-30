@@ -1,5 +1,5 @@
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.expression import Constant
+from cvxpy.expressions.constant import Constant
 
 class Variables(object):
     """
