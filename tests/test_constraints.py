@@ -1,6 +1,5 @@
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.semidefinite import SDC
 import unittest
 
 class TestConstraints(unittest.TestCase):

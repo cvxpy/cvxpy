@@ -24,10 +24,5 @@ class Constant(leaf.Leaf, expression.Expression):
         return Curvature.CONSTANT
 
     # Return the constant value, converted to the target matrix.
-    def coefficient(self, interface):
-        return interface.const_to_matrix(self.value)
-
-    # Part of the constant term's coefficients.
-    @property
-    def id(self):
-        return s.CONSTANT
+    def coefficients(self, interface):
+        return {s.CONSTANT: interface.const_to_matrix(self.value)}

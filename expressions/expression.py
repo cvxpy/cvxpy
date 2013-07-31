@@ -31,7 +31,7 @@ class Expression(object):
     def variables(self):
         vars = {}
         for term in self.terms():
-            if not term.curvature.is_constant():
+            if isinstance(term, types.variable()):
                 vars[term.id] = term
         return vars
 
@@ -128,9 +128,6 @@ class MulExpression(BinaryOperator, Expression):
         rh_coeff = self.rh_exp.coefficients(interface)
         return dict((k,lh_coeff[s.CONSTANT]*v) for k,v in rh_coeff.items())
 
-    def terms(self):
-        return self.rh_exp.terms()
-
     # TODO scalar by vector/matrix
     @property
     def size(self):
@@ -164,32 +161,32 @@ class NegExpression(UnaryOperator, Expression):
     def coefficients(self, interface):
         return ( types.constant()(-1)*self.expr ).coefficients(interface)
 
-# class IndexExpression(Expression):
-#     # key - a tuple of integers.
-#     def __init__(self, expr, key):
-#         self.expr = expr
-#         self.key = key
+class IndexExpression(Expression):
+    # key - a tuple of integers.
+    def __init__(self, expr, key):
+        self.expr = expr
+        self.key = key
 
-#     def name(self):
-#         return "%s[%s,%s]" % (self.expr.name(), self.key[0], self.key[1])
+    def name(self):
+        return "%s[%s,%s]" % (self.expr.name(), self.key[0], self.key[1])
 
-#     # TODO slices
-#     def size(self):
-#         return (1,1)
+    # TODO slices
+    def size(self):
+        return (1,1)
 
-#     # Raise an Exception if the key is not a valid slice.
-#     def validate_key(self):
-#         rows,cols = self.expr.size
-#         if not (0 <= self.key[0] and self.key[0] < rows and \
-#                 0 <= self.key[1] and self.key[1] < cols): 
-#            raise Exception("Invalid indices %s,%s for '%s'." % 
-#                 (self.key[0], self.key[1], self.expr.name()))
+    # Raise an Exception if the key is not a valid slice.
+    def validate_key(self):
+        rows,cols = self.expr.size
+        if not (0 <= self.key[0] and self.key[0] < rows and \
+                0 <= self.key[1] and self.key[1] < cols): 
+           raise Exception("Invalid indices %s,%s for '%s'." % 
+                (self.key[0], self.key[1], self.expr.name()))
 
-#     # TODO what happens to vectors/matrices of expressions?
-#     def curvature(self):
-#         return self.expr.curvature
+    # TODO what happens to vectors/matrices of expressions?
+    def curvature(self):
+        return self.expr.curvature
 
-#     # TODO right place to error check?
-#     def canonicalize(self):
-#         self.validate_key()
-#         return (None, [])
+    # TODO right place to error check?
+    def canonicalize(self):
+        self.validate_key()
+        return (None, [])

@@ -56,6 +56,9 @@ class BinaryOperator(object):
         obj = getattr(lh_obj, self.OP_FUNC)(rh_obj)
         return (obj,lh_constraints + rh_constraints)
 
+    def terms(self):
+        return self.rh_exp.terms() + self.lh_exp.terms()
+
 class UnaryOperator(object):
     """
     Base class for expressions involving unary operators. 

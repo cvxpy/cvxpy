@@ -16,8 +16,8 @@ class Variable(leaf.Leaf, expression.Expression):
     def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
         self.rows = rows
         self.cols = cols
-        self.default_name = Variable.next_var_name()
-        self.var_name = self.default_name if name is None else name
+        self.id = Variable.next_var_name()
+        self.var_name = self.id if name is None else name
         self.interface = intf.get_matrix_interface(intf.DENSE_TARGET)
 
     # Returns a new variable name based on a global counter.
@@ -30,8 +30,8 @@ class Variable(leaf.Leaf, expression.Expression):
         return self.var_name
 
     # Initialized with identity matrix as variable's coefficient.
-    def coefficient(self, interface):
-        return interface.identity(self.rows)
+    def coefficients(self, interface):
+        return {self.id: interface.identity(self.rows)}
 
     @property
     def size(self):
@@ -40,7 +40,3 @@ class Variable(leaf.Leaf, expression.Expression):
     @property
     def curvature(self):
         return Curvature.AFFINE
-
-    @property
-    def id(self):
-        return self.default_name
