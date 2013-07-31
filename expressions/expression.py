@@ -20,6 +20,21 @@ class Expression(object):
     def name(self):
         return NotImplemented
 
+    # Determines the coefficients of the expression and returns
+    # any parameter constraints.
+    def simplify(self, interface):
+        total = {}
+        constraints = []
+        for term,mult in self.terms():
+            coeff,constr = term.dequeue_mults(mult, interface)
+            constraints += constr
+            total = dict( 
+                         (n, total.get(n, 0) + coeff.get(n, 0)) 
+                         for n in set(total)|set(coeff) 
+                        )
+        self.coefficients = total
+        return constraints
+
     # Returns a dictionary of name to variable.
     # TODO necessary?
     def variables(self):
@@ -101,12 +116,6 @@ class AddExpression(BinaryOperator, Expression):
     OP_FUNC = "__add__"
     def terms(self):
         return self.lh_exp.terms() + self.rh_exp.terms()
-    # # Evaluates the left hand and right hand expressions and sums the dicts.
-    # def coefficients(self, interface):
-    #     lh = self.lh_exp.coefficients(interface)
-    #     rh = self.rh_exp.coefficients(interface)
-    #     # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
-    #     return dict( (n, lh.get(n, 0) + rh.get(n, 0)) for n in set(lh)|set(rh) )
 
 class SubExpression(BinaryOperator, Expression):
     OP_NAME = "-"

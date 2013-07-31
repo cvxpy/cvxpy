@@ -16,6 +16,14 @@ class Constraint(BinaryOperator):
     def variables(self):
         return (self.lh_exp - self.rh_exp).variables()
 
+    # Simplify the constraint expression and set
+    # the coefficients of the constraint to be that of the expression.
+    def simplify(self, interface):
+        exp = (self.lh_exp - self.rh_exp)
+        constraints = exp.simplify(interface)
+        self.coefficients = exp.coefficients
+        return constraints
+
 class EqConstraint(Constraint):
     OP_NAME = "=="
     # Both sides must be affine.
