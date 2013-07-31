@@ -4,7 +4,6 @@ import cvxpy.settings as s
 from operators import BinaryOperator, UnaryOperator
 import types
 import cvxpy.interface.matrix_utilities as intf
-from collections import deque
 
 class Expression(object):
     """
@@ -20,32 +19,23 @@ class Expression(object):
     def name(self):
         return NotImplemented
 
-    # Determines the coefficients of the expression and returns
-    # any parameter constraints.
-    def simplify(self, interface):
-        total = {}
-        constraints = []
-        for term,mult in self.terms():
-            coeff,constr = term.dequeue_mults(mult, interface)
-            constraints += constr
-            total = dict( 
-                         (n, total.get(n, 0) + coeff.get(n, 0)) 
-                         for n in set(total)|set(coeff) 
-                        )
-        self.coefficients = total
-        return constraints
+    # Returns a dict of term name to coefficient in the
+    # expression and a set of possible expression sizes.
+    # interface - the matrix interface to convert constants
+    #             into a matrix of the target class.
+    def coefficients(self, interface):
+        return NotImplemented
 
     # Returns a dictionary of name to variable.
     # TODO necessary?
     def variables(self):
         vars = {}
-        for term,mults in self.terms():
+        for term in self.terms():
             if not term.curvature.is_constant():
                 vars[term.id] = term
         return vars
 
-    # Returns a list of (leaf, multiplication queue) for 
-    # each leaf in the expression.
+    # Returns a list of all the objects in the expression.
     def terms(self):
         return NotImplemented
 
@@ -114,34 +104,32 @@ class Expression(object):
 class AddExpression(BinaryOperator, Expression):
     OP_NAME = "+"
     OP_FUNC = "__add__"
-    def terms(self):
-        return self.lh_exp.terms() + self.rh_exp.terms()
+    # Evaluates the left hand and right hand expressions and sums the dicts.
+    def coefficients(self, interface):
+        lh = self.lh_exp.coefficients(interface)
+        rh = self.rh_exp.coefficients(interface)
+        # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
+        return dict( (n, lh.get(n, 0) + rh.get(n, 0)) for n in set(lh)|set(rh) )
 
 class SubExpression(BinaryOperator, Expression):
     OP_NAME = "-"
     OP_FUNC = "__sub__"
-    def terms(self):
-        return (self.lh_exp + -self.rh_exp).terms()
+    def coefficients(self, interface):
+        return (self.lh_exp + -self.rh_exp).coefficients(interface)
 
 class MulExpression(BinaryOperator, Expression):
     OP_NAME = "*"
     OP_FUNC = "__mul__"
-    # Verify that left hand side is constant.
-    def canonicalize(self):
-        if not self.lh_exp.curvature.is_constant():
-            raise Exception("Cannot multiply on the left by a non-constant.")
-        return super(MulExpression, self).canonicalize()
+    # Evaluates the left hand and right hand expressions,
+    # checks the left hand expression is constant,
+    # and multiplies all the right hand coefficients by the left hand constant.
+    def coefficients(self, interface):
+        lh_coeff = self.lh_exp.coefficients(interface)
+        rh_coeff = self.rh_exp.coefficients(interface)
+        return dict((k,lh_coeff[s.CONSTANT]*v) for k,v in rh_coeff.items())
 
-    # Distribute left hand side across right hand side.
-    # Form multiplication stacks.
     def terms(self):
-        terms = []
-        for rh_term,rh_mults in self.rh_exp.terms():
-            for lh_term,lh_mults in self.lh_exp.terms():
-                mults = deque(rh_mults)
-                mults.extend(lh_mults)
-                terms.append( (rh_term, mults) )
-        return terms
+        return self.rh_exp.terms()
 
     # TODO scalar by vector/matrix
     @property
@@ -172,13 +160,9 @@ class MulExpression(BinaryOperator, Expression):
 class NegExpression(UnaryOperator, Expression):
     OP_NAME = "-"
     OP_FUNC = "__neg__"
-    # Negate all the terms.
-    def terms(self):
-        terms = []
-        for term,mults in self.expr.terms():
-            mults.append(types.constant()(-1))
-            terms.append( (term, mults) )
-        return terms
+    # Negate all coefficients.
+    def coefficients(self, interface):
+        return ( types.constant()(-1)*self.expr ).coefficients(interface)
 
 # class IndexExpression(Expression):
 #     # key - a tuple of integers.

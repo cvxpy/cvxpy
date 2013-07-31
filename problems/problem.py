@@ -33,7 +33,6 @@ class Problem(object):
         return (eq_constraints, ineq_constraints, soc_constraints)
 
     # Convert the problem into an affine objective and affine constraints.
-    # Then simplifies all the affine expressions.
     # Also returns the dimensions of the cones for the solver.
     def canonicalize(self):
         obj,constraints = self.objective.canonicalize()
@@ -46,11 +45,6 @@ class Problem(object):
             ineq_constr += constr.format()
         dims['q'] = [c.size for c in soc_constr]
         dims['s'] = []
-         # Simplify the objective and non-SOC constraints.
-        simplified = obj.simplify(self.interface)
-        for constr in eq_constr + ineq_constr:
-            simplified += constr.simplify(self.interface)
-        eq_constr += simplified
         return (obj,eq_constr,ineq_constr,dims)
 
     # Solves the problem and returns the value of the objective.
@@ -112,7 +106,7 @@ class Problem(object):
         constant_vec = self.dense_interface.zeros(rows,1)
         vert_offset = 0
         for aff_exp in aff_expressions:
-            coefficients = aff_exp.coefficients
+            coefficients = aff_exp.coefficients(self.interface)
             horiz_offset = 0
             for (id, obj) in variables:
                 for i in range(obj.size[1]):
