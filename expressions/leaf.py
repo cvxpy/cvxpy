@@ -13,3 +13,7 @@ class Leaf(object):
 
     def canonicalize(self):
         return (self,[])
+
+    @property
+    def curvature(self):
+        return self._curvature

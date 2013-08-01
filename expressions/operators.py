@@ -7,12 +7,11 @@ class BinaryOperator(object):
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
         self.rh_exp = expression.Expression.cast_to_const(rh_exp)
-        self.validate()
+        self.set_size()
 
-    # Test for incompatible dimensions and multiplication
-    # by a non-constant on the left.
-    def validate(self):
-        self.size
+    @property
+    def size(self):
+        return self._size
 
     def name(self):
         return ' '.join([self.lh_exp.name(), 
@@ -21,37 +20,30 @@ class BinaryOperator(object):
 
     # Is the expression a scalar constant?
     @staticmethod
-    def is_scalar_consant(expr):
+    def is_scalar_constant(expr):
         return expr.curvature.is_constant() and expr.size == (1,1)
 
     # Returns the size of the expression if scalar constants were promoted.
     # Returns None if neither the lefthand nor righthand expressions can be
     # promoted.
     def promoted_size(self):
-        if self.is_scalar_consant(self.rh_exp):
+        if self.is_scalar_constant(self.rh_exp):
             return self.lh_exp.size
-        elif self.is_scalar_consant(self.lh_exp):
+        elif self.is_scalar_constant(self.lh_exp):
             return self.rh_exp.size
         else:
             return None
 
     # The expression's sizes must match unless one is a scalar,
     # in which case it is promoted to the size of the other.
-    @property
-    def size(self):
+    def set_size(self):
         size = self.promoted_size()
         if size is not None:
-            return size
+            self._size = size
         elif self.rh_exp.size == self.lh_exp.size:
-            return self.lh_exp.size   
+            self._size = self.lh_exp.size
         else:
             raise Exception("Incompatible dimensions.")
-
-    # Apply the appropriate arithmetic operator to the 
-    # left hand and right hand curvatures.
-    @property
-    def curvature(self):
-        return getattr(self.lh_exp.curvature, self.OP_FUNC)(self.rh_exp.curvature)
 
     # Canonicalize both sides, concatenate the constraints,
     # and apply the appropriate arithmetic operator to
@@ -71,6 +63,8 @@ class UnaryOperator(object):
     """
     def __init__(self, expr):
         self.expr = expr
+        self._size = expr.size
+        self._curvature = getattr(self.expr.curvature, self.OP_FUNC)()
 
     def name(self):
         return self.OP_NAME + self.expr.name()
@@ -78,15 +72,15 @@ class UnaryOperator(object):
     def terms(self):
         return self.expr.terms()
 
-    @property
-    def size(self):
-        return self.expr.size
-
-    @property
-    def curvature(self):
-        return getattr(self.expr.curvature, self.OP_FUNC)()
-
     def canonicalize(self):
         obj,constraints = self.expr.canonicalize()
         obj = getattr(obj, self.OP_FUNC)()
         return (obj,constraints)
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def curvature(self):
+        return self._curvature

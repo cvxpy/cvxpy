@@ -4,8 +4,9 @@ import cvxopt
 import numbers
 import numpy
 
-DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface
 DENSE_TARGET = cvxopt.matrix
+SPARSE_TARGET = cvxopt.spmatrix
+DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface
 
 # Returns an interface between constants' internal values
 # and the target matrix used internally.

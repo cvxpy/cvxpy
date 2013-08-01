@@ -58,6 +58,10 @@ class Curvature(object):
     def is_concave(self):
         return self.is_affine() or self == Curvature.CONCAVE
 
+    # Returns whether the curvature is unknown.
+    def is_unknown(self):
+        return self == Curvature.UNKNOWN
+
     # Sums list of curvatures
     @staticmethod
     def sum(curvatures):

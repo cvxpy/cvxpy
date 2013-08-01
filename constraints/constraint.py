@@ -2,7 +2,7 @@ import abc
 import cvxpy.settings
 import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.operators import BinaryOperator
-import cvxpy.expressions.variable #TODO fix import circle
+import cvxpy.expressions.types as types
 
 class Constraint(BinaryOperator):
     """
@@ -10,6 +10,10 @@ class Constraint(BinaryOperator):
     affine == affine or affine <= affine.
     Stored internally as affine <=/== 0.
     """
+    def __init__(self, lh_exp, rh_exp, value_matrix=intf.DENSE_TARGET):
+        self.interface = intf.get_matrix_interface(value_matrix)
+        super(Constraint, self).__init__(lh_exp, rh_exp)
+
     def __repr__(self):
         return self.name()
 
@@ -51,7 +55,7 @@ class LeqConstraint(Constraint):
     def canonicalize(self, top_level=False):
         obj,constraints = (self.lh_exp - self.rh_exp).canonicalize()
         if top_level: # Replace inequality with an equality with slack.
-            slack = cvxpy.expressions.variable.Variable(*obj.size)
+            slack = types.variable()(*obj.size)
             self.slack_equality = (obj + slack == 0)
             constraints += [self.slack_equality, slack >= 0]
         else:

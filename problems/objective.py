@@ -1,4 +1,5 @@
 import cvxpy.interface.matrix_utilities as intf
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 
 class Minimize(object):
@@ -9,7 +10,7 @@ class Minimize(object):
 
     # expr - the expression to minimize.
     def __init__(self, expr):
-        self.expr = Variable.cast_to_const(expr)
+        self.expr = Expression.cast_to_const(expr)
 
     def __repr__(self):
         return self.name()
