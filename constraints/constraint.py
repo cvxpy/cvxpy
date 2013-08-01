@@ -19,6 +19,10 @@ class Constraint(BinaryOperator):
     def coefficients(self, interface):
         return (self.lh_exp - self.rh_exp).coefficients(interface)
 
+    # Save the value of the primal variable.
+    def save_value(self, value):
+        self.dual_value = value
+
 class EqConstraint(Constraint):
     OP_NAME = "=="
     # Both sides must be affine.
@@ -29,6 +33,10 @@ class EqConstraint(Constraint):
     # Verify doesn't affect dual variables.
     def canonicalize(self, top_level=False):
         return (None, [self])
+
+    @property
+    def dual(self):
+        return self.dual_value
 
 class LeqConstraint(Constraint):
     OP_NAME = "<="
@@ -52,5 +60,5 @@ class LeqConstraint(Constraint):
 
     # The value of the dual variable.
     @property
-    def value(self):
-        return self.slack_equality.value
+    def dual(self):
+        return self.slack_equality.dual

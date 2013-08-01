@@ -84,13 +84,14 @@ class Problem(object):
         offset = 0
         for obj in objects:
             rows,cols = obj.size
-            obj.value = self.dense_interface.zeros(rows, cols)
-            self.dense_interface.block_copy(obj.value, 
+            value = self.dense_interface.zeros(rows, cols)
+            self.dense_interface.block_copy(value, 
                                             result_vec[offset:offset + rows*cols], 
                                             0, 0, rows, cols)
             # Handle scalars
             if (rows,cols) == (1,1):
-                obj.value = obj.value[0,0]
+                value = value[0,0]
+            obj.save_value(value)
             offset += rows*cols
 
     # Returns a matrix where each variable coefficient is inserted as a block

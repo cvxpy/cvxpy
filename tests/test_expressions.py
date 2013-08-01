@@ -13,6 +13,7 @@ class TestExpressions(unittest.TestCase):
     def setUp(self):
         self.x = Variable(2, name='x')
         self.y = Variable(3, name='y')
+        self.z = Variable(2, name='z')
 
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
@@ -68,7 +69,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.variables(), {})
         self.assertEqual(c.curvature, Curvature.CONSTANT)
         self.assertEqual(c.canonicalize(), (c, []))
-        self.assertEqual(c.terms(), [(c, deque([c]))])
+        self.assertEqual(c.terms(), [c])
 
     # Test the Parameter class.
     def test_parameters(self):
@@ -89,14 +90,11 @@ class TestExpressions(unittest.TestCase):
         exp = exp + z + self.x
         self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
 
-        self.assertItemsEqual(exp.terms(), [(self.x, deque([self.x])),
-                                            (self.x, deque([self.x])),
-                                            (z, deque([z])),
-                                            (c, deque([c]))])
+        self.assertItemsEqual(exp.terms(), [self.x, self.x, z, c])
 
         with self.assertRaises(Exception) as cm:
             (self.x + self.y).size
-        self.assertEqual(str(cm.exception), "'x + y' has incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
         # Matrices
         exp = self.A + self.B
@@ -105,7 +103,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A + self.C).size
-        self.assertEqual(str(cm.exception), "'A + C' has incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
 
     # Test the SubExpresion class.
@@ -125,7 +123,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.x - self.y).size
-        self.assertEqual(str(cm.exception), "'x - y' has incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
         # Matrices
         exp = self.A - self.B
@@ -133,8 +131,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.size, (2,2))
 
         with self.assertRaises(Exception) as cm:
-            (self.A - self.C).size
-        self.assertEqual(str(cm.exception), "'A - C' has incompatible dimensions.")
+            (self.A - self.C)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
     # Test the MulExpresion class.
     def test_mul_expression(self):
@@ -157,19 +155,19 @@ class TestExpressions(unittest.TestCase):
         self.assertItemsEqual(terms, [self.x, one, two, c])
 
         with self.assertRaises(Exception) as cm:
-            ([2,2,3]*self.x).size
+            ([2,2,3]*self.x)
         const_name = Constant([2,2,3]).name()
         self.assertEqual(str(cm.exception), 
-            "'%s * x' has incompatible dimensions." % const_name)
+            "Incompatible dimensions.")
 
         # Matrices
-        exp = self.C * self.B
-        self.assertEqual(exp.curvature, Curvature.UNKNOWN)
-        self.assertEqual(exp.size, (3,2))
+        with self.assertRaises(Exception) as cm:
+            Constant([[2, 1],[2, 2]]) * self.C
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
         with self.assertRaises(Exception) as cm:
-            (self.A * self.C).size
-        self.assertEqual(str(cm.exception), "'A * C' has incompatible dimensions.")
+            (self.A * self.C)
+        self.assertEqual(str(cm.exception), "Cannot multiply on the left by a non-constant.")
 
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])
@@ -189,7 +187,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.size, self.x.size)
         self.assertEqual(exp.terms(), [self.x])
 
-        exp = self.x+self.y
+        exp = self.x + self.z
         self.assertEquals((-exp).variables(), exp.variables())
 
         # Matrices
@@ -219,14 +217,14 @@ class TestExpressions(unittest.TestCase):
 
         self.assertEqual(exp.size, (2,2))
 
-    # Test indexing expression.
-    def test_index_expression(self):
-        # Tuple of integers as key.
-        exp = self.x[1,0]
-        self.assertEqual(exp.name(), "x[1,0]")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+    # # Test indexing expression.
+    # def test_index_expression(self):
+    #     # Tuple of integers as key.
+    #     exp = self.x[1,0]
+    #     self.assertEqual(exp.name(), "x[1,0]")
+    #     self.assertEqual(exp.curvature, Curvature.AFFINE)
+    #     self.assertEquals(exp.size, (1,1))
 
-        with self.assertRaises(Exception) as cm:
-            (self.x[2,0]).canonicalize()
-        self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
+    #     with self.assertRaises(Exception) as cm:
+    #         (self.x[2,0]).canonicalize()
+    #     self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")

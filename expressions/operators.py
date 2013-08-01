@@ -7,6 +7,12 @@ class BinaryOperator(object):
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
         self.rh_exp = expression.Expression.cast_to_const(rh_exp)
+        self.validate()
+
+    # Test for incompatible dimensions and multiplication
+    # by a non-constant on the left.
+    def validate(self):
+        self.size
 
     def name(self):
         return ' '.join([self.lh_exp.name(), 
@@ -39,7 +45,7 @@ class BinaryOperator(object):
         elif self.rh_exp.size == self.lh_exp.size:
             return self.lh_exp.size   
         else:
-            raise Exception("'%s' has incompatible dimensions." % self.name())
+            raise Exception("Incompatible dimensions.")
 
     # Apply the appropriate arithmetic operator to the 
     # left hand and right hand curvatures.

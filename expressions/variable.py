@@ -40,3 +40,37 @@ class Variable(leaf.Leaf, expression.Expression):
     @property
     def curvature(self):
         return Curvature.AFFINE
+
+    # Save the value of the primal variable.
+    def save_value(self, value):
+        self.primal_value = value
+
+    @property
+    def value(self):
+        return self.primal_value
+
+    # Create a new variable that acts as a view into this variable.
+    def __getitem__(self, key):
+        pass
+
+# class IndexExpression(Expression):
+#     # key - a tuple of integers.
+#     def __init__(self, expr, key):
+#         self.expr = expr
+#         self.key = key
+
+#     def name(self):
+#         return "%s[%s,%s]" % (self.expr.name(), self.key[0], self.key[1])
+
+#     # TODO slices
+#     @property
+#     def size(self):
+#         return (1,1)
+
+#     # Raise an Exception if the key is not a valid index.
+#     def validate_key(self):
+#         rows,cols = self.size
+#         if not (0 <= self.key[0] and self.key[0] < rows and \
+#                 0 <= self.key[1] and self.key[1] < cols): 
+#            raise Exception("Invalid indices %s,%s for '%s'." % 
+#                 (self.key[0], self.key[1], self.expr.name()))

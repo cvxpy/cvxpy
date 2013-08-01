@@ -24,8 +24,8 @@ class TestConstraints(unittest.TestCase):
         self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         
         with self.assertRaises(Exception) as cm:
-            (self.x == self.y).size
-        self.assertEqual(str(cm.exception), "'x == y' has incompatible dimensions.")
+            (self.x == self.y)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
     # Test the LeqConstraint class.
     def test_leq_constraint(self):
@@ -35,8 +35,8 @@ class TestConstraints(unittest.TestCase):
         self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         
         with self.assertRaises(Exception) as cm:
-            (self.x <= self.y).size
-        self.assertEqual(str(cm.exception), "'x <= y' has incompatible dimensions.")
+            (self.x <= self.y)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
     # Test the SOC class.
     def test_soc_constraint(self):

@@ -255,9 +255,9 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.x.value, [4,3])
         self.assertAlmostEqual(self.z.value, [-4,1])
         # Dual values
-        self.assertAlmostEqual(p.constraints[0].value, [0, 1])
-        self.assertAlmostEqual(p.constraints[1].value, [-1, 0.5])
-        self.assertAlmostEqual(p.constraints[2].value, 0)
+        self.assertAlmostEqual(p.constraints[0].dual, [0, 1])
+        self.assertAlmostEqual(p.constraints[1].dual, [-1, 0.5])
+        self.assertAlmostEqual(p.constraints[2].dual, 0)
 
     
         T = matrix(2,(2,3))
@@ -268,6 +268,6 @@ class TestProblem(unittest.TestCase):
              self.C == T.T])
         result = p.solve()
         # Dual values
-        self.assertAlmostEqual(p.constraints[0].value, 4*[0])
-        self.assertAlmostEqual(p.constraints[1].value, 4*[0])
-        self.assertAlmostEqual(p.constraints[2].value, 6*[0])
+        self.assertAlmostEqual(p.constraints[0].dual, 4*[0])
+        self.assertAlmostEqual(p.constraints[1].dual, 4*[0])
+        self.assertAlmostEqual(p.constraints[2].dual, 6*[0])
