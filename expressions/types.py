@@ -10,3 +10,7 @@ def variable():
 def parameter():
     import parameter
     return parameter.Parameter
+
+def expression():
+    import expression
+    return expression.Expression

@@ -271,3 +271,24 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(p.constraints[0].dual, 4*[0])
         self.assertAlmostEqual(p.constraints[1].dual, 4*[0])
         self.assertAlmostEqual(p.constraints[2].dual, 6*[0])
+
+    # Test problems with indexing.
+    def test_indexing(self):
+        p = Problem(Maximize(self.x[0,0]), [self.x[0,0] <= 2, self.x[1,0] == 3])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.x, [2,3])
+
+        n = 10
+        A = matrix(range(n*n), (n,n))
+        x = Variable(n,n)
+        p = Problem(Minimize(sum(x)), [x == A])
+        result = p.solve()
+        answer = n*n*(n*n+1)/2 - n*n
+        self.assertAlmostEqual(result, answer)
+
+        p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ), 
+                             [self.A <= [[1,-2],[-3,4]]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+        self.assertAlmostEqual(self.A, [1,-2,-3,4])

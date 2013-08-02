@@ -2,7 +2,9 @@ import cvxpy.settings as s
 import cvxpy.interface.matrix_utilities as intf
 import expression
 from curvature import Curvature
+from shape import Shape
 import leaf
+from collections import deque
 
 class Variable(object):
     """ A dummy type to mark and create variables. """
@@ -13,7 +15,7 @@ class Variable(object):
         else:
             return BaseVariable.__new__(MatrixVariable)
 
-class BaseVariable(leaf.Leaf, expression.Expression):
+class BaseVariable(leaf.Leaf):
     """ The base variable class """
     VAR_COUNT = 0        
     # name - unique identifier.
@@ -21,12 +23,12 @@ class BaseVariable(leaf.Leaf, expression.Expression):
     # cols - variable width.
     # value_matrix - the matrix type used to store values.
     def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
-        self._rows = rows
-        self._cols = cols
+        self._shape = Shape(rows, cols)
         self._init_id()
         self._name = self.id if name is None else name
         self.interface = intf.get_matrix_interface(value_matrix)
         self.primal_value = None
+        super(BaseVariable, self).__init__()
 
     # Ensure Variable __new__ is only called once.
     def __new__(cls, *args, **kwargs):
@@ -44,10 +46,6 @@ class BaseVariable(leaf.Leaf, expression.Expression):
 
     def name(self):
         return self._name
-
-    @property
-    def size(self):
-        return (self._rows, self._cols)
 
     @property
     def curvature(self):
@@ -100,15 +98,13 @@ class MatrixVariable(BaseVariable, Variable):
             for col in range(self.size[1]):
                 yield self[row,col]
 
+    # Mark variable as iterable by implementing len.
+    def __len__(self):
+        return self.size[0]*self.size[1]
+
     # The id of the view at the given index.
     def index_id(self, row, col):
         return "%s[%s,%s]" % (self.id, row, col)
-
-    # # Recover the value matrix from the index variables.
-    # def recover_value_matrix(self, key, value):
-    #     if self.primal_value is None:
-    #         self.primal_value = self.interface.zeros(self.size[0], self.size[1])
-    #     self.primal_value[key[0],key[1]] = value
 
 class ScalarVariable(BaseVariable, Variable):
     """ A scalar variable """
@@ -135,5 +131,5 @@ class IndexVariable(ScalarVariable):
         self.id = self.parent.index_id(*self.key)
 
     # Return parent so that the parent value is updated.
-    def terms(self):
-        return [self.parent]
+    def as_term(self):
+        return (self.parent, deque([self]))

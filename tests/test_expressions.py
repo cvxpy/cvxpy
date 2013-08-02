@@ -32,7 +32,9 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.size, (2,1))
         self.assertEqual(y.size, (1,1))
         self.assertEqual(x.curvature, Curvature.AFFINE)
-        self.assertEqual(x.canonicalize(), (x, []))
+        self.assertEqual(x.canonicalize()[0].size, (2,1))
+        self.assertEqual(x.canonicalize()[1], [])
+        self.assertEqual(x.as_term(), (x,deque([x])))
 
         # identity = x.coefficients(self.intf)[x.id]
         # self.assertEqual(identity.size, (2,2))
@@ -41,20 +43,8 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(identity[1,0], 0)
         # self.assertEqual(identity[1,1], 1)
         # Test terms and variables.
-        self.assertEqual(x.variables()[x.id], x)
-        self.assertEqual(x.terms(), [x])
-
-    # Test the Variables class.
-    def test_variables(self):
-        v = Variables(['y',3],'x','z',['A',3,4])
-        self.assertEqual(v.y.name(), 'y')
-        self.assertEqual(v.y.size, (3,1))
-        self.assertEqual(v.x.name(), 'x')
-        self.assertEqual(v.x.size, (1,1))
-        self.assertEqual(v.z.name(), 'z')
-        self.assertEqual(v.z.size, (1,1))
-        self.assertEqual(v.A.name(), 'A')
-        self.assertEqual(v.A.size, (3,4))
+        # self.assertEqual(x.variables()[x.id], x)
+        # self.assertEqual(x.terms(), [x])
 
     # Test the Constant class.
     def test_constants(self):
@@ -65,15 +55,16 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.name(), "c")
         self.assertEqual(c.value, 2)
         self.assertEqual(c.size, (1,1))
-        self.assertEqual(c.variables(), {})
         self.assertEqual(c.curvature, Curvature.CONSTANT)
-        self.assertEqual(c.canonicalize(), (c, []))
-        # self.assertEqual(c.terms(), [c])
+        self.assertEqual(c.canonicalize()[0].size, (1,1))
+        self.assertEqual(c.canonicalize()[1], [])
+        self.assertEqual(c.as_term(), (c,deque([c])))
 
     # Test the Parameter class.
     def test_parameters(self):
-        p = Parameter('p')
+        p = Parameter(name='p')
         self.assertEqual(p.name(), "p")
+        self.assertEqual(p.size, (1,1))
 
     # Test the AddExpresion class.
     def test_add_expression(self):
@@ -81,15 +72,13 @@ class TestExpressions(unittest.TestCase):
         c = Constant([2,2])
         exp = self.x + c
         self.assertEqual(exp.curvature, Curvature.AFFINE)
-        self.assertEqual(exp.canonicalize(), (exp, []))
+        self.assertEqual(exp.canonicalize()[0].size, (2,1))
+        self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " + " + c.name())
         self.assertEqual(exp.size, (2,1))
 
         z = Variable(2, name='z')
         exp = exp + z + self.x
-        # self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
-
-        # self.assertItemsEqual(exp.terms(), [self.x, self.x, z, c])
 
         with self.assertRaises(Exception) as cm:
             (self.x + self.y).size
@@ -111,14 +100,13 @@ class TestExpressions(unittest.TestCase):
         c = Constant([2,2])
         exp = self.x - c
         self.assertEqual(exp.curvature, Curvature.AFFINE)
-        self.assertEqual(exp.canonicalize(), (exp, []))
+        self.assertEqual(exp.canonicalize()[0].size, (2,1))
+        self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
         self.assertEqual(exp.size, (2,1))
 
         z = Variable(2, name='z')
         exp = exp - z - self.x
-        # self.assertItemsEqual(exp.variables().keys(), [self.x.id, z.id])
-        # self.assertItemsEqual(exp.terms(), [self.x, self.x, c, z])
 
         with self.assertRaises(Exception) as cm:
             (self.x - self.y).size
@@ -139,17 +127,10 @@ class TestExpressions(unittest.TestCase):
         c = Constant([[2],[2]])
         exp = c*self.x
         self.assertEqual(exp.curvature, Curvature.AFFINE)
-        self.assertEqual(exp.canonicalize(), (exp, []))
-        self.assertEqual(exp.name(), Constant(c).name() + " * " + self.x.name())
+        self.assertEqual(exp.canonicalize()[0].size, (1,1))
+        self.assertEqual(exp.canonicalize()[1], [])
+        self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
         self.assertEqual(exp.size, (1,1))
-
-        # self.assertItemsEqual(exp.terms(), [self.x, c])
-
-        one = Constant(1)
-        two = Constant(2)
-        new_exp = two*(exp + one)
-        # self.assertEqual(new_exp.variables(), exp.variables())
-        # self.assertItemsEqual(new_exp.terms(), [self.x, one, two, c])
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x)
@@ -163,7 +144,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
         with self.assertRaises(Exception) as cm:
-            (self.A * self.C)
+            (self.A * self.B)
         self.assertEqual(str(cm.exception), "Cannot multiply on the left by a non-constant.")
 
         # Constant expressions
@@ -172,20 +153,15 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.curvature, Curvature.AFFINE)
         self.assertEqual(exp.size, (3,2))
 
-        # self.assertItemsEqual(exp.terms(), [self.B, T, T])
-
     # Test the NegExpression class.
     def test_neg_expression(self):
         # Vectors
         exp = -self.x
         self.assertEqual(exp.curvature, Curvature.AFFINE)
-        self.assertEqual(exp.canonicalize(), (exp, []))
+        self.assertEqual(exp.canonicalize()[0].size, (2,1))
+        self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), "-%s" % self.x.name())
         self.assertEqual(exp.size, self.x.size)
-        # self.assertEqual(exp.terms(), [self.x])
-
-        exp = self.x + self.z
-        self.assertEquals((-exp).variables(), exp.variables())
 
         # Matrices
         exp = -self.C
@@ -197,7 +173,8 @@ class TestExpressions(unittest.TestCase):
         # Vectors
         exp = self.x + 2
         self.assertEqual(exp.curvature, Curvature.AFFINE)
-        self.assertEqual(exp.canonicalize(), (exp, []))
+        self.assertEqual(exp.canonicalize()[0].size, (2,1))
+        self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
         self.assertEqual(exp.size, (2,1))
 

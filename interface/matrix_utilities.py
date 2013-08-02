@@ -32,6 +32,8 @@ def size(constant):
         return constant.size
     elif isinstance(constant, numpy.ndarray):
         return constant.shape
+    else:
+        raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
 # Is the constant a vector?
 def is_vector(constant):

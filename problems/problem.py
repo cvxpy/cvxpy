@@ -2,7 +2,7 @@ import cvxpy.settings as s
 import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.constraint import EqConstraint, LeqConstraint
+from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from cvxpy.constraints.second_order import SOC
 
 import cvxopt
@@ -27,8 +27,8 @@ class Problem(object):
 
     # Divide the constraints into separate types.
     def filter_constraints(self, constraints):
-        eq_constraints = [c for c in constraints if isinstance(c, EqConstraint)]
-        ineq_constraints = [c for c in constraints if isinstance(c, LeqConstraint)]
+        eq_constraints = [c for c in constraints if isinstance(c, AffEqConstraint)]
+        ineq_constraints = [c for c in constraints if isinstance(c, AffLeqConstraint)]
         soc_constraints = [c for c in constraints if isinstance(c, SOC)]
         return (eq_constraints, ineq_constraints, soc_constraints)
 
@@ -37,7 +37,7 @@ class Problem(object):
     def canonicalize(self):
         obj,constraints = self.objective.canonicalize()
         for constr in self.constraints:
-            constraints += constr.canonicalize(top_level=True)[1]
+            constraints += constr.canonicalize()[1]
         eq_constr,ineq_constr,soc_constr = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in ineq_constr)}
         # Formats SOC constraints for the solver.
@@ -109,8 +109,6 @@ class Problem(object):
 
     # Returns a matrix where each variable coefficient is inserted as a block
     # with upper left corner at matrix[variable offset, constraint offset].
-    # Also returns a vector representing the constant value associated
-    # with the matrix by variables product.
     # aff_expressions - a list of affine expressions or constraints.
     # var_ids - a list of variable ids.
     # interface - the matrix interface to use for creating the constraints matrix.

@@ -1,6 +1,7 @@
 import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.constraints.affine import AffEqConstraint
 
 class Minimize(object):
     """
@@ -11,6 +12,11 @@ class Minimize(object):
     # expr - the expression to minimize.
     def __init__(self, expr):
         self.expr = Expression.cast_to_const(expr)
+        # Validate that the objective resolves to a scalar.
+        if self.expr.size != (1,1):
+            raise Exception("The objective '%s' must resolve to a scalar." 
+                            % self.name())
+        super(Minimize, self).__init__()
 
     def __repr__(self):
         return self.name()
@@ -21,12 +27,9 @@ class Minimize(object):
     # Create a new objective to handle constants in the original objective.
     # Raise exception if the original objective is not scalar.
     def canonicalize(self):
-        if self.expr.size != (1,1):
-            raise Exception("The objective '%s' must resolve to a scalar." 
-                            % self.name())
-        obj,constraints = self.expr.canonicalize()
-        t = Variable()
-        return (t, constraints + [t == obj])
+        obj,constraints = self.expr.canonical_form()
+        t,dummy = Variable().canonical_form()
+        return (t, constraints + [AffEqConstraint(t, obj)])
 
     # Objective must be convex.
     def is_dcp(self):
@@ -52,10 +55,3 @@ class Maximize(Minimize):
     # The value of the objective, taken from the solver results.
     def value(self, results):
         return -super(Maximize, self).value(results)
-
-
-def minimize(expr):
-    return Minimize(expr)
-
-def maximize(expr):
-    return Maximize(expr)
