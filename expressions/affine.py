@@ -1,4 +1,5 @@
 import types
+import cvxpy.settings as s
 from collections import deque
 
 class AffineObjective(object):
@@ -19,28 +20,26 @@ class AffineObjective(object):
     # interface - the matrix interface to convert constants
     #             into a matrix of the target class.
     def coefficients(self, interface):
-        coeffs = {}
+        final_coeffs = {}
         for term,mults in self._terms:
-            mult_coeffs = self.dequeue_mults(mults, interface)
-            # got this nice piece of code off stackoverflow http://stackoverflow.com/questions/1031199/adding-dictionaries-in-python
-            coeffs = dict( (n, mult_coeffs.get(n, 0) + coeffs.get(n, 0))
-                            for n in set(mult_coeffs)|set(coeffs) )
-        return coeffs
+            root = mults[0]
+            root_coeffs = root.coefficients(interface)
+            for id,coeff in root_coeffs.items():
+                coefficient = self.dequeue_mults(coeff, mults, interface)
+                if id in final_coeffs:
+                    final_coeffs[id] = final_coeffs[id] + coefficient
+                else:
+                    final_coeffs[id] = coefficient
+        return final_coeffs
 
-    # Resolves a multiplication stack into a dictionary of
-    # id: coefficient.
+    # Resolves a multiplication stack into a single coefficient.
     @staticmethod
-    def dequeue_mults(mults, interface):
-        mults = deque(mults) # Shallow copy for repeated leaves.
-        root = mults.popleft()
-        coeffs = root.coefficients(interface)
-        while(len(mults) > 0):
-            lh = mults.popleft()
-            lh_coeffs = lh.coefficients(interface)
-            # TODO only use constant?
-            for k,lh_val in lh_coeffs.items():
-                coeffs = dict((k,lh_val*v) for k,v in coeffs.items())
-        return coeffs
+    def dequeue_mults(coefficient, mults, interface):
+        for i in range(len(mults)-1):
+            lh = mults[i+1]
+            lh_coeff = lh.coefficients(interface)[s.CONSTANT]
+            coefficient = lh_coeff * coefficient
+        return coefficient
 
     # Returns a dictionary of name to variable.
     def variables(self):

@@ -22,7 +22,17 @@ class SparseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
-        return cvxopt.sparse( cvxopt.matrix(value, (rows,cols)), tc='d' )
+        if value == 0:
+            return cvxopt.spmatrix(0, [], [], size=(rows,cols))
+        else: # Not a sparse matrix
+            return cvxopt.matrix(value, (rows,cols), tc='d')
 
-    def list_to_matrix(self, values, size):
-        return cvxopt.sparse( cvxopt.matrix(values, size), tc='d' )
+    def reshape(self, matrix, size):
+        old_size = matrix.size
+        new_mat = self.zeros(*size)
+        for v,i,j in zip(matrix.V, matrix.I, matrix.J):
+            pos = i + old_size[0]*j
+            new_row = pos % size[0]
+            new_col = pos / size[0]
+            new_mat[new_row, new_col] = v
+        return new_mat

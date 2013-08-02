@@ -55,7 +55,7 @@ class Problem(object):
         objective,eq_constr,ineq_constr,dims = self.canonicalize()
         variables = self.variables(objective, eq_constr + ineq_constr)
         var_ids = self.variable_ids(variables)
-
+       
         c = self.constraints_matrix([objective], var_ids, self.dense_interface).T
         A = self.constraints_matrix(eq_constr, var_ids, self.interface)
         b = -self.constraints_matrix(eq_constr, [s.CONSTANT], self.dense_interface)

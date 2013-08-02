@@ -24,5 +24,5 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def scalar_matrix(self, value, rows, cols):
         return cvxopt.matrix(value, (rows,cols), tc='d')
 
-    def list_to_matrix(self, values, size):
-        return cvxopt.matrix(values, size, tc='d')
+    def reshape(self, matrix, size):
+        return cvxopt.matrix(list(matrix), size, tc='d')

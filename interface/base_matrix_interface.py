@@ -30,9 +30,9 @@ class BaseMatrixInterface(object):
     def scalar_matrix(self, value, rows, cols):
         return NotImplemented
 
-    # A matrix with all entries equal to the given scalar value.
+    # Coerce the matrix into the given shape.
     @abc.abstractmethod
-    def list_to_matrix(self, values, size):
+    def reshape(self, matrix, size):
         return NotImplemented
 
     # Copy the block into the matrix at the given offset.
@@ -42,8 +42,8 @@ class BaseMatrixInterface(object):
             block = self.scalar_matrix(intf.scalar_value(block), rows, cols)
         # If the block is a vector coerced into a matrix, promote it.
         elif intf.is_vector(block) and cols > 1:
-            block = self.list_to_matrix(list(block), (rows, cols))
+            block = self.reshape(block, (rows, cols))
         # If the block is a matrix coerced into a vector, vectorize it.
         elif not intf.is_vector(block) and cols == 1:
-            block = self.list_to_matrix(list(block), (rows*cols, 1))
+            block = self.reshape(block, (rows, cols))
         matrix[vert_offset:(rows+vert_offset), horiz_offset:(horiz_offset+cols)] = block
