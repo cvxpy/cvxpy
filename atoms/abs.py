@@ -8,7 +8,7 @@ from monotonicity import Monotonicity
 import cvxpy.interface.matrix_utilities as intf
 
 class abs(Atom):
-    """ L1 norm sum(|x|) """
+    """ Elementwise absolute value """
     def __init__(self, x):
         super(abs, self).__init__(x)
 
@@ -27,8 +27,7 @@ class abs(Atom):
     def validate_arguments(self):
         pass
 
-    @staticmethod
-    def graph_implementation(var_args):
+    def graph_implementation(self, var_args):
         x = var_args[0]
         rows,cols = x.size
         t = Variable(rows, cols)

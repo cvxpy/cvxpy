@@ -28,8 +28,7 @@ class normInf(Atom):
             raise Exception("The argument '%s' to normInf must resolve to a vector." 
                 % self.args[0].name())
 
-    @staticmethod
-    def graph_implementation(var_args):
+    def graph_implementation(self, var_args):
         x = var_args[0]
         rows,cols = x.size
         t = Variable()

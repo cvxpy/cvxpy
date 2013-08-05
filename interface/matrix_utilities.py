@@ -30,8 +30,14 @@ def size(constant):
     elif isinstance(constant, cvxopt.matrix) or \
          isinstance(constant, cvxopt.spmatrix):
         return constant.size
-    elif isinstance(constant, numpy.ndarray):
-        return constant.shape
+    elif isinstance(constant, numpy.ndarray) or \
+         isinstance(constant, numpy.matrix):
+        # Slicing drops the second dimension.
+        if len(constant.shape) == 1:
+            dim = constant.shape[0]
+            return (dim,constant.size/dim)
+        else:
+            return constant.shape
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 

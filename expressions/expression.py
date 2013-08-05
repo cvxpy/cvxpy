@@ -52,17 +52,28 @@ class Expression(object):
 
     """ Iteration """
     # Raise an Exception if the key is not a valid index.
+    # Returns the key as a tuple.
     def validate_key(self, key):
         rows,cols = self.size
+        # Change single indexes for vectors into double indices.
+        if not isinstance(key, tuple):
+            if rows == 1:
+                key = (0,key)
+            elif cols == 1:
+                key = (key,0)
+            else:
+                raise Exception("Invalid index %s for '%s'." % (key, self.name()))
+        # Check that index is in bounds.
         if not (0 <= key[0] and key[0] < rows and \
                 0 <= key[1] and key[1] < cols):
            raise Exception("Invalid indices %s,%s for '%s'." % 
                 (key[0], key[1], self.name()))
+        return key
 
     # Create a new variable that acts as a view into this variable.
     # Updating the variable's value updates the value of this variable instead.
     def __getitem__(self, key):
-        self.validate_key(key)
+        key = self.validate_key(key)
         # Indexing into a scalar returns the scalar.
         if self.size == (1,1):
             return self
@@ -80,7 +91,11 @@ class Expression(object):
                 yield self[row,col]
 
     def __len__(self):
-        return self.size[0]*self.size[1]
+        length = self.size[0]*self.size[1]
+        if length == 1: # Numpy will iterate over anything with a length.
+            return NotImplemented
+        else:
+            return length
 
     """ Arithmetic operators """
     def __add__(self, other):
@@ -118,7 +133,7 @@ class Expression(object):
         return Expression.cast_to_const(other) <= self
 
     """ Avoid overriding abs """
-    
+
 
 class AddExpression(BinaryOperator, Expression):
     OP_NAME = "+"
