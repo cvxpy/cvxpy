@@ -14,18 +14,19 @@ Example usage (execute in python prompt from above the cvxpy directory):
 ```
 from cvxpy import *
 
-v = Variables(('x',2),('z',2))
+x = Variable(2, name='x')
+z = Variable(2, name='z')
 
 p = Problem(
-        Minimize(5 + norm1(v.z) + norm1(v.x) + normInf(v.x - v.z) ) ), 
-        [v.x >= [2,3], 
-         v.z <= [-1,-4], 
-         norm2(v.x + v.z) <= 2]
+        Minimize(5 + norm1(z) + norm1(x) + normInf(x - z) ) ), 
+        [x >= [2,3], 
+         z <= [-1,-4], 
+         norm2(x + z) <= 2]
     )
 
 p.solve()
 # Variable values are stored in the same matrix type used internally, 
 # i.e. a cvxopt dense matrix.
-v.x.value
-v.z.value
+x.value
+z.value
 ```
