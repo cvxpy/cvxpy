@@ -39,3 +39,8 @@ class UnaryOperator(object):
     @property
     def curvature(self):
         return self._curvature
+
+    # Apply the appropriate arithmetic operator to the expression
+    # at the given index. Return the result.
+    def index_object(self, key):
+        return getattr(self.expr[key], self.OP_FUNC)()

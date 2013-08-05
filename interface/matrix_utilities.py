@@ -6,7 +6,7 @@ import numpy
 
 DENSE_TARGET = cvxopt.matrix
 SPARSE_TARGET = cvxopt.spmatrix
-DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface
+DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface()
 
 # Returns an interface between constants' internal values
 # and the target matrix used internally.
@@ -55,6 +55,19 @@ def scalar_value(constant):
          isinstance(constant, numpy.ndarray) or \
          isinstance(constant, numpy.matrix):
         return constant[0,0]
+
+# Get the value at the given index.
+def index(constant, key):
+    if isinstance(constant, list):
+        if is_vector(constant):
+            return constant[key[0]]
+        else:
+            return constant[key[1]][key[0]]
+    elif isinstance(constant, cvxopt.matrix) or \
+         isinstance(constant, cvxopt.spmatrix) or \
+         isinstance(constant, numpy.ndarray) or \
+         isinstance(constant, numpy.matrix):
+        return constant[key] 
 
 # Return a dense matrix with all 0's.
 # Needed for constant vectors in conelp.

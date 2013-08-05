@@ -25,6 +25,17 @@ class AffineConstraint(object):
         else:
             return AffineConstraint.cast_as_affine(types.constant()(expr))
 
+    def name(self):
+        return ' '.join([self.lh_exp.name(), 
+                         self.OP_NAME, 
+                         self.rh_exp.name()])
+
+    def __str__(self):
+        return self.name()
+
+    def __repr__(self):
+        return self.name()
+
     @property
     def size(self):
         return self._expr.size
@@ -37,6 +48,7 @@ class AffineConstraint(object):
 
 class AffEqConstraint(AffineConstraint):
     """ An affine equality constraint. """
+    OP_NAME = "=="
     def __init__(self, lh_exp, rh_exp, 
                  value_matrix=intf.DENSE_TARGET, parent=None):
         self.parent = parent
@@ -50,3 +62,4 @@ class AffEqConstraint(AffineConstraint):
 
 class AffLeqConstraint(AffineConstraint):
     """ An affine less than or equal constraint. """
+    OP_NAME = "<="

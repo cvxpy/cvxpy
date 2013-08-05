@@ -125,6 +125,21 @@ class TestProblem(unittest.TestCase):
         # Test variables are dense.
         self.assertEqual(type(self.A.value), self.A.interface.TARGET_MATRIX)
 
+    # Test variable promotion.
+    def test_variable_promotion(self):
+        p = Problem(Minimize(self.a), [self.x <= self.a, self.x == [1,2]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, 2)
+
+        p = Problem(Minimize(self.a), 
+            [self.A <= self.a, 
+             self.A == [[1,2],[3,4]]
+             ])
+        result = p.solve()
+        self.assertAlmostEqual(result, 4)
+        self.assertAlmostEqual(self.a.value, 4)
+
     # Test problems with normInf
     def test_normInf(self):
         # Constant argument.
@@ -211,6 +226,13 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.x.value, [2,3])
         self.assertAlmostEqual(self.z.value, [-1,-4])
 
+    # Test problems with abs
+    def test_abs(self):
+        p = Problem(Minimize(sum(abs(self.A))), [-2 >= self.A])
+        result = p.solve()
+        self.assertAlmostEqual(result, 8)
+        self.assertAlmostEqual(self.A.value, [-2,-2,-2,-2])
+
     # Test combining atoms
     def test_mixed_atoms(self):
         p = Problem(Minimize(norm2(5 + norm1(self.z) 
@@ -274,6 +296,7 @@ class TestProblem(unittest.TestCase):
 
     # Test problems with indexing.
     def test_indexing(self):
+        # Vector variables
         p = Problem(Maximize(self.x[0,0]), [self.x[0,0] <= 2, self.x[1,0] == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 2)
@@ -287,8 +310,16 @@ class TestProblem(unittest.TestCase):
         answer = n*n*(n*n+1)/2 - n*n
         self.assertAlmostEqual(result, answer)
 
+        # Matrix variables
         p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ), 
                              [self.A <= [[1,-2],[-3,4]]])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
         self.assertAlmostEqual(self.A, [1,-2,-3,4])
+
+        # Indexing arithmetic expressions.
+        exp = [[1,2],[3,4]]*self.z + self.x
+        p = Problem(Minimize(exp[1,0]), [self.x == self.z, self.z == [1,2]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12)
+        self.assertAlmostEqual(self.x.value, self.z.value)

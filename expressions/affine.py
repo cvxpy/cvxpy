@@ -11,6 +11,15 @@ class AffineObjective(object):
         self._shape = shape
         super(AffineObjective, self).__init__()
 
+    def name(self):
+        return str(self._terms)
+
+    def __str__(self):
+        return self.name()
+
+    def __repr__(self):
+        return self.name()
+
     # The dimensions of the objective.
     @property
     def size(self):

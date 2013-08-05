@@ -16,7 +16,7 @@
 #         self.A = Parameter(2,2,'A')
 #         self.B = Parameter(2,2,'B')
 #         self.C = Parameter(3,2,'C')
-#         self.intf = intf.DEFAULT_INTERFACE()
+#         self.intf = intf.DEFAULT_INTERFACE
 
 #     # Overriden method to handle lists and lower accuracy.
 #     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):

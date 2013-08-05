@@ -5,14 +5,16 @@ from cvxpy.expressions.curvature import Curvature
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
+import cvxpy.interface.matrix_utilities as intf
 
-class norm1(Atom):
+class abs(Atom):
     """ L1 norm sum(|x|) """
     def __init__(self, x):
-        super(norm1, self).__init__(x)
+        super(abs, self).__init__(x)
 
+    # The shape is the same as the argument's shape.
     def set_shape(self):
-        self._shape = Shape(1,1)
+        self._shape = Shape(*self.args[0].size)
 
     # Default curvature.
     def base_curvature(self):
@@ -21,17 +23,23 @@ class norm1(Atom):
     def monotonicity(self):
         return [Monotonicity.NONMONOTONIC]
 
-    # Verify that the argument x is a vector.
+    # Any argument size is valid.
     def validate_arguments(self):
-        rows,cols = self.args[0].size
-        if cols != 1:
-            raise Exception("The argument '%s' to norm1 must resolve to a vector." 
-                % self.args[0].name())
+        pass
 
     @staticmethod
     def graph_implementation(var_args):
         x = var_args[0]
         rows,cols = x.size
-        t = Variable(rows)
-        ones = types.constant()(rows*[[1]])
-        return (ones*t, [AffLeqConstraint(-t, x), AffLeqConstraint(x,t)])
+        t = Variable(rows, cols)
+        constraints = []
+        for i in range(rows):
+            for j in range(cols):
+                constraints += [AffLeqConstraint(-t[i,j], x[i,j]), 
+                                AffLeqConstraint(x[i,j], t[i,j])]
+        return (t, constraints)
+
+    # Return the absolute value of the argument at the given index.
+    def index_object(self, key):
+        x = self.args[0]
+        return abs(x[key])

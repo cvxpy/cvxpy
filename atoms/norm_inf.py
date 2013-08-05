@@ -9,8 +9,10 @@ from monotonicity import Monotonicity
 class normInf(Atom):
     """ Infinity norm max{|x|} """
     def __init__(self, x):
-        self._shape = Shape(1,1)
         super(normInf, self).__init__(x)
+
+    def set_shape(self):
+        self._shape = Shape(1,1)
 
     # Default curvature.
     def base_curvature(self):

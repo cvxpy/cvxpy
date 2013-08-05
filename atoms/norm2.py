@@ -8,8 +8,10 @@ from cvxpy.constraints.second_order import SOC
 class norm2(Atom):
     """ L2 norm (sum(x^2))^(1/2) """
     def __init__(self, x):
-        self._shape = Shape(1,1)
         super(norm2, self).__init__(x)
+
+    def set_shape(self):
+        self._shape = Shape(1,1)
 
     # Default curvature.
     def base_curvature(self):

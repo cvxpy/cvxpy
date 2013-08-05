@@ -17,6 +17,8 @@ class Atom(Expression):
         self.args = map(Expression.cast_to_const, list(args))
         # Validate arguments
         self.validate_arguments()
+        # Initialize _shape
+        self.set_shape()
         super(Atom, self).__init__()
 
     # Returns the 
@@ -29,6 +31,10 @@ class Atom(Expression):
     def curvature(self):
         curvature = self.base_curvature()
         return Atom.dcp_curvature(curvature, self.args, self.monotonicity())
+
+    @abc.abstractmethod
+    def set_shape(self):
+        return NotImplemented
 
     @property
     def size(self):

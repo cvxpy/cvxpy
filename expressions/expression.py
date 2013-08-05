@@ -50,6 +50,38 @@ class Expression(object):
     def cast_to_const(expr):
         return expr if isinstance(expr, Expression) else types.constant()(expr)
 
+    """ Iteration """
+    # Raise an Exception if the key is not a valid index.
+    def validate_key(self, key):
+        rows,cols = self.size
+        if not (0 <= key[0] and key[0] < rows and \
+                0 <= key[1] and key[1] < cols):
+           raise Exception("Invalid indices %s,%s for '%s'." % 
+                (key[0], key[1], self.name()))
+
+    # Create a new variable that acts as a view into this variable.
+    # Updating the variable's value updates the value of this variable instead.
+    def __getitem__(self, key):
+        self.validate_key(key)
+        # Indexing into a scalar returns the scalar.
+        if self.size == (1,1):
+            return self
+        else:
+            return self.index_object(key)
+        # TODO # Set value if variable has value.
+        # if self.value is not None:
+        #     index_var.primal_value = self.value[key]
+
+    # Iterating over the leaf returns the index expressions
+    # in column major order.
+    def __iter__(self):
+        for row in range(self.size[0]):
+            for col in range(self.size[1]):
+                yield self[row,col]
+
+    def __len__(self):
+        return self.size[0]*self.size[1]
+
     """ Arithmetic operators """
     def __add__(self, other):
         return AddExpression(self, other)
@@ -85,6 +117,9 @@ class Expression(object):
     def __ge__(self, other):
         return Expression.cast_to_const(other) <= self
 
+    """ Avoid overriding abs """
+    
+
 class AddExpression(BinaryOperator, Expression):
     OP_NAME = "+"
     OP_FUNC = "__add__"
@@ -110,6 +145,24 @@ class AddExpression(BinaryOperator, Expression):
     def curvature(self):
         return self._curvature
 
+    # Return the symbolic affine expression equal to the given index
+    # into the expression.
+    def index_object(self, key):
+        # Scalar promotion
+        promoted = self.promoted_index_object(key)
+        if promoted is not None:
+            return promoted
+        return getattr(self.lh_exp[key], self.OP_FUNC)(self.rh_exp[key])
+
+    # Handle promoted scalars.
+    def promoted_index_object(self, key):
+        if self.lh_exp.size == (1,1):
+            return getattr(self.lh_exp, self.OP_FUNC)(self.rh_exp[key])
+        elif self.rh_exp.size == (1,1):
+            return getattr(self.lh_exp[key], self.OP_FUNC)(self.rh_exp)
+        else:
+            return None
+
     # Canonicalize both sides, concatenate the constraints,
     # and apply the appropriate arithmetic operator to
     # the two objectives.
@@ -129,7 +182,7 @@ class MulExpression(AddExpression, Expression):
     def __init__(self, lh_exp, rh_exp):
         super(MulExpression, self).__init__(lh_exp, rh_exp)
         # Left hand expression must be constant.
-        if not lh_exp.curvature.is_constant():
+        if not self.lh_exp.curvature.is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
 
     def set_shape(self):
@@ -144,6 +197,19 @@ class MulExpression(AddExpression, Expression):
             self._curvature = -self.rh_exp.curvature
         else:
             self._curvature = self.rh_exp.curvature
+
+    # Return the symbolic affine expression equal to the given index
+    # in the expression.
+    def index_object(self, key):
+        # Scalar multiplication
+        promoted = self.promoted_index_object(key)
+        if promoted is not None:
+            return promoted
+        # Matrix multiplication.
+        val = 0
+        for i in range(self.lh_exp.size[1]):
+            val = val + self.lh_exp[key[0],i] * self.rh_exp[i,key[1]]
+        return val
 
 class NegExpression(UnaryOperator, Expression):
     OP_NAME = "-"
