@@ -2,7 +2,6 @@ from cvxpy.expressions.expression import *
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.parameter import Parameter
-from cvxpy.expressions.containers import Variables
 from cvxpy.expressions.curvature import Curvature
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
