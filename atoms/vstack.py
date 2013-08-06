@@ -9,7 +9,7 @@ import cvxpy.interface.matrix_utilities as intf
 
 class vstack(Atom):
     """ Vertical concatenation """
-    def __init__(self, *args)):
+    def __init__(self, *args):
         super(vstack, self).__init__(*args)
 
     # The shape is the common width and the sum of the heights.
@@ -29,7 +29,8 @@ class vstack(Atom):
     def validate_arguments(self):
         arg_cols = [arg.size[1] for arg in self.args]
         if max(arg_cols) != min(arg_cols):
-            raise Exception("All arguments to vstack must have the same width.")
+            raise Exception( ("All arguments to vstack must have "
+                              "the same number of columns.") )
 
     def graph_implementation(self, var_args):
         t = Variable(*self.size)
@@ -47,8 +48,8 @@ class vstack(Atom):
     # Return the absolute value of the argument at the given index.
     def index_object(self, key):
         index = 0
-        offset = self.args[0].size[0]
-        while offset < key[0]:
-            index += 1
+        offset = 0
+        while offset + self.args[index].size[0] <= key[0]:
             offset += self.args[index].size[0]
-        return self.args[index][key]
+            index += 1
+        return self.args[index][key[0] - offset, key[1]]

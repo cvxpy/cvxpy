@@ -323,3 +323,19 @@ class TestProblem(unittest.TestCase):
         result = p.solve()
         self.assertAlmostEqual(result, 12)
         self.assertAlmostEqual(self.x.value, self.z.value)
+
+    # Test the vstack atom.
+    def test_vstack(self):
+        c = matrix(1, (1,5))
+        p = Problem(Minimize(c * vstack(self.x, self.y)), 
+            [self.x == [1,2],
+            self.y == [3,4,5]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 15)
+
+        c = matrix(1, (2,2))
+        p = Problem( Minimize( sum(vstack(self.A, self.C)) ), 
+            [self.A >= 2*c,
+            self.C == -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -4)

@@ -10,6 +10,10 @@ class TestAtoms(unittest.TestCase):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
+        self.A = Variable(2,2,name='A')
+        self.B = Variable(2,2,name='B')
+        self.C = Variable(3,2,name='C')
+
     # Test the normInf class.
     def test_normInf(self):
         exp = self.x+self.y
@@ -21,7 +25,7 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(normInf(-atom).curvature, Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
-            normInf([[1,2],[3,4]]).canonicalize()
+            normInf([[1,2],[3,4]])
         self.assertEqual(str(cm.exception), 
             "The argument '[[1, 2], [3, 4]]' to normInf must resolve to a vector.")
 
@@ -36,7 +40,7 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(norm1(-atom).curvature, Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
-            norm1([[1,2],[3,4]]).canonicalize()
+            norm1([[1,2],[3,4]])
         self.assertEqual(str(cm.exception), 
             "The argument '[[1, 2], [3, 4]]' to norm1 must resolve to a vector.")
 
@@ -51,6 +55,29 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(norm2(-atom).curvature, Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
-            norm2([[1,2],[3,4]]).canonicalize()
+            norm2([[1,2],[3,4]])
         self.assertEqual(str(cm.exception), 
             "The argument '[[1, 2], [3, 4]]' to norm2 must resolve to a vector.")
+
+    # Test the vstack class.
+    def test_vstack(self):
+        atom = vstack(self.x, self.y, self.x)
+        self.assertEquals(atom.name(), "vstack(x, y, x)")
+        self.assertEquals(atom.size, (6,1))
+
+        self.assertEqual(atom[0,0].name(), "x[0,0]")
+        self.assertEqual(atom[2,0].name(), "y[0,0]")
+        self.assertEqual(atom[5,0].name(), "x[1,0]")
+
+        atom = vstack(self.A, self.C, self.B)
+        self.assertEquals(atom.name(), "vstack(A, C, B)")
+        self.assertEquals(atom.size, (7,2))
+
+        self.assertEqual(atom[0,1].name(), "A[0,1]")
+        self.assertEqual(atom[3,0].name(), "C[1,0]")
+        self.assertEqual(atom[6,1].name(), "B[1,1]")
+
+        with self.assertRaises(Exception) as cm:
+            vstack(self.C, 1)
+        self.assertEqual(str(cm.exception), 
+            "All arguments to vstack must have the same number of columns.")

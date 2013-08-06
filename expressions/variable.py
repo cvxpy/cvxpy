@@ -21,10 +21,6 @@ class Variable(leaf.Leaf):
         self.primal_value = None
         super(Variable, self).__init__()
 
-    # Ensure Variable __new__ is only called once.
-    def __new__(cls, *args, **kwargs):
-        return leaf.Leaf.__new__(cls, *args, **kwargs)
-
     # Initialize the id.
     def _init_id(self):
         self.id = Variable.next_var_name()

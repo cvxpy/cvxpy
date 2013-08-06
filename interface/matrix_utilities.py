@@ -27,11 +27,9 @@ def size(constant):
             return (len(constant),1)
         else: # Matrix
             return (len(constant[0]),len(constant))
-    elif isinstance(constant, cvxopt.matrix) or \
-         isinstance(constant, cvxopt.spmatrix):
+    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix)):
         return constant.size
-    elif isinstance(constant, numpy.ndarray) or \
-         isinstance(constant, numpy.matrix):
+    elif isinstance(constant, (numpy.ndarray, numpy.matrix)):
         # Slicing drops the second dimension.
         if len(constant.shape) == 1:
             dim = constant.shape[0]
@@ -56,10 +54,8 @@ def scalar_value(constant):
         return constant
     elif isinstance(constant, list):
         return constant[0]
-    elif isinstance(constant, cvxopt.matrix) or \
-         isinstance(constant, cvxopt.spmatrix) or \
-         isinstance(constant, numpy.ndarray) or \
-         isinstance(constant, numpy.matrix):
+    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
+                               numpy.ndarray, numpy.matrix)):
         return constant[0,0]
 
 # Get the value at the given index.
@@ -69,10 +65,8 @@ def index(constant, key):
             return constant[key[0]]
         else:
             return constant[key[1]][key[0]]
-    elif isinstance(constant, cvxopt.matrix) or \
-         isinstance(constant, cvxopt.spmatrix) or \
-         isinstance(constant, numpy.ndarray) or \
-         isinstance(constant, numpy.matrix):
+    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
+                               numpy.ndarray, numpy.matrix)):
         return constant[key] 
 
 # Return a dense matrix with all 0's.
