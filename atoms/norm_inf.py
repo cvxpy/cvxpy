@@ -5,6 +5,8 @@ from cvxpy.expressions.curvature import Curvature
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
+import max
+import abs
 
 class normInf(Atom):
     """ Infinity norm max{|x|} """
@@ -29,7 +31,4 @@ class normInf(Atom):
 
     def graph_implementation(self, var_args):
         x = var_args[0]
-        rows,cols = x.size
-        t = Variable()
-        ones = types.constant()(rows*[1])
-        return (t, [AffLeqConstraint(-ones*t, x), AffLeqConstraint(x, ones*t)])
+        return max.max(abs.abs(x)).canonicalize()

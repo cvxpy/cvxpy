@@ -5,6 +5,7 @@ from cvxpy.expressions.curvature import Curvature
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
+import abs
 
 class norm1(Atom):
     """ L1 norm sum(|x|) """
@@ -29,7 +30,4 @@ class norm1(Atom):
 
     def graph_implementation(self, var_args):
         x = var_args[0]
-        rows,cols = x.size
-        t = Variable(rows)
-        ones = types.constant()(rows*[[1]])
-        return (ones*t, [AffLeqConstraint(-t, x), AffLeqConstraint(x,t)])
+        return sum(abs.abs(x)).canonicalize()

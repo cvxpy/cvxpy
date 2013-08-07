@@ -29,13 +29,9 @@ class abs(Atom):
 
     def graph_implementation(self, var_args):
         x = var_args[0]
-        rows,cols = x.size
-        t = Variable(rows, cols)
-        constraints = []
-        for i in range(rows):
-            for j in range(cols):
-                constraints += [AffLeqConstraint(-t[i,j], x[i,j]), 
-                                AffLeqConstraint(x[i,j], t[i,j])]
+        t = Variable(*x.size)
+        constraints = [AffLeqConstraint(-t, x), 
+                       AffLeqConstraint(x, t)]
         return (t, constraints)
 
     # Return the absolute value of the argument at the given index.
