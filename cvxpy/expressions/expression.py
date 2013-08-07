@@ -141,7 +141,7 @@ class Expression(object):
         return c.LeqConstraint(self, other)
 
     def __ge__(self, other):
-        return Expression.cast_to_const(other) <= self
+        return Expression.cast_to_const(other).__le__(self)
 
 
 class AddExpression(BinaryOperator, Expression):
