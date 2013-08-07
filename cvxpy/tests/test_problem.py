@@ -30,7 +30,7 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=4)
+            super(TestProblem, self).assertAlmostEqual(a,b,places=3)
 
     # Test the is_dcp method.
     def test_is_dcp(self):
@@ -77,11 +77,11 @@ class TestProblem(unittest.TestCase):
         # Infeasible problems
         p = Problem(Maximize(self.a), [self.a >= 2])
         result = p.solve()
-        self.assertEqual(result, 'dual infeasible')
+        self.assertEqual(result, 'Dual infeasible')
 
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
         result = p.solve()
-        self.assertEqual(result, 'primal infeasible')
+        self.assertEqual(result, 'Primal infeasible')
 
     # Test vector LP problems.
     def test_vector_lp(self):
@@ -99,7 +99,7 @@ class TestProblem(unittest.TestCase):
              self.z >= [2,2],
              self.a >= 2])
         result = p.solve()
-        self.assertAlmostEqual(result, 26.0)
+        self.assertAlmostEqual(result, 26)
         self.assertAlmostEqual(self.a.value, 2)
         self.assertAlmostEqual(self.x.value, [8,8])
         self.assertAlmostEqual(self.z.value, [2,2])

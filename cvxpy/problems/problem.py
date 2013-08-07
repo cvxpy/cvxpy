@@ -5,8 +5,8 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from cvxpy.constraints.second_order import SOC
 
-import cvxopt
 import cvxopt.solvers
+import ecos
 
 class Problem(object):
     """
@@ -62,13 +62,23 @@ class Problem(object):
         G = self.constraints_matrix(ineq_constr, var_ids, self.interface)
         h = -self.constraints_matrix(ineq_constr, [s.CONSTANT], self.dense_interface)
 
-        results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
-        if results['status'] == 'optimal':
+        if len(dims['s']) > 0 or min(G.size) == 0 or \
+           self.interface.TARGET_MATRIX == intf.DENSE_TARGET:
+            results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
+            status = results['status']
+            solved = status == 'optimal'
+            primal_val = results['primal objective']
+        else:
+            results = ecos.ecos(c,G,h,dims,A,b)
+            solved = results['info']['exitFlag'] == 0
+            status = results['info']['infostring']
+            primal_val = results['info']['pcost']
+        if solved:
             self.save_values(results['x'], variables)
             self.save_values(results['y'], eq_constr)
-            return self.objective.value(results)
+            return self.objective.value(primal_val)
         else:
-            return results['status']
+            return status
 
     # A list of variable objects, sorted alphabetically by id.
     def variables(self, objective, constraints):

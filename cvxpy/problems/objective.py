@@ -35,9 +35,9 @@ class Minimize(object):
     def is_dcp(self):
         return self.expr.curvature.is_convex()
 
-    # The value of the objective, taken from the solver results.
-    def value(self, results):
-        return results['primal objective']
+    # The value of the objective given the solver primal value.
+    def value(self, result):
+        return result
 
 class Maximize(Minimize):
     NAME = "maximize"
@@ -52,6 +52,6 @@ class Maximize(Minimize):
     def is_dcp(self):
         return self.expr.curvature.is_concave()
 
-    # The value of the objective, taken from the solver results.
-    def value(self, results):
-        return -super(Maximize, self).value(results)
+    # The value of the objective given the solver primal value.
+    def value(self, result):
+        return -result
