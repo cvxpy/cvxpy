@@ -6,11 +6,12 @@ from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
 import cvxpy.interface.matrix_utilities as intf
+import quad_over_lin as qln
 
-class abs(Atom):
-    """ Elementwise absolute value """
+class square(Atom):
+    """ Elementwise square """
     def __init__(self, x):
-        super(abs, self).__init__(x)
+        super(square, self).__init__(x)
 
     # The shape is the same as the argument's shape.
     def set_shape(self):
@@ -34,10 +35,10 @@ class abs(Atom):
         constraints = []
         for i in range(rows):
             for j in range(cols):
-                constraints += [AffLeqConstraint(-t[i,j], x[i,j]), 
-                                AffLeqConstraint(x[i,j], t[i,j])]
+                obj,constr = qln.quad_over_lin(x[i,j],1).canonicalize()
+                constraints += constr + [AffEqConstraint(obj, t[i,j])]
         return (t, constraints)
 
     # Return the absolute value of the argument at the given index.
     def index_object(self, key):
-        return abs(self.args[0][key])
+        return square(self.args[0][key])

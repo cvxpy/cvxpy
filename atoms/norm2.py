@@ -22,9 +22,8 @@ class norm2(Atom):
 
     # Verify that the argument x is a vector.
     def validate_arguments(self):
-        rows,cols = self.args[0].size
-        if cols != 1:
-            raise Exception("The argument '%s' to norm2 must resolve to a vector." 
+        if not self.args[0].is_vector():
+            raise TypeError("The argument '%s' to norm2 must resolve to a vector." 
                 % self.args[0].name())
 
     @staticmethod

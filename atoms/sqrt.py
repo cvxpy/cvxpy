@@ -6,11 +6,12 @@ from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
 import cvxpy.interface.matrix_utilities as intf
+import geo_mean as gm
 
-class abs(Atom):
-    """ Elementwise absolute value """
+class sqrt(Atom):
+    """ Elementwise square root """
     def __init__(self, x):
-        super(abs, self).__init__(x)
+        super(sqrt, self).__init__(x)
 
     # The shape is the same as the argument's shape.
     def set_shape(self):
@@ -18,10 +19,10 @@ class abs(Atom):
 
     # Default curvature.
     def base_curvature(self):
-        return Curvature.CONVEX
+        return Curvature.CONCAVE
 
     def monotonicity(self):
-        return [Monotonicity.NONMONOTONIC]
+        return [Monotonicity.INCREASING]
 
     # Any argument size is valid.
     def validate_arguments(self):
@@ -34,10 +35,10 @@ class abs(Atom):
         constraints = []
         for i in range(rows):
             for j in range(cols):
-                constraints += [AffLeqConstraint(-t[i,j], x[i,j]), 
-                                AffLeqConstraint(x[i,j], t[i,j])]
+                obj,constr = gm.geo_mean(x[i,j],1).canonicalize()
+                constraints += constr + [AffEqConstraint(obj, t[i,j])]
         return (t, constraints)
 
     # Return the absolute value of the argument at the given index.
     def index_object(self, key):
-        return abs(self.args[0][key])
+        return sqrt(self.args[0][key])

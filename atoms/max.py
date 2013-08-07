@@ -5,12 +5,14 @@ from cvxpy.expressions.curvature import Curvature
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
+import cvxpy.interface.matrix_utilities as intf
 
-class normInf(Atom):
-    """ Infinity norm max{|x|} """
-    def __init__(self, x):
-        super(normInf, self).__init__(x)
+class max(Atom):
+    """ Maximum element in all arguments. """
+    def __init__(self, *args):
+        super(max, self).__init__(*args)
 
+    # The shape is the same as the argument's shape.
     def set_shape(self):
         self._shape = Shape(1,1)
 
@@ -19,17 +21,13 @@ class normInf(Atom):
         return Curvature.CONVEX
 
     def monotonicity(self):
-        return [Monotonicity.NONMONOTONIC]
+        return len(self.args)*[Monotonicity.INCREASING]
 
-    # Verify that the argument x is a vector.
+    # Any argument size is valid.
     def validate_arguments(self):
-        if not self.args[0].is_vector():
-            raise TypeError("The argument '%s' to normInf must resolve to a vector." 
-                % self.args[0].name())
+        pass
 
     def graph_implementation(self, var_args):
-        x = var_args[0]
-        rows,cols = x.size
         t = Variable()
-        ones = types.constant()(rows*[1])
-        return (t, [AffLeqConstraint(-ones*t, x), AffLeqConstraint(x, ones*t)])
+        constraints = [AffLeqConstraint(x, t) for x in var_args]
+        return (t, constraints)

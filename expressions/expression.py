@@ -45,6 +45,14 @@ class Expression(object):
     def size(self):
         return NotImplemented
 
+    # Is the expression a scalar?
+    def is_scalar(self):
+        return self.size == (1,1)
+
+    # Is the expression a column vector?
+    def is_vector(self):
+        return self.size[1] == 1
+
     # Cast to Constant if not an Expression.
     @staticmethod
     def cast_to_const(expr):
