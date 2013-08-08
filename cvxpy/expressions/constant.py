@@ -15,6 +15,14 @@ class Constant(leaf.Leaf):
         self.set_shape()
         super(Constant, self).__init__()
 
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
     def name(self):
         return str(self.value) if self.param_name is None else self.param_name
 

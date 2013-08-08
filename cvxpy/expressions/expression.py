@@ -26,6 +26,12 @@ class Expression(object):
     def canonicalize(self):
         return NotImplemented
 
+    # # Returns the value of the expression.
+    # TODO make this recursive
+    # @property
+    # def value(self):
+    #     return self.objective.value(intf.DEFAULT_INTERFACE)
+
     # TODO priority
     def __repr__(self):
         return self.name()

@@ -5,6 +5,8 @@ from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
 from cvxopt import matrix
+from numpy import linalg as LA
+import numpy
 import unittest
 
 class TestProblem(unittest.TestCase):
@@ -339,3 +341,31 @@ class TestProblem(unittest.TestCase):
             self.C == -2])
         result = p.solve()
         self.assertAlmostEqual(result, -4)
+
+    # # Test getting values for expressions.
+    # def test_expression_values(self):
+    #     diff_exp = self.x - self.z
+    #     inf_exp = normInf(diff_exp)
+    #     sum_exp = 5 + norm1(self.z) + norm1(self.x) + inf_exp
+    #     constr_exp = norm2(self.x + self.z)
+    #     obj = norm2(sum_exp)
+    #     p = Problem(Minimize(obj),
+    #         [self.x >= [2,3], self.z <= [-1,-4], constr_exp <= 2])
+    #     result = p.solve()
+    #     self.assertAlmostEqual(result, 22)
+    #     self.assertAlmostEqual(self.x.value, [2,3])
+    #     self.assertAlmostEqual(self.z.value, [-1,-4])
+    #     # Expression values.
+    #     self.assertAlmostEqual(diff_exp.value, self.x.value - self.z.value)
+    #     self.assertAlmostEqual(inf_exp.value, 
+    #         LA.norm(self.x.value - self.z.value, numpy.inf))
+    #     self.assertAlmostEqual(sum_exp.value, 
+    #         5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) + \
+    #         LA.norm(self.x.value - self.z.value, numpy.inf))
+    #     vars = constr_exp.objective.variables()
+    #     print vars
+    #     for k,v in vars.items():
+    #         print v.value
+    #     self.assertAlmostEqual(constr_exp.value,
+    #         LA.norm(self.x.value + self.z.value, 2))
+    #     self.assertAlmostEqual(obj.value, result)

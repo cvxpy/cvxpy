@@ -88,3 +88,8 @@ class IndexVariable(Variable):
     # Return parent so that the parent value is updated.
     def as_term(self):
         return (self.parent, deque([self]))
+
+    # The value at the index.
+    @property
+    def value(self):
+        return self.parent.value[self.key]

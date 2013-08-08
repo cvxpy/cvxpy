@@ -34,10 +34,10 @@ class TestProblem(unittest.TestCase):
 
     # Test large expresssions.
     def test_large_expression(self):
-        for n in [10, 20, 30, 40]:
+        for n in [10, 20, 30, 40, 50]:
             A = matrix(range(n*n), (n,n))
             x = Variable(n,n)
-            p = Problem(Minimize(sum(x)), [x == A])
+            p = Problem(Minimize(sum(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
             print result - answer
