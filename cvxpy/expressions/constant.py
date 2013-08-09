@@ -3,6 +3,7 @@ import leaf
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from curvature import Curvature
+from sign import Sign
 from shape import Shape
 
 class Constant(leaf.Leaf):
@@ -13,6 +14,7 @@ class Constant(leaf.Leaf):
         self.value = value
         self.param_name = name
         self.set_shape()
+        self.set_sign()
         super(Constant, self).__init__()
 
     @property
@@ -34,6 +36,13 @@ class Constant(leaf.Leaf):
     def set_shape(self):
         self._shape = Shape(*intf.size(self.value))
 
+    # The constant's sign is fixed.
+    def set_sign(self):
+        if self.size == (1,1):
+            self._sign = Sign.val_to_sign(intf.scalar_value(self.value))
+        else:
+            self._sign = Sign.POSITIVE
+
     # Return the constant value, converted to the target matrix.
     def coefficients(self, interface):
         return {s.CONSTANT: interface.const_to_matrix(self.value)}
@@ -43,7 +52,7 @@ class Constant(leaf.Leaf):
         return IndexConstant(self, key)
 
 
-class IndexConstant(leaf.Leaf):
+class IndexConstant(Constant):
     """ An index into a matrix constant """
     # parent - the constant indexed into.
     # key - the index (row,col).
@@ -51,20 +60,6 @@ class IndexConstant(leaf.Leaf):
         self.parent = parent
         self.key = key
         self._shape = Shape(1,1)
-        super(IndexConstant, self).__init__()
-
-    def name(self):
-        return str(self.value)
-
-    @property
-    def curvature(self):
-        return Curvature.CONSTANT
-
-    # Coefficient read from parent.
-    def coefficients(self, interface):
-        return {s.CONSTANT: self.value}
-
-    # TODO replace this with Sign or intf.index(value, key)
-    @property
-    def value(self):
-        return intf.index(self.parent.value, self.key)
+        super(IndexConstant, self).__init__(
+            intf.index(self.parent.value, self.key)
+        )

@@ -54,9 +54,10 @@ def scalar_value(constant):
         return constant
     elif isinstance(constant, list):
         return constant[0]
-    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
-                               numpy.ndarray, numpy.matrix)):
+    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix)):
         return constant[0,0]
+    elif isinstance(constant, (numpy.ndarray, numpy.matrix)):
+        return constant[0]
 
 # Get the value at the given index.
 def index(constant, key):

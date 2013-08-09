@@ -22,6 +22,7 @@ class UnaryOperator(object):
         self.expr = expr
         self._shape = expr._shape
         self._curvature = getattr(self.expr.curvature, self.OP_FUNC)()
+        self._sign = getattr(self.expr.sign, self.OP_FUNC)()
         super(UnaryOperator, self).__init__()
 
     def name(self):
@@ -39,6 +40,10 @@ class UnaryOperator(object):
     @property
     def curvature(self):
         return self._curvature
+
+    @property
+    def sign(self):
+        return self._sign
 
     # Apply the appropriate arithmetic operator to the expression
     # at the given index. Return the result.

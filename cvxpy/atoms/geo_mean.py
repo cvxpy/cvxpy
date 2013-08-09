@@ -2,6 +2,7 @@ from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
+from cvxpy.expressions.sign import Sign
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
@@ -18,6 +19,10 @@ class geo_mean(Atom):
     def set_shape(self):
         self._shape = Shape(1,1)
 
+    @property
+    def sign(self):
+        return Sign.UNKNOWN
+        
     # Default curvature.
     def base_curvature(self):
         return Curvature.CONCAVE

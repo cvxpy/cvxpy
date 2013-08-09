@@ -62,13 +62,14 @@ class Problem(object):
         G = self.constraints_matrix(ineq_constr, var_ids, self.interface)
         h = -self.constraints_matrix(ineq_constr, [s.CONSTANT], self.dense_interface)
 
+        # Target cvxopt solver if SDP or invalid for ECOS.
         if len(dims['s']) > 0 or min(G.size) == 0 or \
            self.interface.TARGET_MATRIX == intf.DENSE_TARGET:
             results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
             status = results['status']
             solved = status == 'optimal'
             primal_val = results['primal objective']
-        else:
+        else: # If possible, target ECOS.
             results = ecos.ecos(c,G,h,dims,A,b)
             solved = results['info']['exitFlag'] == 0
             status = results['info']['infostring']
@@ -84,7 +85,7 @@ class Problem(object):
     def variables(self, objective, constraints):
         vars = objective.variables()
         for constr in constraints:
-            vars = dict(vars.items() + constr.variables().items())
+            vars.update(constr.variables())
         names = vars.keys()
         names.sort()
         return [vars[k] for k in names]

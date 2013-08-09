@@ -12,7 +12,9 @@ class Atom(Expression):
     def __init__(self, *args):
         # Throws error if args is empty.
         if len(args) == 0:
-            raise TypeError("No arguments given to '%s'." % self.name())
+            raise TypeError(
+                "No arguments given to '%s'." % self.__class__.__name__
+            )
         # Convert raw values to Constants
         self.args = map(Expression.cast_to_const, list(args))
         # Validate arguments
@@ -21,7 +23,7 @@ class Atom(Expression):
         self.set_shape()
         super(Atom, self).__init__()
 
-    # Returns the 
+    # Returns the string representation of the function call.
     def name(self):
         return "%s(%s)" % (self.__class__.__name__, 
                            ", ".join([arg.name() for arg in self.args]))

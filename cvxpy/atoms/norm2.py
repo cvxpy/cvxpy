@@ -1,6 +1,7 @@
 from atom import Atom
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
+from cvxpy.expressions.sign import Sign
 from cvxpy.expressions.shape import Shape
 from monotonicity import Monotonicity
 from cvxpy.constraints.second_order import SOC
@@ -12,6 +13,10 @@ class norm2(Atom):
 
     def set_shape(self):
         self._shape = Shape(1,1)
+
+    @property
+    def sign(self):
+        return Sign.POSITIVE
 
     # Default curvature.
     def base_curvature(self):

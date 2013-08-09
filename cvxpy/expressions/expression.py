@@ -2,6 +2,7 @@ import abc
 import cvxpy.constraints.constraint as c
 import cvxpy.settings as s
 from operators import BinaryOperator, UnaryOperator
+from sign import Sign
 import types
 import cvxpy.interface.matrix_utilities as intf
 
@@ -44,6 +45,11 @@ class Expression(object):
     # The curvature of the expression.
     @abc.abstractproperty
     def curvature(self):
+        return NotImplemented
+
+    # The sign of the expression.
+    @abc.abstractproperty
+    def sign(self):
         return NotImplemented
 
     # The dimensions of the expression.
@@ -155,6 +161,7 @@ class AddExpression(BinaryOperator, Expression):
     OP_FUNC = "__add__"
     def __init__(self, lh_exp, rh_exp):
         super(AddExpression, self).__init__(lh_exp, rh_exp)
+        self.set_sign()
         self.set_curvature()
         self.set_shape()
 
@@ -165,6 +172,10 @@ class AddExpression(BinaryOperator, Expression):
     def set_shape(self):
         self._shape = self.lh_exp._shape + self.rh_exp._shape
 
+    def set_sign(self):
+        self._sign = getattr(self.lh_exp.sign,
+                                  self.OP_FUNC)(self.rh_exp.sign)
+
     # Apply the appropriate arithmetic operator to the 
     # left hand and right hand curvatures.
     def set_curvature(self):
@@ -174,6 +185,10 @@ class AddExpression(BinaryOperator, Expression):
     @property
     def curvature(self):
         return self._curvature
+
+    @property
+    def sign(self):
+        return self._sign
 
     # Return the symbolic affine expression equal to the given index
     # into the expression.
@@ -221,9 +236,7 @@ class MulExpression(AddExpression, Expression):
     # Flips the curvature if the left hand expression is a negative scalar.
     # TODO is_constant instead of isinstance(...,Constant) using Sign
     def set_curvature(self):
-        if isinstance(self.lh_exp, types.constant()) and \
-            self.lh_exp.size == (1,1) and \
-            intf.scalar_value(self.lh_exp.value) < 0:
+        if self.lh_exp.sign is Sign.NEGATIVE:
             self._curvature = -self.rh_exp.curvature
         else:
             self._curvature = self.rh_exp.curvature

@@ -6,7 +6,7 @@ import pylab
 X, Y = 'x', 'y'
 
 # create simple image
-n = 16
+n = 10
 img = cvxopt.matrix(0.0,(n,n))
 img[3:9,3:9] = 0.5
 
@@ -36,7 +36,7 @@ img_gradx, img_grady = grad(img,'x'), grad(img,'y')
 # filter them (remove ones with small magnitude)
 def denoise(grad, thresh):
     for g in grad:
-         if abs(g) >= thresh: yield g
+         if g*g >= thresh*thresh: yield g
          else: yield 0.0
 
 denoise_gradx, denoise_grady = denoise(img_gradx, 0.1), denoise(img_grady, 0.1)
@@ -53,15 +53,19 @@ def boundary(img):
 new_img = Variable(n,n)
 gradx_obj = imap(square, (fx - gx for fx, gx in izip(grad(new_img,'x'),denoise_gradx)))
 grady_obj = imap(square, (fy - gy for fy, gy in izip(grad(new_img,'y'),denoise_grady)))
-e = vstack(*gradx_obj)
-print e.size
+import cProfile
+cProfile.run('''
+exp1 = vstack(*gradx_obj)
+exp2 = vstack(*grady_obj)
+obj = cvxopt.matrix(1,exp1.size).trans() * exp1 + \
+              cvxopt.matrix(1,exp2.size).trans() * exp2
 
 p = Problem(
-    Minimize( cvxopt.matrix(1,(e.size[0], 1)).trans() * vstack(*list(gradx_obj)) +
-              cvxopt.matrix(1,(e.size[0],1)).trans() * vstack(*list(grady_obj))),
+    Minimize( obj ),
     list(px == 0 for px in boundary(new_img))
 )
 p.solve()
+''')
 #
 # # show the reconstructed image
 # plt = pylab.imshow(new_img)

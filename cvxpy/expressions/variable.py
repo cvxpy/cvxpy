@@ -2,6 +2,7 @@ import cvxpy.settings as s
 import cvxpy.interface.matrix_utilities as intf
 import expression
 from curvature import Curvature
+from sign import Sign
 from shape import Shape
 import leaf
 from collections import deque
@@ -15,6 +16,7 @@ class Variable(leaf.Leaf):
     # value_matrix - the matrix type used to store values.
     def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
         self._shape = Shape(rows, cols)
+        self._sign = Sign.UNKNOWN
         self._init_id()
         self._name = self.id if name is None else name
         self.interface = intf.get_matrix_interface(value_matrix)

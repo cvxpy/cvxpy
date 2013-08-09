@@ -77,7 +77,16 @@ class TestAtoms(unittest.TestCase):
         self.assertEqual(atom[3,0].name(), "C[1,0]")
         self.assertEqual(atom[6,1].name(), "B[1,1]")
 
+        gen = (xi for xi in self.x)
+        atom = vstack(*gen)
+        self.assertEqual(atom[1,0].name(), "x[1,0]")
+
         with self.assertRaises(Exception) as cm:
             vstack(self.C, 1)
         self.assertEqual(str(cm.exception), 
             "All arguments to vstack must have the same number of columns.")
+
+        with self.assertRaises(Exception) as cm:
+            vstack()
+        self.assertEqual(str(cm.exception), 
+            "No arguments given to 'vstack'.")

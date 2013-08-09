@@ -2,6 +2,7 @@ from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
+from cvxpy.expressions.sign import Sign
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
@@ -9,14 +10,15 @@ import cvxpy.interface.matrix_utilities as intf
 
 class vstack(Atom):
     """ Vertical concatenation """
-    def __init__(self, *args):
-        super(vstack, self).__init__(*args)
-
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
         self._shape = Shape(rows, cols)
+
+    @property
+    def sign(self):
+        return Sign.UNKNOWN
 
     # Default curvature.
     def base_curvature(self):

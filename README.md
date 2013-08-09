@@ -25,8 +25,7 @@ p = Problem(
     )
 
 p.solve()
-# Variable values are stored in the same matrix type used internally, 
-# i.e. a cvxopt dense matrix.
+# Variable values are stored in a cvxopt dense matrix.
 x.value
 z.value
 ```

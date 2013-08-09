@@ -25,3 +25,7 @@ class Leaf(expression.Expression):
     @property
     def size(self):
         return self._shape.size
+
+    @property
+    def sign(self):
+        return self._sign

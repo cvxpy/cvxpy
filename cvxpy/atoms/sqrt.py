@@ -2,6 +2,7 @@ from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
+from cvxpy.expressions.sign import Sign
 from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
@@ -16,6 +17,10 @@ class sqrt(Atom):
     # The shape is the same as the argument's shape.
     def set_shape(self):
         self._shape = Shape(*self.args[0].size)
+
+    @property
+    def sign(self):
+        return Sign.POSITIVE
 
     # Default curvature.
     def base_curvature(self):
