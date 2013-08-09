@@ -22,10 +22,11 @@ class Variable(cvxpy.Variable):
     # Projection step in ADMM
     # All values except k-largest (by magnitude) set to zero.
     def project(self):
-        ind_val = self.sort_by_mag(self.value + self.u.value, self.size)
+        p_ind = sorted(cvxpy.Constant(self.value + self.u.value), 
+            key=lambda pi: -abs(pi.value)) # TODO add expression value.
         self.z.value = cvxopt.matrix(0, self.size, tc='d')
-        for index,val in ind_val[0:self._max_card]:
-            self.z.value[index[0],index[1]] = val
+        for pi in p_ind[0:self._max_card]:
+            self.z.value[pi.key[0],pi.key[1]] = pi.value
 
     # Update step in ADMM
     def update(self):
@@ -33,19 +34,8 @@ class Variable(cvxpy.Variable):
 
     # Fix the sparsity pattern by returning a constraint.
     def fix(self):
-        ind_val = self.sort_by_mag(self.z.value, self.size)
+        z_ind = sorted(self.z, key=lambda zi: -abs(zi.value))
         constraints = []
-        for index,val in ind_val[self._max_card:]:
-            constraints.append( self[index[0],index[1]] == 0 )
+        for zi in z_ind[self._max_card:]:
+            constraints.append( self[zi.key[0],zi.key[1]] == 0 )
         return constraints
-
-    # Return a list of the (indices, value) for the matrix,
-    # sorted by decreasing magnitude.
-    @staticmethod
-    def sort_by_mag(matrix, size):
-        ind_val = []
-        for row in range(size[0]):
-            for col in range(size[1]):
-                ind_val.append( ((row,col), matrix[row,col]) )
-        ind_val.sort(key=lambda tup: abs(tup[1]), reverse=True)
-        return ind_val

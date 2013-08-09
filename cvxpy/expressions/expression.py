@@ -70,9 +70,6 @@ class Expression(object):
     def cast_to_const(expr):
         return expr if isinstance(expr, Expression) else types.constant()(expr)
 
-    def __coerce__(self, other):
-        return (self, cast_to_const(other))
-
     """ Iteration """
     # Raise an Exception if the key is not a valid index.
     # Returns the key as a tuple.
