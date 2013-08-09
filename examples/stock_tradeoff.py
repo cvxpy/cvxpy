@@ -3,75 +3,47 @@ import numpy
 from cvxpy import *
 from multiprocessing import Pool
 from pylab import figure, show
+import math
 
-class StockMarket(object):
-    def __init__(self, num_assets, num_factors):
-        self.num_assets = num_assets
-        self.num_factors = num_factors
+num_assets = 100
+num_factors = 20
 
-        self.expected_returns = cvxopt.exp( cvxopt.normal(self.num_assets) )
-        self.factors = cvxopt.normal(num_assets, num_factors)
-        self.asset_risk = cvxopt.uniform(num_assets)
+mu = cvxopt.exp( cvxopt.normal(num_assets) )
+F = cvxopt.normal(num_assets, num_factors)
+D = cvxopt.spdiag( cvxopt.uniform(num_assets) )
+x = Variable(num_assets)
+gamma = Parameter()
+gamma.value = 1    # hack to ensure DCP rules hold
 
+expected_return = mu.T * x
+variance = square(norm2(F.T*x)) + square(norm2(D*x))
 
-class Portfolio(object):
-    def __init__(self, budget, market):
-        self.mu = market.expected_returns
-        self.F = market.factors
-        self.D = cvxopt.spdiag( market.asset_risk )
-        self.x = Variable(market.num_assets)
-        self.budget = budget
-        self.gamma = Parameter()
-        self.gamma.value = 1    # hack to ensure DCP rules hold
+# construct portfolio optimization problem *once*
+p = Problem(
+    Maximize(expected_return - gamma * variance),
+    [sum(x) == 1, x >= 0]
+)
 
-        # construct portfolio optimization problem
-        self.p = Problem(
-            Maximize(self.expected_return - self.gamma * self.variance),
-            [sum(self.x) == self.budget, self.x >= 0]
-          )
-
-    @property
-    def allocation(self):
-        return self.x.value
-
-    @property
-    def expected_return(self):
-        return self.mu.T * self.x
-
-    @property
-    def variance(self):
-        return square(norm2(self.F.T * self.x)) + square(norm2(self.D * self.x))
-
-    def allocate(self, tradeoff_parameter):
-        self.gamma.value = tradeoff_parameter
-        return self.p.solve()
-
-# create a stock market and a portfolio
-NYSE = StockMarket(num_assets = 5, num_factors=20)
-my_portfolio = Portfolio(10, NYSE)
-
-# encapsulate the portfolio run
-def determine_allocation(x):
-    my_portfolio.allocate(x)
-    y = my_portfolio.allocation
-    mu = my_portfolio.mu
-    F = my_portfolio.F
-    D = my_portfolio.D
-    n = NYSE.num_assets
-    expected_return, risk = mu.T*y, y.T*(F*F.T + D)*y
-    return (expected_return[0], risk[0])
+# encapsulate the allocation function
+def allocate(gamma_value):
+    gamma.value = gamma_value
+    p.solve()
+    w = x.value
+    expected_return, risk = mu.T*w, w.T*(F*F.T + D*D)*w
+    return (expected_return[0], math.sqrt(risk[0]))
 
 # create a pool of workers and a grid of gamma values
 pool = Pool(processes = 4)
 gammas = numpy.logspace(-1, 2, num=100)
 
-mu, sigma = zip(*pool.map(determine_allocation, gammas))
+# compute allocation in parallel
+mu, sqrt_sigma = zip(*pool.map(allocate, gammas))
 
 # plot the result
 fig = figure(1)
 ax = fig.add_subplot(111)
-ax.plot(mu, sigma)
-ax.set_xlabel('expected return')
-ax.set_ylabel('portfolio variance')
+ax.plot(sqrt_sigma, mu)
+ax.set_ylabel('expected return')
+ax.set_xlabel('portfolio risk')
 
 show()
