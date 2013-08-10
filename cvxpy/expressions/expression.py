@@ -1,5 +1,6 @@
 import abc
-import cvxpy.constraints.constraint as c
+import cvxpy.constraints.leq_constraint as le
+import cvxpy.constraints.eq_constraint as eq
 import cvxpy.settings as s
 from operators import BinaryOperator, UnaryOperator
 from sign import Sign
@@ -144,10 +145,10 @@ class Expression(object):
 
     """ Comparison operators """
     def __eq__(self, other):
-        return c.EqConstraint(self, other)
+        return eq.EqConstraint(self, other)
 
     def __le__(self, other):
-        return c.LeqConstraint(self, other)
+        return le.LeqConstraint(self, other)
 
     def __ge__(self, other):
         return Expression.cast_to_const(other).__le__(self)

@@ -1,9 +1,10 @@
 from cvxpy import *
-import mixed_integer as ma
+from mixed_integer import *
 import cvxopt
 
 # SVM with feature selection using cardinality constraints.
 # Generate data.
+cvxopt.setseed(2)
 N = 50
 M = 40
 n = 10
@@ -12,11 +13,10 @@ y = [cvxopt.normal(n, mean=-1.0, std=2.0) for i in range(M)]
 
 # Construct problem.
 gamma = 0.1
-a = ma.Variable(n, name='a')
-a.max_card(4)
-b = Variable(name='b')
-u = Variable(N, name='u')
-v = Variable(M, name='v')
+a = Variable(n)
+b = Variable()
+u = Variable(N)
+v = Variable(M)
 
 obj = Minimize(norm2(a) + gamma*(sum(u) + sum(v)))
 constraints = [u >= 0, v >= 0]
@@ -25,8 +25,8 @@ for i in range(N):
 for i in range(M):
     constraints += [y[i].T*a - b <= -(1 - v[i])]
 
-p = ma.Problem(obj, constraints)
-p.solve()
+p = AdmmProblem(obj, constraints + [max_card(a,6)])
+p.admm()
 
 # Count misclassifications.
 error = 0

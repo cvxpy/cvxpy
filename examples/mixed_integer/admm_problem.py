@@ -1,11 +1,13 @@
+from card_variable import CardVariable
 import cvxpy
 
-class Problem(cvxpy.Problem):
+class AdmmProblem(cvxpy.Problem):
     # Use ADMM to attempt non-convex problem.
-    def solve(self, rho=0.5, max_iter=5):
+    def admm(self, rho=0.5, max_iter=5):
         objective,eq_constr,ineq_constr,dims = self.canonicalize()
         variables = self.variables(objective, eq_constr + ineq_constr)
-        noncvx_vars = [obj for obj in variables if hasattr(obj,"noncvx")]
+        noncvx_vars = [obj for obj in variables 
+                       if isinstance(obj,CardVariable)]
         # Form ADMM problem.
         reg_obj = (rho/2)*sum(v.reg_obj() for v in noncvx_vars)
         p = cvxpy.Problem(cvxpy.Minimize(self.objective.expr + reg_obj), 
