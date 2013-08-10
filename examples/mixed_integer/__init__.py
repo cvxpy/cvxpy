@@ -1,2 +1,2 @@
-from cardinality_constraint import max_card
+from cardinality_constraint import card
 import admm_problem
