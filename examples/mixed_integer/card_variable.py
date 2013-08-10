@@ -4,8 +4,8 @@ import cvxopt
 class CardVariable(cvxpy.Variable):
     """ A variable with constrained cardinality. """
     def __init__(self, max_card, *args, **kwargs):
-        self.max_card = max_card
         super(CardVariable, self).__init__(*args, **kwargs)
+        self.max_card = max_card
         self.z = cvxpy.Parameter(*self.size)
         self.z.value = cvxopt.matrix(0, self.size, tc='d')
         self.u = cvxpy.Parameter(*self.size)

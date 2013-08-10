@@ -25,7 +25,7 @@ for i in range(N):
 for i in range(M):
     constraints += [y[i].T*a - b <= -(1 - v[i])]
 
-p = AdmmProblem(obj, constraints + [max_card(a,6)])
+p = Problem(obj, constraints + [max_card(a,6)])
 p.admm()
 
 # Count misclassifications.
