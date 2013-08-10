@@ -48,7 +48,7 @@ class Boolean(Variable):
 
     @LB.setter
     def LB(self, value):
-        self._LB.value[:] = value
+        self._LB.value = value
 
     @property
     def UB(self):
@@ -56,7 +56,7 @@ class Boolean(Variable):
 
     @UB.setter
     def UB(self, value):
-        self._UB.value[:] = value
+        self._UB.value = value
 
     @property
     def fix_values(self):
