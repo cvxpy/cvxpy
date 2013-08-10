@@ -17,9 +17,7 @@ class Atom(Expression):
             )
         # Convert raw values to Constants
         self.args = map(Expression.cast_to_const, list(args))
-        # Validate arguments
-        self.validate_arguments()
-        # Initialize _shape
+        # Initialize _shape. Raises an error for invalid argument sizes.
         self.set_shape()
         super(Atom, self).__init__()
 
@@ -67,11 +65,6 @@ class Atom(Expression):
         arg_curvatures = [monotonicity.dcp_curvature(curvature,arg.curvature)
                           for arg,monotonicity in zip(args,monotonicities)]
         return Curvature.sum(arg_curvatures)
-
-    # Raises an error if the arguments passed to the atom are invalid.
-    @abc.abstractmethod
-    def validate_arguments(self):
-        return NotImplemented
 
     # Represent the atom as a linear objective and linear/basic SOC constraints.
     def canonicalize(self):

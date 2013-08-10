@@ -5,6 +5,7 @@ from min import min
 from norm1 import norm1
 from norm2 import norm2
 from norm_inf import normInf
+from pos import pos
 from quad_over_lin import quad_over_lin
 from sqrt import sqrt
 from square import square

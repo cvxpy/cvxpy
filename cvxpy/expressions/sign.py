@@ -29,7 +29,8 @@ class Sign(object):
             return Sign.ZERO
         else:
             return Sign.NEGATIVE
-        
+    
+    # Arithmetic operators  
     def __add__(self, other):
         sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]
         for key,val in Sign.SIGN_MAP.items():
@@ -51,10 +52,12 @@ class Sign(object):
         
     def __neg__(self):
         return self * Sign.NEGATIVE
-        
+    
+    # Boolean operators
     def __eq__(self,other):
         return self.sign_str == other.sign_str
 
+    # To string methods.
     def __repr__(self):
         return "Sign('%s')" % self.sign_str
     

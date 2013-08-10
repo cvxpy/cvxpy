@@ -12,6 +12,7 @@ class vstack(Atom):
     """ Vertical concatenation """
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
+        self.validate_arguments()
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
         self._shape = Shape(rows, cols)

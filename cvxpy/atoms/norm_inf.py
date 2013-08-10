@@ -15,6 +15,7 @@ class normInf(Atom):
         super(normInf, self).__init__(x)
 
     def set_shape(self):
+        self.validate_arguments()
         self._shape = Shape(1,1)
 
     @property

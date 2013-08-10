@@ -17,6 +17,7 @@ class quad_over_lin(Atom):
 
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
+        self.validate_arguments()
         self._shape = Shape(1,1)
 
     @property

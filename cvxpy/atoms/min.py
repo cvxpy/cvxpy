@@ -1,4 +1,4 @@
-from atom import Atom
+from max import max
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.curvature import Curvature
@@ -8,12 +8,8 @@ from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from monotonicity import Monotonicity
 import cvxpy.interface.matrix_utilities as intf
 
-class min(Atom):
-    """ Maximum element in all arguments. """
-    # The shape is the same as the argument's shape.
-    def set_shape(self):
-        self._shape = Shape(1,1)
-
+class min(max):
+    """ Elementwise minimum. """
     @property
     def sign(self):
         return Sign.UNKNOWN
@@ -22,14 +18,7 @@ class min(Atom):
     def base_curvature(self):
         return Curvature.CONCAVE
 
-    def monotonicity(self):
-        return len(self.args)*[Monotonicity.INCREASING]
-
-    # Any argument size is valid.
-    def validate_arguments(self):
-        pass
-
     def graph_implementation(self, var_args):
-        t = Variable()
+        t = Variable(*self.size)
         constraints = [AffLeqConstraint(t, x) for x in var_args]
         return (t, constraints)

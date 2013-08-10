@@ -9,10 +9,13 @@ from monotonicity import Monotonicity
 import cvxpy.interface.matrix_utilities as intf
 
 class max(Atom):
-    """ Maximum element in all arguments. """
-    # The shape is the same as the argument's shape.
+    """ Elementwise maximum. """
+    # The shape is the common shape of all the arguments.
     def set_shape(self):
-        self._shape = Shape(1,1)
+        shape = self.args[0]._shape
+        for arg in self.args[1:]:
+            shape = shape + arg._shape
+        self._shape = shape
 
     @property
     def sign(self):
@@ -25,11 +28,17 @@ class max(Atom):
     def monotonicity(self):
         return len(self.args)*[Monotonicity.INCREASING]
 
-    # Any argument size is valid.
-    def validate_arguments(self):
-        pass
-
     def graph_implementation(self, var_args):
-        t = Variable()
+        t = Variable(*self.size)
         constraints = [AffLeqConstraint(x, t) for x in var_args]
         return (t, constraints)
+
+    # Return the max of the arguments' elements at the given index.
+    def index_object(self, key):
+        args = []
+        for arg in self.args:
+            if arg.size == (1,1):
+                args.append(arg)
+            else:
+                args.append(arg[key])
+        return self.__class__(*args)

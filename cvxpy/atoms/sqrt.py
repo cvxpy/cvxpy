@@ -29,10 +29,6 @@ class sqrt(Atom):
     def monotonicity(self):
         return [Monotonicity.INCREASING]
 
-    # Any argument size is valid.
-    def validate_arguments(self):
-        pass
-
     def graph_implementation(self, var_args):
         x = var_args[0]
         rows,cols = x.size
