@@ -22,7 +22,7 @@ v = Variable(M)
 slack = (pos(1-label*(sample.T*a-b)) for (label,sample) in data)
 obj = Minimize(norm2(a) + gamma*sum(slack))
 p = Problem(obj, [max_card(a,6)])
-p.admm()
+p.solve(method="admm")
 
 # Count misclassifications.
 error = 0

@@ -1,6 +1,13 @@
 from card_variable import CardVariable
 import cvxpy
 
+# Solve method with different options. 
+def solve(self, method=None, **kwargs):
+    if method is None:
+        self._solve(**kwargs)
+    elif method == "admm":
+        self._admm(**kwargs)
+
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho=0.5, max_iter=5):
     objective,eq_constr,ineq_constr,dims = self.canonicalize()
@@ -24,4 +31,6 @@ def admm(self, rho=0.5, max_iter=5):
     return p.solve()
 
 # Add admm method to cvxpy Problem.
-cvxpy.Problem.admm = admm
+cvxpy.Problem._solve = cvxpy.Problem.solve
+cvxpy.Problem._admm = admm
+cvxpy.Problem.solve = solve
