@@ -4,21 +4,16 @@ class Sign(object):
     NEGATIVE_KEY = 'NEGATIVE'
     UNKNOWN_KEY = 'UNKNOWN'
     ZERO_KEY = 'ZERO'
-    
-    # SIGN_MAP for resolving sign addition using bitwise OR
-    SIGN_MAP = {ZERO_KEY: 0, POSITIVE_KEY: 1, NEGATIVE_KEY: 2, UNKNOWN_KEY: 3}
+
+    # List of valid sign strings.
+    SIGN_STRINGS = [POSITIVE_KEY, NEGATIVE_KEY, UNKNOWN_KEY, ZERO_KEY]
     
     def __init__(self,sign_str):
         sign_str = sign_str.upper()
-        if sign_str in Sign.SIGN_MAP.keys():
+        if sign_str in Sign.SIGN_STRINGS:
             self.sign_str = sign_str
         else:
             raise Exception("No such sign %s exists." % str(sign_str))
-
-    # Returns whether the sign string is a valid sign type.
-    @staticmethod
-    def is_sign(sign_str):
-        return sign_str in Sign.SIGN_MAP.keys()
 
     # Converts a number to a sign.
     @staticmethod
@@ -30,12 +25,23 @@ class Sign(object):
         else:
             return Sign.NEGATIVE
     
-    # Arithmetic operators  
+    # Arithmetic operators
+    """
+    Handles logic of sign addition:
+        ZERO + ANYTHING = ANYTHING
+        UNKNOWN + ANYTHING = UNKNOWN
+        POSITIVE + NEGATIVE = UNKNOWN
+        SAME + SAME = SAME
+    """
     def __add__(self, other):
-        sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]
-        for key,val in Sign.SIGN_MAP.items():
-            if val == sign_val:
-                return Sign(key)
+        if self == other:
+            return self
+        elif self == Sign.ZERO:
+            return Sign.ZERO
+        elif self == Sign.UNKNOWN:
+            return Sign.UNKNOWN
+        else:
+            return Sign.UNKNOWN
     
     def __sub__(self, other):
         return self + -other

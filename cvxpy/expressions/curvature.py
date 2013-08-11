@@ -6,29 +6,15 @@ class Curvature(object):
     CONCAVE_KEY = 'CONCAVE'
     UNKNOWN_KEY = 'UNKNOWN'
     
-    """
-    VEXITY_MAP for resolving curvature addition using bitwise OR:
-      CONSTANT (0) | ANYTHING = ANYTHING
-      AFFINE (1) | NONCONSTANT = NONCONSTANT
-      CONVEX (3) | CONCAVE (5) = UNKNOWN (7)
-      SAME | SAME = SAME
-    """
-    VEXITY_MAP = {
-                  CONSTANT_KEY: 0,
-                  AFFINE_KEY: 1, 
-                  CONVEX_KEY: 3, 
-                  CONCAVE_KEY: 5,
-                  UNKNOWN_KEY: 7
-                 }
-
-    INVERSE_VEXITY_MAP = dict( (v,k) for k,v in VEXITY_MAP.items() )
-
+    # List of valid curvature strings.
+    CURVATURE_STRINGS = [CONSTANT_KEY, AFFINE_KEY, CONVEX_KEY, 
+                       CONCAVE_KEY, UNKNOWN_KEY]
     # For multiplying curvature by negative sign.
     NEGATION_MAP = {CONVEX_KEY: CONCAVE_KEY, CONCAVE_KEY: CONVEX_KEY}
     
     def __init__(self,curvature_str):
         curvature_str = curvature_str.upper()
-        if curvature_str in Curvature.VEXITY_MAP.keys():
+        if curvature_str in Curvature.CURVATURE_STRINGS:
             self.curvature_str = curvature_str
         else:
             raise Exception("No such curvature %s exists." % str(curvature_str))
@@ -70,10 +56,24 @@ class Curvature(object):
             sum_curvature = sum_curvature + curvature
         return sum_curvature
 
+    """
+    Resolves the logic of adding curvatures.
+      CONSTANT + ANYTHING = ANYTHING
+      AFFINE + NONCONSTANT = NONCONSTANT
+      CONVEX + CONCAVE = UNKNOWN
+      SAME + SAME = SAME
+    """
     def __add__(self, other):
-        curvature_val = Curvature.VEXITY_MAP[self.curvature_str] | \
-                        Curvature.VEXITY_MAP[other.curvature_str]
-        return Curvature(Curvature.INVERSE_VEXITY_MAP[curvature_val])
+        if self.is_constant():
+            return other
+        elif self.is_affine() and other.is_affine():
+            return Curvature.AFFINE
+        elif self.is_convex() and other.is_convex():
+            return Curvature.CONVEX
+        elif self.is_concave() and other.is_concave():
+            return Curvature.CONCAVE
+        else:
+            return Curvature.UNKNOWN
     
     def __sub__(self, other):
         return self + -other

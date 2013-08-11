@@ -22,7 +22,7 @@ class max_card(Constraint):
 
 class card(object):
     """ 
-    A wrapper to convert card(exp) <=/== k to max_card(exp,k)
+    A wrapper to convert card(exp) <=/== k to max_card(exp,k).
     """
     def __init__(self, exp):
         self.exp = exp
