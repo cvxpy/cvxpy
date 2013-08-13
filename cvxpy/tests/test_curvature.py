@@ -1,4 +1,4 @@
-from cvxpy.expressions.curvature import Curvature
+from cvxpy.utilities import Curvature
 from nose.tools import assert_equals
 
 class TestCurvature(object):

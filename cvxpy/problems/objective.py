@@ -1,9 +1,10 @@
-import cvxpy.interface.matrix_utilities as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.affine import AffEqConstraint
+import cvxpy.utilities as u
+import cvxpy.interface.matrix_utilities as intf
 
-class Minimize(object):
+class Minimize(u.Canonicalizable):
     """
     An optimization objective for minimization.
     """

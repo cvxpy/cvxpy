@@ -1,6 +1,5 @@
 import constant
-from sign import Sign
-from shape import Shape
+import cvxpy.utilities as u
 
 class Parameter(constant.Constant):
     """
@@ -14,7 +13,7 @@ class Parameter(constant.Constant):
 
     # The constant's shape is fixed.
     def set_shape(self):
-        self._shape = Shape(self._rows, self._cols)
+        self._shape = u.Shape(self._rows, self._cols)
 
     def set_sign(self):
-        self._sign = Sign(self.sign_str)
+        self._sign = u.Sign(self.sign_str)

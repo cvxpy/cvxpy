@@ -1,36 +1,38 @@
-from card_variable import CardVariable
+from noncvx_variable import NonCvxVariable
 import cvxpy
-
-# Solve method with different options. 
-def solve(self, method=None, **kwargs):
-    if method is None:
-        self._solve(**kwargs)
-    elif method == "admm":
-        self._admm(**kwargs)
+import cvxopt
 
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho=0.5, max_iter=5):
     objective,eq_constr,ineq_constr,dims = self.canonicalize()
     variables = self.variables(objective, eq_constr + ineq_constr)
-    noncvx_vars = [obj for obj in variables 
-                   if isinstance(obj,CardVariable)]
+    noncvx_vars = []
+    for obj in variables:
+        if isinstance(obj,NonCvxVariable):
+            # Initialize replicant z and residual u.
+            z = cvxpy.Parameter(*obj.size)
+            z.value = cvxopt.matrix(0, obj.size, tc='d')
+            u = cvxpy.Parameter(*obj.size)
+            u.value = cvxopt.matrix(0, obj.size, tc='d')
+            noncvx_vars += [(obj, z, u)]
     # Form ADMM problem.
-    reg_obj = (rho/2)*sum(v.reg_obj() for v in noncvx_vars)
-    p = cvxpy.Problem(cvxpy.Minimize(self.objective.expr + reg_obj), 
-                      self.constraints)
+    obj = self.objective.expr
+    for x,z,u in noncvx_vars:
+        obj = obj + (rho/2)*sum(cvxpy.square(x - z + u))
+    p = cvxpy.Problem(cvxpy.Minimize(obj), self.constraints)
     # ADMM loop
     for i in range(max_iter):
         p.solve()
-        for var in noncvx_vars:
-            var.project()
-            var.update()
-    # Fix noncvx variable and solve.
+        for x,z,u in noncvx_vars:
+            z.value = x.round(x.value + u.value)
+            u.value = x.value - z.value
+    # Fix noncvx variables and solve.
     fix_constr = []
-    map(fix_constr.extend, (v.fix() for v in noncvx_vars))
+    for x,z,u in noncvx_vars:
+        print z.value
+        fix_constr += x.fix(z.value)
     p = cvxpy.Problem(self.objective, self.constraints + fix_constr)
     return p.solve()
 
 # Add admm method to cvxpy Problem.
-cvxpy.Problem._solve = cvxpy.Problem.solve
-cvxpy.Problem._admm = admm
-cvxpy.Problem.solve = solve
+cvxpy.Problem.register_solve("admm", admm)

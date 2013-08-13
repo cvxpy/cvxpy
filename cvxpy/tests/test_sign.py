@@ -1,4 +1,4 @@
-from dcp_parser.expression.sign import Sign
+from cvxpy.utilities import Sign
 from nose.tools import *
 
 class TestSign(object):

@@ -24,6 +24,16 @@ class Sign(object):
             return Sign.ZERO
         else:
             return Sign.NEGATIVE
+
+    # Zero is both positive and negative.
+    def is_zero(self):
+        return self == Sign.ZERO
+
+    def is_positive(self):
+        return self.is_zero() or self == Sign.POSITIVE
+
+    def is_negative(self):
+        return self.is_zero() or self == Sign.NEGATIVE
     
     # Arithmetic operators
     """
@@ -34,12 +44,12 @@ class Sign(object):
         SAME + SAME = SAME
     """
     def __add__(self, other):
-        if self == other:
+        if self.is_zero():
+            return other
+        elif self == Sign.POSITIVE and other.is_positive():
             return self
-        elif self == Sign.ZERO:
-            return Sign.ZERO
-        elif self == Sign.UNKNOWN:
-            return Sign.UNKNOWN
+        elif self == Sign.NEGATIVE and other.is_negative():
+            return self
         else:
             return Sign.UNKNOWN
     

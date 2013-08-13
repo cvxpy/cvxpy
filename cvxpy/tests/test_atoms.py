@@ -1,6 +1,6 @@
 from cvxpy.atoms import *
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.curvature import Curvature
+import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import unittest
 
@@ -20,9 +20,9 @@ class TestAtoms(unittest.TestCase):
         atom = normInf(exp)
         self.assertEquals(atom.name(), "normInf(x + y)")
         self.assertEquals(atom.size, (1,1))
-        self.assertEquals(atom.curvature, Curvature.CONVEX)
-        self.assertEquals(normInf(atom).curvature, Curvature.UNKNOWN)
-        self.assertEquals(normInf(-atom).curvature, Curvature.UNKNOWN)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        self.assertEquals(normInf(atom).curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(normInf(-atom).curvature, u.Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
             normInf([[1,2],[3,4]])
@@ -35,9 +35,9 @@ class TestAtoms(unittest.TestCase):
         atom = norm1(exp)
         self.assertEquals(atom.name(), "norm1(x + y)")
         self.assertEquals(atom.size, (1,1))
-        self.assertEquals(atom.curvature, Curvature.CONVEX)
-        self.assertEquals(norm1(atom).curvature, Curvature.UNKNOWN)
-        self.assertEquals(norm1(-atom).curvature, Curvature.UNKNOWN)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        self.assertEquals(norm1(atom).curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(norm1(-atom).curvature, u.Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
             norm1([[1,2],[3,4]])
@@ -50,9 +50,9 @@ class TestAtoms(unittest.TestCase):
         atom = norm2(exp)
         self.assertEquals(atom.name(), "norm2(x + y)")
         self.assertEquals(atom.size, (1,1))
-        self.assertEquals(atom.curvature, Curvature.CONVEX)
-        self.assertEquals(norm2(atom).curvature, Curvature.UNKNOWN)
-        self.assertEquals(norm2(-atom).curvature, Curvature.UNKNOWN)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        self.assertEquals(norm2(atom).curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(norm2(-atom).curvature, u.Curvature.UNKNOWN)
 
         with self.assertRaises(Exception) as cm:
             norm2([[1,2],[3,4]])

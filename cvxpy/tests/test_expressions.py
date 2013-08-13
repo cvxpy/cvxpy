@@ -2,7 +2,7 @@ from cvxpy.expressions.expression import *
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.parameter import Parameter
-from cvxpy.expressions.curvature import Curvature
+import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
@@ -33,7 +33,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.name(), 'x')
         self.assertEqual(x.size, (2,1))
         self.assertEqual(y.size, (1,1))
-        self.assertEqual(x.curvature, Curvature.AFFINE)
+        self.assertEqual(x.curvature, u.Curvature.AFFINE)
         self.assertEqual(x.canonicalize()[0].size, (2,1))
         self.assertEqual(x.canonicalize()[1], [])
         self.assertEqual(x.as_term(), (x,deque([x])))
@@ -64,7 +64,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.name(), "c")
         self.assertEqual(c.value, 2)
         self.assertEqual(c.size, (1,1))
-        self.assertEqual(c.curvature, Curvature.CONSTANT)
+        self.assertEqual(c.curvature, u.Curvature.CONSTANT)
         self.assertEqual(c.canonicalize()[0].size, (1,1))
         self.assertEqual(c.canonicalize()[1], [])
         self.assertEqual(c.as_term(), (c,deque([c])))
@@ -84,7 +84,7 @@ class TestExpressions(unittest.TestCase):
         # Vectors
         c = Constant([2,2])
         exp = self.x + c
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " + " + c.name())
@@ -99,7 +99,7 @@ class TestExpressions(unittest.TestCase):
 
         # Matrices
         exp = self.A + self.B
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.size, (2,2))
 
         with self.assertRaises(Exception) as cm:
@@ -112,7 +112,7 @@ class TestExpressions(unittest.TestCase):
         # Vectors
         c = Constant([2,2])
         exp = self.x - c
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
@@ -127,7 +127,7 @@ class TestExpressions(unittest.TestCase):
 
         # Matrices
         exp = self.A - self.B
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.size, (2,2))
 
         with self.assertRaises(Exception) as cm:
@@ -139,7 +139,7 @@ class TestExpressions(unittest.TestCase):
         # Vectors
         c = Constant([[2],[2]])
         exp = c*self.x
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.canonicalize()[0].size, (1,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
@@ -163,14 +163,14 @@ class TestExpressions(unittest.TestCase):
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])
         exp = (T + T) * self.B
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.size, (3,2))
 
     # Test the NegExpression class.
     def test_neg_expression(self):
         # Vectors
         exp = -self.x
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), "-%s" % self.x.name())
@@ -178,14 +178,14 @@ class TestExpressions(unittest.TestCase):
 
         # Matrices
         exp = -self.C
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.size, (3,2))
 
     # Test promotion of scalar constants.
     def test_scalar_const_promotion(self):
         # Vectors
         exp = self.x + 2
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
@@ -199,7 +199,7 @@ class TestExpressions(unittest.TestCase):
 
         # Matrices
         exp = (self.A + 2) + 4
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual((3 * self.A).size, (2,2))
 
         self.assertEqual(exp.size, (2,2))
@@ -209,7 +209,7 @@ class TestExpressions(unittest.TestCase):
         # Tuple of integers as key.
         exp = self.x[1,0]
         self.assertEqual(exp.name(), "x[1,0]")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         with self.assertRaises(Exception) as cm:
@@ -218,44 +218,44 @@ class TestExpressions(unittest.TestCase):
 
         c = Constant([[1,2],[3,4]])
         exp = c[1,1]
-        self.assertEqual(exp.curvature, Curvature.CONSTANT)
+        self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
 
         # Arithmetic expression indexing
         exp = (self.x + self.z)[1,0]
         self.assertEqual(exp.name(), "x[1,0] + z[1,0]")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         exp = (self.x + self.a)[1,0]
         self.assertEqual(exp.name(), "x[1,0] + a")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         exp = (self.x - self.z)[1,0]
         self.assertEqual(exp.name(), "x[1,0] - z[1,0]")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         exp = (self.x - self.a)[1,0]
         self.assertEqual(exp.name(), "x[1,0] - a")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         exp = (-self.x)[1,0]
         self.assertEqual(exp.name(), "-x[1,0]")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.x)[1,0]
         self.assertEqual(exp.name(), "0 + 2 * x[0,0] + 4 * x[1,0]")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.a)[1,0]
         self.assertEqual(exp.name(), "2 * a")
-        self.assertEqual(exp.curvature, Curvature.AFFINE)
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))

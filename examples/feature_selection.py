@@ -19,14 +19,14 @@ b = Variable()
 
 slack = (pos(1-label*(sample.T*a-b)) for (label,sample) in data)
 obj = Minimize(norm2(a) + gamma*sum(slack))
-p = Problem(obj, [card(a) <= 5])
+p = Problem(obj, [card(n,k=6) == a])
 p.solve(method="admm")
 
 # Count misclassifications.
 error = 0
 for label,sample in data:
     if not label*(a.value.T*sample - b.value)[0] >= 0:
-        error = error + 1
+        error += 1
 
 print "%s misclassifications" % error
 print a.value

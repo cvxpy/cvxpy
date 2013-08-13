@@ -1,11 +1,8 @@
 from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.curvature import Curvature
-from cvxpy.expressions.sign import Sign
-from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-from monotonicity import Monotonicity
+import cvxpy.utilities as u
 import abs
 
 class norm1(Atom):
@@ -15,18 +12,18 @@ class norm1(Atom):
 
     def set_shape(self):
         self.validate_arguments()
-        self._shape = Shape(1,1)
+        self._shape = u.Shape(1,1)
 
     @property
     def sign(self):
-        return Sign.POSITIVE
+        return u.Sign.POSITIVE
 
     # Default curvature.
     def base_curvature(self):
-        return Curvature.CONVEX
+        return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [Monotonicity.NONMONOTONIC]
+        return [u.Monotonicity.NONMONOTONIC]
 
     # Verify that the argument x is a vector.
     def validate_arguments(self):

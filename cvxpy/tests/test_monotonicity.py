@@ -1,5 +1,4 @@
-from cvxpy.expressions.curvature import Curvature
-from cvxpy.atoms.monotonicity import Monotonicity
+from cvxpy.utilities import Monotonicity, Curvature
 from nose.tools import *
 
 class TestMonotonicity(object):

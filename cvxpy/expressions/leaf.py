@@ -13,9 +13,17 @@ class Leaf(expression.Expression):
     def as_term(self):
         return (self, deque([self]))
 
+    # Objective associated with the leaf.
+    def _objective(self):
+        return AffineObjective([self.as_term()], self._shape)
+
+    # Constraints associated with the leaf.
+    def _constraints(self):
+        return []
+
     # Root for the construction of affine expressions.
     def canonicalize(self):
-        return (AffineObjective([self.as_term()], self._shape), [])
+        return (self._objective(), self._constraints())
 
     # Returns the coefficients dictionary for the leaf.
     @abc.abstractmethod

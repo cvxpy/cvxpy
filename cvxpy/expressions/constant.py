@@ -2,9 +2,7 @@ import expression
 import leaf
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
-from curvature import Curvature
-from sign import Sign
-from shape import Shape
+import cvxpy.utilities as u
 
 class Constant(leaf.Leaf):
     """
@@ -30,18 +28,18 @@ class Constant(leaf.Leaf):
 
     @property
     def curvature(self):
-        return Curvature.CONSTANT
+        return u.Curvature.CONSTANT
 
     # The constant's shape is fixed.
     def set_shape(self):
-        self._shape = Shape(*intf.size(self.value))
+        self._shape = u.Shape(*intf.size(self.value))
 
     # The constant's sign is fixed.
     def set_sign(self):
         if self.size == (1,1):
-            self._sign = Sign.val_to_sign(intf.scalar_value(self.value))
+            self._sign = u.Sign.val_to_sign(intf.scalar_value(self.value))
         else:
-            self._sign = Sign.POSITIVE
+            self._sign = u.Sign.POSITIVE
 
     # Return the constant value, converted to the target matrix.
     def coefficients(self, interface):
@@ -59,7 +57,7 @@ class IndexConstant(Constant):
     def __init__(self, parent, key):
         self.parent = parent
         self.key = key
-        self._shape = Shape(1,1)
+        self._shape = u.Shape(1,1)
         super(IndexConstant, self).__init__(
             intf.index(self.parent.value, self.key)
         )

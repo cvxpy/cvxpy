@@ -1,9 +1,9 @@
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.parameter import Parameter
-from cvxpy.expressions.shape import Shape
 from cvxpy.expressions.affine import AffineObjective
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
+import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
@@ -17,9 +17,9 @@ class TestAffineConstraints(unittest.TestCase):
 
         self.A = Constant([[1, 2], [1, 2]])
 
-        self.xAff = AffineObjective([(self.x, deque([self.x]))], Shape(2,1))
-        self.yAff = AffineObjective([(self.y, deque([self.y]))], Shape(2,1))
-        self.constAff = AffineObjective([(self.A, deque([self.A]))], Shape(2,2))
+        self.xAff = AffineObjective([(self.x, deque([self.x]))], u.Shape(2,1))
+        self.yAff = AffineObjective([(self.y, deque([self.y]))], u.Shape(2,1))
+        self.constAff = AffineObjective([(self.A, deque([self.A]))], u.Shape(2,2))
         self.intf = intf.DEFAULT_INTERFACE
 
     # Test AffEqConstraint.

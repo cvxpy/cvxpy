@@ -1,11 +1,8 @@
 from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.curvature import Curvature
-from cvxpy.expressions.sign import Sign
-from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-from monotonicity import Monotonicity
+import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 
 class vstack(Atom):
@@ -15,18 +12,18 @@ class vstack(Atom):
         self.validate_arguments()
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
-        self._shape = Shape(rows, cols)
+        self._shape = u.Shape(rows, cols)
 
     @property
     def sign(self):
-        return Sign.UNKNOWN
+        return u.Sign.UNKNOWN
 
     # Default curvature.
     def base_curvature(self):
-        return Curvature.AFFINE
+        return u.Curvature.AFFINE
 
     def monotonicity(self): # TODO what would make sense?
-        return len(self.args)*[Monotonicity.INCREASING]
+        return len(self.args)*[u.Monotonicity.INCREASING]
 
     # Any argument size is valid.
     def validate_arguments(self):

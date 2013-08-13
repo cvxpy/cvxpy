@@ -3,31 +3,15 @@ import cvxpy.constraints.leq_constraint as le
 import cvxpy.constraints.eq_constraint as eq
 import cvxpy.settings as s
 from operators import BinaryOperator, UnaryOperator
-from sign import Sign
+import cvxpy.utilities as u
 import types
 import cvxpy.interface.matrix_utilities as intf
 
-class Expression(object):
+class Expression(u.Canonicalizable):
     """
     A mathematical expression in a convex optimization problem.
     """
     __metaclass__ = abc.ABCMeta
-    def __init__(self):
-        self.objective,self.constraints = self.canonicalize()
-        super(Expression, self).__init__()
-
-    # Returns the objective and a shallow copy of the constraints list.
-    def canonical_form(self):
-        return (self.objective,self.constraints[:])
-
-    # Returns an affine expression and affine constraints
-    # representing the expression's objective and constraints
-    # as a partial optimization problem.
-    # Creates new variables if necessary.
-    @abc.abstractmethod
-    def canonicalize(self):
-        return NotImplemented
-
     # # Returns the value of the expression.
     # TODO make this recursive
     # @property
@@ -234,7 +218,7 @@ class MulExpression(AddExpression, Expression):
     # Flips the curvature if the left hand expression is a negative scalar.
     # TODO is_constant instead of isinstance(...,Constant) using Sign
     def set_curvature(self):
-        if self.lh_exp.sign is Sign.NEGATIVE:
+        if self.lh_exp.sign == u.Sign.NEGATIVE:
             self._curvature = -self.rh_exp.curvature
         else:
             self._curvature = self.rh_exp.curvature

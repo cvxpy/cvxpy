@@ -1,9 +1,7 @@
 import cvxpy.settings as s
 import cvxpy.interface.matrix_utilities as intf
 import expression
-from curvature import Curvature
-from sign import Sign
-from shape import Shape
+import cvxpy.utilities as u
 import leaf
 from collections import deque
 
@@ -15,8 +13,8 @@ class Variable(leaf.Leaf):
     # cols - variable width.
     # value_matrix - the matrix type used to store values.
     def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
-        self._shape = Shape(rows, cols)
-        self._sign = Sign.UNKNOWN
+        self._shape = u.Shape(rows, cols)
+        self._sign = u.Sign.UNKNOWN
         self._init_id()
         self._name = self.id if name is None else name
         self.interface = intf.get_matrix_interface(value_matrix)
@@ -38,7 +36,7 @@ class Variable(leaf.Leaf):
 
     @property
     def curvature(self):
-        return Curvature.AFFINE
+        return u.Curvature.AFFINE
 
     # Save the value of the primal variable.
     def save_value(self, value):
@@ -90,6 +88,10 @@ class IndexVariable(Variable):
     # Return parent so that the parent value is updated.
     def as_term(self):
         return (self.parent, deque([self]))
+
+    # Convey the parent's constraints to the canonicalization.
+    def _constraints(self):
+        return self.parent._constraints()
 
     # The value at the index.
     @property

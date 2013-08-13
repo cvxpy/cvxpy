@@ -1,4 +1,4 @@
-from cvxpy.expressions.curvature import Curvature
+from curvature import Curvature
 
 class Monotonicity(object):
     """ Monotonicity of atomic functions in a given argument. """

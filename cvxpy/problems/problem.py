@@ -12,6 +12,9 @@ class Problem(object):
     """
     An optimization problem.
     """
+    # The solve methods available.
+    REGISTERED_SOLVE_METHODS = {}
+
     # objective - the problem objective.
     # constraints - the problem constraints.
     # target_matrix - the matrix type used internally.
@@ -26,7 +29,9 @@ class Problem(object):
         return all(exp.is_dcp() for exp in self.constraints + [self.objective])
 
     # Divide the constraints into separate types.
+    # Remove duplicate constraint objects.
     def filter_constraints(self, constraints):
+        constraints = list(set(constraints)) # TODO generalize
         eq_constraints = [c for c in constraints if isinstance(c, AffEqConstraint)]
         ineq_constraints = [c for c in constraints if isinstance(c, AffLeqConstraint)]
         soc_constraints = [c for c in constraints if isinstance(c, SOC)]
@@ -35,9 +40,9 @@ class Problem(object):
     # Convert the problem into an affine objective and affine constraints.
     # Also returns the dimensions of the cones for the solver.
     def canonicalize(self):
-        obj,constraints = self.objective.canonicalize()
+        obj,constraints = self.objective.canonical_form()
         for constr in self.constraints:
-            constraints += constr.canonicalize()[1]
+            constraints += constr.canonical_form()[1]
         eq_constr,ineq_constr,soc_constr = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in ineq_constr)}
         # Formats SOC constraints for the solver.
@@ -47,9 +52,23 @@ class Problem(object):
         dims['s'] = []
         return (obj,eq_constr,ineq_constr,dims)
 
-    # Solves the problem and returns the value of the objective.
+    # Dispatcher for different solve methods.
+    def solve(self, *args, **kwargs):
+        func_name = kwargs.pop("method", None)
+        if func_name is not None:
+            func = Problem.REGISTERED_SOLVE_METHODS[func_name]
+            return func(self, *args, **kwargs)
+        else:
+            return self._solve(*args, **kwargs)
+
+    # Register a solve method.
+    @staticmethod
+    def register_solve(name, func):
+        Problem.REGISTERED_SOLVE_METHODS[name] = func
+
+    # Solves DCP compliant optimization problems.
     # Saves the values of variables.
-    def solve(self):
+    def _solve(self):
         if not self.is_dcp():
             print "Problem does not follow DCP rules."
         objective,eq_constr,ineq_constr,dims = self.canonicalize()

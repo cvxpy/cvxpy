@@ -34,6 +34,24 @@ class TestProblem(unittest.TestCase):
         except Exception:
             super(TestProblem, self).assertAlmostEqual(a,b,places=3)
 
+    # Test registering other solve methods.
+    def test_register_solve(self):
+        Problem.register_solve("test",lambda self: 1)
+        p = Problem(Minimize(1))
+        result = p.solve(method="test")
+        self.assertEqual(result, 1)
+
+    # Test removing duplicate constraint objects.
+    def test_duplicate_constraints(self):
+        le = (self.x <= 2)
+        def test(self):
+            objective,eq_constr,ineq_constr,dims = self.canonicalize()
+            return (len(eq_constr),len(ineq_constr))
+        Problem.register_solve("test", test)
+        p = Problem(Minimize(0),[le,le])
+        result = p.solve(method="test")
+        self.assertEqual(result, (2,1))
+
     # Test the is_dcp method.
     def test_is_dcp(self):
         p = Problem(Minimize(normInf(self.a)))

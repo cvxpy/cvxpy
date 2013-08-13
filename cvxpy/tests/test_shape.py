@@ -1,5 +1,5 @@
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.shape import Shape
+from cvxpy.utilities import Shape
 import unittest
 
 class TestShape(unittest.TestCase):

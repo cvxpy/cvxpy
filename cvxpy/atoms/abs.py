@@ -1,11 +1,8 @@
 from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.curvature import Curvature
-from cvxpy.expressions.sign import Sign
-from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-from monotonicity import Monotonicity
+import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 
 class abs(Atom):
@@ -15,18 +12,18 @@ class abs(Atom):
 
     # The shape is the same as the argument's shape.
     def set_shape(self):
-        self._shape = Shape(*self.args[0].size)
+        self._shape = u.Shape(*self.args[0].size)
 
     @property
     def sign(self):
-        return Sign.POSITIVE
+        return u.Sign.POSITIVE
 
     # Default curvature.
     def base_curvature(self):
-        return Curvature.CONVEX
+        return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [Monotonicity.NONMONOTONIC]
+        return [u.Monotonicity.NONMONOTONIC]
         
     def graph_implementation(self, var_args):
         x = var_args[0]

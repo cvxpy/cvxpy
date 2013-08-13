@@ -1,12 +1,9 @@
 from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.curvature import Curvature
-from cvxpy.expressions.sign import Sign
-from cvxpy.expressions.shape import Shape
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-from monotonicity import Monotonicity
+import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import vstack
 
@@ -18,18 +15,18 @@ class quad_over_lin(Atom):
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
         self.validate_arguments()
-        self._shape = Shape(1,1)
+        self._shape = u.Shape(1,1)
 
     @property
     def sign(self):
-        return Sign.POSITIVE
+        return u.Sign.POSITIVE
 
     # Default curvature.
     def base_curvature(self):
-        return Curvature.CONVEX
+        return u.Curvature.CONVEX
 
     def monotonicity(self): # TODO what would make sense?
-        return [Monotonicity.NONMONOTONIC, Monotonicity.DECREASING]
+        return [u.Monotonicity.NONMONOTONIC, u.Monotonicity.DECREASING]
 
     # Any argument size is valid.
     def validate_arguments(self):

@@ -1,8 +1,7 @@
 import abc
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.curvature import Curvature
-from monotonicity import Monotonicity
+import cvxpy.utilities as u
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 
 class Atom(Expression):
@@ -64,7 +63,7 @@ class Atom(Expression):
                             ' equal to the number of monotonicities.')
         arg_curvatures = [monotonicity.dcp_curvature(curvature,arg.curvature)
                           for arg,monotonicity in zip(args,monotonicities)]
-        return Curvature.sum(arg_curvatures)
+        return u.Curvature.sum(arg_curvatures)
 
     # Represent the atom as a linear objective and linear/basic SOC constraints.
     def canonicalize(self):
