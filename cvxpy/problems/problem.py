@@ -14,7 +14,8 @@ class Problem(object):
     """
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
-
+    # Simulated variable id dict for constant.
+    CONSTANT_ID = {s.CONSTANT:0}
     # objective - the problem objective.
     # constraints - the problem constraints.
     # target_matrix - the matrix type used internally.
@@ -75,11 +76,14 @@ class Problem(object):
         variables = self.variables(objective, eq_constr + ineq_constr)
         var_ids = self.variable_ids(variables)
        
-        c = self.constraints_matrix([objective], var_ids, self.dense_interface).T
+        c = self.constraints_matrix([objective], var_ids, 
+                                    self.dense_interface).T
         A = self.constraints_matrix(eq_constr, var_ids, self.interface)
-        b = -self.constraints_matrix(eq_constr, [s.CONSTANT], self.dense_interface)
+        b = -self.constraints_matrix(eq_constr, self.CONSTANT_ID, 
+                                     self.dense_interface)
         G = self.constraints_matrix(ineq_constr, var_ids, self.interface)
-        h = -self.constraints_matrix(ineq_constr, [s.CONSTANT], self.dense_interface)
+        h = -self.constraints_matrix(ineq_constr, self.CONSTANT_ID, 
+                                     self.dense_interface)
 
         # Target cvxopt solver if SDP or invalid for ECOS.
         if len(dims['s']) > 0 or min(G.size) == 0 or \
@@ -111,15 +115,18 @@ class Problem(object):
         keys = sorted(var_id.keys())
         return [var_id[k] for k in keys]
 
-    # A list of variable ids.
+    # A dict of variable id to offset in the overall x vector.
     # Matrix variables are represented as a list of scalar variable views.
     def variable_ids(self, variables):
-        var_ids = []
+        var_ids = {}
+        index = 0
         for var in variables:
             # Column major order.
             for col in range(var.size[1]):
                 for row in range(var.size[0]):
-                    var_ids.append(var.index_id(row,col))
+                    id = var.index_id(row,col)
+                    var_ids[id] = index
+                    index += 1
         return var_ids
 
     # Saves the values of the optimal primary/dual variables 
@@ -142,7 +149,7 @@ class Problem(object):
     # Returns a matrix where each variable coefficient is inserted as a block
     # with upper left corner at matrix[variable offset, constraint offset].
     # aff_expressions - a list of affine expressions or constraints.
-    # var_ids - a list of variable ids.
+    # var_ids - a dict of variable id to offset.
     # interface - the matrix interface to use for creating the constraints matrix.
     def constraints_matrix(self, aff_expressions, var_ids, interface):
         rows = sum([aff.size[0] * aff.size[1] for aff in aff_expressions])
@@ -153,15 +160,14 @@ class Problem(object):
             num_entries = aff_exp.size[0] * aff_exp.size[1]
             coefficients = aff_exp.coefficients(interface)
             horiz_offset = 0
-            for id in var_ids:
-                if id in coefficients:
+            for id,block in coefficients.items():
+                if id in var_ids:
                     # Update the matrix.
                     interface.block_copy(matrix,
-                                         coefficients[id],
+                                         block,
                                          vert_offset,
-                                         horiz_offset,
+                                         var_ids[id],
                                          num_entries,
                                          1)
-                horiz_offset += 1
             vert_offset += num_entries
         return matrix

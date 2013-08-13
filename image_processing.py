@@ -5,7 +5,7 @@ import pylab
 import math
 
 # create simple image
-n = 4
+n = 16
 img = cvxopt.matrix(0.0,(n,n))
 img[1:2,1:2] = 0.5
 
@@ -53,13 +53,14 @@ def boundary(img):
 new_img = Variable(n,n)
 gradx_obj = imap(square, (fx - gx for fx, gx in izip(grad(new_img,'x'),denoise_gradx)))
 grady_obj = imap(square, (fy - gy for fy, gy in izip(grad(new_img,'y'),denoise_grady)))
-
+import cProfile
 p = Problem(
     Minimize(sum(gradx_obj) + sum(grady_obj)),
     list(px == 0 for px in boundary(new_img))
 )
+cProfile.run('''
 p.solve()
-
+''')
 # show the reconstructed image
 plt = pylab.imshow(new_img.value)
 plt.set_cmap('gray')

@@ -366,6 +366,13 @@ class TestProblem(unittest.TestCase):
         result = p.solve()
         self.assertAlmostEqual(result, 15)
 
+        c = matrix(1, (1,4))
+        p = Problem(Minimize(c * vstack(self.x, self.x)), 
+            [self.x == [1,2]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 6)
+
+
         c = matrix(1, (2,2))
         p = Problem( Minimize( sum(vstack(self.A, self.C)) ), 
             [self.A >= 2*c,
