@@ -173,6 +173,12 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(result, 4)
         self.assertAlmostEqual(self.a.value, 4)
 
+        # Promotion must happen before the multiplication.
+        p = Problem(Minimize([[1],[1]]*(self.x + self.a + 1)), 
+            [self.a + self.x >= [1,2]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 5)
+
     # Test problems with normInf
     def test_normInf(self):
         # Constant argument.

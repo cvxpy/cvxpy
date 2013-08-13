@@ -37,6 +37,10 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.canonicalize()[0].size, (2,1))
         self.assertEqual(x.canonicalize()[1], [])
 
+        # Scalar variable
+        coeff = self.a.coefficients(self.intf)
+        self.assertEqual(coeff[self.a.index_id(0,0)], 1)
+
         # Vector variable.
         coeffs = x.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), [x[0,0].id, x[1,0].id])
@@ -209,6 +213,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
+        coeff = exp.coefficients(self.intf)
+        self.assertEqual(coeff[exp.id], 1)
 
         with self.assertRaises(Exception) as cm:
             (self.x[2,0])

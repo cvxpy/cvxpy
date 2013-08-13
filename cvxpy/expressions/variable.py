@@ -53,9 +53,13 @@ class Variable(leaf.Leaf):
         for row in range(self.size[0]):
             for col in range(self.size[1]):
                 id = self.index_id(row, col)
-                matrix = interface.zeros(*self.size)
-                matrix[row,col] = 1
-                coeffs[id] = matrix
+                # For scalars, coefficient must be a number.
+                if self.size == (1,1):
+                    coeff = 1
+                else:
+                    coeff = interface.zeros(*self.size)
+                    coeff[row,col] = 1
+                coeffs[id] = coeff
         return coeffs
 
     # Return self.
@@ -80,7 +84,7 @@ class IndexVariable(Variable):
         name = "%s[%s,%s]" % (parent.name(), key[0], key[1])
         super(IndexVariable, self).__init__(name=name)
 
-    # Coefficient for a scalar variable.
+    # Coefficient is always 1.
     def coefficients(self, interface):
         return {self.id: 1}
 

@@ -1,6 +1,7 @@
 import types
 import cvxpy.settings as s
 import cvxpy.utilities as u
+import cvxpy.interface.matrix_utilities as intf
 from collections import deque
 
 class AffObjective(u.Affine):
@@ -57,11 +58,24 @@ class AffObjective(u.Affine):
     def variables(self):
         return self._vars
 
+    # Multiplies by a ones matrix to promote a scalar coefficient.
+    @staticmethod
+    def promote(obj, shape):
+        ones = types.constant()(intf.DEFAULT_INTERFACE.ones(*shape.size))
+        ones_obj,dummy = ones.canonical_form()
+        return ones_obj*obj
+
     # Concatenates the terms.
+    # Multiplies by a ones matrix if promotion occurs.
     def __add__(self, other):
+        new_shape = self._shape + other._shape
+        if new_shape.size > self._shape.size:
+            self = self.promote(self, new_shape)
+        elif new_shape.size > other._shape.size:
+            other = self.promote(other, new_shape)
         return AffObjective(self.variables() + other.variables(),
-                               self._terms + other._terms,
-                               self._shape + other._shape)
+                            self._terms + other._terms,
+                            new_shape)
 
     def __sub__(self, other):
         return self + -other
