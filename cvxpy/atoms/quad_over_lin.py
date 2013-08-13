@@ -5,7 +5,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
-import vstack
+from vstack import vstack
 
 class quad_over_lin(Atom):
     """ x'*x/y """
@@ -34,12 +34,14 @@ class quad_over_lin(Atom):
             raise TypeError("The first argument to quad_over_lin must be a vector.")
         elif not self.args[1].is_scalar():
             raise TypeError("The seconde argument to quad_over_lin must be a scalar.")
-
-    def graph_implementation(self, var_args):
-        v = Variable(*self.size)
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
+        v,dummy = Variable(*size).canonical_form()
         x = var_args[0]
         y = var_args[1]
 
-        constraints = SOC(y + v, vstack.vstack(y - v, 2*x)).canonicalize()[1]
-        constraints += [AffLeqConstraint(0, y)]
+        obj,constraints = vstack.graph_implementation([y - v, x + x],
+                                                      (x.size[0] + 1,1))
+        constraints += [SOC(y + v, obj), AffLeqConstraint(0, y)]
         return (v, constraints)

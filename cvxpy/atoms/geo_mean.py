@@ -5,7 +5,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
-import vstack
+from vstack import vstack
 
 class geo_mean(Atom):
     """ Geometric mean of two scalars """
@@ -32,13 +32,15 @@ class geo_mean(Atom):
     def validate_arguments(self):
         if not self.args[0].is_scalar() or not self.args[1].is_scalar():
             raise TypeError("The arguments to geo_mean must resolve to scalars." )
-
-    def graph_implementation(self, var_args):
-        v = Variable(*self.size)
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
+        v = Variable(*size)
         x = var_args[0]
         y = var_args[1]
-
-        constraints = SOC(x + y, vstack.vstack(y - x, 2*v)).canonicalize()[1]
-        constraints += [AffLeqConstraint(0, x),
+        obj,constraints = vstack.graph_implementation([y - x, v + v],
+                                                      (y.size[0] + 1,1))
+        constraints += [SOC(x + y, obj),
+                        AffLeqConstraint(0, x),
                         AffLeqConstraint(0, y)]
         return (v, constraints)

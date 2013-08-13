@@ -11,6 +11,6 @@ class EqConstraint(LeqConstraint):
     # Verify doesn't affect dual variables.
     def canonicalize(self):
         self._expr = (self.lh_exp - self.rh_exp)
-        expr_obj,expr_constr = self._expr.canonical_form()
-        dual_holder = AffEqConstraint(expr_obj, 0, self.value_matrix, self)
-        return (None, [dual_holder] + expr_constr)
+        obj,constr = self._expr.canonical_form()
+        dual_holder = AffEqConstraint(obj, 0, self.value_matrix, self)
+        return (None, [dual_holder] + constr)

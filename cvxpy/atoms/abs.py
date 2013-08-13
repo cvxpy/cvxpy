@@ -24,10 +24,11 @@ class abs(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
-        
-    def graph_implementation(self, var_args):
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
         x = var_args[0]
-        t = Variable(*x.size)
+        t = Variable(*size)
         constraints = [AffLeqConstraint(-t, x), 
                        AffLeqConstraint(x, t)]
         return (t, constraints)

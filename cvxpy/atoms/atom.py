@@ -65,40 +65,23 @@ class Atom(Expression):
                           for arg,monotonicity in zip(args,monotonicities)]
         return u.Curvature.sum(arg_curvatures)
 
-    # Represent the atom as a linear objective and linear/basic SOC constraints.
+    # Represent the atom as an affine objective and affine/basic SOC constraints.
     def canonicalize(self):
-        # canonicalize arguments.
         var_args = []
         final_constraints = []
         for arg in self.args:
+            # canonicalize arguments.
             obj,constraints = arg.canonical_form()
-            # Replace affine objective with a single variable.
-            # TODO why does Grant do this?
-            u = Variable(*arg.size)
-            var_args.append(u)
-            constraints.append( AffEqConstraint(u, obj) )
+            var_args.append(obj)
             final_constraints += constraints
-        graph_obj,graph_constr = self.graph_implementation(var_args)
-        # Replace the atom with a variable subject to a constraint
-        # with graph_obj
-        v = Variable(*self.size)
-        v,dummy = v.canonical_form()
-        graph_constr.append(self.graph_constraint(v, graph_obj))
-        return (v,final_constraints + graph_constr)
+        graph_var,graph_constr = self.graph_implementation(var_args, self.size)
+        obj = u.Affine.cast_as_affine(graph_var)
+        return (obj,final_constraints + graph_constr)
 
-    # Return the top level constraint for the graph implementation.
-    # Of the form atom_var ==/>=/<= graph_obj
-    def graph_constraint(self, atom_var, graph_obj):
-        if self.base_curvature().is_affine():
-            return AffEqConstraint(graph_obj, atom_var)
-        elif self.base_curvature().is_convex():
-            return AffLeqConstraint(graph_obj, atom_var)
-        elif self.base_curvature().is_concave():
-            return AffLeqConstraint(atom_var, graph_obj)
-
-    # Returns an affine objective and set of affine/SOC 
+    # Returns a variable and set of affine/SOC 
     # constraints equivalent to the atom.
     # var_args - a list of single variable arguments.
+    # size - the dimensions of the variable to return.
     @abc.abstractmethod
-    def graph_implementation(var_args):
+    def graph_implementation(var_args, size):
         return NotImplemented

@@ -1,4 +1,5 @@
 from noncvx_variable import NonCvxVariable
+import cvxpy.interface.matrix_utilities as intf
 
 class card(NonCvxVariable):
     """ A variable with constrained cardinality. """
@@ -18,7 +19,9 @@ class card(NonCvxVariable):
     # zeros in the matrix.
     def _fix(self, matrix):
         constraints = []
-        for xi,v in zip(self,matrix):
-            if v == 0:
-                constraints.append(xi == 0)
+        rows,cols = intf.size(matrix)
+        for i in range(rows):
+            for j in range(cols):
+                if matrix[i,j] == 0:
+                    constraints.append(self[i,j] == 0)
         return constraints

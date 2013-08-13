@@ -24,9 +24,10 @@ class max(Atom):
 
     def monotonicity(self):
         return len(self.args)*[u.Monotonicity.INCREASING]
-
-    def graph_implementation(self, var_args):
-        t = Variable(*self.size)
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
+        t = Variable(*size)
         constraints = [AffLeqConstraint(x, t) for x in var_args]
         return (t, constraints)
 

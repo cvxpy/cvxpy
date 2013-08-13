@@ -1,7 +1,7 @@
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.parameter import Parameter
-from cvxpy.expressions.affine import AffineObjective
+from cvxpy.expressions.affine import AffObjective
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
@@ -17,15 +17,15 @@ class TestAffineConstraints(unittest.TestCase):
 
         self.A = Constant([[1, 2], [1, 2]])
 
-        self.xAff = AffineObjective([(self.x, deque([self.x]))], u.Shape(2,1))
-        self.yAff = AffineObjective([(self.y, deque([self.y]))], u.Shape(2,1))
-        self.constAff = AffineObjective([(self.A, deque([self.A]))], u.Shape(2,2))
+        self.xAff = AffObjective([self.x], [deque([self.x])], u.Shape(2,1))
+        self.yAff = AffObjective([self.y], [deque([self.y])], u.Shape(2,1))
+        self.constAff = AffObjective([self.A], [deque([self.A])], u.Shape(2,2))
         self.intf = intf.DEFAULT_INTERFACE
 
     # Test AffEqConstraint.
     def test_eq_constraint(self):
         constr = AffEqConstraint(self.xAff, self.yAff)
-        self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.y.id])
+        self.assertItemsEqual(constr.variables(), [self.x, self.y])
 
         coeffs = constr.coefficients(self.intf)
         exp = self.xAff - self.yAff
@@ -41,7 +41,7 @@ class TestAffineConstraints(unittest.TestCase):
     # Test AffLeqConstraint.
     def test_eq_constraint(self):
         constr = AffLeqConstraint(self.xAff, self.yAff)
-        self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.y.id])
+        self.assertItemsEqual(constr.variables(), [self.x, self.y])
 
         coeffs = constr.coefficients(self.intf)
         exp = self.xAff - self.yAff

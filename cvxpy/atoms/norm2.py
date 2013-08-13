@@ -30,7 +30,7 @@ class norm2(Atom):
                 % self.args[0].name())
 
     @staticmethod
-    def graph_implementation(var_args):
+    def graph_implementation(var_args, size):
         x = var_args[0]
         t = Variable()
         return (t, [SOC(t, x)])

@@ -41,14 +41,27 @@ class TestProblem(unittest.TestCase):
         result = p.solve(method="test")
         self.assertEqual(result, 1)
 
+        def test(self, a, b=2):
+            return (a,b)
+        Problem.register_solve("test", test)
+        p = Problem(Minimize(0))
+        result = p.solve(1,b=3,method="test")
+        self.assertEqual(result, (1,3))
+        result = p.solve(1,method="test")
+        self.assertEqual(result, (1,2))
+        result = p.solve(1,method="test",b=4)
+        self.assertEqual(result, (1,4))
+
     # Test removing duplicate constraint objects.
     def test_duplicate_constraints(self):
+        eq = (self.x == 2)
         le = (self.x <= 2)
+        obj = 0
         def test(self):
             objective,eq_constr,ineq_constr,dims = self.canonicalize()
             return (len(eq_constr),len(ineq_constr))
         Problem.register_solve("test", test)
-        p = Problem(Minimize(0),[le,le])
+        p = Problem(Minimize(obj),[eq,eq,le,le])
         result = p.solve(method="test")
         self.assertEqual(result, (2,1))
 

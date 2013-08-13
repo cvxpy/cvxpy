@@ -3,7 +3,7 @@ import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
-import abs
+from abs import abs
 
 class norm1(Atom):
     """ L1 norm sum(|x|) """
@@ -30,7 +30,9 @@ class norm1(Atom):
         if not self.args[0].is_vector():
             raise Exception("The argument '%s' to norm1 must resolve to a vector." 
                 % self.args[0].name())
-
-    def graph_implementation(self, var_args):
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
         x = var_args[0]
-        return sum(abs.abs(x)).canonicalize()
+        obj,constraints = abs.graph_implementation([x], x.size)
+        return (sum(obj),constraints)

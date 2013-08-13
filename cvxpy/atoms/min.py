@@ -14,8 +14,9 @@ class min(max):
     # Default curvature.
     def base_curvature(self):
         return u.Curvature.CONCAVE
-
-    def graph_implementation(self, var_args):
-        t = Variable(*self.size)
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
+        t = Variable(*size)
         constraints = [AffLeqConstraint(t, x) for x in var_args]
         return (t, constraints)

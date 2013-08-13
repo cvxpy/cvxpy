@@ -1,21 +1,18 @@
 import abc
 import types
 import expression
-from affine import AffineObjective
+import cvxpy.utilities as u
+from affine import AffObjective
 from collections import deque
 
-class Leaf(expression.Expression):
+class Leaf(expression.Expression, u.Affine):
     """
     A leaf node, i.e. a Variable, Constant, or Parameter.
     """
     __metaclass__ = abc.ABCMeta
-    # Every multiplication queue begins with the leaf itself.
-    def as_term(self):
-        return (self, deque([self]))
-
     # Objective associated with the leaf.
     def _objective(self):
-        return AffineObjective([self.as_term()], self._shape)
+        return AffObjective(self.variables(), [deque([self])], self._shape)
 
     # Constraints associated with the leaf.
     def _constraints(self):

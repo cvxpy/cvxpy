@@ -1,3 +1,4 @@
+from affine import Affine
 from canonicalizable import Canonicalizable
 from curvature import Curvature
 from monotonicity import Monotonicity

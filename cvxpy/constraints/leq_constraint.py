@@ -35,10 +35,6 @@ class LeqConstraint(BinaryOperator, Constraint):
     # Replace inequality with an equality with slack.
     def canonicalize(self):
         self._expr = (self.lh_exp - self.rh_exp)
-        expr_obj,expr_constr = self._expr.canonical_form()
-        slack = types.variable()(*expr_obj.size)
-        slack_equality = AffEqConstraint(expr_obj, -slack, 
-                                         self.value_matrix, self)
-        slack_ineq = AffLeqConstraint(0, slack)
-        constraints = expr_constr + [slack_equality, slack_ineq]
-        return (None, constraints)
+        obj,constr = self._expr.canonical_form()
+        dual_holder = AffLeqConstraint(obj, 0, self.value_matrix, self)
+        return (None, [dual_holder] + constr)

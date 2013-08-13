@@ -36,7 +36,6 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.curvature, u.Curvature.AFFINE)
         self.assertEqual(x.canonicalize()[0].size, (2,1))
         self.assertEqual(x.canonicalize()[1], [])
-        self.assertEqual(x.as_term(), (x,deque([x])))
 
         # Vector variable.
         coeffs = x.coefficients(self.intf)
@@ -67,8 +66,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.curvature, u.Curvature.CONSTANT)
         self.assertEqual(c.canonicalize()[0].size, (1,1))
         self.assertEqual(c.canonicalize()[1], [])
-        self.assertEqual(c.as_term(), (c,deque([c])))
-
+        
         coeffs = c.coefficients(self.intf)
         self.assertEqual(coeffs.keys(), [s.CONSTANT])
         self.assertEqual(coeffs[s.CONSTANT], 2)

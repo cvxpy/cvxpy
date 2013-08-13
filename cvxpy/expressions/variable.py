@@ -3,7 +3,6 @@ import cvxpy.interface.matrix_utilities as intf
 import expression
 import cvxpy.utilities as u
 import leaf
-from collections import deque
 
 class Variable(leaf.Leaf):
     """ The base variable class """
@@ -59,6 +58,10 @@ class Variable(leaf.Leaf):
                 coeffs[id] = matrix
         return coeffs
 
+    # Return self.
+    def variables(self):
+        return [self]
+
     # The id of the view at the given index.
     def index_id(self, row, col):
         return "%s[%s,%s]" % (self.id, row, col)
@@ -81,13 +84,13 @@ class IndexVariable(Variable):
     def coefficients(self, interface):
         return {self.id: 1}
 
+    # Return parent so that the parent value is updated.
+    def variables(self):
+        return [self.parent]
+
     # Initialize the id.
     def _init_id(self):
         self.id = self.parent.index_id(*self.key)
-
-    # Return parent so that the parent value is updated.
-    def as_term(self):
-        return (self.parent, deque([self]))
 
     # Convey the parent's constraints to the canonicalization.
     def _constraints(self):

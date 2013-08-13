@@ -1,15 +1,18 @@
 import types
 import cvxpy.settings as s
+import cvxpy.utilities as u
 from collections import deque
 
-class AffineObjective(object):
+class AffObjective(u.Affine):
     """ An affine objective. The result of canonicalization. """
-    # terms - a list of (leaf, multiplication queue) tuples.
+    # variables - a list of variables.
+    # terms - a list of multiplication queues.
     # shape - an object representing the dimensions.
-    def __init__(self, terms, shape):
+    def __init__(self, variables, terms, shape):
+        self._vars = variables
         self._terms = terms
         self._shape = shape
-        super(AffineObjective, self).__init__()
+        super(AffObjective, self).__init__()
 
     def name(self):
         return str(self._terms)
@@ -30,7 +33,7 @@ class AffineObjective(object):
     #             into a matrix of the target class.
     def coefficients(self, interface):
         final_coeffs = {}
-        for term,mults in self._terms:
+        for mults in self._terms:
             root = mults[0]
             root_coeffs = root.coefficients(interface)
             for id,coeff in root_coeffs.items():
@@ -50,17 +53,14 @@ class AffineObjective(object):
             coefficient = lh_coeff * coefficient
         return coefficient
 
-    # Returns a dictionary of name to variable.
+    # Returns a list of variables.
     def variables(self):
-        vars = {}
-        for term,mult in self._terms:
-            if isinstance(term, types.variable()):
-                vars[term.id] = term
-        return vars
+        return self._vars
 
     # Concatenates the terms.
     def __add__(self, other):
-        return AffineObjective(self._terms + other._terms,
+        return AffObjective(self.variables() + other.variables(),
+                               self._terms + other._terms,
                                self._shape + other._shape)
 
     def __sub__(self, other):
@@ -69,23 +69,23 @@ class AffineObjective(object):
     # Distributes multiplications by left hand terms
     # across right hand terms.
     def __mul__(self, other):
-        terms = AffineObjective.mul_terms(self._terms, other._terms)
-        return AffineObjective(terms, self._shape * other._shape)
+        terms = AffObjective.mul_terms(self._terms, other._terms)
+        return AffObjective(other.variables(), terms, 
+                               self._shape * other._shape)
 
     # Multiplies every term by -1.
     def __neg__(self):
         lh_mult = deque([types.constant()(-1)])
-        lh_terms = [(None, lh_mult)]
-        terms = AffineObjective.mul_terms(lh_terms, self._terms)
-        return AffineObjective(terms, self._shape)
+        terms = AffObjective.mul_terms([lh_mult], self._terms)
+        return AffObjective(self.variables(), terms, self._shape)
 
     # Utility function for multiplying lists of terms.
     @staticmethod
     def mul_terms(lh_terms, rh_terms):
         terms = []
-        for lh_term,lh_mult in lh_terms:
-            for rh_term,rh_mult in rh_terms:
+        for lh_mult in lh_terms:
+            for rh_mult in rh_terms:
                 mult = deque(rh_mult)
                 mult.extend(lh_mult)
-                terms.append( (rh_term,mult) )
+                terms.append(mult)
         return terms

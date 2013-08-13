@@ -14,3 +14,7 @@ def parameter():
 def expression():
     import expression
     return expression.Expression
+
+def aff_obj():
+    import affine
+    return affine.AffObjective

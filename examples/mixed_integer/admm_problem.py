@@ -29,7 +29,6 @@ def admm(self, rho=0.5, max_iter=5):
     # Fix noncvx variables and solve.
     fix_constr = []
     for x,z,u in noncvx_vars:
-        print z.value
         fix_constr += x.fix(z.value)
     p = cvxpy.Problem(self.objective, self.constraints + fix_constr)
     return p.solve()

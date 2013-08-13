@@ -4,12 +4,15 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
-import geo_mean as gm
+from geo_mean import geo_mean
 
 class sqrt(Atom):
     """ Elementwise square root """
     def __init__(self, x):
         super(sqrt, self).__init__(x)
+        # Args are all indexes into x.
+        self.x = self.args[0]
+        self.args = [xi for xi in self.x]
 
     # The shape is the same as the argument's shape.
     def set_shape(self):
@@ -25,18 +28,17 @@ class sqrt(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.INCREASING]
-
-    def graph_implementation(self, var_args):
-        x = var_args[0]
-        rows,cols = x.size
-        t = Variable(rows, cols)
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
+        t = Variable(*size)
         constraints = []
-        for i in range(rows):
-            for j in range(cols):
-                obj,constr = gm.geo_mean(x[i,j],1).canonicalize()
-                constraints += constr + [AffEqConstraint(obj, t[i,j])]
+        one,dummy = types.constant()(1).canonical_form()
+        for ti,xi in zip(t,var_args):
+            obj,constr = geo_mean.graph_implementation([xi,one],(1,1))
+            constraints += constr + [AffEqConstraint(obj, ti)]
         return (t, constraints)
 
     # Return the absolute value of the argument at the given index.
     def index_object(self, key):
-        return sqrt(self.args[0][key])
+        return sqrt(self.x[key])

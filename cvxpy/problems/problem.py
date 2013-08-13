@@ -96,6 +96,7 @@ class Problem(object):
         if solved:
             self.save_values(results['x'], variables)
             self.save_values(results['y'], eq_constr)
+            self.save_values(results['z'], ineq_constr)
             return self.objective.value(primal_val)
         else:
             return status
@@ -104,10 +105,11 @@ class Problem(object):
     def variables(self, objective, constraints):
         vars = objective.variables()
         for constr in constraints:
-            vars.update(constr.variables())
-        names = vars.keys()
-        names.sort()
-        return [vars[k] for k in names]
+            vars += constr.variables()
+        # Eliminate duplicate ids and sort variables.
+        var_id = {v.id: v for v in vars}
+        keys = sorted(var_id.keys())
+        return [var_id[k] for k in keys]
 
     # A list of variable ids.
     # Matrix variables are represented as a list of scalar variable views.

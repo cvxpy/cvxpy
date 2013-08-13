@@ -45,10 +45,13 @@ class Constant(leaf.Leaf):
     def coefficients(self, interface):
         return {s.CONSTANT: interface.const_to_matrix(self.value)}
 
+    # No variables.
+    def variables(self):
+        return []
+
     # Return a scalar view into a matrix constant.
     def index_object(self, key):
         return IndexConstant(self, key)
-
 
 class IndexConstant(Constant):
     """ An index into a matrix constant """

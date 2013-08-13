@@ -3,8 +3,6 @@ import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
-import max
-import abs
 
 class normInf(Atom):
     """ Infinity norm max{|x|} """
@@ -31,7 +29,10 @@ class normInf(Atom):
         if not self.args[0].is_vector():
             raise TypeError("The argument '%s' to normInf must resolve to a vector." 
                 % self.args[0].name())
-
-    def graph_implementation(self, var_args):
+    
+    @staticmethod
+    def graph_implementation(var_args, size):
         x = var_args[0]
-        return max.max(abs.abs(x)).canonicalize()
+        t = Variable()
+        return (t, [AffLeqConstraint(-t, x),
+                    AffLeqConstraint(x,t)])

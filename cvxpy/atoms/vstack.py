@@ -1,9 +1,11 @@
 from atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
+from cvxpy.expressions.affine import AffObjective
+from cvxpy.expressions.vstack import AffVstack
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
+from collections import deque
 
 class vstack(Atom):
     """ Vertical concatenation """
@@ -32,18 +34,11 @@ class vstack(Atom):
             raise TypeError( ("All arguments to vstack must have "
                               "the same number of columns.") )
 
-    def graph_implementation(self, var_args):
-        t = Variable(*self.size)
-        constraints = []
-        offset = 0
-        for arg in var_args:
-            rows,cols = arg.size
-            for i in range(rows):
-                for j in range(cols):
-                    constraints.append( AffEqConstraint(t[i+offset,j], arg[i,j]) )
-            offset += rows
-
-        return (t, constraints)
+    @staticmethod
+    def graph_implementation(var_args, size):
+        obj = AffVstack(*var_args)
+        obj = AffObjective(obj.variables(), [deque([obj])], obj._shape)
+        return (obj, [])
 
     # Return the absolute value of the argument at the given index.
     def index_object(self, key):

@@ -1,5 +1,6 @@
 from cvxpy import *
 from mixed_integer import *
+import cvxopt
 import unittest
 
 class TestVars(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestVars(unittest.TestCase):
         except Exception:
             super(TestVars, self).assertAlmostEqual(a,b,places=3)
 
-    # Test boolean
+    # Test boolean variable.
     def test_boolean(self):
         x = Variable(5,4)
         p = Problem(Minimize(sum(1-x) + sum(x)), [x == boolean(5,4)])
@@ -26,7 +27,7 @@ class TestVars(unittest.TestCase):
         for v in x.value:
             self.assertAlmostEqual(v*(1-v), 0)
 
-    # Test choose
+    # Test choose variable.
     def test_choose(self):
         x = Variable(5,4)
         p = Problem(Minimize(sum(1-x) + sum(x)), [x == choose(5,4,k=4)])
@@ -36,7 +37,7 @@ class TestVars(unittest.TestCase):
             self.assertAlmostEqual(v*(1-v), 0)
         self.assertAlmostEqual(sum(x.value), 4)
 
-    # Test card
+    # Test card variable.
     def test_card(self):
         x = Variable(5)
         p = Problem(Maximize(sum(x)),
@@ -47,14 +48,25 @@ class TestVars(unittest.TestCase):
             self.assertAlmostEqual(v*(1-v), 0)
         self.assertAlmostEqual(sum(x.value), 3)
 
-        # should be equivalent to x == choose
-        # x = Variable(5)
-        # ones = 5*[[1]]
-        # p = Problem(Minimize(ones*(-x)), 
-        #     [x == card(5,k=4), x == boolean(5)])
-        # result = p.solve(method="admm")
-        # self.assertAlmostEqual(result, -4)
-        # for v in x.value:
-        #     self.assertAlmostEqual(v*(1-v), 0)
-        # print x.value
-        # self.assertAlmostEqual(sum(x.value), 4)
+        #should be equivalent to x == choose
+        x = Variable(5,4)
+        c = card(5,4,k=4)
+        b = boolean(5,4)
+        p = Problem(Minimize(sum(1-x) + sum(x)), 
+            [x == c, x == b])
+        result = p.solve(method="admm")
+        self.assertAlmostEqual(result, 20)
+        for v in x.value:
+            self.assertAlmostEqual(v*(1-v), 0)
+
+    # Test permutation variable.
+    def test_permutation(self):
+        x = Variable(1,5)
+        c = cvxopt.matrix([1,2,3,4,5]).T
+        perm = permutation(5)
+        p = Problem(Minimize(sum(x)), [x == c*perm])
+        result = p.solve(method="admm")
+        print perm.value
+        print x.value
+        self.assertAlmostEqual(result, 15)
+        self.assertAlmostEqual(sorted(x.value), c)
