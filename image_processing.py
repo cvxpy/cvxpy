@@ -5,7 +5,7 @@ import pylab
 import math
 
 # create simple image
-n = 25
+n = 32
 img = cvxopt.matrix(0.0,(n,n))
 img[1:2,1:2] = 0.5
 
@@ -56,7 +56,7 @@ grady_obj = imap(square, (fy - gy for fy, gy in izip(grad(new_img,'y'),denoise_g
 
 p = Problem(
     Minimize(sum(gradx_obj) + sum(grady_obj)),
-    list(px == 0 for px in boundary(new_img))
+    list(px == 0 for px in boundary(new_img)))
 p.solve()
 
 # show the reconstructed image
