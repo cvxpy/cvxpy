@@ -1,5 +1,6 @@
-from random import random
 from cvxpy import *
+import create_graph as g
+import pickle
 
 # An object oriented max-flow problem.
 class Edge(object):
@@ -13,33 +14,31 @@ class Edge(object):
 
 class Node(object):
     """ A node with no accumulation. """
-    def __init__(self, edges=[]):
-        self.edges = edges
+    def __init__(self):
+        self.edges = []
     
     def constraints(self):
         return [sum(e.flow for e in self.edges) == 0]
 
-# Construct a random graph.
-N = 20
-p = 0.2
-nodes = [Node() for i in range(N)]
+# Read a graph from a file.
+f = open(g.FILE, 'r')
+data = pickle.load(f)
+f.close()
+# Construct nodes and edges.
+nodes = [Node() for i in range(data[g.NODE_COUNT_KEY])]
 edges = []
-for i in range(N):
-    for j in range(i,N):
-        # Connect nodes with probability p.
-        if random() < p:
-            edges.append(Edge(1))
-            nodes[i].edges.append(edges[-1])
-            nodes[j].edges.append(edges[-1])
-# Add a source and sink.
+for n1,n2,capacity in data[g.EDGES_KEY]:
+    edges.append(Edge(capacity))
+    nodes[n1].edges.append(edges[-1])
+    nodes[n2].edges.append(edges[-1])
+# Add source and sink.
 source = Edge(Variable())
 nodes[0].edges.append(source)
 sink = Edge(Variable())
 nodes[-1].edges.append(sink)
-edges += [source, sink]
 
 # Construct the problem.
-constraints = []
+constraints = [source.flow >= 0, sink.flow >= 0]
 map(constraints.extend, (o.constraints() for o in nodes + edges))
 p = Problem(Maximize(source.flow), constraints)
 result = p.solve()
