@@ -157,7 +157,7 @@ class Node(object):
 
 Nodes have a target amount of flow to accumulate. Sources and sinks are Nodes with a variable as their accumulation target.
 
-Suppose "nodes" is a list of all the nodes, "edges" is a list of all the edges, and "sink" is the sink node. The problem becomes:
+Suppose `nodes` is a list of all the nodes, `edges` is a list of all the edges, and `sink` is the sink node. The problem becomes:
 
 ```
 constraints = []
