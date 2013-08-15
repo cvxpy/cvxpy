@@ -144,6 +144,7 @@ The Edge class exposes the two ends of the edge. The constraints linking the two
 
 We also define a Node class:
 
+```
 class Node(object):
     """ A node with a target flow accumulation. """
     def __init__(self, accumulation=0):
@@ -152,6 +153,7 @@ class Node(object):
     
     def constraints(self):
         return [sum(f for f in self.edge_flows) == self.accumulation]
+```
 
 Nodes have a target amount of flow to accumulate. Sources and sinks are Nodes with a variable as their accumulation target.
 
