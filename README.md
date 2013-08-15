@@ -141,7 +141,7 @@ class Edge(object):
                 abs(self.in_flow) <= self.capacity]
 ```
 
-The Edge class exposes the two ends of the edge. The constraints linking the two ends and the Edge capacity are stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
+The Edge class exposes the flow into and out of the edge. The constraints linking the flow in and out and the flows with the capacity are stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
 
 We also define a Node class:
 
