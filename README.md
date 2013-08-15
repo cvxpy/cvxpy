@@ -120,7 +120,7 @@ p = Problem(Maximize(source),
              flows <= c])
 ```
 
-The more natural way to frame the max-flow problem is not in terms of incidence matrices, however, but in terms of the properties of edges and nodes. We can write an Edge class to capture those properties.
+The more natural way to frame the max-flow problem is not in terms of incidence matrices, however, but in terms of the properties of edges and nodes. We can write an Edge class to capture these properties.
 
 ```
 class Edge(object):
