@@ -65,33 +65,35 @@ Problem Data
 CVXPY lets you construct problem data using your library of choice. Certain libraries, such as Numpy, require a lightweight wrapper to support operator overloading. The following code constructs A and b from Numpy ndarrays.
 
 ```
-import cvxpy.numpy as np
+from cvxpy import numpy as np
 
 A = np.ndarray(...)
 b = np.ndarray(...)
 ```
 
-You can solve the same problem with different problem data using parameters. The value of a parameter can be initialized and changed after the problem is constructed. The following example constructs a tradeoff curve for a LASSO problem of the least squares penalty vs. the cardinality of x.
+Parameters allow you to change the problem data without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to constructs a tradeoff curve of the least squares penalty vs. the cardinality of x.
 
 ```
-import cvxpy.numpy as np
+from cvxpy import *
+from cvxpy import numpy as np
+import cvxopt
 
 # Problem data.
 n = 10
 m = 5
 A = cvxopt.normal(n,m)
-b = cvxopt.normal(m)
-lambda = Parameter("positive")
+b = cvxopt.normal(n)
+gamma = Parameter(sign="positive")
 
 # Construct the problem.
 x = Variable(m)
-objective = Minimize(sum(square(A*x - b)) + lambda*norm1(x))
+objective = Minimize(sum(square(A*x - b)) + gamma*norm1(x))
 p = Problem(objective)
 
-# Vary lambda for trade-off curve.
+# Vary gamma for trade-off curve.
 x_values = []
 for value in np.logspace(-1, 2, num=100):
-    lambda.value = value
+    gamma.value = value
     p.solve()
     x_values.append(x.value)
 
