@@ -1,4 +1,4 @@
-CVXPY
+Introduction
 =====
 CVXPY is a Python-embedded modeling language for optimization problems. CVXPY lets you express your problem in a natural way. It automatically transforms the problem into a standard form, calls a solver, and unpacks the results.
 
@@ -16,7 +16,7 @@ lambda = 1
 
 # Construct the problem.
 x = Variable(m)
-objective = Minimize(norm2(A*x - b) + lambda*norm1(x))
+objective = Minimize(sum(square(A*x - b)) + lambda*norm1(x))
 p = Problem(objective)
 
 # The optimal objective is returned by p.solve().
@@ -29,6 +29,8 @@ The general form for constructing a CVXPY problem is `Problem(objective, constra
 
 For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit <http://dcp.stanford.edu/>.
 
+Problem Data
+=====
 A and b are cvxopt matrices in the LASSO example, but that's not a requirement. CVXPY lets the user construct problem data using their library of choice. Certain libraries, such as Numpy, require a light wrapper to support operator overloading. The following code constructs A and b from Numpy ndarrays.
 
 ```
@@ -38,35 +40,33 @@ A = np.ndarray(...)
 b = np.ndarray(...)
 ```
 
-You can construct a problem with changeable problem data using parameters. 
+A natural extension to the LASSO example is to construct a tradeoff curve of the least squares penalty vs. the cardinality of x. You can do this efficiently in CVXPY using parameters. The value of a Parameter can be initialized and changed after the problem is constructed. Here's the LASSO example with lambda as a parameter:
 
 ```
+import cvxpy.numpy as np
+
+# Problem data.
+...
 lambda = Parameter("positive")
 
+# Construct the problem.
+x = Variable(m)
+objective = Minimize(sum(square(A*x - b)) + lambda*norm1(x))
+p = Problem(objective)
 
-Currently supports numpy arrays and matrices, cvxopt matrices, numbers, and python lists as constants. Matrices and vectors must be declared as Constants, i.e. A = Constant(numpy array). 
+# Vary lambda for trade-off curve.
+x_values = []
+for value in np.logspace(-1, 2, num=100):
+    lambda.value = value
+    p.solve()
+    x_values.append(x.value)
 
-The alternative is that for numpy arrays and matrices, the user must use the numpy module given by cvxpy import * or import cvxpy.interface.numpy_wrapper as \<chosen name\>.
-
-Constant values are converted internally to cvxopt dense matrices. This could be easily changed or made a user choice. The target solver is cvxopt.solvers.conelp.
-
-Example usage (execute in python prompt from above the cvxpy directory):
-
+# Construct a trade off curve using the x_values.
+...
 ```
-from cvxpy import *
 
-x = Variable(2, name='x')
-z = Variable(2, name='z')
+Parameterized problems can be solved in parallel. See examples/stock_tradeoff.py for an example.
 
-p = Problem(
-        Minimize(5 + norm1(z) + norm1(x) + normInf(x - z) ) ), 
-        [x >= [2,3], 
-         z <= [-1,-4], 
-         norm2(x + z) <= 2]
-    )
-
-p.solve()
-# Variable values are stored in a cvxopt dense matrix.
-x.value
-z.value
-```
+Object Oriented Optimization
+=====
+CVXPY can be 
