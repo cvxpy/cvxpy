@@ -5,6 +5,7 @@ import random as r
 import cvxopt
 
 # Multi-commodity flow.
+# TODO this is entirely wrong
 COMMODITIES = 5 # Number of commodities.
 r.seed(1)
 
@@ -29,6 +30,7 @@ class Node(object):
 f = open(g.FILE, 'r')
 data = pickle.load(f)
 f.close()
+
 # Construct nodes and edges.
 nodes = [Node() for i in range(data[g.NODE_COUNT_KEY])]
 edges = []
@@ -36,17 +38,20 @@ for n1,n2,capacity in data[g.EDGES_KEY]:
     edges.append(Edge(capacity))
     nodes[n1].edges.append(edges[-1])
     nodes[n2].edges.append(edges[-1])
+
 # Create random commodity sources and sinks.
 sources = []
 sinks = []
 for i in range(COMMODITIES):
+    # A vector to limit the source and sink capacity
+    # to a single commodity.
     commodity_vec = cvxopt.matrix(0,(COMMODITIES,1))
     commodity_vec[i] = 1
     source = Edge(commodity_vec*Variable())
     sources.append(source)
     sink = Edge(commodity_vec*Variable())
     sinks.append(sink)
-    # Attach source and sink to nodes.
+    # Attach source and sink to two random nodes.
     n1,n2 = r.sample(nodes, 2)
     n1.edges.append(source)
     n2.edges.append(sink)

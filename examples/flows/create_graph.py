@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Add additional edges.
     for i in range(N,E):
         n1,n2 = sample(range(N), 2)
-        edges.append( (n1,n2,c*random()) )
+        edges.append( (n1,n2,c) )
     # Pickle the graph data.
     data = {NODE_COUNT_KEY: N, 
             EDGES_KEY: edges}
