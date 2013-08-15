@@ -70,7 +70,37 @@ if __name__ == "__main__":
 
     # Construct the problem.
     constraints = []
-    map(constraints.extend, (o.constraints() for o in nodes + edges))
+    for obj in nodes + edges:
+        constraints += obj.constraints()
     p = Problem(Maximize(nodes[-1].accumulation), constraints)
+    result = p.solve()
+    print result
+
+    # Incidence matrix approach.
+    import cvxopt
+
+    edges = data[g.EDGES_KEY]
+    E = 2*len(edges)
+    A = cvxopt.matrix(0,(node_count, E+2), tc='d')
+    c = cvxopt.matrix(1000,(E,1), tc='d')
+    for i,(n1,n2,capacity) in enumerate(edges):
+        A[n1,2*i] = -1
+        A[n2,2*i] = 1
+        A[n1,2*i+1] = 1
+        A[n2,2*i+1] = -1
+        c[2*i] = capacity
+        c[2*i+1] = capacity
+    # Add source.
+    A[0,E] = 1
+    # Add sink.
+    A[-1,E+1] = -1
+    # Construct the problem.
+    flows = Variable(E)
+    source = Variable()
+    sink = Variable()
+    p = Problem(Maximize(source),
+                [A*vstack(flows,source,sink) == 0,
+                 0 <= flows,
+                 flows <= c])
     result = p.solve()
     print result

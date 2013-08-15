@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Construct edges.
     edges = []
     for n1,n2,capacity in data[g.EDGES_KEY]:
-        edges.append(LeakyUndirected(capacity))
+        edges.append(Directed(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
 
     # Construct the problem.
