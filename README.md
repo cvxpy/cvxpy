@@ -25,9 +25,9 @@ result = p.solve()
 print x.value
 ```
 
-The general form for a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
+The general form for constructing a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
 
-For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit dcp.stanford.edu.
+For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit <dcp.stanford.edu>.
 
 A and b are cvxopt matrices in the LASSO example, but that's not a requirement. CVXPY lets the user construct problem data using their library of choice. Certain libraries, such as Numpy, require a light wrapper to support operator overloading. The following code constructs A and b from Numpy ndarrays.
 
