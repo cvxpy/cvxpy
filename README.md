@@ -4,13 +4,6 @@ What is CVXPY?
 ---------------------
 CVXPY is a Python-embedded modeling language for optimization problems. CVXPY lets you express your problem in a natural way. It automatically transforms the problem into standard form, calls a solver, and unpacks the results.
 
-The following code expresses a linear program in CVXPY:
-```
-from cvxpy import *
-import cvxopt
-
-p = Problem( Minimize(c.T*) )
-
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
 ```
