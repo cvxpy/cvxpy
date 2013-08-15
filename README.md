@@ -172,7 +172,7 @@ To see the object oriented approach to flow problems fleshed out in more detail,
 
 Non-Convex Extensions
 ---------------------
-Many non-convex optimization problems can be solved exactly or approximately via a sequence of convex optimization problems. CVXPY can easily be extended to handle such non-convex problems. The examples/mixed_integer packages uses the Alternating Direction Method of Multipliers (ADMM) as a heuristic for mixed integer problems.
+Many non-convex optimization problems can be solved exactly or approximately via a sequence of convex optimization problems. CVXPY can easily be extended to handle such non-convex problems. The examples/mixed_integer package uses the Alternating Direction Method of Multipliers (ADMM) as a heuristic for mixed integer problems.
 
 The following code performs feature selection on a linear kernel SVM classifier using a cardinality constraint:
 
