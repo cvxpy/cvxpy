@@ -1,5 +1,7 @@
+CVXPY
+=====================
 Introduction
-=====
+---------------------
 CVXPY is a Python-embedded modeling language for optimization problems. CVXPY lets you express your problem in a natural way. It automatically transforms the problem into a standard form, calls a solver, and unpacks the results.
 
 For example, here's a standard LASSO problem in CVXPY:
@@ -30,7 +32,7 @@ The general form for constructing a CVXPY problem is `Problem(objective, constra
 For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit <http://dcp.stanford.edu/>.
 
 Problem Data
-=====
+---------------------
 A and b are cvxopt matrices in the LASSO example, but that's not a requirement. CVXPY lets the user construct problem data using their library of choice. Certain libraries, such as Numpy, require a light wrapper to support operator overloading. The following code constructs A and b from Numpy ndarrays.
 
 ```
@@ -68,5 +70,5 @@ for value in np.logspace(-1, 2, num=100):
 Parameterized problems can be solved in parallel. See examples/stock_tradeoff.py for an example.
 
 Object Oriented Optimization
-=====
+---------------------
 CVXPY can be 
