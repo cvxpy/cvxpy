@@ -1,7 +1,6 @@
-cvxpy
+CVXPY
 =====
-Supports norm2, normInf, and norm1 with vector arguments.
-Supports affine expressions with variables of any dimension.
+CVXPY is a Python modeling language for optimization problems. 
 
 Currently supports numpy arrays and matrices, cvxopt matrices, numbers, and python lists as constants. Matrices and vectors must be declared as Constants, i.e. A = Constant(numpy array). 
 
