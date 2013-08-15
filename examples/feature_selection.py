@@ -32,13 +32,14 @@ map(data.append, ( (1,cvxopt.normal(n, mean=1.0, std=2.0)) for i in range(N) ))
 map(data.append, ( (-1,cvxopt.normal(n, mean=-1.0, std=2.0)) for i in range(M) ))
 
 # Construct problem.
-gamma = 0.1
+gamma = Parameter(sign="positive")
+gamma.value = 0.1
 a = Variable(n)
 b = Variable()
 
 slack = (pos(1-label*(sample.T*a-b)) for (label,sample) in data)
-obj = Minimize(norm2(a) + gamma*sum(slack))
-p = Problem(obj, [card(n,k=6) == a])
+objective = Minimize(norm2(a) + gamma*sum(slack))
+p = Problem(objective, [card(n,k=6) == a])
 p.solve(method="admm")
 
 # Count misclassifications.

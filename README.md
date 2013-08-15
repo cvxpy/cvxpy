@@ -167,3 +167,46 @@ p = Problem(Maximize(sink.accumulation), constraints)
 ```
 
 Note that the problem has been reframed from maximizing the flow along the source edge to maximizing the accumulation at the sink node. We could easily extend the Edge and Node class to model an electrical grid. Sink nodes would be consumers. Source nodes would be power stations, which generate electricity at a cost. A node could be both a source and a sink, which would represent energy storage facilities or a consumer with solar panels. We could add energy loss along edges. The entire grid construct could be embedded in a time series model.
+
+To see the object oriented approach to flow problems fleshed out in more detail, look in the examples/flows/ directory.
+
+Non-Convex Extensions
+---------------------
+Many non-convex optimization problems can be solved exactly or approximately via a sequence of convex optimization problems. CVXPY can easily be extended to handle such non-convex problems. The examples/mixed_integer packages uses the Alternating Direction Method of Multipliers (ADMM) as a heuristic for mixed integer problems.
+
+The following code performs feature selection on a linear kernel SVM classifier using a cardinality constraint:
+
+```
+from cvxpy import *
+from mixed_integer import *
+import cvxopt
+
+# Generate data.
+N = 50
+M = 40
+n = 10
+data = []
+map(data.append, ( (1,cvxopt.normal(n, mean=1.0, std=2.0)) for i in range(N) ))
+map(data.append, ( (-1,cvxopt.normal(n, mean=-1.0, std=2.0)) for i in range(M) ))
+
+# Construct problem.
+gamma = Parameter(sign="positive")
+gamma.value = 0.1
+a = Variable(n)
+b = Variable()
+
+slack = (pos(1-label*(sample.T*a-b)) for (label,sample) in data)
+objective = Minimize(norm2(a) + gamma*sum(slack))
+p = Problem(objective, [card(n,k=6) == a])
+p.solve(method="admm")
+
+# Count misclassifications.
+error = 0
+for label,sample in data:
+    if not label*(a.value.T*sample - b.value)[0] >= 0:
+        error += 1
+
+print "%s misclassifications" % error
+print a.value
+print b.value
+```
