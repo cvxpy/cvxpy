@@ -44,8 +44,7 @@ CVXPY requires:
 * [CVXOPT](http://abel.ee.ucla.edu/cvxopt/)
 * [ECOS](http://github.com/ifa-ethz/ecos)
 
-To run the unit tests, you additionally need
-* [Nose](http://nose.readthedocs.org)
+To run the unit tests, you additionally need [Nose](http://nose.readthedocs.org).
 
 Installation
 ---------------------
