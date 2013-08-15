@@ -71,7 +71,7 @@ A = np.ndarray(...)
 b = np.ndarray(...)
 ```
 
-Parameters allow you to change the problem data without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to constructs a tradeoff curve of the least squares penalty vs. the cardinality of x.
+Parameters allow you to change the problem data without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to construct a tradeoff curve of the least squares penalty vs. the cardinality of x.
 
 ```
 from cvxpy import *
