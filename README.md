@@ -51,6 +51,7 @@ nosetests cvxpy/tests/
 
 Basic Usage
 ---------------------
+### Variables
 Variables are created using the Variable class.
 ```
 # Scalar variable
@@ -63,12 +64,14 @@ x = Variable(5)
 A = Variable(4,7)
 ```
 
+### Constants
 The following types may be used as constants:
 * Python numeric types
 * CVXOPT dense matrices
 * CVXOPT sparse matrices
 * Numpy ndarrays
 * Numpy matrices
+
 Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
 
 Variables and constants can be combined using arithmetic operators and .
