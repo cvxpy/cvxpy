@@ -24,4 +24,4 @@ from expressions.constant import Constant
 from problems.problem import Problem
 from problems.objective import Maximize, Minimize
 import interface.numpy_wrapper as numpy
-from settings import UNBOUNDED, INFEASIBLE, SOLVER_ERROR
+from settings import UNBOUNDED, INFEASIBLE, UNKNOWN

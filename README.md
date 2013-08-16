@@ -149,7 +149,7 @@ p = Problem(objective, constraints)
 result = p.solve()
 ```
 
-If the problem is feasible and bounded, `result` will hold the optimal value of the objective. If the problem is unfeasible or unbounded, `result` will hold the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively.
+If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is unfeasible or unbounded, `p.solve()` will hold the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively. Finally, if the solver fails to return a definite result, `p.solve()` will return `cvxpy.UNKNOWN`. 
 
 Once a problem has been solved, the optimal values of the variables can be read from `variable.value`. The values of the dual variables can be read from `constraint.dual_value`.
 
