@@ -29,6 +29,14 @@ result = p.solve()
 print x.value
 ```
 
+The general form for constructing a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
+
+For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+
+The available atomic functions are those present in the cvxpy/atoms/ directory.
+
+To see more examples using CVXPY, look in the examples directory.
+
 Prerequisites
 ---------------------
 CVXPY requires:
@@ -54,7 +62,7 @@ Basic Usage
 ### Variables
 Variables are created using the Variable class.
 ```
-# Scalar variable
+# Scalar variable.
 a = Variable()
 
 # Column vector variable of length 5.
@@ -74,20 +82,58 @@ The following types may be used as constants:
 
 Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
 
-Variables and constants can be combined using arithmetic operators and .
+### Parameters
+Parameters are symbolic representations of constants. Parameters have fixed dimensions. The sign of a parameter's entries is also fixed as positive, negative, or unknown. Parameters are created using the Parameter class. Parameters can be assigned a constant value any time after they are created.
 
-Combining expressions with incompatible dimensions will raise an Exception. Scalar Variables and constants are automatically promoted to vectors or matrices as appropriate.
+```
+# Positive scalar parameter.
+m = Parameter(sign="positive")
 
-Parameters are created using the Parameter class. A Parameter is a container for problem data whose contents 
+# Column vector parameter with unknown sign (by default).
+c = Parameter(5)
+
+# Matrix parameter with negative entries.
+G = Parameter(4,7,sign="negative")
+
+# Assigns a constant value to G.
+G.value = cvxopt.matrix(...)
+```
+
+### Expressions
+Mathematical expressions are stored in Expression objects. Variable and Parameter are subclasses of Expression. Expression objects are created from constants and other expressions. These elements are combined with arithmetic operators or passed as arguments to [Atoms](#atoms).
+
+```
+a = Variable()
+x = Variable(5)
+
+# exp is an Expression object after each assignment.
+exp = 2*x
+exp = exp - a
+exp = sum(exp) + norm2(x)
+```
+
+Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+
+### Indexing and Iteration
+All Expression objects can be indexed using the syntax `exp[i,j]` if `exp` is a matrix and `exp[i]` if exp is a vector.
+
+Expressions are also iterable. Iterating over an expression returns indexes into the expression in column-major order. Thus if `exp` is a 2 by 2 matrix, `[elem for elem in exp]` evaluates to `[exp[0,0], exp[1,0], exp[0,1], exp[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
+
+### Atoms
+Atoms are functions that can be used in expressions. They Expression objects and constants as arguments and return an Expression object. 
+
+CVXPY currently supports the following atoms:
+* Vector to scalar functions
+    * `norm1(x)`, the L1 norm of x.
+    * `norm2(x)`, the L2 norm of x.
+    * `normInf(x)`, the L-Infinity
 
 
-The general form for constructing a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
+### Constraints
 
-For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit <http://dcp.stanford.edu/>.
 
-The available atomic functions are those present in the cvxpy/atoms/ directory.
+### Problems
 
-To see more examples using CVXPY, look in the examples directory.
 
 Features
 =====================
