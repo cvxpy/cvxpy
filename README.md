@@ -115,23 +115,22 @@ Expressions are also iterable. Iterating over an expression returns indexes into
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
 
 CVXPY currently supports the following atoms:
-* Fixed number of arguments
-    * Matrix to scalar
-        * `norm1(x)`, the L1 norm of `x`.
-        * `norm2(x)`, the L2 norm of `x`.
-        * `normInf(x)`, the Infinity norm of `x`.
-        * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
-    * Matrix to matrix (i.e. elementwise operators)
-        * `abs(x)`, the absolute value of each element of `x`.
-        * `inv_pos(x)`, 1/element for each element of `x`.
-        * `min(x)`, the absolute value of each element of `x`.
-        * `pos(x)`, `max(element,0)` for each element of `x`.
-        * `sqrt(x)`, the square root of each element of `x`.
-        * `square(x)`, the square of each element of `x`.
-* Variable number of arguments
+* Matrix to scalar atoms
+    * `norm1(x)`, the L1 norm of `x`.
+    * `norm2(x)`, the L2 norm of `x`.
+    * `normInf(x)`, the Infinity norm of `x`.
+    * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
+* Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
+* Elementwise atoms
+    * `abs(x)`, the absolute value of each element of `x`.
+    * `inv_pos(x)`, 1/element for each element of `x`.
+    * `min(x)`, the absolute value of each element of `x`.
+    * `pos(x)`, `max(element,0)` for each element of `x`.
+    * `sqrt(x)`, the square root of each element of `x`.
+    * `square(x)`, the square of each element of `x`.
 
 ### Constraints
 Constraint objects are constructed using `==`, `<=`, and `>=` with Expression objects or constants on the left-hand and right-hand sides.
