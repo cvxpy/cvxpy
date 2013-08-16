@@ -88,7 +88,7 @@ class Problem(object):
 
     # Solves DCP compliant optimization problems.
     # Saves the values of variables.
-    def _solve(self):
+    def _solve(self, solver=s.ECOS):
         if not self.is_dcp():
             print "Problem does not follow DCP rules."
         objective,eq_constr,ineq_constr,dims = self.canonicalize()
@@ -105,18 +105,15 @@ class Problem(object):
                                      self.dense_interface)
 
         # Target cvxopt solver if SDP or invalid for ECOS.
-        if len(dims['s']) > 0 or min(G.size) == 0 or \
-           self.interface.TARGET_MATRIX == intf.DENSE_TARGET:
+        if solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
             results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
-            status = results['status']
-            solved = status == 'optimal'
+            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         else: # If possible, target ECOS.
             results = ecos.ecos(c,G,h,dims,A,b)
-            solved = results['info']['exitFlag'] == 0
-            status = results['info']['infostring']
+            status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
-        if solved:
+        if status == s.SOLVED:
             self.save_values(results['x'], variables)
             self.save_values(results['y'], eq_constr)
             self.save_values(results['z'], ineq_constr)

@@ -35,3 +35,23 @@ CONSTANT = "CONSTANT"
 # Constraint types
 EQ_CONSTR = "=="
 INEQ_CONSTR = "<="
+
+# Solver Constants
+SOLVED = "solved"
+INFEASIBLE = "infeasible"
+UNBOUNDED = "unbounded"
+SOLVER_ERROR = "solver_error"
+
+# Map of solver status to cvxpy status.
+CVXOPT = "cvxopt"
+CVXOPT_STATUS = {'optimal': SOLVED,
+                 'primal infeasible': INFEASIBLE, 
+                 'dual infeasible': UNBOUNDED,
+                 'unknown': SOLVER_ERROR}
+ECOS = "ecos"
+ECOS_STATUS = {0: SOLVED,
+               1: INFEASIBLE, 
+               2: UNBOUNDED,
+               3: SOLVER_ERROR}
+SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
+                 ECOS: ECOS_STATUS}

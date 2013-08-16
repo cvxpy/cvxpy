@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.variable import Variable
@@ -126,14 +127,23 @@ class TestProblem(unittest.TestCase):
         self.assertAlmostEqual(self.b.value, 5-1.0/6)
         self.assertAlmostEqual(self.c.value, -1.0/6)
 
-        # Infeasible problems
+        # Unbounded problems.
         p = Problem(Maximize(self.a), [self.a >= 2])
-        result = p.solve()
-        self.assertEqual(result, 'Dual infeasible')
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, s.UNBOUNDED)
+
+        p = Problem(Maximize(self.a), [self.a >= 2])
+        result = p.solve(solver=s.CVXOPT)
+        self.assertEqual(result, s.UNBOUNDED)
+
+        # Infeasible problems.
+        p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, s.INFEASIBLE)
 
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        result = p.solve()
-        self.assertEqual(result, 'Primal infeasible')
+        result = p.solve(solver=s.CVXOPT)
+        self.assertEqual(result, s.INFEASIBLE)
 
     # Test vector LP problems.
     def test_vector_lp(self):
@@ -309,7 +319,7 @@ class TestProblem(unittest.TestCase):
                                   normInf(self.x - self.z) ) ), 
             [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2],
             target_matrix=matrix)
-        result = p.solve()
+        result = p.solve(solver=s.CVXOPT)
         self.assertAlmostEqual(result, 22)
         self.assertAlmostEqual(self.x.value, [2,3])
         self.assertAlmostEqual(self.z.value, [-1,-4])
@@ -318,7 +328,7 @@ class TestProblem(unittest.TestCase):
         c = matrix([3,4])
         p = Problem(Minimize(1), [self.A >= T*self.C, 
             self.A == self.B, self.C == T.T], target_matrix=matrix)
-        result = p.solve()
+        result = p.solve(solver=s.CVXOPT)
         self.assertAlmostEqual(result, 1)
         self.assertAlmostEqual(self.A.value, self.B.value)
         self.assertAlmostEqual(self.C.value, T)
