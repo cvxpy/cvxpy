@@ -115,19 +115,19 @@ Expressions are also iterable. Iterating over an expression returns indexes into
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
 
 CVXPY currently supports the following atoms:
-* Atoms that return scalars
-    * `norm1(x)`, the L1 norm of `x`.
-    * `norm2(x)`, the L2 norm of `x`.
-    * `normInf(x)`, the Infinity norm of `x`.
-    * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
-* Elementwise atoms
-    * `abs(x)`, the absolute value of each element of `x`.
-    * `inv_pos(x)`, 1/element for each element of `x`.
-    * `min(x)`, the absolute value of each element of `x`.
-    * `pos(x)`, `max(element,0)` for each element of `x`.
-    * `sqrt(x)`, the square root of each element of `x`.
-    * `square(x)`, the square of each element of `x`.
-* Variable argument atoms
+* Atoms that take a fixed number of arguments
+        * `norm1(x)`, the L1 norm of `x`.
+        * `norm2(x)`, the L2 norm of `x`.
+        * `normInf(x)`, the Infinity norm of `x`.
+        * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
+    * Atoms that operate elementwise
+        * `abs(x)`, the absolute value of each element of `x`.
+        * `inv_pos(x)`, 1/element for each element of `x`.
+        * `min(x)`, the absolute value of each element of `x`.
+        * `pos(x)`, `max(element,0)` for each element of `x`.
+        * `sqrt(x)`, the square root of each element of `x`.
+        * `square(x)`, the square of each element of `x`.
+* Atoms that take a variable number of arguments
     * `max(x,y,...)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(x,y,...)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 
     * `vstack(x,y,...)`, the vertical concatenation of the arguments into a block matrix.
