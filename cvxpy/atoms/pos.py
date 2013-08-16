@@ -18,8 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from max import max
-
-class pos(max):
-    """ Elementwise max{x,0}. """
-    def __init__(self, x):
-        super(pos, self).__init__(x,0)
+# TODO unnecessary with signed DCP
+""" Alias for max{x,0}. """
+def pos(x):
+    return max(x,0)

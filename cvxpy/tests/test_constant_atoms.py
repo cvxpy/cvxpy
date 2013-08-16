@@ -24,7 +24,7 @@ from cvxpy.problems.problem import Problem
 import cvxopt
 from nose.tools import assert_raises
 
-TOL = 1e-5
+TOL = 1e-3
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 
@@ -32,7 +32,7 @@ convex_list = [
     (abs([[-5,2],[-3,1]]), [5,2,3,1]),
     #(huber(0.5), 0.25),
     #(huber(-1.5), 2),
-    #(inv_pos(5), 0.2),
+    (inv_pos([[1,2],[3,4]]), [1,1.0/2,1.0/3,1.0/4]),
     (max([-5,2],[-3,1],0,[-1,2]), [0,2]),
     (max([[-5,2],[-3,1]],0,[[5,4],[-1,2]]), [5,4,0,2]),
     (normInf(v), [2]),
@@ -40,7 +40,7 @@ convex_list = [
     (norm2(v), [3]),
     (norm1(v), [5]),
     (pos(8), [8]),
-    (pos(-3), [0]),
+    (pos([-3,2]), [0,2]),
     #(neg(-3), 3),
     #(neg(3), 0),
     #(pow_rat(4,1,1), 4),
@@ -62,7 +62,7 @@ concave_list = [
     (geo_mean(4,1), [2]),
     (geo_mean(2,2), [2]),
     (min([-5,2],[-3,1],0,[1,2]), [-5,0]),
-    (min([[-5,2],[-3,1]],0,[[5,4],[-1,2]]), [-5,-3,-1,0]),
+    (min([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), [-5,0,-3,-1]),
     #(pow_rat(4,1,2), 2),
     #(pow_rat(8,1,3), 2),
     #(pow_rat(16,1,4),2),
@@ -75,7 +75,10 @@ concave_list = [
 def run_atom(problem, obj_val):
     assert problem.is_dcp()
     result = problem.solve()
-    assert( abs(result - obj_val) <= TOL )
+    print problem.objective
+    print result
+    print obj_val
+    assert( -TOL <= result - obj_val <= TOL )
 
 def test_atom():
     for obj, obj_val in convex_list:

@@ -57,6 +57,10 @@ If you have [Nose](http://nose.readthedocs.org) installed, you can verify the CV
 nosetests cvxpy/tests/
 ```
 
+Basic Usage
+---------------------
+
+
 Features
 =====================
 

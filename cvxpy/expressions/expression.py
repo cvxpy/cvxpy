@@ -110,8 +110,8 @@ class Expression(u.Canonicalizable):
     # Iterating over the leaf returns the index expressions
     # in column major order.
     def __iter__(self):
-        for row in range(self.size[0]):
-            for col in range(self.size[1]):
+        for col in range(self.size[1]):
+            for row in range(self.size[0]):
                 yield self[row,col]
 
     def __len__(self):
