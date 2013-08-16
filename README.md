@@ -29,14 +29,6 @@ result = p.solve()
 print x.value
 ```
 
-The general form for constructing a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
-
-For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit <http://dcp.stanford.edu/>.
-
-The available atomic functions are those present in the cvxpy/atoms/ directory.
-
-To see more examples using CVXPY, look in the examples directory. 
-
 Prerequisites
 ---------------------
 CVXPY requires:
@@ -70,6 +62,29 @@ x = Variable(5)
 # Matrix variable with 4 rows and 7 columns.
 A = Variable(4,7)
 ```
+
+The following types may be used as constants:
+* Python numeric types
+* CVXOPT dense matrices
+* CVXOPT sparse matrices
+* Numpy ndarrays
+* Numpy matrices
+Support for additional types will be added per request. See [Problem Data] for more information on using numeric libraries with CVXPY.
+
+Variables and constants can be combined using arithmetic operators and .
+
+Combining expressions with incompatible dimensions will raise an Exception. Scalar Variables and constants are automatically promoted to vectors or matrices as appropriate.
+
+Parameters are created using the Parameter class. A Parameter is a container for problem data whose contents 
+
+
+The general form for constructing a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
+
+For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). For an interactive tutorial on DCP, visit <http://dcp.stanford.edu/>.
+
+The available atomic functions are those present in the cvxpy/atoms/ directory.
+
+To see more examples using CVXPY, look in the examples directory.
 
 Features
 =====================
