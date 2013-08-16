@@ -234,6 +234,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(exp.size, (1,1))
         coeff = exp.coefficients(self.intf)
         self.assertEqual(coeff[exp.id], 1)
+        self.assertEqual(exp.value, None)
 
         with self.assertRaises(Exception) as cm:
             (self.x[2,0])

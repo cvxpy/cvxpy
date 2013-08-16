@@ -122,4 +122,7 @@ class IndexVariable(Variable):
     # The value at the index.
     @property
     def value(self):
-        return self.parent.value[self.key]
+        if self.parent.value is None:
+            return None
+        else:
+            return self.parent.value[self.key]
