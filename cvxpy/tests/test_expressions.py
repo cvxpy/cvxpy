@@ -273,7 +273,7 @@ class TestExpressions(unittest.TestCase):
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.x)[1,0]
-        self.assertEqual(exp.name(), "0 + 2 * x[0,0] + 4 * x[1,0]")
+        self.assertEqual(exp.name(), "2 * x[0,0] + 4 * x[1,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 

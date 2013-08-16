@@ -250,10 +250,9 @@ class MulExpression(AddExpression, Expression):
         if promoted is not None:
             return promoted
         # Matrix multiplication.
-        val = 0
-        for i in range(self.lh_exp.size[1]):
-            val = val + self.lh_exp[key[0],i] * self.rh_exp[i,key[1]]
-        return val
+        i_vals = range(self.lh_exp.size[1])
+        gen = (self.lh_exp[key[0],i] * self.rh_exp[i,key[1]] for i in i_vals)
+        return reduce(lambda x,y: x+y, gen)
 
 class NegExpression(UnaryOperator, Expression):
     OP_NAME = "-"
