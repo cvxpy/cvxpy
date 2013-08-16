@@ -69,7 +69,7 @@ The following types may be used as constants:
 * CVXOPT sparse matrices
 * Numpy ndarrays
 * Numpy matrices
-Support for additional types will be added per request. See [Problem Data][] for more information on using numeric libraries with CVXPY.
+Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
 
 Variables and constants can be combined using arithmetic operators and .
 
