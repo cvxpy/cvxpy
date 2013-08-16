@@ -153,6 +153,17 @@ If the problem is feasible and bounded, `p.solve()` will return the optimal valu
 
 Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
 
+The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) is used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
+
+```
+p = Problem(objective, constraints)
+
+# Solve with ECOS.
+result = p.solve(solver=cvxpy.ECOS)
+
+# Solve with CVXOPT.
+result = p.solve(solver=cvxpy.CVXOPT)
+```
 
 Features
 =====================
