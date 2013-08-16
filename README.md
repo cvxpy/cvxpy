@@ -29,14 +29,6 @@ result = p.solve()
 print x.value
 ```
 
-The general form for constructing a CVXPY problem is `Problem(objective, constraints)`. The objective is either `Minimize(...)` or `Maximize(...)`. The constraints are a list of expressions of the form `... == ...`, `... <= ...`, or `... >= ...`.
-
-For convex optimization, CVXPY problems must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
-
-The available atomic functions are those present in the cvxpy/atoms/ directory.
-
-To see more examples using CVXPY, look in the examples directory.
-
 Prerequisites
 ---------------------
 CVXPY requires:
@@ -141,9 +133,25 @@ CVXPY currently supports the following atoms:
     * `vstack(x,y,...)`, the vertical concatenation of the arguments into a block matrix.
 
 ### Constraints
+Constraint objects are constructed using `==`, `<=`, and `>=` with Expression objects or constants on the left-hand and right-hand sides.
 
+### Objectives
+Objective objects are constructed using `Minimize(expression)` or `Maximize(expression)`. Use a constant as an argument to `Minimize` or `Maximize` to create a feasibility objective.
 
 ### Problems
+Problem objects are constructed using the form `Problem(objective, constraints)`. Here `objective` is an Objective object, and `constraints` is a list of Constraint objects. The `constraints` argument is optional. The default is an empty list.
+
+The objective for a Problem object `p` is stored in the field `p.objective`, and the constraints list is stored in `p.constraints`. The objective and constraints can be changed after the problem is constructed. For example, `p.constraints[0] = x <= 2` replaces the first constraint with the newly created Constraint object `x <= 2`. Changing the objective or constraints does not require any new computation by the Problem object.
+
+The following code constructs and solves a problem:
+```
+p = Problem(objective, constraints)
+result = p.solve()
+```
+
+If the problem is feasible and bounded, `result` will hold the optimal value of the objective. If the problem is unfeasible or unbounded, `result` will hold the appropriate status message from the solver.
+
+Once a problem has been solved, the optimal values of the variables can be read from `variable.value`. The values of the dual variables can be read from `constraint.dual_value`.
 
 
 Features
