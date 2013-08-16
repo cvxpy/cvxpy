@@ -127,7 +127,6 @@ CVXPY currently supports the following atoms:
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
-    * `min(x)`, the absolute value of each element of `x`.
     * `pos(x)`, `max(element,0)` for each element of `x`.
     * `sqrt(x)`, the square root of each element of `x`.
     * `square(x)`, the square of each element of `x`.
