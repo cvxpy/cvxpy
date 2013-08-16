@@ -59,7 +59,17 @@ nosetests cvxpy/tests/
 
 Basic Usage
 ---------------------
+Variables are created using the Variable class.
+```
+# Scalar variable
+a = Variable()
 
+# Column vector variable of length 5.
+x = Variable(5)
+
+# Matrix variable with 4 rows and 7 columns.
+A = Variable(4,7)
+```
 
 Features
 =====================
