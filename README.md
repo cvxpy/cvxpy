@@ -98,18 +98,18 @@ Mathematical expressions are stored in Expression objects. Variable and Paramete
 a = Variable()
 x = Variable(5)
 
-# exp is an Expression object after each assignment.
-exp = 2*x
-exp = exp - a
-exp = sum(exp) + norm2(x)
+# expr is an Expression object after each assignment.
+expr = 2*x
+expr = expr - a
+expr = sum(expr) + norm2(x)
 ```
 
 Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
 ### Indexing and Iteration
-All Expression objects can be indexed using the syntax `exp[i,j]` if `exp` is a matrix and `exp[i]` if exp is a vector.
+All Expression objects can be indexed using the syntax `expr[i,j]` if `expr` is a matrix and `expr[i]` if `expr` is a vector.
 
-Expressions are also iterable. Iterating over an expression returns indexes into the expression in column-major order. Thus if `exp` is a 2 by 2 matrix, `[elem for elem in exp]` evaluates to `[exp[0,0], exp[1,0], exp[0,1], exp[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
+Expressions are also iterable. Iterating over an expression returns indexes into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
 
 ### Atoms
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
