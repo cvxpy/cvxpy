@@ -28,7 +28,7 @@ def admm(self, rho=0.5, max_iter=5):
     noncvx_vars = []
     for obj in variables:
         if isinstance(obj,NonCvxVariable):
-            # Initialize replicant z and residual u.
+            # Initialize replicant z and scaled dual u.
             z = cvxpy.Parameter(*obj.size)
             z.value = cvxopt.matrix(0, obj.size, tc='d')
             u = cvxpy.Parameter(*obj.size)

@@ -22,4 +22,5 @@ from canonicalizable import Canonicalizable
 from curvature import Curvature
 from monotonicity import Monotonicity
 from sign import Sign
+from signed_curvature import SignedCurvature
 from shape import Shape

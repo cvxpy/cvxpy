@@ -47,14 +47,12 @@ class Expression(u.Canonicalizable):
         return NotImplemented
 
     # The curvature of the expression.
-    @abc.abstractproperty
     def curvature(self):
-        return NotImplemented
+        return self._sign_curv.curvatures
 
     # The sign of the expression.
-    @abc.abstractproperty
     def sign(self):
-        return NotImplemented
+        return self._sign_curv.signs
 
     # The dimensions of the expression.
     @abc.abstractproperty

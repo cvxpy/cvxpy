@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import dense_matrix_interface as cvxopt_dense
 import sparse_matrix_interface as cvxopt_sparse
+import cvxpy.utilities as u
 import cvxopt
 import numbers
 import numpy
@@ -77,6 +78,14 @@ def scalar_value(constant):
         return constant[0,0]
     elif isinstance(constant, (numpy.ndarray, numpy.matrix)):
         return constant[0]
+
+# Return a matrix of signs based on the constant's values.
+# TODO sparse matrices.
+def const_signs(constant):
+    rows,cols = intf.size(constant)
+    for i in rows:
+        for j in cols:
+            u.Sign.val_to_sign()
 
 # Get the value at the given index.
 def index(constant, key):

@@ -33,8 +33,8 @@ class Atom(Expression):
             raise TypeError(
                 "No arguments given to '%s'." % self.__class__.__name__
             )
-        # Convert raw values to Constants
-        self.args = map(Expression.cast_to_const, list(args))
+        # Convert raw values to Constants.
+        self.args = map(Expression.cast_to_const, args)
         # Initialize _shape. Raises an error for invalid argument sizes.
         self.set_shape()
         super(Atom, self).__init__()

@@ -60,6 +60,7 @@ class vstack(Atom):
         return (obj, [])
 
     # Return the absolute value of the argument at the given index.
+    # TODO replace with binary tree.
     def index_object(self, key):
         index = 0
         offset = 0

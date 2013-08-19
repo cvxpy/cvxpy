@@ -70,10 +70,7 @@ class Curvature(object):
     # Sums list of curvatures
     @staticmethod
     def sum(curvatures):
-        sum_curvature = Curvature.CONSTANT
-        for curvature in curvatures:
-            sum_curvature = sum_curvature + curvature
-        return sum_curvature
+        return reduce(lambda x,y: x+y, curvatures)
 
     """
     Resolves the logic of adding curvatures.
