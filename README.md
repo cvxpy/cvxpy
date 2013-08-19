@@ -75,7 +75,7 @@ The following types may be used as constants:
 Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
 
 ### Parameters
-Parameters are symbolic representations of constants. Parameters have fixed dimensions. The sign of a parameter's entries is also fixed as positive, negative, or unknown. Parameters are created using the Parameter class. Parameters can be assigned a constant value any time after they are created.
+Parameters are symbolic representations of constants. Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in DCP convexity analysis. Parameters can be assigned a constant value any time after they are created.
 
 ```
 # Positive scalar parameter.
@@ -105,6 +105,9 @@ expr = sum(expr) + norm2(x)
 ```
 
 Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+
+
+### Disciplined Convex Programming (DCP)
 
 ### Indexing and Iteration
 All Expression objects can be indexed using the syntax `expr[i,j]` if `expr` is a matrix and `expr[i]` if `expr` is a vector.
