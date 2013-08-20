@@ -34,7 +34,5 @@ class Parameter(constant.Constant):
     def set_shape(self):
         self._shape = u.Shape(self._rows, self._cols)
 
-    # The parameter's sign is fixed.
-    def set_sign_curv(self):
-        self._sign_curv = SignedCurvature(u.Sign(self.sign_str), 
-                                          u.Curvature.CONSTANT)
+    def set_sign(self):
+        self._sign = u.Sign(self.sign_str)
