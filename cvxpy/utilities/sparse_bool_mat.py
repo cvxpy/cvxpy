@@ -16,42 +16,39 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+from bool_mat import BoolMat
 
-class SignCurvMat(object):
+class SparseBoolMat(BoolMat):
     """ 
-    A wrapper on a boolean numpy ndarray to mimic scalar behavior.
+    A wrapper on a scipy sparse matrix to hold signs and curvatures.
     """
-    # value - the underlying ndarray.
-    def __init__(self, value):
-        self.value = value
-
     # For addition.
     def __or__(self, other):
         if isinstance(other, bool):
-            return SignCurvMat(self.value | other)
-        elif isinstance(other, SignCurvMat):
-            return SignCurvMat(self.value | other.value)
+            if other: # Reduce to scalar
+                return True
+            else:
+                return SparseBoolMat(self.value)
+        elif isinstance(other, (BoolMat, SparseBoolMat)):
+            value = (self.value + other.value).astype('bool')
+            return other.__class__(value) # Sparse + Dense = Dense
         else:
             return NotImplemented
 
-    # Handles boolean | SignCurvMat
-    def __ror__(self, other):
-        return self | other
-        
     # For multiplication.
     def __and__(self, other):
         if isinstance(other, bool):
-            return SignCurvMat(self.value & other)
-        elif isinstance(other, SignCurvMat):
-            mult_val = self.value.dot(other.value)
-            # Reduce to scalar if possible.
-            if mult_val.size == 1:
-                mult_val = mult_val.item(0)
-            return SignCurvMat(mult_val > 0)
+            if other:
+                return SparseBoolMat(self.value)
+            else: # Reduce to scalar.
+                return False
+        elif isinstance(other, (BoolMat,SparseBoolMat)):
+            mult_val = self.value.dot(other.value).astype('bool')
+            return other.__class__(mult_val) # Sparse * Dense = Dense
         else:
             return NotImplemented
 
-    # Handles boolean & SignCurvMat
+    # Handles boolean & SparseBoolMat
     def __rand__(self, other):
         return self & other
 
@@ -59,8 +56,16 @@ class SignCurvMat(object):
     def __eq__(self, other):
         if isinstance(other, bool):
             return False
-        elif isinstance(other, SignCurvMat):
+        elif isinstance(other, BoolMat):
+            return self.todense() == other
+        elif isinstance(other, SparseBoolMat):
             return self.value.shape == other.value.shape and \
                    (self.value == other.value).all()
         else:
             return NotImplemented
+
+    # Utility function to convert a SparseBoolMat to a BoolMat.
+    def todense(self):
+        dense = self.value.astype('int64').todense() # Must be int64 for todense().
+        dense = dense.astype('bool') # Convert back to bool.
+        return BoolMat(dense)

@@ -35,6 +35,8 @@ CVXPY requires:
 * Python 2.7
 * [CVXOPT](http://abel.ee.ucla.edu/cvxopt/)
 * [ECOS](http://github.com/ifa-ethz/ecos)
+* [NumPy](http://www.numpy.org/)
+* [SciPy](http://www.scipy.org/)
 
 To run the unit tests, you additionally need [Nose](http://nose.readthedocs.org).
 
