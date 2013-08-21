@@ -49,7 +49,3 @@ class Leaf(expression.Expression, u.Affine):
     @property
     def size(self):
         return self._shape.size
-
-    @property
-    def sign(self):
-        return self._sign

@@ -32,7 +32,7 @@ class Variable(leaf.Leaf):
     # value_matrix - the matrix type used to store values.
     def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
         self._shape = u.Shape(rows, cols)
-        self._sign = u.Sign.UNKNOWN
+        self._sign_curv = u.SignedCurvature(u.Sign.UNKNOWN, u.Curvature.AFFINE)
         self._init_id()
         self._name = self.id if name is None else name
         self.interface = intf.get_matrix_interface(value_matrix)
@@ -51,10 +51,6 @@ class Variable(leaf.Leaf):
 
     def name(self):
         return self._name
-
-    @property
-    def curvature(self):
-        return u.Curvature.AFFINE
 
     # Save the value of the primal variable.
     def save_value(self, value):

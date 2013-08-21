@@ -54,7 +54,8 @@ if __name__ == "__main__":
 
     # Construct the problem.
     constraints = []
-    map(constraints.extend, (o.constraints() for o in nodes + edges))
+    for o in nodes + edges:
+        constraints += o.constraints()
     p = Problem(Maximize(nodes[-1].accumulation), constraints)
     result = p.solve()
     print result

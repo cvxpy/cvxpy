@@ -26,6 +26,14 @@ class BoolMat(object):
     def __init__(self, value):
         self.value = value
 
+    # Cast an int to a bool, but pass any other type through.
+    @staticmethod
+    def cast_int(value):
+        if isinstance(value, int):
+            return value > 0
+        else:
+            return value
+
     # For addition.
     def __or__(self, other):
         if isinstance(other, bool):
@@ -43,7 +51,7 @@ class BoolMat(object):
         return self | other
         
     # For multiplication.
-    def __and__(self, other):
+    def __mul__(self, other):
         if isinstance(other, bool):
             if other:
                 return BoolMat(self.value)
@@ -55,9 +63,9 @@ class BoolMat(object):
         else:
             return NotImplemented
 
-    # Handles boolean & BoolMat
-    def __rand__(self, other):
-        return self & other
+    # Handles boolean * BoolMat
+    def __rmul__(self, other):
+        return self * other
 
     # For comparison.
     def __eq__(self, other):

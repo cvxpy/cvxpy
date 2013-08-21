@@ -36,7 +36,7 @@ class SparseBoolMat(BoolMat):
             return NotImplemented
 
     # For multiplication.
-    def __and__(self, other):
+    def __mul__(self, other):
         if isinstance(other, bool):
             if other:
                 return SparseBoolMat(self.value)
@@ -48,9 +48,12 @@ class SparseBoolMat(BoolMat):
         else:
             return NotImplemented
 
-    # Handles boolean & SparseBoolMat
-    def __rand__(self, other):
-        return self & other
+    # Handles non-SparseBoolMat * SparseBoolMat
+    def __rmul__(self, other):
+        if isinstance(other, BoolMat):
+            return other * self.todense()
+        else: # Boolean
+            return self * other
 
     # For comparison.
     def __eq__(self, other):

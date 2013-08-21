@@ -87,6 +87,9 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.value, 2)
         self.assertEqual(c.size, (1,1))
         self.assertEqual(c.curvature, u.Curvature.CONSTANT)
+        self.assertEqual(c.sign, u.Sign.POSITIVE)
+        self.assertEqual(Constant(-2).sign, u.Sign.NEGATIVE)
+        self.assertEqual(Constant(0).sign, u.Sign.ZERO)
         self.assertEqual(c.canonicalize()[0].size, (1,1))
         self.assertEqual(c.canonicalize()[1], [])
         
@@ -106,6 +109,7 @@ class TestExpressions(unittest.TestCase):
         c = Constant([2,2])
         exp = self.x + c
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " + " + c.name())
@@ -134,6 +138,7 @@ class TestExpressions(unittest.TestCase):
         c = Constant([2,2])
         exp = self.x - c
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
@@ -161,6 +166,7 @@ class TestExpressions(unittest.TestCase):
         c = Constant([[2],[2]])
         exp = c*self.x
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
         self.assertEqual(exp.canonicalize()[0].size, (1,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
@@ -192,6 +198,7 @@ class TestExpressions(unittest.TestCase):
         # Vectors
         exp = -self.x
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), "-%s" % self.x.name())
@@ -207,6 +214,7 @@ class TestExpressions(unittest.TestCase):
         # Vectors
         exp = self.x + 2
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
         self.assertEqual(exp.canonicalize()[0].size, (2,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
@@ -243,6 +251,7 @@ class TestExpressions(unittest.TestCase):
         c = Constant([[1,2],[3,4]])
         exp = c[1,1]
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
+        self.assertEqual(exp.sign, u.Sign.POSITIVE)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
 
@@ -250,6 +259,7 @@ class TestExpressions(unittest.TestCase):
         exp = (self.x + self.z)[1,0]
         self.assertEqual(exp.name(), "x[1,0] + z[1,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
         self.assertEquals(exp.size, (1,1))
 
         exp = (self.x + self.a)[1,0]

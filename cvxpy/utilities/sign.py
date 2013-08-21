@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from bool_mat import BoolMat
+
 class Sign(object):
     """ 
     Signs of the entries in an expression.
@@ -75,8 +77,10 @@ class Sign(object):
         NEGATIVE * NEGATIVE = POSITIVE
     """
     def __mul__(self, other):
-        neg_mat = self.neg_mat & other.pos_mat | other.neg_mat & self.pos_mat
-        pos_mat = self.neg_mat & other.neg_mat | self.pos_mat & other.pos_mat
+        neg_mat = BoolMat.cast_int(self.neg_mat * other.pos_mat) | \
+                  BoolMat.cast_int(other.neg_mat * self.pos_mat)
+        pos_mat = BoolMat.cast_int(self.neg_mat * other.neg_mat) | \
+                  BoolMat.cast_int(self.pos_mat * other.pos_mat)
         return Sign(neg_mat, pos_mat)
     
     # Equivalent to NEGATIVE * self

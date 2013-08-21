@@ -17,61 +17,49 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from bool_mat import BoolMat
+
 class Curvature(object):
-    """ Curvature for a convex optimization expression. """
-    CONSTANT_KEY = 'CONSTANT'
-    AFFINE_KEY = 'AFFINE'
+    """ 
+    Curvatures of the entries in an expression.
+    """
     CONVEX_KEY = 'CONVEX'
     CONCAVE_KEY = 'CONCAVE'
     UNKNOWN_KEY = 'UNKNOWN'
-    
-    # List of valid curvature strings.
-    CURVATURE_STRINGS = [CONSTANT_KEY, AFFINE_KEY, CONVEX_KEY, 
-                       CONCAVE_KEY, UNKNOWN_KEY]
-    # For multiplying curvature by negative sign.
-    NEGATION_MAP = {CONVEX_KEY: CONCAVE_KEY, CONCAVE_KEY: CONVEX_KEY}
-    
-    def __init__(self,curvature_str):
-        curvature_str = curvature_str.upper()
-        if curvature_str in Curvature.CURVATURE_STRINGS:
-            self.curvature_str = curvature_str
-        else:
-            raise Exception("No such curvature %s exists." % str(curvature_str))
-        
-    def __repr__(self):
-        return "Curvature('%s')" % self.curvature_str
-    
-    def __str__(self):
-        return self.curvature_str
+    AFFINE_KEY = 'AFFINE'
+    CONSTANT_KEY = 'CONSTANT'
 
-    # Returns whether the curvature is constant.
-    def is_constant(self):
-        return self == Curvature.CONSTANT
+    # Map of curvature string to scalar (cvx_mat, conc_mat) values.
+    # Affine is (False, False) and unknown is (True, True).
+    CURVATURE_MAP = {
+        CONVEX_KEY: (True, False, False),
+        CONCAVE_KEY: (False, True, False),
+        UNKNOWN_KEY: (True, True, False),
+        AFFINE_KEY: (False, False, False),
+        CONSTANT_KEY: (False, False, True),
+    }
 
-    # Returns whether the curvature is affine, 
-    # counting constant expressions as affine.
-    def is_affine(self):
-        return self.is_constant() or self == Curvature.AFFINE
+    # cvx_mat - a boolean matrix indicating whether each entry is convex.
+    # conc_mat - a boolean matrix indicating whether each entry is concave.
+    # constant - a boolean indicating whether the overall expression is constant.
+    def __init__(self, cvx_mat, conc_mat, constant):
+        self.cvx_mat = cvx_mat
+        self.conc_mat = conc_mat
+        self.constant = constant
 
-    # Returns whether the curvature is convex, 
-    # counting affine and constant expressions as convex.
-    def is_convex(self):
-        return self.is_affine() or self == Curvature.CONVEX
-
-    # Returns whether the curvature is concave, 
-    # counting affine and constant expressions as concave.
-    def is_concave(self):
-        return self.is_affine() or self == Curvature.CONCAVE
-
-    # Returns whether the curvature is unknown.
-    def is_unknown(self):
-        return self == Curvature.UNKNOWN
-
-    # Sums list of curvatures
     @staticmethod
-    def sum(curvatures):
-        return reduce(lambda x,y: x+y, curvatures)
+    def name_to_sign(sign_str):
+        sign_str = sign_str.upper()
+        if sign_str in Curvature.CURVATURE_MAP:
+            return Curvature(*Curvature.CURVATURE_MAP[sign_str])
+        else:
+            raise Exception("'%s' is not a valid sign name." % str(sign_str))
 
+    # Is the expression constant?
+    def is_constant(self):
+        return self.constant
+
+    # Arithmetic operators.
     """
     Resolves the logic of adding curvatures.
       CONSTANT + ANYTHING = ANYTHING
@@ -80,41 +68,50 @@ class Curvature(object):
       SAME + SAME = SAME
     """
     def __add__(self, other):
-        if self.is_constant():
-            return other
-        elif self.is_affine() and other.is_affine():
-            return Curvature.AFFINE
-        elif self.is_convex() and other.is_convex():
-            return Curvature.CONVEX
-        elif self.is_concave() and other.is_concave():
-            return Curvature.CONCAVE
-        else:
-            return Curvature.UNKNOWN
+        return Curvature(
+            self.cvx_mat | other.cvx_mat,
+            self.conc_mat | other.conc_mat,
+            self.constant & other.constant
+        )
     
     def __sub__(self, other):
         return self + -other
-       
-    def __mul__(self, other):
-        if self == Curvature.CONSTANT or other == Curvature.CONSTANT:
-            return self + other
-        else:
-            return Curvature.UNKNOWN
-        
-    def __neg__(self):
-        curvature_str = Curvature.NEGATION_MAP.get(self.curvature_str, 
-                                                   self.curvature_str)
-        return Curvature(curvature_str)
-        
-    def __eq__(self,other):
-        return self.curvature_str == other.curvature_str
     
-    def __ne__(self,other):
-        return self.curvature_str != other.curvature_str
+    """
+    Handles logic of sign by curvature multiplication:
+        ZERO * ANYTHING = AFFINE/CONSTANT
+        NON-ZERO * AFFINE/CONSTANT = AFFINE/CONSTANT
+        UNKNOWN * NON-AFFINE = UNKNOWN
+        POSITIVE * ANYTHING = ANYTHING
+        NEGATIVE * CONVEX = CONCAVE
+        NEGATIVE * CONCAVE = CONVEX
+    """
+    def sign_mul(self, sign):
+        cvx_mat = BoolMat.cast_int(sign.pos_mat * self.cvx_mat) | \
+                  BoolMat.cast_int(sign.neg_mat * self.conc_mat)
+        conc_mat = BoolMat.cast_int(sign.pos_mat * self.conc_mat) | \
+                   BoolMat.cast_int(sign.neg_mat * self.cvx_mat)
+        return Curvature(cvx_mat, conc_mat, self.constant)
+    
+    # Equivalent to NEGATIVE * self
+    def __neg__(self):
+        return Curvature(self.conc_mat, self.cvx_mat, self.constant)
 
-# Class constants for all curvature types.
-Curvature.CONSTANT = Curvature(Curvature.CONSTANT_KEY)
-Curvature.AFFINE = Curvature(Curvature.AFFINE_KEY)
-Curvature.CONVEX = Curvature(Curvature.CONVEX_KEY)
-Curvature.CONCAVE = Curvature(Curvature.CONCAVE_KEY)
-Curvature.UNKNOWN = Curvature(Curvature.UNKNOWN_KEY)
-Curvature.NONCONVEX = Curvature(Curvature.UNKNOWN_KEY)
+    # Comparison.
+    def __eq__(self, other):
+        return self.cvx_mat == other.cvx_mat and self.conc_mat == other.conc_mat
+
+    # To string methods.
+    def __repr__(self):
+        return "Curvature(%s, %s)" % (self.cvx_mat, self.conc_mat)
+
+    def __str__(self):
+        return "negative entries = %s, positive entries = %s" % \
+            (self.cvx_mat, self.conc_mat)
+
+# Scalar signs.
+Curvature.CONVEX = Curvature.name_to_sign(Curvature.CONVEX_KEY)
+Curvature.CONCAVE = Curvature.name_to_sign(Curvature.CONCAVE_KEY)
+Curvature.UNKNOWN = Curvature.name_to_sign(Curvature.UNKNOWN_KEY)
+Curvature.AFFINE = Curvature.name_to_sign(Curvature.AFFINE_KEY)
+Curvature.CONSTANT = Curvature.name_to_sign(Curvature.CONSTANT_KEY)

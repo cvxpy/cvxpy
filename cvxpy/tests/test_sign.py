@@ -132,6 +132,12 @@ class TestSign(object):
         assert_equals(self.neg_spmat * self.pos_spmat, self.neg_spmat)
         assert_equals(self.unknown_spmat * self.pos_spmat, self.unknown_spmat)
 
+        # Asymmetric multiplication.
+        m = 2
+        fat = np.vstack(m*[self.arr])
+        fat_pos = Sign(False, BoolMat(fat))
+        assert_equals(fat_pos * self.pos_spmat, fat_pos)
+
     def test_sparse_neg(self):
         assert_equals(-self.unknown_spmat, self.unknown_spmat)
         assert_equals(-self.pos_spmat, self.neg_spmat)

@@ -47,14 +47,14 @@ class Expression(u.Canonicalizable):
         return NotImplemented
 
     # The curvature of the expression.
-    @abc.abstractproperty
+    @property
     def curvature(self):
-        return NotImplemented
+        return self._sign_curv.curvature
 
     # The sign of the expression.
-    @abc.abstractproperty
+    @property
     def sign(self):
-        return NotImplemented
+        return self._sign_curv.sign
 
     # The dimensions of the expression.
     @abc.abstractproperty
@@ -162,8 +162,7 @@ class AddExpression(BinaryOperator, Expression):
     OP_FUNC = "__add__"
     def __init__(self, lh_exp, rh_exp):
         super(AddExpression, self).__init__(lh_exp, rh_exp)
-        self.set_sign()
-        self.set_curvature()
+        self.set_sign_curv()
         self.set_shape()
 
     @property
@@ -173,23 +172,10 @@ class AddExpression(BinaryOperator, Expression):
     def set_shape(self):
         self._shape = self.lh_exp._shape + self.rh_exp._shape
 
-    def set_sign(self):
-        self._sign = getattr(self.lh_exp.sign,
-                                  self.OP_FUNC)(self.rh_exp.sign)
-
-    # Apply the appropriate arithmetic operator to the 
-    # left hand and right hand curvatures.
-    def set_curvature(self):
-        self._curvature = getattr(self.lh_exp.curvature,
-                                  self.OP_FUNC)(self.rh_exp.curvature)
-
-    @property
-    def curvature(self):
-        return self._curvature
-
-    @property
-    def sign(self):
-        return self._sign
+    # Set the sign and curvature.
+    def set_sign_curv(self):
+        self._sign_curv = getattr(self.lh_exp._sign_curv,
+                                  self.OP_FUNC)(self.rh_exp._sign_curv)
 
     # Return the symbolic affine expression equal to the given index
     # into the expression.
@@ -233,14 +219,6 @@ class MulExpression(AddExpression, Expression):
 
     def set_shape(self):
         self._shape = self.lh_exp._shape * self.rh_exp._shape
-
-    # Flips the curvature if the left hand expression is a negative scalar.
-    # TODO is_constant instead of isinstance(...,Constant) using Sign
-    def set_curvature(self):
-        if self.lh_exp.sign == u.Sign.NEGATIVE:
-            self._curvature = -self.rh_exp.curvature
-        else:
-            self._curvature = self.rh_exp.curvature
 
     # Return the symbolic affine expression equal to the given index
     # in the expression.

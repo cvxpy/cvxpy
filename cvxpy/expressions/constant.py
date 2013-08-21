@@ -31,7 +31,7 @@ class Constant(leaf.Leaf):
         self.value = value
         self.param_name = name
         self.set_shape()
-        self.set_sign()
+        self.set_sign_curv()
         super(Constant, self).__init__()
 
     @property
@@ -45,20 +45,13 @@ class Constant(leaf.Leaf):
     def name(self):
         return str(self.value) if self.param_name is None else self.param_name
 
-    @property
-    def curvature(self):
-        return u.Curvature.CONSTANT
-
     # The constant's shape is fixed.
     def set_shape(self):
         self._shape = u.Shape(*intf.size(self.value))
 
     # The constant's sign is fixed.
-    def set_sign(self):
-        if self.size == (1,1):
-            self._sign = u.Sign.val_to_sign(intf.scalar_value(self.value))
-        else:
-            self._sign = u.Sign.POSITIVE
+    def set_sign_curv(self):
+        self._sign_curv = u.SignedCurvature(u.Sign.POSITIVE, u.Curvature.CONSTANT)
 
     # Return the constant value, converted to the target matrix.
     def coefficients(self, interface):

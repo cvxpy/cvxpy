@@ -21,40 +21,30 @@ from sign import Sign
 
 class SignedCurvature(object):
     """ A data structure for the sign and curvature of an expression. """
-    # signs - the signs of the expression's entries.
-    # curvatures - the curvatures of the expression's entries.
-    def __init__(self, signs, curvatures):
-        self.signs = signs
-        self.curvatures = curvatures
+    # sign - the signs of the expression's entries.
+    # curvature - the curvatures of the expression's entries.
+    def __init__(self, sign, curvature):
+        self.sign = sign
+        self.curvature = curvature
 
     """ Arithmetic operations """
     def __add__(self, other):
-        signs = self.signs + other.signs
-        curvatures = self.curvatures + other.curvatures
-        return SignedCurvature(signs, curvatures)
+        sign = self.sign + other.sign
+        curvature = self.curvature + other.curvature
+        return SignedCurvature(sign, curvature)
 
     def __sub__(self, other):
-        signs = self.signs - other.signs
-        curvatures = self.curvatures - other.curvatures
-        return SignedCurvature(signs, curvatures)
+        sign = self.sign - other.sign
+        curvature = self.curvature - other.curvature
+        return SignedCurvature(sign, curvature)
 
     # Assumes self has all constant curvature.
     def __mul__(self, other):
-        signs = self.signs * other.signs
-        curvatures = self.signs * other.curvatures
-        return SignedCurvature(signs, curvatures)
+        sign = self.sign * other.sign
+        curvature = other.curvature.sign_mul(sign)
+        return SignedCurvature(sign, curvature)
 
     def __neg__(self):
-        signs = -self.signs
-        curvatures = -self.curvatures
-        return SignedCurvature(signs, curvatures)
-
-    # # Helper to prevent promotion to a matrix when possible.
-    # @staticmethod
-    # def prevent_promotion(lh, rh, types_to_match):
-    #     if len(lh) == 1 and lh[0] in types_to_match:
-    #         return lh
-    #     elif len(rh) == 1 and rh[0] in types_to_match:
-    #         return rh
-    #     else:
-    #         return None
+        sign = -self.sign
+        curvature = -self.curvature
+        return SignedCurvature(sign, curvature)
