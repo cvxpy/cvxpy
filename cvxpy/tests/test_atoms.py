@@ -40,8 +40,8 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.name(), "normInf(x + y)")
         self.assertEquals(atom.size, (1,1))
         self.assertEquals(atom.curvature, u.Curvature.CONVEX)
-        self.assertEquals(normInf(atom).curvature, u.Curvature.UNKNOWN)
-        self.assertEquals(normInf(-atom).curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(normInf(atom).curvature, u.Curvature.CONVEX)
+        self.assertEquals(normInf(-atom).curvature, u.Curvature.CONVEX)
 
         with self.assertRaises(Exception) as cm:
             normInf([[1,2],[3,4]])
@@ -55,8 +55,8 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.name(), "norm1(x + y)")
         self.assertEquals(atom.size, (1,1))
         self.assertEquals(atom.curvature, u.Curvature.CONVEX)
-        self.assertEquals(norm1(atom).curvature, u.Curvature.UNKNOWN)
-        self.assertEquals(norm1(-atom).curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(norm1(atom).curvature, u.Curvature.CONVEX)
+        self.assertEquals(norm1(-atom).curvature, u.Curvature.CONVEX)
 
         with self.assertRaises(Exception) as cm:
             norm1([[1,2],[3,4]])
@@ -70,8 +70,8 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.name(), "norm2(x + y)")
         self.assertEquals(atom.size, (1,1))
         self.assertEquals(atom.curvature, u.Curvature.CONVEX)
-        self.assertEquals(norm2(atom).curvature, u.Curvature.UNKNOWN)
-        self.assertEquals(norm2(-atom).curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX)
+        self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX)
 
         with self.assertRaises(Exception) as cm:
             norm2([[1,2],[3,4]])

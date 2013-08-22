@@ -23,6 +23,7 @@ from nose.tools import assert_equals
 
 class TestCurvature(object):
     """ Unit tests for the utilities/curvature class. """
+    # TODO tests with matrices.
     def test_add(self):
         assert_equals(Curvature.CONSTANT + Curvature.CONVEX, Curvature.CONVEX)
         assert_equals(Curvature.UNKNOWN + Curvature.CONCAVE, Curvature.UNKNOWN)

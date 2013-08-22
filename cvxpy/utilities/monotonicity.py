@@ -50,6 +50,7 @@ class Monotonicity(object):
     Applies DCP composition rules to determine curvature in each argument.
     Composition rules:
         Key: Function curvature + monotonicity + argument curvature == curvature in argument
+        TODO anything + anything + constant == constant
         anything + anything + affine == original curvature
         convex/affine + increasing + convex == convex
         convex/affine + decreasing + concave == convex
@@ -64,8 +65,11 @@ class Monotonicity(object):
         elif self.monotonicity_str == Monotonicity.DECREASING_KEY:
             return func_curvature - arg_curvature
         # Absolute value style monotonicity.
-        elif self.monotonicity_str == Monotonicity.SIGNED_KEY:
-            return func_curvature # TODO cvx + neg & cvx + pos & conc
+        elif self.monotonicity_str == Monotonicity.SIGNED_KEY and \
+             func_curvature.is_convex():
+            conc_mat = arg_sign.neg_mat & arg_curvature.cvx_mat | \
+                       arg_sign.pos_mat & arg_curvature.conc_mat
+            return Curvature(True, conc_mat, False)
         else: # non-monotonic
             return func_curvature + arg_curvature - arg_curvature
 

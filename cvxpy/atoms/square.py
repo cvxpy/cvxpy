@@ -46,7 +46,7 @@ class square(Atom):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.NONMONOTONIC]
+        return [u.Monotonicity.SIGNED]
     
     @staticmethod
     def graph_implementation(var_args, size):

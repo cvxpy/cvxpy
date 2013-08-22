@@ -42,7 +42,7 @@ class norm1(Atom):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.NONMONOTONIC]
+        return [u.Monotonicity.SIGNED]
 
     # Verify that the argument x is a vector.
     def validate_arguments(self):
