@@ -88,9 +88,13 @@ class Problem(object):
 
     # Solves DCP compliant optimization problems.
     # Saves the values of variables.
-    def _solve(self, solver=s.ECOS):
+    def _solve(self, solver=s.ECOS, ignore_dcp=False):
         if not self.is_dcp():
-            print "Problem does not follow DCP rules."
+            if ignore_dcp:
+                print ("Problem does not follow DCP rules. "
+                       "Solving a convex relaxation.")
+            else:
+                raise Exception("Problem does not follow DCP rules.")
         objective,eq_constr,ineq_constr,dims = self.canonicalize()
         variables = self.variables(objective, eq_constr + ineq_constr)
         var_ids = self.variable_ids(variables)
