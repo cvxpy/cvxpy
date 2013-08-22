@@ -87,7 +87,7 @@ class Problem(object):
         Problem.REGISTERED_SOLVE_METHODS[name] = func
 
     # Solves DCP compliant optimization problems.
-    # Saves the values of variables.
+    # Saves the values of primal and dual variables.
     def _solve(self, solver=s.ECOS, ignore_dcp=False):
         if not self.is_dcp():
             if ignore_dcp:
