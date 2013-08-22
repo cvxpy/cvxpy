@@ -22,6 +22,10 @@ class SparseBoolMat(BoolMat):
     """ 
     A wrapper on a scipy sparse matrix to hold signs and curvatures.
     """
+    # Return True if any entry is True.
+    def any(self):
+        return self.value.nnz > 0
+
     # For addition.
     def __or__(self, other):
         if isinstance(other, bool):
@@ -54,6 +58,16 @@ class SparseBoolMat(BoolMat):
             return other * self.todense()
         else: # Boolean
             return self * other
+
+    # For elementwise multiplication/bitwise and.
+    def __and__(self, other):
+        if isinstance(other, bool):
+            return self * other
+        elif isinstance(other, (BoolMat, SparseBoolMat)):
+            mult_val = self.value.multiply(other.value).astype('bool')
+            return other.__class__(mult_val) # Sparse * Dense = Dense
+        else:
+            return NotImplemented
 
     # For comparison.
     def __eq__(self, other):

@@ -37,8 +37,8 @@ class sqrt(Atom):
     def set_shape(self):
         self._shape = u.Shape(*self.args[0].size)
 
-    @property
-    def sign(self):
+    # Always positive.
+    def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.

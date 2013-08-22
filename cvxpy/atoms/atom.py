@@ -37,6 +37,8 @@ class Atom(Expression):
         self.args = map(Expression.cast_to_const, args)
         # Initialize _shape. Raises an error for invalid argument sizes.
         self.set_shape()
+        # Initialize sign and curvature.
+        self.set_sign_curv()
         super(Atom, self).__init__()
 
     # Returns the string representation of the function call.
@@ -44,15 +46,17 @@ class Atom(Expression):
         return "%s(%s)" % (self.__class__.__name__, 
                            ", ".join([arg.name() for arg in self.args]))
 
-    # Determines curvature from args and sign.
-    @property
-    def curvature(self):
-        curvature = self.base_curvature()
-        return Atom.dcp_curvature(curvature, self.args, self.monotonicity())
-
     @abc.abstractmethod
     def set_shape(self):
         return NotImplemented
+
+    # Sets signed curvature based on the arguments' signed curvatures.
+    def set_sign_curv(self):
+        sign = self.sign_from_args()
+        curvature = Atom.dcp_curvature(self.base_curvature(), 
+                                       self.args, 
+                                       self.monotonicity())
+        self._sign_curv = u.SignedCurvature(sign, curvature)
 
     @property
     def size(self):
@@ -63,13 +67,13 @@ class Atom(Expression):
         return [arg.curvature for arg in self.args]
 
     # The curvature of the atom if all arguments conformed to DCP.
-    @abc.abstractmethod
+    # @abc.abstractmethod
     def base_curvature(self):
         return NotImplemented
 
     # Returns a list with the monotonicity in each argument.
     # Monotonicity can depend on the sign of the argument.
-    @abc.abstractmethod
+    # @abc.abstractmethod
     def monotonicity(self):
         return NotImplemented
 
@@ -80,9 +84,11 @@ class Atom(Expression):
         if len(args) != len(monotonicities):
             raise Exception('The number of args be'
                             ' equal to the number of monotonicities.')
-        arg_curvatures = [monotonicity.dcp_curvature(curvature,arg.curvature)
-                          for arg,monotonicity in zip(args,monotonicities)]
-        return u.Curvature.sum(arg_curvatures)
+        arg_curvatures = []
+        for arg,monotonicity in zip(args,monotonicities):
+            arg_curv = monotonicity.dcp_curvature(curvature, arg.sign, arg.curvature)
+            arg_curvatures.append(arg_curv)
+        return reduce(lambda x,y: x+y, arg_curvatures)
 
     # Represent the atom as an affine objective and affine/basic SOC constraints.
     def canonicalize(self):

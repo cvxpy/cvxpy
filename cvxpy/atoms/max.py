@@ -33,8 +33,8 @@ class max(Atom):
             shape = shape + arg._shape
         self._shape = shape
 
-    @property
-    def sign(self):
+    # TODO
+    def sign_from_args(self):
         return u.Sign.UNKNOWN
 
     # Default curvature.

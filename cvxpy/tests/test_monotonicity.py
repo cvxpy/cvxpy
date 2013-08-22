@@ -21,7 +21,7 @@ from cvxpy.utilities import Monotonicity, Curvature
 from nose.tools import *
 
 class TestMonotonicity(object):
-    """ Unit tests for the atoms/monotonicity class. """
+    """ Unit tests for the utilities/monotonicity class. """
     # Test application of DCP composition rules to determine curvature.
     def test_dcp_curvature(self):
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.AFFINE, Curvature.CONVEX), Curvature.CONVEX)

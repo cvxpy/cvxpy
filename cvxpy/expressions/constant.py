@@ -51,7 +51,8 @@ class Constant(leaf.Leaf):
 
     # The constant's sign is fixed.
     def set_sign_curv(self):
-        self._sign_curv = u.SignedCurvature(u.Sign.POSITIVE, u.Curvature.CONSTANT)
+        sign = intf.sign(self.value)
+        self._sign_curv = u.SignedCurvature(sign, u.Curvature.CONSTANT)
 
     # Return the constant value, converted to the target matrix.
     def coefficients(self, interface):

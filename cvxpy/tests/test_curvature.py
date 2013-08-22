@@ -22,7 +22,7 @@ from cvxpy.utilities import Sign
 from nose.tools import assert_equals
 
 class TestCurvature(object):
-    """ Unit tests for the expression/curvature class. """
+    """ Unit tests for the utilities/curvature class. """
     def test_add(self):
         assert_equals(Curvature.CONSTANT + Curvature.CONVEX, Curvature.CONVEX)
         assert_equals(Curvature.UNKNOWN + Curvature.CONCAVE, Curvature.UNKNOWN)
@@ -47,22 +47,28 @@ class TestCurvature(object):
         assert_equals(-Curvature.CONVEX, Curvature.CONCAVE)
         assert_equals(-Curvature.AFFINE, Curvature.AFFINE)
 
-    # # Tests the is_affine, is_convex, and is_concave methods
-    # def test_is_curvature(self):
-    #     assert Curvature.CONSTANT.is_affine()
-    #     assert Curvature.AFFINE.is_affine()
-    #     assert not Curvature.CONVEX.is_affine()
-    #     assert not Curvature.CONCAVE.is_affine()
-    #     assert not Curvature.UNKNOWN.is_affine()
+    # Tests the is_affine, is_convex, is_concave, and is_dcp methods
+    def test_is_curvature(self):
+        assert Curvature.CONSTANT.is_affine()
+        assert Curvature.AFFINE.is_affine()
+        assert not Curvature.CONVEX.is_affine()
+        assert not Curvature.CONCAVE.is_affine()
+        assert not Curvature.UNKNOWN.is_affine()
 
-    #     assert Curvature.CONSTANT.is_convex()
-    #     assert Curvature.AFFINE.is_convex()
-    #     assert Curvature.CONVEX.is_convex()
-    #     assert not Curvature.CONCAVE.is_convex()
-    #     assert not Curvature.UNKNOWN.is_convex()
+        assert Curvature.CONSTANT.is_convex()
+        assert Curvature.AFFINE.is_convex()
+        assert Curvature.CONVEX.is_convex()
+        assert not Curvature.CONCAVE.is_convex()
+        assert not Curvature.UNKNOWN.is_convex()
 
-    #     assert Curvature.CONSTANT.is_concave()
-    #     assert Curvature.AFFINE.is_concave()
-    #     assert not Curvature.CONVEX.is_concave()
-    #     assert Curvature.CONCAVE.is_concave()
-    #     assert not Curvature.UNKNOWN.is_concave()
+        assert Curvature.CONSTANT.is_concave()
+        assert Curvature.AFFINE.is_concave()
+        assert not Curvature.CONVEX.is_concave()
+        assert Curvature.CONCAVE.is_concave()
+        assert not Curvature.UNKNOWN.is_concave()
+
+        assert Curvature.CONSTANT.is_dcp()
+        assert Curvature.AFFINE.is_dcp()
+        assert Curvature.CONVEX.is_dcp()
+        assert Curvature.CONCAVE.is_dcp()
+        assert not Curvature.UNKNOWN.is_dcp()

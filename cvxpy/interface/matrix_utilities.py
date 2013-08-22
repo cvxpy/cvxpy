@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import dense_matrix_interface as cvxopt_dense
 import sparse_matrix_interface as cvxopt_sparse
+import numpy_interface as np_intf
 import cvxpy.utilities as u
 import cvxopt
 import numbers
@@ -26,6 +27,7 @@ import numpy
 
 DENSE_TARGET = cvxopt.matrix
 SPARSE_TARGET = cvxopt.spmatrix
+NDARRAY_INTERFACE = np_intf.DenseMatrixInterface()
 DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface()
 
 # Returns an interface between constants' internal values
@@ -81,12 +83,13 @@ def scalar_value(constant):
 
 # Return a matrix of signs based on the constant's values.
 # TODO sparse matrices.
-def const_signs(constant):
-    rows,cols = intf.size(constant)
-    for i in rows:
-        for j in cols:
-            u.Sign.val_to_sign()
-
+def sign(constant):
+    if isinstance(constant, numbers.Number):
+        return u.Sign(constant < 0, constant > 0)
+    else:
+        mat = NDARRAY_INTERFACE.const_to_matrix(constant)
+        return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
+    
 # Get the value at the given index.
 def index(constant, key):
     if isinstance(constant, list):

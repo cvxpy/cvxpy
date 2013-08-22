@@ -166,7 +166,7 @@ class TestExpressions(unittest.TestCase):
         c = Constant([[2],[2]])
         exp = c*self.x
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
-        self.assertEqual(exp.sign, u.Sign.UNKNOWN)
+        self.assertEqual((c[0]*self.x).sign, u.Sign.UNKNOWN)
         self.assertEqual(exp.canonicalize()[0].size, (1,1))
         self.assertEqual(exp.canonicalize()[1], [])
         self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
@@ -248,10 +248,12 @@ class TestExpressions(unittest.TestCase):
             (self.x[2,0])
         self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
 
-        c = Constant([[1,2],[3,4]])
+        c = Constant([[1,-2],[0,4]])
         exp = c[1,1]
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
         self.assertEqual(exp.sign, u.Sign.POSITIVE)
+        self.assertEqual(c[0,1].sign, u.Sign.ZERO)
+        self.assertEqual(c[1,0].sign, u.Sign.NEGATIVE)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
 

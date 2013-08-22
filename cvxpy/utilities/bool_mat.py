@@ -34,6 +34,10 @@ class BoolMat(object):
         else:
             return value
 
+    # Return True if any entry is True.
+    def any(self):
+        return self.value.any()
+
     # For addition.
     def __or__(self, other):
         if isinstance(other, bool):
@@ -66,6 +70,20 @@ class BoolMat(object):
     # Handles boolean * BoolMat
     def __rmul__(self, other):
         return self * other
+
+    # For elementwise multiplication/bitwise and.
+    def __and__(self, other):
+        if isinstance(other, bool):
+            return self * other
+        elif isinstance(other, BoolMat):
+            mult_val = self.value & other.value
+            return BoolMat(mult_val)
+        else:
+            return NotImplemented
+
+    # Handles boolean & BoolMat
+    def __rand__(self, other):
+        return self & other
 
     # For comparison.
     def __eq__(self, other):

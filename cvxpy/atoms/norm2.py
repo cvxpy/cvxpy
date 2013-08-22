@@ -31,8 +31,8 @@ class norm2(Atom):
         self.validate_arguments()
         self._shape = u.Shape(1,1)
 
-    @property
-    def sign(self):
+    # Always positive.
+    def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.

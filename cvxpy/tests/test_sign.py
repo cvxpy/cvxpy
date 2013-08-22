@@ -25,7 +25,7 @@ import numpy as np
 from scipy import sparse
 
 class TestSign(object):
-    """ Unit tests for the expression/sign class. """
+    """ Unit tests for the utilities/sign class. """
     @classmethod
     def setup_class(self):
         n = 5
@@ -82,6 +82,7 @@ class TestSign(object):
         assert_equals(self.neg_mat + Sign.NEGATIVE, result)
         assert_equals(self.pos_vec + self.pos_vec, self.pos_vec)
         assert_equals(self.unknown_mat + self.zero_mat, self.unknown_mat)
+        assert_equals(Sign.UNKNOWN + self.pos_mat, Sign.UNKNOWN)
 
     def test_dmat_sub(self):
         assert_equals(self.pos_vec - self.neg_vec, self.pos_vec)
@@ -120,7 +121,8 @@ class TestSign(object):
         assert_equals(self.pos_spmat - self.neg_spmat, self.pos_spmat)
         assert_equals(Sign.POSITIVE - self.neg_spmat, Sign.POSITIVE)
         assert_equals(self.neg_spmat - self.unknown_mat, self.unknown_mat)
-        assert_equals(self.neg_spmat + self.neg_mat, self.neg_mat)
+        assert_equals(self.neg_spmat - self.neg_mat, 
+                      self.unknown_spmat + self.pos_mat)
         assert_equals(self.neg_spmat - self.pos_spmat, self.neg_spmat)
 
     def test_sparse_mult(self):

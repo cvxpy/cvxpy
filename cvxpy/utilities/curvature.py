@@ -59,6 +59,30 @@ class Curvature(object):
     def is_constant(self):
         return self.constant
 
+    # Is the expression affine?
+    def is_affine(self):
+        return not self.any(self.cvx_mat | self.conc_mat)
+
+    # Is the expression convex?
+    def is_convex(self):
+        return not self.any(self.conc_mat)
+
+    # Is the expression concave?
+    def is_concave(self):
+        return not self.any(self.cvx_mat)
+
+    # Is the expression DCP compliant? (i.e. no unknown curvatures)
+    def is_dcp(self):
+        return not self.any(self.cvx_mat & self.conc_mat)
+
+    # Returns true if any of the entries in the matrix are True.
+    @staticmethod
+    def any(matrix):
+        if isinstance(matrix, bool):
+            return matrix
+        else:
+            return matrix.any()
+
     # Arithmetic operators.
     """
     Resolves the logic of adding curvatures.

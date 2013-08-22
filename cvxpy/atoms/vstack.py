@@ -35,16 +35,9 @@ class vstack(Atom):
         rows = sum(arg.size[0] for arg in self.args)
         self._shape = u.Shape(rows, cols)
 
-    @property
-    def sign(self):
-        return u.Sign.UNKNOWN
-
-    # Default curvature.
-    def base_curvature(self):
-        return u.Curvature.AFFINE
-
-    def monotonicity(self): # TODO what would make sense?
-        return len(self.args)*[u.Monotonicity.INCREASING]
+    # TODO
+    def set_sign_curv(self):
+        self._sign_curv = u.SignedCurvature(u.Sign.UNKNOWN, u.Curvature.AFFINE)
 
     # Any argument size is valid.
     def validate_arguments(self):

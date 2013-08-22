@@ -26,8 +26,8 @@ import cvxpy.interface.matrix_utilities as intf
 
 class min(max):
     """ Elementwise minimum. """
-    @property
-    def sign(self):
+    # TODO
+    def sign_from_args(self):
         return u.Sign.UNKNOWN
         
     # Default curvature.

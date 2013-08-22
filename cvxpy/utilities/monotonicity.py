@@ -23,9 +23,15 @@ class Monotonicity(object):
     """ Monotonicity of atomic functions in a given argument. """
     INCREASING_KEY = 'INCREASING'
     DECREASING_KEY = 'DECREASING'
+    SIGNED_KEY = 'SIGNED'
     NONMONOTONIC_KEY = 'NONMONOTONIC'
 
-    MONOTONICITY_SET = set([INCREASING_KEY, DECREASING_KEY, NONMONOTONIC_KEY])
+    MONOTONICITY_SET = set([
+        INCREASING_KEY, 
+        DECREASING_KEY,
+        SIGNED_KEY,
+        NONMONOTONIC_KEY,
+    ])
 
     def __init__(self,monotonicity_str):
         monotonicity_str = monotonicity_str.upper()
@@ -52,17 +58,19 @@ class Monotonicity(object):
     Notes: Increasing (decreasing) means non-decreasing (non-increasing).
         Any combinations not covered by the rules result in a nonconvex expression.
     """
-    def dcp_curvature(self, func_curvature, arg_curvature):
-        if arg_curvature.is_affine():
-            return func_curvature
-        elif self.monotonicity_str == Monotonicity.INCREASING_KEY:
+    def dcp_curvature(self, func_curvature, arg_sign, arg_curvature):
+        if self.monotonicity_str == Monotonicity.INCREASING_KEY:
             return func_curvature + arg_curvature
         elif self.monotonicity_str == Monotonicity.DECREASING_KEY:
             return func_curvature - arg_curvature
+        # Absolute value style monotonicity.
+        elif self.monotonicity_str == Monotonicity.SIGNED_KEY:
+            return func_curvature # TODO cvx + neg & cvx + pos & conc
         else: # non-monotonic
-            return Curvature.UNKNOWN
+            return func_curvature + arg_curvature - arg_curvature
 
 # Class constants for all monotonicity types.
 Monotonicity.INCREASING = Monotonicity(Monotonicity.INCREASING_KEY)
 Monotonicity.DECREASING = Monotonicity(Monotonicity.DECREASING_KEY)
+Monotonicity.SIGNED = Monotonicity(Monotonicity.SIGNED_KEY)
 Monotonicity.NONMONOTONIC = Monotonicity(Monotonicity.NONMONOTONIC_KEY)
