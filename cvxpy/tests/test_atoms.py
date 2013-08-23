@@ -78,6 +78,60 @@ class TestAtoms(unittest.TestCase):
         self.assertEqual(str(cm.exception), 
             "The argument '[[1, 2], [3, 4]]' to norm2 must resolve to a vector.")
 
+    # Test sign logic for max.
+    def test_max_sign(self):
+        # One arg.
+        self.assertEquals(max(1).sign, u.Sign.POSITIVE)
+        self.assertEquals(max(-2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(max(Variable()).sign, u.Sign.UNKNOWN)
+        self.assertEquals(max(0).sign, u.Sign.ZERO)
+
+        # Two args.
+        self.assertEquals(max(1, 2).sign, u.Sign.POSITIVE)
+        self.assertEquals(max(1, Variable()).sign, u.Sign.POSITIVE)
+        self.assertEquals(max(1, -2).sign, u.Sign.POSITIVE)
+        self.assertEquals(max(1, 0).sign, u.Sign.POSITIVE)
+
+        self.assertEquals(max(Variable(), 0).sign, u.Sign.POSITIVE)
+        self.assertEquals(max(Variable(), Variable()).sign, u.Sign.UNKNOWN)
+        self.assertEquals(max(Variable(), -2).sign, u.Sign.UNKNOWN)
+
+        self.assertEquals(max(0, 0).sign, u.Sign.ZERO)
+        self.assertEquals(max(0, -2).sign, u.Sign.ZERO)
+
+        self.assertEquals(max(-3, -2).sign, u.Sign.NEGATIVE)
+
+        # Many args.
+        self.assertEquals(max(-2, Variable(), 0, -1, Variable(), 1).sign, 
+                          u.Sign.POSITIVE)
+
+    # Test sign logic for min.
+    def test_min_sign(self):
+        # One arg.
+        self.assertEquals(min(1).sign, u.Sign.POSITIVE)
+        self.assertEquals(min(-2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(min(Variable()).sign, u.Sign.UNKNOWN)
+        self.assertEquals(min(0).sign, u.Sign.ZERO)
+
+        # Two args.
+        self.assertEquals(min(1, 2).sign, u.Sign.POSITIVE)
+        self.assertEquals(min(1, Variable()).sign, u.Sign.UNKNOWN)
+        self.assertEquals(min(1, -2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(min(1, 0).sign, u.Sign.ZERO)
+
+        self.assertEquals(min(Variable(), 0).sign, u.Sign.NEGATIVE)
+        self.assertEquals(min(Variable(), Variable()).sign, u.Sign.UNKNOWN)
+        self.assertEquals(min(Variable(), -2).sign, u.Sign.NEGATIVE)
+
+        self.assertEquals(min(0, 0).sign, u.Sign.ZERO)
+        self.assertEquals(min(0, -2).sign, u.Sign.NEGATIVE)
+
+        self.assertEquals(min(-3, -2).sign, u.Sign.NEGATIVE)
+
+        # Many args.
+        self.assertEquals(min(-2, Variable(), 0, -1, Variable(), 1).sign, 
+                          u.Sign.NEGATIVE)
+
     # Test the vstack class.
     def test_vstack(self):
         atom = vstack(self.x, self.y, self.x)

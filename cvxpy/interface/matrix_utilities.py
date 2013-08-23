@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import dense_matrix_interface as cvxopt_dense
 import sparse_matrix_interface as cvxopt_sparse
-import cvxpy.interface.numpy_interface as np_intf
+import numpy_interface as np_intf
 import cvxpy.utilities as u
 import cvxopt
 import numbers

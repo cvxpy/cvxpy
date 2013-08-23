@@ -26,9 +26,21 @@ import cvxpy.interface.matrix_utilities as intf
 
 class min(max):
     """ Elementwise minimum. """
-    # TODO
+    """
+    Reduces the list of argument signs according to the following rules:
+        NEGATIVE, ANYTHING = NEGATIVE
+        ZERO, UNKNOWN = NEGATIVE
+        ZERO, POSITIVE = ZERO
+        UNKNOWN, POSITIVE = UNKNOWN
+        POSITIVE, POSITIVE = POSITIVE
+    """
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
+        neg_mat = self.args[0].sign.neg_mat
+        pos_mat = self.args[0].sign.pos_mat
+        for arg in self.args[1:]:
+            neg_mat = neg_mat | arg.sign.neg_mat
+            pos_mat = pos_mat & arg.sign.pos_mat
+        return u.Sign(neg_mat, pos_mat)
         
     # Default curvature.
     def base_curvature(self):
