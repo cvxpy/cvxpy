@@ -8,16 +8,15 @@ class Directed(Edge):
     """ A directed, capacity limited edge """
     # Returns the edge's internal constraints.
     def constraints(self):
-        return [self.in_flow <= 0] + super(Directed, self).constraints()
+        return [self.flow >= 0, self.flow <= self.capacity]
 
-class LeakyDirected(Edge):
+class LeakyDirected(Directed):
     """ A directed edge that leaks flow. """
     EFFICIENCY = .95
-    # Returns the edge's internal constraints.
-    def constraints(self):
-        return [self.EFFICIENCY*self.in_flow + self.out_flow == 0,
-                self.in_flow <= 0,
-                abs(self.in_flow) <= self.capacity]
+    # Connects two nodes via the edge.
+    def connect(self, in_node, out_node):
+        in_node.edge_flows.append(-self.flow)
+        out_node.edge_flows.append(self.EFFICIENCY*self.flow)
 
 class LeakyUndirected(Edge):
     """ An undirected edge that leaks flow. """
@@ -26,8 +25,11 @@ class LeakyUndirected(Edge):
     def __init__(self, capacity):
         self.forward = LeakyDirected(capacity)
         self.backward = LeakyDirected(capacity)
-        self.in_flow = self.forward.in_flow + self.backward.out_flow
-        self.out_flow = self.forward.out_flow + self.backward.in_flow
+
+    # Connects two nodes via the edge.
+    def connect(self, in_node, out_node):
+        self.forward.connect(in_node, out_node)
+        self.backward.connect(out_node, in_node)
 
     def constraints(self):
         return self.forward.constraints() + self.backward.constraints()
@@ -49,7 +51,7 @@ if __name__ == "__main__":
     # Construct edges.
     edges = []
     for n1,n2,capacity in data[g.EDGES_KEY]:
-        edges.append(Directed(capacity))
+        edges.append(LeakyUndirected(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
 
     # Construct the problem.

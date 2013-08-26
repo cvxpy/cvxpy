@@ -237,18 +237,16 @@ class Edge(object):
     """ An undirected, capacity limited edge. """
     def __init__(self, capacity):
         self.capacity = capacity
-        self.in_flow = Variable()
-        self.out_flow = Variable()
+        self.flow = Variable()
 
     # Connects two nodes via the edge.
     def connect(self, in_node, out_node):
-        in_node.edge_flows.append(self.in_flow)
-        out_node.edge_flows.append(self.out_flow)
+        in_node.edge_flows.append(-self.flow)
+        out_node.edge_flows.append(self.flow)
 
     # Returns the edge's internal constraints.
     def constraints(self):
-        return [self.in_flow + self.out_flow == 0,
-                abs(self.in_flow) <= self.capacity]
+        return [abs(self.flow) <= self.capacity]
 ```
 
 The Edge class exposes the flow into and out of the edge. The constraints linking the flow in and out and the flows with the capacity are stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.

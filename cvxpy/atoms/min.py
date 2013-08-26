@@ -30,6 +30,7 @@ class min(max):
     Reduces the list of argument signs according to the following rules:
         NEGATIVE, ANYTHING = NEGATIVE
         ZERO, UNKNOWN = NEGATIVE
+        ZERO, ZERO = ZERO
         ZERO, POSITIVE = ZERO
         UNKNOWN, POSITIVE = UNKNOWN
         POSITIVE, POSITIVE = POSITIVE

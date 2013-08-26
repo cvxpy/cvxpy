@@ -37,6 +37,7 @@ class max(Atom):
     Reduces the list of argument signs according to the following rules:
         POSITIVE, ANYTHING = POSITIVE
         ZERO, UNKNOWN = POSITIVE
+        ZERO, ZERO = ZERO
         ZERO, NEGATIVE = ZERO
         UNKNOWN, NEGATIVE = UNKNOWN
         NEGATIVE, NEGATIVE = NEGATIVE
