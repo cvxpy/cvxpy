@@ -211,11 +211,8 @@ def get_x(gamma_value):
 x_values = [get_x(value) for value in np.logspace(-1, 2, num=100)]
 
 # Parallel computation.
-# Create a pool of workers and a grid of gamma values.
 pool = multiprocessing.Pool(processes = 4)
 gammas = numpy.logspace(-1, 2, num=100)
-
-# Compute allocation in parallel.
 x_values = pool.map(get_x, gammas)
 
 # Construct a trade off curve using the x_values.
