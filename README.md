@@ -181,12 +181,13 @@ A = np.ndarray(...)
 b = np.ndarray(...)
 ```
 
-Parameters allow you to change the problem data without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to construct a tradeoff curve of the least squares penalty vs. the cardinality of x.
+Parameters allow you to change the problem data without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to construct a tradeoff curve of the least squares penalty vs. the cardinality of x. The problem instances can be solved serially or in parallel.
 
 ```
 from cvxpy import *
-from cvxpy import numpy as np
+import numpy
 import cvxopt
+import multiprocessing
 
 # Problem data.
 n = 10
@@ -200,12 +201,22 @@ x = Variable(m)
 objective = Minimize(sum(square(A*x - b)) + gamma*norm1(x))
 p = Problem(objective)
 
-# Vary gamma for trade-off curve.
-x_values = []
-for value in np.logspace(-1, 2, num=100):
-    gamma.value = value
-    p.solve()
-    x_values.append(x.value)
+# Assign a value to gamma and find the optimal x.
+def get_x(gamma_value):
+    gamma.value = gamma_value
+    result = p.solve()
+    return x.value
+
+# Serial computation.
+x_values = [get_x(value) for value in np.logspace(-1, 2, num=100)]
+
+# Parallel computation.
+# Create a pool of workers and a grid of gamma values.
+pool = multiprocessing.Pool(processes = 4)
+gammas = numpy.logspace(-1, 2, num=100)
+
+# Compute allocation in parallel.
+x_values = pool.map(get_x, gammas)
 
 # Construct a trade off curve using the x_values.
 ...
