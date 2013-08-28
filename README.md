@@ -271,6 +271,7 @@ class Node(object):
         self.accumulation = accumulation
         self.edge_flows = []
     
+    # Returns the node's internal constraints.
     def constraints(self):
         return [sum(f for f in self.edge_flows) == self.accumulation]
 ```
@@ -317,7 +318,7 @@ gamma.value = 0.1
 a = Variable(n)
 b = Variable()
 
-slack = (pos(1-label*(sample.T*a-b)) for (label,sample) in data)
+slack = (pos(1 - label*(sample.T*a - b)) for (label,sample) in data)
 objective = Minimize(norm2(a) + gamma*sum(slack))
 p = Problem(objective, [SparseVar(n,nonzeros=6) == a])
 p.solve(method="admm")

@@ -23,7 +23,8 @@ class Node(object):
     def __init__(self, accumulation=0):
         self.accumulation = accumulation
         self.edge_flows = []
-    
+
+    # Returns the node's internal constraints.
     def constraints(self):
         return [sum(f for f in self.edge_flows) == self.accumulation]
 
