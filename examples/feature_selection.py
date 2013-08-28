@@ -7,6 +7,7 @@ import cvxopt
 # with a (non-convex) cardinality constraint.
 
 # Generate data.
+cvxopt.setseed(1)
 N = 50
 M = 40
 n = 10

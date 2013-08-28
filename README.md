@@ -18,10 +18,9 @@ b = cvxopt.normal(m)
 
 # Construct the problem.
 x = Variable(n)
-p = Problem( Minimize(sum(square(A*x - b))),
-             [0 <= x,
-              x <= 1]
-)
+objective = Minimize(sum(square(A*x - b)))
+constraints = [0 <= x, x <= 1]
+p = Problem(objective, constraints)
 
 # The optimal objective is returned by p.solve().
 result = p.solve()
@@ -29,7 +28,7 @@ result = p.solve()
 print x.value
 # The optimal Lagrange multiplier for a constraint
 # is stored in constraint.dual_value
-print p.constraints[0].dual_value
+print constraints[0].dual_value
 ```
 
 Prerequisites
