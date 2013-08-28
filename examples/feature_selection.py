@@ -17,12 +17,12 @@ for i in range(M):
 # Construct problem.
 gamma = Parameter(sign="positive")
 gamma.value = 0.1
-a = Variable(n)
+a = SparseVar(n,nonzeros=6)
 b = Variable()
 
 slack = (pos(1 - label*(sample.T*a - b)) for (label,sample) in data)
 objective = Minimize(norm2(a) + gamma*sum(slack))
-p = Problem(objective, [SparseVar(n,nonzeros=6) == a])
+p = Problem(objective)
 p.solve(method="admm")
 
 # Count misclassifications.
