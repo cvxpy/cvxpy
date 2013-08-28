@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from noncvx_variable import NonCvxVariable
 from cvxpy.constraints.affine import AffLeqConstraint
 
-class boolean(NonCvxVariable):
+class BoolVar(NonCvxVariable):
     """ A boolean variable. """
     # All values set rounded to zero or 1.
     def _round(self, matrix):

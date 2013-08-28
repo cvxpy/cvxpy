@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import admm_problem
-from boolean import boolean
-from card import card
-from choose import choose
-from integer import integer
+from boolean import BoolVar
+from sparse_var import SparseVar
+from choose import SparseBoolVar
+from integer import IntVar
 from permutation import permutation

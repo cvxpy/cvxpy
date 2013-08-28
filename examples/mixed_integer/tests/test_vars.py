@@ -40,7 +40,7 @@ class TestVars(unittest.TestCase):
     # Test boolean variable.
     def test_boolean(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum(1-x) + sum(x)), [x == boolean(5,4)])
+        p = Problem(Minimize(sum(1-x) + sum(x)), [x == BoolVar(5,4)])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 20)
         for v in x.value:
@@ -49,7 +49,7 @@ class TestVars(unittest.TestCase):
     # Test choose variable.
     def test_choose(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum(1-x) + sum(x)), [x == choose(5,4,k=4)])
+        p = Problem(Minimize(sum(1-x) + sum(x)), [x == SparseBoolVar(5,4,nonzeros=4)])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 20)
         for v in x.value:
@@ -60,7 +60,7 @@ class TestVars(unittest.TestCase):
     def test_card(self):
         x = Variable(5)
         p = Problem(Maximize(sum(x)),
-            [x == card(5,k=3), x <= 1, x >= 0])
+            [x == SparseVar(5,nonzeros=3), x <= 1, x >= 0])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 3)
         for v in x.value:
@@ -69,8 +69,8 @@ class TestVars(unittest.TestCase):
 
         #should be equivalent to x == choose
         x = Variable(5,4)
-        c = card(5,4,k=4)
-        b = boolean(5,4)
+        c = SparseVar(5,4,nonzeros=4)
+        b = BoolVar(5,4)
         p = Problem(Minimize(sum(1-x) + sum(x)), 
             [x == c, x == b])
         result = p.solve(method="admm")

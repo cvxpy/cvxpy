@@ -20,11 +20,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from noncvx_variable import NonCvxVariable
 from cvxpy.constraints.affine import AffLeqConstraint, AffEqConstraint
 
-class choose(NonCvxVariable):
+class SparseBoolVar(NonCvxVariable):
     """ A variable with k 1's and all other entries 0. """
-    def __init__(self, rows=1, cols=1, k=None, *args, **kwargs):
-        self.k = k
-        super(choose, self).__init__(rows, cols, *args, **kwargs)
+    def __init__(self, rows=1, cols=1, nonzeros=None, *args, **kwargs):
+        self.k = nonzeros
+        super(SparseBoolVar, self).__init__(rows, cols, *args, **kwargs)
 
     # The k-largest values are set to 1. The remainder are set to 0.
     def _round(self, matrix):
