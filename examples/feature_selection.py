@@ -24,7 +24,7 @@ gamma.value = 0.1
 a = SparseVar(n,nonzeros=6)
 b = Variable()
 
-slack = (pos(1 - label*(sample.T*a - b)) for (label,sample) in data)
+slack = [pos(1 - label*(sample.T*a - b)) for (label,sample) in data]
 objective = Minimize(norm2(a) + gamma*sum(slack))
 p = Problem(objective)
 # Extensions can attach new solve methods to the CVXPY Problem class. 
