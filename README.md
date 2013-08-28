@@ -27,7 +27,7 @@ result = p.solve()
 # The optimal value for x is stored in x.value.
 print x.value
 # The optimal Lagrange multiplier for a constraint
-# is stored in constraint.dual_value
+# is stored in constraint.dual_value.
 print constraints[0].dual_value
 ```
 
