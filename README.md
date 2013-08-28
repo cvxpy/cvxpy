@@ -315,7 +315,7 @@ for i in range(M):
 # Construct problem.
 gamma = Parameter(sign="positive")
 gamma.value = 0.1
-# a is a variable constrained to have at most 6 non-zero entries.
+# 'a' is a variable constrained to have at most 6 non-zero entries.
 a = SparseVar(n,nonzeros=6)
 b = Variable()
 
