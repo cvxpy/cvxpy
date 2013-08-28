@@ -21,9 +21,21 @@ import abc
 import cvxpy
 from cvxpy.expressions.curvature import Curvature
 import cvxpy.interface.matrix_utilities as intf
+import cvxopt
 
 class NonCvxVariable(cvxpy.Variable):
     __metaclass__ = abc.ABCMeta
+    def __init__(self, *args, **kwargs):
+        super(NonCvxVariable, self).__init__(*args, **kwargs)
+        self.z = cvxpy.Parameter(*self.size)
+        self.init_z()
+        self.u = cvxpy.Parameter(*self.size)
+        self.u.value = cvxopt.matrix(0, self.size, tc='d')
+
+    # Initializes the value of the replicant variable.
+    def init_z(self):
+        self.z.value = cvxopt.matrix(0, self.size, tc='d')
+
     # Verify that the matrix has the same dimensions as the variable.
     def validate_matrix(self, matrix):
         if self.size != intf.size(matrix):

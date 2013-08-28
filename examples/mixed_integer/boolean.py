@@ -19,9 +19,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from noncvx_variable import NonCvxVariable
 from cvxpy.constraints.affine import AffLeqConstraint
+import cvxopt
 
 class BoolVar(NonCvxVariable):
     """ A boolean variable. """
+    # Sets the initial z value to a matrix of 0.5's.
+    def init_z(self):
+        self.z.value = cvxopt.matrix(0.5, self.size, tc='d')
+
     # All values set rounded to zero or 1.
     def _round(self, matrix):
         for i,v in enumerate(matrix):

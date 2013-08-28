@@ -19,37 +19,27 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from noncvx_variable import NonCvxVariable
 import cvxpy
-import cvxopt
-import random
 
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho=0.5, iterations=5, solver=cvxpy.ECOS):
     objective,eq_constr,ineq_constr,dims = self.canonicalize()
     variables = self.variables(objective, eq_constr + ineq_constr)
-    noncvx_vars = []
-    for obj in variables:
-        if isinstance(obj,NonCvxVariable):
-            # Initialize replicant z and scaled dual u.
-            z = cvxpy.Parameter(*obj.size)
-            z.value = cvxopt.matrix(0, obj.size, tc='d')
-            u = cvxpy.Parameter(*obj.size)
-            u.value = cvxopt.matrix(0, obj.size, tc='d')
-            noncvx_vars += [(obj, z, u)]
+    noncvx_vars = [obj for obj in variables if isinstance(obj, NonCvxVariable)]
     # Form ADMM problem.
     obj = self.objective.expr
-    for x,z,u in noncvx_vars:
-        obj = obj + (rho/2)*sum(cvxpy.square(x - z + u))
+    for var in noncvx_vars:
+        obj = obj + (rho/2)*sum(cvxpy.square(var - var.z + var.u))
     p = cvxpy.Problem(cvxpy.Minimize(obj), self.constraints)
     # ADMM loop
     for i in range(iterations):
         p.solve(solver=solver)
-        for x,z,u in noncvx_vars:
-            z.value = x.round(x.value + u.value)
-            u.value = x.value - z.value
+        for var in noncvx_vars:
+            var.z.value = var.round(var.value + var.u.value)
+            var.u.value = var.value - var.z.value
     # Fix noncvx variables and solve.
     fix_constr = []
-    for x,z,u in noncvx_vars:
-        fix_constr += x.fix(z.value)
+    for var in noncvx_vars:
+        fix_constr += var.fix(var.z.value)
     p = cvxpy.Problem(self.objective, self.constraints + fix_constr)
     return p.solve(solver=solver)
 

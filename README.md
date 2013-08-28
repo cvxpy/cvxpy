@@ -109,6 +109,7 @@ expr = sum(expr) + norm2(x)
 ```
 
 ### Disciplined Convex Programming (DCP)
+TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
 Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
 ### Indexing and Iteration

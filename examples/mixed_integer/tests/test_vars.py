@@ -49,7 +49,8 @@ class TestVars(unittest.TestCase):
     # Test choose variable.
     def test_choose(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum(1-x) + sum(x)), [x == SparseBoolVar(5,4,nonzeros=4)])
+        p = Problem(Minimize(sum(1-x) + sum(x)), 
+                    [x == SparseBoolVar(5,4,nonzeros=4)])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 20)
         for v in x.value:
@@ -58,9 +59,9 @@ class TestVars(unittest.TestCase):
 
     # Test card variable.
     def test_card(self):
-        x = Variable(5)
+        x = SparseVar(5,nonzeros=3)
         p = Problem(Maximize(sum(x)),
-            [x == SparseVar(5,nonzeros=3), x <= 1, x >= 0])
+            [x <= 1, x >= 0])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 3)
         for v in x.value:

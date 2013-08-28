@@ -30,7 +30,7 @@ for i in range(VARIABLES*CLAUSES_PER_VARIABLE):
     clauses.append( (clause_vars, negated) )
 
 # The 3-SAT variables.
-vars = [boolean() for i in range(VARIABLES)]
+vars = [BoolVar() for i in range(VARIABLES)]
 
 # The 3-SAT constraints.
 constraints = []

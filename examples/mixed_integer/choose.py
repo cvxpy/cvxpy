@@ -17,14 +17,20 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from noncvx_variable import NonCvxVariable
+from boolean import BoolVar
 from cvxpy.constraints.affine import AffLeqConstraint, AffEqConstraint
+import cvxopt
 
-class SparseBoolVar(NonCvxVariable):
+class SparseBoolVar(BoolVar):
     """ A variable with k 1's and all other entries 0. """
     def __init__(self, rows=1, cols=1, nonzeros=None, *args, **kwargs):
         self.k = nonzeros
         super(SparseBoolVar, self).__init__(rows, cols, *args, **kwargs)
+
+    # Sets the initial z value to the expected value of each entry.
+    def init_z(self):
+        num_entries = float(self.size[0]*self.size[1])
+        self.z.value = cvxopt.matrix(num_entries/self.k, self.size, tc='d')
 
     # The k-largest values are set to 1. The remainder are set to 0.
     def _round(self, matrix):
@@ -34,14 +40,3 @@ class SparseBoolVar(NonCvxVariable):
         for v in v_ind[self.k:]:
             matrix[v[0]] = 0
         return matrix
-
-    # Constrain all entries to be zero that correspond to
-    # zeros in the matrix.
-    def _fix(self, matrix):
-        return [self == matrix]
-
-    # In the relaxation, 0 <= var <= 1 and sum(var) == k.
-    def constraints(self):
-        return [AffLeqConstraint(0, self._objective()),
-                AffLeqConstraint(self._objective(), 1),
-                AffEqConstraint(sum(self), self.k)]
