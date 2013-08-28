@@ -263,7 +263,7 @@ We also define a Node class:
 
 ```
 class Node(object):
-    """ A node with a target flow accumulation. """
+    """ A node with accumulation. """
     def __init__(self, accumulation=0):
         self.accumulation = accumulation
         self.edge_flows = []
