@@ -27,6 +27,9 @@ p = Problem( Minimize(sum(square(A*x - b))),
 result = p.solve()
 # The optimal value for x is stored in x.value.
 print x.value
+# The optimal Lagrange multiplier for a constraint
+# is stored in constraint.dual_value
+print p.constraints[0].dual_value
 ```
 
 Prerequisites
@@ -303,8 +306,10 @@ N = 50
 M = 40
 n = 10
 data = []
-map(data.append, ( (1,cvxopt.normal(n, mean=1.0, std=2.0)) for i in range(N) ))
-map(data.append, ( (-1,cvxopt.normal(n, mean=-1.0, std=2.0)) for i in range(M) ))
+for i in range(N):
+    data += [(1,cvxopt.normal(n, mean=1.0, std=2.0))]
+for i in range(M):
+    data += [(-1,cvxopt.normal(n, mean=-1.0, std=2.0))]
 
 # Construct problem.
 gamma = Parameter(sign="positive")
@@ -314,7 +319,7 @@ b = Variable()
 
 slack = (pos(1-label*(sample.T*a-b)) for (label,sample) in data)
 objective = Minimize(norm2(a) + gamma*sum(slack))
-p = Problem(objective, [card(n,k=6) == a])
+p = Problem(objective, [SparseVar(n,nonzeros=6) == a])
 p.solve(method="admm")
 
 # Count misclassifications.
