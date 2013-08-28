@@ -31,7 +31,7 @@ def admm(self, rho=0.5, iterations=5, solver=cvxpy.ECOS):
         if isinstance(obj,NonCvxVariable):
             # Initialize replicant z and scaled dual u.
             z = cvxpy.Parameter(*obj.size)
-            z.value = cvxopt.matrix(0.5, obj.size, tc='d')
+            z.value = cvxopt.matrix(0, obj.size, tc='d')
             u = cvxpy.Parameter(*obj.size)
             u.value = cvxopt.matrix(0, obj.size, tc='d')
             noncvx_vars += [(obj, z, u)]

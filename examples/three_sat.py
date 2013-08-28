@@ -3,6 +3,7 @@ from mixed_integer import *
 import random 
 
 # 3-SAT problem solved with non-convex ADMM
+# TODO initialize z's at 0.5
 EPSILON = 1e-8
 MAX_ITER = 10
 
