@@ -23,9 +23,11 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.nonlinear import NonlinearConstraint
 
 import cvxopt.solvers
 import ecos
+import cvxopt
 # ECHU: ECOS now depends on numpy
 import numpy as np
 import scipy.sparse as sp
@@ -58,7 +60,8 @@ class Problem(object):
         eq_constraints = [c for c in constraints if isinstance(c, AffEqConstraint)]
         ineq_constraints = [c for c in constraints if isinstance(c, AffLeqConstraint)]
         soc_constraints = [c for c in constraints if isinstance(c, SOC)]
-        return (eq_constraints, ineq_constraints, soc_constraints)
+        nonlinear_constraints = [c for c in constraints if isinstance(c, NonlinearConstraint)]
+        return (eq_constraints, ineq_constraints, soc_constraints, nonlinear_constraints)
 
     # Convert the problem into an affine objective and affine constraints.
     # Also returns the dimensions of the cones for the solver.
@@ -66,14 +69,14 @@ class Problem(object):
         obj,constraints = self.objective.canonical_form()
         for constr in self.constraints:
             constraints += constr.canonical_form()[1]
-        eq_constr,ineq_constr,soc_constr = self.filter_constraints(constraints)
+        eq_constr, ineq_constr, soc_constr, nonlin_constr = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in ineq_constr)}
         # Formats SOC constraints for the solver.
         for constr in soc_constr:
             ineq_constr += constr.format()
         dims['q'] = [c.size for c in soc_constr]
         dims['s'] = []
-        return (obj,eq_constr,ineq_constr,dims)
+        return (obj,eq_constr,ineq_constr,nonlin_constr,dims)
 
     # Dispatcher for different solve methods.
     def solve(self, *args, **kwargs):
@@ -98,7 +101,7 @@ class Problem(object):
                        "Solving a convex relaxation.")
             else:
                 raise Exception("Problem does not follow DCP rules.")
-        objective,eq_constr,ineq_constr,dims = self.canonicalize()
+        objective,eq_constr,ineq_constr,nonlin_constr, dims = self.canonicalize()
         variables = self.variables(objective, eq_constr + ineq_constr)
         var_ids = self.variable_ids(variables)
        
@@ -110,38 +113,49 @@ class Problem(object):
         G = self.constraints_matrix(ineq_constr, var_ids, self.interface)
         h = -self.constraints_matrix(ineq_constr, self.CONSTANT_ID, 
                                      self.dense_interface)
+                                     
+        # ECHU: get the nonlinear constraints
+        F = self.nonlinear_constraint_function(nonlin_constr, var_ids, self.interface)
 
-        # Target cvxopt solver if SDP or invalid for ECOS.
-        if solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
+        if nonlin_constr:
+            # Target cvxopt clp if nonlinear constraints exist
+            results = cvxopt.solvers.cpl(c,F,G,h,A=A,b=b,dims=dims)
+            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+            primal_val = results['primal objective']
+        elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
+            # Target cvxopt solver if SDP or invalid for ECOS.
             results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         else: # If possible, target ECOS.
-            # # ECHU: ecos interface has changed and no longer relies on CVXOPT
-            # # as a result, we have to convert cvxopt data structures into
-            # # numpy arrays
-            # #
-            # # ideally, CVXPY would no longer user CVXOPT, except when calling
-            # # conelp
-            # #
-            # cnp, hnp, bnp = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (c, h, b))
-            # Gp,Gi,Gx = G.CCS
-            # m,n1 = G.size
-            # Ap,Ai,Ax = A.CCS
-            # p,n2 = A.size
-            # Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
-            # Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
-            # Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
-            # Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
-            # # ECHU: end conversion    
-            # results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
-            results = ecos.ecos(c,G,h,dims,A,b)
+            # ECHU: ecos interface has changed and no longer relies on CVXOPT
+            # as a result, we have to convert cvxopt data structures into
+            # numpy arrays
+            #
+            # ideally, CVXPY would no longer user CVXOPT, except when calling
+            # conelp
+            #
+            cnp, hnp, bnp = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (c, h, b))
+            Gp,Gi,Gx = G.CCS
+            m,n1 = G.size
+            Ap,Ai,Ax = A.CCS
+            p,n2 = A.size
+            Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
+            Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
+            Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
+            Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
+            # ECHU: end conversion    
+            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
+            #results = ecos.ecos(c,G,h,dims,A,b)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
         if status == s.SOLVED:
             self.save_values(results['x'], variables)
             self.save_values(results['y'], eq_constr)
-            self.save_values(results['z'], ineq_constr)
+            if nonlin_constr:
+                self.save_values(results['zl'], ineq_constr)
+            else:
+                self.save_values(results['z'], ineq_constr)
             return self.objective.value(primal_val)
         else:
             return status
@@ -212,3 +226,51 @@ class Problem(object):
                                          1)
             vert_offset += num_entries
         return matrix
+    
+    def nonlinear_constraint_function(self, nl_funcs, var_ids, interface):
+        """ TODO: ensure that this works with numpy data structs...
+        """
+        rows = sum([func.size[0] * func.size[1] for func in nl_funcs])
+        cols = len(var_ids) # All variables are scalar.
+        
+        # loop through all var_ids, collecting only the vars involved
+        # really inefficient, but we have to do this since variables get
+        # scalarized before stuffing matrices...
+        vert_offset, big_x = 0, cvxopt.matrix(0., (cols,1))
+        for func in nl_funcs:
+            # get height?
+            m, x0 = func.f()
+            func.start = vert_offset    # HACK: set the start location
+            vert_offset += m
+            indices = []
+            for variable in func.vars_involved:
+                coefficients = variable.coefficients(interface)
+                for id in coefficients.keys():
+                    if id in var_ids:
+                        indices.append(var_ids[id])   # collect all the indices
+            big_x[indices] = x0
+            func.indices = indices  # HACK: set the indices of the function
+        
+        
+        def F(x=None, z=None):
+            if x is None: return rows, big_x
+            big_f, big_Df = cvxopt.matrix(0., (rows,1)), cvxopt.spmatrix(0,[0],[0], size=(rows,cols))
+            if z: big_H = cvxopt.spmatrix(0,[0],[0], size=(cols,cols))
+            
+            for func in nl_funcs:
+                if z:
+                    f, Df, H = func.f(x[func.indices],z[func.start:func.start + func.size[0]])
+                else:
+                    result = func.f(x[func.indices])
+                    if result:
+                        f, Df = result
+                    else:
+                        return None
+                big_f[func.start:func.start + func.size[0]] = f
+                big_Df[func.start:func.start + func.size[0], func.indices] = Df
+                if z: 
+                    big_H[func.indices, func.indices] = H
+            
+            if z is None: return big_f, big_Df
+            return big_f, big_Df, big_H
+        return F

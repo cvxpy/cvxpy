@@ -30,3 +30,4 @@ from quad_over_lin import quad_over_lin
 from sqrt import sqrt
 from square import square
 from vstack import vstack
+from nonlinear.log import log
