@@ -60,20 +60,20 @@ class BoolMat(object):
     # Multiplies matrices, promoting if necessary.
     @staticmethod
     def mul(lh_mat, lh_size, rh_mat, rh_size):
-        if lh_mat == True:
+        if lh_mat is True:
             if lh_size == (1,1):
                 return rh_mat
             else:
                 lh_mat = BoolMat.promote(lh_mat, lh_size)
-        elif lh_mat == False:
+        elif lh_mat is False:
             return False
 
-        if rh_mat == True:
+        if rh_mat is True:
             if rh_size == (1,1):
                 return lh_mat
             else:
                 rh_mat = BoolMat.promote(rh_mat, rh_size)
-        elif rh_mat == False:
+        elif rh_mat is False:
             return False
 
         return lh_mat * rh_mat

@@ -22,9 +22,9 @@ import sparse_matrix_interface as cvxopt_sparse
 import numpy_interface as np_intf
 import cvxpy.utilities as u
 import cvxopt
-import scipy.sparse as sparse
+import scipy.sparse as sp
 import numbers
-import numpy
+import numpy as np
 
 DENSE_TARGET = cvxopt.matrix
 SPARSE_TARGET = cvxopt.spmatrix
@@ -53,7 +53,7 @@ def size(constant):
             return (len(constant[0]),len(constant))
     elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix)):
         return constant.size
-    elif isinstance(constant, (numpy.ndarray, numpy.matrix)):
+    elif isinstance(constant, (np.ndarray, np.matrix)):
         # Slicing drops the second dimension.
         if len(constant.shape) == 1:
             dim = constant.shape[0]
@@ -80,7 +80,7 @@ def scalar_value(constant):
         return constant[0]
     elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix)):
         return constant[0,0]
-    elif isinstance(constant, (numpy.ndarray, numpy.matrix)):
+    elif isinstance(constant, (np.ndarray, np.matrix)):
         return constant[0]
 
 # Return a matrix of signs based on the constant's values.
@@ -90,18 +90,16 @@ def sign(constant):
         return u.Sign(constant < 0, constant > 0)
     elif isinstance(constant, cvxopt.spmatrix):
         # Convert to COO matrix.
-        V = numpy.array(list(constant.V))
+        V = np.array(list(constant.V))
         I = list(constant.I)
         J = list(constant.J)
         # Check if entries > 0 for pos_mat, < 0 for neg_mat.
-        neg_mat = sparse.coo_matrix((V < 0,(I,J)), 
-                  shape=constant.size, dtype='bool')
-        pos_mat = sparse.coo_matrix((V > 0,(I,J)), 
-                  shape=constant.size, dtype='bool')
+        neg_mat = sp.coo_matrix((V < 0,(I,J)), shape=constant.size, dtype='bool')
+        pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
         return u.Sign(u.SparseBoolMat(neg_mat), u.SparseBoolMat(pos_mat))
     else:
         cvxopt_mat = CVXOPT_DENSE_INTERFACE.const_to_matrix(constant)
-        mat = numpy.array(cvxopt_mat)
+        mat = np.array(cvxopt_mat)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
     
 # Get the value at the given index.
@@ -112,7 +110,7 @@ def index(constant, key):
         else:
             return constant[key[1]][key[0]]
     elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
-                               numpy.ndarray, numpy.matrix)):
+                               np.ndarray, np.matrix)):
         return constant[key] 
 
 # Return a dense matrix with all 0's.

@@ -117,24 +117,25 @@ class Problem(object):
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         else: # If possible, target ECOS.
-            # ECHU: ecos interface has changed and no longer relies on CVXOPT
-            # as a result, we have to convert cvxopt data structures into
-            # numpy arrays
-            #
-            # ideally, CVXPY would no longer user CVXOPT, except when calling
-            # conelp
-            #
-            cnp, hnp, bnp = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (c, h, b))
-            Gp,Gi,Gx = G.CCS
-            m,n1 = G.size
-            Ap,Ai,Ax = A.CCS
-            p,n2 = A.size
-            Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
-            Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
-            Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
-            Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
-            # ECHU: end conversion    
-            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
+            # # ECHU: ecos interface has changed and no longer relies on CVXOPT
+            # # as a result, we have to convert cvxopt data structures into
+            # # numpy arrays
+            # #
+            # # ideally, CVXPY would no longer user CVXOPT, except when calling
+            # # conelp
+            # #
+            # cnp, hnp, bnp = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (c, h, b))
+            # Gp,Gi,Gx = G.CCS
+            # m,n1 = G.size
+            # Ap,Ai,Ax = A.CCS
+            # p,n2 = A.size
+            # Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
+            # Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
+            # Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
+            # Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
+            # # ECHU: end conversion    
+            # results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
+            results = ecos.ecos(c,G,h,dims,A,b)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
         if status == s.SOLVED:

@@ -46,12 +46,11 @@ images
 Bugs:
 
 Fix dcp for vstack
-Sign matrix for cvxopt sparse (need scipy sparse interface)
-Promote sign/curvature matrices before multiplication
 
 Features:
 
 Finish README (mainly DCP and intro on dcp.stanford.edu)
+Add scipy sparse matrix support
 Interface for is_dcp
 neg(x) = min(x,0) or max(-x,0)?
 Fix matrix packing so doesn't scalarize everything (by column)

@@ -17,12 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.utilities import BoolMat
 from cvxpy.utilities import Curvature
 from cvxpy.utilities import Sign
 from nose.tools import assert_equals
+import numpy as np
 
 class TestCurvature(object):
     """ Unit tests for the utilities/curvature class. """
+    @classmethod
+    def setup_class(self):
+        self.n = 5
+        self.arr = np.array(self.n*[[True]])
+        # Vectors
+        self.cvx_vec = Curvature(BoolMat(self.arr), BoolMat(~self.arr), False)
+        self.conc_vec = Curvature(BoolMat(~self.arr), BoolMat(self.arr), False)
+        self.noncvx_vec = Curvature(BoolMat(self.arr), BoolMat(self.arr), False)
+        self.aff_vec = Curvature(BoolMat(~self.arr), BoolMat(~self.arr), False)
+        self.const_vec = Curvature(BoolMat(~self.arr), BoolMat(~self.arr), True)
+
     # TODO tests with matrices.
     def test_add(self):
         assert_equals(Curvature.CONSTANT + Curvature.CONVEX, Curvature.CONVEX)
@@ -83,3 +96,13 @@ class TestCurvature(object):
         curv = Curvature.CONSTANT.promote((3,4))
         assert_equals(curv.cvx_mat.value.shape, (3,4))
         assert_equals(curv.conc_mat.value.shape, (3,4))
+
+    # Test the vstack method.
+    def test_vstack(self):
+        curvs = self.n*[(Curvature.CONSTANT, (1,1))]
+        vs = Curvature.vstack(*curvs)
+        print vs
+        assert_equals(vs, self.const_vec)
+
+        curvs = self.n*[(Curvature.CONVEX, (1,1))]
+        assert_equals(Curvature.vstack(*curvs), self.cvx_vec)

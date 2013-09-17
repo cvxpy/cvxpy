@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bool_mat import BoolMat
+from vstack import vstack
 
 class Curvature(object):
     """ 
@@ -135,6 +136,15 @@ class Curvature(object):
         cvx_mat = BoolMat.promote(self.cvx_mat, size)
         conc_mat = BoolMat.promote(self.conc_mat, size)
         return Curvature(cvx_mat, conc_mat, self.constant)
+
+    # Vertically concatenates curvature matrices.
+    # Each arg has the form (curvature,size).
+    @staticmethod
+    def vstack(*args):
+        cvx_mats = [(arg[0].cvx_mat,arg[1]) for arg in args]
+        conc_mats = [(arg[0].conc_mat,arg[1]) for arg in args]
+        constant = all(arg[0].constant for arg in args)
+        return Curvature(vstack(*cvx_mats), vstack(*conc_mats), constant)
 
     # To string methods.
     def __repr__(self):

@@ -415,6 +415,13 @@ class TestProblem(unittest.TestCase):
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
+        c = matrix([1,-1])
+        p = Problem( Minimize( c.T * vstack(square(self.a), sqrt(self.b))),
+            [self.a == 2,
+             self.b == 16])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
     # # Test getting values for expressions.
     # def test_expression_values(self):
     #     diff_exp = self.x - self.z

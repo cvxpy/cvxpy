@@ -35,9 +35,13 @@ class vstack(Atom):
         rows = sum(arg.size[0] for arg in self.args)
         self._shape = u.Shape(rows, cols)
 
-    # TODO
+    # Vertically concatenates sign and curvature as a dense matrix.
     def set_sign_curv(self):
-        self._context = u.Context(u.Sign.UNKNOWN, u.Curvature.AFFINE, self._shape)
+        signs = ((arg.sign,arg.size) for arg in self.args)
+        curvs = ((arg.curvature,arg.size) for arg in self.args)
+        self._context = u.Context(u.Sign.vstack(*signs), 
+                                  u.Curvature.vstack(*curvs), 
+                                  self._shape)
 
     # Any argument size is valid.
     def validate_arguments(self):

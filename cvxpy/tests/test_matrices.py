@@ -87,14 +87,15 @@ class TestMatrices(unittest.TestCase):
         x = Variable(m)
         exp = square(norm2(D*x))
 
-    # Test scipy sparse matrices.
-    def test_scipy_sparse(self):
-        m = 100
-        n = 20
+    # # TODO
+    # # Test scipy sparse matrices.
+    # def test_scipy_sparse(self):
+    #     m = 100
+    #     n = 20
 
-        mu = cvxopt.exp( cvxopt.normal(m) )
-        F = cvxopt.normal(m, n)
-        x = Variable(m)
+    #     mu = cvxopt.exp( cvxopt.normal(m) )
+    #     F = cvxopt.normal(m, n)
+    #     x = Variable(m)
 
-        D = scipy.sparse.spdiags(1.5, 0, m, m )
-        exp = square(norm2(D*x))
+    #     D = scipy.sparse.spdiags(1.5, 0, m, m )
+    #     exp = square(norm2(D*x))
