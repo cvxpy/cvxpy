@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bool_mat import BoolMat
-from vstack import vstack
+from .. expressions import vstack
 
 class Sign(object):
     """ 
