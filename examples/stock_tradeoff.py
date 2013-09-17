@@ -12,8 +12,7 @@ mu = cvxopt.exp( cvxopt.normal(num_assets) )
 F = cvxopt.normal(num_assets, num_factors)
 D = cvxopt.spdiag( cvxopt.uniform(num_assets) )
 x = Variable(num_assets)
-gamma = Parameter()
-gamma.value = 1    # hack to ensure DCP rules hold
+gamma = Parameter(sign="positive")
 
 expected_return = mu.T * x
 variance = square(norm2(F.T*x)) + square(norm2(D*x))

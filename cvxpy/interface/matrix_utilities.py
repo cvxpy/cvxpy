@@ -22,6 +22,7 @@ import sparse_matrix_interface as cvxopt_sparse
 import numpy_interface as np_intf
 import cvxpy.utilities as u
 import cvxopt
+import scipy
 import numbers
 import numpy
 
@@ -87,6 +88,8 @@ def scalar_value(constant):
 def sign(constant):
     if isinstance(constant, numbers.Number):
         return u.Sign(constant < 0, constant > 0)
+    elif isinstance(cvxopt.sparse, scipy.sparse):
+        return NotImplemented
     else:
         cvxopt_mat = CVXOPT_DENSE_INTERFACE.const_to_matrix(constant)
         mat = numpy.array(cvxopt_mat)
