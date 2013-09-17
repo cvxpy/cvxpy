@@ -56,11 +56,7 @@ class Atom(Expression):
         curvature = Atom.dcp_curvature(self.base_curvature(), 
                                        self.args, 
                                        self.monotonicity())
-        self._sign_curv = u.SignedCurvature(sign, curvature)
-
-    @property
-    def size(self):
-        return self._shape.size
+        self._context = u.Context(sign, curvature, self._shape)
 
     # Returns argument curvatures as a list.
     def argument_curvatures(self):

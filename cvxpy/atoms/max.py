@@ -28,9 +28,9 @@ class max(Atom):
     """ Elementwise maximum. """
     # The shape is the common shape of all the arguments.
     def set_shape(self):
-        shape = self.args[0]._shape
+        shape = self.args[0].shape
         for arg in self.args[1:]:
-            shape = shape + arg._shape
+            shape = shape + arg.shape
         self._shape = shape
 
     """

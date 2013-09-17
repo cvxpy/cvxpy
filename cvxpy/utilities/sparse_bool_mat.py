@@ -41,12 +41,7 @@ class SparseBoolMat(BoolMat):
 
     # For multiplication.
     def __mul__(self, other):
-        if isinstance(other, bool):
-            if other:
-                return SparseBoolMat(self.value)
-            else: # Reduce to scalar.
-                return False
-        elif isinstance(other, (BoolMat,SparseBoolMat)):
+        if isinstance(other, (BoolMat,SparseBoolMat)):
             mult_val = self.value.dot(other.value).astype('bool')
             return other.__class__(mult_val) # Sparse * Dense = Dense
         else:
@@ -62,7 +57,10 @@ class SparseBoolMat(BoolMat):
     # For elementwise multiplication/bitwise and.
     def __and__(self, other):
         if isinstance(other, bool):
-            return self * other
+            if other:
+                return SparseBoolMat(self.value)
+            else: # Reduce to scalar.
+                return False
         elif isinstance(other, (BoolMat, SparseBoolMat)):
             mult_val = self.value.multiply(other.value).astype('bool')
             return other.__class__(mult_val) # Sparse * Dense = Dense

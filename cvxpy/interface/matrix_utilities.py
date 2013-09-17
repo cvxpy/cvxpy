@@ -27,6 +27,7 @@ import numpy
 
 DENSE_TARGET = cvxopt.matrix
 SPARSE_TARGET = cvxopt.spmatrix
+CVXOPT_DENSE_INTERFACE = cvxopt_dense.DenseMatrixInterface()
 NDARRAY_INTERFACE = np_intf.DenseMatrixInterface()
 DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface()
 
@@ -87,7 +88,8 @@ def sign(constant):
     if isinstance(constant, numbers.Number):
         return u.Sign(constant < 0, constant > 0)
     else:
-        mat = NDARRAY_INTERFACE.const_to_matrix(constant)
+        cvxopt_mat = CVXOPT_DENSE_INTERFACE.const_to_matrix(constant)
+        mat = numpy.array(cvxopt_mat)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
     
 # Get the value at the given index.

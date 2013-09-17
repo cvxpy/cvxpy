@@ -110,13 +110,18 @@ class Curvature(object):
         NEGATIVE * CONVEX = CONCAVE
         NEGATIVE * CONCAVE = CONVEX
     """
-    def sign_mul(self, sign):
-        cvx_mat = BoolMat.cast_int(sign.pos_mat * self.cvx_mat) | \
-                  BoolMat.cast_int(sign.neg_mat * self.conc_mat)
-        conc_mat = BoolMat.cast_int(sign.pos_mat * self.conc_mat) | \
-                   BoolMat.cast_int(sign.neg_mat * self.cvx_mat)
-        return Curvature(cvx_mat, conc_mat, self.constant)
-    
+    @staticmethod
+    def sign_mul(sign, lh_size, curv, rh_size):
+        cvx_mat = BoolMat.mul(sign.pos_mat, lh_size, 
+                              curv.cvx_mat, rh_size) | \
+                  BoolMat.mul(sign.neg_mat, lh_size, 
+                              curv.conc_mat, rh_size)
+        conc_mat = BoolMat.mul(sign.pos_mat, lh_size,
+                               curv.conc_mat, rh_size) | \
+                   BoolMat.mul(sign.neg_mat, lh_size,
+                               curv.cvx_mat, rh_size)
+        return Curvature(cvx_mat, conc_mat, curv.constant)
+
     # Equivalent to NEGATIVE * self
     def __neg__(self):
         return Curvature(self.conc_mat, self.cvx_mat, self.constant)
@@ -124,6 +129,12 @@ class Curvature(object):
     # Comparison.
     def __eq__(self, other):
         return self.cvx_mat == other.cvx_mat and self.conc_mat == other.conc_mat
+
+    # Promotes cvx_mat and conc_mat to BoolMats of the given size.
+    def promote(self, size):
+        cvx_mat = BoolMat.promote(self.cvx_mat, size)
+        conc_mat = BoolMat.promote(self.conc_mat, size)
+        return Curvature(cvx_mat, conc_mat, self.constant)
 
     # To string methods.
     def __repr__(self):

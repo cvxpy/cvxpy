@@ -90,8 +90,8 @@ class TestSparseBoolMat(object):
     def test_mul(self):
         assert_equals(self.x_spmat * self.x_spmat, self.x_spmat)
         assert_equals(self.diag_spmat * self.coo_spmat, self.coo_spmat)
-        assert_equals(self.diag_spmat * True, self.diag_spmat)
-        assert_equals(False * self.diag_spmat, False)
+        assert_equals(BoolMat.mul(self.diag_spmat, (4,4), True, (1,1)), self.diag_spmat)
+        assert_equals(BoolMat.mul(False, (1,1), self.diag_spmat, (4,4)), False)
         assert_equals(self.x_spmat * self.coo_spmat, self.x_spmat)
         assert_equals(self.x_spmat * self.empty_spmat, self.empty_spmat)
 

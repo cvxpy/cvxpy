@@ -28,8 +28,8 @@ class TestSign(object):
     """ Unit tests for the utilities/sign class. """
     @classmethod
     def setup_class(self):
-        n = 5
-        self.arr = np.array(n*[True])
+        self.n = 5
+        self.arr = np.array(self.n*[True])
         # Vectors
         self.neg_vec = Sign(BoolMat(self.arr), BoolMat(~self.arr))
         self.pos_vec = Sign(BoolMat(~self.arr), BoolMat(self.arr))
@@ -37,14 +37,14 @@ class TestSign(object):
         self.zero_vec = Sign(BoolMat(~self.arr), BoolMat(~self.arr))
 
         # Dense Matrices
-        self.mat = np.vstack(n*[self.arr])
+        self.mat = np.vstack(self.n*[self.arr])
         self.neg_mat = Sign(BoolMat(self.mat), BoolMat(~self.mat))
         self.pos_mat = Sign(BoolMat(~self.mat), BoolMat(self.mat))
         self.unknown_mat = Sign(BoolMat(self.mat), BoolMat(self.mat))
         self.zero_mat = Sign(BoolMat(~self.mat), BoolMat(~self.mat))
 
         # Sparse Matrices
-        self.spmat = sparse.eye(n).astype('bool')
+        self.spmat = sparse.eye(self.n).astype('bool')
         self.neg_spmat = Sign(SparseBoolMat(self.spmat), False)
         self.pos_spmat = Sign(False, SparseBoolMat(self.spmat))
         self.unknown_spmat = Sign(SparseBoolMat(self.spmat), SparseBoolMat(self.spmat))
@@ -62,11 +62,11 @@ class TestSign(object):
         assert_equals(Sign.POSITIVE - Sign.POSITIVE, Sign.UNKNOWN)
 
     def test_mult(self):
-        assert_equals(Sign.ZERO * Sign.POSITIVE, Sign.ZERO)
-        assert_equals(Sign.UNKNOWN * Sign.POSITIVE, Sign.UNKNOWN)
-        assert_equals(Sign.POSITIVE * Sign.NEGATIVE, Sign.NEGATIVE)
-        assert_equals(Sign.NEGATIVE * Sign.NEGATIVE, Sign.POSITIVE)
-        assert_equals(Sign.ZERO * Sign.UNKNOWN, Sign.ZERO)
+        assert_equals(Sign.mul(Sign.ZERO, (1,1), Sign.POSITIVE, (1,1)), Sign.ZERO)
+        assert_equals(Sign.mul(Sign.UNKNOWN, (1,1), Sign.POSITIVE, (1,1)), Sign.UNKNOWN)
+        assert_equals(Sign.mul(Sign.POSITIVE, (1,1), Sign.NEGATIVE, (1,1)), Sign.NEGATIVE)
+        assert_equals(Sign.mul(Sign.NEGATIVE, (1,1), Sign.NEGATIVE, (1,1)), Sign.POSITIVE)
+        assert_equals(Sign.mul(Sign.ZERO, (1,1), Sign.UNKNOWN, (1,1)), Sign.ZERO)
 
     def test_neg(self):
         assert_equals(-Sign.ZERO, Sign.ZERO)
@@ -93,13 +93,17 @@ class TestSign(object):
         assert_equals(self.zero_vec - Sign.UNKNOWN, Sign.UNKNOWN)
 
     def test_dmat_mult(self):
-        assert_equals(Sign.ZERO * self.pos_vec, Sign.ZERO)
-        assert_equals(self.unknown_vec * Sign.POSITIVE, self.unknown_vec)
-        assert_equals(self.pos_vec * Sign.NEGATIVE, self.neg_vec)
-        assert_equals(self.neg_mat * self.neg_vec, self.pos_vec)
-        assert_equals(self.zero_mat * self.unknown_vec, self.zero_vec)
-        assert_equals(self.neg_mat * self.pos_mat, self.neg_mat)
-        assert_equals(self.unknown_mat * self.pos_mat, self.unknown_mat)
+        assert_equals(Sign.mul(Sign.ZERO, (1,1), self.pos_vec, (self.n,1)), Sign.ZERO)
+        assert_equals(Sign.mul(self.unknown_vec, (self.n,1), Sign.POSITIVE, (1,1)), self.unknown_vec)
+        assert_equals(Sign.mul(self.pos_vec, (self.n,1), Sign.NEGATIVE, (1,1)), self.neg_vec)
+        assert_equals(Sign.mul(self.neg_mat, (self.n,self.n), 
+                               self.neg_vec, (self.n,1)), self.pos_vec)
+        assert_equals(Sign.mul(self.zero_mat, (self.n,self.n), 
+                               self.unknown_vec, (self.n,1)), self.zero_vec)
+        assert_equals(Sign.mul(self.neg_mat, (self.n,self.n), 
+                               self.pos_mat, (self.n,self.n)), self.neg_mat)
+        assert_equals(Sign.mul(self.unknown_mat, (self.n,self.n), 
+                               self.pos_mat, (self.n,self.n)), self.unknown_mat)
 
     def test_dmat_neg(self):
         assert_equals(-self.zero_vec, self.zero_vec)
@@ -126,21 +130,31 @@ class TestSign(object):
         assert_equals(self.neg_spmat - self.pos_spmat, self.neg_spmat)
 
     def test_sparse_mult(self):
-        assert_equals(Sign.ZERO * self.pos_spmat, Sign.ZERO)
-        assert_equals(self.unknown_spmat * Sign.POSITIVE, self.unknown_spmat)
-        assert_equals(self.pos_spmat * Sign.NEGATIVE, self.neg_spmat)
-        assert_equals(self.neg_mat * self.neg_spmat, self.pos_mat)
-        assert_equals(self.zero_mat * self.unknown_spmat, self.zero_mat)
-        assert_equals(self.neg_spmat * self.pos_spmat, self.neg_spmat)
-        assert_equals(self.unknown_spmat * self.pos_spmat, self.unknown_spmat)
+        assert_equals(Sign.mul(Sign.ZERO, (1,1), self.pos_spmat, (self.n,self.n)), Sign.ZERO)
+        assert_equals(Sign.mul(self.unknown_spmat, (self.n,self.n), Sign.POSITIVE, (1,1)), self.unknown_spmat)
+        assert_equals(Sign.mul(self.pos_spmat, (self.n,self.n), Sign.NEGATIVE, (1,1)), self.neg_spmat)
+        assert_equals(Sign.mul(self.neg_mat, (self.n,self.n), 
+                               self.neg_spmat, (self.n,self.n)), self.pos_mat)
+        assert_equals(Sign.mul(self.zero_mat, (self.n,self.n), 
+                               self.unknown_spmat, (self.n,self.n)), self.zero_mat)
+        assert_equals(Sign.mul(self.neg_spmat, (self.n,self.n), 
+                               self.pos_spmat, (self.n,self.n)), self.neg_spmat)
+        assert_equals(Sign.mul(self.unknown_spmat, (self.n,self.n), 
+                               self.pos_spmat, (self.n,self.n)), self.unknown_spmat)
 
         # Asymmetric multiplication.
         m = 2
         fat = np.vstack(m*[self.arr])
         fat_pos = Sign(False, BoolMat(fat))
-        assert_equals(fat_pos * self.pos_spmat, fat_pos)
+        assert_equals(Sign.mul(fat_pos, (1,1), self.pos_spmat, (1,1)), fat_pos)
 
     def test_sparse_neg(self):
         assert_equals(-self.unknown_spmat, self.unknown_spmat)
         assert_equals(-self.pos_spmat, self.neg_spmat)
         assert_equals(-self.neg_spmat, self.pos_spmat)
+
+    # Tests the promote method.
+    def test_promote(self):
+        sign = Sign.POSITIVE.promote((3,4))
+        assert_equals(sign.neg_mat.value.shape, (3,4))
+        assert_equals(sign.pos_mat.value.shape, (3,4))

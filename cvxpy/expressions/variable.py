@@ -31,8 +31,7 @@ class Variable(leaf.Leaf):
     # cols - variable width.
     # value_matrix - the matrix type used to store values.
     def __init__(self, rows=1, cols=1, name=None, value_matrix=intf.DENSE_TARGET):
-        self._shape = u.Shape(rows, cols)
-        self._sign_curv = u.SignedCurvature(u.Sign.UNKNOWN, u.Curvature.AFFINE)
+        self._context = u.Context(u.Sign.UNKNOWN, u.Curvature.AFFINE, u.Shape(rows, cols))
         self._init_id()
         self._name = self.id if name is None else name
         self.interface = intf.get_matrix_interface(value_matrix)

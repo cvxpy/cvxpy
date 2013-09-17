@@ -39,8 +39,7 @@ class UnaryOperator(object):
     """
     def __init__(self, expr):
         self.expr = expr
-        self._shape = expr._shape
-        self._sign_curv = getattr(self.expr._sign_curv, self.OP_FUNC)()
+        self._context = getattr(self.expr._context, self.OP_FUNC)()
         super(UnaryOperator, self).__init__()
 
     def name(self):
@@ -50,10 +49,6 @@ class UnaryOperator(object):
         obj,constraints = self.expr.canonical_form()
         obj = getattr(obj, self.OP_FUNC)()
         return (obj,constraints)
-
-    @property
-    def size(self):
-        return self._shape.size
 
     # Apply the appropriate arithmetic operator to the expression
     # at the given index. Return the result.

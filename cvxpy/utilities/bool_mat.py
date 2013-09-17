@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+import numpy as np
 
 class BoolMat(object):
     """ 
@@ -26,11 +27,13 @@ class BoolMat(object):
     def __init__(self, value):
         self.value = value
 
-    # Cast an int to a bool, but pass any other type through.
+    # Promotes a boolean to a BoolMat of the given dimensions.
     @staticmethod
-    def cast_int(value):
-        if isinstance(value, int):
-            return value > 0
+    def promote(value, size):
+        if isinstance(value, bool) and size != (1,1):
+            mat = np.empty(size, dtype='bool')
+            mat.fill(value)
+            return BoolMat(mat)
         else:
             return value
 
@@ -53,28 +56,43 @@ class BoolMat(object):
     # Handles boolean | BoolMat
     def __ror__(self, other):
         return self | other
-        
-    # For multiplication.
+
+    # Multiplies matrices, promoting if necessary.
+    @staticmethod
+    def mul(lh_mat, lh_size, rh_mat, rh_size):
+        if lh_mat == True:
+            if lh_size == (1,1):
+                return rh_mat
+            else:
+                lh_mat = BoolMat.promote(lh_mat, lh_size)
+        elif lh_mat == False:
+            return False
+
+        if rh_mat == True:
+            if rh_size == (1,1):
+                return lh_mat
+            else:
+                rh_mat = BoolMat.promote(rh_mat, rh_size)
+        elif rh_mat == False:
+            return False
+
+        return lh_mat * rh_mat
+
+    # Handles multiplication with SparseBoolMat.
     def __mul__(self, other):
-        if isinstance(other, bool):
-            if other:
-                return BoolMat(self.value)
-            else: # Reduce to scalar.
-                return False
-        elif isinstance(other, BoolMat):
+        if isinstance(other, BoolMat):
             mult_val = self.value.dot(other.value)
             return BoolMat(mult_val)
         else:
             return NotImplemented
 
-    # Handles boolean * BoolMat
-    def __rmul__(self, other):
-        return self * other
-
     # For elementwise multiplication/bitwise and.
     def __and__(self, other):
         if isinstance(other, bool):
-            return self * other
+            if other:
+                return BoolMat(self.value)
+            else: # Reduce to scalar.
+                return False
         elif isinstance(other, BoolMat):
             mult_val = self.value & other.value
             return BoolMat(mult_val)

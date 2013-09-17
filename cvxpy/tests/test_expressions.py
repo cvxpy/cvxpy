@@ -97,6 +97,11 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(coeffs.keys(), [s.CONSTANT])
         self.assertEqual(coeffs[s.CONSTANT], 2)
 
+        # Test the sign.
+        c = Constant([[2],[2]])
+        self.assertEqual(c.size, (1,2))
+        self.assertEqual(c.sign.neg_mat.value.shape, (1,2))
+
     # Test the Parameter class.
     def test_parameters(self):
         p = Parameter(name='p')
@@ -192,6 +197,11 @@ class TestExpressions(unittest.TestCase):
         exp = (T + T) * self.B
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.size, (3,2))
+
+        # Expression that would break sign multiplication without promotion.
+        c = Constant([[2],[2],[-2]])
+        exp = [[1],[2]] + c*self.C
+        self.assertEqual(exp.sign.pos_mat.value.shape, (1,2))
 
     # Test the NegExpression class.
     def test_neg_expression(self):

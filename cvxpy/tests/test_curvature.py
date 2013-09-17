@@ -39,10 +39,14 @@ class TestCurvature(object):
         assert_equals(Curvature.AFFINE - Curvature.CONCAVE, Curvature.CONVEX)
 
     def test_sign_mult(self):
-        assert_equals(Curvature.CONVEX.sign_mul(Sign.POSITIVE), Curvature.CONVEX)
-        assert_equals(Curvature.CONSTANT.sign_mul(Sign.UNKNOWN), Curvature.CONSTANT)
-        assert_equals(Curvature.CONCAVE.sign_mul(Sign.NEGATIVE), Curvature.CONVEX)
-        assert_equals(Curvature.UNKNOWN.sign_mul(Sign.ZERO), Curvature.AFFINE)
+        assert_equals(Curvature.sign_mul(Sign.POSITIVE, (1,1), 
+                      Curvature.CONVEX, (1,1)), Curvature.CONVEX)
+        assert_equals(Curvature.sign_mul(Sign.UNKNOWN, (1,1), 
+                      Curvature.CONSTANT, (1,1)), Curvature.CONSTANT)
+        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, (1,1), 
+                      Curvature.CONCAVE, (1,1)), Curvature.CONVEX)
+        assert_equals(Curvature.sign_mul(Sign.ZERO, (1,1), 
+                      Curvature.UNKNOWN, (1,1)), Curvature.AFFINE)
 
     def test_neg(self):
         assert_equals(-Curvature.CONVEX, Curvature.CONCAVE)
@@ -73,3 +77,9 @@ class TestCurvature(object):
         assert Curvature.CONVEX.is_dcp()
         assert Curvature.CONCAVE.is_dcp()
         assert not Curvature.UNKNOWN.is_dcp()
+
+    # Tests the promote method.
+    def test_promote(self):
+        curv = Curvature.CONSTANT.promote((3,4))
+        assert_equals(curv.cvx_mat.value.shape, (3,4))
+        assert_equals(curv.conc_mat.value.shape, (3,4))

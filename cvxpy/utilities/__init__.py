@@ -24,5 +24,5 @@ from monotonicity import Monotonicity
 from sign import Sign
 from bool_mat import BoolMat
 from sparse_bool_mat import SparseBoolMat
-from signed_curvature import SignedCurvature
+from context import Context
 from shape import Shape

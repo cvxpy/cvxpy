@@ -76,11 +76,16 @@ class Sign(object):
         POSITIVE * POSITIVE = POSITIVE
         NEGATIVE * NEGATIVE = POSITIVE
     """
-    def __mul__(self, other):
-        neg_mat = BoolMat.cast_int(self.neg_mat * other.pos_mat) | \
-                  BoolMat.cast_int(other.neg_mat * self.pos_mat)
-        pos_mat = BoolMat.cast_int(self.neg_mat * other.neg_mat) | \
-                  BoolMat.cast_int(self.pos_mat * other.pos_mat)
+    @staticmethod
+    def mul(lh_sign, lh_size, rh_sign, rh_size):
+        neg_mat = BoolMat.mul(lh_sign.neg_mat, lh_size, 
+                              rh_sign.pos_mat, rh_size) | \
+                  BoolMat.mul(lh_sign.pos_mat, lh_size, 
+                              rh_sign.neg_mat, rh_size)
+        pos_mat = BoolMat.mul(lh_sign.neg_mat, lh_size,
+                              rh_sign.neg_mat, rh_size) | \
+                  BoolMat.mul(lh_sign.pos_mat, lh_size,
+                              rh_sign.pos_mat, rh_size)
         return Sign(neg_mat, pos_mat)
     
     # Equivalent to NEGATIVE * self
@@ -90,6 +95,12 @@ class Sign(object):
     # Comparison.
     def __eq__(self, other):
         return self.neg_mat == other.neg_mat and self.pos_mat == other.pos_mat
+
+    # Promotes neg_mat and pos_mat to BoolMats of the given size.
+    def promote(self, size):
+        neg_mat = BoolMat.promote(self.neg_mat, size)
+        pos_mat = BoolMat.promote(self.pos_mat, size)
+        return Sign(neg_mat, pos_mat)
 
     # To string methods.
     def __repr__(self):

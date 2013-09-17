@@ -37,7 +37,7 @@ class vstack(Atom):
 
     # TODO
     def set_sign_curv(self):
-        self._sign_curv = u.SignedCurvature(u.Sign.UNKNOWN, u.Curvature.AFFINE)
+        self._context = u.Context(u.Sign.UNKNOWN, u.Curvature.AFFINE, self._shape)
 
     # Any argument size is valid.
     def validate_arguments(self):

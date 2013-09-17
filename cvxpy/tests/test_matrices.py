@@ -24,7 +24,8 @@ from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.interface.numpy_wrapper as numpy
-from cvxopt import matrix
+import cvxopt
+import scipy
 import unittest
 
 class TestMatrices(unittest.TestCase):
@@ -74,3 +75,26 @@ class TestMatrices(unittest.TestCase):
         A = numpy.matrix( numpy.arange(8).reshape((4,2)) )
         self.assertEquals((A*self.x).size, (4,1))
         self.assertEquals(( (A.T*A) * self.x).size, (2,1))
+
+    # Test cvxopt sparse matrices.
+    def test_cvxopt_sparse(self):
+        m = 100
+        n = 20
+
+        mu = cvxopt.exp( cvxopt.normal(m) )
+        F = cvxopt.normal(m, n)
+        D = cvxopt.spdiag( cvxopt.uniform(m) )
+        x = Variable(m)
+        exp = square(norm2(D*x))
+
+    # Test scipy sparse matrices.
+    def test_scipy_sparse(self):
+        m = 100
+        n = 20
+
+        mu = cvxopt.exp( cvxopt.normal(m) )
+        F = cvxopt.normal(m, n)
+        x = Variable(m)
+
+        D = scipy.sparse.spdiags(1.5, 0, m, m )
+        exp = square(norm2(D*x))

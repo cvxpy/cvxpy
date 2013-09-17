@@ -30,10 +30,7 @@ class Parameter(constant.Constant):
         self.sign_str = sign
         super(Parameter, self).__init__(None, name)
 
-    # The constant's shape is fixed.
-    def set_shape(self):
-        self._shape = u.Shape(self._rows, self._cols)
-
-    def set_sign_curv(self):
+    def set_context(self):
+        shape = u.Shape(self._rows, self._cols)
         sign = u.Sign.name_to_sign(self.sign_str)
-        self._sign_curv = u.SignedCurvature(sign, u.Curvature.CONSTANT)
+        self._context = u.Context(sign, u.Curvature.CONSTANT, shape)

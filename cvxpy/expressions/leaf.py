@@ -31,7 +31,7 @@ class Leaf(expression.Expression, u.Affine):
     __metaclass__ = abc.ABCMeta
     # Objective associated with the leaf.
     def _objective(self):
-        return AffObjective(self.variables(), [deque([self])], self._shape)
+        return AffObjective(self.variables(), [deque([self])], self.shape)
 
     # Constraints associated with the leaf.
     def _constraints(self):
@@ -45,7 +45,3 @@ class Leaf(expression.Expression, u.Affine):
     @abc.abstractmethod
     def coefficients(self, interface):
         return NotImplemented
-
-    @property
-    def size(self):
-        return self._shape.size

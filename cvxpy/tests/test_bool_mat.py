@@ -62,8 +62,8 @@ class TestBoolMat(object):
     def test_mul(self):
         assert_equals(self.true_mat * self.true_mat, self.true_mat)
         assert_equals(self.true_mat * self.false_vec, self.false_vec)
-        assert_equals(self.false_mat * True, self.false_mat)
-        assert_equals(False * self.true_mat, False)
+        assert_equals(BoolMat.mul(self.false_mat, (4,4), True, (1,1)), self.false_mat)
+        assert_equals(BoolMat.mul(False, (1,1), self.true_mat, (4,4)), False)
         assert_equals(self.mixed_mat * self.true_vec, self.true_vec)
         assert_equals(self.mixed_mat * self.mixed_mat, self.mixed_mat)
 
@@ -72,3 +72,19 @@ class TestBoolMat(object):
         assert self.true_mat.any()
         assert not self.false_mat.any()
         assert self.mixed_mat.any()
+
+    # Test the promote method.
+    def test_promote(self):
+        arr = BoolMat.promote(True, (3,2))
+        assert_equals(arr.value.shape, (3,2))
+        assert_equals(arr.value[0,0], True)
+
+        arr = BoolMat.promote(False, (4,3))
+        assert_equals(arr.value.shape, (4,3))
+        assert_equals(arr.value[0,0], False)
+
+        arr = BoolMat.promote(arr, (4,4))
+        assert_equals(arr.value.shape, (4,3))
+
+        arr = BoolMat.promote(True, (1,1))
+        assert_equals(arr, True)

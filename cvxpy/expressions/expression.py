@@ -49,17 +49,22 @@ class Expression(u.Canonicalizable):
     # The curvature of the expression.
     @property
     def curvature(self):
-        return self._sign_curv.curvature
+        return self._context.curvature
 
-    # The sign of the expression.
+    # The sign of the expression, a (row,col) tuple.
     @property
     def sign(self):
-        return self._sign_curv.sign
+        return self._context.sign
+
+    # The shape of the expression, an object.
+    @property
+    def shape(self):
+        return self._context.shape
 
     # The dimensions of the expression.
-    @abc.abstractproperty
+    @property
     def size(self):
-        return NotImplemented
+        return self._context.shape.size
 
     # Is the expression a scalar?
     def is_scalar(self):
@@ -162,20 +167,12 @@ class AddExpression(BinaryOperator, Expression):
     OP_FUNC = "__add__"
     def __init__(self, lh_exp, rh_exp):
         super(AddExpression, self).__init__(lh_exp, rh_exp)
-        self.set_sign_curv()
-        self.set_shape()
-
-    @property
-    def size(self):
-        return self._shape.size
-
-    def set_shape(self):
-        self._shape = self.lh_exp._shape + self.rh_exp._shape
+        self.set_context()
 
     # Set the sign and curvature.
-    def set_sign_curv(self):
-        self._sign_curv = getattr(self.lh_exp._sign_curv,
-                                  self.OP_FUNC)(self.rh_exp._sign_curv)
+    def set_context(self):
+        self._context = getattr(self.lh_exp._context,
+                                self.OP_FUNC)(self.rh_exp._context)
 
     # Return the symbolic affine expression equal to the given index
     # into the expression.
@@ -216,9 +213,6 @@ class MulExpression(AddExpression, Expression):
         # Left hand expression must be constant.
         if not self.lh_exp.curvature.is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
-
-    def set_shape(self):
-        self._shape = self.lh_exp._shape * self.rh_exp._shape
 
     # Return the symbolic affine expression equal to the given index
     # in the expression.
