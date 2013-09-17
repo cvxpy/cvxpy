@@ -45,8 +45,6 @@ images
 
 Bugs:
 
-Fix dcp for vstack
-
 Features:
 
 Finish README (mainly DCP and intro on dcp.stanford.edu)
