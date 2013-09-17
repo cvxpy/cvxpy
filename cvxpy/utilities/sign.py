@@ -102,15 +102,7 @@ class Sign(object):
         neg_mat = BoolMat.promote(self.neg_mat, size)
         pos_mat = BoolMat.promote(self.pos_mat, size)
         return Sign(neg_mat, pos_mat)
-
-    # Vertically concatenates sign matrices.
-    # Each arg has the form (sign,size).
-    @staticmethod
-    def vstack(*args):
-        neg_mats = ((arg[0].neg_mat,arg[1]) for arg in args)
-        pos_mats = ((arg[0].pos_mat,arg[1]) for arg in args)
-        return Sign(vstack(*neg_mats), vstack(*pos_mats))
-
+        
     # To string methods.
     def __repr__(self):
         return "Sign(%s, %s)" % (self.neg_mat, self.pos_mat)

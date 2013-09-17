@@ -37,10 +37,15 @@ class vstack(Atom):
 
     # Vertically concatenates sign and curvature as a dense matrix.
     def set_sign_curv(self):
-        signs = ((arg.sign,arg.size) for arg in self.args)
-        curvs = ((arg.curvature,arg.size) for arg in self.args)
-        self._context = u.Context(u.Sign.vstack(*signs), 
-                                  u.Curvature.vstack(*curvs), 
+        sizes = [arg.size for arg in self.args]
+        neg_mat = u.vstack([arg.sign.neg_mat for arg in self.args], sizes)
+        pos_mat = u.vstack([arg.sign.pos_mat for arg in self.args], sizes)
+        cvx_mat = u.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
+        conc_mat = u.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
+        constant = all(arg.curvature.is_constant() for arg in self.args)
+
+        self._context = u.Context(u.Sign(neg_mat, pos_mat),
+                                  u.Curvature(cvx_mat, conc_mat, constant), 
                                   self._shape)
 
     # Any argument size is valid.

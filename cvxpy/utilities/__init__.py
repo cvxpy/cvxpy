@@ -19,10 +19,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from affine import Affine
 from canonicalizable import Canonicalizable
+from context import Context
 from curvature import Curvature
 from monotonicity import Monotonicity
 from sign import Sign
 from bool_mat import BoolMat
 from sparse_bool_mat import SparseBoolMat
-from context import Context
 from shape import Shape
+from vstack import vstack

@@ -97,12 +97,12 @@ class TestCurvature(object):
         assert_equals(curv.cvx_mat.value.shape, (3,4))
         assert_equals(curv.conc_mat.value.shape, (3,4))
 
-    # Test the vstack method.
-    def test_vstack(self):
-        curvs = self.n*[(Curvature.CONSTANT, (1,1))]
-        vs = Curvature.vstack(*curvs)
-        print vs
-        assert_equals(vs, self.const_vec)
+    # # Test the vstack method.
+    # def test_vstack(self):
+    #     curvs = self.n*[(Curvature.CONSTANT, (1,1))]
+    #     vs = Curvature.vstack(*curvs)
+    #     print vs
+    #     assert_equals(vs, self.const_vec)
 
-        curvs = self.n*[(Curvature.CONVEX, (1,1))]
-        assert_equals(Curvature.vstack(*curvs), self.cvx_vec)
+    #     curvs = self.n*[(Curvature.CONVEX, (1,1))]
+    #     assert_equals(Curvature.vstack(*curvs), self.cvx_vec)
