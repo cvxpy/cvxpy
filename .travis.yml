@@ -1,0 +1,16 @@
+language: python
+python:
+    - "2.7"
+# numpy and scipy depend on lapack / blas, which we have to install separately
+virtualenv:
+    system_site_packages: true
+before_install:
+    - sudo apt-get install python-numpy python-scipy
+# install dependencies
+install:
+    - pip install ply coverage cvxopt
+    - sudo ./get_ecos.sh
+    - sudo python setup.py install
+# command to run tests
+script:
+    - nosetests --with-cover --cover-package=cvxpy
