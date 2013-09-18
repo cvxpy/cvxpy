@@ -44,7 +44,7 @@ class TestSign(object):
         self.zero_mat = Sign(BoolMat(~self.mat), BoolMat(~self.mat))
 
         # Sparse Matrices
-        self.spmat = sparse.eye(self.n).astype('bool')
+        self.spmat = sparse.eye(self.n, self.n).astype('bool')
         self.neg_spmat = Sign(SparseBoolMat(self.spmat), False)
         self.pos_spmat = Sign(False, SparseBoolMat(self.spmat))
         self.unknown_spmat = Sign(SparseBoolMat(self.spmat), SparseBoolMat(self.spmat))
