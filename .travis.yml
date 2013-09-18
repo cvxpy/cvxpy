@@ -8,7 +8,7 @@ before_install:
     - sudo apt-get install python-numpy python-scipy python-cvxopt
 # install dependencies
 install:
-    - pip install ply coverage
+    - pip install coverage
     - sudo ./get_ecos.sh
     - sudo python setup.py install
 # command to run tests
