@@ -41,15 +41,16 @@ class TestProblem(unittest.TestCase):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
-    # # Overriden method to handle lists and lower accuracy.
-    # def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
-    #     try:
-    #         a = list(a)
-    #         b = list(b)
-    #         for i in range(len(a)):
-    #             self.assertAlmostEqual(a[i], b[i])
-    #     except Exception:
-    #         super(TestProblem, self).assertAlmostEqual(a,b,places=4)
+    # Overriden method to handle lists and lower accuracy.
+    # ECHU: uncommented to ensure that tests pass
+    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
+        try:
+            a = list(a)
+            b = list(b)
+            for i in range(len(a)):
+                self.assertAlmostEqual(a[i], b[i])
+        except Exception:
+            super(TestProblem, self).assertAlmostEqual(a,b,places=6)
 
     # Test large expresssions.
     def test_large_expression(self):

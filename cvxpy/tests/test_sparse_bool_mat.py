@@ -44,7 +44,7 @@ class TestSparseBoolMat(object):
         # Diagonal matrices.
         self.diag = np.eye(n).astype('bool')
         self.diag_mat = BoolMat(self.diag)
-        self.spdiag = sparse.eye(n).astype('bool')
+        self.spdiag = sparse.eye(n,n).astype('bool')
         self.diag_spmat = SparseBoolMat(self.spdiag)
 
         # Reverse diag COO sparse matrix.
