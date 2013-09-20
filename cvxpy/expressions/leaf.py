@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 import types
 import expression
-import cvxpy.utilities as u
+from .. import utilities as u
 from affine import AffObjective
 from collections import deque
 

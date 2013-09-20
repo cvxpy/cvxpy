@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.affine import AffEqConstraint
-import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
+from .. import utilities as u
+from .. import interface as intf
+from ..expressions.expression import Expression
+from ..expressions.variable import Variable
+from ..constraints.affine import AffEqConstraint
 
 class Minimize(u.Canonicalizable):
     """

@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-import cvxpy.expressions.types as types
+from ..expressions import types
 
 class Affine(object):
     """ Interface for affine objects. """

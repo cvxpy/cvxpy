@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import constant
-import cvxpy.utilities as u
+from .. import utilities as u
 
 class Parameter(constant.Constant):
     """

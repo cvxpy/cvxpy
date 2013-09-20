@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
+from .. import utilities as u
+from .. import interface as intf
 
 class AffVstack(u.Affine):
     """ Vertical concatenation of Affine Objectives. """

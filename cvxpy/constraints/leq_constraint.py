@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.interface.matrix_utilities as intf
+from .. import interface as intf
+from ..expressions.operators import BinaryOperator
+from ..expressions import types
 from constraint import Constraint
-from cvxpy.expressions.operators import BinaryOperator
 from affine import AffEqConstraint, AffLeqConstraint
-import cvxpy.expressions.types as types
 
 class LeqConstraint(BinaryOperator, Constraint):
     OP_NAME = "<="

@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from .. import settings as s
+from .. import utilities as u
+from .. import interface as intf
 import types
-import cvxpy.settings as s
-import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
 from collections import deque
 
 class AffObjective(u.Affine):

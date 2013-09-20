@@ -18,10 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from max import max
-import cvxpy.expressions.types as types
-from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-import cvxpy.utilities as u
+from .. import utilities as u
+from ..expressions import types
+from ..expressions.variable import Variable
+from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.interface.matrix_utilities as intf
 
 class min(max):

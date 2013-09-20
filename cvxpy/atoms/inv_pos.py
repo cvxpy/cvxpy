@@ -18,11 +18,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-import cvxpy.expressions.types as types
-from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
+from .. import utilities as u
+from .. import interface as intf
+from ..expressions import types
+from ..expressions.variable import Variable
+from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from quad_over_lin import quad_over_lin
 
 class inv_pos(Atom):

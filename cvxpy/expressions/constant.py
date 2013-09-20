@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from .. import settings as s
+from .. import utilities as u
+from .. import interface as intf
 import expression
 import leaf
-import cvxpy.interface.matrix_utilities as intf
-import cvxpy.settings as s
-import cvxpy.utilities as u
 
 class Constant(leaf.Leaf):
     """

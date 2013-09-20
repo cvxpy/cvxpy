@@ -18,9 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.second_order import SOC
-import cvxpy.utilities as u
+from .. import utilities as u
+from ..expressions.variable import Variable
+from ..constraints.second_order import SOC
 
 class norm2(Atom):
     """ L2 norm (sum(x^2))^(1/2) """

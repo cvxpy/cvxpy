@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from .. import utilities as u
+from .. import interface as intf
+from ..expressions import types
+from ..expressions.affine import AffObjective
 import abc
-import cvxpy.expressions.types as types
-import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
-from cvxpy.expressions.affine import AffObjective
 
 class AffineConstraint(u.Affine):
     """ An affine constraint. The result of canonicalization. """

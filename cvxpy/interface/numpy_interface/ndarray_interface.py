@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.interface.base_matrix_interface as base
+from .. import base_matrix_interface as base
 import cvxopt
 import numpy
 import numbers

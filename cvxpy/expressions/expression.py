@@ -17,14 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import abc
-import cvxpy.constraints.leq_constraint as le
-import cvxpy.constraints.eq_constraint as eq
-import cvxpy.settings as s
+
+from .. import settings as s
+from .. import utilities as u
+from .. import interface as intf
+from ..constraints import leq_constraint as le
+from ..constraints import eq_constraint as eq
 from operators import BinaryOperator, UnaryOperator
-import cvxpy.utilities as u
 import types
-import cvxpy.interface.matrix_utilities as intf
+import abc
 
 class Expression(u.Canonicalizable):
     """

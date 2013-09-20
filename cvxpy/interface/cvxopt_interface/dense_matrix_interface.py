@@ -17,41 +17,31 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import base_matrix_interface
+from .. import base_matrix_interface
 import cvxopt
 import numbers
-import numpy
 
-class SparseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
+class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     """ 
-    An interface to convert constant values to the cvxopt sparse matrix class. 
+    An interface to convert constant values to the cvxopt dense matrix class. 
     """
-    TARGET_MATRIX = cvxopt.spmatrix
+    TARGET_MATRIX = cvxopt.matrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.
     def const_to_matrix(self, value):
         if isinstance(value, numbers.Number):
             return value
-        if isinstance(value, numpy.ndarray):
-            return cvxopt.sparse(cvxopt.matrix(value), tc='d')
-        return cvxopt.sparse(value, tc='d')
+        return cvxopt.matrix(value, tc='d')
 
     # Return an identity matrix.
     def identity(self, size):
-        return cvxopt.spmatrix(1, range(size), range(size))
+        matrix = self.zeros(size, size)
+        for i in range(size):
+            matrix[i,i] = 1
+        return matrix
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
-        if value == 0:
-            return cvxopt.spmatrix(0, [], [], size=(rows,cols))
-        else: # Not a sparse matrix
-            return cvxopt.matrix(value, (rows,cols), tc='d')
+        return cvxopt.matrix(value, (rows,cols), tc='d')
 
     def reshape(self, matrix, size):
-        old_size = matrix.size
-        new_mat = self.zeros(*size)
-        for v,i,j in zip(matrix.V, matrix.I, matrix.J):
-            pos = i + old_size[0]*j
-            new_row = pos % size[0]
-            new_col = pos / size[0]
-            new_mat[new_row, new_col] = v
-        return new_mat
+        return cvxopt.matrix(list(matrix), size, tc='d')

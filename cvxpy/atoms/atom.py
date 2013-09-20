@@ -18,10 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.expression import Expression
-import cvxpy.utilities as u
-from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
+from ..expressions.variable import Variable
+from ..expressions.expression import Expression
+from .. import utilities as u
+from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 
 class Atom(Expression):
     """ Abstract base class for atoms. """

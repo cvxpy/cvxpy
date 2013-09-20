@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import dense_matrix_interface as cvxopt_dense
-import sparse_matrix_interface as cvxopt_sparse
+import cvxopt_interface as co_intf
 import numpy_interface as np_intf
 import cvxpy.utilities as u
 import cvxopt
@@ -28,17 +27,17 @@ import numpy as np
 
 DENSE_TARGET = cvxopt.matrix
 SPARSE_TARGET = cvxopt.spmatrix
-CVXOPT_DENSE_INTERFACE = cvxopt_dense.DenseMatrixInterface()
+CVXOPT_DENSE_INTERFACE = co_intf.DenseMatrixInterface()
 NDARRAY_INTERFACE = np_intf.DenseMatrixInterface()
-DEFAULT_INTERFACE = cvxopt_dense.DenseMatrixInterface()
+DEFAULT_INTERFACE = CVXOPT_DENSE_INTERFACE
 
 # Returns an interface between constants' internal values
 # and the target matrix used internally.
 def get_matrix_interface(target_matrix):
     if target_matrix is cvxopt.matrix:
-        return cvxopt_dense.DenseMatrixInterface()
+        return co_intf.DenseMatrixInterface()
     else:
-        return cvxopt_sparse.SparseMatrixInterface()
+        return co_intf.SparseMatrixInterface()
 
 # Get the dimensions of the constant.
 def size(constant):
@@ -116,4 +115,4 @@ def index(constant, key):
 # Return a dense matrix with all 0's.
 # Needed for constant vectors in conelp.
 def dense_zeros(rows, cols):
-    return cvxopt_dense.DenseMatrixInterface().zeros(rows, cols)
+    return CVXOPT_DENSE_INTERFACE.zeros(rows, cols)

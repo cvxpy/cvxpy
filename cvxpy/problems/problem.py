@@ -17,12 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-import cvxpy.interface.matrix_utilities as intf
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
-from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
-from cvxpy.constraints.second_order import SOC
+from .. import settings as s
+from .. import interface as intf
+from ..expressions.expression import Expression
+from ..expressions.variable import Variable
+from ..constraints.affine import AffEqConstraint, AffLeqConstraint
+from ..constraints.second_order import SOC
 
 import cvxopt.solvers
 import ecos

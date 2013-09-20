@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-import cvxpy.interface.matrix_utilities as intf
+from .. import settings as s
+from .. import utilities as u
+from .. import interface as intf
 import expression
-import cvxpy.utilities as u
 import leaf
 
 class Variable(leaf.Leaf):

@@ -18,12 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-import cvxpy.expressions.types as types
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.affine import AffObjective
-from cvxpy.expressions.vstack import AffVstack
-import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
+from .. import utilities as u
+from .. import interface as intf
+from ..expressions import types
+from ..expressions.variable import Variable
+from ..expressions.affine import AffObjective
+from ..expressions.vstack import AffVstack
 from collections import deque
 
 class vstack(Atom):

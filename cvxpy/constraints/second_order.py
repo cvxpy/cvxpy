@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variable import Variable
-import cvxpy.interface.matrix_utilities as intf
+from .. import interface as intf
+from ..expressions.variable import Variable
 from affine import AffEqConstraint, AffLeqConstraint
 
 class SOC(object):
