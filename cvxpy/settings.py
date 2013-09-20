@@ -55,3 +55,6 @@ ECOS_STATUS = {0: SOLVED,
                3: UNKNOWN}
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS}
+
+# Map of constraint types.
+EQ,INEQ,SOC,SDP,NONLIN = range(5)
