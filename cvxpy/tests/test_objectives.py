@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
-from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 import unittest
 

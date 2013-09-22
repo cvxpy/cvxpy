@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from max import max
 from .. import utilities as u
 from ..expressions import types
-from ..expressions.variable import Variable
+from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.interface.matrix_utilities as intf
 

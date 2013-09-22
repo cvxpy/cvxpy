@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import *
 from cvxpy.expressions.parameter import Parameter
 from cvxpy.expressions.constant import Constant
-from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf

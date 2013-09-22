@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import settings as s
-from .. import utilities as u
-from .. import interface as intf
-import expression
-import leaf
+from ... import settings as s
+from ... import utilities as u
+from ... import interface as intf
+from .. import expression
+from .. import leaf
+from .. import types
 
 class Variable(leaf.Leaf):
     """ The base variable class """
@@ -86,38 +87,4 @@ class Variable(leaf.Leaf):
 
     # Return a scalar view into a matrix variable.
     def index_object(self, key):
-        return IndexVariable(self, key)
-
-class IndexVariable(Variable):
-    """ An index into a matrix variable """
-    # parent - the variable indexed into.
-    # key - the index (row,col).
-    def __init__(self, parent, key):
-        self.parent = parent
-        self.key = key
-        name = "%s[%s,%s]" % (parent.name(), key[0], key[1])
-        super(IndexVariable, self).__init__(name=name)
-
-    # Coefficient is always 1.
-    def coefficients(self, interface):
-        return {self.id: 1}
-
-    # Return parent so that the parent value is updated.
-    def variables(self):
-        return [self.parent]
-
-    # Initialize the id.
-    def _init_id(self):
-        self.id = self.parent.index_id(*self.key)
-
-    # Convey the parent's constraints to the canonicalization.
-    def _constraints(self):
-        return self.parent._constraints()
-
-    # The value at the index.
-    @property
-    def value(self):
-        if self.parent.value is None:
-            return None
-        else:
-            return self.parent.value[self.key]
+        return types.index_variable()(self, key)

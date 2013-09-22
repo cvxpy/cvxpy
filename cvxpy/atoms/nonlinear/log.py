@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. atom import Atom
 import cvxpy.expressions.types as types
-from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.variables import Variable
 from cvxpy.constraints.affine import AffEqConstraint
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 import cvxpy.utilities as u

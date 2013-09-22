@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from atom import Atom
 from .. import utilities as u
-from ..expressions.variable import Variable
+from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 
 class normInf(Atom):

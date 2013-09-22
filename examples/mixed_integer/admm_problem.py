@@ -19,11 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from noncvx_variable import NonCvxVariable
 import cvxpy
+from cvxpy import settings as s
 
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho=0.5, iterations=5, solver=cvxpy.ECOS):
-    objective,eq_constr,ineq_constr,dims = self.canonicalize()
-    variables = self.variables(objective, eq_constr + ineq_constr)
+    objective,constr_map,dims = self.canonicalize()
+    variables = self.variables(objective, constr_map[s.EQ] + constr_map[s.INEQ])
     noncvx_vars = [obj for obj in variables if isinstance(obj, NonCvxVariable)]
     # Form ADMM problem.
     obj = self.objective.expr

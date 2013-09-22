@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import interface as intf
-from ..expressions.variable import Variable
+from ..expressions.variables import Variable
 from affine import AffEqConstraint, AffLeqConstraint
 
 class SOC(object):

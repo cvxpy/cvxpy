@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constant import Constant
 from cvxpy.expressions.parameter import Parameter
 import cvxpy.utilities as u

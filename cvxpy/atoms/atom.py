@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from ..expressions.variable import Variable
+from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 from .. import utilities as u
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint

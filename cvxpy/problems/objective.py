@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.expression import Expression
-from ..expressions.variable import Variable
+from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint
 
 class Minimize(u.Canonicalizable):

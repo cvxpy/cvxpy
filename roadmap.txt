@@ -47,6 +47,7 @@ Bugs:
 
 Features:
 
+Switch from scalars to blocks
 Finish README (mainly DCP and intro on dcp.stanford.edu)
 Add scipy sparse matrix support
 Interface for is_dcp
@@ -68,6 +69,7 @@ Fix returned statuses for numerical problems in ECOS
 
 Long term:
 
+targeting QCML
 put constraints_matrix function in C
 branch and bound extension
 thread safety

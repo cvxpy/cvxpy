@@ -22,9 +22,13 @@ def constant():
     import constant
     return constant.Constant
 
+def index_variable():
+    import variables
+    return variables.IndexVariable
+
 def variable():
-    import variable
-    return variable.Variable
+    import variables
+    return variables.Variable
 
 def parameter():
     import parameter

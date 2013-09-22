@@ -21,7 +21,7 @@ from atom import Atom
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions import types
-from ..expressions.variable import Variable
+from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 
 class abs(Atom):
