@@ -25,19 +25,19 @@ import scipy.sparse as sp
 import numbers
 import numpy as np
 
-DENSE_TARGET = cvxopt.matrix
-SPARSE_TARGET = cvxopt.spmatrix
-CVXOPT_DENSE_INTERFACE = co_intf.DenseMatrixInterface()
-NDARRAY_INTERFACE = np_intf.DenseMatrixInterface()
-DEFAULT_INTERFACE = CVXOPT_DENSE_INTERFACE
+# 
+INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
+              cvxopt.spmatrix: co_intf.SparseMatrixInterface(),
+              np.ndarray: np_intf.DenseMatrixInterface(),
+}
+
+DEFAULT_INTERFACE = INTERFACES[cvxopt.matrix]
+DEFAULT_SPARSE_INTERFACE = INTERFACES[cvxopt.spmatrix]
 
 # Returns an interface between constants' internal values
 # and the target matrix used internally.
 def get_matrix_interface(target_matrix):
-    if target_matrix is cvxopt.matrix:
-        return co_intf.DenseMatrixInterface()
-    else:
-        return co_intf.SparseMatrixInterface()
+    return INTERFACES[target_matrix]
 
 # Get the dimensions of the constant.
 def size(constant):
@@ -97,7 +97,7 @@ def sign(constant):
         pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
         return u.Sign(u.SparseBoolMat(neg_mat), u.SparseBoolMat(pos_mat))
     else:
-        cvxopt_mat = CVXOPT_DENSE_INTERFACE.const_to_matrix(constant)
+        cvxopt_mat = INTERFACES[cvxopt.matrix].const_to_matrix(constant)
         mat = np.array(cvxopt_mat)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
     
@@ -115,4 +115,4 @@ def index(constant, key):
 # Return a dense matrix with all 0's.
 # Needed for constant vectors in conelp.
 def dense_zeros(rows, cols):
-    return CVXOPT_DENSE_INTERFACE.zeros(rows, cols)
+    return INTERFACES[cvxopt.matrix].zeros(rows, cols)

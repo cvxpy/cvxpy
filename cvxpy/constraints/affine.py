@@ -26,13 +26,12 @@ import abc
 class AffineConstraint(u.Affine):
     """ An affine constraint. The result of canonicalization. """
     __metaclass__ = abc.ABCMeta
-    def __init__(self, lh_exp, rh_exp, 
-                 value_matrix=intf.DENSE_TARGET, parent=None):
+    def __init__(self, lh_exp, rh_exp, parent=None):
         self.lh_exp = self.cast_as_affine(lh_exp)
         self.rh_exp = self.cast_as_affine(rh_exp)
         self._expr = self.lh_exp - self.rh_exp
         self.parent = parent
-        self.interface = intf.get_matrix_interface(value_matrix)
+        self.interface = intf.DEFAULT_INTERFACE
         super(AffineConstraint, self).__init__()
 
     def name(self):

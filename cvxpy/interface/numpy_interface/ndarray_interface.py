@@ -37,6 +37,15 @@ class DenseMatrixInterface(base.BaseMatrixInterface):
     def identity(self, size):
         return numpy.eye(size)
 
+    # Return the dimensions of the matrix.
+    def size(self, matrix):
+        # Slicing drops the second dimension.
+        if len(matrix.shape) == 1:
+            dim = matrix.shape[0]
+            return (dim,matrix.size/dim)
+        else:
+            return matrix.shape
+
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
         return numpy.zeros((rows,cols), dtype='float64') + value

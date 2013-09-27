@@ -39,6 +39,10 @@ class SparseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def identity(self, size):
         return cvxopt.spmatrix(1, range(size), range(size))
 
+    # Return the dimensions of the matrix.
+    def size(self, matrix):
+        return matrix.size
+
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
         if value == 0:

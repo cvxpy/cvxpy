@@ -31,5 +31,5 @@ class EqConstraint(LeqConstraint):
     def canonicalize(self):
         self._expr = (self.lh_exp - self.rh_exp)
         obj,constr = self._expr.canonical_form()
-        dual_holder = AffEqConstraint(obj, 0, self.value_matrix, self)
+        dual_holder = AffEqConstraint(obj, 0, self)
         return (None, [dual_holder] + constr)

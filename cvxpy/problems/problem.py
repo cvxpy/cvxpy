@@ -42,12 +42,11 @@ class Problem(object):
     CONSTANT_ID = {s.CONSTANT:0}
     # objective - the problem objective.
     # constraints - the problem constraints.
-    # target_matrix - the matrix type used internally.
-    def __init__(self, objective, constraints=[], target_matrix=intf.SPARSE_TARGET):
+    def __init__(self, objective, constraints=[]):
         self.objective = objective
         self.constraints = constraints
-        self.interface = intf.get_matrix_interface(target_matrix)
-        self.dense_interface = intf.get_matrix_interface(intf.DENSE_TARGET)
+        self.interface = intf.DEFAULT_SPARSE_INTERFACE
+        self.dense_interface = intf.DEFAULT_INTERFACE
 
     # Does the problem satisfy DCP rules?
     def is_dcp(self):

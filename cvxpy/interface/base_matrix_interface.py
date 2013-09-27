@@ -36,6 +36,11 @@ class BaseMatrixInterface(object):
     def identity(self, size):
         return NotImplemented
 
+    # Return the dimensions of the matrix.
+    @abc.abstractmethod
+    def size(self, matrix):
+        return NotImplemented
+
     # Return a matrix with all 0's.
     def zeros(self, rows, cols):
         return self.scalar_matrix(0, rows, cols)

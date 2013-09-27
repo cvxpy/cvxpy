@@ -307,28 +307,6 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [2,3])
         self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 
-    # Test using a cvxopt dense matrix as the target.
-    def test_dense_matrices(self):
-        p = Problem(Minimize(norm2(5 + norm1(self.z) 
-                                  + norm1(self.x) + 
-                                  normInf(self.x - self.z) ) ), 
-            [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2],
-            target_matrix=matrix)
-        result = p.solve(solver=s.CVXOPT)
-        self.assertAlmostEqual(result, 22)
-        self.assertItemsAlmostEqual(self.x.value, [2,3])
-        self.assertItemsAlmostEqual(self.z.value, [-1,-4])
-
-        T = matrix(2,(2,3))
-        c = matrix([3,4])
-        p = Problem(Minimize(1), [self.A >= T*self.C, 
-            self.A == self.B, self.C == T.T], target_matrix=matrix)
-        result = p.solve(solver=s.CVXOPT)
-        self.assertAlmostEqual(result, 1)
-        self.assertItemsAlmostEqual(self.A.value, self.B.value)
-        self.assertItemsAlmostEqual(self.C.value, T)
-        self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
-
     # Test recovery of dual variables.
     def test_dual_variables(self):
         p = Problem(Minimize( norm1(self.x + self.z) ), 

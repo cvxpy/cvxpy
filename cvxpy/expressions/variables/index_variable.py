@@ -52,3 +52,15 @@ class IndexVariable(Variable):
             return None
         else:
             return self.parent.value[self.key]
+
+    # Adds to the coefficient matrix based on the coefficient
+    # for the variable.
+    # coeff - the coefficient for the variable.
+    # matrix - the coefficient matrix.
+    # horiz_offset - the current horizontal offset.
+    # vert_offset - the current vertical offset.
+    # interface - the interface for the matrix type.
+    def place_coeff(coeff, matrix, horiz_offset, vert_offset, interface):
+        rows,cols = interface.size(coeff)
+        coeff = interface.vec(coeff)
+        matrix[horiz_offset, ]
