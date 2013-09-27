@@ -110,9 +110,4 @@ def index(constant, key):
             return constant[key[1]][key[0]]
     elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
                                np.ndarray, np.matrix)):
-        return constant[key] 
-
-# Return a dense matrix with all 0's.
-# Needed for constant vectors in conelp.
-def dense_zeros(rows, cols):
-    return INTERFACES[cvxopt.matrix].zeros(rows, cols)
+        return constant[key]
