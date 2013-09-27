@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.constant import Constant
+from ..expressions import types
 from numpy import *
 import numpy
 import sys
@@ -56,8 +55,8 @@ class _BinaryOpsWrapper(type):
     @staticmethod
     def _wrap_binary_op(func):
         def wrapper(self, other):
-            if isinstance(other, Expression):
-                return getattr(Constant(self), func)(other)
+            if isinstance(other, types.expression()):
+                return getattr(types.constant()(self), func)(other)
             else:
                 parent = super(self.__class__, self)
                 return getattr(parent, func)(other)

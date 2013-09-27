@@ -22,15 +22,18 @@ import cvxopt
 import numpy
 import numbers
 
-class DenseMatrixInterface(base.BaseMatrixInterface):
+class NDArrayInterface(base.BaseMatrixInterface):
     """ 
     An interface to convert constant values to the numpy ndarray class. 
     """
-    TARGET_MATRIX = cvxopt.matrix
+    TARGET_MATRIX = numpy.ndarray
     # Convert an arbitrary value into a matrix of type self.target_matrix.
     def const_to_matrix(self, value):
         if isinstance(value, numbers.Number):
             return value
+        if isinstance(value, list):
+            mat = numpy.array(value, dtype='float64')
+            return mat.T
         return numpy.array(value, dtype='float64')
 
     # Return an identity matrix.
@@ -46,10 +49,13 @@ class DenseMatrixInterface(base.BaseMatrixInterface):
         else:
             return matrix.shape
 
+    # Get the value of the passed matrix, interpreted as a scalar.
+    def scalar_value(self, matrix):
+        return matrix[0]
+
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
         return numpy.zeros((rows,cols), dtype='float64') + value
 
     def reshape(self, matrix, size):
-        arr = numpy.array(list(matrix), dtype='float64')
-        return numpy.reshape(arr, size)
+        return numpy.reshape(matrix, size, order='F')

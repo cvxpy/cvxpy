@@ -60,7 +60,7 @@ class IndexVariable(Variable):
     # horiz_offset - the current horizontal offset.
     # vert_offset - the current vertical offset.
     # interface - the interface for the matrix type.
-    def place_coeff(coeff, matrix, horiz_offset, vert_offset, interface):
-        rows,cols = interface.size(coeff)
-        coeff = interface.vec(coeff)
-        matrix[horiz_offset, ]
+    # def place_coeff(coeff, matrix, horiz_offset, vert_offset, interface):
+    #     rows,cols = interface.size(coeff)
+    #     coeff = interface.vec(coeff)
+    #     matrix[horiz_offset, ]

@@ -19,25 +19,28 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxopt_interface as co_intf
 import numpy_interface as np_intf
+import numpy_wrapper
 import cvxpy.utilities as u
 import cvxopt
 import scipy.sparse as sp
 import numbers
 import numpy as np
 
-# 
+# A mapping of class to interface.
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
               cvxopt.spmatrix: co_intf.SparseMatrixInterface(),
-              np.ndarray: np_intf.DenseMatrixInterface(),
+              np.ndarray: np_intf.NDArrayInterface(),
+              numpy_wrapper.ndarray: np_intf.NDArrayInterface(),
+              np.matrix: np_intf.MatrixInterface(),
+              numpy_wrapper.matrix: np_intf.MatrixInterface(),
 }
-
+# Default dense and sparse matrix interfaces.
 DEFAULT_INTERFACE = INTERFACES[cvxopt.matrix]
 DEFAULT_SPARSE_INTERFACE = INTERFACES[cvxopt.spmatrix]
 
-# Returns an interface between constants' internal values
-# and the target matrix used internally.
-def get_matrix_interface(target_matrix):
-    return INTERFACES[target_matrix]
+# Returns the interface for interacting with the target matrix class.
+def get_matrix_interface(target_class):
+    return INTERFACES[target_class]
 
 # Get the dimensions of the constant.
 def size(constant):
@@ -50,15 +53,9 @@ def size(constant):
             return (len(constant),1)
         else: # Matrix
             return (len(constant[0]),len(constant))
-    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix)):
-        return constant.size
-    elif isinstance(constant, (np.ndarray, np.matrix)):
-        # Slicing drops the second dimension.
-        if len(constant.shape) == 1:
-            dim = constant.shape[0]
-            return (dim,constant.size/dim)
-        else:
-            return constant.shape
+    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
+                               np.ndarray, np.matrix)):
+        return get_matrix_interface(constant.__class__).size(constant)
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
@@ -77,10 +74,8 @@ def scalar_value(constant):
         return constant
     elif isinstance(constant, list):
         return constant[0]
-    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix)):
-        return constant[0,0]
-    elif isinstance(constant, (np.ndarray, np.matrix)):
-        return constant[0]
+    else:
+        return get_matrix_interface(constant.__class__).scalar_value(constant)
 
 # Return a matrix of signs based on the constant's values.
 # TODO scipy sparse matrices.
@@ -97,8 +92,7 @@ def sign(constant):
         pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
         return u.Sign(u.SparseBoolMat(neg_mat), u.SparseBoolMat(pos_mat))
     else:
-        cvxopt_mat = INTERFACES[cvxopt.matrix].const_to_matrix(constant)
-        mat = np.array(cvxopt_mat)
+        mat = get_matrix_interface(np.ndarray).const_to_matrix(constant)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
     
 # Get the value at the given index.
@@ -108,6 +102,5 @@ def index(constant, key):
             return constant[key[0]]
         else:
             return constant[key[1]][key[0]]
-    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
-                               np.ndarray, np.matrix)):
-        return constant[key]
+    else:
+        return get_matrix_interface(constant.__class__).index(constant, key)

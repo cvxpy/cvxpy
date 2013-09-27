@@ -43,6 +43,10 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def size(self, matrix):
         return matrix.size
 
+    # Get the value of the passed matrix, interpreted as a scalar.
+    def scalar_value(self, matrix):
+        return matrix[0,0]
+
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
         return cvxopt.matrix(value, (rows,cols), tc='d')

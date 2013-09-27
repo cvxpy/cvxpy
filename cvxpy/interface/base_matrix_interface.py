@@ -41,6 +41,11 @@ class BaseMatrixInterface(object):
     def size(self, matrix):
         return NotImplemented
 
+    # Get the value interpreted as a scalar.
+    @abc.abstractmethod
+    def scalar_value(self, value):
+        return NotImplemented
+
     # Return a matrix with all 0's.
     def zeros(self, rows, cols):
         return self.scalar_matrix(0, rows, cols)
@@ -53,6 +58,10 @@ class BaseMatrixInterface(object):
     @abc.abstractmethod
     def scalar_matrix(self, value, rows, cols):
         return NotImplemented
+
+    # Return the value at the given index in the matrix.
+    def index(self, matrix, key):
+        return matrix[key]
 
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
