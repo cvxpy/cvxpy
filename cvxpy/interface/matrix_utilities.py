@@ -53,11 +53,8 @@ def size(constant):
             return (len(constant),1)
         else: # Matrix
             return (len(constant[0]),len(constant))
-    elif isinstance(constant, (cvxopt.matrix, cvxopt.spmatrix, 
-                               np.ndarray, np.matrix)):
-        return get_matrix_interface(constant.__class__).size(constant)
     else:
-        raise Exception("%s is not a valid type for a Constant value." % type(constant))
+        return get_matrix_interface(constant.__class__).size(constant)
 
 # Is the constant a vector?
 def is_vector(constant):

@@ -41,9 +41,9 @@ class BaseMatrixInterface(object):
     def size(self, matrix):
         return NotImplemented
 
-    # Get the value interpreted as a scalar.
+    # Get the matrix interpreted as a scalar.
     @abc.abstractmethod
-    def scalar_value(self, value):
+    def scalar_value(self, matrix):
         return NotImplemented
 
     # Return a matrix with all 0's.
