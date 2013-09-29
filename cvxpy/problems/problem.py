@@ -227,19 +227,8 @@ class Problem(object):
         cols = x_length
         
         big_x = self.dense_interface.zeros(cols, 1)
-        vert_offset = 0
         for func in nl_funcs:
-            # get height?
-            m, x0 = func.f()
-            func.start = vert_offset    # HACK: set the start location
-            vert_offset += m
-            indices = []
-            for var in func.variables():
-                var_size = var.size[0]*var.size[1]
-                indices += range(var_offsets[var],var_offsets[var]+var_size)
-            big_x[indices] = x0
-            func.indices = indices  # HACK: set the indices of the function
-        
+            func.place_x0(big_x, var_offsets, self.dense_interface)
         
         def F(x=None, z=None):
             if x is None: return rows, big_x
@@ -247,19 +236,22 @@ class Problem(object):
             big_Df = self.interface.zeros(rows, cols)
             if z: big_H = self.interface.zeros(cols, cols)
             
+            offset = 0
             for func in nl_funcs:
+                local_x = func.extract_variables(x, var_offsets, self.dense_interface)
                 if z:
-                    f, Df, H = func.f(x[func.indices],z[func.start:func.start + func.size[0]])
+                    f, Df, H = func.f(local_x, z[offset:offset + func.size[0]])
                 else:
-                    result = func.f(x[func.indices])
+                    result = func.f(local_x)
                     if result:
                         f, Df = result
                     else:
                         return None
-                big_f[func.start:func.start + func.size[0]] = f
-                big_Df[func.start:func.start + func.size[0], func.indices] = Df
-                if z: 
-                    big_H[func.indices, func.indices] = H
+                big_f[offset:offset + func.size[0]] = f
+                func.place_Df(big_Df, Df, var_offsets, offset, self.interface)
+                if z:
+                    func.place_H(big_H, H, var_offsets, self.interface)
+                offset += func.size[0]
             
             if z is None: return big_f, big_Df
             return big_f, big_Df, big_H
