@@ -50,15 +50,15 @@ class TestAffineConstraints(unittest.TestCase):
         exp = self.xAff - self.yAff
         expCoeffs = exp.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), expCoeffs.keys())
-        self.assertEqual(list(coeffs[self.y[1,0].id]), 
-                         list(expCoeffs[self.y[1,0].id]))
+        self.assertEqual(list(coeffs[self.y]), 
+                         list(expCoeffs[self.y]))
 
         with self.assertRaises(Exception) as cm:
             AffEqConstraint(self.xAff, self.constAff)
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
     # Test AffLeqConstraint.
-    def test_eq_constraint(self):
+    def test_leq_constraint(self):
         constr = AffLeqConstraint(self.xAff, self.yAff)
         self.assertItemsEqual(constr.variables(), [self.x, self.y])
 
@@ -66,8 +66,8 @@ class TestAffineConstraints(unittest.TestCase):
         exp = self.xAff - self.yAff
         expCoeffs = exp.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), expCoeffs.keys())
-        self.assertEqual(list(coeffs[self.y[1,0].id]), 
-                         list(expCoeffs[self.y[1,0].id]))
+        self.assertEqual(list(coeffs[self.y]), 
+                         list(expCoeffs[self.y]))
 
         with self.assertRaises(Exception) as cm:
             AffLeqConstraint(self.xAff, self.constAff)

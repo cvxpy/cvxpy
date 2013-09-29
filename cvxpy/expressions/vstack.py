@@ -30,9 +30,14 @@ class AffVstack(u.Affine):
         self._vars = []
         map(self._vars.extend, (arg.variables() for arg in self.args))
         super(AffVstack, self).__init__()
-
+    
     def variables(self):
         return self._vars
+
+    # The dimensions of the vstack.
+    @property
+    def size(self):
+        return self._shape.size
 
     # Places the coefficients of all the blocks
     # as blocks in zero matrices.
@@ -42,12 +47,13 @@ class AffVstack(u.Affine):
         for arg in self.args:
             arg_coeffs = arg.coefficients(interface)
             for k,v in arg_coeffs.items():
-                zeros = interface.zeros(*self._shape.size)
+                # No promotion inside vstack.
                 rows,cols = intf.size(v)
-                interface.block_copy(zeros, v, offset, 0, rows, cols)
                 if k in coeffs:
-                    coeffs[k] = coeffs[k] + zeros
+                    interface.block_add(coeffs[k], v, offset, 0, rows, cols)
                 else:
+                    zeros = interface.zeros(self.size[0], arg.size[0])
+                    interface.block_add(zeros, v, offset, 0, rows, cols)
                     coeffs[k] = zeros
             offset += arg.size[0]
         return coeffs

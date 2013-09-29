@@ -43,8 +43,9 @@ class SparseMatrixInterface(DenseMatrixInterface):
     def scalar_matrix(self, value, rows, cols):
         if value == 0:
             return cvxopt.spmatrix(0, [], [], size=(rows,cols))
-        else: # Not a sparse matrix
-            return cvxopt.matrix(value, (rows,cols), tc='d')
+        else:
+            dense = cvxopt.matrix(value, (rows,cols), tc='d')
+            return cvxopt.sparse(dense)
 
     def reshape(self, matrix, size):
         old_size = matrix.size

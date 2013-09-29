@@ -62,6 +62,19 @@ class Constant(leaf.Leaf):
     def index_object(self, key):
         return IndexConstant(self, key)
 
+    # Vectorizes the coefficient and adds it to the constant vector.
+    # matrix - the constant vector.
+    # coeff - the constant coefficient.
+    # vert_offset - the current vertical offset.
+    # constraint - the constraint containing the variable.
+    # var_offsets - a map of variable object to horizontal offset.
+    # interface - the interface for the matrix type.
+    @classmethod
+    def place_coeff(cls, matrix, coeff, vert_offset, 
+                    constraint, var_offsets, interface):
+        rows = constraint.size[0]*constraint.size[1]
+        interface.block_add(matrix, coeff, vert_offset, 0, rows, 1)
+
 class IndexConstant(Constant):
     """ An index into a matrix constant """
     # parent - the constant indexed into.

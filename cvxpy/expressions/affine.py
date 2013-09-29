@@ -69,7 +69,8 @@ class AffObjective(u.Affine):
     def dequeue_mults(coefficient, mults, interface):
         for i in range(len(mults)-1):
             lh = mults[i+1]
-            lh_coeff = lh.coefficients(interface)[s.CONSTANT]
+            # Only contains a constant coefficient.
+            lh_coeff = lh.coefficients(interface).values()[0]
             coefficient = lh_coeff * coefficient
         return coefficient
 

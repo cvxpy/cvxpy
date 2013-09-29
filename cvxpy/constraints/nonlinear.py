@@ -35,9 +35,12 @@ class NonlinearConstraint(object):
     def __init__(self, f, x):
         # assert(isinstance(f, NonlinearFunc))
         self.f = f
-        self.vars_involved = x # TODO unify syntax with affine
+        self._vars = x
         super(NonlinearConstraint, self).__init__()
 
     @property
     def size(self):
         return (self.f()[0],1)
+
+    def variables(self):
+        return self._vars

@@ -74,8 +74,8 @@ concave_list = [
 
 def run_atom(problem, obj_val):
     assert problem.is_dcp()
-    result = problem.solve()
     print problem.objective
+    result = problem.solve()
     print result
     print obj_val
     assert( -TOL <= result - obj_val <= TOL )

@@ -105,14 +105,14 @@ class TestAffObjective(unittest.TestCase):
         coeffs = exp.coefficients(self.intf)
         xCoeffs = self.x.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), xCoeffs)
-        self.assertEqual(list(coeffs[self.x[0,0].id]), [2,0])
+        self.assertEqual(list(coeffs[self.x]), [2,0,0,2])
 
         # Product
         exp = self.constAff * self.yAff
         coeffs = exp.coefficients(self.intf)
         yCoeffs = self.y.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), yCoeffs)
-        self.assertEqual(list(coeffs[self.y[0,0].id]), [1,2])
+        self.assertEqual(list(coeffs[self.y]), [1,2,1,2])
 
         # Distributed product
         exp = self.constAff * (self.xAff + self.yAff)
@@ -120,4 +120,4 @@ class TestAffObjective(unittest.TestCase):
         xCoeffs = self.x.coefficients(self.intf)
         yCoeffs = self.y.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), xCoeffs.keys() + yCoeffs.keys())
-        self.assertEqual(list(coeffs[self.x[0,0].id]), [1,2])        
+        self.assertEqual(list(coeffs[self.x]), [1,2,1,2])        

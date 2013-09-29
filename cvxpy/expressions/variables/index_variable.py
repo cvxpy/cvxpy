@@ -29,10 +29,6 @@ class IndexVariable(Variable):
         name = "%s[%s,%s]" % (parent.name(), key[0], key[1])
         super(IndexVariable, self).__init__(name=name)
 
-    # Coefficient is always 1.
-    def coefficients(self, interface):
-        return {self.id: 1}
-
     # Return parent so that the parent value is updated.
     def variables(self):
         return [self.parent]
@@ -53,14 +49,16 @@ class IndexVariable(Variable):
         else:
             return self.parent.value[self.key]
 
-    # Adds to the coefficient matrix based on the coefficient
-    # for the variable.
-    # coeff - the coefficient for the variable.
+    # Vectorizes the coefficient and adds it to the matrix.
     # matrix - the coefficient matrix.
-    # horiz_offset - the current horizontal offset.
+    # coeff - the coefficient for the variable.
     # vert_offset - the current vertical offset.
+    # constraint - the constraint containing the variable. 
+    # var_offsets - a map of variable object to horizontal offset.
     # interface - the interface for the matrix type.
-    # def place_coeff(coeff, matrix, horiz_offset, vert_offset, interface):
-    #     rows,cols = interface.size(coeff)
-    #     coeff = interface.vec(coeff)
-    #     matrix[horiz_offset, ]
+    def place_coeff(self, matrix, coeff, vert_offset, 
+                    constraint, var_offsets, interface):
+        rows = constraint.size[0]*constraint.size[1]
+        horiz_offset = var_offsets[self.parent]
+        horiz_offset += self.key[0] + self.key[1]*self.parent.size[0]
+        interface.block_add(matrix, coeff, vert_offset, horiz_offset, rows, 1)

@@ -58,24 +58,21 @@ class TestExpressions(unittest.TestCase):
 
         # Scalar variable
         coeff = self.a.coefficients(self.intf)
-        self.assertEqual(coeff[self.a.index_id(0,0)], 1)
+        self.assertEqual(coeff[self.a], 1)
 
         # Vector variable.
         coeffs = x.coefficients(self.intf)
-        self.assertItemsEqual(coeffs.keys(), [x[0,0].id, x[1,0].id])
-        vec = coeffs[x[1,0].id]
-        self.assertEqual(vec.size, (2,1))
-        self.assertEqual(vec[0,0], 0)
-        self.assertEqual(vec[1,0], 1)
+        self.assertItemsEqual(coeffs.keys(), [x])
+        vec = coeffs[x]
+        self.assertEqual(vec.size, (2,2))
+        self.assertEqual(list(vec), [1,0,0,1])
 
         # Matrix variable.
         coeffs = self.A.coefficients(self.intf)
-        self.assertItemsEqual(coeffs.keys(), [self.A[0,0].id, self.A[1,0].id,
-                                              self.A[0,1].id, self.A[1,1].id])
-        mat = coeffs[self.A[1,0].id]
+        self.assertItemsEqual(coeffs.keys(), [self.A])
+        mat = coeffs[self.A]
         self.assertEqual(mat.size, (2,2))
-        self.assertEqual(mat[0,0], 0)
-        self.assertEqual(mat[1,0], 1)
+        self.assertEqual(list(mat), [1,0,0,1])
 
     # Test the Constant class.
     def test_constants(self):
@@ -251,7 +248,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
         coeff = exp.coefficients(self.intf)
-        self.assertEqual(coeff[exp.id], 1)
+        self.assertEqual(coeff[exp], 1)
         self.assertEqual(exp.value, None)
 
         with self.assertRaises(Exception) as cm:

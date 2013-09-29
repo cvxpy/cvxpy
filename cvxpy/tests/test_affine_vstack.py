@@ -58,9 +58,9 @@ class TestAffVstack(unittest.TestCase):
             self.x.coefficients(self.intf).keys() + \
             self.y.coefficients(self.intf).keys())
         for k,v in coeffs.items():
-            self.assertEqual(intf.size(v), (4,1))
+            self.assertEqual(intf.size(v), (4,2))
 
         exp = AffVstack(self.A, self.B, self.C)
         coeffs = exp.coefficients(self.intf)
-        for k,v in coeffs.items():
-            self.assertEqual(intf.size(v), (10,2))
+        v = coeffs[self.A]
+        self.assertEqual(intf.size(v), (10,3))

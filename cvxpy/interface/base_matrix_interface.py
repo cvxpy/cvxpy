@@ -68,8 +68,8 @@ class BaseMatrixInterface(object):
     def reshape(self, matrix, size):
         return NotImplemented
 
-    # Copy the block into the matrix at the given offset.
-    def block_copy(self, matrix, block, vert_offset, horiz_offset, rows, cols):
+    # Add the block to the matrix at the given offset.
+    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols):
         # If the block is a scalar, promote it.
         if intf.is_scalar(block):
             block = self.scalar_matrix(intf.scalar_value(block), rows, cols)
@@ -79,4 +79,7 @@ class BaseMatrixInterface(object):
         # If the block is a matrix coerced into a vector, vectorize it.
         elif not intf.is_vector(block) and cols == 1:
             block = self.reshape(block, (rows, cols))
-        matrix[vert_offset:(rows+vert_offset), horiz_offset:(horiz_offset+cols)] = block
+        # Ensure the block is the same type as the matrix.
+        elif type(block) != type(matrix):
+            block = self.const_to_matrix(block)
+        matrix[vert_offset:(rows+vert_offset), horiz_offset:(horiz_offset+cols)] += block

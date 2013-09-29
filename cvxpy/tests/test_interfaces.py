@@ -37,6 +37,7 @@ class TestInterfaces(unittest.TestCase):
         # identity
         mat = interface.identity(4)
         cmp_mat = interface.const_to_matrix(np.eye(4))
+        self.assertEquals(type(mat), type(cmp_mat))
         self.assertEquals(interface.size(mat), interface.size(cmp_mat))
         assert not mat - cmp_mat
         # scalar_matrix
@@ -67,6 +68,11 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        # Test scalars.
+        scalar = interface.scalar_matrix(1, 1, 1)
+        self.assertEquals(type(scalar), cvxopt.spmatrix)
+        scalar = interface.scalar_matrix(1, 1, 3)
+        self.assertEquals(scalar.size, (1,3))
 
     # Test numpy ndarray interface.
     def test_ndarray(self):
@@ -74,6 +80,8 @@ class TestInterfaces(unittest.TestCase):
         # const_to_matrix
         mat = interface.const_to_matrix([1,2,3])
         self.assertEquals(interface.size(mat), (3,1))
+        mat = interface.const_to_matrix([1,2])
+        self.assertEquals(interface.size(mat), (2,1))
         # identity
         mat = interface.identity(4)
         cvxopt_dense = intf.get_matrix_interface(cvxopt.matrix)
