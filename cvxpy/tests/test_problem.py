@@ -395,6 +395,28 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
+    # Test variable transpose.
+    def test_transpose(self):
+        p = Problem(Minimize(sum(self.x)), [self.x.T >= matrix([1,2]).T])
+        result = p.solve()
+        self.assertAlmostEqual(result, 3)
+        self.assertItemsAlmostEqual(self.x.value, [1,2])
+
+        p = Problem(Minimize(sum(self.C)), [matrix([1,1]).T*self.C.T >= matrix([0,1,2]).T])
+        result = p.solve()
+        value = self.C.value
+
+        constraints = [1*self.C[i,0] + 1*self.C[i,1] >= i for i in range(3)]
+        p = Problem(Minimize(sum(self.C)), constraints)
+        result2 = p.solve()
+        self.assertAlmostEqual(result, result2)
+        self.assertItemsAlmostEqual(self.C.value, value)
+
+        p = Problem(Minimize(self.A[0,1] - self.A.T[1,0]), 
+                    [self.A == [[1,2],[3,4]]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
     # # Test getting values for expressions.
     # def test_expression_values(self):
     #     diff_exp = self.x - self.z

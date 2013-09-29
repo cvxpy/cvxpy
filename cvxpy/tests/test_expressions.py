@@ -26,6 +26,7 @@ import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
 import unittest
+from cvxopt import matrix
 
 class TestExpressions(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
@@ -73,6 +74,37 @@ class TestExpressions(unittest.TestCase):
         mat = coeffs[self.A]
         self.assertEqual(mat.size, (2,2))
         self.assertEqual(list(mat), [1,0,0,1])
+
+    # Test the TransposeVariable class.
+    def test_transpose_variable(self):
+        var = self.a.T
+        self.assertEquals(var.name(), "a")
+        self.assertEquals(var.size, (1,1))
+
+        self.a.save_value(2)
+        self.assertEquals(var.value, 2)
+
+        var = self.x.T
+        self.assertEquals(var.name(), "x.T")
+        self.assertEquals(var.size, (1,2))
+
+        self.x.save_value( matrix([1,2]) )
+        self.assertEquals(var.value[0,0], 1)
+        self.assertEquals(var.value[0,1], 2)
+
+        var = self.C.T
+        self.assertEquals(var.name(), "C.T")
+        self.assertEquals(var.size, (2,3))
+
+        coeffs = var.coefficients(self.intf)
+        self.assertItemsEqual(coeffs.keys(), [var])
+        mat = coeffs[var]
+        self.assertEqual(mat.size, (2,2))
+        self.assertEqual(list(mat), [1,0,0,1])
+
+        index = var[1,0]
+        self.assertEquals(index.name(), "C[0,1]")
+        self.assertEquals(index.size, (1,1))
 
     # Test the Constant class.
     def test_constants(self):

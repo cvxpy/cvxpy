@@ -26,6 +26,10 @@ def index_variable():
     import variables
     return variables.IndexVariable
 
+def transpose_variable():
+    import variables
+    return variables.TransposeVariable
+
 def variable():
     import variables
     return variables.Variable
