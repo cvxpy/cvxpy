@@ -53,8 +53,10 @@ def size(constant):
             return (len(constant),1)
         else: # Matrix
             return (len(constant[0]),len(constant))
+    elif constant.__class__ in INTERFACES:
+        return INTERFACES[constant.__class__].size(constant)
     else:
-        return get_matrix_interface(constant.__class__).size(constant)
+        raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
 # Is the constant a vector?
 def is_vector(constant):
@@ -71,8 +73,10 @@ def scalar_value(constant):
         return constant
     elif isinstance(constant, list):
         return constant[0]
+    elif constant.__class__ in INTERFACES:
+        return INTERFACES[constant.__class__].scalar_value(constant)
     else:
-        return get_matrix_interface(constant.__class__).scalar_value(constant)
+        raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
 # Return a matrix of signs based on the constant's values.
 # TODO scipy sparse matrices.
@@ -89,7 +93,7 @@ def sign(constant):
         pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
         return u.Sign(u.SparseBoolMat(neg_mat), u.SparseBoolMat(pos_mat))
     else:
-        mat = get_matrix_interface(np.ndarray).const_to_matrix(constant)
+        mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
     
 # Get the value at the given index.
@@ -99,5 +103,5 @@ def index(constant, key):
             return constant[key[0]]
         else:
             return constant[key[1]][key[0]]
-    else:
-        return get_matrix_interface(constant.__class__).index(constant, key)
+    elif constant.__class__ in INTERFACES:
+        return INTERFACES[constant.__class__].index(constant, key)
