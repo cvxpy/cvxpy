@@ -54,6 +54,11 @@ class TransposeVariable(Variable):
     def index_object(self, key):
         return IndexVariable(self.parent, (key[1],key[0]))
 
+    # The transpose of the transpose is the original variable.
+    @property
+    def T(self):
+        return self.parent
+
     # Splits the coefficient into columns to match the column-major order of
     # the parent variable in the vector of all variables.
     # matrix - the coefficient matrix.

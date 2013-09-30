@@ -106,6 +106,10 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(index.name(), "C[0,1]")
         self.assertEquals(index.size, (1,1))
 
+        var = self.x.T.T
+        self.assertEquals(var.name(), "x")
+        self.assertEquals(var.size, (2,1))
+
     # Test the Constant class.
     def test_constants(self):
         c = Constant(2)
