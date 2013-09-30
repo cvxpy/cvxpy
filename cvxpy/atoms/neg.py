@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from max import max
-""" Alias for max{-x,0}. """
+from min import min
+""" Alias for -min{x,0}. """
 def neg(x):
-    return max(-x,0)
+    return -min(x,0)

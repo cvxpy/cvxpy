@@ -21,6 +21,7 @@ from abs import abs
 from geo_mean import geo_mean
 from inv_pos import inv_pos
 from lambda_max import lambda_max
+from lambda_min import lambda_min
 from max import max
 from min import min
 from neg import neg

@@ -26,10 +26,10 @@ from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
 
-class lambda_max(Atom):
+class lambda_min(Atom):
     """ Maximum eigenvalue. """
     def __init__(self, A):
-        super(lambda_max, self).__init__(A)
+        super(lambda_min, self).__init__(A)
 
     # Resolves to a scalar.
     def set_shape(self):
@@ -39,7 +39,7 @@ class lambda_max(Atom):
     # Verify that the argument A is square.
     def validate_arguments(self):
         if not self.args[0].size[0] == self.args[0].size[1]:
-            raise TypeError("The argument '%s' to lambda_max must resolve to a square matrix." 
+            raise TypeError("The argument '%s' to lambda_min must resolve to a square matrix." 
                 % self.args[0].name())
 
     # Always unknown.
@@ -48,7 +48,7 @@ class lambda_max(Atom):
 
     # Default curvature.
     def base_curvature(self):
-        return u.Curvature.CONVEX
+        return u.Curvature.CONCAVE
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
@@ -62,4 +62,4 @@ class lambda_max(Atom):
         A_sym = (A+obj)*const
         t = Variable(*size).canonical_form()[0]
         I = Constant(np.eye(*A.size)).canonical_form()[0]
-        return (t, [SDP(I*t - A_sym)] + constr)
+        return (t, [SDP(A_sym - I*t)] + constr)
