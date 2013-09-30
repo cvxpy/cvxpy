@@ -24,6 +24,7 @@ from ..expressions.constant import Constant
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
+from ..constraints.semi_definite import SDP
 from ..constraints.nonlinear import NonlinearConstraint
 
 import cvxopt
@@ -61,6 +62,7 @@ class Problem(object):
         constr_map[s.EQ] = [c for c in constraints if isinstance(c, AffEqConstraint)]
         constr_map[s.INEQ] = [c for c in constraints if isinstance(c, AffLeqConstraint)]
         constr_map[s.SOC] = [c for c in constraints if isinstance(c, SOC)]
+        constr_map[s.SDP] = [c for c in constraints if isinstance(c, SDP)]
         constr_map[s.NONLIN] = [c for c in constraints if isinstance(c, NonlinearConstraint)]
         return constr_map
 
@@ -73,10 +75,10 @@ class Problem(object):
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
         # Formats SOC constraints for the solver.
-        for constr in constr_map[s.SOC]:
+        for constr in constr_map[s.SOC] + constr_map[s.SDP]:
             constr_map[s.INEQ] += constr.format()
-        dims['q'] = [c.size for c in constr_map[s.SOC]]
-        dims['s'] = []
+        dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
+        dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
         return (obj,constr_map,dims)
 
     # Dispatcher for different solve methods.
@@ -112,11 +114,7 @@ class Problem(object):
                                       self.interface, self.dense_interface)
         G,h = self.constraints_matrix(constr_map[s.INEQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
-        print c
-        print A
-        print b
-        print G
-        print h
+
         # ECHU: get the nonlinear constraints
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
                                                x_length)

@@ -124,6 +124,8 @@ Atoms are functions that can be used in expressions. Atoms take Expression objec
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
+    * `lambda_max(A), the maximum eigenvalue of `A`.
+    * `lambda_min(A), the minimum eigenvalue of `A`.
     * `norm1(x)`, the L1 norm of `x`.
     * `norm2(x)`, the L2 norm of `x`.
     * `normInf(x)`, the Infinity norm of `x`.
@@ -135,6 +137,7 @@ CVXPY currently supports the following atoms:
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
+    * `log(x)`, the natural log of each element of `x`.
     * `pos(x)`, `max(element,0)` for each element of `x`.
     * `sqrt(x)`, the square root of each element of `x`.
     * `square(x)`, the square of each element of `x`.

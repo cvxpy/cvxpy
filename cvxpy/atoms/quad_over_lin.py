@@ -56,7 +56,7 @@ class quad_over_lin(Atom):
     
     @staticmethod
     def graph_implementation(var_args, size):
-        v,dummy = Variable(*size).canonical_form()
+        v = Variable(*size).canonical_form()[0]
         x = var_args[0]
         y = var_args[1]
 

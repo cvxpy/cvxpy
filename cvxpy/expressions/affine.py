@@ -105,7 +105,7 @@ class AffObjective(u.Affine):
     def __mul__(self, other):
         terms = AffObjective.mul_terms(self._terms, other._terms)
         return AffObjective(other.variables(), terms, 
-                               self._shape * other._shape)
+                            self._shape * other._shape)
 
     # Multiplies every term by -1.
     def __neg__(self):

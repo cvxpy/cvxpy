@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from abs import abs
 from geo_mean import geo_mean
 from inv_pos import inv_pos
+from lambda_max import lambda_max
 from max import max
 from min import min
 from norm1 import norm1
