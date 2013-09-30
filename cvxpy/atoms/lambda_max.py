@@ -53,13 +53,10 @@ class lambda_max(Atom):
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
     
+    # TODO Assumes A is symmetric.
     @staticmethod
     def graph_implementation(var_args, size):
         A = var_args[0]
-        # Replace A with symmetric component, (A + A.T)/2
-        const = Constant(0.5).canonical_form()[0]
-        obj,constr = A.T
-        A_sym = (A+obj)*const
         t = Variable(*size).canonical_form()[0]
         I = Constant(np.eye(*A.size)).canonical_form()[0]
-        return (t, [SDP(I*t - A_sym)] + constr)
+        return (t, [SDP(I*t - A)] + constr)

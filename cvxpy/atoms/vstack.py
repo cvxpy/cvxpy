@@ -61,7 +61,7 @@ class vstack(Atom):
         obj = AffObjective(obj.variables(), [deque([obj])], obj._shape)
         return (obj, [])
 
-    # Return the absolute value of the argument at the given index.
+    # Return the the component of vstack at the given index.
     # TODO replace with binary tree.
     def index_object(self, key):
         index = 0
