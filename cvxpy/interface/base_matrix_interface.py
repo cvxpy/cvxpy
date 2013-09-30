@@ -63,6 +63,10 @@ class BaseMatrixInterface(object):
     def index(self, matrix, key):
         return matrix[key]
 
+    # Get the tranpose of the given matrix.
+    def transpose(self, matrix):
+        return matrix.T
+
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
     def reshape(self, matrix, size):

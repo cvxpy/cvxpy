@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.constant import Constant
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -417,11 +417,14 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
-    # # Test SDP
+    # Test SDP
     # def test_sdp(self):
     #     # Ensure sdp constraints enforce transpose.
     #     obj = Maximize(self.A[1,0] - self.A[0,1])
-    #     p = Problem(obj, [lambda_max(self.A) <= 100, self.A[0,0] == 2, self.A[1,1] == 2])
+    #     p = Problem(obj, [lambda_max(self.A) <= 100,
+    #                       self.A[0,0] == 2, 
+    #                       self.A[1,1] == 2,
+    #                       self.A[1,0] == 2])
     #     result = p.solve()
     #     self.assertAlmostEqual(result, 0)
 

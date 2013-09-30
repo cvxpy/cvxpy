@@ -48,16 +48,16 @@ Bugs:
 Features:
 
 Finish README (mainly DCP and intro on dcp.stanford.edu)
+transpose and index for parameter.
+transpose of any expression.
+Multiplication on the right
 Switch from object id to variable id so index and transpose can be grouped together?
 Add scipy sparse matrix support
 Interface for is_dcp
-neg(x) = min(x,0) or max(-x,0)?
 Fix matrix packing so doesn't scalarize everything (by column)
 simplify when objective or constraint constructed so only need to stuff parameters in the matrix
 Organize atoms
 Switch from cvxopt to numpy matrices
-Transpose
-Multiplication on the right
 SDP
 exponential cone
 expression.value

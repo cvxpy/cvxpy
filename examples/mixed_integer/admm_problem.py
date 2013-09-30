@@ -24,8 +24,9 @@ from cvxpy import settings as s
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho=0.5, iterations=5, solver=cvxpy.ECOS):
     objective,constr_map,dims = self.canonicalize()
-    variables = self.variables(objective, constr_map[s.EQ] + constr_map[s.INEQ])
-    noncvx_vars = [obj for obj in variables if isinstance(obj, NonCvxVariable)]
+    var_offsets,x_length = self.variables(objective, 
+                                          constr_map[s.EQ] + constr_map[s.INEQ])
+    noncvx_vars = [obj for obj in var_offsets.keys() if isinstance(obj, NonCvxVariable)]
     # Form ADMM problem.
     obj = self.objective.expr
     for var in noncvx_vars:

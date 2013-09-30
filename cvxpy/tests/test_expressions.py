@@ -19,8 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable
-from cvxpy.expressions.constant import Constant
-from cvxpy.expressions.parameter import Parameter
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s

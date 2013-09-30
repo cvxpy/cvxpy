@@ -19,8 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 import cvxpy
-from cvxpy.expressions.curvature import Curvature
-import cvxpy.interface.matrix_utilities as intf
+import cvxpy.interface as intf
 import cvxopt
 
 class NonCvxVariable(cvxpy.Variable):
@@ -56,7 +55,6 @@ class NonCvxVariable(cvxpy.Variable):
     # Wrapper to validate matrix and update curvature.
     def fix(self, matrix):
         matrix = self.round(matrix)
-        self._curvature = Curvature.AFFINE
         return self._fix(matrix)
 
     # Fix the variable so it obeys the non-convex constraint.

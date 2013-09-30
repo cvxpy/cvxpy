@@ -19,8 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to solve circular imports.
 def constant():
-    import constant
-    return constant.Constant
+    import constants
+    return constants.Constant
 
 def index_variable():
     import variables
@@ -35,8 +35,8 @@ def variable():
     return variables.Variable
 
 def parameter():
-    import parameter
-    return parameter.Parameter
+    import constants
+    return constants.Parameter
 
 def expression():
     import expression

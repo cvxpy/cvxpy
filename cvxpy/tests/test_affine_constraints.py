@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions.variables import Variable
-from cvxpy.expressions.constant import Constant
-from cvxpy.expressions.parameter import Parameter
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Parameter
 from cvxpy.expressions.affine import AffObjective
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u

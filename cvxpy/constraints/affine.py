@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions import types
-from ..expressions.affine import AffObjective
 import abc
 
 class AffineConstraint(u.Affine):

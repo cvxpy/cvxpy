@@ -105,3 +105,16 @@ def index(constant, key):
             return constant[key[1]][key[0]]
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].index(constant, key)
+
+# Get the tranpose of the given constant.
+def transpose(constant):
+    if is_scalar(constant):
+        return constant
+    elif isinstance(constant, list):
+        if is_vector(constant):
+            return [[elem] for elem in constant]
+        else:
+            # http://stackoverflow.com/questions/6473679/python-list-of-lists-transpose-without-zipm-thing
+            return map(list, zip(*constant))
+    elif constant.__class__ in INTERFACES:
+        return INTERFACES[constant.__class__].transpose(constant)

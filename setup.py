@@ -10,6 +10,7 @@ setup(
                 'cvxpy.atoms.nonlinear',
                 'cvxpy.constraints',
                 'cvxpy.expressions',
+                'cvxpy.expressions.constants',
                 'cvxpy.expressions.variables',
                 'cvxpy.interface',
                 'cvxpy.interface.numpy_interface',

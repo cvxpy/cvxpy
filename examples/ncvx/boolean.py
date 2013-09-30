@@ -1,5 +1,5 @@
 from cvxpy.expressions.variables import Variable, IndexVariable
-from cvxpy.expressions.parameter import Parameter
+from cvxpy.expressions.constants import Parameter
 import cvxpy.constraints.affine as aff
 import cvxopt
 

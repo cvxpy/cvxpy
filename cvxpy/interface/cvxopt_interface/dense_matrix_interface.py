@@ -51,5 +51,8 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def scalar_matrix(self, value, rows, cols):
         return cvxopt.matrix(value, (rows,cols), tc='d')
 
+    # Stuff the matrix into a different shape.
+    # First convert the matrix to a cvxopt dense matrix.
     def reshape(self, matrix, size):
+        matrix = self.const_to_matrix(matrix)
         return cvxopt.matrix(list(matrix), size, tc='d')

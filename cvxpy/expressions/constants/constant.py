@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import settings as s
-from .. import utilities as u
-from .. import interface as intf
-import expression
-import leaf
+from ... import settings as s
+from ... import utilities as u
+from ... import interface as intf
+from .. import expression
+from .. import leaf
 
 class Constant(leaf.Leaf):
     """
@@ -62,6 +62,15 @@ class Constant(leaf.Leaf):
     def index_object(self, key):
         return IndexConstant(self, key)
 
+    # The transpose of the constant.
+    @property
+    def T(self):
+        if self.size == (1,1): # Transpose of a scalar is that scalar.
+            return self
+        else:
+            transpose_val = intf.transpose(self.value)
+            return Constant(transpose_val)
+
     # Vectorizes the coefficient and adds it to the constant vector.
     # matrix - the constant vector.
     # coeff - the constant coefficient.
@@ -76,7 +85,7 @@ class Constant(leaf.Leaf):
         interface.block_add(matrix, coeff, vert_offset, 0, rows, 1)
 
 class IndexConstant(Constant):
-    """ An index into a matrix constant """
+    """ An index into a matrix constant. """
     # parent - the constant indexed into.
     # key - the index (row,col).
     def __init__(self, parent, key):

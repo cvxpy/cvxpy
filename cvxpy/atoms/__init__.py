@@ -23,6 +23,7 @@ from inv_pos import inv_pos
 from lambda_max import lambda_max
 from max import max
 from min import min
+from neg import neg
 from norm1 import norm1
 from norm2 import norm2
 from norm_inf import normInf

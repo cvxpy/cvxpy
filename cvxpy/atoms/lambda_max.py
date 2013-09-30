@@ -20,8 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from atom import Atom
 from .. import utilities as u
 from .. import interface as intf
+from ..expressions.constants import Constant
 from ..expressions.variables import Variable
-from ..expressions.constant import Constant
+from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
 
@@ -57,4 +58,7 @@ class lambda_max(Atom):
         A = var_args[0]
         t = Variable(*size).canonical_form()[0]
         I = Constant(np.eye(*A.size)).canonical_form()[0]
-        return (t, [SDP(I*t - A)])
+        # Enforces that A is symmetric.
+        obj,constr = A.T
+        constr += [SDP(I*t - A), AffEqConstraint(obj, A)]
+        return (t, constr)

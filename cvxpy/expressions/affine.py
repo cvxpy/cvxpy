@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
+from ..constraints.affine import AffEqConstraint
 import types
 from collections import deque
 
@@ -123,3 +124,40 @@ class AffObjective(u.Affine):
                 mult.extend(lh_mult)
                 terms.append(mult)
         return terms
+
+    # Returns an (AffineObjective, [AffineConstraints]) tuple.
+    # Examines every term. If the mult deque has one element, that
+    # element is set to its transpose and the term is kept.
+    # If the mult deque has more than one element, it is collected in
+    # an AffineEquality of the form X.T == terms. The final objective is
+    # the kept terms and X.
+    @property
+    def T(self):
+        transpose_terms = []
+        equality_terms = []
+        for mults in self._terms:
+            if len(mults) == 1: # Transpose the term.
+                elem = mults[0]
+                transpose_terms.append(deque([elem.T]))
+            else: # Move the term to the equality.
+                equality_terms.append(mults)
+        # Create a new variable for the equality terms.
+        vars = self.variables_from_terms(transpose_terms)
+        new_obj = AffObjective(vars, transpose_terms, self._shape)
+        if len(equality_terms) > 0:
+            x = types.variable()(*self.size)
+            x_obj = x.canonical_form()[0]
+            vars = self.variables_from_terms(equality_terms)
+            eq_obj = AffObjective(vars, equality_terms, self._shape)
+            constraints = [AffEqConstraint(x.T, eq_obj)]
+            return (new_obj + x_obj, constraints)
+        else: # No new variables needed.
+            return (new_obj, [])
+
+    # Extract a variables list from a list of terms.
+    @staticmethod
+    def variables_from_terms(terms):
+        variables = []
+        for mults in terms:
+            variables += mults[0].variables()
+        return variables          

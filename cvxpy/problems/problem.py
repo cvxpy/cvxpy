@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import interface as intf
 from ..expressions.expression import Expression
-from ..expressions.constant import Constant
+from ..expressions.constants import Constant
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
@@ -74,7 +74,7 @@ class Problem(object):
             constraints += constr.canonical_form()[1]
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
-        # Formats SOC constraints for the solver.
+        # Formats SOC and SDP constraints for the solver.
         for constr in constr_map[s.SOC] + constr_map[s.SDP]:
             constr_map[s.INEQ] += constr.format()
         dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
