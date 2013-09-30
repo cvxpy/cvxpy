@@ -115,7 +115,7 @@ TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
 Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
 ### Indexing and Iteration
-All Expression objects can be indexed using the syntax `expr[i,j]` if `expr` is a matrix and `expr[i]` if `expr` is a vector.
+All non-scalar Expression objects can be indexed using the syntax `expr[i,j]` if `expr` is a matrix and `expr[i]` if `expr` is a vector.
 
 Expressions are also iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
 
