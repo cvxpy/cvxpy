@@ -81,29 +81,10 @@ class Expression(u.Canonicalizable):
         return expr if isinstance(expr, Expression) else types.constant()(expr)
 
     """ Iteration """
-    # Raise an Exception if the key is not a valid index.
-    # Returns the key as a tuple.
-    def validate_key(self, key):
-        rows,cols = self.size
-        # Change single indexes for vectors into double indices.
-        if not isinstance(key, tuple):
-            if rows == 1:
-                key = (0,key)
-            elif cols == 1:
-                key = (key,0)
-            else:
-                raise Exception("Invalid index %s for '%s'." % (key, self.name()))
-        # Check that index is in bounds.
-        if not (0 <= key[0] and key[0] < rows and \
-                0 <= key[1] and key[1] < cols):
-           raise Exception("Invalid indices %s,%s for '%s'." % 
-                (key[0], key[1], self.name()))
-        return key
-
     # Create a new variable that acts as a view into this variable.
     # Updating the variable's value updates the value of this variable instead.
     def __getitem__(self, key):
-        key = self.validate_key(key)
+        key = u.Key.validate_key(key, self)
         # Indexing into a scalar returns the scalar.
         if self.size == (1,1):
             return self

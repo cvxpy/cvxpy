@@ -66,7 +66,7 @@ class vstack(Atom):
     def index_object(self, key):
         index = 0
         offset = 0
-        while offset + self.args[index].size[0] <= key[0]:
+        while offset + self.args[index].size[0] <= key[0].start:
             offset += self.args[index].size[0]
             index += 1
-        return self.args[index][key[0] - offset, key[1]]
+        return self.args[index][key[0].start - offset, key[1].start]

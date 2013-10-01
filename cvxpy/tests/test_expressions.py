@@ -293,12 +293,19 @@ class TestExpressions(unittest.TestCase):
 
         c = Constant([[1,-2],[0,4]])
         exp = c[1,1]
+        print exp
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
         self.assertEqual(exp.sign, u.Sign.POSITIVE)
         self.assertEqual(c[0,1].sign, u.Sign.ZERO)
         self.assertEqual(c[1,0].sign, u.Sign.NEGATIVE)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
+
+        c = Constant([[1,-2,3],[0,4,5],[7,8,9]])
+        exp = c[0:3,0:4:2]
+        self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
+        self.assertEquals(exp.size, (3,2))
+        self.assertEqual(exp[0,1].value, 7)
 
         # Arithmetic expression indexing
         exp = (self.x + self.z)[1,0]

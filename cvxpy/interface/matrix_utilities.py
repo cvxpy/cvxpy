@@ -102,7 +102,11 @@ def index(constant, key):
         if is_vector(constant):
             return constant[key[0]]
         else:
-            return constant[key[1]][key[0]]
+            selection = [l[key[0]] for l in constant[key[1]]]
+            for i in range(2): # Unpack column vectors and scalars.
+                if len(selection) == 1:
+                    selection = selection[0]
+            return selection
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].index(constant, key)
 
