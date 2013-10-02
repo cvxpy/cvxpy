@@ -48,6 +48,8 @@ Bugs:
 Features:
 
 Finish README (mainly DCP and intro on dcp.stanford.edu)
+    add parameter example
+    context/book citation for examples
 hcat for making schur complement matrices.
 transpose and index for parameter.
 transpose of any expression.
