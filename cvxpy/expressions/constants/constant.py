@@ -60,7 +60,7 @@ class Constant(leaf.Leaf):
 
     # Return a scalar view into a matrix constant.
     def index_object(self, key):
-        return IndexConstant(self, key)
+        return Constant(intf.index(self.value, key))
 
     # The transpose of the constant.
     @property
@@ -83,15 +83,3 @@ class Constant(leaf.Leaf):
                     constraint, var_offsets, interface):
         rows = constraint.size[0]*constraint.size[1]
         interface.block_add(matrix, coeff, vert_offset, 0, rows, 1)
-
-class IndexConstant(Constant):
-    """ An index into a matrix constant. """
-    # parent - the constant indexed into.
-    # key - the index (row,col).
-    def __init__(self, parent, key):
-        self.parent = parent
-        self.key = key
-        self._shape = u.Shape(1,1)
-        super(IndexConstant, self).__init__(
-            intf.index(self.parent.value, self.key)
-        )

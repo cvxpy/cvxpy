@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from ... import utilities as u
 from variable import Variable
 
 class IndexVariable(Variable):
@@ -26,7 +27,7 @@ class IndexVariable(Variable):
     def __init__(self, parent, key):
         self.parent = parent
         self.key = key
-        name = "%s[%s,%s]" % (parent.name(), key[0], key[1])
+        name = parent.name() + "[%s,%s]" % u.Key.to_str(self.key)
         super(IndexVariable, self).__init__(name=name)
 
     # Return parent so that the parent value is updated.
@@ -60,5 +61,5 @@ class IndexVariable(Variable):
                     constraint, var_offsets, interface):
         rows = constraint.size[0]*constraint.size[1]
         horiz_offset = var_offsets[self.parent]
-        horiz_offset += self.key[0] + self.key[1]*self.parent.size[0]
+        horiz_offset += self.key[0].start + self.key[1].start*self.parent.size[0]
         interface.block_add(matrix, coeff, vert_offset, horiz_offset, rows, 1)

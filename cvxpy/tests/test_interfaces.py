@@ -48,6 +48,11 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        # index
+        mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
+        self.assertEquals( interface.index(mat, (0,1)), 3)
+        mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
+        self.assertEquals(list(mat), [2,4,4,6])
 
     # Test cvxopt sparse interface.
     def test_cvxopt_sparse(self):
@@ -73,6 +78,11 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals(type(scalar), cvxopt.spmatrix)
         scalar = interface.scalar_matrix(1, 1, 3)
         self.assertEquals(scalar.size, (1,3))
+        # index
+        mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
+        self.assertEquals( interface.index(mat, (0,1)), 3)
+        mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
+        self.assertEquals(list(mat), [2,4,4,6])
 
     # Test numpy ndarray interface.
     def test_ndarray(self):
@@ -94,12 +104,13 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals(interface.index(mat, (1,2)), 2)
         # reshape
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
-        print mat
-        print list(mat)
         mat = interface.reshape(mat, (6,1))
-        print mat
         self.assertEquals(interface.index(mat, (4,0)), 4)
-
+        # index
+        mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
+        self.assertEquals( interface.index(mat, (0,1)), 3)
+        mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
+        self.assertEquals(list(mat.flatten('C')), [2,4,4,6])
 
     # Test numpy matrix interface.
     def test_numpy_matrix(self):
@@ -121,3 +132,20 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        # index
+        mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
+        self.assertEquals( interface.index(mat, (0,1)), 3)
+        mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
+        assert not (mat - np.matrix("2 4; 4 6")).any()
+
+    # Test interface for lists.
+    def test_lists(self):
+        # index
+        mat = intf.index([[1,2,3,4],[3,4,5,6]], (slice(1,4,2), slice(0,2,None)))
+        self.assertItemsEqual(mat, [[2,4],[4,6]])
+        mat = intf.index([[1,2,3,4],[3,4,5,6]], (slice(1,4,2), slice(0,1,None)))
+        self.assertItemsEqual(mat, [2,4])
+        mat = intf.index([[1,2,3,4],[3,4,5,6]], (slice(1,2,None), slice(1,2,None)))
+        self.assertEquals(mat, 4)
+        mat = intf.index([[2],[2]], (slice(0,1,None), slice(0,1,None)))
+        self.assertEquals(mat, 2)
