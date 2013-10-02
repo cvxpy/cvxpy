@@ -97,6 +97,8 @@ G = Parameter(4,7,sign="negative")
 G.value = cvxopt.matrix(...)
 ```
 
+See [Problem Data](#problem-data) for an example problem that uses parameters.
+
 ### Expressions
 Mathematical expressions are stored in Expression objects. Variable and Parameter are subclasses of Expression. Expression objects are created from constants and other expressions. These elements are combined with arithmetic operators or passed as arguments to [Atoms](#atoms).
 
