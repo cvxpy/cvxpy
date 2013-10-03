@@ -116,10 +116,12 @@ expr = sum(expr) + norm2(x)
 TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
 Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
-### Indexing and Iteration
-All non-scalar Expression objects can be indexed using the syntax `expr[i,j]` if `expr` is a matrix and `expr[i]` if `expr` is a vector.
+### Indexing, Slicing, and Iteration
+All non-scalar Expression objects can be indexed using the syntax `expr[i,j]`. The syntax `expr[i]` can be used as a shorthand for `expr[i,0]` when `expr` is a column vector. Similarly, `expr[i]` is shorthand for `expr[0,i]` when `expr` is a row vector.
 
-Expressions are also iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
+Non-scalar Expressions can also be sliced into using the standard Python slicing syntax. Thus `expr[i:j:k,r]` selects every kth element in column r of `expr`, starting at row i and ending at row j-1.
+
+Expressions are iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
 
 ### Atoms
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
@@ -130,9 +132,6 @@ CVXPY currently supports the following atoms:
     * `norm2(x)`, the L2 norm of `x`.
     * `normInf(x)`, the Infinity norm of `x`.
     * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
-* Matrix to scalar atoms
-    * `lambda_max(X)`, the maximum eigenvalue of `X`.
-    * `lambda_min(X)`, the minimum eigenvalue of `X`.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 

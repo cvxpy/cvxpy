@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from ... import interface as intf
 from ... import utilities as u
 from variable import Variable
 
@@ -28,7 +29,8 @@ class IndexVariable(Variable):
         self.parent = parent
         self.key = key
         name = parent.name() + "[%s,%s]" % u.Key.to_str(self.key)
-        super(IndexVariable, self).__init__(name=name)
+        rows,cols = u.Key.size(self.key, self.parent)
+        super(IndexVariable, self).__init__(rows, cols, name)
 
     # Return parent so that the parent value is updated.
     def variables(self):
@@ -36,11 +38,16 @@ class IndexVariable(Variable):
 
     # Initialize the id.
     def _init_id(self):
-        self.id = self.parent.index_id(*self.key)
+        self.id = self.parent.id + "[%s,%s]" % u.Key.to_str(self.key)
 
     # Convey the parent's constraints to the canonicalization.
     def _constraints(self):
         return self.parent._constraints()
+
+    # Return a view into the parent matrix variable.
+    def index_object(self, key):
+        key = u.Key.compose_keys(key, self.key)
+        return IndexVariable(self.parent, key)
 
     # The value at the index.
     @property
@@ -50,7 +57,8 @@ class IndexVariable(Variable):
         else:
             return self.parent.value[self.key]
 
-    # Vectorizes the coefficient and adds it to the matrix.
+    # Slices into the coefficient and adds the values to 
+    # the appropriate slice of the overall matrix.
     # matrix - the coefficient matrix.
     # coeff - the coefficient for the variable.
     # vert_offset - the current vertical offset.
@@ -59,7 +67,18 @@ class IndexVariable(Variable):
     # interface - the interface for the matrix type.
     def place_coeff(self, matrix, coeff, vert_offset, 
                     constraint, var_offsets, interface):
-        rows = constraint.size[0]*constraint.size[1]
+        # Vectorize the coefficient if the variable was promoted.
+        if self.size == (1,1):
+            rows = constraint.size[0]*constraint.size[1]
+        else:
+            rows = constraint.size[0]
+        cols = self.size[0]
         horiz_offset = var_offsets[self.parent]
-        horiz_offset += self.key[0].start + self.key[1].start*self.parent.size[0]
-        interface.block_add(matrix, coeff, vert_offset, horiz_offset, rows, 1)
+        curr_col = self.key[1].start
+        while curr_col < u.Key.get_stop(self.key[1], self.parent.size[1]):
+            index_offset = curr_col*self.parent.size[0] + self.key[0].start
+            interface.block_add(matrix, coeff,
+                                vert_offset, horiz_offset + index_offset,
+                                rows, cols, horiz_step=self.key[0].step)
+            curr_col += self.key[1].step
+            vert_offset += rows

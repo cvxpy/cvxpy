@@ -365,6 +365,28 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
 
+    # Test problems with slicing.
+    def test_slicing(self):
+        p = Problem(Maximize(sum(self.C)), [self.C[1:3,:] <= 2, self.C[0,:] == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+
+        p = Problem(Maximize(sum(self.C[0:3:2,1])), 
+            [self.C[1:3,:] <= 2, self.C[0,:] == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 3)
+        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+
+        p = Problem(Maximize(sum( (self.C[0:2,:] + self.A)[:,0:2] )), 
+            [self.C[1:3,:] <= 2, self.C[0,:] == 1,
+             (self.A + self.B)[:,0] == 3, (self.A + self.B)[:,1] == 2,
+             self.B == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12)
+        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+        self.assertItemsAlmostEqual(self.A, 2*[2,1])
+
     # Test the vstack atom.
     def test_vstack(self):
         c = matrix(1, (1,5))

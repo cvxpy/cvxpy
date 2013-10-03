@@ -291,6 +291,21 @@ class TestExpressions(unittest.TestCase):
             (self.x[2,0])
         self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
 
+        # Slicing
+        exp = self.C[0:2,1]
+        self.assertEquals(exp.name(), "C[0:2,1]")
+        self.assertEquals(exp.size, (2,1))
+        exp = self.C[0:,0:2]
+        self.assertEquals(exp.name(), "C[0:,0:2]")
+        self.assertEquals(exp.size, (3,2))
+        exp = self.C[0::2,0::2]
+        self.assertEquals(exp.name(), "C[0::2,0::2]")
+        self.assertEquals(exp.size, (2,1))
+        exp = self.C[:3,:1:2]
+        self.assertEquals(exp.name(), "C[0:3,0]")
+        self.assertEquals(exp.size, (3,1))
+
+
         c = Constant([[1,-2],[0,4]])
         exp = c[1,1]
         print exp

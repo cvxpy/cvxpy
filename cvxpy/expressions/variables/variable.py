@@ -72,11 +72,7 @@ class Variable(leaf.Leaf):
     def variables(self):
         return [self]
 
-    # The id of the view at the given index.
-    def index_id(self, row, col):
-        return "%s[%s,%s]" % (self.id, row, col)
-
-    # Return a scalar view into a matrix variable.
+    # Return a view into a matrix variable.
     def index_object(self, key):
         return types.index_variable()(self, key)
 

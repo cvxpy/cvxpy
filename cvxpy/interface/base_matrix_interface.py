@@ -73,7 +73,8 @@ class BaseMatrixInterface(object):
         return NotImplemented
 
     # Add the block to the matrix at the given offset.
-    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols):
+    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols, 
+                  vert_step=1, horiz_step=1):
         # If the block is a scalar, promote it.
         if intf.is_scalar(block):
             block = self.scalar_matrix(intf.scalar_value(block), rows, cols)
@@ -86,4 +87,5 @@ class BaseMatrixInterface(object):
         # Ensure the block is the same type as the matrix.
         elif type(block) != type(matrix):
             block = self.const_to_matrix(block)
-        matrix[vert_offset:(rows+vert_offset), horiz_offset:(horiz_offset+cols)] += block
+        matrix[vert_offset:(rows+vert_offset):vert_step,
+               horiz_offset:(horiz_offset+cols):horiz_step] += block

@@ -52,7 +52,8 @@ ECOS = "ecos"
 ECOS_STATUS = {0: SOLVED,
                1: INFEASIBLE, 
                2: UNBOUNDED,
-               3: UNKNOWN}
+               3: UNKNOWN,
+               -1: UNKNOWN}
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS}
 
