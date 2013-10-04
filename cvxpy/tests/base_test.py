@@ -10,5 +10,5 @@ class BaseTest(unittest.TestCase):
             self.assertAlmostEqual(a[i], b[i])
 
     # Overriden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places=3):
+    def assertAlmostEqual(self, a, b, places=4):
         super(BaseTest, self).assertAlmostEqual(a,b,places=places)

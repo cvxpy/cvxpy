@@ -115,11 +115,6 @@ class Problem(object):
         G,h = self.constraints_matrix(constr_map[s.INEQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
 
-        print c
-        print A
-        print b
-        print G
-        print h
         # ECHU: get the nonlinear constraints
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
                                                x_length)
