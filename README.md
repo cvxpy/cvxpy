@@ -132,6 +132,8 @@ CVXPY currently supports the following atoms:
     * `norm2(x)`, the L2 norm of `x`.
     * `normInf(x)`, the Infinity norm of `x`.
     * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
+* Matrix to scalar atoms
+    * `sigma_max(X)`, the maximum singular value of `X`.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 
