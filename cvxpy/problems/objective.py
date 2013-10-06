@@ -45,17 +45,9 @@ class Minimize(u.Canonicalizable):
     def name(self):
         return ' '.join([self.NAME, self.expr.name()])
 
-    # Create a new objective to handle constants in the original objective.
-    # Raise exception if the original objective is not scalar.
+    # Pass on the target expression's objective and constraints.
     def canonicalize(self):
-        obj,constraints = self.expr.canonical_form()
-        # ECHU: don't introduce new variables if the objective is *already
-        # affine*.
-        if isinstance(obj, AffObjective):
-            return (obj, constraints)
-        else:
-            t,dummy = Variable().canonical_form()
-            return (t, constraints + [AffEqConstraint(t, obj)])
+        return self.expr.canonical_form()
 
     # Objective must be convex.
     def is_dcp(self):

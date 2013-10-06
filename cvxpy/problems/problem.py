@@ -41,8 +41,6 @@ class Problem(object):
     """
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
-    # Simulated variable id dict for constant.
-    CONSTANT_ID = {s.CONSTANT:0}
     # objective - the problem objective.
     # constraints - the problem constraints.
     def __init__(self, objective, constraints=[]):
@@ -110,18 +108,11 @@ class Problem(object):
                                               constr_map[s.EQ] + constr_map[s.INEQ])
        
         c,obj_offset = self.constraints_matrix([objective], var_offsets, x_length,
-                                    self.dense_interface, self.dense_interface)
+                                               self.dense_interface, self.dense_interface)
         A,b = self.constraints_matrix(constr_map[s.EQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
         G,h = self.constraints_matrix(constr_map[s.INEQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
-        
-        # print c
-        # print A
-        # print b
-        # print G
-        # print h
-        # print dims
 
         # ECHU: get the nonlinear constraints
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
@@ -161,7 +152,6 @@ class Problem(object):
                 
             # ECHU: end conversion
             results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
-            #results = ecos.ecos(c,G,h,dims,A,b)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
         
