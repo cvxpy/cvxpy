@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import Semidefinite
+from cvxpy.expressions.variables import SemidefVar
 import numpy as np
 from base_test import BaseTest
 import unittest
@@ -42,30 +42,12 @@ def trace(X):
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
-        self.X = Semidefinite(1)
+        self.X = SemidefVar(1)
         self.F = 1# np.matrix([[1,0],[0,-1]])
 
-    def test_log_problem(self):
-        pass
-        # # SDP in objective.
-        # obj = Minimize( square(self.X - self.F) )
-        # p = Problem(obj,[])
-        # result = p.solve()
-        # self.assertAlmostEqual(result, 1)
-        # print self.x.value
-        # self.assertItemsAlmostEqual(self.x.value, [1,math.e])
-        # 
-        # # Log in constraint.
-        # obj = Minimize(sum(self.x))
-        # constr = [log(self.x) >= 0, self.x <= [1,1]]
-        # p = Problem(obj, constr)
-        # result = p.solve()
-        # self.assertAlmostEqual(result, 2)
-        # self.assertItemsAlmostEqual(self.x.value, [1,1])
-        # 
-        # # Index into log.
-        # obj = Maximize(log(self.x)[1])
-        # constr = [self.x <= [1,math.e]]
-        # p = Problem(obj,constr)
-        # result = p.solve()
-        # self.assertAlmostEqual(result, 1)
+    def test_sdp_problem(self):
+        # SDP in objective.
+        obj = Minimize( square(self.X - self.F) )
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)

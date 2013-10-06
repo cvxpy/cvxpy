@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import interface as intf
+from .. import utilities as u
 from affine import AffLeqConstraint
 
 class SOC(object):
@@ -28,8 +29,8 @@ class SOC(object):
     # x - an affine expression or objective.
     # t - an affine expression or objective.
     def __init__(self, t, x):
-        self.x = x
-        self.t = t
+        self.x = u.Affine.cast_as_affine(x)
+        self.t = u.Affine.cast_as_affine(t)
         super(SOC, self).__init__()
 
     # Formats SOC constraints for the solver.

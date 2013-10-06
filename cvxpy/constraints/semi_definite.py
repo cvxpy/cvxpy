@@ -31,7 +31,7 @@ class SDP(object):
     """
     # A - an affine expression or objective.
     def __init__(self, A):
-        self.A = A
+        self.A = u.Affine.cast_as_affine(A)
         super(SDP, self).__init__()
 
     # Formats SDP constraints for the solver.

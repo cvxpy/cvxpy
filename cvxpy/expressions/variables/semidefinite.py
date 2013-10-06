@@ -20,13 +20,13 @@ from . variable import Variable
 from .. affine import AffObjective
 from ... constraints.semi_definite import SDP
 
-class Semidefinite(Variable):
+class SemidefVar(Variable):
     """ A semidefinite variable. """
     def __init__(self, n=1, name=None):
-        super(Semidefinite, self).__init__(n,n,name)
+        super(SemidefVar, self).__init__(n,n,name)
     
     # A semidefinite variable is no different from a normal variable except
     # that it adds an SDP constraint on the variable.
     def _constraints(self):
         # ECHU: sad face, when used in expressions this fails
-        return [SDP(self)]
+        return [SDP(self._objective())]
