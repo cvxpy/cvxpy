@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, Eric Chu
 
 This file is part of CVXPY.
 
@@ -16,8 +16,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+from . variable import Variable
+from .. affine import AffObjective
+from ... constraints.semi_definite import SDP
 
-from index_variable import IndexVariable
-from transpose_variable import TransposeVariable
-from variable import Variable
-from semidefinite import Semidefinite
+class Semidefinite(Variable):
+    """ A semidefinite variable. """
+    def __init__(self, n=1, name=None):
+        super(Semidefinite, self).__init__(n,n,name)
+    
+    # A semidefinite variable is no different from a normal variable except
+    # that it adds an SDP constraint on the variable.
+    def _constraints(self):
+        # ECHU: sad face, when used in expressions this fails
+        return [SDP(self)]
