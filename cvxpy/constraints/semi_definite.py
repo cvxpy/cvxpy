@@ -23,9 +23,11 @@ from ..expressions.variables import Variable
 from affine import AffEqConstraint, AffLeqConstraint
 
 class SDP(object):
-    """ 
+    """
     A semi-definite cone constraint:
-        x.T*A*x >= 0 for all x
+        { symmetric A | x.T*A*x >= 0 for all x }
+    (the set of all symmetric matrices such that the quadratic
+    form x.T*A*x is positive for all x).
     """
     # A - an affine expression or objective.
     def __init__(self, A):
