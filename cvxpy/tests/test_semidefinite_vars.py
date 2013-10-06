@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy import *
 from cvxpy.expressions.variables import SDPVar
+from cvxopt import matrix
 import numpy as np
 from base_test import BaseTest
 import unittest
@@ -44,7 +45,7 @@ class TestSemidefiniteVariable(BaseTest):
     def setUp(self):
         self.X = SDPVar(2)
         self.Y = Variable(2,2)
-        self.F = np.matrix([[1,0],[0,-1]])
+        self.F = matrix([[1,0],[0,-1]], tc='d')
 
     def test_sdp_problem(self):
         # SDP in objective.
