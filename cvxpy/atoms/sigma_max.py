@@ -50,7 +50,7 @@ class sigma_max(Atom):
     def graph_implementation(var_args, size):
         A = var_args[0] # m by n matrix.
         n,m = A.size
-        # Create a matrix with schur complement I*t - A.T*A.
+        # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = Variable(n+m, n+m)
         t = Variable().canonical_form()[0]
         I_n = Constant(np.eye(n)).canonical_form()[0]

@@ -126,6 +126,8 @@ class AffObjective(u.Affine):
         return terms
 
 
+    # Returns an (AffineObjective, [AffineConstraints]) tuple
+    # representing the tranpose.
     @property
     def T(self):
         A = types.variable()(*self.size)
@@ -150,7 +152,7 @@ class AffObjective(u.Affine):
     #             equality_terms.append(mults)
     #     # Create a new variable for the equality terms.
     #     vars = self.variables_from_terms(transpose_terms)
-    #     new_obj = AffObjective(vars, transpose_terms, self._shape)
+    #     new_obj = AffObjective(vars, transpose_terms, u.Shape(self.size[1],self.size[0]))
     #     if len(equality_terms) > 0:
     #         x = types.variable()(*self.size)
     #         x_obj = x.canonical_form()[0]

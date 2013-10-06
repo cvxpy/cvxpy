@@ -458,6 +458,12 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
+    # # Test that symmetry is enforced.
+    # def test_sdp_symmetry(self):
+    #     p = Problem(Minimize(lambda_max(self.A)), [self.A >= 2])
+    #     result = p.solve()
+    #     self.assertItemsAlmostEqual(self.A.value, self.A.value.T)
+
     # Test SDP
     # def test_sdp(self):
     #     # Ensure sdp constraints enforce transpose.

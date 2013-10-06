@@ -26,25 +26,18 @@ from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
 
-class lambda_max(Atom):
-    """ Maximum eigenvalue. """
+class normNuc(Atom):
+    """ Sum of the singular values. """
     def __init__(self, A):
-        super(lambda_max, self).__init__(A)
+        super(normNuc, self).__init__(A)
 
     # Resolves to a scalar.
     def set_shape(self):
-        self.validate_arguments()
         self._shape = u.Shape(1,1)
-
-    # Verify that the argument A is square.
-    def validate_arguments(self):
-        if not self.args[0].size[0] == self.args[0].size[1]:
-            raise TypeError("The argument '%s' to lambda_max must resolve to a square matrix." 
-                % self.args[0].name())
 
     # Always unknown.
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
+        return u.Sign.POSITIVE
 
     # Default curvature.
     def base_curvature(self):
@@ -55,12 +48,18 @@ class lambda_max(Atom):
     
     @staticmethod
     def graph_implementation(var_args, size):
-        A = var_args[0]
-        # Requires that A is symmetric.
-        # X = Variable(*A.size)
-        # X_obj = X.canonical_form()[0]
-        # constraints = [AffEqConstraint(X[i+1:,i].T, X[i,i+1:]) for i in range(A.size[0]-1)]
-        # SDP constraint.
-        t = Variable().canonical_form()[0]
-        I = Constant(np.eye(*A.size)).canonical_form()[0]
-        return (t, [SDP(I*t - A)])
+        A = var_args[0] # m by n matrix.
+        n,m = A.size
+        # Create the equivalent problem:
+        #   minimize (trace(U) + trace(V))/2
+        #   subject to:
+        #            [U A; A.T V] is positive semidefinite
+        X = Variable(n+m, n+m)
+        # Expand A.T.
+        obj,constraints = A.T
+        # Fix X using the fact that A must be affine by the DCP rules.
+        constraints += [AffEqConstraint(X[0:n,n:n+m], A),
+                        AffEqConstraint(X[n:n+m,0:n], obj)]
+        trace = 0.5*sum([X[i,i] for i in range(n+m)])
+        # Add SDP constraint.
+        return (trace, [SDP(X)] + constraints)

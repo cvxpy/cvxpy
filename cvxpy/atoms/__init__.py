@@ -28,6 +28,7 @@ from neg import neg
 from norm1 import norm1
 from norm2 import norm2
 from norm_inf import normInf
+from norm_nuc import normNuc
 from pos import pos
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max

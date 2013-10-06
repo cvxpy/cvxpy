@@ -22,15 +22,19 @@ class Device(object):
     __metaclass__ = abc.ABCMeta
     """ A device on a circuit. """
     def __init__(self, pos_node, neg_node):
-        self.current = Variable()
         self.pos_node = pos_node
-        pos_node.current_flows.append(-self.current)
+        pos_node.current_flows.append(-self.current())
         self.neg_node = neg_node
-        neg_node.current_flows.append(self.current)
+        neg_node.current_flows.append(self.current())
 
     # The voltage drop on the device.
     @abc.abstractmethod
     def voltage(self):
+        return NotImplemented
+
+    # The current through the device.
+    @abc.abstractmethod
+    def current(self):
         return NotImplemented
 
     # Every path between two nodes has the same voltage drop.
@@ -40,20 +44,41 @@ class Device(object):
 class Resistor(Device):
     """ A resistor with V = R*I. """
     def __init__(self, pos_node, neg_node, resistance):
+        self._current = Variable()
         self.resistance = resistance
         super(Resistor, self).__init__(pos_node, neg_node)
 
     def voltage(self):
-        return self.resistance*self.current
+        return self.resistance*self.current()
+
+    def current(self):
+        return self._current
 
 class VoltageSource(Device):
     """ A constant source of voltage. """
     def __init__(self, pos_node, neg_node, voltage):
-        self.voltage_output = voltage
+        self._current = Variable()
+        self._voltage = voltage
         super(VoltageSource, self).__init__(pos_node, neg_node)
 
     def voltage(self):
-        return self.voltage_output
+        return self._voltage
+
+    def current(self):
+        return self._current
+
+class CurrentSource(Device):
+    """ A constant source of current. """
+    def __init__(self, pos_node, neg_node, current):
+        self._current = current
+        self._voltage = Variable()
+        super(CurrentSource, self).__init__(pos_node, neg_node)
+
+    def voltage(self):
+        return self._voltage
+
+    def current(self):
+        return self._current
 
 # Create a simple circuit and find the current and voltage.
 nodes = [Ground(),Node(),Node()]
@@ -73,4 +98,4 @@ for obj in nodes + devices:
     constraints += obj.constraints()
 # Need <= constraint so ECOS can be called.
 Problem(Minimize(0), constraints + [Variable() <= 0]).solve()
-print devices[1].current.value
+print nodes[3].voltage.value - nodes[1].voltage.value
