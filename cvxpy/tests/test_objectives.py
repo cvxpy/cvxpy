@@ -36,7 +36,8 @@ class TestObjectives(unittest.TestCase):
         self.assertEqual(obj.name(), "minimize %s" % exp.name())
         new_obj,constraints = obj.canonicalize()
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
-        self.assertEqual(len(constraints), 1)
+        # for affine objectives, there should be no constraints
+        self.assertEqual(len(constraints), 0) 
 
         with self.assertRaises(Exception) as cm:
             Minimize(self.y).canonicalize()
@@ -50,7 +51,8 @@ class TestObjectives(unittest.TestCase):
         self.assertEqual(obj.name(), "maximize %s" % exp.name())
         new_obj,constraints = obj.canonicalize()
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
-        self.assertEqual(len(constraints), 1)
+        # for affine objectives, there should be no constraints
+        self.assertEqual(len(constraints), 0) 
 
         with self.assertRaises(Exception) as cm:
             Maximize(self.y).canonicalize()

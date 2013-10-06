@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import SemidefVar
+from cvxpy.expressions.variables import SDPVar
 import numpy as np
 from base_test import BaseTest
 import unittest
@@ -42,12 +42,42 @@ def trace(X):
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
-        self.X = SemidefVar(1)
-        self.F = 1# np.matrix([[1,0],[0,-1]])
+        self.X = SDPVar(2)
+        self.Y = Variable(2,2)
+        self.F = np.matrix([[1,0],[0,-1]])
 
     def test_sdp_problem(self):
         # SDP in objective.
-        obj = Minimize( square(self.X - self.F) )
+        obj = Minimize(sum(square(self.X - self.F)))
         p = Problem(obj,[])
         result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        
+        self.assertAlmostEqual(self.X.value[0,0], 1)
+        self.assertAlmostEqual(self.X.value[0,1], 0)
+        self.assertAlmostEqual(self.X.value[1,0], 0)
+        self.assertAlmostEqual(self.X.value[1,1], 0)
+        
+        # SDP in constraint.
+        # ECHU: note to self, apparently this is a source of redundancy
+        obj = Minimize(sum(square(self.Y - self.F)))
+        p = Problem(obj, [self.Y == SDPVar(2)])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        
+        self.assertAlmostEqual(self.Y.value[0,0], 1)
+        self.assertAlmostEqual(self.Y.value[0,1], 0)
+        self.assertAlmostEqual(self.Y.value[1,0], 0)
+        self.assertAlmostEqual(self.Y.value[1,1], 0)
+        
+        # Index into semidef.
+        obj = obj = Minimize(square(self.X[0,0] - 1) + square(self.X[1,0] - 2) + square(self.X[0,1] - 3))
+        p = Problem(obj,[])
+        result = p.solve()
+        print self.X.value
         self.assertAlmostEqual(result, 0)
+        
+        self.assertAlmostEqual(self.X.value[0,0], 1)
+        self.assertAlmostEqual(self.X.value[0,1], 3)
+        self.assertAlmostEqual(self.X.value[1,0], 2)
+        self.assertAlmostEqual(self.X.value[1,1], 5.57, places=2)

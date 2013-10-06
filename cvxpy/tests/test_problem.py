@@ -75,7 +75,7 @@ class TestProblem(BaseTest):
         Problem.register_solve("test", test)
         p = Problem(Minimize(obj),[eq,eq,le,le])
         result = p.solve(method="test")
-        self.assertEqual(result, (2,1))
+        self.assertEqual(result, (1,1))
 
     # Test the is_dcp method.
     def test_is_dcp(self):
@@ -157,10 +157,10 @@ class TestProblem(BaseTest):
              self.z >= [2,2],
              self.a >= 2])
         result = p.solve()
-        self.assertAlmostEqual(result, 26)
+        self.assertAlmostEqual(result, 26, places=3)
         self.assertAlmostEqual(self.a.value, 2)
-        self.assertItemsAlmostEqual(self.x.value, [8,8])
-        self.assertItemsAlmostEqual(self.z.value, [2,2])
+        self.assertItemsAlmostEqual(self.x.value, [8,8], places=3)
+        self.assertItemsAlmostEqual(self.z.value, [2,2], places=3)
 
     # Test matrix LP problems.
     def test_matrix_lp(self):

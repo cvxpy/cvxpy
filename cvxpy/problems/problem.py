@@ -26,6 +26,7 @@ from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
 from ..constraints.semi_definite import SDP
 from ..constraints.nonlinear import NonlinearConstraint
+from .objective import Minimize, Maximize
 
 import cvxopt
 import cvxopt.solvers
@@ -108,18 +109,19 @@ class Problem(object):
         var_offsets,x_length = self.variables(objective, 
                                               constr_map[s.EQ] + constr_map[s.INEQ])
        
-        c = self.constraints_matrix([objective], var_offsets, x_length,
-                                    self.dense_interface, self.dense_interface)[0].T
+        c,obj_offset = self.constraints_matrix([objective], var_offsets, x_length,
+                                    self.dense_interface, self.dense_interface)
         A,b = self.constraints_matrix(constr_map[s.EQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
         G,h = self.constraints_matrix(constr_map[s.INEQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
-
-        print c
-        print A
-        print b
-        print G
-        print h
+        
+        # print c
+        # print A
+        # print b
+        # print G
+        # print h
+        # print dims
 
         # ECHU: get the nonlinear constraints
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
@@ -127,12 +129,12 @@ class Problem(object):
 
         if constr_map[s.NONLIN]:
             # Target cvxopt clp if nonlinear constraints exist
-            results = cvxopt.solvers.cpl(c,F,G,h,A=A,b=b,dims=dims)
+            results = cvxopt.solvers.cpl(c.T,F,G,h,A=A,b=b,dims=dims)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
             # Target cvxopt solver if SDP or invalid for ECOS.
-            results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
+            results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,dims=dims)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         else: # If possible, target ECOS.
@@ -151,12 +153,18 @@ class Problem(object):
             Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
             Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
             Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
-            Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
+            if p == 0:
+                Asp = None
+                bnp = None
+            else:
+                Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
+                
             # ECHU: end conversion
             results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
             #results = ecos.ecos(c,G,h,dims,A,b)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
+        
         if status == s.SOLVED:
             self.save_values(results['x'], sorted(var_offsets.keys()))
             self.save_values(results['y'], constr_map[s.EQ])
@@ -164,7 +172,7 @@ class Problem(object):
                 self.save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self.save_values(results['z'], constr_map[s.INEQ])
-            return self.objective.value(primal_val)
+            return self.objective.value(primal_val - obj_offset[0])
         else:
             return status
 

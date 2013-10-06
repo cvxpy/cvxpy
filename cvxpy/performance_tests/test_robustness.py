@@ -50,7 +50,7 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=6)
+            super(TestProblem, self).assertAlmostEqual(a,b,places=4)
 
     # Test large expresssions.
     def test_large_expression(self):

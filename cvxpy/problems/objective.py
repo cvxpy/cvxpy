@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import utilities as u
 from .. import interface as intf
+from ..expressions.affine import AffObjective
 from ..expressions.expression import Expression
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint
@@ -48,8 +49,13 @@ class Minimize(u.Canonicalizable):
     # Raise exception if the original objective is not scalar.
     def canonicalize(self):
         obj,constraints = self.expr.canonical_form()
-        t,dummy = Variable().canonical_form()
-        return (t, constraints + [AffEqConstraint(t, obj)])
+        # ECHU: don't introduce new variables if the objective is *already
+        # affine*.
+        if isinstance(obj, AffObjective):
+            return (obj, constraints)
+        else:
+            t,dummy = Variable().canonical_form()
+            return (t, constraints + [AffEqConstraint(t, obj)])
 
     # Objective must be convex.
     def is_dcp(self):
