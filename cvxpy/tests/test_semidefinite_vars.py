@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import SemidefVar
+from cvxpy.expressions.variables import SDPVar
 import numpy as np
 from base_test import BaseTest
 import unittest
@@ -42,7 +42,7 @@ def trace(X):
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
-        self.X = SemidefVar(1)
+        self.X = SDPVar(1)
         self.F = 1# np.matrix([[1,0],[0,-1]])
 
     def test_sdp_problem(self):
