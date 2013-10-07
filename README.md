@@ -71,7 +71,7 @@ A = Variable(4,7)
 ```
 
 ### Constants
-CVXPY allows you to use your numeric library of choice to construct problem data. Numeric constants (i.e. scalars, vectors, and matrices) may be combined with CVXPY objects in arbitrary [expressions](#expressions). For instance, if `x` is a CVXPY Variable in the expression `A*x + b`, `A` and `b` could be Numpy ndarrays, Python floats, CVXOPT matrices, etc. `A` and `b` could even be different numeric types.
+CVXPY allows you to use your numeric library of choice to construct problem data. Numeric constants (i.e. scalars, vectors, and matrices) may be combined with CVXPY objects in arbitrary [expressions](#expressions). For instance, if `x` is a CVXPY Variable in the expression `A*x + b`, `A` and `b` could be Numpy ndarrays, Python floats, CVXOPT matrices, etc. `A` and `b` could even be different types.
 
 Currently the following types may be used as constants:
 * Python numeric types
