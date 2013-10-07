@@ -121,7 +121,7 @@ Non-scalar Expressions can also be sliced into using the standard Python slicing
 Expressions are iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
 
 #### Transpose
-All Expressions can be transposed use the syntax `expr.T`.
+The transpose of any expression can be obtained using the syntax `expr.T`.
 
 ### Disciplined Convex Programming (DCP)
 TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
