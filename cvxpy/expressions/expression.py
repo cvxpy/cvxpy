@@ -26,6 +26,13 @@ from ..constraints import eq_constraint as eq
 import types
 import abc
 
+# Casts the second argument of a binary operator as an Expression.
+def cast_other(binary_op):
+    def cast_op(self, other):
+        other = Expression.cast_to_const(other)
+        return binary_op(self, other)
+    return cast_op
+
 class Expression(u.Canonicalizable):
     """
     A mathematical expression in a convex optimization problem.
@@ -108,36 +115,45 @@ class Expression(u.Canonicalizable):
             return length
 
     """ Arithmetic operators """
+    @cast_other
     def __add__(self, other):
         return types.add_expr()(self, other)
 
     # Called for Number + Expression.
+    @cast_other
     def __radd__(self, other):
-        return Expression.cast_to_const(other) + self
+        return other + self
 
+    @cast_other
     def __sub__(self, other):
         return types.sub_expr()(self, other)
 
     # Called for Number - Expression.
+    @cast_other
     def __rsub__(self, other):
-        return Expression.cast_to_const(other) - self
+        return other - self
 
+    @cast_other
     def __mul__(self, other):
         return types.mul_expr()(self, other)
 
     # Called for Number * Expression.
+    @cast_other
     def __rmul__(self, other):
-        return Expression.cast_to_const(other) * self
+        return other * self
 
     def __neg__(self):
         return types.neg_expr()(self)
 
     """ Comparison operators """
+    @cast_other
     def __eq__(self, other):
         return eq.EqConstraint(self, other)
 
+    @cast_other
     def __le__(self, other):
         return le.LeqConstraint(self, other)
 
+    @cast_other
     def __ge__(self, other):
-        return Expression.cast_to_const(other).__le__(self)
+        return other.__le__(self)

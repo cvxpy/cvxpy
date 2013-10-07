@@ -223,7 +223,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A * self.B)
-        self.assertEqual(str(cm.exception), "Cannot multiply on the left by a non-constant.")
+        self.assertEqual(str(cm.exception), "Cannot multiply two non-constants.")
 
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])

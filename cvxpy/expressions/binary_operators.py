@@ -25,7 +25,7 @@ class BinaryOperator(expression.Expression):
     """
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
-        self.rh_exp = expression.Expression.cast_to_const(rh_exp)
+        self.rh_exp = rh_exp
         # Set the sign and curvature.
         self._context = getattr(self.lh_exp._context,
                                 self.OP_FUNC)(self.rh_exp._context)
@@ -75,16 +75,16 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = "__mul__"
     def __init__(self, lh_exp, rh_exp):
-        super(MulExpression, self).__init__(lh_exp, rh_exp)
         # Left hand expression must be constant.
-        if not self.lh_exp.curvature.is_constant() and \
-           not self.rh_exp.curvature.is_constant():
-             raise Exception("Cannot multiply on the left by a non-constant.")
-            #raise Exception("Cannot multiply two non-constants.")
-        # Replace lh*rh with x, x.T == rh.T * lh.T.
-        elif not self.lh_exp.curvature.is_constant():
+        if not lh_exp.curvature.is_constant() and \
+           not rh_exp.curvature.is_constant():
+            raise Exception("Cannot multiply two non-constants.")
+        # Replace lh*rh with x, x.T == rh.T*lh.T.
+        elif not lh_exp.curvature.is_constant():
             raise Exception("Cannot multiply on the left by a non-constant.")
-
+            super(MulExpression, self).__init__(lh_exp, rh_exp)
+        else:
+            super(MulExpression, self).__init__(lh_exp, rh_exp)
 
     # Return the symbolic affine expression equal to the given index
     # in the expression.

@@ -55,8 +55,7 @@ class TransposeVariable(Variable):
         return IndexVariable(self.parent, (key[1],key[0]))
 
     # The transpose of the transpose is the original variable.
-    @property
-    def T(self):
+    def transpose(self):
         return self.parent
 
     # Splits the coefficient into columns to match the column-major order of
