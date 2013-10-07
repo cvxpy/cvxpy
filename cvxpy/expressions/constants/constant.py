@@ -63,13 +63,9 @@ class Constant(leaf.Leaf):
         return Constant(intf.index(self.value, key))
 
     # The transpose of the constant.
-    @property
-    def T(self):
-        if self.size == (1,1): # Transpose of a scalar is that scalar.
-            return self
-        else:
-            transpose_val = intf.transpose(self.value)
-            return Constant(transpose_val)
+    def transpose(self):
+        transpose_val = intf.transpose(self.value)
+        return Constant(transpose_val)
 
     # Vectorizes the coefficient and adds it to the constant vector.
     # matrix - the constant vector.

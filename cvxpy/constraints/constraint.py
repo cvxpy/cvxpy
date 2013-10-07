@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 from .. import utilities as u
+from ..expressions import types
 
 class Constraint(u.Canonicalizable):
     """
@@ -27,6 +28,19 @@ class Constraint(u.Canonicalizable):
     Stored internally as affine <=/== 0.
     """
     __metaclass__ = abc.ABCMeta
+    def __init__(self, lh_exp, rh_exp):
+        self.lh_exp = lh_exp
+        self.rh_exp = types.expression().cast_to_const(rh_exp)
+        super(Constraint, self).__init__()
+
+    def name(self):
+        return ' '.join([self.lh_exp.name(), 
+                         self.OP_NAME, 
+                         self.rh_exp.name()])
+
+    def __repr__(self):
+        return self.name()
+
     # Is the constraint DCP compliant?
     @abc.abstractmethod
     def is_dcp(self):
