@@ -114,6 +114,15 @@ class Expression(u.Canonicalizable):
         else:
             return length
 
+    # The transpose of the expression.
+    @property
+    def T(self):
+        if self.size == (1,1): # Transpose of a scalar is that scalar.
+            return self
+        else:
+            # TODO make abstract method (vstack)
+            return self.transpose()
+
     """ Arithmetic operators """
     @cast_other
     def __add__(self, other):
@@ -135,6 +144,10 @@ class Expression(u.Canonicalizable):
 
     @cast_other
     def __mul__(self, other):
+        # Cannot multiply two non-constant expressions.
+        if not self.curvature.is_constant() and \
+           not other.curvature.is_constant():
+            raise Exception("Cannot multiply two non-constants.")
         return types.mul_expr()(self, other)
 
     # Called for Number * Expression.

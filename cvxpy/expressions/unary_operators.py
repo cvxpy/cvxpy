@@ -22,6 +22,10 @@ class UnaryOperator(expression.Expression):
     def index_object(self, key):
         return getattr(self.expr[key], self.OP_FUNC)()
 
+    # The transpose of the unary operator.
+    def transpose(self):
+        return getattr(self.expr.T, self.OP_FUNC)()
+
 class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = "__neg__"

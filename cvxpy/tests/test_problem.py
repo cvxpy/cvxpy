@@ -458,6 +458,45 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
+        p = Problem(Minimize(sum(self.x)), [(-self.x).T <= 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+
+        c = matrix([1,-1])
+        p = Problem(Minimize(max(c.T, 2, 2 + c.T)[1]))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+
+        c = matrix([[1,-1,2],[1,-1,2]])
+        p = Problem(Minimize(sum(max(c, 2, 2 + c).T[:,0])))
+        result = p.solve()
+        self.assertAlmostEqual(result, 6)
+
+        c = matrix([[1,-1,2],[1,-1,2]])
+        p = Problem(Minimize(sum(square(c.T).T[:,0])))
+        result = p.solve()
+        self.assertAlmostEqual(result, 6)
+
+    # Test multiplication on the left by a non-constant.
+    def test_multiplication_on_left(self):
+        c = matrix([1,2])
+        p = Problem(Minimize(c.T*self.A*c), [self.A >= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 18)
+
+        p = Problem(Minimize(self.a*2), [self.a >= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 4)
+
+        p = Problem(Minimize(self.x.T*c), [self.x >= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 6)
+
+        p = Problem(Minimize((self.x.T + self.z.T)*c), 
+            [self.x >= 2, self.z >= 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 9)
+
     # # Test that symmetry is enforced.
     # def test_sdp_symmetry(self):
     #     p = Problem(Minimize(lambda_max(self.A)), [self.A >= 2])

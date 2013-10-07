@@ -17,9 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import expression
+from expression import Expression
+from variables import Variable
 
-class BinaryOperator(expression.Expression):
+class BinaryOperator(Expression):
     """
     Base class for expressions involving binary operators.
     """
@@ -44,6 +45,10 @@ class BinaryOperator(expression.Expression):
         if promoted is not None:
             return promoted
         return getattr(self.lh_exp[key], self.OP_FUNC)(self.rh_exp[key])
+
+    # The transpose of the binary operator.
+    def transpose(self):
+        return getattr(self.lh_exp.T, self.OP_FUNC)(self.rh_exp.T)
 
     # Handle promoted scalars.
     def promoted_index_object(self, key):
@@ -74,24 +79,27 @@ class SubExpression(BinaryOperator):
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = "__mul__"
-    def __init__(self, lh_exp, rh_exp):
-        # Left hand expression must be constant.
-        if not lh_exp.curvature.is_constant() and \
-           not rh_exp.curvature.is_constant():
-            raise Exception("Cannot multiply two non-constants.")
-        # Replace lh*rh with x, x.T == rh.T*lh.T.
-        elif not lh_exp.curvature.is_constant():
-            raise Exception("Cannot multiply on the left by a non-constant.")
-            super(MulExpression, self).__init__(lh_exp, rh_exp)
-        else:
-            super(MulExpression, self).__init__(lh_exp, rh_exp)
 
     # Return the symbolic affine expression equal to the given index
     # in the expression.
     def index_object(self, key):
-        # Scalar multiplication
+        # Scalar multiplication.
         promoted = self.promoted_index_object(key)
         if promoted is not None:
             return promoted
         # Matrix multiplication.
-        return self.lh_exp[key[0],:] * self.rh_exp[:,key[1]]
+        return self.lh_exp[key[0],:]*self.rh_exp[:,key[1]]
+
+    # The transpose of the binary operator.
+    def transpose(self):
+        return self.rh_exp.T*self.lh_exp.T
+
+    # If left-hand side is non-constant, replace lh*rh with x, x.T == rh.T*lh.T.
+    def canonicalize(self):
+        if not self.lh_exp.curvature.is_constant():
+            x = Variable(*self.size)
+            obj = x.canonical_form()[0]
+            constraints = (x.T == self.rh_exp.T*self.lh_exp.T).canonical_form()[1]
+            return (obj, constraints)
+        else:
+            return super(MulExpression, self).canonicalize()
