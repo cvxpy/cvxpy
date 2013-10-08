@@ -14,18 +14,17 @@ class Node(object):
 
 class Ground(Node):
     """ A node at 0 volts. """
-    def __init__(self):
-        self.voltage = 0
-        self.current_flows = []
-
+    def constraints(self):
+        return [self.voltage == 0] + super(Ground, self).constraints()
+    
 class Device(object):
     __metaclass__ = abc.ABCMeta
     """ A device on a circuit. """
     def __init__(self, pos_node, neg_node):
         self.pos_node = pos_node
-        pos_node.current_flows.append(-self.current())
+        self.pos_node.current_flows.append(self.current())
         self.neg_node = neg_node
-        neg_node.current_flows.append(self.current())
+        self.neg_node.current_flows.append(-self.current())
 
     # The voltage drop on the device.
     @abc.abstractmethod
@@ -49,7 +48,7 @@ class Resistor(Device):
         super(Resistor, self).__init__(pos_node, neg_node)
 
     def voltage(self):
-        return self.resistance*self.current()
+        return -self.resistance*self.current()
 
     def current(self):
         return self._current
@@ -98,4 +97,3 @@ for obj in nodes + devices:
     constraints += obj.constraints()
 # Need <= constraint so ECOS can be called.
 Problem(Minimize(0), constraints + [Variable() <= 0]).solve()
-print nodes[3].voltage.value - nodes[1].voltage.value
