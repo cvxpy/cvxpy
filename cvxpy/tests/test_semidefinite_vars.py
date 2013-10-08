@@ -49,9 +49,12 @@ class TestSemidefiniteVariable(BaseTest):
 
     def test_sdp_problem(self):
         # SDP in objective.
+        # ECHU: this creates 4 separate SDPs, one for each elem in the matrix
         obj = Minimize(sum(square(self.X - self.F)))
         p = Problem(obj,[])
         result = p.solve()
+        print self.X.value
+        print self.F
         self.assertAlmostEqual(result, 1)
         
         self.assertAlmostEqual(self.X.value[0,0], 1)
@@ -60,7 +63,6 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.X.value[1,1], 0)
         
         # SDP in constraint.
-        # ECHU: note to self, apparently this is a source of redundancy
         obj = Minimize(sum(square(self.Y - self.F)))
         p = Problem(obj, [self.Y == SDPVar(2)])
         result = p.solve()
@@ -71,14 +73,15 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.Y.value[1,0], 0)
         self.assertAlmostEqual(self.Y.value[1,1], 0)
         
+        
         # Index into semidef.
-        obj = obj = Minimize(square(self.X[0,0] - 1) + square(self.X[1,0] - 2) + square(self.X[0,1] - 3))
-        p = Problem(obj,[])
+        # ECHU: this creates 4 separate SDPs, one for each elem in the matrix
+        obj = obj = Minimize(abs(self.X[0,0] - 1) + abs(self.X[1,0] - 2))
+        p = Problem(obj, [self.X == self.X.T])#[self.X[0,1] == self.X[1,0]])#[self.X == self.X.T])
         result = p.solve()
-        print self.X.value
         self.assertAlmostEqual(result, 0)
         
         self.assertAlmostEqual(self.X.value[0,0], 1)
-        self.assertAlmostEqual(self.X.value[0,1], 3)
+        self.assertAlmostEqual(self.X.value[0,1], 2)
         self.assertAlmostEqual(self.X.value[1,0], 2)
-        self.assertAlmostEqual(self.X.value[1,1], 5.57, places=2)
+        self.assertAlmostEqual(self.X.value[1,1], 6.92, places=2)
