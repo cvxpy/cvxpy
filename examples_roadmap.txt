@@ -12,7 +12,7 @@ examples:
         machine learning
         flows
         control
-            MPC
+            - MPC
         filter design
         multiprocessor
             - regularization path
