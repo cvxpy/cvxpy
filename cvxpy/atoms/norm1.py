@@ -22,7 +22,7 @@ from .. import utilities as u
 from ..expressions import types
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from abs import abs
+from elementwise.abs import abs
 
 class norm1(Atom):
     """ L1 norm sum(|x|) """

@@ -71,17 +71,21 @@ A = Variable(4,7)
 ```
 
 ### Constants
-The following types may be used as constants:
+CVXPY allows you to use your numeric library of choice to construct problem data. Numeric constants (i.e. scalars, vectors, and matrices) may be combined with CVXPY objects in arbitrary [expressions](#expressions). For instance, if `x` is a CVXPY Variable in the expression `A*x + b`, `A` and `b` could be Numpy ndarrays, Python floats, CVXOPT matrices, etc. `A` and `b` could even be different types.
+
+Currently the following types may be used as constants:
 * Python numeric types
 * CVXOPT dense matrices
 * CVXOPT sparse matrices
-* Numpy ndarrays
-* Numpy matrices
+* Numpy ndarrays (see [Problem Data](#problem-data))
+* Numpy matrices (see [Problem Data](#problem-data))
 
 Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
 
 ### Parameters
-Parameters are symbolic representations of constants. Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created.
+Parameters are symbolic representations of constants. Parameters should only be used in special cases. The purpose of Parameters is to change the value of a constant in a problem without reconstructing the entire problem. For example, to efficiently solve `Problem(Minimize(expr1 + gamma*expr2), constraints)` for many different values of `gamma`, make `gamma` a Parameter. See [Problem Data](#problem-data) for an example problem that uses parameters.
+
+Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created.
 
 ```
 # Positive scalar parameter.
@@ -97,8 +101,6 @@ G = Parameter(4,7,sign="negative")
 G.value = cvxopt.matrix(...)
 ```
 
-See [Problem Data](#problem-data) for an example problem that uses parameters.
-
 ### Expressions
 Mathematical expressions are stored in Expression objects. Variable and Parameter are subclasses of Expression. Expression objects are created from constants and other expressions. These elements are combined with arithmetic operators or passed as arguments to [Atoms](#atoms).
 
@@ -112,16 +114,20 @@ expr = expr - a
 expr = sum(expr) + norm2(x)
 ```
 
-### Disciplined Convex Programming (DCP)
-TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
-Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
-
-### Indexing, Slicing, and Iteration
+#### Indexing and Slicing
 All non-scalar Expression objects can be indexed using the syntax `expr[i,j]`. The syntax `expr[i]` can be used as a shorthand for `expr[i,0]` when `expr` is a column vector. Similarly, `expr[i]` is shorthand for `expr[0,i]` when `expr` is a row vector.
 
 Non-scalar Expressions can also be sliced into using the standard Python slicing syntax. Thus `expr[i:j:k,r]` selects every kth element in column r of `expr`, starting at row i and ending at row j-1.
 
+#### Iteration
 Expressions are iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
+
+#### Transpose
+The transpose of any expression can be obtained using the syntax `expr.T`.
+
+### Disciplined Convex Programming (DCP)
+TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
+Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
 ### Atoms
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 

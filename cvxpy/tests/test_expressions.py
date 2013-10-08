@@ -223,7 +223,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A * self.B)
-        self.assertEqual(str(cm.exception), "Cannot multiply on the left by a non-constant.")
+        self.assertEqual(str(cm.exception), "Cannot multiply two non-constants.")
 
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])
@@ -351,7 +351,7 @@ class TestExpressions(unittest.TestCase):
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.x)[1,0]
-        self.assertEqual(exp.name(), "2 * x[0,0] + 4 * x[1,0]")
+        self.assertEqual(exp.name(), "[[2], [4]] * x[0:,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 

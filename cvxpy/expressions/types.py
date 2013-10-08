@@ -45,3 +45,19 @@ def expression():
 def aff_obj():
     import affine
     return affine.AffObjective
+
+def add_expr():
+    import binary_operators
+    return binary_operators.AddExpression
+
+def sub_expr():
+    import binary_operators
+    return binary_operators.SubExpression
+
+def mul_expr():
+    import binary_operators
+    return binary_operators.MulExpression
+
+def neg_expr():
+    import unary_operators
+    return unary_operators.NegExpression

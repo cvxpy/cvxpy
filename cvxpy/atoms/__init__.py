@@ -17,23 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from abs import abs
 from geo_mean import geo_mean
-from inv_pos import inv_pos
+
 from lambda_max import lambda_max
 from lambda_min import lambda_min
-from max import max
-from min import min
-from neg import neg
 from norm1 import norm1
 from norm2 import norm2
 from norm_inf import normInf
 from norm_nuc import normNuc
-from pos import pos
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
-from sqrt import sqrt
-from square import square
 from vstack import vstack
+
+from elementwise.abs import abs
+from elementwise.inv_pos import inv_pos
+from elementwise.max import max
+from elementwise.min import min
+from elementwise.neg import neg
+from elementwise.pos import pos
+from elementwise.sqrt import sqrt
+from elementwise.square import square
 
 from nonlinear.log import log

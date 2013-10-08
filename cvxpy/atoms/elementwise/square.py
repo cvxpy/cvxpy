@@ -17,15 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from quad_over_lin import quad_over_lin
+from elementwise import Elementwise
+from ..quad_over_lin import quad_over_lin
+from ... import utilities as u
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...constraints.affine import AffEqConstraint, AffLeqConstraint
 
-class square(Atom):
+class square(Elementwise):
     """ Elementwise square """
     def __init__(self, x):
         super(square, self).__init__(x)
@@ -57,7 +57,3 @@ class square(Atom):
             obj,constr = quad_over_lin.graph_implementation([xi,one],(1,1))
             constraints += constr + [AffEqConstraint(obj, ti)]
         return (t, constraints)
-
-    # Return the absolute value of the argument at the given index.
-    def index_object(self, key):
-        return square(self.x[key])

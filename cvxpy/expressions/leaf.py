@@ -45,3 +45,8 @@ class Leaf(expression.Expression, u.Affine):
     @abc.abstractmethod
     def coefficients(self, interface):
         return NotImplemented
+        
+    # Returns the tranpose of the non-scalar leaf.
+    @abc.abstractmethod
+    def transpose(self):
+        return NotImplemented

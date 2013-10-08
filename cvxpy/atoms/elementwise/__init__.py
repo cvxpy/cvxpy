@@ -16,18 +16,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import abc
-from .. import utilities as u
-
-class Constraint(u.Canonicalizable):
-    """
-    A constraint on an optimization problem of the form
-    affine == affine or affine <= affine.
-    Stored internally as affine <=/== 0.
-    """
-    __metaclass__ = abc.ABCMeta
-    # Is the constraint DCP compliant?
-    @abc.abstractmethod
-    def is_dcp(self):
-        return NotImplemented

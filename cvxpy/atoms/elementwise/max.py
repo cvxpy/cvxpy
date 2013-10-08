@@ -17,14 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
+from elementwise import Elementwise
+from ... import utilities as u
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...constraints.affine import AffEqConstraint, AffLeqConstraint
 
-class max(Atom):
+class max(Elementwise):
     """ Elementwise maximum. """
     # The shape is the common shape of all the arguments.
     def set_shape(self):
@@ -62,13 +62,3 @@ class max(Atom):
         t = Variable(*size)
         constraints = [AffLeqConstraint(x, t) for x in var_args]
         return (t, constraints)
-
-    # Return the max of the arguments' elements at the given index.
-    def index_object(self, key):
-        args = []
-        for arg in self.args:
-            if arg.size == (1,1):
-                args.append(arg)
-            else:
-                args.append(arg[key])
-        return self.__class__(*args)

@@ -18,14 +18,23 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import interface as intf
-from ..expressions.operators import BinaryOperator
+from .. import utilities as u
 from ..expressions import types
-from constraint import Constraint
 from affine import AffEqConstraint, AffLeqConstraint
 
-class LeqConstraint(BinaryOperator, Constraint):
+class LeqConstraint(u.Canonicalizable):
     OP_NAME = "<="
     interface = intf.DEFAULT_INTERFACE
+    def __init__(self, lh_exp, rh_exp):
+        self.lh_exp = lh_exp
+        self.rh_exp = rh_exp
+        super(LeqConstraint, self).__init__()
+
+    def name(self):
+        return ' '.join([self.lh_exp.name(), 
+                         self.OP_NAME, 
+                         self.rh_exp.name()])
+
     def __repr__(self):
         return self.name()
 

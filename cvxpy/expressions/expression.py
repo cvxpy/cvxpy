@@ -23,9 +23,15 @@ from .. import utilities as u
 from .. import interface as intf
 from ..constraints import leq_constraint as le
 from ..constraints import eq_constraint as eq
-from operators import BinaryOperator, UnaryOperator
 import types
 import abc
+
+# Casts the second argument of a binary operator as an Expression.
+def cast_other(binary_op):
+    def cast_op(self, other):
+        other = Expression.cast_to_const(other)
+        return binary_op(self, other)
+    return cast_op
 
 class Expression(u.Canonicalizable):
     """
@@ -108,106 +114,59 @@ class Expression(u.Canonicalizable):
         else:
             return length
 
+    # The transpose of the expression.
+    @property
+    def T(self):
+        if self.size == (1,1): # Transpose of a scalar is that scalar.
+            return self
+        else:
+            # TODO make abstract method (vstack)
+            return self.transpose()
+
     """ Arithmetic operators """
+    @cast_other
     def __add__(self, other):
-        return AddExpression(self, other)
+        return types.add_expr()(self, other)
 
     # Called for Number + Expression.
+    @cast_other
     def __radd__(self, other):
-        return Expression.cast_to_const(other) + self
+        return other + self
 
+    @cast_other
     def __sub__(self, other):
-        return SubExpression(self, other)
+        return types.sub_expr()(self, other)
 
     # Called for Number - Expression.
+    @cast_other
     def __rsub__(self, other):
-        return Expression.cast_to_const(other) - self
+        return other - self
 
+    @cast_other
     def __mul__(self, other):
-        return MulExpression(self, other)
+        # Cannot multiply two non-constant expressions.
+        if not self.curvature.is_constant() and \
+           not other.curvature.is_constant():
+            raise Exception("Cannot multiply two non-constants.")
+        return types.mul_expr()(self, other)
 
     # Called for Number * Expression.
+    @cast_other
     def __rmul__(self, other):
-        return Expression.cast_to_const(other) * self
+        return other * self
 
     def __neg__(self):
-        return NegExpression(self)
+        return types.neg_expr()(self)
 
     """ Comparison operators """
+    @cast_other
     def __eq__(self, other):
         return eq.EqConstraint(self, other)
 
+    @cast_other
     def __le__(self, other):
         return le.LeqConstraint(self, other)
 
+    @cast_other
     def __ge__(self, other):
-        return Expression.cast_to_const(other).__le__(self)
-
-
-class AddExpression(BinaryOperator, Expression):
-    OP_NAME = "+"
-    OP_FUNC = "__add__"
-    def __init__(self, lh_exp, rh_exp):
-        super(AddExpression, self).__init__(lh_exp, rh_exp)
-        self.set_context()
-
-    # Set the sign and curvature.
-    def set_context(self):
-        self._context = getattr(self.lh_exp._context,
-                                self.OP_FUNC)(self.rh_exp._context)
-
-    # Return the symbolic affine expression equal to the given index
-    # into the expression.
-    def index_object(self, key):
-        # Scalar promotion
-        promoted = self.promoted_index_object(key)
-        if promoted is not None:
-            return promoted
-        return getattr(self.lh_exp[key], self.OP_FUNC)(self.rh_exp[key])
-
-    # Handle promoted scalars.
-    def promoted_index_object(self, key):
-        if self.lh_exp.size == (1,1):
-            return getattr(self.lh_exp, self.OP_FUNC)(self.rh_exp[key])
-        elif self.rh_exp.size == (1,1):
-            return getattr(self.lh_exp[key], self.OP_FUNC)(self.rh_exp)
-        else:
-            return None
-
-    # Canonicalize both sides, concatenate the constraints,
-    # and apply the appropriate arithmetic operator to
-    # the two objectives.
-    def canonicalize(self):
-        lh_obj,lh_constraints = self.lh_exp.canonical_form()
-        rh_obj,rh_constraints = self.rh_exp.canonical_form()
-        obj = getattr(lh_obj, self.OP_FUNC)(rh_obj)
-        return (obj,lh_constraints + rh_constraints)
-
-class SubExpression(AddExpression, Expression):
-    OP_NAME = "-"
-    OP_FUNC = "__sub__"
-
-class MulExpression(AddExpression, Expression):
-    OP_NAME = "*"
-    OP_FUNC = "__mul__"
-    def __init__(self, lh_exp, rh_exp):
-        super(MulExpression, self).__init__(lh_exp, rh_exp)
-        # Left hand expression must be constant.
-        if not self.lh_exp.curvature.is_constant():
-            raise Exception("Cannot multiply on the left by a non-constant.")
-
-    # Return the symbolic affine expression equal to the given index
-    # in the expression.
-    def index_object(self, key):
-        # Scalar multiplication
-        promoted = self.promoted_index_object(key)
-        if promoted is not None:
-            return promoted
-        # Matrix multiplication.
-        i_vals = range(self.lh_exp.size[1])
-        gen = (self.lh_exp[key[0],i] * self.rh_exp[i,key[1]] for i in i_vals)
-        return reduce(lambda x,y: x+y, gen)
-
-class NegExpression(UnaryOperator, Expression):
-    OP_NAME = "-"
-    OP_FUNC = "__neg__"
+        return other.__le__(self)

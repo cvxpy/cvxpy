@@ -17,22 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from geo_mean import geo_mean
+from elementwise import Elementwise
+from ... import utilities as u
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...constraints.affine import AffEqConstraint, AffLeqConstraint
 
-class sqrt(Atom):
-    """ Elementwise square root """
-    def __init__(self, x):
-        super(sqrt, self).__init__(x)
-        # Args are all indexes into x.
-        self.x = self.args[0]
-        self.args = [xi for xi in self.x]
-
+class abs(Elementwise):
+    """ Elementwise absolute value """
     # The shape is the same as the argument's shape.
     def set_shape(self):
         self._shape = u.Shape(*self.args[0].size)
@@ -43,21 +36,15 @@ class sqrt(Atom):
 
     # Default curvature.
     def base_curvature(self):
-        return u.Curvature.CONCAVE
+        return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.INCREASING]
+        return [u.Monotonicity.SIGNED]
     
     @staticmethod
     def graph_implementation(var_args, size):
+        x = var_args[0]
         t = Variable(*size)
-        constraints = []
-        one,dummy = types.constant()(1).canonical_form()
-        for ti,xi in zip(t,var_args):
-            obj,constr = geo_mean.graph_implementation([xi,one],(1,1))
-            constraints += constr + [AffEqConstraint(obj, ti)]
+        constraints = [AffLeqConstraint(-t, x), 
+                       AffLeqConstraint(x, t)]
         return (t, constraints)
-
-    # Return the absolute value of the argument at the given index.
-    def index_object(self, key):
-        return sqrt(self.x[key])
