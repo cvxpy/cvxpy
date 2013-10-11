@@ -98,7 +98,7 @@ c = Parameter(5)
 G = Parameter(4,7,sign="negative")
 
 # Assigns a constant value to G.
-G.value = cvxopt.matrix(...)
+G.value = -numpy.ones((4,7))
 ```
 
 ### Expressions

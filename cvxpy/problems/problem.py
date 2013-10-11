@@ -226,9 +226,9 @@ class Problem(object):
             num_entries = aff_exp.size[0] * aff_exp.size[1]
             coefficients = aff_exp.coefficients(self.interface)
             for var,block in coefficients.items():
-                if var is s.CONSTANT:
-                    Constant.place_coeff(const_vec, block, vert_offset, 
-                                         aff_exp, var_offsets, vec_intf)
+                if var is Constant:
+                    var.place_coeff(const_vec, block, vert_offset, 
+                                    aff_exp, var_offsets, vec_intf)
                 else:
                     var.place_coeff(matrix, block, vert_offset, 
                                     aff_exp, var_offsets, matrix_intf)

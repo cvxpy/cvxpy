@@ -52,7 +52,7 @@ class Constant(leaf.Leaf):
 
     # Return the constant value, converted to the target matrix.
     def coefficients(self, interface):
-        return {s.CONSTANT: interface.const_to_matrix(self.value)}
+        return {Constant: interface.const_to_matrix(self.value)}
 
     # No variables.
     def variables(self):

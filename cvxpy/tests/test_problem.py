@@ -429,6 +429,13 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
+        c = matrix(1, (1,2))
+        p = Problem( Minimize( sum(vstack(c*self.A, c*self.B)) ), 
+            [self.A >= 2,
+            self.B == -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
         c = matrix([1,-1])
         p = Problem( Minimize( c.T * vstack(square(self.a), sqrt(self.b))),
             [self.a == 2,
