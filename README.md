@@ -192,7 +192,7 @@ The rules for other functions are equally straightforward.
 
 #### DCP Methods
 
-To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. An `is_dcp` method also exists for Constraints, Objectives, and Problems.
+To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. [Constraints](#constraints), [Objectives](#objectives), and [Problems](#problems) also have an `is_dcp` method.
 
 The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. The curvature and sign are complex objects. The simplest way to examine the curvature and sign is to use the following methods:
 
