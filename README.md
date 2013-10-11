@@ -217,7 +217,7 @@ The lefthand and righthand sides of a constraint are analyzed using the DCP rule
 ### Objectives
 Objective objects are constructed using `Minimize(expression)` or `Maximize(expression)`. Use a constant as an argument to `Minimize` or `Maximize` to create an objective for a feasibility problem.
 
-The target Expression in an objective is analyzed using the DCP rules to ensure the objective is convex. The target of a `Minimize` objective must be convex, while the target of a `Maximize` objective must be concave.
+The target expression of a `Minimize` objective must be convex, while the target of a `Maximize` objective must be concave. Convexity and concavity are determined using the DCP rules.
 
 ### Problems
 Problem objects are constructed using the form `Problem(objective, constraints)`. Here `objective` is an Objective object, and `constraints` is a list of Constraint objects. The `constraints` argument is optional. The default is an empty list.
