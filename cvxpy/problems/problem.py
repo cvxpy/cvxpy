@@ -28,6 +28,7 @@ from ..constraints.semi_definite import SDP
 from ..constraints.nonlinear import NonlinearConstraint
 from .objective import Minimize, Maximize
 
+import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
@@ -93,6 +94,14 @@ class Problem(object):
     @staticmethod
     def register_solve(name, func):
         Problem.REGISTERED_SOLVE_METHODS[name] = func
+
+    # Converts the result from the solve method to a status string.
+    @staticmethod
+    def get_status(result):
+        if isinstance(result, numbers.Number):
+            return s.SOLVED
+        else:
+            return result
 
     # Solves DCP compliant optimization problems.
     # Saves the values of primal and dual variables.
