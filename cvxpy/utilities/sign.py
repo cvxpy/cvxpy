@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bool_mat import BoolMat
-from vstack import vstack
+import bool_mat_utils as bu
 
 class Sign(object):
     """ 
@@ -52,6 +52,14 @@ class Sign(object):
         else:
             raise Exception("'%s' is not a valid sign name." % str(sign_str))
 
+    # Is the expression positive?
+    def is_positive(self):
+        return not bu.any(self.neg_mat)
+
+    # Is the expression negative?
+    def is_negative(self):
+        return not bu.any(self.pos_mat)
+
     # Arithmetic operators.
     """
     Handles logic of sign addition:
@@ -79,13 +87,13 @@ class Sign(object):
     """
     @staticmethod
     def mul(lh_sign, lh_size, rh_sign, rh_size):
-        neg_mat = BoolMat.mul(lh_sign.neg_mat, lh_size, 
+        neg_mat = bu.mul(lh_sign.neg_mat, lh_size, 
                               rh_sign.pos_mat, rh_size) | \
-                  BoolMat.mul(lh_sign.pos_mat, lh_size, 
+                  bu.mul(lh_sign.pos_mat, lh_size, 
                               rh_sign.neg_mat, rh_size)
-        pos_mat = BoolMat.mul(lh_sign.neg_mat, lh_size,
+        pos_mat = bu.mul(lh_sign.neg_mat, lh_size,
                               rh_sign.neg_mat, rh_size) | \
-                  BoolMat.mul(lh_sign.pos_mat, lh_size,
+                  bu.mul(lh_sign.pos_mat, lh_size,
                               rh_sign.pos_mat, rh_size)
         return Sign(neg_mat, pos_mat)
     

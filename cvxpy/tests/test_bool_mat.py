@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.utilities import BoolMat
+from cvxpy.utilities import bool_mat_utils as bu
 from nose.tools import *
 import numpy as np
 
@@ -62,8 +63,8 @@ class TestBoolMat(object):
     def test_mul(self):
         assert_equals(self.true_mat * self.true_mat, self.true_mat)
         assert_equals(self.true_mat * self.false_vec, self.false_vec)
-        assert_equals(BoolMat.mul(self.false_mat, (4,4), True, (1,1)), self.false_mat)
-        assert_equals(BoolMat.mul(False, (1,1), self.true_mat, (4,4)), False)
+        assert_equals(bu.mul(self.false_mat, (4,4), True, (1,1)), self.false_mat)
+        assert_equals(bu.mul(False, (1,1), self.true_mat, (4,4)), False)
         assert_equals(self.mixed_mat * self.true_vec, self.true_vec)
         assert_equals(self.mixed_mat * self.mixed_mat, self.mixed_mat)
 

@@ -158,3 +158,15 @@ class TestSign(object):
         sign = Sign.POSITIVE.promote((3,4))
         assert_equals(sign.neg_mat.value.shape, (3,4))
         assert_equals(sign.pos_mat.value.shape, (3,4))
+
+    # Tests the is_positive and is_negative methods.
+    def test_is_sign(self):
+        assert Sign.POSITIVE.is_positive()
+        assert not Sign.NEGATIVE.is_positive()
+        assert not Sign.UNKNOWN.is_positive()
+        assert Sign.ZERO.is_positive()
+
+        assert not Sign.POSITIVE.is_negative()
+        assert Sign.NEGATIVE.is_negative()
+        assert not Sign.UNKNOWN.is_negative()
+        assert Sign.ZERO.is_negative()

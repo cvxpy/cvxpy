@@ -125,10 +125,6 @@ Expressions are iterable. Iterating over an expression returns indices into the 
 #### Transpose
 The transpose of any expression can be obtained using the syntax `expr.T`.
 
-### Disciplined Convex Programming (DCP)
-TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
-Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
-
 ### Atoms
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
 
@@ -153,11 +149,75 @@ CVXPY currently supports the following atoms:
     * `sqrt(x)`, the square root of each element of `x`.
     * `square(x)`, the square of each element of `x`.
 
+### Disciplined Convex Programming (DCP)
+TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
+Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+
+DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e. non-negative), negative (i.e. non-positive), and unknown. For brevity cvxpy uses "positive" and "negative" to mean "non-negative" and "non-positive", respectively. We will follow that convention in the following discussion.
+
+The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. For matrix constants, a sign is determined for each entry. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
+
+#### The DCP Rules
+
+##### The No-Product Rule
+
+You can never multiply two non-constant expressions. Doing so in cvxpy will immediately raise an exception.
+
+##### Curvature Rules
+
+The curvature composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
+
+* `f` is non-decreasing in argument i and `expi` is convex
+* `f` is non-increasing in argument i and `expi` is concave
+* `expi` is affine
+
+If one of the `expi` does not satisfy any of the conditions, the curvature of `f(exp1, exp2, ..., expn)` is unknown.
+
+All other DCP rules for determining the curvature of an expression can be derived from the curvature composition rule. For example, if `f` is concave then the curvature composition rule can be applied to `-f`. Arithmetic operators are affine functions, so the curvature composition rule also applies to arithmetic expressions.
+
+#### Sign Rules
+
+For some functions monotonicity (i.e. whether the function is increasing or decreasing in each argument) depends on the sign of the arguments. For example, `square(exp)` is increasing if `exp` is positive and decreasing if `exp` is negative. For this reason DCP tracks the signs of expressions as well as the curvatures.
+
+Each function in cvxpy (i.e. atom or arithmetic operator) has a different rule for determining the sign of the function output from the signs of the arguments. These rules are exhaustive, meaning they capture every case where the sign of the output can be determined from the sign of the inputs. Here is the rule for `+` applied to the scalar expressions `exp1` and `exp2`:
+
+```
+The sign of the expression exp1 + exp2 is
+* positive if exp1 and exp2 are both positive
+* negative if exp1 and exp2 are both negative
+* unknown in all other cases
+```
+
+The rules for other functions are equally straightforward.
+
+#### DCP Methods
+
+To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. An `is_dcp` method also exists for Constraints, Objectives, and Problems.
+
+The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. The curvature and sign are complex objects. The simplest way to examine the curvature and sign is to use the following methods:
+
+* Curvature Methods
+    * expr.curvature.is_constant()
+    * expr.curvature.is_affine()
+    * expr.curvature.is_convex()
+    * expr.curvature.is_concave()
+* Sign Methods
+    * expr.sign.is_positive()
+    * expr.sign.is_negative()
+
+For scalar expressions, these methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
+
+For matrix expressions, these methods return true only if the method returns true for every entry.
+
 ### Constraints
 Constraint objects are constructed using `==`, `<=`, and `>=` with Expression objects or constants on the left-hand and right-hand sides.
 
+The lefthand and righthand sides of a constraint are analyzed using the DCP rules to ensure the constraint is convex. Equality constraints must be of the form `affine expression == affine expression`. Inequality constraints must be of the form `convex expression <= concave expression`.
+
 ### Objectives
 Objective objects are constructed using `Minimize(expression)` or `Maximize(expression)`. Use a constant as an argument to `Minimize` or `Maximize` to create an objective for a feasibility problem.
+
+The target Expression in an objective is analyzed using the DCP rules to ensure the objective is convex. The target of a `Minimize` objective must be convex, while the target of a `Maximize` objective must be concave.
 
 ### Problems
 Problem objects are constructed using the form `Problem(objective, constraints)`. Here `objective` is an Objective object, and `constraints` is a list of Constraint objects. The `constraints` argument is optional. The default is an empty list.

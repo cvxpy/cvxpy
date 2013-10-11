@@ -36,3 +36,31 @@ def vstack(values, sizes):
             mat = value.todense()
             matrices.append( mat.value )
     return BoolMat( np.vstack(matrices) )
+
+
+# Multiplies matrices, promoting if necessary.
+def mul(lh_mat, lh_size, rh_mat, rh_size):
+    if lh_mat is True:
+        if lh_size == (1,1):
+            return rh_mat
+        else:
+            lh_mat = BoolMat.promote(lh_mat, lh_size)
+    elif lh_mat is False:
+        return False
+
+    if rh_mat is True:
+        if rh_size == (1,1):
+            return lh_mat
+        else:
+            rh_mat = BoolMat.promote(rh_mat, rh_size)
+    elif rh_mat is False:
+        return False
+
+    return lh_mat * rh_mat
+
+# Returns true if any of the entries in the matrix are True.
+def any(matrix):
+    if isinstance(matrix, bool):
+        return matrix
+    else:
+        return matrix.any()
