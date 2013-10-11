@@ -1,6 +1,6 @@
 # Problems involving polyhedra.
 
-from set_variables import Polyhedron, ConvexHull
+import convex_sets as cs
 from cvxpy import numpy as np
 import cvxpy
 
@@ -11,25 +11,26 @@ A2 = np.matrix("1 0; -1 0; 0 1; 0 -1")
 b1 = 2*np.ones((m,1))
 b2 = np.matrix("5; -3; 4; -2")
 
-poly1 = Polyhedron(A1, b1)
-poly2 = Polyhedron(A2, b2)
+poly1 = cs.Polyhedron(A1, b1)
+poly2 = cs.Polyhedron(A2, b2)
 
-print poly1.contains([1,1])
-print poly1.dist(poly2)
-elem = poly1.proj(poly2)
-print poly1.contains(elem)
-print poly2.dist(elem)
+assert cs.contains(poly1, [1,1])
+# TODO distance should be an expression, i.e. norm2(poly1 - poly2)
+print cs.dist(poly1, poly2)
+elem = cs.proj(poly1, poly2)
+assert cs.contains(poly1, elem)
+assert cs.dist(poly1, elem) < 1e-6
 
-hull = ConvexHull([b1, b2])
-print hull.contains(b1)
-print hull.contains(0.3*b1 + 0.7*b2)
+hull = cs.ConvexHull([b1, b2])
+print cs.contains(hull, b1)
+print cs.contains(hull, 0.3*b1 + 0.7*b2)
 
-print poly1.dist(5*hull[0:2] + 2)
-print poly1.dist(np.matrix("1 5; -1 3")*poly2 + [1,5])
-print poly1.dist(np.matrix("1 0; 0 1")*poly2 + [1,5]) - poly2.dist(poly1 - [1,5])
+print cs.dist(poly1, 5*hull[0:2] + 2)
+print cs.dist(poly1, np.matrix("1 5; -1 3")*poly2 + [1,5])
+assert cs.dist(poly1, np.matrix("1 0; 0 1")*poly2 + [1,5]) - cs.dist(poly2, poly1 - [1,5]) == 0
 
 poly_hull = hull[0:2] + poly1 + poly2
-print poly1.dist(poly_hull)
-intersect = poly1.intersect(poly2)
-print intersect.is_empty()
-print poly1.is_empty()
+assert cs.dist(poly_hull, poly1) > 0
+intersection = cs.intersect(poly_hull, poly1)
+assert cs.is_empty(intersection)
+assert not cs.is_empty(poly1)
