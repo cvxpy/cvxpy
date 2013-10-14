@@ -22,9 +22,9 @@ class Device(object):
     """ A device on a circuit. """
     def __init__(self, pos_node, neg_node):
         self.pos_node = pos_node
-        self.pos_node.current_flows.append(self.current())
+        self.pos_node.current_flows.append(-self.current())
         self.neg_node = neg_node
-        self.neg_node.current_flows.append(-self.current())
+        self.neg_node.current_flows.append(self.current())
 
     # The voltage drop on the device.
     @abc.abstractmethod
