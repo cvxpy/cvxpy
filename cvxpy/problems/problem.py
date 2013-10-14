@@ -27,6 +27,7 @@ from ..constraints.second_order import SOC
 from ..constraints.semi_definite import SDP
 from ..constraints.nonlinear import NonlinearConstraint
 from .objective import Minimize, Maximize
+from .utils import remove_redundant_rows
 
 import numbers
 import cvxopt
@@ -59,6 +60,7 @@ class Problem(object):
     def filter_constraints(self, constraints):
         constraints = list(set(constraints)) # TODO generalize
         constr_map = {}
+        
         constr_map[s.EQ] = [c for c in constraints if isinstance(c, AffEqConstraint)]
         constr_map[s.INEQ] = [c for c in constraints if isinstance(c, AffLeqConstraint)]
         constr_map[s.SOC] = [c for c in constraints if isinstance(c, SOC)]
@@ -104,6 +106,7 @@ class Problem(object):
                        "Solving a convex relaxation.")
             else:
                 raise Exception("Problem does not follow DCP rules.")
+        
         objective,constr_map,dims = self.canonicalize()
         var_offsets,x_length = self.variables(objective, 
                                               constr_map[s.EQ] + constr_map[s.INEQ])
@@ -112,6 +115,7 @@ class Problem(object):
                                                self.dense_interface, self.dense_interface)
         A,b = self.constraints_matrix(constr_map[s.EQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
+        A,b = remove_redundant_rows(A,b)
         G,h = self.constraints_matrix(constr_map[s.INEQ], var_offsets, x_length,
                                       self.interface, self.dense_interface)
 
@@ -126,8 +130,71 @@ class Problem(object):
             primal_val = results['primal objective']
         elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
             # Target cvxopt solver if SDP or invalid for ECOS.
+            
+            p, n = A.size
+            # ECHU: add quadratic regularization
+            #
+            # original problem
+            # min c'*x
+            # s.t. A*x == b
+            #      G*x + s == h
+            #      s in K
+            #
+            # new prob
+            # min c'*x + (1e-6)*||x - x0||^2
+            # s.t. A*x == b
+            #      G*x + s == h
+            #      s in K
+            #
+            # conelp form
+            # min c'*x + (0,1e-6) * (u,t)
+            # s.t. A*x == b
+            #      G*x + s == h
+            #      -u + s1 == 0
+            #      -x + s2 == -x0
+            #      -t + s3 == 1
+            #       t + s4 == 1
+            #     -2u + s5 == 0
+            #      s in K
+            #      (s1, s2) in SOC
+            #      (s3, s4, s5) in SOC
+            # c = cvxopt.matrix([c.T, 0, 0])
+            # # remove the last sum(dim['s']) rows of G
+            # soc = dims['l'] + sum(dims['q'])
+            # Gsdp = G[soc:,:]
+            # hsdp = h[soc:]
+            # Gsoc = G[:soc,:]
+            # hsoc = h[:soc]
+            # 
+            # Gi, Gj, Gv = range(n+4), [n] + range(n) + [n+1,n+1,n], [-1.]*(n+1) + [-1.,1.,-2]
+            # Gnew = cvxopt.spmatrix(Gv, Gi, Gj)
+            # 
+            # 
+            # soc_padding = cvxopt.spmatrix([], [], [], (Gsoc.size[0],2))
+            # sdp_padding = cvxopt.spmatrix([], [], [], (Gsdp.size[0],2))
+            # 
+            # Gsoc = cvxopt.sparse([[Gsoc], [soc_padding]])
+            # Gsdp = cvxopt.sparse([[Gsdp], [sdp_padding]])
+            # 
+            # G = cvxopt.sparse([Gsoc, Gnew, Gsdp])
+            # 
+            # dims['q'].append(n+1)   # u = || x - x0 ||
+            # dims['q'].append(3)     # square(u)
+            # A = cvxopt.sparse([[A], [cvxopt.spmatrix([], [], [], size=(p,2))]])
+            # 
+            # for i in xrange(1):
+            #     if 'results' in vars():
+            #         x0 = results['x'][:-2]
+            #     else:
+            #         x0 = cvxopt.matrix(0.,size=(n,1))
+            #     hnew = cvxopt.matrix([0.,-x0, 1, 1, 0])
+            #     h = cvxopt.matrix([hsoc, hnew, hsdp])
             results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,dims=dims)
+            
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+            #if status == s.SOLVED:
+            #    tmp = results['z'][soc:]
+            #    results['z'] = cvxopt.matrix([results['z'][0:Gsoc.size[0]], tmp])
             primal_val = results['primal objective']
         else: # If possible, target ECOS.
             # ECHU: ecos interface has changed and no longer relies on CVXOPT
