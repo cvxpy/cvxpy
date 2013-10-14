@@ -54,3 +54,11 @@ class Context(object):
 
     def __neg__(self):
         return Context(-self.sign, -self.curvature, self.shape)
+
+    # Returns true if any of the entries in the matrix are True.
+    @staticmethod
+    def any(matrix):
+        if isinstance(matrix, bool):
+            return matrix
+        else:
+            return matrix.any()

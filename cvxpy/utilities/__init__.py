@@ -27,4 +27,3 @@ from sign import Sign
 from bool_mat import BoolMat
 from sparse_bool_mat import SparseBoolMat
 from shape import Shape
-from vstack import vstack

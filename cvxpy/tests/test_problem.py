@@ -123,23 +123,28 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.b.value, 5-1.0/6)
         self.assertAlmostEqual(self.c.value, -1.0/6)
 
+        # Test get_status.
+        p = Problem(Maximize(self.a), [self.a <= 2])
+        status = s.get_status(p.solve(solver=s.ECOS))
+        self.assertEqual(status, s.SOLVED)
+
         # Unbounded problems.
         p = Problem(Maximize(self.a), [self.a >= 2])
-        result = p.solve(solver=s.ECOS)
-        self.assertEqual(result, s.UNBOUNDED)
+        status = s.get_status(p.solve(solver=s.ECOS))
+        self.assertEqual(status, s.UNBOUNDED)
 
         p = Problem(Maximize(self.a), [self.a >= 2])
-        result = p.solve(solver=s.CVXOPT)
-        self.assertEqual(result, s.UNBOUNDED)
+        status = s.get_status(p.solve(solver=s.CVXOPT))
+        self.assertEqual(status, s.UNBOUNDED)
 
         # Infeasible problems.
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        result = p.solve(solver=s.ECOS)
-        self.assertEqual(result, s.INFEASIBLE)
+        status = s.get_status(p.solve(solver=s.ECOS))
+        self.assertEqual(status, s.INFEASIBLE)
 
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        result = p.solve(solver=s.CVXOPT)
-        self.assertEqual(result, s.INFEASIBLE)
+        status = s.get_status(p.solve(solver=s.ECOS))
+        self.assertEqual(status, s.INFEASIBLE)
 
     # Test vector LP problems.
     def test_vector_lp(self):
@@ -428,6 +433,13 @@ class TestProblem(BaseTest):
             self.C == -2])
         result = p.solve()
         self.assertAlmostEqual(result, -4)
+
+        c = matrix(1, (1,2))
+        p = Problem( Minimize( sum(vstack(c*self.A, c*self.B)) ), 
+            [self.A >= 2,
+            self.B == -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
 
         c = matrix([1,-1])
         p = Problem( Minimize( c.T * vstack(square(self.a), sqrt(self.b))),

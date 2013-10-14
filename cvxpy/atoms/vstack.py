@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from atom import Atom
 from .. import utilities as u
+from ..utilities import bool_mat_utils as bu
 from .. import interface as intf
 from ..expressions import types
 from ..expressions.variables import Variable
@@ -38,10 +39,10 @@ class vstack(Atom):
     # Vertically concatenates sign and curvature as a dense matrix.
     def set_sign_curv(self):
         sizes = [arg.size for arg in self.args]
-        neg_mat = u.vstack([arg.sign.neg_mat for arg in self.args], sizes)
-        pos_mat = u.vstack([arg.sign.pos_mat for arg in self.args], sizes)
-        cvx_mat = u.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
-        conc_mat = u.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
+        neg_mat = bu.vstack([arg.sign.neg_mat for arg in self.args], sizes)
+        pos_mat = bu.vstack([arg.sign.pos_mat for arg in self.args], sizes)
+        cvx_mat = bu.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
+        conc_mat = bu.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
         constant = all(arg.curvature.is_constant() for arg in self.args)
 
         self._context = u.Context(u.Sign(neg_mat, pos_mat),

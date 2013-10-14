@@ -70,6 +70,93 @@ class TestExamples(unittest.TestCase):
         self.assertAlmostEqual(r.value, result)
         self.assertAlmostEqual(x_c.value, [0,0])
 
+    # Tests examples from the README.
+    def test_readme_examples(self):
+        import cvxopt
+        import numpy
+        
+        # Problem data.
+        m = 30
+        n = 20
+        A = cvxopt.normal(m,n)
+        b = cvxopt.normal(m)
+
+        # Construct the problem.
+        x = Variable(n)
+        objective = Minimize(sum(square(A*x - b)))
+        constraints = [0 <= x, x <= 1]
+        p = Problem(objective, constraints)
+
+        # The optimal objective is returned by p.solve().
+        result = p.solve()
+        # The optimal value for x is stored in x.value.
+        print x.value
+        # The optimal Lagrange multiplier for a constraint
+        # is stored in constraint.dual_value.
+        print constraints[0].dual_value
+
+        ####################################################
+
+        # Scalar variable.
+        a = Variable()
+
+        # Column vector variable of length 5.
+        x = Variable(5)
+
+        # Matrix variable with 4 rows and 7 columns.
+        A = Variable(4,7)
+
+        ####################################################
+
+        # Positive scalar parameter.
+        m = Parameter(sign="positive")
+
+        # Column vector parameter with unknown sign (by default).
+        c = Parameter(5)
+
+        # Matrix parameter with negative entries.
+        G = Parameter(4,7,sign="negative")
+
+        # Assigns a constant value to G.
+        G.value = -numpy.ones((4,7))
+
+        ####################################################
+        a = Variable()
+        x = Variable(5)
+
+        # expr is an Expression object after each assignment.
+        expr = 2*x
+        expr = expr - a
+        expr = sum(expr) + norm2(x)
+
+        ####################################################
+
+        import numpy as np
+        import cvxopt
+        from multiprocessing import Pool
+
+        # Problem data.
+        n = 10
+        m = 5
+        A = cvxopt.normal(n,m)
+        b = cvxopt.normal(n)
+        gamma = Parameter(sign="positive")
+
+        # Construct the problem.
+        x = Variable(m)
+        objective = Minimize(sum(square(A*x - b)) + gamma*norm1(x))
+        p = Problem(objective)
+
+        # Assign a value to gamma and find the optimal x.
+        def get_x(gamma_value):
+            gamma.value = gamma_value
+            result = p.solve()
+            return x.value
+
+        gammas = np.logspace(-1, 2, num=2)
+        # Serial computation.
+        x_values = [get_x(value) for value in gammas]
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

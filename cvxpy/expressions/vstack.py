@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import utilities as u
 from .. import interface as intf
+from constants import Constant
 
 class AffVstack(u.Affine):
     """ Vertical concatenation of Affine Objectives. """
@@ -45,15 +46,20 @@ class AffVstack(u.Affine):
         coeffs = {}
         offset = 0
         for arg in self.args:
+            rows = arg.size[0]
             arg_coeffs = arg.coefficients(interface)
             for k,v in arg_coeffs.items():
-                # No promotion inside vstack.
-                rows,cols = intf.size(v)
+                # Constant coefficients have the same dimension as the argument.
+                if k is Constant:
+                    cols = arg.size[1]
+                # Variable coefficients have the dimensions arg rows by variable columns.
+                else:
+                    cols = k.size[0]
                 if k in coeffs:
                     interface.block_add(coeffs[k], v, offset, 0, rows, cols)
                 else:
-                    zeros = interface.zeros(self.size[0], arg.size[0])
+                    zeros = interface.zeros(self.size[0], cols)
                     interface.block_add(zeros, v, offset, 0, rows, cols)
                     coeffs[k] = zeros
-            offset += arg.size[0]
+            offset += rows
         return coeffs

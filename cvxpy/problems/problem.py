@@ -95,14 +95,6 @@ class Problem(object):
     def register_solve(name, func):
         Problem.REGISTERED_SOLVE_METHODS[name] = func
 
-    # Converts the result from the solve method to a status string.
-    @staticmethod
-    def get_status(result):
-        if isinstance(result, numbers.Number):
-            return s.SOLVED
-        else:
-            return result
-
     # Solves DCP compliant optimization problems.
     # Saves the values of primal and dual variables.
     def _solve(self, solver=s.ECOS, ignore_dcp=False):
@@ -226,9 +218,9 @@ class Problem(object):
             num_entries = aff_exp.size[0] * aff_exp.size[1]
             coefficients = aff_exp.coefficients(self.interface)
             for var,block in coefficients.items():
-                if var is s.CONSTANT:
-                    Constant.place_coeff(const_vec, block, vert_offset, 
-                                         aff_exp, var_offsets, vec_intf)
+                if var is Constant:
+                    var.place_coeff(const_vec, block, vert_offset, 
+                                    aff_exp, var_offsets, vec_intf)
                 else:
                     var.place_coeff(matrix, block, vert_offset, 
                                     aff_exp, var_offsets, matrix_intf)

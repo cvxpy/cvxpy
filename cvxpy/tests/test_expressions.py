@@ -127,8 +127,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.canonicalize()[1], [])
         
         coeffs = c.coefficients(self.intf)
-        self.assertEqual(coeffs.keys(), [s.CONSTANT])
-        self.assertEqual(coeffs[s.CONSTANT], 2)
+        self.assertEqual(coeffs.keys(), [Constant])
+        self.assertEqual(coeffs[Constant], 2)
 
         # Test the sign.
         c = Constant([[2],[2]])
@@ -304,7 +304,9 @@ class TestExpressions(unittest.TestCase):
         exp = self.C[:3,:1:2]
         self.assertEquals(exp.name(), "C[0:3,0]")
         self.assertEquals(exp.size, (3,1))
-
+        exp = self.C[0:,0]
+        self.assertEquals(exp.name(), "C[0:,0]")
+        self.assertEquals(exp.size, (3,1))
 
         c = Constant([[1,-2],[0,4]])
         exp = c[1,1]
