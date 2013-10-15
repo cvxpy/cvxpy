@@ -118,6 +118,8 @@ class TestInterfaces(unittest.TestCase):
         # const_to_matrix
         mat = interface.const_to_matrix([1,2,3])
         self.assertEquals(interface.size(mat), (3,1))
+        mat = interface.const_to_matrix([[1],[2],[3]])
+        self.assertEquals(mat[0,0], 1)
         # identity
         mat = interface.identity(4)
         cvxopt_dense = intf.get_matrix_interface(cvxopt.matrix)
@@ -137,6 +139,10 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         assert not (mat - np.matrix("2 4; 4 6")).any()
+        # Transpose
+        mat = np.atleast_2d([1,2])
+        trans_mat = intf.transpose(mat)
+        self.assertEquals(trans_mat.shape, (2,1))
 
     # Test interface for lists.
     def test_lists(self):
@@ -149,3 +155,9 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals(mat, 4)
         mat = intf.index([[2],[2]], (slice(0,1,None), slice(0,1,None)))
         self.assertEquals(mat, 2)
+        sign = intf.sign([[2],[2]])
+        assert sign.pos_mat.value[0,0] == True
+        # Transpose
+        mat = [[1], [2]]
+        trans_mat = intf.transpose(mat)
+        self.assertEquals(trans_mat, [1,2])

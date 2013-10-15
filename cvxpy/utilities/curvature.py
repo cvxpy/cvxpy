@@ -134,7 +134,7 @@ class Curvature(object):
         return "Curvature(%s, %s)" % (self.cvx_mat, self.conc_mat)
 
     def __str__(self):
-        return "negative entries = %s, positive entries = %s" % \
+        return "convex entries = %s, concave entries = %s" % \
             (self.cvx_mat, self.conc_mat)
 
 # Scalar signs.

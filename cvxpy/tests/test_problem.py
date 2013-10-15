@@ -302,6 +302,30 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 8)
         self.assertItemsAlmostEqual(self.A.value, [-2,-2,-2,-2])
 
+    # Test problems with quad_form.
+    def test_quad_form(self):
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(quad_form(self.x, self.A))).solve()
+        self.assertEqual(str(cm.exception), "At least one argument to quad_form must be constant.")
+
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(quad_form(1, self.A))).solve()
+        self.assertEqual(str(cm.exception), "Invalid dimensions for arguments.")
+
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(quad_form(self.x, [[4, 1], [0, 9]]))).solve()
+        self.assertEqual(str(cm.exception), "P must be symmetric.")
+
+        P = [[4, 0], [0, 9]]
+        p = Problem(Minimize(quad_form(self.x, P)), [self.x >= 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 13, places=3)
+
+        c = [1,2]
+        p = Problem(Minimize(quad_form(c, self.A)), [self.A >= 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 9)
+
     # Test combining atoms
     def test_mixed_atoms(self):
         p = Problem(Minimize(norm2(5 + norm1(self.z) 

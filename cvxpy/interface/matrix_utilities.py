@@ -58,7 +58,7 @@ def size(constant):
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
-# Is the constant a vector?
+# Is the constant a column vector?
 def is_vector(constant):
     return size(constant)[1] == 1
 
@@ -112,11 +112,16 @@ def index(constant, key):
 
 # Get the tranpose of the given constant.
 def transpose(constant):
-    if is_scalar(constant):
+    const_size = size(constant)
+    if const_size == (1,1):
         return constant
     elif isinstance(constant, list):
-        if is_vector(constant):
+        # Column vector
+        if const_size[1] == 1:
             return [[elem] for elem in constant]
+        # Row vector
+        elif const_size[0] == 1:
+            return [elem[0] for elem in constant]
         else:
             # http://stackoverflow.com/questions/6473679/python-list-of-lists-transpose-without-zipm-thing
             return map(list, zip(*constant))

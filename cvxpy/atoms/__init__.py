@@ -25,6 +25,7 @@ from norm1 import norm1
 from norm2 import norm2
 from norm_inf import normInf
 from norm_nuc import normNuc
+from quad_form import quad_form
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
 from vstack import vstack

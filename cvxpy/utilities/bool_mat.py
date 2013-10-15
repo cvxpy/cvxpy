@@ -61,6 +61,8 @@ class BoolMat(object):
     def __mul__(self, other):
         if isinstance(other, BoolMat):
             mult_val = self.value.dot(other.value)
+            if mult_val.size == 1:
+                return mult_val[0,0]
             return BoolMat(mult_val)
         else:
             return NotImplemented

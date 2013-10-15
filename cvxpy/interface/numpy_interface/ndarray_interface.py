@@ -33,6 +33,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
             return value
         if isinstance(value, list):
             mat = numpy.array(value, dtype='float64')
+            mat = numpy.atleast_2d(mat)
             return mat.T
         return numpy.array(value, dtype='float64')
 
@@ -51,7 +52,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
-        return matrix[0]
+        return matrix[tuple(np.where(matrix)[0])]
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
