@@ -21,7 +21,7 @@ from .. import interface as intf
 from ..expressions.expression import Expression
 from ..expressions.constants import Constant
 from norm2 import norm2
-from square import square
+from elementwise.square import square
 from scipy import linalg as LA
 import numpy as np
 
