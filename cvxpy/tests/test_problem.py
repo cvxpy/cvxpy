@@ -326,6 +326,12 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 9)
 
+        c = [1,2]
+        P = [[4, 0], [0, 9]]
+        p = Problem(Minimize(quad_form(c, P)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 40)
+
     # Test combining atoms
     def test_mixed_atoms(self):
         p = Problem(Minimize(norm2(5 + norm1(self.z) 
