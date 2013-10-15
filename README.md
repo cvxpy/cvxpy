@@ -133,6 +133,7 @@ CVXPY currently supports the following atoms:
     * `norm1(x)`, the L1 norm of `x`.
     * `norm2(x)`, the L2 norm of `x`.
     * `normInf(x)`, the Infinity norm of `x`.
+    * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
     * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
 * Matrix to scalar atoms
     * `sigma_max(X)`, the maximum singular value of `X`.

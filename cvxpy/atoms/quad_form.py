@@ -37,10 +37,17 @@ def quad_form(x, P):
     elif P.curvature.is_constant():
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
-        # Verify that P is symmetric.
-        if (P - P.T).any():
-            raise Exception("P must be symmetric.")
-        P_sqrt = Constant(LA.sqrtm(P).real)
-        return square(norm2(P_sqrt*x))
+        # Replace P with symmetric version.
+        P = (P + P.T)/2
+        # Check if P is PSD.
+        eigvals = LA.eigvalsh(P)
+        if min(eigvals) > 0:
+            P_sqrt = Constant(LA.sqrtm(P).real)
+            return square(norm2(P_sqrt*x))
+        elif max(eigvals) < 0:
+            P_sqrt = Constant(LA.sqrtm(-P).real)
+            return -square(norm2(P_sqrt*x))
+        else:
+            raise Exception("P has both positive and negative eigenvalues.")
     else:
         raise Exception("At least one argument to quad_form must be constant.")

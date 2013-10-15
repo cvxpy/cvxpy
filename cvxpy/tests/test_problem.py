@@ -313,8 +313,8 @@ class TestProblem(BaseTest):
         self.assertEqual(str(cm.exception), "Invalid dimensions for arguments.")
 
         with self.assertRaises(Exception) as cm:
-            Problem(Minimize(quad_form(self.x, [[4, 1], [0, 9]]))).solve()
-        self.assertEqual(str(cm.exception), "P must be symmetric.")
+            Problem(Minimize(quad_form(self.x, [[-1, 0], [0, 9]]))).solve()
+        self.assertEqual(str(cm.exception), "P has both positive and negative eigenvalues.")
 
         P = [[4, 0], [0, 9]]
         p = Problem(Minimize(quad_form(self.x, P)), [self.x >= 1])
