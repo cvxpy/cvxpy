@@ -8,7 +8,7 @@ def branch(booleans):
     # pick *a* boolean variable to branch on
     # choose the most ambivalent one (smallest distance to 0.5)
     # NOTE: if there are no boolean variables, will never branch
-    return min(bool_vals, key=lambda x: abs(x.value[0] - 0.5))
+    return min(bool_vals, key=lambda x: abs(x.value - 0.5))
 
 def bound(prob, booleans):
     # relax boolean constraints

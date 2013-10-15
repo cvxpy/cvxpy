@@ -41,17 +41,23 @@ class TestVars(unittest.TestCase):
     def test_boolean(self):
         x = Variable(5,4)
         p = Problem(Minimize(sum(1-x) + sum(x)), [x == BoolVar(5,4)])
-        result = p.solve(method="admm")
+        result = p.solve(method="admm", solver="cvxopt")
         self.assertAlmostEqual(result, 20)
         for v in x.value:
             self.assertAlmostEqual(v*(1-v), 0)
+
+        x = Variable()
+        p = Problem(Minimize(sum(1-x) + sum(x)), [x == BoolVar(5,4)[0,0]])
+        result = p.solve(method="admm", solver="cvxopt")
+        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(x.value*(1-x.value), 0)
 
     # Test choose variable.
     def test_choose(self):
         x = Variable(5,4)
         p = Problem(Minimize(sum(1-x) + sum(x)), 
                     [x == SparseBoolVar(5,4,nonzeros=4)])
-        result = p.solve(method="admm")
+        result = p.solve(method="admm", solver="cvxopt")
         self.assertAlmostEqual(result, 20)
         for v in x.value:
             self.assertAlmostEqual(v*(1-v), 0)
