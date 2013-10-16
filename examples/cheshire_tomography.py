@@ -353,5 +353,6 @@ bv[23][1].z.value[0]+bv[24][2].z.value[0]+bv[25][3].z.value[0] == 0,
 bv[24][1].z.value[0]+bv[25][2].z.value[0] == 0,
 bv[25][1].z.value[0] == 0,
 ]
+print len(constraints)
 print len(constraints) - sum(constraints)
 print obj
