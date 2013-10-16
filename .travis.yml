@@ -2,13 +2,15 @@ language: python
 python:
     - "2.7"
 # numpy and scipy depend on lapack / blas, which we have to install separately
-virtualenv:
-    system_site_packages: true
+# virtualenv:
+#     system_site_packages: true
 before_install:
-    - sudo apt-get update -qq
     - python -c "import numpy; print numpy.__version__"
-    - sudo apt-get install python-scipy python-cvxopt
-    - pip install --use-mirrors coverage cvxopt
+    - python -c "import scipy; print scipy.__version__"
+    - python -c "import cvxopt; print cvxopt.__version__"
+    #- sudo apt-get install libopenblas
+    - pip install --use-mirrors coverage
+    #- pip install --use-mirrors cvxopt
 # install dependencies
 install:
     - sudo ./get_ecos.sh
