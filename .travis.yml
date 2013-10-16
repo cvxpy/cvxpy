@@ -4,8 +4,9 @@ python:
 virtualenv:
     system_site_packages: true
 before_install:
-    - sudo apt-get install python-cvxopt python-scipy
-    - pip install coverage
+    - sudo apt-get update -qq
+    - sudo apt-get install python-scipy
+    - sudo pip install coverage cvxopt
     #- pip install --use-mirrors cvxopt
 # install dependencies
 install:
