@@ -5,10 +5,10 @@ python:
 virtualenv:
     system_site_packages: true
 before_install:
-    - sudo apt-get install python-numpy python-scipy python-cvxopt
+    - sudo apt-get install python-numpy python-scipy
 # install dependencies
 install:
-    - pip install coverage
+    - pip install coverage cvxopt
     - sudo ./get_ecos.sh
     - sudo python setup.py install
 # command to run tests
