@@ -130,7 +130,9 @@ Atoms are functions that can be used in expressions. Atoms take Expression objec
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
-    * `norm(x, p = 2)`
+    * `lambda_max(x)`, the maximum eigenvalue of `x`. Constrains `x` to be symmetric.
+    * `lambda_min(x)`, the minimum eigenvalue of `x`. Constrains `x` to be symmetric.
+    * `norm(x, [p = 2])`
         * For p = 1, the L1 norm of `x`.
         * For p = 2, the L2 norm of `x` for vector `x` and the maximum singular value for matrix `x`.
         * For p = "inf", the Infinity norm of `x`.

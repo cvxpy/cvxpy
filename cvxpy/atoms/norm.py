@@ -38,4 +38,4 @@ def norm(x, p=2):
 	elif p == 2:
 		return sigma_max(x)
 	else:
-		raise Exception("Invalid value for p.")
+		raise Exception("Invalid value %s for p." % p)
