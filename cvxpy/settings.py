@@ -43,7 +43,7 @@ CVXOPT = "cvxopt"
 CVXOPT_STATUS = {'optimal': SOLVED,
                  'primal infeasible': INFEASIBLE, 
                  'dual infeasible': UNBOUNDED,
-                 'unknown': UNKNOWN}
+                 'unknown': SOLVED}
 ECOS = "ecos"
 ECOS_STATUS = {0: SOLVED,
                1: INFEASIBLE, 

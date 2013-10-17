@@ -27,6 +27,7 @@ from ..constraints.second_order import SOC
 from ..constraints.semi_definite import SDP
 from ..constraints.nonlinear import NonlinearConstraint
 from .objective import Minimize, Maximize
+from kktsolver import get_kktsolver
 
 import numbers
 import cvxopt
@@ -119,14 +120,20 @@ class Problem(object):
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
                                                x_length)
 
+        # Target cvxopt clp if nonlinear constraints exist
         if constr_map[s.NONLIN]:
-            # Target cvxopt clp if nonlinear constraints exist
-            results = cvxopt.solvers.cpl(c.T,F,G,h,A=A,b=b,dims=dims)
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(G, dims, A, F)
+            results = cvxopt.solvers.cpl(c.T,F,G,h,A=A,b=b,
+                                         dims=dims,kktsolver=kktsolver)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
+        # Target cvxopt solver if SDP or invalid for ECOS.
         elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
-            # Target cvxopt solver if SDP or invalid for ECOS.
-            results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,dims=dims)
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(G, dims, A)
+            results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,
+                                            dims=dims,kktsolver=kktsolver)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         else: # If possible, target ECOS.

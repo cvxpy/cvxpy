@@ -57,10 +57,9 @@ class lambda_max(Atom):
     def graph_implementation(var_args, size):
         A = var_args[0]
         # Requires that A is symmetric.
-        # X = Variable(*A.size)
-        # X_obj = X.canonical_form()[0]
-        # constraints = [AffEqConstraint(X[i+1:,i].T, X[i,i+1:]) for i in range(A.size[0]-1)]
+        obj,constr = A.T
+        constr += [AffEqConstraint(obj, A)]
         # SDP constraint.
         t = Variable().canonical_form()[0]
         I = Constant(np.eye(*A.size)).canonical_form()[0]
-        return (t, [SDP(I*t - A)])
+        return (t, [SDP(I*t - A)] + constr)

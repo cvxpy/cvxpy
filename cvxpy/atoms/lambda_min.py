@@ -57,6 +57,9 @@ class lambda_min(Atom):
     @staticmethod
     def graph_implementation(var_args, size):
         A = var_args[0]
+        # Requires that A is symmetric.
+        obj,constr = A.T
+        constr += [AffEqConstraint(obj, A)]
         t = Variable(*size).canonical_form()[0]
         I = Constant(np.eye(*A.size)).canonical_form()[0]
-        return (t, [SDP(A - I*t)])
+        return (t, [SDP(A - I*t)] + constr)
