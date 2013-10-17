@@ -17,27 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from geo_mean import geo_mean
-
-from lambda_max import lambda_max
-from lambda_min import lambda_min
-from norm import norm
 from norm1 import norm1
 from norm2 import norm2
 from norm_inf import normInf
 from norm_nuc import normNuc
-from quad_form import quad_form
-from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
-from vstack import vstack
+from ..expressions.expression import Expression
 
-from elementwise.abs import abs
-from elementwise.inv_pos import inv_pos
-from elementwise.max import max
-from elementwise.min import min
-from elementwise.neg import neg
-from elementwise.pos import pos
-from elementwise.sqrt import sqrt
-from elementwise.square import square
-
-from nonlinear.log import log
+# Wrapper on the different norm atoms.
+def norm(x, p=2):
+	x = Expression.cast_to_const(x)
+	if p == 1:
+		return norm1(x)
+	elif p == "inf":
+		return normInf(x)
+	elif p == "nuc":
+		return normNuc(x)
+	elif p == 2 and x.is_vector() or p == "fro":
+		return norm2(x)
+	elif p == 2:
+		return sigma_max(x)
+	else:
+		raise Exception("Invalid value for p.")

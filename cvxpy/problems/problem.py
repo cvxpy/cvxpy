@@ -132,6 +132,8 @@ class Problem(object):
         elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A)
+            # Adjust tolerance to account for regularization.
+            cvxopt.solvers.options['feastol'] = 2*1e-6
             results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,
                                             dims=dims,kktsolver=kktsolver)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]

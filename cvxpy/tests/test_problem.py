@@ -545,6 +545,10 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertItemsAlmostEqual(self.A.value, self.A.value.T)
 
+        p = Problem(Minimize(lambda_max([[1,2],[3,4]])))
+        status = s.get_status(p.solve())
+        self.assertEqual(status, s.INFEASIBLE)
+
     # Test SDP
     def test_sdp(self):
         # Ensure sdp constraints enforce transpose.

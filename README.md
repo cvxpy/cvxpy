@@ -129,14 +129,15 @@ The transpose of any expression can be obtained using the syntax `expr.T`.
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
 
 CVXPY currently supports the following atoms:
-* Vector to scalar atoms
-    * `norm1(x)`, the L1 norm of `x`.
-    * `norm2(x)`, the L2 norm of `x`.
-    * `normInf(x)`, the Infinity norm of `x`.
+* Matrix to scalar atoms
+    * `norm(x, p = 2)`
+        * For p = 1, the L1 norm of `x`.
+        * For p = 2, the L2 norm of `x` for vector `x` and the maximum singular value for matrix `x`.
+        * For p = "inf", the Infinity norm of `x`.
+        * For p = "nuc", the nuclear norm of `x` (i.e. the sum of the singular values).
+        * For p = "fro", the Frobenius norm of `x`.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
     * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
-* Matrix to scalar atoms
-    * `sigma_max(X)`, the maximum singular value of `X`.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 
