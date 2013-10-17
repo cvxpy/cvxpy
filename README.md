@@ -136,6 +136,7 @@ CVXPY currently supports the following atoms:
         * For p = "inf", the Infinity norm of `x`.
         * For p = "nuc", the nuclear norm of `x` (i.e. the sum of the singular values).
         * For p = "fro", the Frobenius norm of `x`.
+        * Defaults to p = 2 if no value of p is given.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
     * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
 * Matrix to matrix atoms
