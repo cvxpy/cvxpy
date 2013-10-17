@@ -32,7 +32,12 @@ class SparseMatrixInterface(DenseMatrixInterface):
         if isinstance(value, numbers.Number):
             return value
         if isinstance(value, numpy.ndarray):
-            return cvxopt.sparse(cvxopt.matrix(value), tc='d')
+            # ECHU: temporary workaround when travis fails
+            try:
+                retval = cvxopt.sparse(cvxopt.matrix(value), tc='d')
+            except TypeError:
+                retval = cvxopt.sparse(cvxopt.matrix(value.T.tolist()), tc='d')
+            return retval
         return cvxopt.sparse(value, tc='d')
 
     # Return an identity matrix.
