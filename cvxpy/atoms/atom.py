@@ -18,11 +18,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
+from constant_atom import ConstantAtom
+from .. import utilities as u
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 from ..expressions.affine import AffObjective
-from .. import utilities as u
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
+from collections import deque
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
@@ -92,8 +94,8 @@ class Atom(Expression):
     def canonicalize(self):
         # Constant atoms are treated as a leaf.
         if self.curvature.is_constant():
-            obj = AffObjective([], ConstantAtom(self), self.shape)
-            return (obj, final_constraints)
+            obj = AffObjective([], [deque([ConstantAtom(self)])], self.shape)
+            return (obj, [])
         # Non-constant atoms are expanded into an affine objective and constraints.
         else:
             var_args = []

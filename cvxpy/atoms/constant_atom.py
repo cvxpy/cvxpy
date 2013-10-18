@@ -16,26 +16,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+from .. import utilities as u
+from ..expressions.constants import Constant
 
-from norm1 import norm1
-from norm2 import norm2
-from norm_inf import normInf
-from norm_nuc import normNuc
-from sigma_max import sigma_max
-from ..expressions.expression import Expression
+class ConstantAtom(u.Affine):
+    """ The affine term for an atom with constant arguments. """
+    # atom - the parent atomic expression.
+    def __init__(self, atom):
+        self.atom = atom
 
-# Wrapper on the different norm atoms.
-def norm(x, p=2):
-    x = Expression.cast_to_const(x)
-    if p == 1:
-        return norm1(x)
-    elif p == "inf":
-        return normInf(x)
-    elif p == "nuc":
-        return normNuc(x)
-    elif p == 2 and x.is_vector() or p == "fro":
-        return norm2(x)
-    elif p == 2:
-        return sigma_max(x)
-    else:
-        raise Exception("Invalid value %s for p." % p)
+    # A constant expression has no variables.
+    def variables(self):
+        return []
+
+    # Returns the value of the parent atom.
+    def coefficients(self, interface):
+        return {Constant: interface.const_to_matrix(self.atom.value)}

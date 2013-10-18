@@ -22,9 +22,14 @@ from ... import utilities as u
 from ...expressions import types
 from ...expressions.variables import Variable
 from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
 
 class min(max):
     """ Elementwise minimum. """
+    # Returns the elementwise minimum.
+    def numeric(self, values):
+        return reduce(np.minimum, values)
+
     """
     Reduces the list of argument signs according to the following rules:
         NEGATIVE, ANYTHING = NEGATIVE

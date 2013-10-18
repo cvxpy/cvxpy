@@ -556,11 +556,20 @@ class TestProblem(BaseTest):
 
     # Test that symmetry is enforced.
     def test_sdp_symmetry(self):
+        # TODO should these raise exceptions?
+        # with self.assertRaises(Exception) as cm:
+        #     lambda_max([[1,2],[3,4]])
+        # self.assertEqual(str(cm.exception), "lambda_max called on non-symmetric matrix.")
+
+        # with self.assertRaises(Exception) as cm:
+        #     lambda_min([[1,2],[3,4]])
+        # self.assertEqual(str(cm.exception), "lambda_min called on non-symmetric matrix.")
+
         p = Problem(Minimize(lambda_max(self.A)), [self.A >= 2])
         result = p.solve()
         self.assertItemsAlmostEqual(self.A.value, self.A.value.T)
 
-        p = Problem(Minimize(lambda_max([[1,2],[3,4]])))
+        p = Problem(Minimize(lambda_max(self.A)), [self.A == [[1,2],[3,4]]])
         status = s.get_status(p.solve())
         self.assertEqual(status, s.INFEASIBLE)
 

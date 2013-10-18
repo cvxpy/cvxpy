@@ -24,6 +24,7 @@ from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
 from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
 
 class sqrt(Elementwise):
     """ Elementwise square root """
@@ -32,6 +33,10 @@ class sqrt(Elementwise):
         # Args are all indexes into x.
         self.x = self.args[0]
         self.args = [xi for xi in self.x]
+
+    # Returns the elementwise square root of x.
+    def numeric(self, values):
+        return np.sqrt(values[0])
 
     # The shape is the same as the argument's shape.
     def set_shape(self):

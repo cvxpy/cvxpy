@@ -23,9 +23,14 @@ from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
 from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
 
 class max(Elementwise):
     """ Elementwise maximum. """
+    # Returns the elementwise maximum.
+    def numeric(self, values):
+        return reduce(np.maximum, values)
+
     # The shape is the common shape of all the arguments.
     def set_shape(self):
         shape = self.args[0].shape

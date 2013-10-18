@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
+from atom_utilities import norm_numeric
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -25,11 +26,18 @@ from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
+from numpy import linalg as LA
 
 class normNuc(Atom):
     """ Sum of the singular values. """
     def __init__(self, A):
         super(normNuc, self).__init__(A)
+
+    # Returns the nuclear norm (i.e. the sum of the singular values) of A.
+    @norm_numeric
+    def numeric(self, values):
+        U,s,V = LA.svd(values[0])
+        return sum(s)
 
     # Resolves to a scalar.
     def set_shape(self):

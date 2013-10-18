@@ -25,8 +25,8 @@ class Elementwise(Atom):
     __metaclass__ = abc.ABCMeta
     # Saves original arguments for indexing and transpose.
     def __init__(self, *args):
-    	super(Elementwise, self).__init__(*args)
-    	self.original_args = self.args
+        super(Elementwise, self).__init__(*args)
+        self.original_args = self.args
 
     # Return the given index into the atomic expression.
     def index_object(self, key):
@@ -40,4 +40,4 @@ class Elementwise(Atom):
 
     # Return the transpose of the atomic expression.
     def transpose(self):
-    	return self.__class__(*[arg.T for arg in self.original_args])
+        return self.__class__(*[arg.T for arg in self.original_args])

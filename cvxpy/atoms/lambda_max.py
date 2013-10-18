@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
+from atom_utilities import norm_numeric
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -25,11 +26,21 @@ from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
+from numpy import linalg as LA
 
 class lambda_max(Atom):
     """ Maximum eigenvalue. """
     def __init__(self, A):
         super(lambda_max, self).__init__(A)
+
+    # Returns the smallest eigenvalue of A.
+    # Requires that A be symmetric.
+    @norm_numeric
+    def numeric(self, values):
+        if not (values[0].T == values[0]).all():
+            raise Exception("lambda_max called on a non-symmetric matrix.")
+        w,v = LA.eig(values[0])
+        return max(w)
 
     # Resolves to a scalar.
     def set_shape(self):

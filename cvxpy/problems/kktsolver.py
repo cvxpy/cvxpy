@@ -35,12 +35,12 @@ MAX_ITER = 3
 # Returns a kktsolver for linear cone programs (or nonlinear if F is given).
 def get_kktsolver(G, dims, A, F=None):
     if F is None:
-    	factor = kkt_ldl(G, dims, A)
+        factor = kkt_ldl(G, dims, A)
         def kktsolver(W):
             return factor(W)
     else:
-    	mnl, x0 = F()
-    	factor = kkt_ldl(G, dims, A, mnl)
+        mnl, x0 = F()
+        factor = kkt_ldl(G, dims, A, mnl)
         def kktsolver(x, z, W):
             f, Df, H = F(x, z)
             return factor(W, H, Df)

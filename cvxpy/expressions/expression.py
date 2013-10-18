@@ -47,6 +47,7 @@ class Expression(u.Canonicalizable):
         while True:
             node = stack[-1]["expression"]
             if stack[-1]["index"] >= len(node.subexpressions):
+                print node
                 value = node.numeric(stack[-1]["values"])
                 stack.pop()
                 if len(stack) > 0:
@@ -67,9 +68,9 @@ class Expression(u.Canonicalizable):
         }
 
     # Applies the argument for the expression to the values.
-    # @abc.abstractmethod
-    # def numeric(self, values):
-    #     return NotImplemented
+    @abc.abstractmethod
+    def numeric(self, values):
+        return NotImplemented
 
     # TODO priority
     def __repr__(self):

@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
+from atom_utilities import norm_numeric
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -25,11 +26,17 @@ from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
+from numpy import linalg as LA
 
 class sigma_max(Atom):
     """ Maximum singular value. """
     def __init__(self, A):
         super(sigma_max, self).__init__(A)
+
+    # Returns the largest singular value of A.
+    @norm_numeric
+    def numeric(self, values):
+        return LA.norm(values[0], 2)
 
     # Resolves to a scalar.
     def set_shape(self):

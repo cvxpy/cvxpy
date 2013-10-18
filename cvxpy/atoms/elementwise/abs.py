@@ -23,9 +23,17 @@ from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
 from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
 
 class abs(Elementwise):
     """ Elementwise absolute value """
+    def __init__(self, x):
+        super(abs, self).__init__(x)
+
+    # Returns the elementwise absolute value of x.
+    def numeric(self, values):
+        return np.absolute(values[0])
+
     # The shape is the same as the argument's shape.
     def set_shape(self):
         self._shape = u.Shape(*self.args[0].size)

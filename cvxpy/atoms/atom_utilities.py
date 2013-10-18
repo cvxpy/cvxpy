@@ -17,25 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from norm1 import norm1
-from norm2 import norm2
-from norm_inf import normInf
-from norm_nuc import normNuc
-from sigma_max import sigma_max
-from ..expressions.expression import Expression
+import numbers
 
-# Wrapper on the different norm atoms.
-def norm(x, p=2):
-    x = Expression.cast_to_const(x)
-    if p == 1:
-        return norm1(x)
-    elif p == "inf":
-        return normInf(x)
-    elif p == "nuc":
-        return normNuc(x)
-    elif p == 2 and x.is_vector() or p == "fro":
-        return norm2(x)
-    elif p == 2:
-        return sigma_max(x)
-    else:
-        raise Exception("Invalid value %s for p." % p)
+# A wrapper on the numeric function for norms
+# so it can handle scalars.
+def norm_numeric(old_numeric):
+    def new_numeric(self, values):
+        if isinstance(values[0], numbers.Number):
+            return abs(values[0])
+        else:
+            return old_numeric(self, values)
+    return new_numeric

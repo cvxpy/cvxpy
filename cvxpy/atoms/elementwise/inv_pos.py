@@ -32,6 +32,10 @@ class inv_pos(Elementwise):
         # Args are all indexes into x.
         self.x = self.args[0]
         self.args = [xi for xi in self.x]
+
+    # Returns the elementwise inverse of x.
+    def numeric(self, values):
+        return 1.0/values[0]
         
     # The shape is the same as the argument's shape.
     def set_shape(self):

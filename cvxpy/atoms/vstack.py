@@ -26,9 +26,14 @@ from ..expressions.variables import Variable
 from ..expressions.affine import AffObjective
 from ..expressions.vstack import AffVstack
 from collections import deque
+import numpy as np
 
 class vstack(Atom):
     """ Vertical concatenation """
+    # Returns the vstack of the values.
+    def numeric(self, values):
+        return np.vstack(values)
+        
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
         self.validate_arguments()
