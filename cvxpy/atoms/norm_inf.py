@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from atom_utilities import norm_numeric
 from .. import utilities as u
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
@@ -31,7 +30,6 @@ class normInf(Atom):
         super(normInf, self).__init__(x)
 
     # Returns the Infinity norm of x.
-    @norm_numeric
     def numeric(self, values):
         cols = values[0].shape[1]
         return max([LA.norm(values[0][:,i], np.inf) for i in range(cols)])

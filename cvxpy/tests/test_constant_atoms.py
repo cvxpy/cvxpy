@@ -22,7 +22,7 @@ from cvxpy.atoms import *
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
-from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Constant, Parameter
 import cvxopt
 from nose.tools import assert_raises
 
@@ -95,6 +95,15 @@ def run_atom(problem, obj_val):
 
 # Tests atoms with variables.
 def run_problem(problem, obj_val):
+    assert problem.is_dcp()
+    print problem.objective
+    result = problem.solve()
+    print result
+    print obj_val
+    assert( -TOL <= result - obj_val <= TOL )
+
+# Tests atoms with parameters.
+def run_param(problem, obj_val):
     assert problem.is_dcp()
     print problem.objective
     result = problem.solve()

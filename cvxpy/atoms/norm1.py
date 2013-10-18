@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from atom_utilities import norm_numeric
 from .. import utilities as u
 from ..expressions import types
 from ..expressions.variables import Variable
@@ -32,7 +31,6 @@ class norm1(Atom):
         super(norm1, self).__init__(x)
 
     # Returns the L1 norm of x.
-    @norm_numeric
     def numeric(self, values):
         cols = values[0].shape[1]
         return sum([LA.norm(values[0][:,i], 1) for i in range(cols)])

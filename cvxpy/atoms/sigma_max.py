@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from atom_utilities import norm_numeric
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -34,7 +33,6 @@ class sigma_max(Atom):
         super(sigma_max, self).__init__(A)
 
     # Returns the largest singular value of A.
-    @norm_numeric
     def numeric(self, values):
         return LA.norm(values[0], 2)
 

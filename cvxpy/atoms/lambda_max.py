@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from atom_utilities import norm_numeric
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -35,7 +34,6 @@ class lambda_max(Atom):
 
     # Returns the smallest eigenvalue of A.
     # Requires that A be symmetric.
-    @norm_numeric
     def numeric(self, values):
         if not (values[0].T == values[0]).all():
             raise Exception("lambda_max called on a non-symmetric matrix.")

@@ -111,6 +111,12 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         self.assertEquals(list(mat.flatten('C')), [2,4,4,6])
+        # Scalars and matrices.
+        scalar = interface.const_to_matrix(2)
+        mat = interface.const_to_matrix([1,2,3])
+        self.assertItemsEqual(scalar*mat, interface.const_to_matrix([2,4,6]))
+        self.assertItemsEqual(scalar - mat, interface.const_to_matrix([1,0,-1]))
+
 
     # Test numpy matrix interface.
     def test_numpy_matrix(self):

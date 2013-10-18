@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from atom_utilities import norm_numeric
 from .. import utilities as u
 from ..expressions.variables import Variable
 from ..constraints.second_order import SOC
@@ -31,7 +30,6 @@ class norm2(Atom):
 
     # Returns the L2 norm of x for vector x
     # and the Frobenius norm for matrix x.
-    @norm_numeric
     def numeric(self, values):
         return LA.norm(values[0])
 

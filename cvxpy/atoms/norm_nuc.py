@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from atom_utilities import norm_numeric
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -34,7 +33,6 @@ class normNuc(Atom):
         super(normNuc, self).__init__(A)
 
     # Returns the nuclear norm (i.e. the sum of the singular values) of A.
-    @norm_numeric
     def numeric(self, values):
         U,s,V = LA.svd(values[0])
         return sum(s)
