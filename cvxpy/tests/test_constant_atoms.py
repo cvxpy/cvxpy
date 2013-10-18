@@ -115,11 +115,23 @@ def test_atom():
     for obj, obj_val in convex_list:
         for counter, obj_index in enumerate(obj):
             yield run_atom, Problem(Minimize(obj_index)), obj_val[counter]
-            var = Variable(*obj_index.size)
-            yield run_problem, Problem(Minimize(var), [var >= obj_index]), obj_val[counter]
+            variables = []
+            constraints = []
+            for exp in obj_index.subexpressions:
+                variables.append( Variable(*exp.size) )
+                constraints.append( variables[-1] == exp)
+            atom = obj_index.__class__
+            obj = Minimize(atom(*variables))
+            yield run_problem, Problem(obj, constraints), obj_val[counter]
 
     for obj, obj_val in concave_list:
         for counter, obj_index in enumerate(obj):
             yield run_atom, Problem(Maximize(obj_index)), obj_val[counter]
-            var = Variable(*obj_index.size)
-            yield run_problem, Problem(Maximize(var), [var <= obj_index]), obj_val[counter]
+            variables = []
+            constraints = []
+            for exp in obj_index.subexpressions:
+                variables.append( Variable(*exp.size) )
+                constraints.append( variables[-1] == exp)
+            atom = obj_index.__class__
+            obj = Maximize(atom(*variables))
+            yield run_problem, Problem(obj, constraints), obj_val[counter]
