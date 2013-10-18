@@ -60,16 +60,12 @@ Finish README (mainly DCP and intro on dcp.stanford.edu)
     context/book citation for examples
 hcat for making schur complement matrices.
 transpose and index for parameter.
-transpose of any expression.
-Multiplication on the right.
 Switch from object id to variable id so index and transpose can be grouped together?
 Add scipy sparse matrix support
 Interface for is_dcp
-Fix matrix packing so doesn't scalarize everything (by column)
 simplify when objective or constraint constructed so only need to stuff parameters in the matrix
 Organize atoms
 Switch from cvxopt to numpy matrices
-SDP
 exponential cone
 expression.value
 Organize parse tree

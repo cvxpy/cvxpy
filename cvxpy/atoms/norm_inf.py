@@ -21,11 +21,17 @@ from atom import Atom
 from .. import utilities as u
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
+from numpy import linalg as LA
 
 class normInf(Atom):
     """ Infinity norm max{|x|} """
     def __init__(self, x):
         super(normInf, self).__init__(x)
+
+    # Takes the Infinity norm of the value.
+    def numeric(self, values):
+        return LA.norm(values[0], np.inf)
 
     def set_shape(self):
         self._shape = u.Shape(1,1)

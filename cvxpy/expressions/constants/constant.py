@@ -28,7 +28,7 @@ class Constant(leaf.Leaf):
     A constant, either matrix or scalar.
     """
     def __init__(self, value, name=None):
-        self.value = value
+        self._value = value
         self.param_name = name
         self.set_context()
         super(Constant, self).__init__()

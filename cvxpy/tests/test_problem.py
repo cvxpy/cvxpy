@@ -539,6 +539,21 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 9)
 
+
+    # Test redundant constraints in cvxopt.
+    def test_redundant_constraints(self):
+        obj = Minimize(sum(self.x))
+        constraints = [self.x == 2, self.x == 2, self.x.T == 2, self.x[0] == 2]
+        p = Problem(obj, constraints)
+        result = p.solve(solver=s.CVXOPT)
+        self.assertAlmostEqual(result, 4)
+
+        obj = Minimize(sum(square(self.x)))
+        constraints = [self.x == self.x]
+        p = Problem(obj, constraints)
+        result = p.solve(solver=s.CVXOPT)
+        self.assertAlmostEqual(result, 0)
+
     # Test that symmetry is enforced.
     def test_sdp_symmetry(self):
         p = Problem(Minimize(lambda_max(self.A)), [self.A >= 2])
@@ -560,30 +575,26 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
-    # # Test getting values for expressions.
-    # def test_expression_values(self):
-    #     diff_exp = self.x - self.z
-    #     inf_exp = normInf(diff_exp)
-    #     sum_exp = 5 + norm1(self.z) + norm1(self.x) + inf_exp
-    #     constr_exp = norm2(self.x + self.z)
-    #     obj = norm2(sum_exp)
-    #     p = Problem(Minimize(obj),
-    #         [self.x >= [2,3], self.z <= [-1,-4], constr_exp <= 2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 22)
-    #     self.assertAlmostEqual(self.x.value, [2,3])
-    #     self.assertAlmostEqual(self.z.value, [-1,-4])
-    #     # Expression values.
-    #     self.assertAlmostEqual(diff_exp.value, self.x.value - self.z.value)
-    #     self.assertAlmostEqual(inf_exp.value, 
-    #         LA.norm(self.x.value - self.z.value, numpy.inf))
-    #     self.assertAlmostEqual(sum_exp.value, 
-    #         5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) + \
-    #         LA.norm(self.x.value - self.z.value, numpy.inf))
-    #     vars = constr_exp.objective.variables()
-    #     print vars
-    #     for k,v in vars.items():
-    #         print v.value
-    #     self.assertAlmostEqual(constr_exp.value,
-    #         LA.norm(self.x.value + self.z.value, 2))
-    #     self.assertAlmostEqual(obj.value, result)
+    # Test getting values for expressions.
+    def test_expression_values(self):
+        diff_exp = self.x - self.z
+        inf_exp = normInf(diff_exp)
+        sum_exp = 5 + norm1(self.z) + norm1(self.x) + inf_exp
+        constr_exp = norm2(self.x + self.z)
+        obj = norm2(sum_exp)
+        p = Problem(Minimize(obj),
+            [self.x >= [2,3], self.z <= [-1,-4], constr_exp <= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 22)
+        self.assertItemsAlmostEqual(self.x.value, [2,3])
+        self.assertItemsAlmostEqual(self.z.value, [-1,-4])
+        # Expression values.
+        self.assertItemsAlmostEqual(diff_exp.value, self.x.value - self.z.value)
+        self.assertAlmostEqual(inf_exp.value,
+            LA.norm(self.x.value - self.z.value, numpy.inf))
+        self.assertAlmostEqual(sum_exp.value, 
+            5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) + \
+            LA.norm(self.x.value - self.z.value, numpy.inf))
+        self.assertAlmostEqual(constr_exp.value,
+            LA.norm(self.x.value + self.z.value, 2))
+        self.assertAlmostEqual(obj.value, result)

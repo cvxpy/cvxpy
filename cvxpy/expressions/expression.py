@@ -23,6 +23,7 @@ from .. import utilities as u
 from .. import interface as intf
 from ..constraints import leq_constraint as le
 from ..constraints import eq_constraint as eq
+from affine import AffObjective
 import types
 import abc
 
@@ -38,11 +39,37 @@ class Expression(u.Canonicalizable):
     A mathematical expression in a convex optimization problem.
     """
     __metaclass__ = abc.ABCMeta
-    # # Returns the value of the expression.
-    # TODO make this recursive
-    # @property
-    # def value(self):
-    #     return self.objective.value(intf.DEFAULT_INTERFACE)
+    # Returns the value of the expression.
+    # Simulates recursion with stack to avoid stack overflow.
+    @property
+    def value(self):
+        stack = [self.starting_state()]
+        while True:
+            node = stack[-1]["expression"]
+            if stack[-1]["index"] >= len(node.subexpressions):
+                value = node.numeric(stack[-1]["values"])
+                stack.pop()
+                if len(stack) > 0:
+                    stack[-1]["values"].append(value)
+                else:
+                    return value
+            else:
+                next = node.subexpressions[stack[-1]["index"]]
+                stack[-1]["index"] += 1
+                stack.append(next.starting_state())
+    
+    # Helper function for value.
+    # Returns the starting state dict for the expression.
+    def starting_state(self):
+        return {"expression": self,
+                "index": 0,
+                "values": [],
+        }
+
+    # Applies the argument for the expression to the values.
+    # @abc.abstractmethod
+    # def numeric(self, values):
+    #     return NotImplemented
 
     # TODO priority
     def __repr__(self):

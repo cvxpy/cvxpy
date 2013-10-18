@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
+from ..expressions.affine import AffObjective
 from .. import utilities as u
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 
@@ -35,6 +36,7 @@ class Atom(Expression):
             )
         # Convert raw values to Constants.
         self.args = map(Expression.cast_to_const, args)
+        self.subexpressions = self.args
         # Initialize _shape. Raises an error for invalid argument sizes.
         self.set_shape()
         # Initialize sign and curvature.
@@ -88,16 +90,22 @@ class Atom(Expression):
 
     # Represent the atom as an affine objective and affine/basic SOC constraints.
     def canonicalize(self):
-        var_args = []
-        final_constraints = []
-        for arg in self.args:
-            # canonicalize arguments.
-            obj,constraints = arg.canonical_form()
-            var_args.append(obj)
-            final_constraints += constraints
-        graph_var,graph_constr = self.graph_implementation(var_args, self.size)
-        obj = u.Affine.cast_as_affine(graph_var)
-        return (obj,final_constraints + graph_constr)
+        # Constant atoms are treated as a leaf.
+        if self.curvature.is_constant():
+            obj = AffObjective([], ConstantAtom(self), self.shape)
+            return (obj, final_constraints)
+        # Non-constant atoms are expanded into an affine objective and constraints.
+        else:
+            var_args = []
+            final_constraints = []
+            for arg in self.args:
+                # canonicalize arguments.
+                obj,constraints = arg.canonical_form()
+                var_args.append(obj)
+                final_constraints += constraints
+            graph_var,graph_constr = self.graph_implementation(var_args, self.size)
+            obj = u.Affine.cast_as_affine(graph_var)
+            return (obj,final_constraints + graph_constr)
 
     # Returns a variable and set of affine/SOC 
     # constraints equivalent to the atom.

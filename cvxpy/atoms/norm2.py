@@ -21,11 +21,17 @@ from atom import Atom
 from .. import utilities as u
 from ..expressions.variables import Variable
 from ..constraints.second_order import SOC
+from numpy import linalg as LA
 
 class norm2(Atom):
     """ L2 norm (sum(x^2))^(1/2) """
     def __init__(self, x):
         super(norm2, self).__init__(x)
+
+    # Takes the L2 norm of the value for vector values
+    # and the Frobenius norm for matrix values.
+    def numeric(self, values):
+        return LA.norm(values[0])
 
     def set_shape(self):
         self._shape = u.Shape(1,1)

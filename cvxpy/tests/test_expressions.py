@@ -27,6 +27,7 @@ import cvxpy.settings as s
 from collections import deque
 import unittest
 from cvxopt import matrix
+from cvxpy import numpy as np
 
 class TestExpressions(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
@@ -151,6 +152,28 @@ class TestExpressions(unittest.TestCase):
         p = Parameter(name='p')
         self.assertEqual(p.name(), "p")
         self.assertEqual(p.size, (1,1))
+
+        p = Parameter(4, 3, sign="positive")
+        with self.assertRaises(Exception) as cm:
+            p.value = 1
+        self.assertEqual(str(cm.exception), "Invalid dimensions (1,1) for Parameter value.")
+
+        val = -np.ones((4,3))
+        val[0,0] = 2
+
+        p = Parameter(4, 3, sign="positive")
+        with self.assertRaises(Exception) as cm:
+            p.value = val
+        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+
+        p = Parameter(4, 3, sign="negative")
+        with self.assertRaises(Exception) as cm:         
+            p.value = val
+        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+
+        # No error for unknown sign.
+        p = Parameter(4, 3)
+        p.value = val
 
     # Test the AddExpresion class.
     def test_add_expression(self):

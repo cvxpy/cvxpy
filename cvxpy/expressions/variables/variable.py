@@ -23,18 +23,21 @@ from ... import interface as intf
 from .. import expression
 from .. import leaf
 from .. import types
+import numpy
 
 class Variable(leaf.Leaf):
     """ The base variable class """
-    VAR_COUNT = 0        
+    VAR_COUNT = 0
+    interface = intf.DEFAULT_INTERFACE
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
-        self._context = u.Context(u.Sign.UNKNOWN, u.Curvature.AFFINE, u.Shape(rows, cols))
+        self._context = u.Context(u.Sign.UNKNOWN, 
+                                  u.Curvature.AFFINE, 
+                                  u.Shape(rows, cols))
         self._init_id()
         self._name = self.id if name is None else name
-        self.interface = intf.DEFAULT_INTERFACE
         self.primal_value = None
         super(Variable, self).__init__()
 

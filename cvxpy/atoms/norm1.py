@@ -23,11 +23,16 @@ from ..expressions import types
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from elementwise.abs import abs
+from numpy import linalg as LA
 
 class norm1(Atom):
     """ L1 norm sum(|x|) """
     def __init__(self, x):
         super(norm1, self).__init__(x)
+
+    # Takes the L1 norm of the value.
+    def numeric(self, values):
+        return LA.norm(values[0], 1)
 
     def set_shape(self):
         self._shape = u.Shape(1,1)

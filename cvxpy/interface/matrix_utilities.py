@@ -34,6 +34,8 @@ INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
               np.matrix: np_intf.MatrixInterface(),
               numpy_wrapper.matrix: np_intf.MatrixInterface(),
 }
+# Default Numpy interface.
+DEFAULT_NP_INTERFACE = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTERFACE = INTERFACES[cvxopt.matrix]
 DEFAULT_SPARSE_INTERFACE = INTERFACES[cvxopt.spmatrix]

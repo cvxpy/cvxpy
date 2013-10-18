@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import constant
 from ... import utilities as u
+from ... import interface as intf
 
 class Parameter(constant.Constant):
     """
@@ -34,3 +35,21 @@ class Parameter(constant.Constant):
         shape = u.Shape(self._rows, self._cols)
         sign = u.Sign.name_to_sign(self.sign_str)
         self._context = u.Context(sign, u.Curvature.CONSTANT, shape)
+
+    # Getter and setter for parameter value.
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        size = intf.size(val)
+        if size != self.size:
+            raise Exception("Invalid dimensions (%s,%s) for Parameter value." % size)
+        # All signs are valid if sign is unknown.
+        # Otherwise value sign must match declared sign.
+        sign = intf.sign(val)
+        if self.sign == u.Sign.POSITIVE and not sign.is_positive() or \
+           self.sign == u.Sign.NEGATIVE and not sign.is_negative():
+            raise Exception("Invalid sign for Parameter value.")
+        self._value = val

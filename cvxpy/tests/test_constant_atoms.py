@@ -21,6 +21,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import *
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
+from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.constants import Constant
 import cvxopt
 from nose.tools import assert_raises
 
@@ -82,7 +84,17 @@ concave_list = [
     (sqrt([[2,4],[16,1]]), [1.414213562373095,2,4,1])
 ]
 
+# Tests numeric version of atoms.
 def run_atom(problem, obj_val):
+    assert problem.is_dcp()
+    print problem.objective
+    result = problem.solve()
+    print result
+    print obj_val
+    assert( -TOL <= result - obj_val <= TOL )
+
+# Tests atoms with variables.
+def run_problem(problem, obj_val):
     assert problem.is_dcp()
     print problem.objective
     result = problem.solve()
@@ -94,7 +106,11 @@ def test_atom():
     for obj, obj_val in convex_list:
         for counter, obj_index in enumerate(obj):
             yield run_atom, Problem(Minimize(obj_index)), obj_val[counter]
+            var = Variable(*obj_index.size)
+            yield run_problem, Problem(Minimize(var), [var >= obj_index]), obj_val[counter]
 
     for obj, obj_val in concave_list:
         for counter, obj_index in enumerate(obj):
             yield run_atom, Problem(Maximize(obj_index)), obj_val[counter]
+            var = Variable(*obj_index.size)
+            yield run_problem, Problem(Maximize(var), [var <= obj_index]), obj_val[counter]
