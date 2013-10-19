@@ -157,6 +157,37 @@ class TestExamples(unittest.TestCase):
         # Serial computation.
         x_values = [get_x(value) for value in gammas]
 
+        ####################################################
+        n = 10
+
+        mu = cvxopt.normal(1, n)
+        sigma = cvxopt.normal(n,n)
+        sigma = sigma.T*sigma
+        gamma = Parameter(sign="positive")
+        gamma.value = 1
+        x = Variable(n)
+
+        # Constants:
+        # mu is the vector of expected returns.
+        # sigma is the covariance matrix.
+        # gamma is a Parameter that trades off risk and return.
+
+        # Variables:
+        # x is a vector of stock holdings as fractions of total assets.
+
+        expected_return = mu*x
+        risk = quad_form(x, sigma)
+
+        objective = Maximize(expected_return - gamma*risk)
+        p = Problem(objective, [sum(x) == 1])
+        result = p.solve()
+
+        # The optimal expected return.
+        print expected_return.value
+
+        # The optimal risk.
+        print risk.value
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

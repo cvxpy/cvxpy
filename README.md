@@ -239,7 +239,32 @@ If the problem is feasible and bounded, `p.solve()` will return the optimal valu
 
 Use the method `cvxpy.get_status(result)` to convert the result of `p.solve()` to a constant indicating the status. The status will be `cvxpy.SOLVED` if the result is a number and the result itself otherwise.
 
-Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
+Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object. 
+
+The value of expressions in the problem can also be read from `expr.value`. For example, consider the portfolio optimization problem below:
+
+```
+# Constants:
+# mu is the vector of expected returns.
+# sigma is the covariance matrix.
+# gamma is a Parameter that trades off risk and return.
+
+# Variables:
+# x is a vector of stock holdings as fractions of total assets.
+
+expected_return = mu*x
+risk = quad_form(x, sigma)
+
+objective = Maximize(expected_return - gamma*risk)
+p = Problem(objective, [sum(x) == 1])
+result = p.solve()
+
+# The optimal expected return.
+print expected_return.value
+
+# The optimal risk.
+print risk.value
+```
 
 The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) is used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
 
