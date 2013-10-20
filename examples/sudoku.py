@@ -2,6 +2,7 @@ from cvxpy import *
 from ncvx.boolean import Boolean
 import ncvx.branch_and_bound
 import cvxopt
+import cProfile, pstats
 
 n = 9
 # 9x9 sudoku grid
@@ -52,7 +53,8 @@ def block(x,b):
             if i // 3 == b // 3 and j // 3 == b % 3:
                 yield x[i,j]
 
-
+pr = cProfile.Profile()
+pr.enable()
 # create the suboku constraints
 constraints = [sum(numbers) == 1]
 for i in range(n):
@@ -63,8 +65,13 @@ for i in range(n):
 constraints.extend(numbers[solution[k]][k] == 1 for k in known)
 
 # attempt to solve
+
 p = Problem(Minimize(sum(map(square, [num[0,0] for num in numbers]))), constraints)
-p.branch_and_bound()
+p.solve(method="branch and bound")
+pr.disable()
+
+ps = pstats.Stats(pr)
+ps.sort_stats('tottime').print_stats(.5)
 
 A = cvxopt.matrix(0,(n,n))
 for i, num in enumerate(numbers):

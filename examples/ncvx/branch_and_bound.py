@@ -91,15 +91,15 @@ def solve_wrapper(prob, i, booleans, depth, epsilon):
 
 def branch_and_bound(self, depth=5, epsilon=1e-3):
     objective,constr_map, dims = self.canonicalize()
-    
+
     variables = objective.variables()
     for constr in constr_map[s.EQ]:
         variables += constr.variables()
     for constr in constr_map[s.INEQ]:
         variables += constr.variables()
-            
+
     booleans = [v for v in variables if isinstance(v, Boolean)]
-    
+
     self.constraints.extend(b._LB <= b for b in booleans)
     self.constraints.extend(b <= b._UB for b in booleans)
 
@@ -118,4 +118,4 @@ def branch_and_bound(self, depth=5, epsilon=1e-3):
     return result['obj']
 
 # add branch and bound a solution method
-problem.Problem.register_solve("branch_and_bound", branch_and_bound)
+problem.Problem.register_solve("branch and bound", branch_and_bound)
