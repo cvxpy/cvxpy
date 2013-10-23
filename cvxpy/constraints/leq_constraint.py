@@ -24,7 +24,6 @@ from affine import AffEqConstraint, AffLeqConstraint
 
 class LeqConstraint(u.Canonicalizable):
     OP_NAME = "<="
-    interface = intf.DEFAULT_INTERFACE
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp

@@ -28,7 +28,6 @@ import numpy
 class Variable(leaf.Leaf):
     """ The base variable class """
     VAR_COUNT = 0
-    interface = intf.DEFAULT_INTERFACE
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.

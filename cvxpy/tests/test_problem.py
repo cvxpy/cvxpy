@@ -186,7 +186,7 @@ class TestProblem(BaseTest):
         self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
 
         # Test variables are dense.
-        self.assertEqual(type(self.A.value), self.A.interface.TARGET_MATRIX)
+        self.assertEqual(type(self.A.value), p.dense_interface.TARGET_MATRIX)
 
     # Test variable promotion.
     def test_variable_promotion(self):

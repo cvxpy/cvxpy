@@ -19,6 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import matrix_utilities as intf
 import abc
+import numbers
+import numpy as np
 
 class BaseMatrixInterface(object):
     """
@@ -30,6 +32,16 @@ class BaseMatrixInterface(object):
     @abc.abstractmethod
     def const_to_matrix(self, value):
         return NotImplemented
+
+    # Adds a case for scalars to const_to_matrix methods.
+    @staticmethod
+    def scalar_const(converter):
+        def new_converter(self, value):
+            if isinstance(value, numbers.Number):
+                return value
+            else:
+                return converter(self, value)
+        return new_converter
 
     # Return an identity matrix.
     @abc.abstractmethod

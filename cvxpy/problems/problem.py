@@ -194,6 +194,8 @@ class Problem(object):
     # Saves the values of the optimal primary/dual variables 
     # as fields in the variable/constraint objects.
     def save_values(self, result_vec, objects):
+        # Cast to desired matrix type.
+        result_vec = self.dense_interface.const_to_matrix(result_vec)
         offset = 0
         for obj in objects:
             rows,cols = obj.size
@@ -201,10 +203,10 @@ class Problem(object):
             if (rows,cols) == (1,1):
                 value = result_vec[offset]
             else:
-                value = obj.interface.zeros(rows, cols)
-                obj.interface.block_add(value, 
-                                        result_vec[offset:offset + rows*cols],
-                                        0, 0, rows, cols)
+                value = self.dense_interface.zeros(rows, cols)
+                self.dense_interface.block_add(value, 
+                                               result_vec[offset:offset + rows*cols],
+                                               0, 0, rows, cols)
             obj.save_value(value)
             offset += rows*cols
 

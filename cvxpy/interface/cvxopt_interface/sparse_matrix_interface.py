@@ -28,9 +28,8 @@ class SparseMatrixInterface(DenseMatrixInterface):
     """
     TARGET_MATRIX = cvxopt.spmatrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.
+    @DenseMatrixInterface.scalar_const
     def const_to_matrix(self, value):
-        if isinstance(value, numbers.Number):
-            return value
         if isinstance(value, numpy.ndarray):
             # ECHU: temporary workaround when travis fails
             try:

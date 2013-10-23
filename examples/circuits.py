@@ -79,7 +79,7 @@ class CurrentSource(Device):
     def current(self):
         return self._current
 
-# Create a simple circuit and find the current and voltage.
+# # Create a simple circuit and find the current and voltage.
 nodes = [Ground(),Node(),Node()]
 # A 5 V battery
 devices = [VoltageSource(nodes[0], nodes[2], 10)]
@@ -95,5 +95,6 @@ devices.append( Resistor(nodes[1], nodes[2], 1) )
 constraints = []
 for obj in nodes + devices:
     constraints += obj.constraints()
-# Need <= constraint so ECOS can be called.
-Problem(Minimize(0), constraints + [Variable() <= 0]).solve()
+Problem(Minimize(0), constraints).solve()
+for node in nodes:
+    print node.voltage.value
