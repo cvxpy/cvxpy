@@ -47,7 +47,6 @@ class Expression(u.Canonicalizable):
         while True:
             node = stack[-1]["expression"]
             if stack[-1]["index"] >= len(node.subexpressions):
-                print node
                 value = node.numeric(stack[-1]["values"])
                 stack.pop()
                 if len(stack) > 0:

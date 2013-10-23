@@ -343,6 +343,13 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [2,3])
         self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 
+    # Test multiplying by constant atoms.
+    def test_mult_constant_atoms(self):
+        p = Problem(Minimize(norm2([3,4])*self.a), [self.a >= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertAlmostEqual(self.a.value, 2)
+
     # Test recovery of dual variables.
     def test_dual_variables(self):
         p = Problem(Minimize( norm1(self.x + self.z) ), 
