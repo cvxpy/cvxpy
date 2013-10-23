@@ -100,12 +100,13 @@ class TestExamples(unittest.TestCase):
         r2 = cvxopt.normal(1, 1)
         r3 = cvxopt.normal(1, 1)
 
+        slack = Variable()
         # Form the problem
         x = Variable(n)
-        objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 )
-        constraints = [0.5*quad_form(x,P1) + q1.T*x + r1 <= 0,
-                       0.5*quad_form(x,P2) + q2.T*x + r2 <= 0,
-                       0.5*quad_form(x,P3) + q3.T*x + r3 <= 0,
+        objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 + slack)
+        constraints = [0.5*quad_form(x,P1) + q1.T*x + r1 <= slack,
+                       0.5*quad_form(x,P2) + q2.T*x + r2 <= slack,
+                       0.5*quad_form(x,P3) + q3.T*x + r3 <= slack,
         ]
 
         # We now find the primal result and compare it to the dual result
