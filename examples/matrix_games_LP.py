@@ -32,19 +32,17 @@ m = 12
 P = cvxopt.normal(n,m)
 
 # Variables for two players
-x = Variable(n,1)
-y = Variable(m,1)
-t1 = Variable(1)
-t2 = Variable(1)
+x = Variable(n)
+y = Variable(m)
+t1 = Variable()
+t2 = Variable()
 
 # Note in one case we are maximizing; in the other we are minimizing
 objective1 = Minimize(t1)
 objective2 = Maximize(t2)
 
-ones = cvxopt.matrix(1, (n,1))
-constraints1 = [ x>=0, sum(x)==1, P.T*x <= t1*ones ]
-ones = cvxopt.matrix(1, (m,1))
-constraints2 = [ y>=0, sum(y)==1, P.T*y >= t2*ones ]
+constraints1 = [ x>=0, sum(x)==1, P.T*x <= t1 ]
+constraints2 = [ y>=0, sum(y)==1, P*y >= t2 ]
 
 
 p1 = Problem(objective1, constraints1)
