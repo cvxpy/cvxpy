@@ -1,5 +1,6 @@
 import cvxopt
 import cvxpy.problems.problem as problem
+import cvxpy.settings as s
 from boolean import Boolean
 
 def branch(booleans):
@@ -89,8 +90,14 @@ def solve_wrapper(prob, i, booleans, depth, epsilon):
     return solution
 
 def branch_and_bound(self, depth=5, epsilon=1e-3):
-    objective,eq_constr,ineq_constr,dims = self.canonicalize()
-    variables = self.variables(objective, eq_constr + ineq_constr)
+    objective,constr_map, dims = self.canonicalize()
+
+    variables = objective.variables()
+    for constr in constr_map[s.EQ]:
+        variables += constr.variables()
+    for constr in constr_map[s.INEQ]:
+        variables += constr.variables()
+
     booleans = [v for v in variables if isinstance(v, Boolean)]
 
     self.constraints.extend(b._LB <= b for b in booleans)
@@ -108,25 +115,7 @@ def branch_and_bound(self, depth=5, epsilon=1e-3):
         b.save_value(value)
         b.fix_values = cvxopt.matrix(True, b.size)
 
-    print result
     return result['obj']
 
-# attach the branch and bound routine to the Problem class
-problem.Problem.branch_and_bound = branch_and_bound
-# save the old "solve" method
-problem.Problem._solve = problem.Problem.solve
-
-def add_relaxation(f):
-    def new_solve(self, *args, **kwargs):
-        # TODO: it's actually quite annoying to do this multiple times...
-        objective,eq_constr,ineq_constr,dims = self.canonicalize()
-        variables = self.variables(objective, eq_constr + ineq_constr)
-        booleans = [v for v in variables if isinstance(v, Boolean)]
-
-        self.constraints.extend(b._LB <= b for b in booleans)
-        self.constraints.extend(b <= b._UB for b in booleans)
-        return f(self, *args, **kwargs)
-    return new_solve
-
-# add the relaxations to the problem
-problem.Problem.solve = add_relaxation(problem.Problem.solve)
+# add branch and bound a solution method
+problem.Problem.register_solve("branch and bound", branch_and_bound)

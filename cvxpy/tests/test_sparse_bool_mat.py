@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.utilities import BoolMat
 from cvxpy.utilities import SparseBoolMat
+from cvxpy.utilities import bool_mat_utils as bu
 from nose.tools import *
 import numpy as np
 from scipy import sparse
@@ -90,8 +91,8 @@ class TestSparseBoolMat(object):
     def test_mul(self):
         assert_equals(self.x_spmat * self.x_spmat, self.x_spmat)
         assert_equals(self.diag_spmat * self.coo_spmat, self.coo_spmat)
-        assert_equals(BoolMat.mul(self.diag_spmat, (4,4), True, (1,1)), self.diag_spmat)
-        assert_equals(BoolMat.mul(False, (1,1), self.diag_spmat, (4,4)), False)
+        assert_equals(bu.mul(self.diag_spmat, (4,4), True, (1,1)), self.diag_spmat)
+        assert_equals(bu.mul(False, (1,1), self.diag_spmat, (4,4)), False)
         assert_equals(self.x_spmat * self.coo_spmat, self.x_spmat)
         assert_equals(self.x_spmat * self.empty_spmat, self.empty_spmat)
 

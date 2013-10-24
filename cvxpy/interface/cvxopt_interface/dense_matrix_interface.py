@@ -17,19 +17,18 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import base_matrix_interface
+from ..base_matrix_interface import BaseMatrixInterface
 import cvxopt
 import numbers
 
-class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
+class DenseMatrixInterface(BaseMatrixInterface):
     """ 
     An interface to convert constant values to the cvxopt dense matrix class. 
     """
     TARGET_MATRIX = cvxopt.matrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.
+    @BaseMatrixInterface.scalar_const
     def const_to_matrix(self, value):
-        if isinstance(value, numbers.Number):
-            return value
         return cvxopt.matrix(value, tc='d')
 
     # Return an identity matrix.
@@ -51,5 +50,8 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def scalar_matrix(self, value, rows, cols):
         return cvxopt.matrix(value, (rows,cols), tc='d')
 
+    # Stuff the matrix into a different shape.
+    # First convert the matrix to a cvxopt dense matrix.
     def reshape(self, matrix, size):
+        matrix = self.const_to_matrix(matrix)
         return cvxopt.matrix(list(matrix), size, tc='d')

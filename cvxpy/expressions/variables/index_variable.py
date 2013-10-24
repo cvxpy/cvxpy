@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from ... import interface as intf
+from ... import utilities as u
 from variable import Variable
 
 class IndexVariable(Variable):
@@ -26,12 +28,9 @@ class IndexVariable(Variable):
     def __init__(self, parent, key):
         self.parent = parent
         self.key = key
-        name = "%s[%s,%s]" % (parent.name(), key[0], key[1])
-        super(IndexVariable, self).__init__(name=name)
-
-    # Coefficient is always 1.
-    def coefficients(self, interface):
-        return {self.id: 1}
+        name = parent.name() + "[%s,%s]" % u.Key.to_str(self.key)
+        rows,cols = u.Key.size(self.key, self.parent)
+        super(IndexVariable, self).__init__(rows, cols, name)
 
     # Return parent so that the parent value is updated.
     def variables(self):
@@ -39,11 +38,16 @@ class IndexVariable(Variable):
 
     # Initialize the id.
     def _init_id(self):
-        self.id = self.parent.index_id(*self.key)
+        self.id = self.parent.id + "[%s,%s]" % u.Key.to_str(self.key)
 
     # Convey the parent's constraints to the canonicalization.
     def _constraints(self):
         return self.parent._constraints()
+
+    # Return a view into the parent matrix variable.
+    def index_object(self, key):
+        key = u.Key.compose_keys(key, self.key)
+        return IndexVariable(self.parent, key)
 
     # The value at the index.
     @property
@@ -53,14 +57,28 @@ class IndexVariable(Variable):
         else:
             return self.parent.value[self.key]
 
-    # Adds to the coefficient matrix based on the coefficient
-    # for the variable.
-    # coeff - the coefficient for the variable.
+    # Slices into the coefficient and adds the values to 
+    # the appropriate slice of the overall matrix.
     # matrix - the coefficient matrix.
-    # horiz_offset - the current horizontal offset.
+    # coeff - the coefficient for the variable.
     # vert_offset - the current vertical offset.
+    # constraint - the constraint containing the variable. 
+    # var_offsets - a map of variable object to horizontal offset.
     # interface - the interface for the matrix type.
-    # def place_coeff(coeff, matrix, horiz_offset, vert_offset, interface):
-    #     rows,cols = interface.size(coeff)
-    #     coeff = interface.vec(coeff)
-    #     matrix[horiz_offset, ]
+    def place_coeff(self, matrix, coeff, vert_offset, 
+                    constraint, var_offsets, interface):
+        # Vectorize the coefficient if the variable was promoted.
+        if self.size == (1,1):
+            rows = constraint.size[0]*constraint.size[1]
+        else:
+            rows = constraint.size[0]
+        cols = self.size[0]
+        horiz_offset = var_offsets[self.parent]
+        curr_col = self.key[1].start
+        while curr_col < u.Key.get_stop(self.key[1], self.parent.size[1]):
+            index_offset = curr_col*self.parent.size[0] + self.key[0].start
+            interface.block_add(matrix, coeff,
+                                vert_offset, horiz_offset + index_offset,
+                                rows, cols, horiz_step=self.key[0].step)
+            curr_col += self.key[1].step
+            vert_offset += rows

@@ -19,6 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import matrix_utilities as intf
 import abc
+import numbers
+import numpy as np
 
 class BaseMatrixInterface(object):
     """
@@ -30,6 +32,16 @@ class BaseMatrixInterface(object):
     @abc.abstractmethod
     def const_to_matrix(self, value):
         return NotImplemented
+
+    # Adds a case for scalars to const_to_matrix methods.
+    @staticmethod
+    def scalar_const(converter):
+        def new_converter(self, value):
+            if isinstance(value, numbers.Number):
+                return value
+            else:
+                return converter(self, value)
+        return new_converter
 
     # Return an identity matrix.
     @abc.abstractmethod
@@ -63,13 +75,18 @@ class BaseMatrixInterface(object):
     def index(self, matrix, key):
         return matrix[key]
 
+    # Get the tranpose of the given matrix.
+    def transpose(self, matrix):
+        return matrix.T
+
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
     def reshape(self, matrix, size):
         return NotImplemented
 
-    # Copy the block into the matrix at the given offset.
-    def block_copy(self, matrix, block, vert_offset, horiz_offset, rows, cols):
+    # Add the block to the matrix at the given offset.
+    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols, 
+                  vert_step=1, horiz_step=1):
         # If the block is a scalar, promote it.
         if intf.is_scalar(block):
             block = self.scalar_matrix(intf.scalar_value(block), rows, cols)
@@ -79,4 +96,8 @@ class BaseMatrixInterface(object):
         # If the block is a matrix coerced into a vector, vectorize it.
         elif not intf.is_vector(block) and cols == 1:
             block = self.reshape(block, (rows, cols))
-        matrix[vert_offset:(rows+vert_offset), horiz_offset:(horiz_offset+cols)] = block
+        # Ensure the block is the same type as the matrix.
+        elif type(block) != type(matrix):
+            block = self.const_to_matrix(block)
+        matrix[vert_offset:(rows+vert_offset):vert_step,
+               horiz_offset:(horiz_offset+cols):horiz_step] += block

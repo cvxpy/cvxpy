@@ -25,11 +25,16 @@ from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
 from vstack import vstack
+import numpy as np
 
 class quad_over_lin(Atom):
     """ x'*x/y """
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
+
+    # Returns the dot product of x divided by y.
+    def numeric(self, values):
+        return np.dot(values[0].T, values[0])/values[1]
 
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
@@ -56,7 +61,7 @@ class quad_over_lin(Atom):
     
     @staticmethod
     def graph_implementation(var_args, size):
-        v,dummy = Variable(*size).canonical_form()
+        v = Variable(*size).canonical_form()[0]
         x = var_args[0]
         y = var_args[1]
 

@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions.variables import Variable
-from cvxpy.expressions.constant import Constant
-from cvxpy.expressions.parameter import Parameter
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Parameter
 from cvxpy.expressions.vstack import AffVstack
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
@@ -58,9 +58,9 @@ class TestAffVstack(unittest.TestCase):
             self.x.coefficients(self.intf).keys() + \
             self.y.coefficients(self.intf).keys())
         for k,v in coeffs.items():
-            self.assertEqual(intf.size(v), (4,1))
+            self.assertEqual(intf.size(v), (4,2))
 
         exp = AffVstack(self.A, self.B, self.C)
         coeffs = exp.coefficients(self.intf)
-        for k,v in coeffs.items():
-            self.assertEqual(intf.size(v), (10,2))
+        v = coeffs[self.A]
+        self.assertEqual(intf.size(v), (10,3))

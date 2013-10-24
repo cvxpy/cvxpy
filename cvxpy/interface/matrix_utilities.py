@@ -34,6 +34,8 @@ INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
               np.matrix: np_intf.MatrixInterface(),
               numpy_wrapper.matrix: np_intf.MatrixInterface(),
 }
+# Default Numpy interface.
+DEFAULT_NP_INTERFACE = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTERFACE = INTERFACES[cvxopt.matrix]
 DEFAULT_SPARSE_INTERFACE = INTERFACES[cvxopt.spmatrix]
@@ -58,7 +60,7 @@ def size(constant):
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
-# Is the constant a vector?
+# Is the constant a column vector?
 def is_vector(constant):
     return size(constant)[1] == 1
 
@@ -102,6 +104,28 @@ def index(constant, key):
         if is_vector(constant):
             return constant[key[0]]
         else:
-            return constant[key[1]][key[0]]
+            selection = [l[key[0]] for l in constant[key[1]]]
+            for i in range(2): # Unpack column vectors and scalars.
+                if len(selection) == 1:
+                    selection = selection[0]
+            return selection
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].index(constant, key)
+
+# Get the tranpose of the given constant.
+def transpose(constant):
+    const_size = size(constant)
+    if const_size == (1,1):
+        return constant
+    elif isinstance(constant, list):
+        # Column vector
+        if const_size[1] == 1:
+            return [[elem] for elem in constant]
+        # Row vector
+        elif const_size[0] == 1:
+            return [elem[0] for elem in constant]
+        else:
+            # http://stackoverflow.com/questions/6473679/python-list-of-lists-transpose-without-zipm-thing
+            return map(list, zip(*constant))
+    elif constant.__class__ in INTERFACES:
+        return INTERFACES[constant.__class__].transpose(constant)

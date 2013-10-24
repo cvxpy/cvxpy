@@ -22,10 +22,6 @@ PLUS = "+"
 MINUS = "-"
 MUL = "*"
 
-# Constants for linear_ops
-END_MUL = "end *"
-END_MUL_OP = [(None, END_MUL, [])]
-
 # Prefix for default named variables.
 VAR_PREFIX = "var"
 
@@ -52,9 +48,19 @@ ECOS = "ecos"
 ECOS_STATUS = {0: SOLVED,
                1: INFEASIBLE, 
                2: UNBOUNDED,
-               3: UNKNOWN}
+               3: UNKNOWN,
+               -1: UNKNOWN,
+               -2: SOLVED}
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS}
+
+import numbers
+# Converts the result from the Problem.solve method to a status string.
+def get_status(result):
+    if isinstance(result, numbers.Number):
+        return SOLVED
+    else:
+        return result
 
 # Map of constraint types.
 EQ,INEQ,SOC,SDP,NONLIN = range(5)

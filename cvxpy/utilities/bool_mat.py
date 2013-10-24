@@ -57,31 +57,12 @@ class BoolMat(object):
     def __ror__(self, other):
         return self | other
 
-    # Multiplies matrices, promoting if necessary.
-    @staticmethod
-    def mul(lh_mat, lh_size, rh_mat, rh_size):
-        if lh_mat is True:
-            if lh_size == (1,1):
-                return rh_mat
-            else:
-                lh_mat = BoolMat.promote(lh_mat, lh_size)
-        elif lh_mat is False:
-            return False
-
-        if rh_mat is True:
-            if rh_size == (1,1):
-                return lh_mat
-            else:
-                rh_mat = BoolMat.promote(rh_mat, rh_size)
-        elif rh_mat is False:
-            return False
-
-        return lh_mat * rh_mat
-
     # Handles multiplication with SparseBoolMat.
     def __mul__(self, other):
         if isinstance(other, BoolMat):
             mult_val = self.value.dot(other.value)
+            if mult_val.size == 1:
+                return mult_val[0,0]
             return BoolMat(mult_val)
         else:
             return NotImplemented

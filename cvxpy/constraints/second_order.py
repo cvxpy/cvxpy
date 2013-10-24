@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import interface as intf
-from ..expressions.variables import Variable
-from affine import AffEqConstraint, AffLeqConstraint
+from .. import utilities as u
+from affine import AffLeqConstraint
 
 class SOC(object):
     """ 
@@ -29,8 +29,8 @@ class SOC(object):
     # x - an affine expression or objective.
     # t - an affine expression or objective.
     def __init__(self, t, x):
-        self.x = x
-        self.t = t
+        self.x = u.Affine.cast_as_affine(x)
+        self.t = u.Affine.cast_as_affine(t)
         super(SOC, self).__init__()
 
     # Formats SOC constraints for the solver.
@@ -41,4 +41,4 @@ class SOC(object):
     # The dimensions of the second-order cone.
     @property
     def size(self):
-        return self.x.size[0] + self.t.size[0]
+        return (self.x.size[0]*self.x.size[1] + self.t.size[0],1)

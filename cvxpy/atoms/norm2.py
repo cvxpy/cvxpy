@@ -21,14 +21,19 @@ from atom import Atom
 from .. import utilities as u
 from ..expressions.variables import Variable
 from ..constraints.second_order import SOC
+from numpy import linalg as LA
 
 class norm2(Atom):
     """ L2 norm (sum(x^2))^(1/2) """
     def __init__(self, x):
         super(norm2, self).__init__(x)
 
+    # Returns the L2 norm of x for vector x
+    # and the Frobenius norm for matrix x.
+    def numeric(self, values):
+        return LA.norm(values[0])
+
     def set_shape(self):
-        self.validate_arguments()
         self._shape = u.Shape(1,1)
 
     # Always positive.
@@ -41,12 +46,6 @@ class norm2(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
-
-    # Verify that the argument x is a vector.
-    def validate_arguments(self):
-        if not self.args[0].is_vector():
-            raise TypeError("The argument '%s' to norm2 must resolve to a vector." 
-                % self.args[0].name())
 
     @staticmethod
     def graph_implementation(var_args, size):

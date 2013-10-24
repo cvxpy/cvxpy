@@ -20,11 +20,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import interface as intf
 from ..expressions.expression import Expression
+from ..expressions.constants import Constant
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
+from ..constraints.semi_definite import SDP
 from ..constraints.nonlinear import NonlinearConstraint
+from .objective import Minimize, Maximize
+from kktsolver import get_kktsolver
 
+import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
@@ -38,8 +43,6 @@ class Problem(object):
     """
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
-    # Simulated variable id dict for constant.
-    CONSTANT_ID = {s.CONSTANT:0}
     # objective - the problem objective.
     # constraints - the problem constraints.
     def __init__(self, objective, constraints=[]):
@@ -60,6 +63,7 @@ class Problem(object):
         constr_map[s.EQ] = [c for c in constraints if isinstance(c, AffEqConstraint)]
         constr_map[s.INEQ] = [c for c in constraints if isinstance(c, AffLeqConstraint)]
         constr_map[s.SOC] = [c for c in constraints if isinstance(c, SOC)]
+        constr_map[s.SDP] = [c for c in constraints if isinstance(c, SDP)]
         constr_map[s.NONLIN] = [c for c in constraints if isinstance(c, NonlinearConstraint)]
         return constr_map
 
@@ -71,11 +75,11 @@ class Problem(object):
             constraints += constr.canonical_form()[1]
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
-        # Formats SOC constraints for the solver.
-        for constr in constr_map[s.SOC]:
+        # Formats SOC and SDP constraints for the solver.
+        for constr in constr_map[s.SOC] + constr_map[s.SDP]:
             constr_map[s.INEQ] += constr.format()
-        dims['q'] = [c.size for c in constr_map[s.SOC]]
-        dims['s'] = []
+        dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
+        dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
         return (obj,constr_map,dims)
 
     # Dispatcher for different solve methods.
@@ -102,29 +106,36 @@ class Problem(object):
             else:
                 raise Exception("Problem does not follow DCP rules.")
         objective,constr_map,dims = self.canonicalize()
-        variables = self.variables(objective, constr_map[s.EQ] + constr_map[s.INEQ])
-        var_ids = self.variable_ids(variables)
+        var_offsets,x_length = self.variables(objective, 
+                                              constr_map[s.EQ] + constr_map[s.INEQ])
        
-        c = self.constraints_matrix([objective], var_ids, 
-                                    self.dense_interface).T
-        A = self.constraints_matrix(constr_map[s.EQ], var_ids, self.interface)
-        b = -self.constraints_matrix(constr_map[s.EQ], self.CONSTANT_ID, 
-                                     self.dense_interface)
-        G = self.constraints_matrix(constr_map[s.INEQ], var_ids, self.interface)
-        h = -self.constraints_matrix(constr_map[s.INEQ], self.CONSTANT_ID, 
-                                     self.dense_interface)
+        c,obj_offset = self.constraints_matrix([objective], var_offsets, x_length,
+                                               self.dense_interface, self.dense_interface)
+        A,b = self.constraints_matrix(constr_map[s.EQ], var_offsets, x_length,
+                                      self.interface, self.dense_interface)
+        G,h = self.constraints_matrix(constr_map[s.INEQ], var_offsets, x_length,
+                                      self.interface, self.dense_interface)
 
         # ECHU: get the nonlinear constraints
-        F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_ids, self.interface)
+        F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
+                                               x_length)
 
+        # Target cvxopt clp if nonlinear constraints exist
         if constr_map[s.NONLIN]:
-            # Target cvxopt clp if nonlinear constraints exist
-            results = cvxopt.solvers.cpl(c,F,G,h,A=A,b=b,dims=dims)
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(G, dims, A, F)
+            results = cvxopt.solvers.cpl(c.T,F,G,h,A=A,b=b,
+                                         dims=dims,kktsolver=kktsolver)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
+        # Target cvxopt solver if SDP or invalid for ECOS.
         elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
-            # Target cvxopt solver if SDP or invalid for ECOS.
-            results = cvxopt.solvers.conelp(c,G,h,A=A,b=b,dims=dims)
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(G, dims, A)
+            # Adjust tolerance to account for regularization.
+            cvxopt.solvers.options['feastol'] = 2*1e-6
+            results = cvxopt.solvers.conelp(c.T,G,h,A=A,b=b,
+                                            dims=dims,kktsolver=kktsolver)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
             primal_val = results['primal objective']
         else: # If possible, target ECOS.
@@ -143,50 +154,48 @@ class Problem(object):
             Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
             Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
             Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
-            Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
-            # ECHU: end conversion    
+            if p == 0:
+                Asp = None
+                bnp = None
+            else:
+                Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
+                
+            # ECHU: end conversion
             results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
-            #results = ecos.ecos(c,G,h,dims,A,b)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
+        
         if status == s.SOLVED:
-            self.save_values(results['x'], variables)
+            self.save_values(results['x'], sorted(var_offsets.keys()))
             self.save_values(results['y'], constr_map[s.EQ])
             if constr_map[s.NONLIN]:
                 self.save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self.save_values(results['z'], constr_map[s.INEQ])
-            return self.objective.value(primal_val)
+            return self.objective.value(primal_val - obj_offset[0])
         else:
             return status
 
-    # A list of variable objects, sorted alphabetically by id.
+    # Returns a map of variable object to horizontal offset
+    # and the length of the x vector.
     def variables(self, objective, constraints):
         vars = objective.variables()
         for constr in constraints:
             vars += constr.variables()
         # Eliminate duplicate ids and sort variables.
-        var_id = {v.id: v for v in vars}
-        keys = sorted(var_id.keys())
-        return [var_id[k] for k in keys]
-
-    # A dict of variable id to offset in the overall x vector.
-    # Matrix variables are represented as a list of scalar variable views.
-    def variable_ids(self, variables):
-        var_ids = {}
-        index = 0
-        for var in variables:
-            # Column major order.
-            for col in range(var.size[1]):
-                for row in range(var.size[0]):
-                    id = var.index_id(row,col)
-                    var_ids[id] = index
-                    index += 1
-        return var_ids
+        var_offsets = {}
+        vert_offset = 0
+        for var in sorted(vars):
+            if var not in var_offsets:
+                var_offsets[var] = vert_offset
+                vert_offset += var.size[0]*var.size[1]
+        return (var_offsets, vert_offset)
 
     # Saves the values of the optimal primary/dual variables 
     # as fields in the variable/constraint objects.
     def save_values(self, result_vec, objects):
+        # Cast to desired matrix type.
+        result_vec = self.dense_interface.const_to_matrix(result_vec)
         offset = 0
         for obj in objects:
             rows,cols = obj.size
@@ -194,78 +203,73 @@ class Problem(object):
             if (rows,cols) == (1,1):
                 value = result_vec[offset]
             else:
-                value = obj.interface.zeros(rows, cols)
-                obj.interface.block_copy(value, 
-                                         result_vec[offset:offset + rows*cols],
-                                         0, 0, rows, cols)
+                value = self.dense_interface.zeros(rows, cols)
+                self.dense_interface.block_add(value, 
+                                               result_vec[offset:offset + rows*cols],
+                                               0, 0, rows, cols)
             obj.save_value(value)
             offset += rows*cols
 
     # Returns a matrix where each variable coefficient is inserted as a block
-    # with upper left corner at matrix[variable offset, constraint offset].
+    # with upper left corner at matrix[variable offset, constraint offset]
+    # and a vector with the constant terms.
     # aff_expressions - a list of affine expressions or constraints.
-    # var_ids - a dict of variable id to offset.
-    # interface - the matrix interface to use for creating the constraints matrix.
-    def constraints_matrix(self, aff_expressions, var_ids, interface):
+    # var_offsets - a dict of variable id to horizontal offset.
+    # x_length - the length of the x vector.
+    # matrix_intf - the matrix interface to use for creating the constraints matrix.
+    # vec_intf - the matrix interface to use for creating the constant vector.
+    def constraints_matrix(self, aff_expressions, var_offsets, x_length,
+                           matrix_intf, vec_intf):
         rows = sum([aff.size[0] * aff.size[1] for aff in aff_expressions])
-        cols = len(var_ids) # All variables are scalar.
-        matrix = interface.zeros(rows, cols)
+        cols = x_length
+        matrix = matrix_intf.zeros(rows, cols)
+        const_vec = vec_intf.zeros(rows, 1)
         vert_offset = 0
         for aff_exp in aff_expressions:
             num_entries = aff_exp.size[0] * aff_exp.size[1]
-            coefficients = aff_exp.coefficients(interface)
-            horiz_offset = 0
-            for id,block in coefficients.items():
-                if id in var_ids:
-                    # Update the matrix.
-                    interface.block_copy(matrix,
-                                         block,
-                                         vert_offset,
-                                         var_ids[id],
-                                         num_entries,
-                                         1)
+            coefficients = aff_exp.coefficients(self.interface)
+            for var,block in coefficients.items():
+                if var is Constant:
+                    var.place_coeff(const_vec, block, vert_offset, 
+                                    aff_exp, var_offsets, vec_intf)
+                else:
+                    var.place_coeff(matrix, block, vert_offset, 
+                                    aff_exp, var_offsets, matrix_intf)
             vert_offset += num_entries
-        return matrix
+        return (matrix,-const_vec)
 
-    def nonlinear_constraint_function(self, nl_funcs, var_ids, interface):
+    def nonlinear_constraint_function(self, nl_funcs, var_offsets, x_length):
         """ TODO: ensure that this works with numpy data structs...
         """
         rows = sum([func.size[0] * func.size[1] for func in nl_funcs])
-        cols = len(var_ids) # All variables are scalar.
+        cols = x_length
         
-        vert_offset, big_x = 0, cvxopt.matrix(0., (cols,1))
+        big_x = self.dense_interface.zeros(cols, 1)
         for func in nl_funcs:
-            # get height?
-            m, x0 = func.f()
-            func.start = vert_offset    # HACK: set the start location
-            vert_offset += m
-            indices = []
-            for variable in func.vars_involved:
-                id = variable.index_id(0,0)
-                var_size = variable.size[0]*variable.size[1]
-                indices += range(var_ids[id],var_ids[id]+var_size)
-            big_x[indices] = x0
-            func.indices = indices  # HACK: set the indices of the function
-        
+            func.place_x0(big_x, var_offsets, self.dense_interface)
         
         def F(x=None, z=None):
             if x is None: return rows, big_x
-            big_f, big_Df = cvxopt.matrix(0., (rows,1)), cvxopt.spmatrix(0,[0],[0], size=(rows,cols))
-            if z: big_H = cvxopt.spmatrix(0,[0],[0], size=(cols,cols))
+            big_f = self.dense_interface.zeros(rows, 1)
+            big_Df = self.interface.zeros(rows, cols)
+            if z: big_H = self.interface.zeros(cols, cols)
             
+            offset = 0
             for func in nl_funcs:
+                local_x = func.extract_variables(x, var_offsets, self.dense_interface)
                 if z:
-                    f, Df, H = func.f(x[func.indices],z[func.start:func.start + func.size[0]])
+                    f, Df, H = func.f(local_x, z[offset:offset + func.size[0]])
                 else:
-                    result = func.f(x[func.indices])
+                    result = func.f(local_x)
                     if result:
                         f, Df = result
                     else:
                         return None
-                big_f[func.start:func.start + func.size[0]] = f
-                big_Df[func.start:func.start + func.size[0], func.indices] = Df
-                if z: 
-                    big_H[func.indices, func.indices] = H
+                big_f[offset:offset + func.size[0]] = f
+                func.place_Df(big_Df, Df, var_offsets, offset, self.interface)
+                if z:
+                    func.place_H(big_H, H, var_offsets, self.interface)
+                offset += func.size[0]
             
             if z is None: return big_f, big_Df
             return big_f, big_Df, big_H

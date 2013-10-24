@@ -19,13 +19,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable
-from cvxpy.expressions.constant import Constant
-from cvxpy.expressions.parameter import Parameter
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
 import unittest
+from cvxopt import matrix
+from cvxpy import numpy as np
 
 class TestExpressions(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
@@ -58,24 +60,56 @@ class TestExpressions(unittest.TestCase):
 
         # Scalar variable
         coeff = self.a.coefficients(self.intf)
-        self.assertEqual(coeff[self.a.index_id(0,0)], 1)
+        self.assertEqual(coeff[self.a], 1)
 
         # Vector variable.
         coeffs = x.coefficients(self.intf)
-        self.assertItemsEqual(coeffs.keys(), [x[0,0].id, x[1,0].id])
-        vec = coeffs[x[1,0].id]
-        self.assertEqual(vec.size, (2,1))
-        self.assertEqual(vec[0,0], 0)
-        self.assertEqual(vec[1,0], 1)
+        self.assertItemsEqual(coeffs.keys(), [x])
+        vec = coeffs[x]
+        self.assertEqual(vec.size, (2,2))
+        self.assertEqual(list(vec), [1,0,0,1])
 
         # Matrix variable.
         coeffs = self.A.coefficients(self.intf)
-        self.assertItemsEqual(coeffs.keys(), [self.A[0,0].id, self.A[1,0].id,
-                                              self.A[0,1].id, self.A[1,1].id])
-        mat = coeffs[self.A[1,0].id]
+        self.assertItemsEqual(coeffs.keys(), [self.A])
+        mat = coeffs[self.A]
         self.assertEqual(mat.size, (2,2))
-        self.assertEqual(mat[0,0], 0)
-        self.assertEqual(mat[1,0], 1)
+        self.assertEqual(list(mat), [1,0,0,1])
+
+    # Test the TransposeVariable class.
+    def test_transpose_variable(self):
+        var = self.a.T
+        self.assertEquals(var.name(), "a")
+        self.assertEquals(var.size, (1,1))
+
+        self.a.save_value(2)
+        self.assertEquals(var.value, 2)
+
+        var = self.x.T
+        self.assertEquals(var.name(), "x.T")
+        self.assertEquals(var.size, (1,2))
+
+        self.x.save_value( matrix([1,2]) )
+        self.assertEquals(var.value[0,0], 1)
+        self.assertEquals(var.value[0,1], 2)
+
+        var = self.C.T
+        self.assertEquals(var.name(), "C.T")
+        self.assertEquals(var.size, (2,3))
+
+        coeffs = var.coefficients(self.intf)
+        self.assertItemsEqual(coeffs.keys(), [var])
+        mat = coeffs[var]
+        self.assertEqual(mat.size, (2,2))
+        self.assertEqual(list(mat), [1,0,0,1])
+
+        index = var[1,0]
+        self.assertEquals(index.name(), "C[0,1]")
+        self.assertEquals(index.size, (1,1))
+
+        var = self.x.T.T
+        self.assertEquals(var.name(), "x")
+        self.assertEquals(var.size, (2,1))
 
     # Test the Constant class.
     def test_constants(self):
@@ -94,19 +128,52 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.canonicalize()[1], [])
         
         coeffs = c.coefficients(self.intf)
-        self.assertEqual(coeffs.keys(), [s.CONSTANT])
-        self.assertEqual(coeffs[s.CONSTANT], 2)
+        self.assertEqual(coeffs.keys(), [Constant])
+        self.assertEqual(coeffs[Constant], 2)
 
         # Test the sign.
         c = Constant([[2],[2]])
         self.assertEqual(c.size, (1,2))
         self.assertEqual(c.sign.neg_mat.value.shape, (1,2))
 
+        # Test sign of a complex expression.
+        c = Constant([1, 2])
+        A = Constant([[1,1],[1,1]])
+        exp = c.T*A*c
+        self.assertEqual(exp.sign, u.Sign.POSITIVE)
+        self.assertEqual((c.T*c).sign, u.Sign.POSITIVE)
+        exp = c.T.T
+        self.assertEqual(exp.sign.pos_mat.value.ndim, 2)
+        exp = c.T*self.A
+        self.assertEqual(exp.sign.pos_mat.value.ndim, 2)
+
     # Test the Parameter class.
     def test_parameters(self):
         p = Parameter(name='p')
         self.assertEqual(p.name(), "p")
         self.assertEqual(p.size, (1,1))
+
+        p = Parameter(4, 3, sign="positive")
+        with self.assertRaises(Exception) as cm:
+            p.value = 1
+        self.assertEqual(str(cm.exception), "Invalid dimensions (1,1) for Parameter value.")
+
+        val = -np.ones((4,3))
+        val[0,0] = 2
+
+        p = Parameter(4, 3, sign="positive")
+        with self.assertRaises(Exception) as cm:
+            p.value = val
+        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+
+        p = Parameter(4, 3, sign="negative")
+        with self.assertRaises(Exception) as cm:         
+            p.value = val
+        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+
+        # No error for unknown sign.
+        p = Parameter(4, 3)
+        p.value = val
 
     # Test the AddExpresion class.
     def test_add_expression(self):
@@ -190,7 +257,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A * self.B)
-        self.assertEqual(str(cm.exception), "Cannot multiply on the left by a non-constant.")
+        self.assertEqual(str(cm.exception), "Cannot multiply two non-constants.")
 
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])
@@ -251,21 +318,45 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
         coeff = exp.coefficients(self.intf)
-        self.assertEqual(coeff[exp.id], 1)
+        self.assertEqual(coeff[exp], 1)
         self.assertEqual(exp.value, None)
 
         with self.assertRaises(Exception) as cm:
             (self.x[2,0])
         self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
 
+        # Slicing
+        exp = self.C[0:2,1]
+        self.assertEquals(exp.name(), "C[0:2,1]")
+        self.assertEquals(exp.size, (2,1))
+        exp = self.C[0:,0:2]
+        self.assertEquals(exp.name(), "C[0:,0:2]")
+        self.assertEquals(exp.size, (3,2))
+        exp = self.C[0::2,0::2]
+        self.assertEquals(exp.name(), "C[0::2,0::2]")
+        self.assertEquals(exp.size, (2,1))
+        exp = self.C[:3,:1:2]
+        self.assertEquals(exp.name(), "C[0:3,0]")
+        self.assertEquals(exp.size, (3,1))
+        exp = self.C[0:,0]
+        self.assertEquals(exp.name(), "C[0:,0]")
+        self.assertEquals(exp.size, (3,1))
+
         c = Constant([[1,-2],[0,4]])
         exp = c[1,1]
+        print exp
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
         self.assertEqual(exp.sign, u.Sign.POSITIVE)
         self.assertEqual(c[0,1].sign, u.Sign.ZERO)
         self.assertEqual(c[1,0].sign, u.Sign.NEGATIVE)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
+
+        c = Constant([[1,-2,3],[0,4,5],[7,8,9]])
+        exp = c[0:3,0:4:2]
+        self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
+        self.assertEquals(exp.size, (3,2))
+        self.assertEqual(exp[0,1].value, 7)
 
         # Arithmetic expression indexing
         exp = (self.x + self.z)[1,0]
@@ -296,7 +387,7 @@ class TestExpressions(unittest.TestCase):
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.x)[1,0]
-        self.assertEqual(exp.name(), "2 * x[0,0] + 4 * x[1,0]")
+        self.assertEqual(exp.name(), "[[2], [4]] * x[0:,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
 

@@ -33,6 +33,13 @@ class TestAtoms(unittest.TestCase):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
+    # Test the norm wrapper.
+    def test_norm(self):
+        with self.assertRaises(Exception) as cm:
+            norm(self.C, 3)
+        self.assertEqual(str(cm.exception), 
+            "Invalid value 3 for p.")
+
     # Test the normInf class.
     def test_normInf(self):
         exp = self.x+self.y
@@ -42,11 +49,6 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.curvature, u.Curvature.CONVEX)
         self.assertEquals(normInf(atom).curvature, u.Curvature.CONVEX)
         self.assertEquals(normInf(-atom).curvature, u.Curvature.CONVEX)
-
-        with self.assertRaises(Exception) as cm:
-            normInf([[1,2],[3,4]])
-        self.assertEqual(str(cm.exception), 
-            "The argument '[[1, 2], [3, 4]]' to normInf must resolve to a vector.")
 
     # Test the norm1 class.
     def test_norm1(self):
@@ -58,11 +60,6 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(norm1(atom).curvature, u.Curvature.CONVEX)
         self.assertEquals(norm1(-atom).curvature, u.Curvature.CONVEX)
 
-        with self.assertRaises(Exception) as cm:
-            norm1([[1,2],[3,4]])
-        self.assertEqual(str(cm.exception), 
-            "The argument '[[1, 2], [3, 4]]' to norm1 must resolve to a vector.")
-
     # Test the norm2 class.
     def test_norm2(self):
         exp = self.x+self.y
@@ -72,11 +69,6 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.curvature, u.Curvature.CONVEX)
         self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX)
         self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX)
-
-        with self.assertRaises(Exception) as cm:
-            norm2([[1,2],[3,4]])
-        self.assertEqual(str(cm.exception), 
-            "The argument '[[1, 2], [3, 4]]' to norm2 must resolve to a vector.")
 
     # Test sign logic for max.
     def test_max_sign(self):

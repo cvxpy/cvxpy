@@ -19,20 +19,24 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to solve circular imports.
 def constant():
-    import constant
-    return constant.Constant
+    import constants
+    return constants.Constant
 
 def index_variable():
     import variables
     return variables.IndexVariable
+
+def transpose_variable():
+    import variables
+    return variables.TransposeVariable
 
 def variable():
     import variables
     return variables.Variable
 
 def parameter():
-    import parameter
-    return parameter.Parameter
+    import constants
+    return constants.Parameter
 
 def expression():
     import expression
@@ -41,3 +45,19 @@ def expression():
 def aff_obj():
     import affine
     return affine.AffObjective
+
+def add_expr():
+    import binary_operators
+    return binary_operators.AddExpression
+
+def sub_expr():
+    import binary_operators
+    return binary_operators.SubExpression
+
+def mul_expr():
+    import binary_operators
+    return binary_operators.MulExpression
+
+def neg_expr():
+    import unary_operators
+    return unary_operators.NegExpression

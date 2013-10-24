@@ -17,8 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variables import Variable
-import cvxpy.interface.matrix_utilities as intf
+from .. import interface as intf
+from .. import utilities as u
+from ..expressions.variables import Variable
 from affine import AffEqConstraint, AffLeqConstraint
 
 class NonlinearConstraint(object):
@@ -35,9 +36,59 @@ class NonlinearConstraint(object):
     def __init__(self, f, x):
         # assert(isinstance(f, NonlinearFunc))
         self.f = f
-        self.vars_involved = x # TODO unify syntax with affine
+        self.x = x
+        # The shape of x in f(x)
+        cols = self.x[0].size[1]
+        rows = sum(var.size[0] for var in self.x)
+        self.x_shape = u.Shape(rows, cols)
         super(NonlinearConstraint, self).__init__()
 
     @property
     def size(self):
         return (self.f()[0],1)
+
+    # Returns the variables involved in the function
+    # in order, i.e. f(x) = f(vstack(variables))
+    def variables(self):
+        return self.x
+
+    # Place x0 = f() in the vector of all variables.
+    def place_x0(self, big_x, var_offsets, interface):
+        m, x0 = self.f()
+        offset = 0
+        for var in self.variables():
+            var_size = var.size[0]*var.size[1]
+            var_x0 = x0[offset:offset+var_size]
+            interface.block_add(big_x, var_x0, var_offsets[var], 0, var_size, 1)
+            offset += var_size
+
+    # Place Df in the gradient of all functions.
+    def place_Df(self, big_Df, Df, var_offsets, vert_offset, interface):
+        horiz_offset = 0
+        for var in self.variables():
+            var_size = var.size[0]*var.size[1]
+            var_Df = Df[:,horiz_offset:horiz_offset+var_size]
+            interface.block_add(big_Df, var_Df, vert_offset, var_offsets[var], 
+                                self.size[0], var_size)
+            horiz_offset += var_size
+
+    # Place H in the Hessian of all functions.
+    def place_H(self, big_H, H, var_offsets, interface):
+        offset = 0
+        for var in self.variables():
+            var_size = var.size[0]*var.size[1]
+            var_H = H[offset:offset+var_size,offset:offset+var_size]
+            interface.block_add(big_H, var_H, var_offsets[var], var_offsets[var], 
+                                var_size, var_size)
+            offset += var_size
+
+    # Extract the function variables from the vector x of all variables.
+    def extract_variables(self, x, var_offsets, interface):
+        local_x = interface.zeros(*self.x_shape.size)
+        offset = 0
+        for var in self.variables():
+            var_size = var.size[0]*var.size[1]
+            value = x[var_offsets[var]:var_offsets[var]+var_size]
+            interface.block_add(local_x, value, offset, 0, var_size, 1)
+            offset += var_size
+        return local_x

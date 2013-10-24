@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
-from cvxpy.expressions.constant import Constant
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -50,7 +50,7 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=6)
+            super(TestProblem, self).assertAlmostEqual(a,b,places=4)
 
     # Test large expresssions.
     def test_large_expression(self):

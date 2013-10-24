@@ -17,21 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from quad_over_lin import quad_over_lin
+from elementwise import Elementwise
+from ..quad_over_lin import quad_over_lin
+from ... import utilities as u
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...constraints.affine import AffEqConstraint, AffLeqConstraint
 
-class inv_pos(Atom):
+class inv_pos(Elementwise):
     """ Elementwise 1/x, x >= 0 """
     def __init__(self, x):
         super(inv_pos, self).__init__(x)
         # Args are all indexes into x.
         self.x = self.args[0]
         self.args = [xi for xi in self.x]
+
+    # Returns the elementwise inverse of x.
+    def numeric(self, values):
+        return 1.0/values[0]
         
     # The shape is the same as the argument's shape.
     def set_shape(self):
@@ -52,13 +56,9 @@ class inv_pos(Atom):
     def graph_implementation(var_args, size):
         t = Variable(*size)
         constraints = []
-        one,dummy = types.constant()(1).canonical_form()
+        one = types.constant()(1).canonical_form()[0]
         for ti,xi in zip(t,var_args):
             obj,constr = quad_over_lin.graph_implementation([one,xi],(1,1))
             constraints += constr + [AffEqConstraint(obj, ti), 
                                      AffLeqConstraint(0, xi)]
         return (t, constraints)
-
-    # Return the absolute value of the argument at the given index.
-    def index_object(self, key):
-        return inv_pos(self.x[key])

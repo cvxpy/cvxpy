@@ -22,15 +22,20 @@ from .. import utilities as u
 from ..expressions import types
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from abs import abs
+from elementwise.abs import abs
+from numpy import linalg as LA
 
 class norm1(Atom):
     """ L1 norm sum(|x|) """
     def __init__(self, x):
         super(norm1, self).__init__(x)
 
+    # Returns the L1 norm of x.
+    def numeric(self, values):
+        cols = values[0].shape[1]
+        return sum([LA.norm(values[0][:,i], 1) for i in range(cols)])
+
     def set_shape(self):
-        self.validate_arguments()
         self._shape = u.Shape(1,1)
 
     # Always positive.
@@ -43,12 +48,6 @@ class norm1(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
-
-    # Verify that the argument x is a vector.
-    def validate_arguments(self):
-        if not self.args[0].is_vector():
-            raise Exception("The argument '%s' to norm1 must resolve to a vector." 
-                % self.args[0].name())
     
     @staticmethod
     def graph_implementation(var_args, size):

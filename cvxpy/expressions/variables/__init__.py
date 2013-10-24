@@ -18,4 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from index_variable import IndexVariable
+from transpose_variable import TransposeVariable
 from variable import Variable
+from semidefinite import SDPVar

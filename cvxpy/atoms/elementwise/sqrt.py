@@ -17,17 +17,26 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
+from elementwise import Elementwise
+from ..geo_mean import geo_mean
+from ... import utilities as u
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
 
-class abs(Atom):
-    """ Elementwise absolute value """
+class sqrt(Elementwise):
+    """ Elementwise square root """
     def __init__(self, x):
-        super(abs, self).__init__(x)
+        super(sqrt, self).__init__(x)
+        # Args are all indexes into x.
+        self.x = self.args[0]
+        self.args = [xi for xi in self.x]
+
+    # Returns the elementwise square root of x.
+    def numeric(self, values):
+        return np.sqrt(values[0])
 
     # The shape is the same as the argument's shape.
     def set_shape(self):
@@ -39,19 +48,17 @@ class abs(Atom):
 
     # Default curvature.
     def base_curvature(self):
-        return u.Curvature.CONVEX
+        return u.Curvature.CONCAVE
 
     def monotonicity(self):
-        return [u.Monotonicity.SIGNED]
+        return [u.Monotonicity.INCREASING]
     
     @staticmethod
     def graph_implementation(var_args, size):
-        x = var_args[0]
         t = Variable(*size)
-        constraints = [AffLeqConstraint(-t, x), 
-                       AffLeqConstraint(x, t)]
+        constraints = []
+        one,dummy = types.constant()(1).canonical_form()
+        for ti,xi in zip(t,var_args):
+            obj,constr = geo_mean.graph_implementation([xi,one],(1,1))
+            constraints += constr + [AffEqConstraint(obj, ti)]
         return (t, constraints)
-
-    # Return the absolute value of the argument at the given index.
-    def index_object(self, key):
-        return abs(self.args[0][key])

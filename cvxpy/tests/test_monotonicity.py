@@ -35,7 +35,7 @@ class TestMonotonicity(object):
         assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.UNKNOWN,
                                                             Sign.POSITIVE, 
                                                             Curvature.CONSTANT), 
-                      Curvature.UNKNOWN)
+                      Curvature.CONSTANT)
 
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONVEX,
                                                             Sign.POSITIVE,  

@@ -25,11 +25,16 @@ from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
 from vstack import vstack
+import math
 
 class geo_mean(Atom):
     """ Geometric mean of two scalars """
     def __init__(self, x, y):
         super(geo_mean, self).__init__(x, y)
+
+    # Returns the geometric mean of x and y.
+    def numeric(self, values):
+        return math.sqrt(values[0]*values[1])
 
     # The shape is the common width and the sum of the heights.
     def set_shape(self):

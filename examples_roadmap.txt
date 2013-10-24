@@ -1,0 +1,29 @@
+core:
+    docs
+    demo - exercises lots of features
+           hello world
+
+examples:
+    convex:
+        fitting and regression
+        geometry
+        portfolio optimization
+            - monte carlo
+        machine learning
+        flows
+        control
+            - MPC
+        filter design
+        multiprocessor
+            - regularization path
+            - consensus
+        time series
+        ADMM
+
+    Non-convex:
+        Expectation-maximization
+        Non-negative matrix factorization
+        convex-concave
+        branch and bound
+        ADMM
+        combinatorial

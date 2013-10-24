@@ -19,15 +19,21 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from atom import Atom
 from .. import utilities as u
+from ..utilities import bool_mat_utils as bu
 from .. import interface as intf
 from ..expressions import types
 from ..expressions.variables import Variable
 from ..expressions.affine import AffObjective
 from ..expressions.vstack import AffVstack
 from collections import deque
+import numpy as np
 
 class vstack(Atom):
     """ Vertical concatenation """
+    # Returns the vstack of the values.
+    def numeric(self, values):
+        return np.vstack(values)
+        
     # The shape is the common width and the sum of the heights.
     def set_shape(self):
         self.validate_arguments()
@@ -38,10 +44,10 @@ class vstack(Atom):
     # Vertically concatenates sign and curvature as a dense matrix.
     def set_sign_curv(self):
         sizes = [arg.size for arg in self.args]
-        neg_mat = u.vstack([arg.sign.neg_mat for arg in self.args], sizes)
-        pos_mat = u.vstack([arg.sign.pos_mat for arg in self.args], sizes)
-        cvx_mat = u.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
-        conc_mat = u.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
+        neg_mat = bu.vstack([arg.sign.neg_mat for arg in self.args], sizes)
+        pos_mat = bu.vstack([arg.sign.pos_mat for arg in self.args], sizes)
+        cvx_mat = bu.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
+        conc_mat = bu.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
         constant = all(arg.curvature.is_constant() for arg in self.args)
 
         self._context = u.Context(u.Sign(neg_mat, pos_mat),
@@ -61,12 +67,12 @@ class vstack(Atom):
         obj = AffObjective(obj.variables(), [deque([obj])], obj._shape)
         return (obj, [])
 
-    # Return the absolute value of the argument at the given index.
+    # Return the the component of vstack at the given index.
     # TODO replace with binary tree.
     def index_object(self, key):
         index = 0
         offset = 0
-        while offset + self.args[index].size[0] <= key[0]:
+        while offset + self.args[index].size[0] <= key[0].start:
             offset += self.args[index].size[0]
             index += 1
-        return self.args[index][key[0] - offset, key[1]]
+        return self.args[index][key[0].start - offset, key[1].start]

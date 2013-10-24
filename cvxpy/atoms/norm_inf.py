@@ -21,14 +21,20 @@ from atom import Atom
 from .. import utilities as u
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
+from numpy import linalg as LA
 
 class normInf(Atom):
     """ Infinity norm max{|x|} """
     def __init__(self, x):
         super(normInf, self).__init__(x)
 
+    # Returns the Infinity norm of x.
+    def numeric(self, values):
+        cols = values[0].shape[1]
+        return max([LA.norm(values[0][:,i], np.inf) for i in range(cols)])
+
     def set_shape(self):
-        self.validate_arguments()
         self._shape = u.Shape(1,1)
 
     # Always positive.
@@ -41,12 +47,6 @@ class normInf(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
-
-    # Verify that the argument x is a vector.
-    def validate_arguments(self):
-        if not self.args[0].is_vector():
-            raise TypeError("The argument '%s' to normInf must resolve to a vector." 
-                % self.args[0].name())
     
     @staticmethod
     def graph_implementation(var_args, size):

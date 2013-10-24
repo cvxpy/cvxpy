@@ -71,17 +71,21 @@ A = Variable(4,7)
 ```
 
 ### Constants
-The following types may be used as constants:
+CVXPY allows you to use your numeric library of choice to construct problem data. Numeric constants (i.e. scalars, vectors, and matrices) may be combined with CVXPY objects in arbitrary [expressions](#expressions). For instance, if `x` is a CVXPY Variable in the expression `A*x + b`, `A` and `b` could be Numpy ndarrays, Python floats, CVXOPT matrices, etc. `A` and `b` could even be different types.
+
+Currently the following types may be used as constants:
 * Python numeric types
 * CVXOPT dense matrices
 * CVXOPT sparse matrices
-* Numpy ndarrays
-* Numpy matrices
+* Numpy ndarrays (see [Problem Data](#problem-data))
+* Numpy matrices (see [Problem Data](#problem-data))
 
 Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
 
 ### Parameters
-Parameters are symbolic representations of constants. Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created.
+Parameters are symbolic representations of constants. Parameters should only be used in special cases. The purpose of Parameters is to change the value of a constant in a problem without reconstructing the entire problem. For example, to efficiently solve `Problem(Minimize(expr1 + gamma*expr2), constraints)` for many different values of `gamma`, make `gamma` a Parameter. See [Problem Data](#problem-data) for an example problem that uses parameters.
+
+Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created.
 
 ```
 # Positive scalar parameter.
@@ -94,7 +98,7 @@ c = Parameter(5)
 G = Parameter(4,7,sign="negative")
 
 # Assigns a constant value to G.
-G.value = cvxopt.matrix(...)
+G.value = -numpy.ones((4,7))
 ```
 
 ### Expressions
@@ -110,23 +114,32 @@ expr = expr - a
 expr = sum(expr) + norm2(x)
 ```
 
-### Disciplined Convex Programming (DCP)
-TODO ignore_dcp, is_dcp, exp.curvature, exp.sign
-Expressions must follow the rules of Disciplined Convex Programming (DCP). An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+#### Indexing and Slicing
+All non-scalar Expression objects can be indexed using the syntax `expr[i,j]`. The syntax `expr[i]` can be used as a shorthand for `expr[i,0]` when `expr` is a column vector. Similarly, `expr[i]` is shorthand for `expr[0,i]` when `expr` is a row vector.
 
-### Indexing and Iteration
-All Expression objects can be indexed using the syntax `expr[i,j]` if `expr` is a matrix and `expr[i]` if `expr` is a vector.
+Non-scalar Expressions can also be sliced into using the standard Python slicing syntax. Thus `expr[i:j:k,r]` selects every kth element in column r of `expr`, starting at row i and ending at row j-1.
 
-Expressions are also iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
+#### Iteration
+Expressions are iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
+
+#### Transpose
+The transpose of any expression can be obtained using the syntax `expr.T`.
 
 ### Atoms
 Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
-    * `norm1(x)`, the L1 norm of `x`.
-    * `norm2(x)`, the L2 norm of `x`.
-    * `normInf(x)`, the Infinity norm of `x`.
+    * `lambda_max(x)`, the maximum eigenvalue of `x`. Constrains `x` to be symmetric.
+    * `lambda_min(x)`, the minimum eigenvalue of `x`. Constrains `x` to be symmetric.
+    * `norm(x, [p = 2])`
+        * For p = 1, the L1 norm of `x`.
+        * For p = 2, the L2 norm of `x` for vector `x` and the maximum singular value for matrix `x`.
+        * For p = "inf", the Infinity norm of `x`.
+        * For p = "nuc", the nuclear norm of `x` (i.e. the sum of the singular values).
+        * For p = "fro", the Frobenius norm of `x`.
+        * Defaults to p = 2 if no value of p is given.
+    * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
     * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
@@ -135,15 +148,81 @@ CVXPY currently supports the following atoms:
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
+    * `log(x)`, the natural log of each element of `x`.
+    * `neg(x)`, `max(-element,0)` for each element of `x`.
     * `pos(x)`, `max(element,0)` for each element of `x`.
     * `sqrt(x)`, the square root of each element of `x`.
     * `square(x)`, the square of each element of `x`.
 
+### Disciplined Convex Programming (DCP)
+
+Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+
+DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e. non-negative), negative (i.e. non-positive), and unknown.
+
+The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. For matrix constants, a sign is determined for each entry. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
+
+#### The DCP Rules
+
+##### The No-Product Rule
+
+You can never multiply two non-constant expressions. Doing so in cvxpy will immediately raise an exception.
+
+##### Curvature Rules
+
+The curvature composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
+
+* `f` is non-decreasing in argument i and `expi` is convex
+* `f` is non-increasing in argument i and `expi` is concave
+* `expi` is affine
+
+If one of the `expi` does not satisfy any of the conditions, the curvature of `f(exp1, exp2, ..., expn)` is unknown.
+
+All other DCP rules for determining the curvature of an expression can be derived from the curvature composition rule. For example, if `f` is concave then the curvature composition rule can be applied to `-f`. Arithmetic operators are affine functions, so the curvature composition rule also applies to arithmetic expressions.
+
+#### Sign Rules
+
+For some functions monotonicity (i.e. whether the function is increasing or decreasing in each argument) depends on the sign of the arguments. For example, `square(exp)` is increasing if `exp` is positive and decreasing if `exp` is negative. For this reason DCP tracks the signs of expressions as well as the curvatures.
+
+Each function in cvxpy (i.e. atom or arithmetic operator) has a different rule for determining the sign of the function output from the signs of the arguments. These rules are exhaustive, meaning they capture every case where the sign of the output can be determined from the sign of the inputs. Here is the rule for `+` applied to the scalar expressions `exp1` and `exp2`:
+
+```
+The sign of the expression exp1 + exp2 is
+* positive if exp1 and exp2 are both positive
+* negative if exp1 and exp2 are both negative
+* unknown in all other cases
+```
+
+The rules for other functions are equally straightforward.
+
+#### DCP Methods
+
+To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. [Constraints](#constraints), [Objectives](#objectives), and [Problems](#problems) also have an `is_dcp` method.
+
+The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. The curvature and sign are complex objects. The simplest way to examine the curvature and sign is to use the following methods:
+
+* Curvature Methods
+    * expr.curvature.is_constant()
+    * expr.curvature.is_affine()
+    * expr.curvature.is_convex()
+    * expr.curvature.is_concave()
+* Sign Methods
+    * expr.sign.is_positive()
+    * expr.sign.is_negative()
+
+For scalar expressions, these methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
+
+For matrix expressions, these methods return true only if the method returns true for every entry.
+
 ### Constraints
 Constraint objects are constructed using `==`, `<=`, and `>=` with Expression objects or constants on the left-hand and right-hand sides.
 
+The lefthand and righthand sides of a constraint are analyzed using the DCP rules to ensure the constraint is convex. Equality constraints must be of the form `affine expression == affine expression`. Inequality constraints must be of the form `convex expression <= concave expression`.
+
 ### Objectives
 Objective objects are constructed using `Minimize(expression)` or `Maximize(expression)`. Use a constant as an argument to `Minimize` or `Maximize` to create an objective for a feasibility problem.
+
+The target expression of a `Minimize` objective must be convex, while the target of a `Maximize` objective must be concave. Convexity and concavity are determined using the DCP rules.
 
 ### Problems
 Problem objects are constructed using the form `Problem(objective, constraints)`. Here `objective` is an Objective object, and `constraints` is a list of Constraint objects. The `constraints` argument is optional. The default is an empty list.
@@ -156,9 +235,36 @@ p = Problem(objective, constraints)
 result = p.solve()
 ```
 
-If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is unfeasible or unbounded, `p.solve()` will hold the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively. Finally, if the solver fails to return a definite result, `p.solve()` will return `cvxpy.UNKNOWN`. 
+If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is unfeasible or unbounded, `p.solve()` will return the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively. Finally, if the solver fails to return a definite result, `p.solve()` will return `cvxpy.UNKNOWN`. 
 
-Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
+Use the method `cvxpy.get_status(result)` to convert the result of `p.solve()` to a constant indicating the status. The status will be `cvxpy.SOLVED` if the result is a number and the result itself otherwise.
+
+Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object. 
+
+The value of expressions in the problem can also be read from `expr.value`. For example, consider the portfolio optimization problem below:
+
+```
+# Constants:
+# mu is the vector of expected returns.
+# sigma is the covariance matrix.
+# gamma is a Parameter that trades off risk and return.
+
+# Variables:
+# x is a vector of stock holdings as fractions of total assets.
+
+expected_return = mu*x
+risk = quad_form(x, sigma)
+
+objective = Maximize(expected_return - gamma*risk)
+p = Problem(objective, [sum(x) == 1])
+result = p.solve()
+
+# The optimal expected return.
+print expected_return.value
+
+# The optimal risk.
+print risk.value
+```
 
 The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) is used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
 

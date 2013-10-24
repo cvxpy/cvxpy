@@ -1,10 +1,11 @@
-# for decimal division
 from __future__ import division
 
 import cvxopt
 import numpy as np
 from pylab import *
 import math
+
+# from cvxpy import numpy as my_numpy
 
 from cvxpy import *
 

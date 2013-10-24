@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from ndarray_interface import NDArrayInterface
 import cvxopt
 import numpy
-import numbers
 
 class MatrixInterface(NDArrayInterface):
     """ 
@@ -28,9 +27,8 @@ class MatrixInterface(NDArrayInterface):
     """
     TARGET_MATRIX = numpy.matrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.
+    @NDArrayInterface.scalar_const
     def const_to_matrix(self, value):
-        if isinstance(value, numbers.Number):
-            return value
         if isinstance(value, list):
             mat = numpy.asmatrix(value, dtype='float64')
             return mat.T

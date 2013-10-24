@@ -17,18 +17,18 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import settings as s
-from .. import utilities as u
-from .. import interface as intf
-import expression
-import leaf
+from ... import settings as s
+from ... import utilities as u
+from ... import interface as intf
+from .. import expression
+from .. import leaf
 
 class Constant(leaf.Leaf):
     """
     A constant, either matrix or scalar.
     """
     def __init__(self, value, name=None):
-        self.value = value
+        self._value = value
         self.param_name = name
         self.set_context()
         super(Constant, self).__init__()
@@ -52,7 +52,7 @@ class Constant(leaf.Leaf):
 
     # Return the constant value, converted to the target matrix.
     def coefficients(self, interface):
-        return {s.CONSTANT: interface.const_to_matrix(self.value)}
+        return {Constant: interface.const_to_matrix(self.value)}
 
     # No variables.
     def variables(self):
@@ -60,16 +60,22 @@ class Constant(leaf.Leaf):
 
     # Return a scalar view into a matrix constant.
     def index_object(self, key):
-        return IndexConstant(self, key)
+        return Constant(intf.index(self.value, key))
 
-class IndexConstant(Constant):
-    """ An index into a matrix constant """
-    # parent - the constant indexed into.
-    # key - the index (row,col).
-    def __init__(self, parent, key):
-        self.parent = parent
-        self.key = key
-        self._shape = u.Shape(1,1)
-        super(IndexConstant, self).__init__(
-            intf.index(self.parent.value, self.key)
-        )
+    # The transpose of the constant.
+    def transpose(self):
+        transpose_val = intf.transpose(self.value)
+        return Constant(transpose_val)
+
+    # Vectorizes the coefficient and adds it to the constant vector.
+    # matrix - the constant vector.
+    # coeff - the constant coefficient.
+    # vert_offset - the current vertical offset.
+    # constraint - the constraint containing the variable.
+    # var_offsets - a map of variable object to horizontal offset.
+    # interface - the interface for the matrix type.
+    @classmethod
+    def place_coeff(cls, matrix, coeff, vert_offset, 
+                    constraint, var_offsets, interface):
+        rows = constraint.size[0]*constraint.size[1]
+        interface.block_add(matrix, coeff, vert_offset, 0, rows, 1)

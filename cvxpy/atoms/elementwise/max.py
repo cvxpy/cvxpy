@@ -17,38 +17,53 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from max import max
-from .. import utilities as u
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-import cvxpy.interface.matrix_utilities as intf
+from elementwise import Elementwise
+from ... import utilities as u
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+import numpy as np
 
-class min(max):
-    """ Elementwise minimum. """
+class max(Elementwise):
+    """ Elementwise maximum. """
+    # Returns the elementwise maximum.
+    def numeric(self, values):
+        return reduce(np.maximum, values)
+
+    # The shape is the common shape of all the arguments.
+    def set_shape(self):
+        shape = self.args[0].shape
+        for arg in self.args[1:]:
+            shape = shape + arg.shape
+        self._shape = shape
+
     """
     Reduces the list of argument signs according to the following rules:
-        NEGATIVE, ANYTHING = NEGATIVE
-        ZERO, UNKNOWN = NEGATIVE
+        POSITIVE, ANYTHING = POSITIVE
+        ZERO, UNKNOWN = POSITIVE
         ZERO, ZERO = ZERO
-        ZERO, POSITIVE = ZERO
-        UNKNOWN, POSITIVE = UNKNOWN
-        POSITIVE, POSITIVE = POSITIVE
+        ZERO, NEGATIVE = ZERO
+        UNKNOWN, NEGATIVE = UNKNOWN
+        NEGATIVE, NEGATIVE = NEGATIVE
     """
     def sign_from_args(self):
         neg_mat = self.args[0].sign.neg_mat
         pos_mat = self.args[0].sign.pos_mat
         for arg in self.args[1:]:
-            neg_mat = neg_mat | arg.sign.neg_mat
-            pos_mat = pos_mat & arg.sign.pos_mat
+            neg_mat = neg_mat & arg.sign.neg_mat
+            pos_mat = pos_mat | arg.sign.pos_mat
         return u.Sign(neg_mat, pos_mat)
-        
+
     # Default curvature.
     def base_curvature(self):
-        return u.Curvature.CONCAVE
+        return u.Curvature.CONVEX
+
+    def monotonicity(self):
+        return len(self.args)*[u.Monotonicity.INCREASING]
     
     @staticmethod
     def graph_implementation(var_args, size):
         t = Variable(*size)
-        constraints = [AffLeqConstraint(t, x) for x in var_args]
+        constraints = [AffLeqConstraint(x, t) for x in var_args]
         return (t, constraints)

@@ -32,24 +32,33 @@ class Context(object):
 
     """ Arithmetic operations """
     def __add__(self, other):
+        shape = self.shape + other.shape
         sign = self.sign + other.sign
         curvature = self.curvature + other.curvature
-        shape = self.shape + other.shape
         return Context(sign, curvature, shape)
 
     def __sub__(self, other):
+        shape = self.shape + other.shape
         sign = self.sign - other.sign
         curvature = self.curvature - other.curvature
-        shape = self.shape + other.shape
         return Context(sign, curvature, shape)
 
     # Assumes self has all constant curvature.
     def __mul__(self, other):
+        shape = self.shape * other.shape
         sign = Sign.mul(self.sign, self.shape.size,
                         other.sign, other.shape.size)
         curvature = Curvature.sign_mul(self.sign, self.shape.size,
                                        other.curvature, other.shape.size)
-        return Context(sign, curvature, self.shape * other.shape)
+        return Context(sign, curvature, shape)
 
     def __neg__(self):
         return Context(-self.sign, -self.curvature, self.shape)
+
+    # Returns true if any of the entries in the matrix are True.
+    @staticmethod
+    def any(matrix):
+        if isinstance(matrix, bool):
+            return matrix
+        else:
+            return matrix.any()

@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bool_mat import BoolMat
-from vstack import vstack
+import bool_mat_utils as bu
 
 class Curvature(object):
     """ 
@@ -49,12 +49,12 @@ class Curvature(object):
         self.constant = constant
 
     @staticmethod
-    def name_to_sign(sign_str):
-        sign_str = sign_str.upper()
-        if sign_str in Curvature.CURVATURE_MAP:
-            return Curvature(*Curvature.CURVATURE_MAP[sign_str])
+    def name_to_curvature(curvature_str):
+        curvature_str = curvature_str.upper()
+        if curvature_str in Curvature.CURVATURE_MAP:
+            return Curvature(*Curvature.CURVATURE_MAP[curvature_str])
         else:
-            raise Exception("'%s' is not a valid sign name." % str(sign_str))
+            raise Exception("'%s' is not a valid curvature name." % str(curvature_str))
 
     # Is the expression constant?
     def is_constant(self):
@@ -62,27 +62,19 @@ class Curvature(object):
 
     # Is the expression affine?
     def is_affine(self):
-        return not self.any(self.cvx_mat | self.conc_mat)
+        return not bu.any(self.cvx_mat | self.conc_mat)
 
     # Is the expression convex?
     def is_convex(self):
-        return not self.any(self.conc_mat)
+        return not bu.any(self.conc_mat)
 
     # Is the expression concave?
     def is_concave(self):
-        return not self.any(self.cvx_mat)
+        return not bu.any(self.cvx_mat)
 
     # Is the expression DCP compliant? (i.e. no unknown curvatures)
     def is_dcp(self):
-        return not self.any(self.cvx_mat & self.conc_mat)
-
-    # Returns true if any of the entries in the matrix are True.
-    @staticmethod
-    def any(matrix):
-        if isinstance(matrix, bool):
-            return matrix
-        else:
-            return matrix.any()
+        return not bu.any(self.cvx_mat & self.conc_mat)
 
     # Arithmetic operators.
     """
@@ -113,13 +105,13 @@ class Curvature(object):
     """
     @staticmethod
     def sign_mul(sign, lh_size, curv, rh_size):
-        cvx_mat = BoolMat.mul(sign.pos_mat, lh_size, 
+        cvx_mat = bu.mul(sign.pos_mat, lh_size, 
                               curv.cvx_mat, rh_size) | \
-                  BoolMat.mul(sign.neg_mat, lh_size, 
+                  bu.mul(sign.neg_mat, lh_size, 
                               curv.conc_mat, rh_size)
-        conc_mat = BoolMat.mul(sign.pos_mat, lh_size,
+        conc_mat = bu.mul(sign.pos_mat, lh_size,
                                curv.conc_mat, rh_size) | \
-                   BoolMat.mul(sign.neg_mat, lh_size,
+                   bu.mul(sign.neg_mat, lh_size,
                                curv.cvx_mat, rh_size)
         return Curvature(cvx_mat, conc_mat, curv.constant)
 
@@ -142,12 +134,12 @@ class Curvature(object):
         return "Curvature(%s, %s)" % (self.cvx_mat, self.conc_mat)
 
     def __str__(self):
-        return "negative entries = %s, positive entries = %s" % \
+        return "convex entries = %s, concave entries = %s" % \
             (self.cvx_mat, self.conc_mat)
 
 # Scalar signs.
-Curvature.CONVEX = Curvature.name_to_sign(Curvature.CONVEX_KEY)
-Curvature.CONCAVE = Curvature.name_to_sign(Curvature.CONCAVE_KEY)
-Curvature.UNKNOWN = Curvature.name_to_sign(Curvature.UNKNOWN_KEY)
-Curvature.AFFINE = Curvature.name_to_sign(Curvature.AFFINE_KEY)
-Curvature.CONSTANT = Curvature.name_to_sign(Curvature.CONSTANT_KEY)
+Curvature.CONVEX = Curvature.name_to_curvature(Curvature.CONVEX_KEY)
+Curvature.CONCAVE = Curvature.name_to_curvature(Curvature.CONCAVE_KEY)
+Curvature.UNKNOWN = Curvature.name_to_curvature(Curvature.UNKNOWN_KEY)
+Curvature.AFFINE = Curvature.name_to_curvature(Curvature.AFFINE_KEY)
+Curvature.CONSTANT = Curvature.name_to_curvature(Curvature.CONSTANT_KEY)

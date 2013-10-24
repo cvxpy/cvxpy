@@ -25,6 +25,7 @@ from cvxpy.constraints.nonlinear import NonlinearConstraint
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 
+import numpy as np
 import cvxopt
 
 # TODO: negative log func, doesn't work with matrix variables (yet)
@@ -47,10 +48,13 @@ def neg_log_func(m):
 
 class log(Atom):
     """ Elementwise logarithm. """
-    
     def __init__(self, x):
         super(log, self).__init__(x)
                 
+    # Returns the elementwise natural log of x.
+    def numeric(self, values):
+        return np.log(values[0])
+
     # The shape is the common shape of all the arguments.
     def set_shape(self):
         self.validate_arguments()

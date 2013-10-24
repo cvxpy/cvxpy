@@ -28,11 +28,15 @@ class SparseMatrixInterface(DenseMatrixInterface):
     """
     TARGET_MATRIX = cvxopt.spmatrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.
+    @DenseMatrixInterface.scalar_const
     def const_to_matrix(self, value):
-        if isinstance(value, numbers.Number):
-            return value
         if isinstance(value, numpy.ndarray):
-            return cvxopt.sparse(cvxopt.matrix(value), tc='d')
+            # ECHU: temporary workaround when travis fails
+            try:
+                retval = cvxopt.sparse(cvxopt.matrix(value), tc='d')
+            except TypeError:
+                retval = cvxopt.sparse(cvxopt.matrix(value.T.tolist()), tc='d')
+            return retval
         return cvxopt.sparse(value, tc='d')
 
     # Return an identity matrix.
@@ -43,8 +47,9 @@ class SparseMatrixInterface(DenseMatrixInterface):
     def scalar_matrix(self, value, rows, cols):
         if value == 0:
             return cvxopt.spmatrix(0, [], [], size=(rows,cols))
-        else: # Not a sparse matrix
-            return cvxopt.matrix(value, (rows,cols), tc='d')
+        else:
+            dense = cvxopt.matrix(value, (rows,cols), tc='d')
+            return cvxopt.sparse(dense)
 
     def reshape(self, matrix, size):
         old_size = matrix.size

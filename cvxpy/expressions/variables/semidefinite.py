@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, Eric Chu
 
 This file is part of CVXPY.
 
@@ -16,18 +16,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+from . variable import Variable
+from .. affine import AffObjective
+from ... constraints.semi_definite import SDP
 
-import abc
-from .. import utilities as u
-
-class Constraint(u.Canonicalizable):
-    """
-    A constraint on an optimization problem of the form
-    affine == affine or affine <= affine.
-    Stored internally as affine <=/== 0.
-    """
-    __metaclass__ = abc.ABCMeta
-    # Is the constraint DCP compliant?
-    @abc.abstractmethod
-    def is_dcp(self):
-        return NotImplemented
+class SDPVar(Variable):
+    """ A semidefinite variable. """
+    def __init__(self, n=1, name=None):
+        super(SDPVar, self).__init__(n,n,name)
+    
+    # A semidefinite variable is no different from a normal variable except
+    # that it adds an SDP constraint on the variable.
+    def _constraints(self):
+        return [SDP(self._objective())]

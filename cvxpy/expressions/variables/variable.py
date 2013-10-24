@@ -23,18 +23,20 @@ from ... import interface as intf
 from .. import expression
 from .. import leaf
 from .. import types
+import numpy
 
 class Variable(leaf.Leaf):
     """ The base variable class """
-    VAR_COUNT = 0        
+    VAR_COUNT = 0
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
-        self._context = u.Context(u.Sign.UNKNOWN, u.Curvature.AFFINE, u.Shape(rows, cols))
+        self._context = u.Context(u.Sign.UNKNOWN, 
+                                  u.Curvature.AFFINE, 
+                                  u.Shape(rows, cols))
         self._init_id()
         self._name = self.id if name is None else name
-        self.interface = intf.DEFAULT_INTERFACE
         self.primal_value = None
         super(Variable, self).__init__()
 
@@ -59,31 +61,44 @@ class Variable(leaf.Leaf):
     def value(self):
         return self.primal_value
 
-    # Returns the id's of the index variables, each with a matrix
-    # of the same dimensions as the variable that is 0 except
-    # for at the index key, where it is 1.
+    # Returns the variable object mapped to an identity matrix.
     def coefficients(self, interface):
-        coeffs = {}
-        for row in range(self.size[0]):
-            for col in range(self.size[1]):
-                id = self.index_id(row, col)
-                # For scalars, coefficient must be a number.
-                if self.size == (1,1):
-                    coeff = 1
-                else:
-                    coeff = interface.zeros(*self.size)
-                    coeff[row,col] = 1
-                coeffs[id] = coeff
-        return coeffs
+        # Scalars have a scalar coefficient.
+        if self.size == (1,1):
+            coeff = 1
+        else:
+            coeff = interface.identity(self.size[0])
+        return {self: coeff}
 
     # Return self.
     def variables(self):
         return [self]
 
-    # The id of the view at the given index.
-    def index_id(self, row, col):
-        return "%s[%s,%s]" % (self.id, row, col)
-
-    # Return a scalar view into a matrix variable.
+    # Return a view into a matrix variable.
     def index_object(self, key):
         return types.index_variable()(self, key)
+
+    # The transpose of the variable.
+    def transpose(self):
+        return types.transpose_variable()(self)
+
+    # Adds the coefficient to the matrix for each column in the variable.
+    # matrix - the coefficient matrix.
+    # coeff - the coefficient for the variable.
+    # vert_offset - the current vertical offset.
+    # constraint - the constraint containing the variable.
+    # var_offsets - a map of variable object to horizontal offset.
+    # interface - the interface for the matrix type.
+    def place_coeff(self, matrix, coeff, vert_offset, 
+                    constraint, var_offsets, interface):
+        # Vectorize the coefficient if the variable was promoted.
+        if self.size == (1,1):
+            rows = constraint.size[0]*constraint.size[1]
+        else:
+            rows = constraint.size[0]
+        cols = self.size[0]
+        horiz_offset = var_offsets[self]
+        for col in range(self.size[1]):
+            interface.block_add(matrix, coeff, vert_offset, horiz_offset, rows, cols)
+            horiz_offset += cols
+            vert_offset += rows

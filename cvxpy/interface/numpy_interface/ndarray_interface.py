@@ -29,12 +29,11 @@ class NDArrayInterface(base.BaseMatrixInterface):
     TARGET_MATRIX = numpy.ndarray
     # Convert an arbitrary value into a matrix of type self.target_matrix.
     def const_to_matrix(self, value):
-        if isinstance(value, numbers.Number):
-            return value
+        mat = numpy.array(value, dtype='float64')
         if isinstance(value, list):
-            mat = numpy.array(value, dtype='float64')
+            mat = numpy.atleast_2d(mat)
             return mat.T
-        return numpy.array(value, dtype='float64')
+        return numpy.atleast_2d(mat)
 
     # Return an identity matrix.
     def identity(self, size):
@@ -51,7 +50,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
-        return matrix[0]
+        return matrix[tuple(np.where(matrix)[0])]
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
