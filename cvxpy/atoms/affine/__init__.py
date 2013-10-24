@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, Eric Chu
+Copyright 2013 Steven Diamond
 
 This file is part of CVXPY.
 
@@ -16,16 +16,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
-from . variable import Variable
-from .. affine import AffObjective
-from ... constraints.semi_definite import SDP
-
-class SDPVar(Variable):
-    """ A semidefinite variable. """
-    def __init__(self, n, name=None):
-        super(SDPVar, self).__init__(n,n,name)
-    
-    # A semidefinite variable is no different from a normal variable except
-    # that it adds an SDP constraint on the variable.
-    def _constraints(self):
-        return [SDP(self._objective())]

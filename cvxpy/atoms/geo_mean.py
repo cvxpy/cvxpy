@@ -24,7 +24,7 @@ from ..expressions import types
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
-from vstack import vstack
+from affine.vstack import vstack
 import math
 
 class geo_mean(Atom):

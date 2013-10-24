@@ -147,8 +147,7 @@ class Expression(u.Canonicalizable):
         if self.size == (1,1): # Transpose of a scalar is that scalar.
             return self
         else:
-            # TODO make abstract method (vstack)
-            return self.transpose()
+            return types.transpose()(self)
 
     """ Arithmetic operators """
     @cast_other

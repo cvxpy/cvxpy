@@ -26,7 +26,7 @@ from cvxopt.misc import scale, pack, unpack
 import math
 
 # Regularization constant.
-EPSILON = 1e-6
+REG_EPS = 1e-6
 # Bound on the deviation from the unperturbed solution.
 ERROR_BOUND = 1e-8
 # Maximum steps of iterative refinement.
@@ -76,11 +76,10 @@ def kkt_ldl(G, dims, A, mnl = 0):
     ipiv = matrix(0, (ldK, 1))
     u = matrix(0.0, (ldK, 1))
     g = matrix(0.0, (mnl + G.size[0], 1))
-    r = matrix(0.0, (ldK, 1)) # Residual in iterative refinement.
+    b = matrix(0.0, (ldK, 1)) # b in K*x == b.
     sltn = matrix(0.0, (ldK, 1)) # Final result.
 
     def factor(W, H = None, Df = None):
-
         blas.scal(0.0, K)
         if H is not None: K[:n, :n] = H
         K[n:n+p, :n] = A
@@ -92,8 +91,8 @@ def kkt_ldl(G, dims, A, mnl = 0):
         K[(ldK+1)*(p+n) :: ldK+1]  = -1.0
         # Add positive regularization in 1x1 block and negative in 2x2 block.
         blas.copy(K, Ktilde)
-        Ktilde[0 : (ldK+1)*n : ldK+1]  += EPSILON
-        Ktilde[(ldK+1)*n :: ldK+1]  += -EPSILON
+        Ktilde[0 : (ldK+1)*n : ldK+1]  += REG_EPS
+        Ktilde[(ldK+1)*n :: ldK+1]  += -REG_EPS
         lapack.sytrf(Ktilde, ipiv)
 
         def solve(x, y, z):
@@ -113,7 +112,7 @@ def kkt_ldl(G, dims, A, mnl = 0):
             blas.copy(y, u, offsety = n)
             scale(z, W, trans = 'T', inverse = 'I') 
             pack(z, u, dims, mnl, offsety = n + p)
-            blas.copy(u, r)
+            blas.copy(u, b)
             # Iterative refinement algorithm:
             # Init: sltn = 0, r_0 = [bx; by; W^{-T}*bz]
             # 1. u_k = Ktilde^-1 * r_k
@@ -125,7 +124,7 @@ def kkt_ldl(G, dims, A, mnl = 0):
             while iteration <= MAX_ITER and resid_norm > ERROR_BOUND:
                 lapack.sytrs(Ktilde, ipiv, u)
                 blas.axpy(u, sltn, alpha = 1.0)
-                blas.copy(r, u)
+                blas.copy(b, u)
                 blas.symv(K, sltn, u, alpha = -1.0, beta = 1.0)
                 resid_norm = math.sqrt(blas.dot(u, u))
                 iteration += 1

@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
+from affine.transpose import transpose
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -61,12 +62,12 @@ class sigma_max(Atom):
         I_n = Constant(np.eye(n)).canonical_form()[0]
         I_m = Constant(np.eye(m)).canonical_form()[0]
         # Expand A.T.
-        obj,constraints = A.T
+        obj,constr = transpose.graph_implementation([A], (m,n))
         # Fix X using the fact that A must be affine by the DCP rules.
-        constraints += [AffEqConstraint(X[0:n,0:n], I_n*t),
-                        AffEqConstraint(X[0:n,n:n+m], A),
-                        AffEqConstraint(X[n:n+m,0:n], obj),
-                        AffEqConstraint(X[n:n+m,n:n+m], I_m*t),
+        constr += [AffEqConstraint(X[0:n,0:n], I_n*t),
+                   AffEqConstraint(X[0:n,n:n+m], A),
+                   AffEqConstraint(X[n:n+m,0:n], obj),
+                   AffEqConstraint(X[n:n+m,n:n+m], I_m*t),
         ]
         # Add SDP constraint.
-        return (t, [SDP(X)] + constraints)
+        return (t, [SDP(X)] + constr)

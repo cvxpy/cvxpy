@@ -17,18 +17,18 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from ..utilities import bool_mat_utils as bu
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..expressions.affine import AffObjective
-from ..expressions.vstack import AffVstack
+from affine_atom import AffAtom
+from ... import utilities as u
+from ...utilities import bool_mat_utils as bu
+from ... import interface as intf
+from ...expressions import types
+from ...expressions.variables import Variable
+from ...expressions.affine import AffObjective
+from ...expressions.vstack import AffVstack
 from collections import deque
 import numpy as np
 
-class vstack(Atom):
+class vstack(AffAtom):
     """ Vertical concatenation """
     # Returns the vstack of the values.
     def numeric(self, values):

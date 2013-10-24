@@ -28,10 +28,6 @@ class UnaryOperator(expression.Expression):
     def index_object(self, key):
         return self.OP_FUNC(self.expr[key])
 
-    # The transpose of the unary operator.
-    def transpose(self):
-        return self.OP_FUNC(self.expr.T)
-
 class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg

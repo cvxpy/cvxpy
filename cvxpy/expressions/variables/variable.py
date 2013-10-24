@@ -79,8 +79,12 @@ class Variable(leaf.Leaf):
         return types.index_variable()(self, key)
 
     # The transpose of the variable.
-    def transpose(self):
-        return types.transpose_variable()(self)
+    @property
+    def T(self):
+        if self.size == (1,1):
+            return self
+        else:
+            return types.transpose_variable()(self)
 
     # Adds the coefficient to the matrix for each column in the variable.
     # matrix - the coefficient matrix.

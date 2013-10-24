@@ -24,7 +24,7 @@ from ..expressions import types
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
-from vstack import vstack
+from affine.vstack import vstack
 import numpy as np
 
 class quad_over_lin(Atom):
@@ -49,15 +49,16 @@ class quad_over_lin(Atom):
     def base_curvature(self):
         return u.Curvature.CONVEX
 
-    def monotonicity(self): # TODO what would make sense?
-        return [u.Monotonicity.NONMONOTONIC, u.Monotonicity.DECREASING]
+    # Increasing for positive entry of x, decreasing for negative.
+    def monotonicity(self):
+        return [u.Monotonicity.SIGNED, u.Monotonicity.DECREASING]
 
     # Any argument size is valid.
     def validate_arguments(self):
         if not self.args[0].is_vector():
             raise TypeError("The first argument to quad_over_lin must be a vector.")
         elif not self.args[1].is_scalar():
-            raise TypeError("The seconde argument to quad_over_lin must be a scalar.")
+            raise TypeError("The second argument to quad_over_lin must be a scalar.")
     
     @staticmethod
     def graph_implementation(var_args, size):
