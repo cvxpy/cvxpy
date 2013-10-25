@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from ... import interface as intf
 from ... import utilities as u
 from variable import Variable
+import transpose_variable as tv
 
 class IndexVariable(Variable):
     """ An index into a matrix variable """
@@ -48,6 +49,11 @@ class IndexVariable(Variable):
     def index_object(self, key):
         key = u.Key.compose_keys(key, self.key)
         return IndexVariable(self.parent, key)
+
+    # # Transpose the parent and index it.
+    # @property
+    # def T(self):
+    #     return tv.TransposeVariable(self.parent)[self.key[1], self.key[0]]
 
     # The value at the index.
     @property

@@ -84,7 +84,12 @@ class MulExpression(BinaryOperator):
 
     # Multiplies the values.
     def numeric(self, values):
-        return np.dot(values[0], values[1])
+        # Broadcast for promoted scalars.
+        if max(values[0].shape) == 1 or max(values[1].shape) == 1:
+            return values[0] * values[1]
+        # Normal matrix multiplication.
+        else:
+            return np.dot(values[0], values[1])
 
     # Return the symbolic affine expression equal to the given index
     # in the expression.

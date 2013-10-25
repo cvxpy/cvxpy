@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -208,6 +208,13 @@ class TestProblem(BaseTest):
             [self.a + self.x >= [1,2]])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
+
+    # Test parameter promotion.
+    def test_parameter_promotion(self):
+        a = Parameter()
+        exp = [[1,2],[3,4]]*a
+        a.value = 2
+        assert (exp.value == 2*numpy.array([[1,2],[3,4]]).T).all()
 
     # Test problems with normInf
     def test_normInf(self):
@@ -448,6 +455,12 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.C.value[0:2,0], [1,-2])
         self.assertItemsAlmostEqual(self.A.value, [2,2,1,1])
 
+        # Transpose of slice.
+        p = Problem(Maximize(sum(self.C)), [self.C[1:3,:].T <= 2, self.C[0,:].T == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+
     # Test the vstack atom.
     def test_vstack(self):
         c = matrix(1, (1,5))
@@ -527,6 +540,12 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(sum(square(c.T).T[:,0])))
         result = p.solve()
         self.assertAlmostEqual(result, 6)
+
+        # Slice of transpose.
+        p = Problem(Maximize(sum(self.C)), [self.C.T[:,1:3] <= 2, self.C.T[:,0] == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
 
     # Test multiplication on the left by a non-constant.
     def test_multiplication_on_left(self):

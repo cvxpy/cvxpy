@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from variable import Variable
-from index_variable import IndexVariable
+import index_variable as iv
 
 class TransposeVariable(Variable):
     """ The transpose of a matrix variable """
@@ -52,7 +52,7 @@ class TransposeVariable(Variable):
 
     # Return a scalar view into a matrix variable.
     def index_object(self, key):
-        return IndexVariable(self.parent, (key[1],key[0]))
+        return iv.IndexVariable(self.parent, (key[1],key[0]))
 
     # The transpose of the transpose is the original variable.
     @property

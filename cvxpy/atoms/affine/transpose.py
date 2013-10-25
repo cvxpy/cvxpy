@@ -27,7 +27,7 @@ class transpose(AffAtom):
     """ Matrix transpose. """
     # Returns the transpose of the given value.
     def numeric(self, values):
-        return values[0].T
+        return values[0].transpose()
         
     # The shape is the dimensions of the argument swapped.
     def set_shape(self):

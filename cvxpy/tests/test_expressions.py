@@ -321,6 +321,12 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(coeff[exp], 1)
         self.assertEqual(exp.value, None)
 
+        # exp = self.x[1,0].T
+        # print self.x.T[0,1]
+        # self.assertEqual(exp.name(), "x.T[0,1]")
+        # self.assertEqual(exp.curvature, u.Curvature.AFFINE)
+        # self.assertEquals(exp.size, (1,1))
+
         with self.assertRaises(Exception) as cm:
             (self.x[2,0])
         self.assertEqual(str(cm.exception), "Invalid indices 2,0 for 'x'.")
@@ -344,7 +350,6 @@ class TestExpressions(unittest.TestCase):
 
         c = Constant([[1,-2],[0,4]])
         exp = c[1,1]
-        print exp
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
         self.assertEqual(exp.sign, u.Sign.POSITIVE)
         self.assertEqual(c[0,1].sign, u.Sign.ZERO)
@@ -357,6 +362,10 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT)
         self.assertEquals(exp.size, (3,2))
         self.assertEqual(exp[0,1].value, 7)
+
+        # Slice of transpose
+        exp = self.C.T[0:2,1]
+        self.assertEquals(exp.size, (2,1))
 
         # Arithmetic expression indexing
         exp = (self.x + self.z)[1,0]
