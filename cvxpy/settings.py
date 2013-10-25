@@ -24,6 +24,8 @@ MUL = "*"
 
 # Prefix for default named variables.
 VAR_PREFIX = "var"
+# Prefix for default named parameters.
+PARAM_PREFIX = "param"
 
 # Key for the constant term.
 CONSTANT = "CONSTANT"

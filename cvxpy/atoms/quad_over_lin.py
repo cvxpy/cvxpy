@@ -33,6 +33,7 @@ class quad_over_lin(Atom):
         super(quad_over_lin, self).__init__(x, y)
 
     # Returns the dot product of x divided by y.
+    @Atom.numpy_numeric
     def numeric(self, values):
         return np.dot(values[0].T, values[0])/values[1]
 

@@ -30,6 +30,7 @@ class norm2(Atom):
 
     # Returns the L2 norm of x for vector x
     # and the Frobenius norm for matrix x.
+    @Atom.numpy_numeric
     def numeric(self, values):
         return LA.norm(values[0])
 

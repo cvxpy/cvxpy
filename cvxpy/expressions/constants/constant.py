@@ -17,46 +17,32 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ... import settings as s
 from ... import utilities as u
 from ... import interface as intf
 from .. import expression
-from .. import leaf
+from constant_leaf import ConstantLeaf
 
-class Constant(leaf.Leaf):
+class Constant(ConstantLeaf):
     """
     A constant, either matrix or scalar.
     """
-    def __init__(self, value, name=None):
-        self._value = value
-        self.param_name = name
+    def __init__(self, value):
+        self._value = self.cast_value(value)
         self.set_context()
         super(Constant, self).__init__()
+
+    def name(self):
+        return str(self.value)
 
     @property
     def value(self):
         return self._value
-
-    @value.setter
-    def value(self, value):
-        self._value = value
-
-    def name(self):
-        return str(self.value) if self.param_name is None else self.param_name
 
     # The constant's sign and shape are fixed.
     def set_context(self):
         shape = u.Shape(*intf.size(self.value))
         sign = intf.sign(self.value)
         self._context = u.Context(sign, u.Curvature.CONSTANT, shape)
-
-    # Return the constant value, converted to the target matrix.
-    def coefficients(self, interface):
-        return {Constant: interface.const_to_matrix(self.value)}
-
-    # No variables.
-    def variables(self):
-        return []
 
     # Return a scalar view into a matrix constant.
     def index_object(self, key):

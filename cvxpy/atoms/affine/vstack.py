@@ -23,7 +23,7 @@ from ...utilities import bool_mat_utils as bu
 from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
-from ...expressions.affine import AffObjective
+from ...expressions.affine import AffExpression
 from ...expressions.vstack import AffVstack
 from collections import deque
 import numpy as np
@@ -31,40 +31,49 @@ import numpy as np
 class vstack(AffAtom):
     """ Vertical concatenation """
     # Returns the vstack of the values.
+    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.vstack(values)
         
     # The shape is the common width and the sum of the heights.
-    def set_shape(self):
+    def get_shape(self):
         self.validate_arguments()
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
-        self._shape = u.Shape(rows, cols)
+        return u.Shape(rows, cols)
 
-    # Vertically concatenates sign and curvature as a dense matrix.
-    def set_sign_curv(self):
-        sizes = [arg.size for arg in self.args]
-        neg_mat = bu.vstack([arg.sign.neg_mat for arg in self.args], sizes)
-        pos_mat = bu.vstack([arg.sign.pos_mat for arg in self.args], sizes)
-        cvx_mat = bu.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
-        conc_mat = bu.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
-        constant = all(arg.curvature.is_constant() for arg in self.args)
 
-        self._context = u.Context(u.Sign(neg_mat, pos_mat),
-                                  u.Curvature(cvx_mat, conc_mat, constant), 
-                                  self._shape)
-
-    # Any argument size is valid.
+    # All arguments must have the same width.
     def validate_arguments(self):
         arg_cols = [arg.size[1] for arg in self.args]
         if max(arg_cols) != min(arg_cols):
             raise TypeError( ("All arguments to vstack must have "
                               "the same number of columns.") )
 
+    # Vertically concatenates sign and curvature as a dense matrix.
+    def get_sign_curv(self):
+        sizes = [arg.size for arg in self.args]
+        # Sign.
+        neg_mat = bu.vstack([arg.sign.neg_mat for arg in self.args], sizes)
+        pos_mat = bu.vstack([arg.sign.pos_mat for arg in self.args], sizes)
+        # Curvature.
+        cvx_mat = bu.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
+        conc_mat = bu.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
+        constant = all(arg.curvature.is_constant() for arg in self.args)
+
+        return (u.Sign(neg_mat, pos_mat),
+                u.Curvature(cvx_mat, conc_mat, constant))
+
+    # Sets the shape, sign, and curvature.
+    def set_context(self):
+        shape = self.get_shape()
+        sign,curvature = self.get_sign_curv()
+        self._context = u.Context(sign, curvature, shape)
+
     @staticmethod
     def graph_implementation(var_args, size):
         obj = AffVstack(*var_args)
-        obj = AffObjective(obj.variables(), [deque([obj])], obj._shape)
+        obj = AffExpression(obj.variables(), [deque([obj])], obj._shape)
         return (obj, [])
 
     # Return the the component of vstack at the given index.

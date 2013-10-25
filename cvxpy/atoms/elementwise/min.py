@@ -27,6 +27,7 @@ import numpy as np
 class min(max):
     """ Elementwise minimum. """
     # Returns the elementwise minimum.
+    @max.numpy_numeric
     def numeric(self, values):
         return reduce(np.minimum, values)
 

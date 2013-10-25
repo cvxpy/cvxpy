@@ -17,14 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import abc
-from constant_atom import ConstantAtom
+from .. import settings as s
 from .. import utilities as u
+from .. import interface as intf
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
-from ..expressions.affine import AffObjective
+from ..expressions.affine import AffExpression
 from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from collections import deque
+from constant_atom import ConstantAtom
+import abc
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
@@ -39,10 +40,8 @@ class Atom(Expression):
         # Convert raw values to Constants.
         self.args = map(Expression.cast_to_const, args)
         self.subexpressions = self.args
-        # Initialize _shape. Raises an error for invalid argument sizes.
-        self.set_shape()
-        # Initialize sign and curvature.
-        self.set_sign_curv()
+        # Initialize context.
+        self.set_context()
         super(Atom, self).__init__()
 
     # Returns the string representation of the function call.
@@ -50,12 +49,10 @@ class Atom(Expression):
         return "%s(%s)" % (self.__class__.__name__, 
                            ", ".join([arg.name() for arg in self.args]))
 
-    @abc.abstractmethod
-    def set_shape(self):
-        return NotImplemented
-
     # Sets signed curvature based on the arguments' signed curvatures.
-    def set_sign_curv(self):
+    def set_context(self):
+        # Initialize _shape. Raises an error for invalid argument sizes.
+        self.set_shape()
         sign = self.sign_from_args()
         curvature = Atom.dcp_curvature(self.base_curvature(), 
                                        self.args, 
@@ -94,7 +91,7 @@ class Atom(Expression):
     def canonicalize(self):
         # Constant atoms are treated as a leaf.
         if self.curvature.is_constant():
-            obj = AffObjective([], [deque([ConstantAtom(self)])], self.shape)
+            obj = AffExpression({s.CONSTANT: self}, self.shape)
             return (obj, [])
         # Non-constant atoms are expanded into an affine objective and constraints.
         else:
@@ -116,3 +113,14 @@ class Atom(Expression):
     @abc.abstractmethod
     def graph_implementation(var_args, size):
         return NotImplemented
+
+
+    # Wraps an atom's numeric function that requires numpy ndarrays as input.
+    # Ensures both inputs and outputs are the correct matrix types.
+    @staticmethod
+    def numpy_numeric(numeric_func):
+        def new_numeric(self, values):
+            values = map(intf.DEFAULT_NP_INTERFACE.const_to_matrix, values)
+            result = numeric_func(self, values)
+            return intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(result)
+        return new_numeric

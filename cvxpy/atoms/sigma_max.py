@@ -34,6 +34,7 @@ class sigma_max(Atom):
         super(sigma_max, self).__init__(A)
 
     # Returns the largest singular value of A.
+    @Atom.numpy_numeric
     def numeric(self, values):
         return LA.norm(values[0], 2)
 

@@ -42,24 +42,24 @@ def expression():
     import expression
     return expression.Expression
 
-def aff_obj():
+def aff_expr():
     import affine
-    return affine.AffObjective
+    return affine.AffExpression
 
 def add_expr():
-    import binary_operators
+    from ..atoms.affine import binary_operators
     return binary_operators.AddExpression
 
 def sub_expr():
-    import binary_operators
+    from ..atoms.affine import binary_operators
     return binary_operators.SubExpression
 
 def mul_expr():
-    import binary_operators
+    from ..atoms.affine import binary_operators
     return binary_operators.MulExpression
 
 def neg_expr():
-    import unary_operators
+    from ..atoms.affine import unary_operators
     return unary_operators.NegExpression
 
 def transpose():

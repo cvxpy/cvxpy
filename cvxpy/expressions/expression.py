@@ -23,7 +23,7 @@ from .. import utilities as u
 from .. import interface as intf
 from ..constraints import leq_constraint as le
 from ..constraints import eq_constraint as eq
-from affine import AffObjective
+from affine import AffExpression
 import types
 import abc
 

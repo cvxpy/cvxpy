@@ -22,22 +22,29 @@ import types
 import expression
 from .. import utilities as u
 from .. import interface as intf
-from affine import AffObjective
+from affine import AffExpression
 from collections import deque
 
-class Leaf(expression.Expression, u.Affine):
+class Leaf(expression.Expression):
     """
     A leaf node, i.e. a Variable, Constant, or Parameter.
     """
     __metaclass__ = abc.ABCMeta
     subexpressions = [] # No subexpressions.
+    COUNT = 0
+    # Returns a new unique name based on a global counter.
+    @staticmethod
+    def next_name(prefix):
+        Leaf.COUNT += 1
+        return "%s%d" % (prefix, Leaf.COUNT)
+
     # Returns the leaf's value as a ndarray.
     def numeric(self, values):
-        return intf.DEFAULT_NP_INTERFACE.const_to_matrix(self.value)
+        return self._value
 
     # Objective associated with the leaf.
     def _objective(self):
-        return AffObjective(self.variables(), [deque([self])], self.shape)
+        return AffExpression(self.coefficients(), self.shape)
 
     # Constraints associated with the leaf.
     def _constraints(self):
@@ -49,5 +56,5 @@ class Leaf(expression.Expression, u.Affine):
 
     # Returns the coefficients dictionary for the leaf.
     @abc.abstractmethod
-    def coefficients(self, interface):
+    def coefficients(self):
         return NotImplemented

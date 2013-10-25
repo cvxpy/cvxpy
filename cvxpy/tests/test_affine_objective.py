@@ -20,14 +20,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
-from cvxpy.expressions.affine import AffObjective
+from cvxpy.expressions.affine import AffExpression
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
 import unittest
 
-class TestAffObjective(unittest.TestCase):
+class TestAffExpression(unittest.TestCase):
     """ Unit tests for the expressions.affine module. """
     def setUp(self):
         self.x = Variable(2, name='x')
@@ -35,12 +35,12 @@ class TestAffObjective(unittest.TestCase):
 
         self.A = Constant([[1, 2], [1, 2]])
 
-        self.xAff = AffObjective([self.x], [deque([self.x])], u.Shape(2,1))
-        self.yAff = AffObjective([self.y], [deque([self.y])], u.Shape(2,1))
-        self.constAff = AffObjective([self.A], [deque([self.A])], u.Shape(2,2))
+        self.xAff = AffExpression([self.x], [deque([self.x])], u.Shape(2,1))
+        self.yAff = AffExpression([self.y], [deque([self.y])], u.Shape(2,1))
+        self.constAff = AffExpression([self.A], [deque([self.A])], u.Shape(2,2))
         self.intf = intf.DEFAULT_INTERFACE
 
-    # Test adding AffObjectives.
+    # Test adding AffExpressions.
     def test_add(self):
         add = self.xAff + self.yAff
         self.assertItemsEqual(add._terms, [deque([self.x]), 
@@ -56,7 +56,7 @@ class TestAffObjective(unittest.TestCase):
             self.xAff + self.constAff
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
-    # Test multiplying AffObjectives.
+    # Test multiplying AffExpressions.
     def test_mul(self):
         mul = self.constAff * self.xAff
         self.assertItemsEqual(mul._terms, [deque([self.x, self.A])])
@@ -71,13 +71,13 @@ class TestAffObjective(unittest.TestCase):
             self.xAff * self.yAff
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")
 
-    # Test negating AffObjectives.
+    # Test negating AffExpressions.
     def test_neg(self):
         neg = -self.xAff
         self.assertEqual(neg._terms[0][1].name(), "-1")
         self.assertItemsEqual(neg.variables(), [self.x])
 
-    # Test subtracting AffObjectives.
+    # Test subtracting AffExpressions.
     def test_sub(self):
         sub = self.xAff - self.yAff
         self.assertItemsEqual(sub._terms, (self.xAff + -self.yAff)._terms)

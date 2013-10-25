@@ -52,6 +52,7 @@ class log(Atom):
         super(log, self).__init__(x)
                 
     # Returns the elementwise natural log of x.
+    @Atom.numpy_numeric
     def numeric(self, values):
         return np.log(values[0])
 

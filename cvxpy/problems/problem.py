@@ -226,16 +226,18 @@ class Problem(object):
         const_vec = vec_intf.zeros(rows, 1)
         vert_offset = 0
         for aff_exp in aff_expressions:
-            num_entries = aff_exp.size[0] * aff_exp.size[1]
-            coefficients = aff_exp.coefficients(self.interface)
-            for var,block in coefficients.items():
-                if var is Constant:
-                    var.place_coeff(const_vec, block, vert_offset, 
-                                    aff_exp, var_offsets, vec_intf)
-                else:
-                    var.place_coeff(matrix, block, vert_offset, 
-                                    aff_exp, var_offsets, matrix_intf)
-            vert_offset += num_entries
+            coefficients = aff_exp.coefficients()
+            for var,blocks in coefficients.items():
+                # Constant is not in var_offsets.
+                horiz_offset = var_offsets.get(var, 0)
+                for block in blocks:
+                    if var is s.CONSTANT:
+                        const_vec[vert_offset:vert_offset+aff_exp.size[0],:] = block
+                    else:
+                        matrix[vert_offset:vert_offset+aff_exp.size[0],
+                               horiz_offset:horiz_offset+var.size[0]] = block
+                        horiz_offset += var.size[1]
+                    vert_offset += aff_exp.size[0]
         return (matrix,-const_vec)
 
     def nonlinear_constraint_function(self, nl_funcs, var_offsets, x_length):

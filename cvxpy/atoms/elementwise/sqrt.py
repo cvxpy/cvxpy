@@ -35,6 +35,7 @@ class sqrt(Elementwise):
         self.args = [xi for xi in self.x]
 
     # Returns the elementwise square root of x.
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.sqrt(values[0])
 

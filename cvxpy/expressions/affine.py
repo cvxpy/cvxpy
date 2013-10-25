@@ -21,152 +21,140 @@ from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
 from ..constraints.affine import AffEqConstraint
-import types
-from collections import deque
+import operator as op
 
-class AffObjective(u.Affine):
-    """ An affine objective. The result of canonicalization. """
-    # variables - a list of variables.
-    # terms - a list of multiplication queues.
-    # shape - an object representing the dimensions.
-    def __init__(self, variables, terms, shape):
-        self._vars = variables
-        self._terms = terms
+class AffExpression(u.Affine):
+    """ An affine expression. The result of canonicalization. """
+    # coefficients - a dict of {variable/Constant: [parameter expressions]}
+    # shape - the shape of the expresssion.
+    def __init__(self, coefficients, shape):
+        self._coeffs = coefficients
         self._shape = shape
-        super(AffObjective, self).__init__()
-
-    def name(self):
-        return str(self._terms)
+        super(AffExpression, self).__init__()
 
     def __str__(self):
-        return self.name()
+        return str(self._coeffs)
 
     def __repr__(self):
-        return self.name()
+        return str(self)
 
-    # The dimensions of the objective.
+    # The dimensions of the expression.
     @property
     def size(self):
         return self._shape.size
 
-    # Returns a dict of term id to coefficient.
-    # interface - the matrix interface to convert constants
-    #             into a matrix of the target class.
-    def coefficients(self, interface):
-        final_coeffs = {}
-        for mults in self._terms:
-            root = mults[0]
-            root_coeffs = root.coefficients(interface)
-            for id,coeff in root_coeffs.items():
-                coefficient = self.dequeue_mults(coeff, mults, interface)
-                if id in final_coeffs:
-                    final_coeffs[id] = final_coeffs[id] + coefficient
-                else:
-                    final_coeffs[id] = coefficient
-        return final_coeffs
-
-    # Resolves a multiplication stack into a single coefficient.
-    @staticmethod
-    def dequeue_mults(coefficient, mults, interface):
-        for i in range(len(mults)-1):
-            lh = mults[i+1]
-            # Only contains a constant coefficient.
-            lh_coeff = lh.coefficients(interface).values()[0]
-            coefficient = lh_coeff * coefficient
-        return coefficient
-
-    # Returns a list of variables.
+    # Returns a list of the variables in the expression.
     def variables(self):
-        return self._vars
+        variables = self._coeffs.keys()
+        if s.CONSTANT in variables:
+            variables.remove(s.CONSTANT)
+        return variables
+
+    # Returns a coefficient dict with all parameter expressions evaluated.
+    def coefficients(self):
+        new_coeffs = {}
+        for var,blocks in self._coeffs.items():
+            new_coeffs[var] = map(self.eval_expr, blocks)
+        return new_coeffs
+
+    # Helper function to evaluate parameter expressions.
+    @staticmethod
+    def eval_expr(expr):
+        try:
+            return expr.value
+        except Exception, e:
+            return expr
+
+    # # Returns a dict of term id to coefficient.
+    # # interface - the matrix interface to convert constants
+    # #             into a matrix of the target class.
+    # def coefficients(self, interface):
+    #     final_coeffs = {}
+    #     for mults in self._terms:
+    #         root = mults[0]
+    #         root_coeffs = root.coefficients(interface)
+    #         for id,coeff in root_coeffs.items():
+    #             coefficient = self.dequeue_mults(coeff, mults, interface)
+    #             if id in final_coeffs:
+    #                 final_coeffs[id] = final_coeffs[id] + coefficient
+    #             else:
+    #                 final_coeffs[id] = coefficient
+    #     return final_coeffs
+
+    # # Resolves a multiplication stack into a single coefficient.
+    # @staticmethod
+    # def dequeue_mults(coefficient, mults, interface):
+    #     for i in range(len(mults)-1):
+    #         lh = mults[i+1]
+    #         # Only contains a constant coefficient.
+    #         lh_coeff = lh.coefficients(interface).values()[0]
+    #         coefficient = lh_coeff * coefficient
+    #     return coefficient
 
     # Multiplies by a ones matrix to promote a scalar coefficient.
+    # Returns an updated AffExpression.
     @staticmethod
-    def promote(obj, shape):
-        ones = types.constant()(intf.DEFAULT_INTERFACE.ones(*shape.size))
-        ones_obj,dummy = ones.canonical_form()
-        return ones_obj*obj
+    def promote(coeffs, shape):
+        rows,cols = shape.size
+        ones = intf.DEFAULT_NP_INTERFACE.ones(rows)
+        new_coeffs = {}
+        for var,blocks in coeffs.items():
+            new_coeffs[var] = [ones*blocks[0] for i in range(cols)]
+        return AffExpression(new_coeffs, shape)
 
-    # Concatenates the terms.
-    # Multiplies by a ones matrix if promotion occurs.
+    # Combines the dicts. Adds the blocks of common variables.
+    # Multiplies all blocks by a ones vector if promotion occurs.
     def __add__(self, other):
         new_shape = self._shape + other._shape
         if new_shape.size > self._shape.size:
             self = self.promote(self, new_shape)
         elif new_shape.size > other._shape.size:
             other = self.promote(other, new_shape)
-        return AffObjective(self.variables() + other.variables(),
-                            self._terms + other._terms,
-                            new_shape)
+        # Merge the dicts, summing common variables.
+        new_coeffs = self._coeffs.copy()
+        for var,blocks in other._coeffs.items():
+            if var in new_coeffs:
+                block_sum = []
+                for (b1,b2) in zip(self._coeffs[var], other._coeffs[var]):
+                    block_sum.append(b1 + b2)
+                new_coeffs[var] = block_sum
+            else:
+                new_coeffs[var] = blocks
+        return AffExpression(new_coeffs, new_shape)
 
     def __sub__(self, other):
         return self + -other
 
-    # Distributes multiplications by left hand terms
-    # across right hand terms.
-    def __mul__(self, other):
-        terms = AffObjective.mul_terms(self._terms, other._terms)
-        return AffObjective(other.variables(), terms, 
-                            self._shape * other._shape)
+    # # Distributes multiplications by left hand terms
+    # # across right hand terms.
+    # def __mul__(self, other):
+    #     terms = AffExpression.mul_terms(self._terms, other._terms)
+    #     return AffExpression(other.variables(), terms, 
+    #                         self._shape * other._shape)
 
-    # Multiplies every term by -1.
+    # Negates every parameter expression.
     def __neg__(self):
-        lh_mult = deque([types.constant()(-1)])
-        terms = AffObjective.mul_terms([lh_mult], self._terms)
-        return AffObjective(self.variables(), terms, self._shape)
+        new_coeffs = {}
+        for var,blocks in self._coeffs.items():
+            new_coeffs[var] = map(op.neg, blocks)
+        return AffExpression(new_coeffs, self._shape)
 
-    # Utility function for multiplying lists of terms.
-    @staticmethod
-    def mul_terms(lh_terms, rh_terms):
-        terms = []
-        for lh_mult in lh_terms:
-            for rh_mult in rh_terms:
-                mult = deque(rh_mult)
-                mult.extend(lh_mult)
-                terms.append(mult)
-        return terms
+    # # Utility function for multiplying lists of terms.
+    # @staticmethod
+    # def mul_terms(lh_terms, rh_terms):
+    #     terms = []
+    #     for lh_mult in lh_terms:
+    #         for rh_mult in rh_terms:
+    #             mult = deque(rh_mult)
+    #             mult.extend(lh_mult)
+    #             terms.append(mult)
+    #     return terms
 
 
-    # Returns an (AffineObjective, [AffineConstraints]) tuple
-    # representing the tranpose.
-    @property
-    def T(self):
-        A = types.variable()(*self.size)
-        obj = A.T.canonical_form()[0]
-        return (obj, [AffEqConstraint(A, self)])
-
-    # # Returns an (AffineObjective, [AffineConstraints]) tuple.
-    # # Examines every term. If the mult deque has one element, that
-    # # element is set to its transpose and the term is kept.
-    # # If the mult deque has more than one element, it is collected in
-    # # an AffineEquality of the form X.T == terms. The final objective is
-    # # the kept terms and X.
+    # # Returns an (AffineObjective, [AffineConstraints]) tuple
+    # # representing the tranpose.
     # @property
     # def T(self):
-    #     transpose_terms = []
-    #     equality_terms = []
-    #     for mults in self._terms:
-    #         if len(mults) == 1: # Transpose the term.
-    #             elem = mults[0]
-    #             transpose_terms.append(deque([elem.T]))
-    #         else: # Move the term to the equality.
-    #             equality_terms.append(mults)
-    #     # Create a new variable for the equality terms.
-    #     vars = self.variables_from_terms(transpose_terms)
-    #     new_obj = AffObjective(vars, transpose_terms, u.Shape(self.size[1],self.size[0]))
-    #     if len(equality_terms) > 0:
-    #         x = types.variable()(*self.size)
-    #         x_obj = x.canonical_form()[0]
-    #         vars = self.variables_from_terms(equality_terms)
-    #         eq_obj = AffObjective(vars, equality_terms, self._shape)
-    #         constraints = [AffEqConstraint(x.T, eq_obj)]
-    #         return (new_obj + x_obj, constraints)
-    #     else: # No new variables needed.
-    #         return (new_obj, [])
-
-    # # Extract a variables list from a list of terms.
-    # @staticmethod
-    # def variables_from_terms(terms):
-    #     variables = []
-    #     for mults in terms:
-    #         variables += mults[0].variables()
-    #     return variables
+    #     A = types.variable()(*self.size)
+    #     obj = A.T.canonical_form()[0]
+    #     return (obj, [AffEqConstraint(A, self)])

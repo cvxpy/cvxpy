@@ -26,16 +26,15 @@ from ...constraints.affine import AffEqConstraint
 class transpose(AffAtom):
     """ Matrix transpose. """
     # Returns the transpose of the given value.
+    @AffAtom.numpy_numeric
     def numeric(self, values):
-        return values[0].transpose()
-        
-    # The shape is the dimensions of the argument swapped.
-    def set_shape(self):
-        rows,cols = self.args[0].size
-        self._shape = u.Shape(cols, rows)
+        return values[0].T
 
-    # Vertically concatenates sign and curvature as a dense matrix.
-    def set_sign_curv(self):
+    # Transposes shape, sign, and curvature.
+    def set_context(self):
+        rows,cols = self.args[0].size
+        shape = u.Shape(cols, rows)
+
         neg_mat = bu.transpose(self.args[0].sign.neg_mat)
         pos_mat = bu.transpose(self.args[0].sign.pos_mat)
         cvx_mat = bu.transpose(self.args[0].curvature.cvx_mat)
@@ -44,7 +43,7 @@ class transpose(AffAtom):
 
         self._context = u.Context(u.Sign(neg_mat, pos_mat),
                                   u.Curvature(cvx_mat, conc_mat, constant), 
-                                  self._shape)
+                                  shape)
 
     # Create a new variable equal to the argument transposed.
     @staticmethod

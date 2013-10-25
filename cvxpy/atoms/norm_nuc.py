@@ -34,6 +34,7 @@ class normNuc(Atom):
         super(normNuc, self).__init__(A)
 
     # Returns the nuclear norm (i.e. the sum of the singular values) of A.
+    @Atom.numpy_numeric
     def numeric(self, values):
         U,s,V = LA.svd(values[0])
         return sum(s)

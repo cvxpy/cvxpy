@@ -94,43 +94,25 @@ def run_atom(problem, obj_val):
     print obj_val
     assert( -TOL <= result - obj_val <= TOL )
 
-# Tests atoms with variables.
-def run_problem(problem, obj_val):
-    assert problem.is_dcp()
-    print problem.objective
-    result = problem.solve()
-    print result
-    print obj_val
-    assert( -TOL <= result - obj_val <= TOL )
-
-# Tests atoms with parameters.
-def run_param(problem, obj_val):
-    assert problem.is_dcp()
-    print problem.objective
-    result = problem.solve()
-    print result
-    print obj_val
-    assert( -TOL <= result - obj_val <= TOL )
-
 def test_atom():
     for atom_list, objective_type in atoms:
         for atom, obj_val in atom_list:
             for counter, obj_index in enumerate(atom):
                 # Atoms with Constant arguments.
                 yield run_atom, Problem(objective_type(obj_index)), obj_val[counter]
-                # Atoms with Variable arguments.
-                variables = []
-                constraints = []
-                for exp in obj_index.subexpressions:
-                    variables.append( Variable(*exp.size) )
-                    constraints.append( variables[-1] == exp)
-                atom = obj_index.__class__
-                objective = objective_type(atom(*variables))
-                yield run_problem, Problem(objective, constraints), obj_val[counter]
+                # # Atoms with Variable arguments.
+                # variables = []
+                # constraints = []
+                # for exp in obj_index.subexpressions:
+                #     variables.append( Variable(*exp.size) )
+                #     constraints.append( variables[-1] == exp)
+                # atom = obj_index.__class__
+                # objective = objective_type(atom(*variables))
+                # yield run_atom, Problem(objective, constraints), obj_val[counter]
                 # Atoms with Parameter arguments.
                 parameters = []
                 for exp in obj_index.subexpressions:
                     parameters.append( Parameter(*exp.size) )
                     parameters[-1].value = exp.value
                 objective = objective_type(atom(*parameters))
-                yield run_problem, Problem(objective), obj_val[counter]
+                yield run_atom, Problem(objective), obj_val[counter]

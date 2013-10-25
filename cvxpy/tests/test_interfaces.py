@@ -92,12 +92,16 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals(interface.size(mat), (3,1))
         mat = interface.const_to_matrix([1,2])
         self.assertEquals(interface.size(mat), (2,1))
+        # CVXOPT sparse conversion
+        tmp = intf.get_matrix_interface(cvxopt.spmatrix).const_to_matrix([1,2,3])
+        mat = interface.const_to_matrix(tmp)
+        assert (mat == interface.const_to_matrix([1,2,3])).all()
         # identity
         mat = interface.identity(4)
         cvxopt_dense = intf.get_matrix_interface(cvxopt.matrix)
         cmp_mat = interface.const_to_matrix(cvxopt_dense.identity(4))
         self.assertEquals(interface.size(mat), interface.size(cmp_mat))
-        assert not (mat - cmp_mat).any()
+        assert (mat == cmp_mat).all()
         # scalar_matrix
         mat = interface.scalar_matrix(2,4,3)
         self.assertEquals(interface.size(mat), (4,3))
@@ -114,8 +118,8 @@ class TestInterfaces(unittest.TestCase):
         # Scalars and matrices.
         scalar = interface.const_to_matrix(2)
         mat = interface.const_to_matrix([1,2,3])
-        self.assertItemsEqual(scalar*mat, interface.const_to_matrix([2,4,6]))
-        self.assertItemsEqual(scalar - mat, interface.const_to_matrix([1,0,-1]))
+        assert (scalar*mat == interface.const_to_matrix([2,4,6])).all()
+        assert (scalar - mat == interface.const_to_matrix([1,0,-1])).all()
 
     # Test numpy matrix interface.
     def test_numpy_matrix(self):

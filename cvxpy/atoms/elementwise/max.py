@@ -28,6 +28,7 @@ import numpy as np
 class max(Elementwise):
     """ Elementwise maximum. """
     # Returns the elementwise maximum.
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         return reduce(np.maximum, values)
 

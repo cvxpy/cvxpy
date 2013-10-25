@@ -35,6 +35,7 @@ class lambda_min(Atom):
 
     # Returns the smallest eigenvalue of A.
     # Requires that A be symmetric.
+    @Atom.numpy_numeric
     def numeric(self, values):
         if not (values[0].T == values[0]).all():
             raise Exception("lambda_min called on a non-symmetric matrix.")

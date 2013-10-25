@@ -17,19 +17,26 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import constant
+from ... import settings as s
 from ... import utilities as u
 from ... import interface as intf
+from constant_leaf import ConstantLeaf
 
-class Parameter(constant.Constant):
+class Parameter(ConstantLeaf):
     """
     A parameter, either matrix or scalar.
     """
+    PARAM_COUNT = 0
     def __init__(self, rows=1, cols=1, name=None, sign="unknown"):
         self._rows = rows
         self._cols = cols
         self.sign_str = sign
-        super(Parameter, self).__init__(None, name)
+        self._name = self.next_name(s.PARAM_PREFIX) if name is None else name
+        self.set_context()
+        super(Parameter, self).__init__()
+
+    def name(self):
+        return self._name
 
     def set_context(self):
         shape = u.Shape(self._rows, self._cols)
@@ -43,6 +50,7 @@ class Parameter(constant.Constant):
 
     @value.setter
     def value(self, val):
+        val = self.cast_value(val)
         size = intf.size(val)
         if size != self.size:
             raise Exception("Invalid dimensions (%s,%s) for Parameter value." % size)

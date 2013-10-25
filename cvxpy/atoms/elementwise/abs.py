@@ -31,6 +31,7 @@ class abs(Elementwise):
         super(abs, self).__init__(x)
 
     # Returns the elementwise absolute value of x.
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.absolute(values[0])
 

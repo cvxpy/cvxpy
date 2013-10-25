@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import utilities as u
 from .. import interface as intf
-from ..expressions.affine import AffObjective
 from ..expressions.expression import Expression
 from ..expressions.variables import Variable
 from ..constraints.affine import AffEqConstraint

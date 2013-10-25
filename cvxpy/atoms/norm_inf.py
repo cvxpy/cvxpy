@@ -30,6 +30,7 @@ class normInf(Atom):
         super(normInf, self).__init__(x)
 
     # Returns the Infinity norm of x.
+    @Atom.numpy_numeric
     def numeric(self, values):
         cols = values[0].shape[1]
         return max([LA.norm(values[0][:,i], np.inf) for i in range(cols)])

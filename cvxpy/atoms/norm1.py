@@ -31,6 +31,7 @@ class norm1(Atom):
         super(norm1, self).__init__(x)
 
     # Returns the L1 norm of x.
+    @Atom.numpy_numeric
     def numeric(self, values):
         cols = values[0].shape[1]
         return sum([LA.norm(values[0][:,i], 1) for i in range(cols)])

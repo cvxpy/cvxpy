@@ -26,7 +26,7 @@ class Affine(object):
 
     # Returns a dict of variable id to coefficient.
     @abc.abstractmethod
-    def coefficients(self, interface):
+    def coefficients(self):
         return NotImplemented
 
     # Returns a list of variables in the expression.
@@ -34,10 +34,10 @@ class Affine(object):
     def variables(self):
         return NotImplemented
 
-    # Casts expression as an AffObjective.
+    # Casts expression as an AffExpression.
     @staticmethod
     def cast_as_affine(expr):
-        if isinstance(expr, types.aff_obj()):
+        if isinstance(expr, types.aff_expr()):
             return expr
         elif isinstance(expr, types.expression()):
             obj,constr = expr.canonical_form()

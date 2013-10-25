@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
-from cvxpy.expressions.affine import AffObjective
+from cvxpy.expressions.affine import AffExpression
 from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
@@ -36,9 +36,9 @@ class TestAffineConstraints(unittest.TestCase):
 
         self.A = Constant([[1, 2], [1, 2]])
 
-        self.xAff = AffObjective([self.x], [deque([self.x])], u.Shape(2,1))
-        self.yAff = AffObjective([self.y], [deque([self.y])], u.Shape(2,1))
-        self.constAff = AffObjective([self.A], [deque([self.A])], u.Shape(2,2))
+        self.xAff = AffExpression([self.x], [deque([self.x])], u.Shape(2,1))
+        self.yAff = AffExpression([self.y], [deque([self.y])], u.Shape(2,1))
+        self.constAff = AffExpression([self.A], [deque([self.A])], u.Shape(2,2))
         self.intf = intf.DEFAULT_INTERFACE
 
     # Test AffEqConstraint.

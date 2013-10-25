@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import base_matrix_interface as base
+from .. import numpy_wrapper as numpy
 import cvxopt
-import numpy
 import numbers
 
 class NDArrayInterface(base.BaseMatrixInterface):
@@ -29,6 +29,8 @@ class NDArrayInterface(base.BaseMatrixInterface):
     TARGET_MATRIX = numpy.ndarray
     # Convert an arbitrary value into a matrix of type self.target_matrix.
     def const_to_matrix(self, value):
+        if isinstance(value, cvxopt.spmatrix):
+            value = cvxopt.matrix(value)
         mat = numpy.array(value, dtype='float64')
         if isinstance(value, list):
             mat = numpy.atleast_2d(mat)
@@ -50,7 +52,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
-        return matrix[tuple(np.where(matrix)[0])]
+        return numpy.asscalar(matrix)
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):

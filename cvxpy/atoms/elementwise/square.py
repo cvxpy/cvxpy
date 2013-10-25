@@ -35,6 +35,7 @@ class square(Elementwise):
         self.args = [xi for xi in self.x]
 
     # Returns the elementwise square of x.
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.square(values[0])
         

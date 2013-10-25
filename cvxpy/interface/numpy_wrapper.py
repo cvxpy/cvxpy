@@ -27,7 +27,7 @@ thismodule = sys.modules[__name__]
 # Wrap numpy ndarray creation functions to return ndarray.
 __ARRAY_CREATION = ['arange','empty','empty_like','eye','identity',
                     'ones','ones_like','zeros','zeros_like',
-                    'array']
+                    'array','atleast_2d']
 def __wrap_array_creator(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs).view(ndarray)
