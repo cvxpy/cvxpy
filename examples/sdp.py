@@ -9,6 +9,19 @@ Adapted from an example provided in the SeDuMi documentation and CVX examples.
 Unlike those examples, the data is real (not complex) and the result is only
 required to be PSD (instead of also Toeplitz)
 """
+# import cvxpy as cvx
+# import numpy as np
+# import cvxopt
+#
+# # create data P
+# P = cvxopt.matrix(np.matrix('4 1 3; 1 3.5 0.8; 3 0.8 1'))
+# Z = cvx.Variable(3,3)
+
+# objective = cvx.Minimize( sum(cvx.square(P - Z)) )
+# constr = [cvx.constraints.semi_definite.SDP(P)]
+# prob = cvx.Problem(objective, constr)
+# prob.solve()
+
 import cvxpy as cp
 import numpy as np
 import cvxopt
@@ -18,9 +31,10 @@ P = cp.Parameter(3,3)
 Z = cp.SDPVar(3,3)
 
 objective = cp.Minimize( cp.lambda_max(P) - cp.lambda_min(P - Z) )
-prob = cp.Problem(objective)
+prob = cp.Problem(objective, 10*[Z >= 0])
 P.value = cvxopt.matrix(np.matrix('4 1 3; 1 3.5 0.8; 3 0.8 1'))
 prob.solve()
+
 
 
 # [ 4,     1+2*j,     3-j       ; ...

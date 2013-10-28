@@ -85,7 +85,7 @@ Support for additional types will be added per request. See [Problem Data](#prob
 ### Parameters
 Parameters are symbolic representations of constants. Parameters should only be used in special cases. The purpose of Parameters is to change the value of a constant in a problem without reconstructing the entire problem. For example, to efficiently solve `Problem(Minimize(expr1 + gamma*expr2), constraints)` for many different values of `gamma`, make `gamma` a Parameter. See [Problem Data](#problem-data) for an example problem that uses parameters.
 
-Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created.
+Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created. The constant value must have the dimensions and sign specified when the Parameter was created.
 
 ```
 # Positive scalar parameter.
@@ -99,6 +99,9 @@ G = Parameter(4,7,sign="negative")
 
 # Assigns a constant value to G.
 G.value = -numpy.ones((4,7))
+
+# Raises an error for assigning a value with invalid sign.
+G.value = numpy.ones((4,7))
 ```
 
 ### Expressions
@@ -140,7 +143,7 @@ CVXPY currently supports the following atoms:
         * For p = "fro", the Frobenius norm of `x`.
         * Defaults to p = 2 if no value of p is given.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
-    * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
+    * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 
@@ -166,19 +169,19 @@ The curvature and sign of Variables, constants, and Parameters are easy to deter
 
 ##### The No-Product Rule
 
-You can never multiply two non-constant expressions. Doing so in cvxpy will immediately raise an exception.
+You can never multiply two non-constant expressions. Doing so in CVXPY will immediately raise an exception.
 
 ##### Curvature Rules
 
-The curvature composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
+The composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
 
 * `f` is non-decreasing in argument i and `expi` is convex
 * `f` is non-increasing in argument i and `expi` is concave
 * `expi` is affine
 
-If one of the `expi` does not satisfy any of the conditions, the curvature of `f(exp1, exp2, ..., expn)` is unknown.
+If one of the `expi` does not satisfy any of the conditions, the curvature of `f(exp1, exp2, ..., expn)` is unknown. In addition, if all the `expi` are constant, then `f(exp1, exp2, ..., expn)` is constant.
 
-All other DCP rules for determining the curvature of an expression can be derived from the curvature composition rule. For example, if `f` is concave then the curvature composition rule can be applied to `-f`. Arithmetic operators are affine functions, so the curvature composition rule also applies to arithmetic expressions.
+All other DCP rules for determining the curvature of an expression can be derived from the composition rule. For example, if `f` is concave then the composition rule can be applied to `-f`. Arithmetic operators are affine functions, so the composition rule also applies to arithmetic expressions.
 
 #### Sign Rules
 
@@ -186,12 +189,10 @@ For some functions monotonicity (i.e. whether the function is increasing or decr
 
 Each function in cvxpy (i.e. atom or arithmetic operator) has a different rule for determining the sign of the function output from the signs of the arguments. These rules are exhaustive, meaning they capture every case where the sign of the output can be determined from the sign of the inputs. Here is the rule for `+` applied to the scalar expressions `exp1` and `exp2`:
 
-```
 The sign of the expression exp1 + exp2 is
 * positive if exp1 and exp2 are both positive
 * negative if exp1 and exp2 are both negative
 * unknown in all other cases
-```
 
 The rules for other functions are equally straightforward.
 

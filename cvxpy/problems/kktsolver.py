@@ -23,14 +23,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxopt import blas, lapack
 from cvxopt.base import matrix
 from cvxopt.misc import scale, pack, unpack
-import math
 
 # Regularization constant.
-EPSILON = 1e-6
-# Bound on the deviation from the unperturbed solution.
-ERROR_BOUND = 1e-8
-# Maximum steps of iterative refinement.
-MAX_ITER = 3
+REG_EPS = 1e-9
 
 # Returns a kktsolver for linear cone programs (or nonlinear if F is given).
 def get_kktsolver(G, dims, A, F=None):
@@ -50,6 +45,8 @@ def kkt_ldl(G, dims, A, mnl = 0):
     """
     Solution of KKT equations by a dense LDL factorization of the 
     3 x 3 system.
+    
+    Regularized to handle low rank systems.
     
     Returns a function that (1) computes the LDL factorization of
     
@@ -72,12 +69,9 @@ def kkt_ldl(G, dims, A, mnl = 0):
     ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
         for k in dims['s'] ])
     K = matrix(0.0, (ldK, ldK))
-    Ktilde = matrix(0.0, (ldK, ldK))
     ipiv = matrix(0, (ldK, 1))
     u = matrix(0.0, (ldK, 1))
     g = matrix(0.0, (mnl + G.size[0], 1))
-    r = matrix(0.0, (ldK, 1)) # Residual in iterative refinement.
-    sltn = matrix(0.0, (ldK, 1)) # Final result.
 
     def factor(W, H = None, Df = None):
 
@@ -91,10 +85,9 @@ def kkt_ldl(G, dims, A, mnl = 0):
             pack(g, K, dims, mnl, offsety = k*ldK + n + p)
         K[(ldK+1)*(p+n) :: ldK+1]  = -1.0
         # Add positive regularization in 1x1 block and negative in 2x2 block.
-        blas.copy(K, Ktilde)
-        Ktilde[0 : (ldK+1)*n : ldK+1]  += EPSILON
-        Ktilde[(ldK+1)*n :: ldK+1]  += -EPSILON
-        lapack.sytrf(Ktilde, ipiv)
+        K[0 : (ldK+1)*n : ldK+1]  += REG_EPS
+        K[(ldK+1)*n :: ldK+1]  += -REG_EPS
+        lapack.sytrf(K, ipiv)
 
         def solve(x, y, z):
 
@@ -108,30 +101,15 @@ def kkt_ldl(G, dims, A, mnl = 0):
             #
             # On entry, x, y, z contain bx, by, bz.  On exit, they contain
             # the solution ux, uy, W*uz.
-            blas.scal(0.0, sltn)
             blas.copy(x, u)
             blas.copy(y, u, offsety = n)
             scale(z, W, trans = 'T', inverse = 'I') 
             pack(z, u, dims, mnl, offsety = n + p)
-            blas.copy(u, r)
-            # Iterative refinement algorithm:
-            # Init: sltn = 0, r_0 = [bx; by; W^{-T}*bz]
-            # 1. u_k = Ktilde^-1 * r_k
-            # 2. sltn += u_k
-            # 3. r_k+1 = r - K*sltn
-            # Repeat until exceed MAX_ITER iterations or ||r|| <= ERROR_BOUND
-            iteration = 0
-            resid_norm = 1
-            while iteration <= MAX_ITER and resid_norm > ERROR_BOUND:
-                lapack.sytrs(Ktilde, ipiv, u)
-                blas.axpy(u, sltn, alpha = 1.0)
-                blas.copy(r, u)
-                blas.symv(K, sltn, u, alpha = -1.0, beta = 1.0)
-                resid_norm = math.sqrt(blas.dot(u, u))
-                iteration += 1
-            blas.copy(sltn, x, n = n)
-            blas.copy(sltn, y, offsetx = n, n = p)
-            unpack(sltn, z, dims, mnl, offsetx = n + p)
+            lapack.sytrs(K, ipiv, u)
+            blas.copy(u, x, n = n)
+            blas.copy(u, y, offsetx = n, n = p)
+            unpack(u, z, dims, mnl, offsetx = n + p)
+
         return solve
 
     return factor
