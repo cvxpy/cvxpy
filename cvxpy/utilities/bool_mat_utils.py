@@ -64,3 +64,10 @@ def any(matrix):
         return matrix
     else:
         return matrix.any()
+
+# Transposes a matrix. Leaves scalars untouched.
+def transpose(matrix):
+    if isinstance(matrix, bool):
+        return matrix
+    else:
+        return matrix.T

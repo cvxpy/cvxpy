@@ -74,7 +74,6 @@ def kkt_ldl(G, dims, A, mnl = 0):
     g = matrix(0.0, (mnl + G.size[0], 1))
 
     def factor(W, H = None, Df = None):
-
         blas.scal(0.0, K)
         if H is not None: K[:n, :n] = H
         K[n:n+p, :n] = A

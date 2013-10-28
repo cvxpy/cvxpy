@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
+from affine.transpose import transpose
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -65,10 +66,11 @@ class lambda_max(Atom):
     @staticmethod
     def graph_implementation(var_args, size):
         A = var_args[0]
+        n,m = A.size
         # Requires that A is symmetric.
-        obj,constr = A.T
+        obj,constr = transpose.graph_implementation([A], (m,n))
         constr += [AffEqConstraint(obj, A)]
         # SDP constraint.
         t = Variable().canonical_form()[0]
-        I = Constant(np.eye(*A.size)).canonical_form()[0]
+        I = Constant(np.eye(n,m)).canonical_form()[0]
         return (t, [SDP(I*t - A)] + constr)

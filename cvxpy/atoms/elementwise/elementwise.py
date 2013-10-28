@@ -37,7 +37,3 @@ class Elementwise(Atom):
             else:
                 args.append(arg[key])
         return self.__class__(*args)
-
-    # Return the transpose of the atomic expression.
-    def transpose(self):
-        return self.__class__(*[arg.T for arg in self.original_args])

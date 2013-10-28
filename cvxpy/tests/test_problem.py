@@ -507,6 +507,8 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
+        exp = (-self.x).T
+        print exp.size
         p = Problem(Minimize(sum(self.x)), [(-self.x).T <= 1])
         result = p.solve()
         self.assertAlmostEqual(result, -2)

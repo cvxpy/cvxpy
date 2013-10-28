@@ -41,6 +41,11 @@ class BoolMat(object):
     def any(self):
         return self.value.any()
 
+    # Returns the transpose of the matrix.
+    @property
+    def T(self):
+        return self.__class__(self.value.T)
+
     # For addition.
     def __or__(self, other):
         if isinstance(other, bool):

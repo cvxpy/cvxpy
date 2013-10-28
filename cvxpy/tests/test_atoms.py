@@ -26,6 +26,8 @@ import unittest
 class TestAtoms(unittest.TestCase):
     """ Unit tests for the atoms module. """
     def setUp(self):
+        self.a = Variable(name='a')
+
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
@@ -69,6 +71,15 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.curvature, u.Curvature.CONVEX)
         self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX)
         self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX)
+
+    # Test quad_over_lin DCP.
+    def test_quad_over_lin(self):
+        atom = quad_over_lin(square(self.x), self.a)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        atom = quad_over_lin(-square(self.x), self.a)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        atom = quad_over_lin(sqrt(self.x), self.a)
+        self.assertEquals(atom.curvature, u.Curvature.UNKNOWN)
 
     # Test sign logic for max.
     def test_max_sign(self):

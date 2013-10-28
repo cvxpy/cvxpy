@@ -67,13 +67,13 @@ class Atom(Expression):
         return [arg.curvature for arg in self.args]
 
     # The curvature of the atom if all arguments conformed to DCP.
-    # @abc.abstractmethod
+    @abc.abstractmethod
     def base_curvature(self):
         return NotImplemented
 
     # Returns a list with the monotonicity in each argument.
     # Monotonicity can depend on the sign of the argument.
-    # @abc.abstractmethod
+    @abc.abstractmethod
     def monotonicity(self):
         return NotImplemented
 

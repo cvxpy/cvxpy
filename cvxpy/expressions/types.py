@@ -61,3 +61,7 @@ def mul_expr():
 def neg_expr():
     import unary_operators
     return unary_operators.NegExpression
+
+def transpose():
+    from ..atoms.affine import transpose
+    return transpose.transpose

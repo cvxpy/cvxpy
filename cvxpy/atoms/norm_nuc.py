@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
+from affine.transpose import transpose
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
@@ -62,10 +63,10 @@ class normNuc(Atom):
         #            [U A; A.T V] is positive semidefinite
         X = Variable(n+m, n+m)
         # Expand A.T.
-        obj,constraints = A.T
+        obj,constr = transpose.graph_implementation([A], (m,n))
         # Fix X using the fact that A must be affine by the DCP rules.
-        constraints += [AffEqConstraint(X[0:n,n:n+m], A),
+        constr += [AffEqConstraint(X[0:n,n:n+m], A),
                         AffEqConstraint(X[n:n+m,0:n], obj)]
         trace = 0.5*sum([X[i,i] for i in range(n+m)])
         # Add SDP constraint.
-        return (trace, [SDP(X)] + constraints)
+        return (trace, [SDP(X)] + constr)

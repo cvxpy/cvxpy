@@ -52,10 +52,6 @@ class BinaryOperator(Expression):
             return promoted
         return self.OP_FUNC(self.lh_exp[key], self.rh_exp[key])
 
-    # The transpose of the binary operator.
-    def transpose(self):
-        return self.OP_FUNC(self.lh_exp.T, self.rh_exp.T)
-
     # Handle promoted scalars.
     def promoted_index_object(self, key):
         if self.lh_exp.size == (1,1):
@@ -99,10 +95,6 @@ class MulExpression(BinaryOperator):
             return promoted
         # Matrix multiplication.
         return self.lh_exp[key[0],:]*self.rh_exp[:,key[1]]
-
-    # The transpose of the binary operator.
-    def transpose(self):
-        return self.rh_exp.T*self.lh_exp.T
 
     # If left-hand side is non-constant, replace lh*rh with x, x.T == rh.T*lh.T.
     def canonicalize(self):
