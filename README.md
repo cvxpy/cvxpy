@@ -331,8 +331,6 @@ x_values = pool.map(get_x, gammas)
 ...
 ```
 
-Parameterized problems can be solved in parallel. See examples/stock_tradeoff.py for an example.
-
 Object Oriented Optimization
 ---------------------
 CVXPY enables an object oriented approach to constructing optimization problems. An object oriented approach is simpler and more flexible than the traditional method of constructing problems by embedding information in matrices.
@@ -369,7 +367,7 @@ class Edge(object):
         return [abs(self.flow) <= self.capacity]
 ```
 
-The Edge class exposes the flow into and out of the edge. The constraints linking the flow in and out and the flows with the capacity are stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
+The Edge class exposes the flow into and out of the edge. The capacity constraint is stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
 
 We also define a Node class:
 
