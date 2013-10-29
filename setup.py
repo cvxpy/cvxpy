@@ -7,6 +7,7 @@ setup(
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     packages=[  'cvxpy',
                 'cvxpy.atoms',
+                'cvxpy.atoms.affine',
                 'cvxpy.atoms.elementwise',
                 'cvxpy.atoms.nonlinear',
                 'cvxpy.constraints',
