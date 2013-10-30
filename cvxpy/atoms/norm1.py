@@ -21,7 +21,6 @@ from atom import Atom
 from .. import utilities as u
 from ..expressions import types
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from elementwise.abs import abs
 from numpy import linalg as LA
 
@@ -36,22 +35,22 @@ class norm1(Atom):
         cols = values[0].shape[1]
         return sum([LA.norm(values[0][:,i], 1) for i in range(cols)])
 
-    def set_shape(self):
-        self._shape = u.Shape(1,1)
+    # Resolves to a scalar.
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        x = var_args[0]
-        obj,constraints = abs.graph_implementation([x], x.size)
+    def graph_implementation(self, arg_objs):
+        x = arg_objs[0]
+        obj,constraints = abs(x)
         return (sum(obj),constraints)

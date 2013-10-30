@@ -39,6 +39,10 @@ class Shape(object):
         else:
             raise Exception("Incompatible dimensions.")
 
+    # Same as add.
+    def __sub__(self, other):
+        return self + other
+
     # Handles matrix and scalar multiplication.
     def __mul__(self, other):
         shape = Shape.promoted_shape(self, other)

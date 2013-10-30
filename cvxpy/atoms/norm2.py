@@ -34,22 +34,22 @@ class norm2(Atom):
     def numeric(self, values):
         return LA.norm(values[0])
 
-    def set_shape(self):
-        self._shape = u.Shape(1,1)
+    # Resolves to a scalar.
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
 
-    @staticmethod
-    def graph_implementation(var_args, size):
-        x = var_args[0]
+    def graph_implementation(self, arg_objs):
+        x = arg_objs[0]
         t = Variable()
         return (t, [SOC(t, x)])

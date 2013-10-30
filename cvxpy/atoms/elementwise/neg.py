@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from min import min
+
 """ Alias for -min{x,0}. """
 def neg(x):
     return -min(x,0)

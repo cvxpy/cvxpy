@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from atom import Atom
 from .. import utilities as u
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 import numpy as np
 from numpy import linalg as LA
 
@@ -35,23 +34,22 @@ class normInf(Atom):
         cols = values[0].shape[1]
         return max([LA.norm(values[0][:,i], np.inf) for i in range(cols)])
 
-    def set_shape(self):
-        self._shape = u.Shape(1,1)
+    # Resolves to a scalar.
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        x = var_args[0]
+    def graph_implementation(self, arg_objs):
+        x = arg_objs[0]
         t = Variable()
-        return (t, [AffLeqConstraint(-t, x),
-                    AffLeqConstraint(x,t)])
+        return (t, [-t <= x, x <= t])

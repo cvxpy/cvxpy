@@ -17,10 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import interface as intf
-from .. import utilities as u
-from ..expressions.variables import Variable
-
 class SDP(object):
     """
     A semi-definite cone constraint:
@@ -30,9 +26,8 @@ class SDP(object):
     """
     # A - an affine expression or objective.
     def __init__(self, A):
-        self.A = u.Affine.cast_as_affine(A)
-        super(SDP, self).__init__()
-
+        self.A = A
+        
     # Formats SDP constraints for the solver.
     def format(self):
         return [-self.A <= 0]

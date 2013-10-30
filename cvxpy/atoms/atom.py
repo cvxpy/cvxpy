@@ -37,8 +37,8 @@ class Atom(Expression):
             )
         # Convert raw values to Constants.
         self.args = map(Expression.cast_to_const, args)
+        self.validate_arguments()
         self.subexpressions = self.args
-        super(Atom, self).__init__()
 
     # Returns the string representation of the function call.
     def name(self):
@@ -50,18 +50,23 @@ class Atom(Expression):
         # Initialize _shape. Raises an error for invalid argument sizes.
         shape = self.shape_from_args()
         sign = self.sign_from_args()
-        curvature = Atom.dcp_curvature(self.base_curvature(), 
+        curvature = Atom.dcp_curvature(self.func_curvature(), 
                                        self.args, 
                                        self.monotonicity())
-        self._context = u.DCPAttr(sign, curvature, self._shape)
+        return u.DCPAttr(sign, curvature, shape)
 
     # Returns argument curvatures as a list.
     def argument_curvatures(self):
         return [arg.curvature for arg in self.args]
 
+    # Raises an error if the arguments are invalid.
+    def validate_arguments(self):
+        pass
+
     # The curvature of the atom if all arguments conformed to DCP.
+    # Alternatively, the curvature of the atom's function.
     @abc.abstractmethod
-    def base_curvature(self):
+    def func_curvature(self):
         return NotImplemented
 
     # Returns a list with the monotonicity in each argument.

@@ -22,7 +22,6 @@ from ... import utilities as u
 from ...utilities import bool_mat_utils as bu
 from ...expressions.variables import Variable
 from ...expressions.affine import AffExpression
-import copy
 
 class transpose(AffAtom):
     """ Matrix transpose. """
@@ -63,6 +62,6 @@ class transpose(AffAtom):
             for row in xrange(self.size[1]):
                 transpose_blocks[row][k,:] = var_blocks[k][row,:]
         transpose_coeffs[X] = transpose_blocks
-        # No dcp_attr given because none needed.
-        obj = AffExpression(transpose_coeffs, None)
+        
+        obj = AffExpression(transpose_coeffs, X._variables, self._dcp_attr())
         return (obj, [X == arg_objs[0]])

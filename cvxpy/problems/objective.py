@@ -20,10 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.expression import Expression
-from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint
 
-class Minimize(u.Canonicalizable):
+class Minimize(object):
     """
     An optimization objective for minimization.
     """
@@ -36,7 +34,6 @@ class Minimize(u.Canonicalizable):
         if self.expr.size != (1,1):
             raise Exception("The objective '%s' must resolve to a scalar." 
                             % self.name())
-        super(Minimize, self).__init__()
 
     def __repr__(self):
         return self.name()
@@ -46,7 +43,7 @@ class Minimize(u.Canonicalizable):
 
     # Pass on the target expression's objective and constraints.
     def canonicalize(self):
-        return self.expr.canonical_form()
+        return self.expr.canonicalize()
 
     # Objective must be convex.
     def is_dcp(self):

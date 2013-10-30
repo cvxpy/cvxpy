@@ -24,7 +24,7 @@ class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta
     # The curvature of the atom if all arguments conformed to DCP.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.AFFINE
 
     # Doesn't matter for affine atoms.

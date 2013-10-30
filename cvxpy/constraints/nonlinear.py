@@ -17,10 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import interface as intf
 from .. import utilities as u
-from ..expressions.variables import Variable
-from affine import AffEqConstraint, AffLeqConstraint
 
 class NonlinearConstraint(object):
     """ 

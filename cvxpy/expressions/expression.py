@@ -21,19 +21,22 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
-from ..constraints import leq_constraint as le
-from ..constraints import eq_constraint as eq
+from ..constraints import EqConstraint, LeqConstraint
 import types
 import abc
 
 # Casts the second argument of a binary operator as an Expression.
 def cast_other(binary_op):
     def cast_op(self, other):
-        other = Expression.cast_to_const(other)
-        return binary_op(self, other)
+        other = self.cast_to_const(other)
+        # Reverse the binary op.
+        if other is NotImplemented:
+            return NotImplemented
+        else:
+            return binary_op(self, other)
     return cast_op
 
-class Expression(u.Canonicalizable):
+class Expression(object):
     """
     A mathematical expression in a convex optimization problem.
     """
@@ -53,6 +56,9 @@ class Expression(u.Canonicalizable):
             node = stack[-1]["expression"]
             if stack[-1]["index"] >= len(node.subexpressions):
                 value = node.numeric(stack[-1]["values"])
+                # Break if the node does not have a value.
+                if value is None:
+                    return None
                 stack.pop()
                 if len(stack) > 0:
                     stack[-1]["values"].append(value)
@@ -124,19 +130,14 @@ class Expression(u.Canonicalizable):
     def cast_to_const(expr):
         return expr if isinstance(expr, Expression) else types.constant()(expr)
 
-    """ Iteration """
-    # Create a new variable that acts as a view into this variable.
-    # Updating the variable's value updates the value of this variable instead.
+    """ Indexing/Slicing and Transpose """
+    # Return a slice/index into the expression.
     def __getitem__(self, key):
-        key = u.Key.validate_key(key, self)
         # Indexing into a scalar returns the scalar.
         if self.size == (1,1):
             return self
         else:
-            return self.index_object(key)
-        # TODO # Set value if variable has value.
-        # if self.value is not None:
-        #     index_var.primal_value = self.value[key]
+            return types.index()(self, key)
 
     # Iterating over the leaf returns the index expressions
     # in column major order.
@@ -181,10 +182,6 @@ class Expression(u.Canonicalizable):
 
     @cast_other
     def __mul__(self, other):
-        # Cannot multiply two non-constant expressions.
-        if not self.curvature.is_constant() and \
-           not other.curvature.is_constant():
-            raise Exception("Cannot multiply two non-constants.")
         return types.mul_expr()(self, other)
 
     # Called for Number * Expression.
@@ -198,11 +195,11 @@ class Expression(u.Canonicalizable):
     """ Comparison operators """
     @cast_other
     def __eq__(self, other):
-        return eq.EqConstraint(self, other)
+        return EqConstraint(self, other)
 
     @cast_other
     def __le__(self, other):
-        return le.LeqConstraint(self, other)
+        return LeqConstraint(self, other)
 
     @cast_other
     def __ge__(self, other):

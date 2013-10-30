@@ -97,35 +97,3 @@ def sign(constant):
     else:
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
-    
-# Get the value at the given index.
-def index(constant, key):
-    if isinstance(constant, list):
-        if is_vector(constant):
-            return constant[key[0]]
-        else:
-            selection = [l[key[0]] for l in constant[key[1]]]
-            for i in range(2): # Unpack column vectors and scalars.
-                if len(selection) == 1:
-                    selection = selection[0]
-            return selection
-    elif constant.__class__ in INTERFACES:
-        return INTERFACES[constant.__class__].index(constant, key)
-
-# Get the tranpose of the given constant.
-def transpose(constant):
-    const_size = size(constant)
-    if const_size == (1,1):
-        return constant
-    elif isinstance(constant, list):
-        # Column vector
-        if const_size[1] == 1:
-            return [[elem] for elem in constant]
-        # Row vector
-        elif const_size[0] == 1:
-            return [elem[0] for elem in constant]
-        else:
-            # http://stackoverflow.com/questions/6473679/python-list-of-lists-transpose-without-zipm-thing
-            return map(list, zip(*constant))
-    elif constant.__class__ in INTERFACES:
-        return INTERFACES[constant.__class__].transpose(constant)

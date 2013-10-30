@@ -23,6 +23,13 @@ class BoolMat(object):
     A wrapper on a boolean numpy ndarray for use as a matrix
     to hold signs and curvatures.
     """
+    # Reduce to a scalar if possible.
+    def __new__(cls, value):
+        if value.size == 1:
+            return value[0,0]
+        else:
+            return super(BoolMat, cls).__new__(cls, value)
+
     # value - the underlying ndarray.
     def __init__(self, value):
         self.value = value
@@ -41,10 +48,9 @@ class BoolMat(object):
     def any(self):
         return self.value.any()
 
-    # Returns the transpose of the matrix.
-    @property
-    def T(self):
-        return self.__class__(self.value.T)
+    # Index/slice into the BoolMat.
+    def __getitem__(self, key):
+        return BoolMat(self.value[key])
 
     # For addition.
     def __or__(self, other):
@@ -66,8 +72,6 @@ class BoolMat(object):
     def __mul__(self, other):
         if isinstance(other, BoolMat):
             mult_val = self.value.dot(other.value)
-            if mult_val.size == 1:
-                return mult_val[0,0]
             return BoolMat(mult_val)
         else:
             return NotImplemented

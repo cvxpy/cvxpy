@@ -17,12 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elementwise import Elementwise
 from ... import utilities as u
 from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
-from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+from elementwise import Elementwise
 import numpy as np
 
 class abs(Elementwise):
@@ -35,25 +34,19 @@ class abs(Elementwise):
     def numeric(self, values):
         return np.absolute(values[0])
 
-    # The shape is the same as the argument's shape.
-    def set_shape(self):
-        self._shape = u.Shape(*self.args[0].size)
-
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        x = var_args[0]
-        t = Variable(*size)
-        constraints = [AffLeqConstraint(-t, x), 
-                       AffLeqConstraint(x, t)]
+    def graph_implementation(self, arg_objs):
+        x = arg_objs[0]
+        t = Variable(*self.size)
+        constraints = [-t <= x, x <= t]
         return (t, constraints)

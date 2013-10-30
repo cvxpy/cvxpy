@@ -38,11 +38,7 @@ class BaseMatrixInterface(object):
     def scalar_const(converter):
         def new_converter(self, value):
             if intf.is_scalar(value):
-                if isinstance(value, numbers.Number):
-                    return value
-                else:
-                    interface = intf.get_matrix_interface(type(value))
-                    return interface.scalar_value(value)
+                return intf.scalar_value(value)
             else:
                 return converter(self, value)
         return new_converter

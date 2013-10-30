@@ -24,9 +24,3 @@ class EqConstraint(LeqConstraint):
     # Both sides must be affine.
     def is_dcp(self):
         return self._expr.curvature.is_affine()
-
-    # TODO expanding equality constraints.
-    # Verify doesn't affect dual variables.
-    def canonicalize(self):
-        obj,constr = self._expr.canonical_form()
-        return (None, [obj == 0] + constr)

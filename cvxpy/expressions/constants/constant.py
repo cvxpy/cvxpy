@@ -33,7 +33,7 @@ class Constant(Leaf, AffExpression):
         dcp_attr = self.init_dcp_attr()
         # Set coefficients.
         coeffs = self.init_coefficients(*dcp_attr.shape.size)
-        super(Constant, self).__init__(coeffs, dcp_attr)
+        super(Constant, self).__init__(coeffs, {}, dcp_attr)
 
     def name(self):
         return str(self.value)

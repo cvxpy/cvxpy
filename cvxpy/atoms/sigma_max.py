@@ -23,7 +23,6 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
 from numpy import linalg as LA
@@ -39,36 +38,35 @@ class sigma_max(Atom):
         return LA.norm(values[0], 2)
 
     # Resolves to a scalar.
-    def set_shape(self):
-        self._shape = u.Shape(1,1)
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always unknown.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        A = var_args[0] # m by n matrix.
+    def graph_implementation(self, arg_objs):
+        A = arg_objs[0] # m by n matrix.
         n,m = A.size
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = Variable(n+m, n+m)
-        t = Variable().canonical_form()[0]
-        I_n = Constant(np.eye(n)).canonical_form()[0]
-        I_m = Constant(np.eye(m)).canonical_form()[0]
+        t = Variable()
+        I_n = Constant(np.eye(n))
+        I_m = Constant(np.eye(m))
         # Expand A.T.
-        obj,constr = transpose.graph_implementation([A], (m,n))
+        obj,constr = A.T.canonicalize()
         # Fix X using the fact that A must be affine by the DCP rules.
-        constr += [AffEqConstraint(X[0:n,0:n], I_n*t),
-                   AffEqConstraint(X[0:n,n:n+m], A),
-                   AffEqConstraint(X[n:n+m,0:n], obj),
-                   AffEqConstraint(X[n:n+m,n:n+m], I_m*t),
+        constr += [X[0:n,0:n] == I_n*t,
+                   X[0:n,n:n+m] == A,
+                   X[n:n+m,0:n] == obj,
+                   X[n:n+m,n:n+m] == I_m*t,
         ]
         # Add SDP constraint.
         return (t, [SDP(X)] + constr)

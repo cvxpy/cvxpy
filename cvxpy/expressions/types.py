@@ -62,6 +62,10 @@ def neg_expr():
     from ..atoms.affine import unary_operators
     return unary_operators.NegExpression
 
+def index():
+    from ..atoms.affine import index
+    return index.index
+
 def transpose():
     from ..atoms.affine import transpose
     return transpose.transpose

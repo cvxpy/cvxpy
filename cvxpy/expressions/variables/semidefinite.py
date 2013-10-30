@@ -26,5 +26,5 @@ class SDPVar(Variable):
     
     # A semidefinite variable is no different from a normal variable except
     # that it adds an SDP constraint on the variable.
-    def _constraints(self):
-        return [SDP(self._objective())]
+    def canonicalize(self):
+        return (self, [SDP(self)])

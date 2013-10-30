@@ -22,9 +22,27 @@ class SparseBoolMat(BoolMat):
     """ 
     A wrapper on a scipy sparse matrix to hold signs and curvatures.
     """
-    # Return True if any entry is True.
+    # Reduce to a scalar if possible.
+    def __new__(cls, value):
+        if value.nnz == 0:
+            return False
+        else:
+            return super(SparseBoolMat, cls).__new__(cls, value)
+
+    # If False, would have been converted to a scalar.
     def any(self):
-        return self.value.nnz > 0
+        return True
+
+    # Index/slice into the SparseBoolMat.
+    def __getitem__(self, key):
+        value = self.value.tolil()
+        value = value[key]
+        # Reduce to scalar if possible.
+        # Must happen here because COO matrices not indexable.
+        if value.size == 1:
+            return bool(value[0,0])
+        else:
+            return SparseBoolMat(value.tocoo())
 
     # For addition.
     def __or__(self, other):

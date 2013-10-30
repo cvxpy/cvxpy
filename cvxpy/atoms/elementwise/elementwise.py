@@ -23,17 +23,6 @@ from ..atom import Atom
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
-    # Saves original arguments for indexing and transpose.
-    def __init__(self, *args):
-        super(Elementwise, self).__init__(*args)
-        self.original_args = self.args
-
-    # Return the given index into the atomic expression.
-    def index_object(self, key):
-        args = []
-        for arg in self.original_args:
-            if arg.size == (1,1):
-                args.append(arg)
-            else:
-                args.append(arg[key])
-        return self.__class__(*args)
+    # The shape is the same as the original argument's shape.
+    def shape_from_args(self):
+        return self.args[0].shape

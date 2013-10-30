@@ -22,10 +22,7 @@ from .. import interface as intf
 from ..expressions.expression import Expression
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from ..constraints.second_order import SOC
-from ..constraints.semi_definite import SDP
-from ..constraints.nonlinear import NonlinearConstraint
+from ..constraints import *
 from .objective import Minimize, Maximize
 from kktsolver import get_kktsolver
 
@@ -60,8 +57,8 @@ class Problem(object):
     def filter_constraints(self, constraints):
         constraints = list(set(constraints)) # TODO generalize
         constr_map = {}
-        constr_map[s.EQ] = [c for c in constraints if isinstance(c, AffEqConstraint)]
-        constr_map[s.INEQ] = [c for c in constraints if isinstance(c, AffLeqConstraint)]
+        constr_map[s.EQ] = [c for c in constraints if isinstance(c, EqConstraint)]
+        constr_map[s.INEQ] = [c for c in constraints if isinstance(c, LeqConstraint)]
         constr_map[s.SOC] = [c for c in constraints if isinstance(c, SOC)]
         constr_map[s.SDP] = [c for c in constraints if isinstance(c, SDP)]
         constr_map[s.NONLIN] = [c for c in constraints if isinstance(c, NonlinearConstraint)]
@@ -70,9 +67,9 @@ class Problem(object):
     # Convert the problem into an affine objective and affine constraints.
     # Also returns the dimensions of the cones for the solver.
     def canonicalize(self):
-        obj,constraints = self.objective.canonical_form()
+        obj,constraints = self.objective.canonicalize()
         for constr in self.constraints:
-            constraints += constr.canonical_form()[1]
+            constraints += constr.canonicalize()[1]
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
         # Formats SOC and SDP constraints for the solver.

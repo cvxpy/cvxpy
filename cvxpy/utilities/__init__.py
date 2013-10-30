@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine import Affine
-from canonicalizable import Canonicalizable
 from dcp_attr import DCPAttr
 from curvature import Curvature
 from monotonicity import Monotonicity

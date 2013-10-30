@@ -94,10 +94,9 @@ class TestSparseBoolMat(object):
         assert_equals(bu.mul(self.diag_spmat, (4,4), True, (1,1)), self.diag_spmat)
         assert_equals(bu.mul(False, (1,1), self.diag_spmat, (4,4)), False)
         assert_equals(self.x_spmat * self.coo_spmat, self.x_spmat)
-        assert_equals(self.x_spmat * self.empty_spmat, self.empty_spmat)
+        assert_equals(bu.mul(self.x_spmat, (4,4), self.empty_spmat, (1,1)), False)
 
     # Test the any operator.
     def test_any(self):
         assert self.diag_spmat.any()
         assert self.coo_spmat.any()
-        assert not self.empty_spmat.any()

@@ -17,48 +17,40 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elementwise import Elementwise
-from ..quad_over_lin import quad_over_lin
 from ... import utilities as u
 from ... import interface as intf
-from ...expressions import types
 from ...expressions.variables import Variable
-from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+from ..quad_over_lin import quad_over_lin
+from elementwise import Elementwise
 
 class inv_pos(Elementwise):
     """ Elementwise 1/x, x >= 0 """
     def __init__(self, x):
         super(inv_pos, self).__init__(x)
-        # Args are all indexes into x.
-        self.x = self.args[0]
-        self.args = [xi for xi in self.x]
 
     # Returns the elementwise inverse of x.
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         return 1.0/values[0]
-        
-    # The shape is the same as the argument's shape.
-    def set_shape(self):
-        self._shape = u.Shape(*self.args[0].size)
 
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.DECREASING]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        t = Variable(*size)
+    def graph_implementation(self, arg_objs):
+        rows,cols = self.size
+        t = Variable(rows,cols)
         constraints = []
-        one = types.constant()(1).canonical_form()[0]
-        for ti,xi in zip(t,var_args):
-            obj,constr = quad_over_lin.graph_implementation([one,xi],(1,1))
-            constraints += constr + [AffEqConstraint(obj, ti), 
-                                     AffLeqConstraint(0, xi)]
+        for i in rows:
+            for j in cols:
+                xi = arg_objs[0][i,j]
+                obj,constr = quad_over_lin(1, xi).canonicalize()
+                constraints += constr + [obj <= t[i,j], 0 <= xi]
         return (t, constraints)

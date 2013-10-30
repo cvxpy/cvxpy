@@ -21,11 +21,6 @@ from affine_atom import AffAtom
 from ... import utilities as u
 from ...utilities import bool_mat_utils as bu
 from ... import interface as intf
-from ...expressions import types
-from ...expressions.variables import Variable
-from ...expressions.affine import AffExpression
-from ...expressions.vstack import AffVstack
-from collections import deque
 import numpy as np
 
 class vstack(AffAtom):
@@ -36,7 +31,7 @@ class vstack(AffAtom):
         return np.vstack(values)
         
     # The shape is the common width and the sum of the heights.
-    def get_shape(self):
+    def shape_from_args(self):
         self.validate_arguments()
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
@@ -50,8 +45,8 @@ class vstack(AffAtom):
             raise TypeError( ("All arguments to vstack must have "
                               "the same number of columns.") )
 
-    # Vertically concatenates sign and curvature as a dense matrix.
-    def get_sign_curv(self):
+    # Vertically concatenates sign and curvature as dense matrices.
+    def sign_curv_from_args(self):
         sizes = [arg.size for arg in self.args]
         # Sign.
         neg_mat = bu.vstack([arg.sign.neg_mat for arg in self.args], sizes)
@@ -65,23 +60,13 @@ class vstack(AffAtom):
                 u.Curvature(cvx_mat, conc_mat, constant))
 
     # Sets the shape, sign, and curvature.
-    def set_context(self):
-        shape = self.get_shape()
-        sign,curvature = self.get_sign_curv()
-        self._context = u.DCPAttr(sign, curvature, shape)
+    def _dcp_attr(self):
+        shape = self.shape_from_args()
+        sign,curvature = self.sign_curv_from_args()
+        return u.DCPAttr(sign, curvature, shape)
 
-    @staticmethod
-    def graph_implementation(var_args, size):
-        obj = AffVstack(*var_args)
+    # 
+    def graph_implementation(self, arg_objs):
+        obj = AffVstack(*arg_objs)
         obj = AffExpression(obj.variables(), [deque([obj])], obj._shape)
         return (obj, [])
-
-    # Return the the component of vstack at the given index.
-    # TODO replace with binary tree.
-    def index_object(self, key):
-        index = 0
-        offset = 0
-        while offset + self.args[index].size[0] <= key[0].start:
-            offset += self.args[index].size[0]
-            index += 1
-        return self.args[index][key[0].start - offset, key[1].start]

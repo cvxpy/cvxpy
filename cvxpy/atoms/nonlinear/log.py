@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. atom import Atom
 import cvxpy.expressions.types as types
 from cvxpy.expressions.variables import Variable
-from cvxpy.constraints.affine import AffEqConstraint
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 import cvxpy.utilities as u
 import cvxpy.interface as intf
@@ -72,14 +71,13 @@ class log(Atom):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
         return [u.Monotonicity.INCREASING]
         
-    @staticmethod
-    def graph_implementation(var_args, size):
+    def graph_implementation(self, arg_objs):
         """ any expression that involves log
         
                 f*log(a*x + b) + g
@@ -92,16 +90,12 @@ class log(Atom):
             
             even if the argument is just a single variable
         """
-        x = var_args[0]
+        x = arg_objs[0]
         t1 = Variable(*size)      
         t2 = Variable(*size)
         constraints = [
             NonlinearConstraint(neg_log_func(size[0]*size[1]),[t1,t2]),
-            AffEqConstraint(x,t2)
+            x == t2,
         ]
         
         return (t1, constraints)
-
-    # Return the log of the arguments' elements at the given index.
-    def index_object(self, key):
-        return log(self.args[0][key])

@@ -34,19 +34,13 @@ class UnaryOperator(AffAtom):
     def numeric(self, values):
         return self.OP_FUNC(values[0])
         
-    # Sets the sign, curvature, and shape.
-    def set_context(self):
-        self._context = self.OP_FUNC(self.args[0]._context)
+    # Returns the sign, curvature, and shape.
+    def _dcp_attr(self):
+        return self.OP_FUNC(self.args[0]._dcp_attr())
 
     # Apply the unary operator to the argument.
-    @classmethod
-    def graph_implementation(cls, var_args, size):
-        return (cls.OP_FUNC(var_args[0]), [])
-
-    # Apply the appropriate arithmetic operator to the expression
-    # at the given index. Return the result.
-    def index_object(self, key):
-        return self.OP_FUNC(self.args[0][key])
+    def graph_implementation(self, arg_objs):
+        return (self.OP_FUNC(arg_objs[0]), [])
 
 class NegExpression(UnaryOperator):
     OP_NAME = "-"

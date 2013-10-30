@@ -23,7 +23,6 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
 from numpy import linalg as LA
@@ -40,23 +39,22 @@ class normNuc(Atom):
         return sum(s)
 
     # Resolves to a scalar.
-    def set_shape(self):
-        self._shape = u.Shape(1,1)
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always unknown.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        A = var_args[0] # m by n matrix.
+    def graph_implementation(self, arg_objs):
+        A = arg_objs[0] # m by n matrix.
         n,m = A.size
         # Create the equivalent problem:
         #   minimize (trace(U) + trace(V))/2
@@ -64,10 +62,9 @@ class normNuc(Atom):
         #            [U A; A.T V] is positive semidefinite
         X = Variable(n+m, n+m)
         # Expand A.T.
-        obj,constr = transpose.graph_implementation([A], (m,n))
+        obj,constr = A.T.canonicalize()
         # Fix X using the fact that A must be affine by the DCP rules.
-        constr += [AffEqConstraint(X[0:n,n:n+m], A),
-                        AffEqConstraint(X[n:n+m,0:n], obj)]
+        constr += [X[0:n,n:n+m] == A, X[n:n+m,0:n] == obj]
         trace = 0.5*sum([X[i,i] for i in range(n+m)])
         # Add SDP constraint.
         return (trace, [SDP(X)] + constr)

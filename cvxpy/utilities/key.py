@@ -53,6 +53,16 @@ class Key(object):
         else:
             return slice(val, val+1, 1)
 
+    # Returns a set of integers in the slice.
+    @staticmethod
+    def slice_to_set(slice_val, exp_dim):
+        int_set = set()
+        start = slice_val.start
+        while start < slice_val.stop:
+            int_set.add(start)
+            start += slice_val.step
+        return int_set
+
     # Utility method to convert a slice to a string.
     @staticmethod
     def slice_to_str(slice_val):
@@ -92,23 +102,23 @@ class Key(object):
     def to_str(key):
         return (Key.slice_to_str(key[0]), Key.slice_to_str(key[1]))
 
-    # Returns a key that's the composition of two keys.
-    @staticmethod
-    def compose_keys(new_key, old_key):
-        return (Key.compose_slices(new_key[0], old_key[0]),
-                Key.compose_slices(new_key[1], old_key[1]))
+    # # Returns a key that's the composition of two keys.
+    # @staticmethod
+    # def compose_keys(new_key, old_key):
+    #     return (Key.compose_slices(new_key[0], old_key[0]),
+    #             Key.compose_slices(new_key[1], old_key[1]))
 
-    # Returns a slice that's the composition of two slices.
-    @staticmethod
-    def compose_slices(new_slc, old_slc):
-        start = old_slc.start + new_slc.start*old_slc.step
-        step_size = step_size = new_slc.step*old_slc.step
-        if new_slc.stop is None and old_slc.stop is None:
-            stop = None
-        elif new_slc.stop is None:
-            steps = float(old_slc.stop - old_slc.step*new_slc.start)/step_size
-            # Round up so that the last step is taken.
-            stop = int(math.ceil(steps*step_size + start))
-        else:
-            stop = old_slc.start + new_slc.stop*old_slc.step
-        return slice(start, stop, step_size)
+    # # Returns a slice that's the composition of two slices.
+    # @staticmethod
+    # def compose_slices(new_slc, old_slc):
+    #     start = old_slc.start + new_slc.start*old_slc.step
+    #     step_size = step_size = new_slc.step*old_slc.step
+    #     if new_slc.stop is None and old_slc.stop is None:
+    #         stop = None
+    #     elif new_slc.stop is None:
+    #         steps = float(old_slc.stop - old_slc.step*new_slc.start)/step_size
+    #         # Round up so that the last step is taken.
+    #         stop = int(math.ceil(steps*step_size + start))
+    #     else:
+    #         stop = old_slc.start + new_slc.stop*old_slc.step
+    #     return slice(start, stop, step_size)

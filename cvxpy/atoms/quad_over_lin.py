@@ -22,7 +22,6 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions import types
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
 from affine.vstack import vstack
 import numpy as np
@@ -37,17 +36,16 @@ class quad_over_lin(Atom):
     def numeric(self, values):
         return np.dot(values[0].T, values[0])/values[1]
 
-    # The shape is the common width and the sum of the heights.
-    def set_shape(self):
-        self.validate_arguments()
-        self._shape = u.Shape(1,1)
+    # Resolves to a scalar.
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     # Increasing for positive entry of x, decreasing for negative.
@@ -61,13 +59,11 @@ class quad_over_lin(Atom):
         elif not self.args[1].is_scalar():
             raise TypeError("The second argument to quad_over_lin must be a scalar.")
     
-    @staticmethod
-    def graph_implementation(var_args, size):
+    def graph_implementation(self, arg_objs):
         v = Variable(*size).canonical_form()[0]
-        x = var_args[0]
-        y = var_args[1]
+        x = arg_objs[0]
+        y = arg_objs[1]
 
-        obj,constraints = vstack.graph_implementation([y - v, x + x],
-                                                      (x.size[0] + 1,1))
-        constraints += [SOC(y + v, obj), AffLeqConstraint(0, y)]
+        obj,constraints = vstack(y - v, 2*x).canonicalize()
+        constraints += [SOC(y + v, obj), 0 <= y]
         return (v, constraints)

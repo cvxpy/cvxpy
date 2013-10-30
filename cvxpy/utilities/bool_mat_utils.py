@@ -37,7 +37,6 @@ def vstack(values, sizes):
             matrices.append( mat.value )
     return BoolMat( np.vstack(matrices) )
 
-
 # Multiplies matrices, promoting if necessary.
 def mul(lh_mat, lh_size, rh_mat, rh_size):
     if lh_mat is True:
@@ -70,4 +69,11 @@ def transpose(matrix):
     if isinstance(matrix, bool):
         return matrix
     else:
-        return matrix.T
+        return matrix.__class__(matrix.value.T)
+
+# Indexes/slices into a matrix. Leaves scalars untouched.
+def index(matrix, key):
+    if isinstance(matrix, bool):
+        return matrix
+    else:
+        return matrix[key]

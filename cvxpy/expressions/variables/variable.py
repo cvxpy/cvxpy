@@ -38,7 +38,8 @@ class Variable(Leaf, AffExpression):
                              u.Curvature.AFFINE, 
                              u.Shape(rows, cols))
         coeffs = self.init_coefficients(rows, cols)
-        super(Variable, self).__init__(coeffs, dcp_attr)
+        variables = {self.id: self}
+        super(Variable, self).__init__(coeffs, variables, dcp_attr)
 
     # Initialize the id.
     def _init_id(self):

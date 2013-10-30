@@ -23,7 +23,6 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.semi_definite import SDP
 from ..interface import numpy_wrapper as np
 from numpy import linalg as LA
@@ -43,9 +42,8 @@ class lambda_min(Atom):
         return min(w)
 
     # Resolves to a scalar.
-    def set_shape(self):
-        self.validate_arguments()
-        self._shape = u.Shape(1,1)
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Verify that the argument A is square.
     def validate_arguments(self):
@@ -58,19 +56,18 @@ class lambda_min(Atom):
         return u.Sign.UNKNOWN
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        A = var_args[0]
+    def graph_implementation(self, arg_objs):
+        A = arg_objs[0]
         n,m = A.size
         # Requires that A is symmetric.
-        obj,constr = transpose.graph_implementation([A], (m,n))
-        constr += [AffEqConstraint(obj, A)]
-        t = Variable(*size).canonical_form()[0]
-        I = Constant(np.eye(n,m)).canonical_form()[0]
+        constr = (A == A.T).canonicalize()
+        # SDP constraint.
+        t = Variable()
+        I = Constant(np.eye(n,m))
         return (t, [SDP(A - I*t)] + constr)

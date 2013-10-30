@@ -22,7 +22,6 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions import types
 from ..expressions.variables import Variable
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
 from ..constraints.second_order import SOC
 from affine.vstack import vstack
 import math
@@ -37,16 +36,15 @@ class geo_mean(Atom):
         return math.sqrt(values[0]*values[1])
 
     # The shape is the common width and the sum of the heights.
-    def set_shape(self):
-        self.validate_arguments()
-        self._shape = u.Shape(1,1)
+    def shape_from_args(self):
+        return u.Shape(1,1)
 
     # Always unknown.
     def sign_from_args(self):
         return u.Sign.UNKNOWN
         
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
@@ -57,14 +55,10 @@ class geo_mean(Atom):
         if not self.args[0].is_scalar() or not self.args[1].is_scalar():
             raise TypeError("The arguments to geo_mean must resolve to scalars." )
     
-    @staticmethod
-    def graph_implementation(var_args, size):
+    def graph_implementation(self, arg_objs):
         v = Variable(*size)
-        x = var_args[0]
-        y = var_args[1]
-        obj,constraints = vstack.graph_implementation([y - x, v + v],
-                                                      (y.size[0] + 1,1))
-        constraints += [SOC(x + y, obj),
-                        AffLeqConstraint(0, x),
-                        AffLeqConstraint(0, y)]
+        x = arg_objs[0]
+        y = arg_objs[1]
+        obj,constraints = vstack(y - x, 2*v).canonicalize()
+        constraints += [SOC(x + y, obj), 0 <= x, 0 <= y]
         return (v, constraints)

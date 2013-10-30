@@ -17,9 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import interface as intf
-from .. import utilities as u
-
 class LeqConstraint(object):
     OP_NAME = "<="
     def __init__(self, lh_exp, rh_exp):
@@ -50,8 +47,8 @@ class LeqConstraint(object):
 
     # Replace inequality with an equality with slack.
     def canonicalize(self):
-        obj,constr = self._expr.canonical_form()
-        return (None, [obj <= 0] + constr)
+        obj,constr = self._expr.canonicalize()
+        return (None, [self] + constr)
 
     def variables(self):
         return self._expr.variables()

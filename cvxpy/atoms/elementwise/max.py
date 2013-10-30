@@ -17,12 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elementwise import Elementwise
 from ... import utilities as u
 from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
-from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+from elementwise import Elementwise
 import numpy as np
 
 class max(Elementwise):
@@ -32,12 +31,12 @@ class max(Elementwise):
     def numeric(self, values):
         return reduce(np.maximum, values)
 
-    # The shape is the common shape of all the arguments.
-    def set_shape(self):
+    # Verify that all the shapes are the same
+    # or can be promoted.
+    def validate_arguments(self):
         shape = self.args[0].shape
         for arg in self.args[1:]:
             shape = shape + arg.shape
-        self._shape = shape
 
     """
     Reduces the list of argument signs according to the following rules:
@@ -57,14 +56,13 @@ class max(Elementwise):
         return u.Sign(neg_mat, pos_mat)
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
         return len(self.args)*[u.Monotonicity.INCREASING]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
+    def graph_implementation(self, arg_objs):
         t = Variable(*size)
-        constraints = [AffLeqConstraint(x, t) for x in var_args]
+        constraints = [x <= t for x in arg_objs]
         return (t, constraints)

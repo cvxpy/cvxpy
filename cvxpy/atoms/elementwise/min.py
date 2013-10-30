@@ -17,11 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from max import max
 from ... import utilities as u
 from ...expressions import types
 from ...expressions.variables import Variable
-from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+from max import max
 import numpy as np
 
 class min(max):
@@ -49,11 +48,10 @@ class min(max):
         return u.Sign(neg_mat, pos_mat)
         
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONCAVE
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        t = Variable(*size)
-        constraints = [AffLeqConstraint(t, x) for x in var_args]
+    def graph_implementation(self, arg_objs):
+        t = Variable(*self.size)
+        constraints = [t <= x for x in arg_objs]
         return (t, constraints)

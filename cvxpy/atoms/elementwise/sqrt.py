@@ -17,49 +17,42 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elementwise import Elementwise
-from ..geo_mean import geo_mean
 from ... import utilities as u
 from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
-from ...constraints.affine import AffEqConstraint, AffLeqConstraint
+from ..geo_mean import geo_mean
+from elementwise import Elementwise
 import numpy as np
 
 class sqrt(Elementwise):
     """ Elementwise square root """
     def __init__(self, x):
         super(sqrt, self).__init__(x)
-        # Args are all indexes into x.
-        self.x = self.args[0]
-        self.args = [xi for xi in self.x]
 
     # Returns the elementwise square root of x.
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.sqrt(values[0])
 
-    # The shape is the same as the argument's shape.
-    def set_shape(self):
-        self._shape = u.Shape(*self.args[0].size)
-
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 
     # Default curvature.
-    def base_curvature(self):
+    def func_curvature(self):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
         return [u.Monotonicity.INCREASING]
     
-    @staticmethod
-    def graph_implementation(var_args, size):
-        t = Variable(*size)
+    def graph_implementation(self, arg_objs):
+        rows,cols = self.size
+        t = Variable(rows,cols)
         constraints = []
-        one,dummy = types.constant()(1).canonical_form()
-        for ti,xi in zip(t,var_args):
-            obj,constr = geo_mean.graph_implementation([xi,one],(1,1))
-            constraints += constr + [AffEqConstraint(obj, ti)]
+        for i in rows:
+            for j in cols:
+                xi = arg_objs[0][i,j]
+                obj,constr = quad_over_lin(xi, 1).canonicalize()
+                constraints += constr + [obj <= t[i,j], 0 <= xi]
         return (t, constraints)
