@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from affine import Affine
 from canonicalizable import Canonicalizable
-from context import Context
+from dcp_attr import DCPAttr
 from curvature import Curvature
 from monotonicity import Monotonicity
 from key import Key

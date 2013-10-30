@@ -20,9 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from ... import settings as s
 from ... import utilities as u
 from ... import interface as intf
-from constant_leaf import ConstantLeaf
+from ..leaf import Leaf
 
-class Parameter(ConstantLeaf):
+class Parameter(Leaf):
     """
     A parameter, either matrix or scalar.
     """
@@ -32,16 +32,15 @@ class Parameter(ConstantLeaf):
         self._cols = cols
         self.sign_str = sign
         self._name = self.next_name(s.PARAM_PREFIX) if name is None else name
-        self.set_context()
-        super(Parameter, self).__init__()
 
     def name(self):
         return self._name
 
-    def set_context(self):
+    # Returns the 
+    def _dcp_attr(self):
         shape = u.Shape(self._rows, self._cols)
         sign = u.Sign.name_to_sign(self.sign_str)
-        self._context = u.Context(sign, u.Curvature.CONSTANT, shape)
+        return u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     # Getter and setter for parameter value.
     @property
@@ -50,7 +49,8 @@ class Parameter(ConstantLeaf):
 
     @value.setter
     def value(self, val):
-        val = self.cast_value(val)
+        # Convert val to the proper matrix type.
+        val = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(val)
         size = intf.size(val)
         if size != self.size:
             raise Exception("Invalid dimensions (%s,%s) for Parameter value." % size)

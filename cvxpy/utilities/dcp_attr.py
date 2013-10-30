@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from sign import Sign
 from curvature import Curvature
 
-class Context(object):
+class DCPAttr(object):
     """ A data structure for the sign, curvature, and shape of an expression. """
     # sign - the signs of the expression's entries.
     # curvature - the curvatures of the expression's entries.
@@ -35,13 +35,13 @@ class Context(object):
         shape = self.shape + other.shape
         sign = self.sign + other.sign
         curvature = self.curvature + other.curvature
-        return Context(sign, curvature, shape)
+        return DCPAttr(sign, curvature, shape)
 
     def __sub__(self, other):
         shape = self.shape + other.shape
         sign = self.sign - other.sign
         curvature = self.curvature - other.curvature
-        return Context(sign, curvature, shape)
+        return DCPAttr(sign, curvature, shape)
 
     # Assumes self has all constant curvature.
     def __mul__(self, other):
@@ -50,7 +50,7 @@ class Context(object):
                         other.sign, other.shape.size)
         curvature = Curvature.sign_mul(self.sign, self.shape.size,
                                        other.curvature, other.shape.size)
-        return Context(sign, curvature, shape)
+        return DCPAttr(sign, curvature, shape)
 
     def __neg__(self):
-        return Context(-self.sign, -self.curvature, self.shape)
+        return DCPAttr(-self.sign, -self.curvature, self.shape)

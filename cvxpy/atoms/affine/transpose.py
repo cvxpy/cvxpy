@@ -21,17 +21,22 @@ from affine_atom import AffAtom
 from ... import utilities as u
 from ...utilities import bool_mat_utils as bu
 from ...expressions.variables import Variable
-from ...constraints.affine import AffEqConstraint
+from ...expressions.affine import AffExpression
+import copy
 
 class transpose(AffAtom):
     """ Matrix transpose. """
+    # The string representation of the atom.
+    def name(self):
+        return "%s.T" % self.args[0]
+
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):
         return values[0].T
 
     # Transposes shape, sign, and curvature.
-    def set_context(self):
+    def _dcp_attr(self):
         rows,cols = self.args[0].size
         shape = u.Shape(cols, rows)
 
@@ -41,18 +46,23 @@ class transpose(AffAtom):
         conc_mat = bu.transpose(self.args[0].curvature.conc_mat)
         constant = self.args[0].curvature.constant
 
-        self._context = u.Context(u.Sign(neg_mat, pos_mat),
-                                  u.Curvature(cvx_mat, conc_mat, constant), 
-                                  shape)
+        return u.DCPAttr(u.Sign(neg_mat, pos_mat),
+                         u.Curvature(cvx_mat, conc_mat, constant), 
+                         shape)
 
     # Create a new variable equal to the argument transposed.
-    @staticmethod
-    def graph_implementation(var_args, size):
-        X = Variable(size[1], size[0])
-        obj = X.T.canonical_form()[0]
-        return (obj, [AffEqConstraint(X, var_args[0])])
-
-    # Index the original argument as if it were the transpose,
-    # then return the transpose.
-    def index_object(self, key):
-        return transpose(self.args[0][key[1], key[0]])
+    def graph_implementation(self, arg_objs):
+        X = Variable(self.size[1], self.size[0])
+        # Create a coefficients dict for the transposed variable.
+        # Each row in each block selects the appropriate elements
+        # from the vectorized X.
+        var_blocks = X.coefficients()[X]
+        transpose_coeffs = X.init_coefficients(self.size[0], self.size[1])
+        transpose_blocks = transpose_coeffs[X]
+        for k in xrange(self.size[0]):
+            for row in xrange(self.size[1]):
+                transpose_blocks[row][k,:] = var_blocks[k][row,:]
+        transpose_coeffs[X] = transpose_blocks
+        # No dcp_attr given because none needed.
+        obj = AffExpression(transpose_coeffs, None)
+        return (obj, [X == arg_objs[0]])

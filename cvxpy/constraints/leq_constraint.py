@@ -19,15 +19,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import interface as intf
 from .. import utilities as u
-from ..expressions import types
-from affine import AffEqConstraint, AffLeqConstraint
 
-class LeqConstraint(u.Canonicalizable):
+class LeqConstraint(object):
     OP_NAME = "<="
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp
-        super(LeqConstraint, self).__init__()
+        self._expr = (self.lh_exp - self.rh_exp)
 
     def name(self):
         return ' '.join([self.lh_exp.name(), 
@@ -52,7 +50,15 @@ class LeqConstraint(u.Canonicalizable):
 
     # Replace inequality with an equality with slack.
     def canonicalize(self):
-        self._expr = (self.lh_exp - self.rh_exp)
         obj,constr = self._expr.canonical_form()
-        dual_holder = AffLeqConstraint(obj, 0, self)
-        return (None, [dual_holder] + constr)
+        return (None, [obj <= 0] + constr)
+
+    def variables(self):
+        return self._expr.variables()
+
+    def coefficients(self):
+        return self._expr.coefficients()
+
+    # Save the value of the dual variable for the constraint's parent.
+    def save_value(self, value):
+        self._parent.dual_value = value

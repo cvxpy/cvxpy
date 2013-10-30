@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from leq_constraint import LeqConstraint
-from affine import AffEqConstraint, AffLeqConstraint
 
 class EqConstraint(LeqConstraint):
     OP_NAME = "=="
@@ -29,7 +28,5 @@ class EqConstraint(LeqConstraint):
     # TODO expanding equality constraints.
     # Verify doesn't affect dual variables.
     def canonicalize(self):
-        self._expr = (self.lh_exp - self.rh_exp)
         obj,constr = self._expr.canonical_form()
-        dual_holder = AffEqConstraint(obj, 0, self)
-        return (None, [dual_holder] + constr)
+        return (None, [obj == 0] + constr)

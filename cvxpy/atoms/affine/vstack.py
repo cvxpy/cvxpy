@@ -68,7 +68,7 @@ class vstack(AffAtom):
     def set_context(self):
         shape = self.get_shape()
         sign,curvature = self.get_sign_curv()
-        self._context = u.Context(sign, curvature, shape)
+        self._context = u.DCPAttr(sign, curvature, shape)
 
     @staticmethod
     def graph_implementation(var_args, size):

@@ -30,7 +30,6 @@ class Leaf(expression.Expression):
     A leaf node, i.e. a Variable, Constant, or Parameter.
     """
     __metaclass__ = abc.ABCMeta
-    subexpressions = [] # No subexpressions.
     COUNT = 0
     # Returns a new unique name based on a global counter.
     @staticmethod
@@ -38,23 +37,10 @@ class Leaf(expression.Expression):
         Leaf.COUNT += 1
         return "%s%d" % (prefix, Leaf.COUNT)
 
-    # Returns the leaf's value as a ndarray.
+    # Returns the leaf's value.
     def numeric(self, values):
-        return self._value
+        return self.value
 
-    # Objective associated with the leaf.
-    def _objective(self):
-        return AffExpression(self.coefficients(), self.shape)
-
-    # Constraints associated with the leaf.
-    def _constraints(self):
-        return []
-
-    # Root for the construction of affine expressions.
+    # Default canonicalization for leaf nodes.
     def canonicalize(self):
-        return (self._objective(), self._constraints())
-
-    # Returns the coefficients dictionary for the leaf.
-    @abc.abstractmethod
-    def coefficients(self):
-        return NotImplemented
+        return (self, [])

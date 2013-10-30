@@ -23,7 +23,6 @@ from .. import utilities as u
 from .. import interface as intf
 from ..constraints import leq_constraint as le
 from ..constraints import eq_constraint as eq
-from affine import AffExpression
 import types
 import abc
 
@@ -39,6 +38,12 @@ class Expression(u.Canonicalizable):
     A mathematical expression in a convex optimization problem.
     """
     __metaclass__ = abc.ABCMeta
+    # Returns the graph implementation of the expression:
+    # a tuple of (AffExpression, [constraints]).
+    @abc.abstractmethod
+    def canonicalize(self):
+        return NotImplemented
+
     # Returns the value of the expression.
     # Simulates recursion with stack to avoid stack overflow.
     @property
@@ -80,25 +85,31 @@ class Expression(u.Canonicalizable):
     def name(self):
         return NotImplemented
 
+    # Returns the DCP attributes of the expression,
+    # i.e. curvature, sign, and shape.
+    @abc.abstractmethod
+    def _dcp_attr(self):
+        return NotImplemented
+
     # The curvature of the expression.
     @property
     def curvature(self):
-        return self._context.curvature
+        return self._dcp_attr().curvature
 
     # The sign of the expression, a (row,col) tuple.
     @property
     def sign(self):
-        return self._context.sign
+        return self._dcp_attr().sign
 
     # The shape of the expression, an object.
     @property
     def shape(self):
-        return self._context.shape
+        return self._dcp_attr().shape
 
     # The dimensions of the expression.
     @property
     def size(self):
-        return self._context.shape.size
+        return self.shape.size
 
     # Is the expression a scalar?
     def is_scalar(self):

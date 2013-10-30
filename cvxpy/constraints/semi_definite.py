@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import interface as intf
 from .. import utilities as u
 from ..expressions.variables import Variable
-from affine import AffEqConstraint, AffLeqConstraint
 
 class SDP(object):
     """
@@ -36,7 +35,7 @@ class SDP(object):
 
     # Formats SDP constraints for the solver.
     def format(self):
-        return [AffLeqConstraint(-self.A, 0)]
+        return [-self.A <= 0]
 
     # The dimensions of the semi-definite cone.
     @property

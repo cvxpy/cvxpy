@@ -20,23 +20,25 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from ... import settings as s
 from ... import utilities as u
 from ... import interface as intf
+from ..affine import AffExpression
 from ..constants import Constant
-from .. import leaf
+from ..leaf import Leaf
 
-class Variable(leaf.Leaf):
+class Variable(Leaf, AffExpression):
     """ The base variable class """
     VAR_COUNT = 0
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
-        self._context = u.Context(u.Sign.UNKNOWN, 
-                                  u.Curvature.AFFINE, 
-                                  u.Shape(rows, cols))
         self._init_id()
         self._name = self.id if name is None else name
         self.primal_value = None
-        super(Variable, self).__init__()
+        dcp_attr = u.DCPAttr(u.Sign.UNKNOWN, 
+                             u.Curvature.AFFINE, 
+                             u.Shape(rows, cols))
+        coeffs = self.init_coefficients(rows, cols)
+        super(Variable, self).__init__(coeffs, dcp_attr)
 
     # Initialize the id.
     def _init_id(self):
@@ -53,16 +55,13 @@ class Variable(leaf.Leaf):
     def value(self):
         return self.primal_value
 
-    # Returns the variable as an affine expression.
-    # Initializes a selection matrix as a list of matrices
-    # which concatenated form an identity matrix.
-    # Initializes parameter expr as 1, constant term as 0.
-    def coefficients(self):
+    # Returns a coefficients dict with the variable as the key
+    # and a list of offset identity matrices as the coefficients.
+    def init_coefficients(self, rows, cols):
         # Scalars have scalar coefficients.
-        if self.is_scalar():
+        if (rows, cols) == (1,1):
             return {self: [1]}
         else:
-            rows,cols = self.size
             identity = intf.DEFAULT_SPARSE_INTERFACE.identity(rows*cols)
             blocks = [identity[i*rows:(i+1)*rows,:] for i in range(cols)]
             return {self: blocks}

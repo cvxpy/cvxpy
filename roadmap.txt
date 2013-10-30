@@ -52,6 +52,7 @@ finally, we want some cool OOCO (object oriented convex optimization) examples. 
 i'd also like to see some vertical examples, such as a family of examples for portfolio optimization or for time-series fitting.
 
 Bugs:
+Need separate BoolMat for constant (see vstack(x,2))
 
 Features:
 

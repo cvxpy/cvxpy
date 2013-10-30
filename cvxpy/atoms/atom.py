@@ -20,11 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
+from ..expressions.constants import Constant
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
-from ..expressions.affine import AffExpression
-from ..constraints.affine import AffEqConstraint, AffLeqConstraint
-from constant_atom import ConstantAtom
 import abc
 
 class Atom(Expression):
@@ -40,8 +38,6 @@ class Atom(Expression):
         # Convert raw values to Constants.
         self.args = map(Expression.cast_to_const, args)
         self.subexpressions = self.args
-        # Initialize context.
-        self.set_context()
         super(Atom, self).__init__()
 
     # Returns the string representation of the function call.
@@ -49,15 +45,15 @@ class Atom(Expression):
         return "%s(%s)" % (self.__class__.__name__, 
                            ", ".join([arg.name() for arg in self.args]))
 
-    # Sets signed curvature based on the arguments' signed curvatures.
-    def set_context(self):
+    # Determines the curvature, sign, and shape from the arguments.
+    def _dcp_attr(self):
         # Initialize _shape. Raises an error for invalid argument sizes.
-        self.set_shape()
+        shape = self.shape_from_args()
         sign = self.sign_from_args()
         curvature = Atom.dcp_curvature(self.base_curvature(), 
                                        self.args, 
                                        self.monotonicity())
-        self._context = u.Context(sign, curvature, self._shape)
+        self._context = u.DCPAttr(sign, curvature, self._shape)
 
     # Returns argument curvatures as a list.
     def argument_curvatures(self):
@@ -91,29 +87,23 @@ class Atom(Expression):
     def canonicalize(self):
         # Constant atoms are treated as a leaf.
         if self.curvature.is_constant():
-            obj = AffExpression({s.CONSTANT: self}, self.shape)
-            return (obj, [])
-        # Non-constant atoms are expanded into an affine objective and constraints.
+            return Constant(self.value).canonicalize()
         else:
-            var_args = []
-            final_constraints = []
+            arg_objs = []
+            constraints = []
             for arg in self.args:
-                # canonicalize arguments.
-                obj,constraints = arg.canonical_form()
-                var_args.append(obj)
-                final_constraints += constraints
-            graph_var,graph_constr = self.graph_implementation(var_args, self.size)
-            obj = u.Affine.cast_as_affine(graph_var)
-            return (obj,final_constraints + graph_constr)
+                obj,constr = arg.canonicalize()
+                arg_objs.append(obj)
+                constraints += constr
+            graph_obj,graph_constr = self.graph_implementation(arg_objs)
+            return (graph_obj, constraints + graph_constr)
 
-    # Returns a variable and set of affine/SOC 
+    # Returns an affine expression and list of 
     # constraints equivalent to the atom.
-    # var_args - a list of single variable arguments.
-    # size - the dimensions of the variable to return.
+    # arg_objs - the canonical objectives of the arguments.
     @abc.abstractmethod
-    def graph_implementation(var_args, size):
+    def graph_implementation(self, arg_objs):
         return NotImplemented
-
 
     # Wraps an atom's numeric function that requires numpy ndarrays as input.
     # Ensures both inputs and outputs are the correct matrix types.

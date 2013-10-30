@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import interface as intf
 from .. import utilities as u
-from affine import AffLeqConstraint
 
 class SOC(object):
     """ 
@@ -35,8 +34,7 @@ class SOC(object):
 
     # Formats SOC constraints for the solver.
     def format(self):
-        return [AffLeqConstraint(-self.t, 0), 
-                AffLeqConstraint(-self.x, 0)]
+        return [-self.t <= 0, -self.x <= 0]
 
     # The dimensions of the second-order cone.
     @property

@@ -20,79 +20,73 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
-from ..constraints.affine import AffEqConstraint
+from expression import Expression
 import operator as op
 
-class AffExpression(u.Affine):
-    """ An affine expression. The result of canonicalization. """
-    # coefficients - a dict of {variable/Constant: [parameter expressions]}
-    # shape - the shape of the expresssion.
-    def __init__(self, coefficients, shape):
+class AffExpression(Expression):
+    """ An affine expression. """
+    # coefficients - a dict of {variable/Constant: [coefficients]}
+    def __init__(self, coefficients, dcp_attr):
         self._coeffs = coefficients
-        self._shape = shape
-        super(AffExpression, self).__init__()
+        self._stored_dcp_attr = dcp_attr
+        # Acts as a leaf node, so has no subexpressions.
+        self.subexpressions = []
 
-    def __str__(self):
-        return str(self._coeffs)
+    # Multiplies the coefficient by the vectorized variable value
+    # or simply adds it to the sum if constant.
+    # Then combines columns into a single matrix.
+    def numeric(self, values):
+        # The interface for the variable values.
+        interface = intf.DEFAULT_INTERFACE
+        col_sums = self.size[1]*[0]
+        for var,blocks in self.coefficients().items():
+            # The vectorized value of the variable (or 1 if Constant).
+            if var == s.CONSTANT:
+                key_val = 1
+            else:
+                key_val = interface.const_to_matrix(var.value)
+                key_val = interface.reshape(key_val, (var.size[0]*var.size[1],1))
+            for i in xrange(self.size[1]):
+                col_sums[i] += blocks[i]*key_val
+        # Returns a sparse matrix.
+        sparse_intf = intf.DEFAULT_SPARSE_INTERFACE
+        result = sparse_intf.zeros(self.size[0], self.size[1])
+        for i in xrange(self.size[1]):
+            result[:,i] = col_sums[i]
+        return result
 
-    def __repr__(self):
-        return str(self)
+    # Returns itself as an objective and any constraints
+    # associated with the variables.
+    def canonicalize(self):
+        # Combines the contraints from the variables.
+        constraints = []
+        for var in self.coefficients().keys():
+            if var != s.CONSTANT:
+                constraints += var.canonicalize()[1]
+        return (self, constraints)
 
-    # The dimensions of the expression.
-    @property
-    def size(self):
-        return self._shape.size
+    # The representation of the expression as a string.
+    def name(self):
+        return str(self.coefficients())
+
+    # Return the stored curvature, sign, and shape of the
+    # affine expression.
+    def _dcp_attr(self):
+        return self._stored_dcp_attr
 
     # Returns a list of the variables in the expression.
     def variables(self):
-        variables = self._coeffs.keys()
+        variables = self.coefficients().keys()
         if s.CONSTANT in variables:
             variables.remove(s.CONSTANT)
         return variables
 
     # Returns a coefficient dict with all parameter expressions evaluated.
     def coefficients(self):
-        new_coeffs = {}
-        for var,blocks in self._coeffs.items():
-            new_coeffs[var] = map(self.eval_expr, blocks)
-        return new_coeffs
+        return self._coeffs
 
-    # Helper function to evaluate parameter expressions.
-    @staticmethod
-    def eval_expr(expr):
-        try:
-            return expr.value
-        except Exception, e:
-            return expr
-
-    # # Returns a dict of term id to coefficient.
-    # # interface - the matrix interface to convert constants
-    # #             into a matrix of the target class.
-    # def coefficients(self, interface):
-    #     final_coeffs = {}
-    #     for mults in self._terms:
-    #         root = mults[0]
-    #         root_coeffs = root.coefficients(interface)
-    #         for id,coeff in root_coeffs.items():
-    #             coefficient = self.dequeue_mults(coeff, mults, interface)
-    #             if id in final_coeffs:
-    #                 final_coeffs[id] = final_coeffs[id] + coefficient
-    #             else:
-    #                 final_coeffs[id] = coefficient
-    #     return final_coeffs
-
-    # # Resolves a multiplication stack into a single coefficient.
-    # @staticmethod
-    # def dequeue_mults(coefficient, mults, interface):
-    #     for i in range(len(mults)-1):
-    #         lh = mults[i+1]
-    #         # Only contains a constant coefficient.
-    #         lh_coeff = lh.coefficients(interface).values()[0]
-    #         coefficient = lh_coeff * coefficient
-    #     return coefficient
-
-    # Multiplies by a ones matrix to promote a scalar coefficient.
-    # Returns an updated AffExpression.
+    # Multiplies by a ones matrix to promote scalar coefficients.
+    # Returns an updated coefficient dict.
     @staticmethod
     def promote(coeffs, shape):
         rows,cols = shape.size
@@ -100,61 +94,54 @@ class AffExpression(u.Affine):
         new_coeffs = {}
         for var,blocks in coeffs.items():
             new_coeffs[var] = [ones*blocks[0] for i in range(cols)]
-        return AffExpression(new_coeffs, shape)
+        return new_coeffs
 
     # Combines the dicts. Adds the blocks of common variables.
     # Multiplies all blocks by a ones vector if promotion occurs.
     def __add__(self, other):
-        new_shape = self._shape + other._shape
-        if new_shape.size > self._shape.size:
-            self = self.promote(self, new_shape)
-        elif new_shape.size > other._shape.size:
-            other = self.promote(other, new_shape)
+        new_dcp_attr = self._dcp_attr() + other._dcp_attr()
+        new_shape = new_dcp_attr.shape
+        # Get the coefficients of the two expressions.
+        self_coeffs = self.coefficients()
+        other_coeffs = other.coefficients()
+        if new_shape.size > self.size:
+            self_coeffs = self.promote(self, new_shape)
+        elif new_shape.size > other.size:
+            other_coeffs = self.promote(other, new_shape)
         # Merge the dicts, summing common variables.
-        new_coeffs = self._coeffs.copy()
-        for var,blocks in other._coeffs.items():
+        new_coeffs = self_coeffs.copy()
+        for var,blocks in other_coeffs.items():
             if var in new_coeffs:
                 block_sum = []
-                for (b1,b2) in zip(self._coeffs[var], other._coeffs[var]):
+                for (b1,b2) in zip(new_coeffs[var], other_coeffs[var]):
                     block_sum.append(b1 + b2)
                 new_coeffs[var] = block_sum
             else:
                 new_coeffs[var] = blocks
-        return AffExpression(new_coeffs, new_shape)
+        return AffExpression(new_coeffs, new_dcp_attr)
 
     def __sub__(self, other):
         return self + -other
 
-    # # Distributes multiplications by left hand terms
-    # # across right hand terms.
-    # def __mul__(self, other):
-    #     terms = AffExpression.mul_terms(self._terms, other._terms)
-    #     return AffExpression(other.variables(), terms, 
-    #                         self._shape * other._shape)
+    # Distributes multiplications by left hand constant
+    # across right hand terms.
+    def __mul__(self, other):
+        lh_blocks = self.coefficients()[s.CONSTANT]
+        new_coeffs = {}
+        for var,blocks in other.coefficients().items():
+            block_product = []
+            for (b1,b2) in zip(lh_blocks, blocks):
+                prod = b1 * b2
+                # Reduce to scalar if possible.
+                if prod.size == (1,1):
+                    prod = prod[0]
+                block_product.append(prod)
+            new_coeffs[var] = block_product
+        return AffExpression(new_coeffs, self._dcp_attr() * other._dcp_attr())
 
     # Negates every parameter expression.
     def __neg__(self):
         new_coeffs = {}
-        for var,blocks in self._coeffs.items():
+        for var,blocks in self.coefficients().items():
             new_coeffs[var] = map(op.neg, blocks)
-        return AffExpression(new_coeffs, self._shape)
-
-    # # Utility function for multiplying lists of terms.
-    # @staticmethod
-    # def mul_terms(lh_terms, rh_terms):
-    #     terms = []
-    #     for lh_mult in lh_terms:
-    #         for rh_mult in rh_terms:
-    #             mult = deque(rh_mult)
-    #             mult.extend(lh_mult)
-    #             terms.append(mult)
-    #     return terms
-
-
-    # # Returns an (AffineObjective, [AffineConstraints]) tuple
-    # # representing the tranpose.
-    # @property
-    # def T(self):
-    #     A = types.variable()(*self.size)
-    #     obj = A.T.canonical_form()[0]
-    #     return (obj, [AffEqConstraint(A, self)])
+        return AffExpression(new_coeffs, self._dcp_attr())
