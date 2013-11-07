@@ -56,12 +56,18 @@ class Problem(object):
     # Remove duplicate constraint objects.
     def filter_constraints(self, constraints):
         constraints = list(set(constraints)) # TODO generalize
-        constr_map = {}
-        constr_map[s.EQ] = [c for c in constraints if isinstance(c, EqConstraint)]
-        constr_map[s.INEQ] = [c for c in constraints if isinstance(c, LeqConstraint)]
-        constr_map[s.SOC] = [c for c in constraints if isinstance(c, SOC)]
-        constr_map[s.SDP] = [c for c in constraints if isinstance(c, SDP)]
-        constr_map[s.NONLIN] = [c for c in constraints if isinstance(c, NonlinearConstraint)]
+        constr_map = {s.EQ: [], s.INEQ: [], s.SOC: [], s.SDP: [], s.NONLIN: []}
+        for c in constraints:
+            if isinstance(c, EqConstraint):
+                constr_map[s.EQ].append(c)
+            elif isinstance(c, LeqConstraint):
+                constr_map[s.INEQ].append(c)
+            elif isinstance(c, SOC):
+                constr_map[s.SOC].append(c)
+            elif isinstance(c, SDP):
+                constr_map[s.SDP].append(c)
+            elif isinstance(c, NonlinearConstraint):
+                constr_map[s.NONLIN].append(c)
         return constr_map
 
     # Convert the problem into an affine objective and affine constraints.
@@ -163,7 +169,7 @@ class Problem(object):
             primal_val = results['info']['pcost']
         
         if status == s.SOLVED:
-            self.save_values(results['x'], sorted(var_offsets.keys()))
+            self.save_values(results['x'], var_offsets.keys())
             self.save_values(results['y'], constr_map[s.EQ])
             if constr_map[s.NONLIN]:
                 self.save_values(results['zl'], constr_map[s.INEQ])
@@ -173,26 +179,22 @@ class Problem(object):
         else:
             return status
 
-    # Returns a map of variable object to horizontal offset
+    # Returns a map of variable id to horizontal offset
     # and the length of the x vector.
     def variables(self, objective, constraints):
         vars = objective.variables()
         for constr in constraints:
             vars += constr.variables()
-        # Eliminate duplicate ids and sort variables.
         var_offsets = {}
         vert_offset = 0
-        for var in sorted(vars):
-            if var not in var_offsets:
-                var_offsets[var] = vert_offset
-                vert_offset += var.size[0]*var.size[1]
+        for var in sorted(set(vars)):
+            var_offsets[var] = vert_offset
+            vert_offset += var.size[0]*var.size[1]
         return (var_offsets, vert_offset)
 
     # Saves the values of the optimal primary/dual variables 
     # as fields in the variable/constraint objects.
     def save_values(self, result_vec, objects):
-        # Cast to desired matrix type.
-        result_vec = self.dense_interface.const_to_matrix(result_vec)
         offset = 0
         for obj in objects:
             rows,cols = obj.size
@@ -226,15 +228,17 @@ class Problem(object):
             coefficients = aff_exp.coefficients()
             for var,blocks in coefficients.items():
                 # Constant is not in var_offsets.
-                horiz_offset = var_offsets.get(var, 0)
-                for block in blocks:
+                for col,block in enumerate(blocks):
+                    vert_start = vert_offset + col*aff_exp.size[0]
+                    vert_end = vert_start + aff_exp.size[0]
                     if var is s.CONSTANT:
-                        const_vec[vert_offset:vert_offset+aff_exp.size[0],:] = block
+                        const_vec[vert_start:vert_end,:] = block
                     else:
-                        matrix[vert_offset:vert_offset+aff_exp.size[0],
-                               horiz_offset:horiz_offset+var.size[0]] = block
+                        horiz_offset = var_offsets[var]
+                        horiz_end = horiz_offset + var.size[0]*var.size[1]
+                        matrix[vert_start:vert_end, horiz_offset:horiz_end] = block
                         horiz_offset += var.size[1]
-                    vert_offset += aff_exp.size[0]
+            vert_offset += aff_exp.size[0]*aff_exp.size[1]
         return (matrix,-const_vec)
 
     def nonlinear_constraint_function(self, nl_funcs, var_offsets, x_length):

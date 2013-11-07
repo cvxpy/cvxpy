@@ -18,9 +18,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from affine_atom import AffAtom
+from ... import settings as s
 from ... import utilities as u
 from ...utilities import bool_mat_utils as bu
 from ... import interface as intf
+from ...expressions.affine import AffExpression
 import numpy as np
 
 class vstack(AffAtom):
@@ -32,11 +34,9 @@ class vstack(AffAtom):
         
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
-        self.validate_arguments()
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
         return u.Shape(rows, cols)
-
 
     # All arguments must have the same width.
     def validate_arguments(self):
@@ -65,8 +65,34 @@ class vstack(AffAtom):
         sign,curvature = self.sign_curv_from_args()
         return u.DCPAttr(sign, curvature, shape)
 
-    # 
+    # Places all the coefficients as blocks in sparse matrices.
     def graph_implementation(self, arg_objs):
-        obj = AffVstack(*arg_objs)
-        obj = AffExpression(obj.variables(), [deque([obj])], obj._shape)
+        # Use sparse matrices as coefficients.
+        interface = intf.DEFAULT_SPARSE_INTERFACE
+        new_coeffs = {}
+        offset = 0
+        for arg in arg_objs:
+            rows = arg.size[0]
+            arg_coeffs = arg.coefficients()
+            for var,blocks in arg_coeffs.items():
+                # Constant coefficients have one column.
+                if var is s.CONSTANT:
+                    cols = 1
+                # Variable coefficients have a column for each entry.
+                else:
+                    cols = var.size[0]*var.size[1]
+                # Initialize blocks as zero matrices.
+                if var not in new_coeffs:
+                    new_blocks = []
+                    for i in xrange(self.size[1]):
+                        new_blocks.append( interface.zeros(self.size[0], cols) )
+                    new_coeffs[var] = new_blocks
+                # Add the coefficient blocks into the new blocks.
+                for i,block in enumerate(blocks):
+                    new_block = new_coeffs[var][i]
+                    new_block = new_block[offset:offset+rows,0:cols] + block
+                    new_coeffs[var][i][offset:offset+rows,0:cols] = new_block
+            offset += rows
+
+        obj = AffExpression(new_coeffs, self._dcp_attr())
         return (obj, [])

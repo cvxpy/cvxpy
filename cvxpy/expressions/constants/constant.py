@@ -22,6 +22,7 @@ from ... import interface as intf
 from ... import settings as s
 from ..affine import AffExpression
 from ..leaf import Leaf
+import numpy as np
 
 class Constant(Leaf, AffExpression):
     """
@@ -33,7 +34,7 @@ class Constant(Leaf, AffExpression):
         dcp_attr = self.init_dcp_attr()
         # Set coefficients.
         coeffs = self.init_coefficients(*dcp_attr.shape.size)
-        super(Constant, self).__init__(coeffs, {}, dcp_attr)
+        super(Constant, self).__init__(coeffs, dcp_attr)
 
     def name(self):
         return str(self.value)
@@ -51,29 +52,7 @@ class Constant(Leaf, AffExpression):
     # Returns a coefficient dict with s.CONSTANT as the key
     # and the constant value split into columns as the value.
     def init_coefficients(self, rows, cols):
-        # Scalars have scalar coefficients.
-        if (rows,cols) == (1,1):
-            return {s.CONSTANT: [self.value]}
-        # Row vectors have scalar blocks.
-        elif rows == 1:
-            blocks = [self.value[0,i] for i in range(cols)]
-        else:
-            blocks = [self.value[:,i] for i in range(cols)]
-        return {s.CONSTANT: blocks}
-
-    # # Return a scalar view into a matrix constant.
-    # def index_object(self, key):
-    #     return Constant(intf.index(self.value, key))
-
-    # # Vectorizes the coefficient and adds it to the constant vector.
-    # # matrix - the constant vector.
-    # # coeff - the constant coefficient.
-    # # vert_offset - the current vertical offset.
-    # # constraint - the constraint containing the variable.
-    # # var_offsets - a map of variable object to horizontal offset.
-    # # interface - the interface for the matrix type.
-    # @classmethod
-    # def place_coeff(cls, matrix, coeff, vert_offset, 
-    #                 constraint, var_offsets, interface):
-    #     rows = constraint.size[0]*constraint.size[1]
-    #     interface.block_add(matrix, coeff, vert_offset, 0, rows, 1)
+        blocks = []
+        for i in range(cols):
+            blocks.append( intf.index(self.value, (slice(None,None,None), i)) )
+        return {s.CONSTANT: np.array(blocks, dtype="object", ndmin=1)}

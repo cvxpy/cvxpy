@@ -29,6 +29,9 @@ class SOC(object):
         self.t = t
         super(SOC, self).__init__()
 
+    def __str__(self):
+        return "SOC(%s, %s)" % (self.x, self.t)
+
     # Formats SOC constraints for the solver.
     def format(self):
         return [-self.t <= 0, -self.x <= 0]

@@ -36,7 +36,7 @@ class BinaryOperator(AffAtom):
 
     # Applies the binary operator to the values.
     def numeric(self, values):
-        return self.OP_FUNC(values[0], values[1])
+        return reduce(self.OP_FUNC, values)
         
     # Returns the sign, curvature, and shape.
     def _dcp_attr(self):
@@ -62,6 +62,13 @@ class SubExpression(BinaryOperator):
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
+
+    # Raise an error if the multiplication is invalid.
+    def validate_arguments(self):
+        # Cannot multiply two non-constant expressions.
+        if not self.args[0].curvature.is_constant() and \
+           not self.args[1].curvature.is_constant():
+            raise Exception("Cannot multiply two non-constants.")
 
     # If left-hand side is non-constant, replace lh*rh with x, x.T == rh.T*lh.T.
     def graph_implementation(self, arg_objs):

@@ -27,6 +27,9 @@ class SDP(object):
     # A - an affine expression or objective.
     def __init__(self, A):
         self.A = A
+
+    def __str__(self):
+        return "SDP(%s)" % self.A
         
     # Formats SDP constraints for the solver.
     def format(self):

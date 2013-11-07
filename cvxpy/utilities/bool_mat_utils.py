@@ -30,11 +30,11 @@ def vstack(values, sizes):
             mat = np.empty(size, dtype='bool')
             mat.fill(value)
             matrices.append(mat)
-        elif isinstance(value, BoolMat):
-            matrices.append( value.value )
-        else:
+        elif isinstance(value, SparseBoolMat):
             mat = value.todense()
             matrices.append( mat.value )
+        else: # BoolMat
+            matrices.append( value.value )
     return BoolMat( np.vstack(matrices) )
 
 # Multiplies matrices, promoting if necessary.

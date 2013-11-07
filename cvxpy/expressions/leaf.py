@@ -30,8 +30,11 @@ class Leaf(expression.Expression):
     A leaf node, i.e. a Variable, Constant, or Parameter.
     """
     __metaclass__ = abc.ABCMeta
-    COUNT = 0
+    # Leaf has no subexpressions.
+    subexpressions = []
+    
     # Returns a new unique name based on a global counter.
+    COUNT = 0
     @staticmethod
     def next_name(prefix):
         Leaf.COUNT += 1

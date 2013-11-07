@@ -97,3 +97,10 @@ def sign(constant):
     else:
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         return u.Sign(u.BoolMat(mat < 0), u.BoolMat(mat > 0))
+
+# Get the value at the given index.
+def index(constant, key):
+    if isinstance(constant, numbers.Number):
+        return constant
+    elif constant.__class__ in INTERFACES:
+        return INTERFACES[constant.__class__].index(constant, key)

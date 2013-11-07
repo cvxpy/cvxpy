@@ -48,8 +48,8 @@ class inv_pos(Elementwise):
         rows,cols = self.size
         t = Variable(rows,cols)
         constraints = []
-        for i in rows:
-            for j in cols:
+        for i in xrange(rows):
+            for j in xrange(cols):
                 xi = arg_objs[0][i,j]
                 obj,constr = quad_over_lin(1, xi).canonicalize()
                 constraints += constr + [obj <= t[i,j], 0 <= xi]

@@ -60,10 +60,9 @@ class quad_over_lin(Atom):
             raise TypeError("The second argument to quad_over_lin must be a scalar.")
     
     def graph_implementation(self, arg_objs):
-        v = Variable(*size).canonical_form()[0]
+        v = Variable()
         x = arg_objs[0]
         y = arg_objs[1]
-
         obj,constraints = vstack(y - v, 2*x).canonicalize()
         constraints += [SOC(y + v, obj), 0 <= y]
         return (v, constraints)

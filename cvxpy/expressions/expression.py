@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
@@ -29,11 +28,7 @@ import abc
 def cast_other(binary_op):
     def cast_op(self, other):
         other = self.cast_to_const(other)
-        # Reverse the binary op.
-        if other is NotImplemented:
-            return NotImplemented
-        else:
-            return binary_op(self, other)
+        return binary_op(self, other)
     return cast_op
 
 class Expression(object):
@@ -125,12 +120,6 @@ class Expression(object):
     def is_vector(self):
         return self.size[1] == 1
 
-    # Cast to Constant if not an Expression.
-    @staticmethod
-    def cast_to_const(expr):
-        return expr if isinstance(expr, Expression) else types.constant()(expr)
-
-    """ Indexing/Slicing and Transpose """
     # Return a slice/index into the expression.
     def __getitem__(self, key):
         # Indexing into a scalar returns the scalar.
@@ -162,6 +151,11 @@ class Expression(object):
             return types.transpose()(self)
 
     """ Arithmetic operators """
+    # Cast to Constant if not an Expression.
+    @staticmethod
+    def cast_to_const(expr):
+        return expr if isinstance(expr, Expression) else types.constant()(expr)
+        
     @cast_other
     def __add__(self, other):
         return types.add_expr()(self, other)
@@ -169,7 +163,7 @@ class Expression(object):
     # Called for Number + Expression.
     @cast_other
     def __radd__(self, other):
-        return other + self
+        return types.add_expr()(other, self)
 
     @cast_other
     def __sub__(self, other):
@@ -178,7 +172,7 @@ class Expression(object):
     # Called for Number - Expression.
     @cast_other
     def __rsub__(self, other):
-        return other - self
+        return types.sub_expr()(other, self)
 
     @cast_other
     def __mul__(self, other):
@@ -187,7 +181,7 @@ class Expression(object):
     # Called for Number * Expression.
     @cast_other
     def __rmul__(self, other):
-        return other * self
+        return types.mul_expr()(other, self)
 
     def __neg__(self):
         return types.neg_expr()(self)

@@ -20,14 +20,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
-from cvxpy.expressions.vstack import AffVstack
+from cvxpy.atoms.affine.vstack import vstack
 import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
+import cvxpy.interface as intf
 import cvxpy.settings as s
-from collections import deque
 import unittest
 
-class TestAffVstack(unittest.TestCase):
+class TestVstack(unittest.TestCase):
     """ Unit tests for the expressions.affine module. """
     def setUp(self):
         self.x = Variable(2, name='x')
@@ -41,26 +40,31 @@ class TestAffVstack(unittest.TestCase):
 
     # Test the variables method.
     def test_variables(self):
-        exp = AffVstack(self.x, self.y, self.x+self.y)
-        self.assertItemsEqual(exp.variables(), [self.x, self.y, self.x, self.y])
-        exp = AffVstack(self.A, self.B, self.C)
-        self.assertItemsEqual(exp.variables(), [self.A, self.B])
+        exp,constr = vstack(self.x, self.y, self.x+self.y).canonicalize()
+        self.assertEquals(constr, [])
+        self.assertItemsEqual(exp.variables().keys(), [self.x.id, self.y.id])
+        exp = vstack(self.A, self.B, self.C).canonicalize()[0]
+        self.assertItemsEqual(exp.variables().keys(), [self.A.id, self.B.id])
 
     # Test coefficients method.
     def test_coefficients(self):
-        exp = AffVstack(self.x)
-        coeffs = exp.coefficients(self.intf)
-        self.assertEqual(coeffs.keys(), self.x.coefficients(self.intf).keys())
+        exp = vstack(self.x).canonicalize()[0]
+        coeffs = exp.coefficients()
+        self.assertEqual(coeffs.keys(), self.x.coefficients().keys())
 
-        exp = AffVstack(self.x, self.y)
-        coeffs = exp.coefficients(self.intf)
+        exp = vstack(self.x, self.y).canonicalize()[0]
+        coeffs = exp.coefficients()
         self.assertItemsEqual(coeffs.keys(), 
-            self.x.coefficients(self.intf).keys() + \
-            self.y.coefficients(self.intf).keys())
-        for k,v in coeffs.items():
-            self.assertEqual(intf.size(v), (4,2))
+            self.x.coefficients().keys() + \
+            self.y.coefficients().keys())
+        for k,blocks in coeffs.items():
+            self.assertEqual(len(blocks), 1)
+            for block in blocks:
+                self.assertEqual(intf.size(block), (4,2))
 
-        exp = AffVstack(self.A, self.B, self.C)
-        coeffs = exp.coefficients(self.intf)
-        v = coeffs[self.A]
-        self.assertEqual(intf.size(v), (10,3))
+        exp = vstack(self.A, self.B, self.C).canonicalize()[0]
+        coeffs = exp.coefficients()
+        blocks = coeffs[self.A.id]
+        self.assertEqual(len(blocks), 2)
+        for block in blocks:
+            self.assertEqual(intf.size(block), (10,6))

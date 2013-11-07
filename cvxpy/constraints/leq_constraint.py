@@ -22,7 +22,7 @@ class LeqConstraint(object):
     def __init__(self, lh_exp, rh_exp):
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp
-        self._expr = (self.lh_exp - self.rh_exp)
+        self._expr = self.lh_exp - self.rh_exp
 
     def name(self):
         return ' '.join([self.lh_exp.name(), 
@@ -36,19 +36,16 @@ class LeqConstraint(object):
     def size(self):
         return self._expr.size
 
-    # The value of the dual variable.
-    @property
-    def dual(self):
-        return self.dual_value
-
     # Left hand expression must be convex and right hand must be concave.
     def is_dcp(self):
         return self._expr.curvature.is_convex()
 
     # Replace inequality with an equality with slack.
     def canonicalize(self):
-        obj,constr = self._expr.canonicalize()
-        return (None, [self] + constr)
+        lh_obj,lh_constr = self.lh_exp.canonicalize()
+        rh_obj,rh_constr = self.rh_exp.canonicalize()
+        constraints = lh_constr + rh_constr + [self.__class__(lh_obj, rh_obj)]
+        return (None, constraints)
 
     def variables(self):
         return self._expr.variables()
@@ -56,6 +53,11 @@ class LeqConstraint(object):
     def coefficients(self):
         return self._expr.coefficients()
 
+    # The value of the dual variable.
+    @property
+    def dual_value(self):
+        return self._dual_value
+
     # Save the value of the dual variable for the constraint's parent.
     def save_value(self, value):
-        self._parent.dual_value = value
+        self._dual_value = value

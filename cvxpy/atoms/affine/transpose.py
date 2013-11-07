@@ -36,22 +36,17 @@ class transpose(AffAtom):
 
     # Transposes shape, sign, and curvature.
     def _dcp_attr(self):
-        rows,cols = self.args[0].size
-        shape = u.Shape(cols, rows)
-
-        neg_mat = bu.transpose(self.args[0].sign.neg_mat)
-        pos_mat = bu.transpose(self.args[0].sign.pos_mat)
-        cvx_mat = bu.transpose(self.args[0].curvature.cvx_mat)
-        conc_mat = bu.transpose(self.args[0].curvature.conc_mat)
-        constant = self.args[0].curvature.constant
-
-        return u.DCPAttr(u.Sign(neg_mat, pos_mat),
-                         u.Curvature(cvx_mat, conc_mat, constant), 
-                         shape)
+        return self.args[0]._dcp_attr().T
 
     # Create a new variable equal to the argument transposed.
     def graph_implementation(self, arg_objs):
-        X = Variable(self.size[1], self.size[0])
+        # If arg_objs[0] is a Variable, no need to create a new variable.
+        if isinstance(arg_objs[0], Variable):
+            X = arg_objs[0]
+            constraints = []
+        else:
+            X = Variable(self.size[1], self.size[0])
+            constraints = [X == arg_objs[0]]
         # Create a coefficients dict for the transposed variable.
         # Each row in each block selects the appropriate elements
         # from the vectorized X.
@@ -62,6 +57,6 @@ class transpose(AffAtom):
             for row in xrange(self.size[1]):
                 transpose_blocks[row][k,:] = var_blocks[k][row,:]
         transpose_coeffs[X] = transpose_blocks
-        
-        obj = AffExpression(transpose_coeffs, X._variables, self._dcp_attr())
-        return (obj, [X == arg_objs[0]])
+        # The objective is X.T.
+        obj = AffExpression(transpose_coeffs, X._dcp_attr().T)
+        return (obj, constraints)

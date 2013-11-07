@@ -73,7 +73,12 @@ class BaseMatrixInterface(object):
 
     # Return the value at the given index in the matrix.
     def index(self, matrix, key):
-        return matrix[key]
+        value = matrix[key]
+        # Reduce to a scalar if possible.
+        if self.size(value) == (1,1):
+            return value[0,0]
+        else:
+            return value
 
     # Coerce the matrix into the given shape.
     @abc.abstractmethod

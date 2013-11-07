@@ -147,7 +147,7 @@ class TestAtoms(unittest.TestCase):
 
         gen = (xi for xi in self.x)
         atom = vstack(*gen)
-        self.assertEqual(atom[1,0].name(), "vstack(x[0,0], x[1,0])[1,0]")
+        # self.assertEqual(atom[1,0].name(), "vstack(x[0,0], x[1,0])[1,0]")
 
         with self.assertRaises(Exception) as cm:
             vstack(self.C, 1)

@@ -66,7 +66,7 @@ class lambda_max(Atom):
         A = arg_objs[0]
         n,m = A.size
         # Requires that A is symmetric.
-        constr = (A == A.T).canonicalize()
+        constr = (A == A.T).canonicalize()[1]
         # SDP constraint.
         t = Variable()
         I = Constant(np.eye(n,m))

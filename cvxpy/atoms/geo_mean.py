@@ -56,7 +56,7 @@ class geo_mean(Atom):
             raise TypeError("The arguments to geo_mean must resolve to scalars." )
     
     def graph_implementation(self, arg_objs):
-        v = Variable(*size)
+        v = Variable()
         x = arg_objs[0]
         y = arg_objs[1]
         obj,constraints = vstack(y - x, 2*v).canonicalize()

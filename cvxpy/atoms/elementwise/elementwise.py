@@ -23,6 +23,6 @@ from ..atom import Atom
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
-    # The shape is the same as the original argument's shape.
+    # The shape is the same as the argument's shape.
     def shape_from_args(self):
         return self.args[0].shape

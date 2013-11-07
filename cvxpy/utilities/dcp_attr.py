@@ -17,8 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from sign import Sign
+import bool_mat_utils as bu
 from curvature import Curvature
+from shape import Shape
+from sign import Sign
+import key_utils as ku
 
 class DCPAttr(object):
     """ A data structure for the sign, curvature, and shape of an expression. """
@@ -29,6 +32,36 @@ class DCPAttr(object):
         self.sign = sign
         self.curvature = curvature
         self.shape = shape
+
+    # Indexing/Slicing
+    def __getitem__(self, key):
+        shape = Shape(*ku.size(key, self.shape))
+
+        neg_mat = bu.index(self.sign.neg_mat, key)
+        pos_mat = bu.index(self.sign.pos_mat, key)
+        cvx_mat = bu.index(self.curvature.cvx_mat, key)
+        conc_mat = bu.index(self.curvature.conc_mat, key)
+        constant = self.curvature.constant
+
+        return DCPAttr(Sign(neg_mat, pos_mat),
+                       Curvature(cvx_mat, conc_mat, constant), 
+                       shape)
+
+    # Transpose
+    @property
+    def T(self):
+        rows,cols = self.shape.size
+        shape = Shape(cols, rows)
+
+        neg_mat = bu.transpose(self.sign.neg_mat)
+        pos_mat = bu.transpose(self.sign.pos_mat)
+        cvx_mat = bu.transpose(self.curvature.cvx_mat)
+        conc_mat = bu.transpose(self.curvature.conc_mat)
+        constant = self.curvature.constant
+
+        return DCPAttr(Sign(neg_mat, pos_mat),
+                       Curvature(cvx_mat, conc_mat, constant), 
+                       shape)
 
     """ Arithmetic operations """
     def __add__(self, other):
