@@ -24,6 +24,7 @@ from ..utilities import key_utils as ku
 from expression import Expression, cast_other
 import types
 import operator as op
+import numpy as np
 
 class AffExpression(Expression):
     """ An affine expression. """
@@ -49,7 +50,7 @@ class AffExpression(Expression):
     def numeric(self, values):
         # The interface for the variable values.
         interface = intf.DEFAULT_INTERFACE
-        col_sums = self.size[1]*[0]
+        col_sums = np.array(self.size[1]*[0], dtype="object", ndmin=1)
         for key,blocks in self.coefficients().items():
             # The vectorized value of the variable (or 1 if Constant).
             if key is s.CONSTANT:
@@ -60,8 +61,7 @@ class AffExpression(Expression):
                     return None
                 key_val = interface.const_to_matrix(var.value)
                 key_val = interface.reshape(key_val, (var.size[0]*var.size[1],1))
-            for i in xrange(self.size[1]):
-                col_sums[i] += blocks[i]*key_val
+            col_sums += blocks*key_val
         return self.merge_cols(col_sums)
 
     # Utility method to merge column blocks into a single matrix.

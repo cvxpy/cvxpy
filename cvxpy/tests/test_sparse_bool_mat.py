@@ -17,9 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.utilities import BoolMat
 from cvxpy.utilities import SparseBoolMat
-from cvxpy.utilities import bool_mat_utils as bu
 from nose.tools import *
 import numpy as np
 from scipy import sparse
@@ -28,23 +26,24 @@ class TestSparseBoolMat(object):
     """ Unit tests for the utilities/SparseBoolMat class. """
     @classmethod
     def setup_class(self):
+        # Scalar matrix.
+        self.scalar = SparseBoolMat(sparse.coo_matrix(([True],([0],[0])),shape=(1,1)))
+
         n = 4
         # Vectors.
         self.arr = np.array(n*[True])
         self.mixed_arr = np.array(n/2 * [True, False])
-        self.true_vec = BoolMat(self.arr)
-        self.false_vec = BoolMat(~self.arr)
+        self.true_vec = SparseBoolMat(sparse.coo_matrix(self.arr))
+        self.false_vec = SparseBoolMat(sparse.coo_matrix(~self.arr))
 
         # Dense matrices.
         self.mat = np.vstack(n*[self.arr])
         self.mixed = np.vstack(n*[self.mixed_arr])
-        self.true_mat = BoolMat(self.mat)
-        self.false_mat = BoolMat(~self.mat)
-        self.mixed_mat = BoolMat(self.mixed)
+        self.true_mat = SparseBoolMat(sparse.coo_matrix(self.mat))
+        self.false_mat = SparseBoolMat(sparse.coo_matrix(~self.mat))
+        self.mixed_mat = SparseBoolMat(sparse.coo_matrix(self.mixed))
 
         # Diagonal matrices.
-        self.diag = np.eye(n).astype('bool')
-        self.diag_mat = BoolMat(self.diag)
         self.spdiag = sparse.eye(n,n).astype('bool')
         self.diag_spmat = SparseBoolMat(self.spdiag)
 
@@ -73,17 +72,17 @@ class TestSparseBoolMat(object):
     # Test the | operator.
     def test_or(self):
         assert_equals(self.diag_spmat | self.diag_spmat, self.diag_spmat)
-        assert_equals(self.diag_spmat | self.false_mat, self.diag_mat)
-        assert_equals(self.diag_spmat | True, True)
-        assert_equals(False | self.diag_spmat, self.diag_spmat)
+        assert_equals(self.diag_spmat | self.false_mat, self.diag_spmat)
+        assert_equals(self.diag_spmat | SparseBoolMat.TRUE_MAT, True)
+        assert_equals(SparseBoolMat.FALSE_MAT | self.diag_spmat, self.diag_spmat)
         assert_equals(self.diag_spmat | self.coo_spmat, self.x_spmat)
 
     # Test the & operator.
     def test_and(self):
         assert_equals(self.diag_spmat & self.diag_spmat, self.diag_spmat)
         assert_equals(self.diag_spmat & self.false_mat, self.false_mat)
-        assert_equals(self.diag_spmat & True, self.diag_spmat)
-        assert_equals(False & self.diag_spmat, False)
+        assert_equals(self.diag_spmat & SparseBoolMat.TRUE_MAT, self.diag_spmat)
+        assert_equals(SparseBoolMat.FALSE_MAT & self.diag_spmat, False)
         assert_equals(self.x_spmat & self.coo_spmat, self.coo_spmat)
         assert_equals(self.diag_spmat & self.coo_spmat, self.empty_spmat)
 
@@ -91,10 +90,12 @@ class TestSparseBoolMat(object):
     def test_mul(self):
         assert_equals(self.x_spmat * self.x_spmat, self.x_spmat)
         assert_equals(self.diag_spmat * self.coo_spmat, self.coo_spmat)
-        assert_equals(bu.mul(self.diag_spmat, (4,4), True, (1,1)), self.diag_spmat)
-        assert_equals(bu.mul(False, (1,1), self.diag_spmat, (4,4)), False)
+        mat = SparseBoolMat.TRUE_MAT.promote(self.diag_spmat.value.shape)
+        assert_equals(self.diag_spmat * mat, True)
+        mat = SparseBoolMat.FALSE_MAT.promote(self.diag_spmat.value.shape)
+        assert_equals(mat * self.diag_spmat, False)
         assert_equals(self.x_spmat * self.coo_spmat, self.x_spmat)
-        assert_equals(bu.mul(self.x_spmat, (4,4), self.empty_spmat, (1,1)), False)
+        assert_equals(self.x_spmat * self.empty_spmat, False)
 
     # Test the any operator.
     def test_any(self):

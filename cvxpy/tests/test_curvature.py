@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.utilities import BoolMat
+from cvxpy.utilities import SparseBoolMat
 from cvxpy.utilities import Curvature
 from cvxpy.utilities import Sign
 from nose.tools import assert_equals
 import numpy as np
+from scipy import sparse
 
 class TestCurvature(object):
     """ Unit tests for the utilities/curvature class. """
@@ -29,12 +30,14 @@ class TestCurvature(object):
     def setup_class(self):
         self.n = 5
         self.arr = np.array(self.n*[[True]])
+        true_mat = sparse.coo_matrix(self.arr)
+        false_mat = sparse.coo_matrix(~self.arr)
         # Vectors
-        self.cvx_vec = Curvature(BoolMat(self.arr), BoolMat(~self.arr), False)
-        self.conc_vec = Curvature(BoolMat(~self.arr), BoolMat(self.arr), False)
-        self.noncvx_vec = Curvature(BoolMat(self.arr), BoolMat(self.arr), False)
-        self.aff_vec = Curvature(BoolMat(~self.arr), BoolMat(~self.arr), False)
-        self.const_vec = Curvature(BoolMat(~self.arr), BoolMat(~self.arr), True)
+        self.cvx_vec = Curvature(true_mat, false_mat, False)
+        self.conc_vec = Curvature(false_mat, true_mat, False)
+        self.noncvx_vec = Curvature(true_mat, true_mat, False)
+        self.aff_vec = Curvature(false_mat, false_mat, False)
+        self.const_vec = Curvature(false_mat, false_mat, True)
 
     # TODO tests with matrices.
     def test_add(self):
@@ -52,14 +55,14 @@ class TestCurvature(object):
         assert_equals(Curvature.AFFINE - Curvature.CONCAVE, Curvature.CONVEX)
 
     def test_sign_mult(self):
-        assert_equals(Curvature.sign_mul(Sign.POSITIVE, (1,1), 
-                      Curvature.CONVEX, (1,1)), Curvature.CONVEX)
-        assert_equals(Curvature.sign_mul(Sign.UNKNOWN, (1,1), 
-                      Curvature.CONSTANT, (1,1)), Curvature.CONSTANT)
-        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, (1,1), 
-                      Curvature.CONCAVE, (1,1)), Curvature.CONVEX)
-        assert_equals(Curvature.sign_mul(Sign.ZERO, (1,1), 
-                      Curvature.UNKNOWN, (1,1)), Curvature.AFFINE)
+        assert_equals(Curvature.sign_mul(Sign.POSITIVE, 
+                      Curvature.CONVEX), Curvature.CONVEX)
+        assert_equals(Curvature.sign_mul(Sign.UNKNOWN, 
+                      Curvature.CONSTANT), Curvature.CONSTANT)
+        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, 
+                      Curvature.CONCAVE), Curvature.CONVEX)
+        assert_equals(Curvature.sign_mul(Sign.ZERO, 
+                      Curvature.UNKNOWN), Curvature.AFFINE)
 
     def test_neg(self):
         assert_equals(-Curvature.CONVEX, Curvature.CONCAVE)

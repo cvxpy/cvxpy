@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from bool_mat import BoolMat
-import bool_mat_utils as bu
+from sparse_bool_mat import SparseBoolMat
 
 class Curvature(object):
     """ 
@@ -33,11 +32,21 @@ class Curvature(object):
     # Map of curvature string to scalar (cvx_mat, conc_mat) values.
     # Affine is (False, False) and unknown is (True, True).
     CURVATURE_MAP = {
-        CONVEX_KEY: (True, False, False),
-        CONCAVE_KEY: (False, True, False),
-        UNKNOWN_KEY: (True, True, False),
-        AFFINE_KEY: (False, False, False),
-        CONSTANT_KEY: (False, False, True),
+        CONVEX_KEY: (SparseBoolMat.TRUE_MAT, 
+                     SparseBoolMat.FALSE_MAT, 
+                     SparseBoolMat.FALSE_MAT),
+        CONCAVE_KEY: (SparseBoolMat.FALSE_MAT, 
+                      SparseBoolMat.TRUE_MAT, 
+                      SparseBoolMat.FALSE_MAT),
+        UNKNOWN_KEY: (SparseBoolMat.TRUE_MAT, 
+                      SparseBoolMat.TRUE_MAT, 
+                      SparseBoolMat.FALSE_MAT),
+        AFFINE_KEY: (SparseBoolMat.FALSE_MAT, 
+                     SparseBoolMat.FALSE_MAT, 
+                     SparseBoolMat.FALSE_MAT),
+        CONSTANT_KEY: (SparseBoolMat.FALSE_MAT, 
+                       SparseBoolMat.FALSE_MAT, 
+                       SparseBoolMat.TRUE_MAT),
     }
 
     # cvx_mat - a boolean matrix indicating whether each entry is convex.
@@ -62,19 +71,19 @@ class Curvature(object):
 
     # Is the expression affine?
     def is_affine(self):
-        return not bu.any(self.cvx_mat | self.conc_mat)
+        return not (self.cvx_mat | self.conc_mat).any()
 
     # Is the expression convex?
     def is_convex(self):
-        return not bu.any(self.conc_mat)
+        return not self.conc_mat.any()
 
     # Is the expression concave?
     def is_concave(self):
-        return not bu.any(self.cvx_mat)
+        return not self.cvx_mat.any()
 
     # Is the expression DCP compliant? (i.e. no unknown curvatures)
     def is_dcp(self):
-        return not bu.any(self.cvx_mat & self.conc_mat)
+        return not (self.cvx_mat & self.conc_mat).any()
 
     # Arithmetic operators.
     """
@@ -104,15 +113,11 @@ class Curvature(object):
         NEGATIVE * CONCAVE = CONVEX
     """
     @staticmethod
-    def sign_mul(sign, lh_size, curv, rh_size):
-        cvx_mat = bu.mul(sign.pos_mat, lh_size, 
-                              curv.cvx_mat, rh_size) | \
-                  bu.mul(sign.neg_mat, lh_size, 
-                              curv.conc_mat, rh_size)
-        conc_mat = bu.mul(sign.pos_mat, lh_size,
-                               curv.conc_mat, rh_size) | \
-                   bu.mul(sign.neg_mat, lh_size,
-                               curv.cvx_mat, rh_size)
+    def sign_mul(sign, curv):
+        cvx_mat = sign.pos_mat * curv.cvx_mat | \
+                  sign.neg_mat * curv.conc_mat
+        conc_mat = sign.pos_mat * curv.conc_mat | \
+                   sign.neg_mat * curv.cvx_mat
         return Curvature(cvx_mat, conc_mat, curv.constant)
 
     # Equivalent to NEGATIVE * self
@@ -121,12 +126,14 @@ class Curvature(object):
 
     # Comparison.
     def __eq__(self, other):
-        return self.cvx_mat == other.cvx_mat and self.conc_mat == other.conc_mat
+        return self.cvx_mat == other.cvx_mat and \
+               self.conc_mat == other.conc_mat and \
+               self.constant == other.constant
 
     # Promotes cvx_mat and conc_mat to BoolMats of the given size.
     def promote(self, size):
-        cvx_mat = BoolMat.promote(self.cvx_mat, size)
-        conc_mat = BoolMat.promote(self.conc_mat, size)
+        cvx_mat = self.cvx_mat.promote(size)
+        conc_mat = self.conc_mat.promote(size)
         return Curvature(cvx_mat, conc_mat, self.constant)
 
     # To string methods.

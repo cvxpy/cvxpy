@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import bool_mat_utils as bu
 from curvature import Curvature
 from shape import Shape
 from sign import Sign
@@ -37,10 +36,10 @@ class DCPAttr(object):
     def __getitem__(self, key):
         shape = Shape(*ku.size(key, self.shape))
 
-        neg_mat = bu.index(self.sign.neg_mat, key)
-        pos_mat = bu.index(self.sign.pos_mat, key)
-        cvx_mat = bu.index(self.curvature.cvx_mat, key)
-        conc_mat = bu.index(self.curvature.conc_mat, key)
+        neg_mat = self.sign.neg_mat[key]
+        pos_mat = self.sign.pos_mat[key]
+        cvx_mat = self.curvature.cvx_mat[key]
+        conc_mat = self.curvature.conc_mat[key]
         constant = self.curvature.constant
 
         return DCPAttr(Sign(neg_mat, pos_mat),
@@ -53,10 +52,10 @@ class DCPAttr(object):
         rows,cols = self.shape.size
         shape = Shape(cols, rows)
 
-        neg_mat = bu.transpose(self.sign.neg_mat)
-        pos_mat = bu.transpose(self.sign.pos_mat)
-        cvx_mat = bu.transpose(self.curvature.cvx_mat)
-        conc_mat = bu.transpose(self.curvature.conc_mat)
+        neg_mat = self.sign.neg_mat.T
+        pos_mat = self.sign.pos_mat.T
+        cvx_mat = self.curvature.cvx_mat.T
+        conc_mat = self.curvature.conc_mat.T
         constant = self.curvature.constant
 
         return DCPAttr(Sign(neg_mat, pos_mat),
@@ -79,10 +78,11 @@ class DCPAttr(object):
     # Assumes self has all constant curvature.
     def __mul__(self, other):
         shape = self.shape * other.shape
-        sign = Sign.mul(self.sign, self.shape.size,
-                        other.sign, other.shape.size)
-        curvature = Curvature.sign_mul(self.sign, self.shape.size,
-                                       other.curvature, other.shape.size)
+        lh_sign = self.sign.promote(self.shape.size)
+        rh_sign = other.sign.promote(other.shape.size)
+        sign = lh_sign * rh_sign
+        rh_curvature = other.curvature.promote(other.shape.size)
+        curvature = Curvature.sign_mul(lh_sign, rh_curvature)
         return DCPAttr(sign, curvature, shape)
 
     def __neg__(self):

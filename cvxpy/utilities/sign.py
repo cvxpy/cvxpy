@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from bool_mat import BoolMat
-import bool_mat_utils as bu
+from sparse_bool_mat import SparseBoolMat
 
 class Sign(object):
     """ 
@@ -32,10 +31,10 @@ class Sign(object):
     # Map of sign string to scalar (neg_mat, pos_mat) values.
     # Zero is (False, False) and UNKNOWN is (True, True).
     SIGN_MAP = {
-        POSITIVE_KEY: (False, True),
-        NEGATIVE_KEY: (True, False),
-        UNKNOWN_KEY: (True, True),
-        ZERO_KEY: (False, False),
+        POSITIVE_KEY: (SparseBoolMat.FALSE_MAT, SparseBoolMat.TRUE_MAT),
+        NEGATIVE_KEY: (SparseBoolMat.TRUE_MAT, SparseBoolMat.FALSE_MAT),
+        UNKNOWN_KEY: (SparseBoolMat.TRUE_MAT, SparseBoolMat.TRUE_MAT),
+        ZERO_KEY: (SparseBoolMat.FALSE_MAT, SparseBoolMat.FALSE_MAT),
     }
 
     # neg_mat - a boolean matrix indicating whether each entry is negative.
@@ -54,11 +53,11 @@ class Sign(object):
 
     # Is the expression positive?
     def is_positive(self):
-        return not bu.any(self.neg_mat)
+        return not self.neg_mat.any()
 
     # Is the expression negative?
     def is_negative(self):
-        return not bu.any(self.pos_mat)
+        return not self.pos_mat.any()
 
     # Arithmetic operators.
     """
@@ -85,16 +84,11 @@ class Sign(object):
         POSITIVE * POSITIVE = POSITIVE
         NEGATIVE * NEGATIVE = POSITIVE
     """
-    @staticmethod
-    def mul(lh_sign, lh_size, rh_sign, rh_size):
-        neg_mat = bu.mul(lh_sign.neg_mat, lh_size, 
-                              rh_sign.pos_mat, rh_size) | \
-                  bu.mul(lh_sign.pos_mat, lh_size, 
-                              rh_sign.neg_mat, rh_size)
-        pos_mat = bu.mul(lh_sign.neg_mat, lh_size,
-                              rh_sign.neg_mat, rh_size) | \
-                  bu.mul(lh_sign.pos_mat, lh_size,
-                              rh_sign.pos_mat, rh_size)
+    def __mul__(self, other):
+        neg_mat = self.neg_mat * other.pos_mat | \
+                  self.pos_mat * other.neg_mat
+        pos_mat = self.neg_mat * other.neg_mat | \
+                  self.pos_mat * other.pos_mat
         return Sign(neg_mat, pos_mat)
     
     # Equivalent to NEGATIVE * self
@@ -107,8 +101,8 @@ class Sign(object):
 
     # Promotes neg_mat and pos_mat to BoolMats of the given size.
     def promote(self, size):
-        neg_mat = BoolMat.promote(self.neg_mat, size)
-        pos_mat = BoolMat.promote(self.pos_mat, size)
+        neg_mat = self.neg_mat.promote(size)
+        pos_mat = self.pos_mat.promote(size)
         return Sign(neg_mat, pos_mat)
         
     # To string methods.
