@@ -98,7 +98,7 @@ class Problem(object):
 
     # Solves DCP compliant optimization problems.
     # Saves the values of primal and dual variables.
-    def _solve(self, solver=s.ECOS, ignore_dcp=False):
+    def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False):
         if not self.is_dcp():
             if ignore_dcp:
                 print ("Problem does not follow DCP rules. "
@@ -120,6 +120,12 @@ class Problem(object):
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
                                                x_length)
 
+        # Save original cvxopt solver options.
+        old_options = cvxopt.solvers.options
+        # Silence cvxopt if verbose is False.
+        cvxopt.solvers.options['show_progress'] = verbose
+        # Always do one step of iterative refinement after solving KKT system.
+        cvxopt.solvers.options['refinement'] = 1
         # Target cvxopt clp if nonlinear constraints exist
         if constr_map[s.NONLIN]:
             # Get custom kktsolver.
@@ -161,10 +167,13 @@ class Problem(object):
                 Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
                 
             # ECHU: end conversion
-            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
+            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp,verbose=verbose)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
-        
+
+        # Restore original cvxopt solver options.
+        cvxopt.solvers.options = old_options
+
         if status == s.SOLVED:
             self.save_values(results['x'], sorted(var_offsets.keys()))
             self.save_values(results['y'], constr_map[s.EQ])

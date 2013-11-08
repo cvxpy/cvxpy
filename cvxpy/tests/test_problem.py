@@ -30,6 +30,8 @@ from numpy import linalg as LA
 import numpy
 import unittest
 import math
+import sys
+from cStringIO import StringIO
 
 class TestProblem(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -45,6 +47,31 @@ class TestProblem(BaseTest):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
+
+    # Test silencing and enabling solver messages.
+    def test_verbose(self):
+        # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
+        # setup the environment
+        outputs = {True: [], False: []}
+        backup = sys.stdout
+
+        # ####
+        for verbose in [True, False]:
+            for solver in ["ecos", "cvxopt"]:
+                sys.stdout = StringIO()     # capture output
+                p = Problem(Minimize(self.a), [self.a >= 2])
+                p.solve(verbose=verbose, solver=solver)
+                out = sys.stdout.getvalue() # release output
+                outputs[verbose].append(out.upper())
+        # ####
+
+        sys.stdout.close()  # close the stream 
+        sys.stdout = backup # restore original stdout
+
+        for output in outputs[True]:
+            assert len(output) > 0
+        for output in outputs[False]:
+            assert len(output) == 0
 
     # Test registering other solve methods.
     def test_register_solve(self):
