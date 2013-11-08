@@ -96,7 +96,7 @@ class TestSparseBoolMat(object):
         assert_equals(self.x_spmat * self.coo_spmat, self.x_spmat)
         assert_equals(self.x_spmat * self.empty_spmat, self.empty_spmat)
 
-    # Test the any operator.
+    # Test the any method.
     def test_any(self):
         assert self.diag_spmat.any()
         assert self.coo_spmat.any()
