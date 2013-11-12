@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.utilities.bool_mat_utils as bu
 from cvxpy.utilities import SparseBoolMat
 from nose.tools import *
 import numpy as np
@@ -27,7 +28,8 @@ class TestSparseBoolMat(object):
     @classmethod
     def setup_class(self):
         # Scalar matrix.
-        self.scalar = SparseBoolMat(sparse.coo_matrix(([True],([0],[0])),shape=(1,1)))
+        self.true_scalar = SparseBoolMat(sparse.coo_matrix(([True],([0],[0])),shape=(1,1)))
+        self.false_scalar = SparseBoolMat(sparse.coo_matrix(([],([],[])),shape=(1,1)))
 
         self.n = 4
         # Vectors.
@@ -66,17 +68,19 @@ class TestSparseBoolMat(object):
         self.x_spmat = SparseBoolMat(self.x)
 
         # Empty and full matrices.
-        self.false_mat = SparseBoolMat.FALSE_MAT.promote((self.n, self.n))
-        self.true_mat = SparseBoolMat.TRUE_MAT.promote((self.n, self.n))
+        mat = np.empty((self.n, self.n), dtype='bool_')
+        mat.fill(np.bool_(True))
+        self.false_mat = SparseBoolMat(sparse.coo_matrix(~mat))
+        self.true_mat = SparseBoolMat(sparse.coo_matrix(mat))
 
     def test_or(self):
         """
         Test the | operator.
         """
         assert_equals(self.diag_spmat | self.diag_spmat, self.diag_spmat)
-        assert_equals(self.diag_spmat | SparseBoolMat.FALSE_MAT, self.diag_spmat)
-        assert_equals(self.diag_spmat | SparseBoolMat.TRUE_MAT, SparseBoolMat.TRUE_MAT)
-        assert_equals(SparseBoolMat.FALSE_MAT | self.diag_spmat, self.diag_spmat)
+        assert_equals(self.diag_spmat | self.false_mat, self.diag_spmat)
+        assert_equals(self.diag_spmat | self.true_mat, self.true_scalar)
+        assert_equals(self.false_mat | self.diag_spmat, self.diag_spmat)
         assert_equals(self.diag_spmat | self.coo_spmat, self.x_spmat)
 
     def test_and(self):
@@ -84,11 +88,11 @@ class TestSparseBoolMat(object):
         Test the & operator.
         """
         assert_equals(self.diag_spmat & self.diag_spmat, self.diag_spmat)
-        assert_equals(self.diag_spmat & SparseBoolMat.FALSE_MAT, SparseBoolMat.FALSE_MAT)
-        assert_equals(self.diag_spmat & SparseBoolMat.TRUE_MAT, self.diag_spmat)
-        assert_equals(SparseBoolMat.FALSE_MAT & self.diag_spmat, SparseBoolMat.FALSE_MAT)
+        assert_equals(self.diag_spmat & self.false_mat, self.false_scalar)
+        assert_equals(self.diag_spmat & self.true_mat, self.diag_spmat)
+        assert_equals(self.false_mat & self.diag_spmat, self.false_scalar)
         assert_equals(self.x_spmat & self.coo_spmat, self.coo_spmat)
-        assert_equals(self.diag_spmat & self.coo_spmat, SparseBoolMat.FALSE_MAT)
+        assert_equals(self.diag_spmat & self.coo_spmat, self.false_scalar)
 
     def test_mul(self):
         """
@@ -96,10 +100,10 @@ class TestSparseBoolMat(object):
         """
         assert_equals(self.x_spmat * self.x_spmat, self.x_spmat)
         assert_equals(self.diag_spmat * self.coo_spmat, self.coo_spmat)
-        assert_equals(self.diag_spmat * self.true_mat, SparseBoolMat.TRUE_MAT)
-        assert_equals(self.false_mat * self.diag_spmat, SparseBoolMat.FALSE_MAT)
+        assert_equals(self.diag_spmat * self.true_mat, self.true_scalar)
+        assert_equals(self.false_mat * self.diag_spmat, self.false_scalar)
         assert_equals(self.x_spmat * self.coo_spmat, self.x_spmat)
-        assert_equals(self.x_spmat * self.false_mat, SparseBoolMat.FALSE_MAT)
+        assert_equals(self.x_spmat * self.false_mat, self.false_scalar)
 
     def test_any(self):
         """
@@ -108,31 +112,11 @@ class TestSparseBoolMat(object):
         assert self.diag_spmat.any()
         assert self.coo_spmat.any()
 
-    def test_promote(self):
-        """
-        Test matrix promotion.
-        """
-        assert_equals(self.diag_spmat.promote((5,5)), self.diag_spmat)
-        mat = SparseBoolMat.FALSE_MAT.promote((5,4))
-        assert_equals(mat.value.shape, (5,4))
-        mat = SparseBoolMat.TRUE_MAT.promote((1,1))
-        assert_equals(mat, SparseBoolMat.TRUE_MAT)
-
     def test_transpose(self):
         """
         Test the transpose method.
         """
         assert_equals(self.diag_spmat.T, self.diag_spmat)
-        assert_equals(SparseBoolMat.FALSE_MAT.T, SparseBoolMat.FALSE_MAT)
+        assert_equals(self.false_scalar.T, self.false_scalar)
         size = self.mixed_mat.value.shape
         assert_equals(self.mixed_mat.T.value.shape, (size[1], size[0]))
-
-    def test_vstack(self):
-        """
-        Test the vstack method.
-        """
-        mat = SparseBoolMat.vstack(self.diag_spmat)
-        assert_equals(mat, self.diag_spmat)
-        mat = SparseBoolMat.vstack(self.diag_spmat, self.x_spmat)
-        assert_equals(mat[0:self.n, :], self.diag_spmat)
-        assert_equals(mat[self.n:, :], self.x_spmat)

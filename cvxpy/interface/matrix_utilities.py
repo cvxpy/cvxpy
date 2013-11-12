@@ -84,15 +84,8 @@ def scalar_value(constant):
 # TODO scipy sparse matrices.
 def sign(constant):
     if isinstance(constant, numbers.Number):
-        neg_mat = u.SparseBoolMat.FALSE_MAT
-        pos_mat = u.SparseBoolMat.FALSE_MAT
-        if constant < 0:
-            neg_mat = u.SparseBoolMat.TRUE_MAT
-        elif constant > 0:
-            pos_mat = u.SparseBoolMat.TRUE_MAT
-        return u.Sign(neg_mat, pos_mat)
-    else:
-        mat = INTERFACES[cvxopt.spmatrix].const_to_matrix(constant)
+        return u.Sign(np.bool_(constant < 0), np.bool_(constant > 0))
+    elif isinstance(constant, cvxopt.spmatrix):
         # Convert to COO matrix.
         V = np.array(list(constant.V))
         I = list(constant.I)
@@ -101,6 +94,9 @@ def sign(constant):
         neg_mat = sp.coo_matrix((V < 0,(I,J)), shape=constant.size, dtype='bool')
         pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
         return u.Sign(u.SparseBoolMat(neg_mat), u.SparseBoolMat(pos_mat))
+    else:
+        mat = INTERFACES[np.ndarray].const_to_matrix(constant)
+        return u.Sign(mat < 0, mat > 0)
 
 # Get the value at the given index.
 def index(constant, key):

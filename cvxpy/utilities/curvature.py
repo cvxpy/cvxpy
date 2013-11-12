@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from sparse_bool_mat import SparseBoolMat
+import bool_mat_utils as bu
+import numpy as np
 
 class Curvature(object):
     """Curvatures of the entries in an expression.
@@ -38,21 +39,21 @@ class Curvature(object):
     # Map of curvature string to scalar (cvx_mat, conc_mat) values.
     # Affine is (False, False) and unknown is (True, True).
     CURVATURE_MAP = {
-        CONVEX_KEY: (SparseBoolMat.TRUE_MAT,
-                     SparseBoolMat.FALSE_MAT,
-                     SparseBoolMat.TRUE_MAT),
-        CONCAVE_KEY: (SparseBoolMat.FALSE_MAT,
-                      SparseBoolMat.TRUE_MAT,
-                      SparseBoolMat.TRUE_MAT),
-        UNKNOWN_KEY: (SparseBoolMat.TRUE_MAT,
-                      SparseBoolMat.TRUE_MAT,
-                      SparseBoolMat.TRUE_MAT),
-        AFFINE_KEY: (SparseBoolMat.FALSE_MAT,
-                     SparseBoolMat.FALSE_MAT,
-                     SparseBoolMat.TRUE_MAT),
-        CONSTANT_KEY: (SparseBoolMat.FALSE_MAT,
-                       SparseBoolMat.FALSE_MAT,
-                       SparseBoolMat.FALSE_MAT),
+        CONVEX_KEY: (np.bool_(True),
+                     np.bool_(False),
+                     np.bool_(True)),
+        CONCAVE_KEY: (np.bool_(False),
+                      np.bool_(True),
+                      np.bool_(True)),
+        UNKNOWN_KEY: (np.bool_(True),
+                      np.bool_(True),
+                      np.bool_(True)),
+        AFFINE_KEY: (np.bool_(False),
+                     np.bool_(False),
+                     np.bool_(True)),
+        CONSTANT_KEY: (np.bool_(False),
+                       np.bool_(False),
+                       np.bool_(False)),
     }
 
     def __init__(self, cvx_mat, conc_mat, nonconst_mat):
@@ -146,12 +147,16 @@ class Curvature(object):
         Returns:
             The Curvature of the product.
         """
-        cvx_mat = sign.pos_mat * curv.cvx_mat | \
-                  sign.neg_mat * curv.conc_mat
-        conc_mat = sign.pos_mat * curv.conc_mat | \
-                   sign.neg_mat * curv.cvx_mat
-        nonconst_mat = sign.pos_mat * curv.nonconst_mat | \
-                    sign.neg_mat * curv.nonconst_mat
+        cvx_mat = bu.dot(sign.pos_mat, curv.cvx_mat) | \
+                  bu.dot(sign.neg_mat, curv.conc_mat)
+        conc_mat = bu.dot(sign.pos_mat, curv.conc_mat) | \
+                   bu.dot(sign.neg_mat, curv.cvx_mat)
+        nonconst_mat = bu.dot(sign.pos_mat, curv.nonconst_mat) | \
+                       bu.dot(sign.neg_mat, curv.nonconst_mat)
+        # Simplify 1x1 matrices to scalars.
+        cvx_mat = bu.to_scalar(cvx_mat)
+        conc_mat = bu.to_scalar(conc_mat)
+        nonconst_mat = bu.to_scalar(nonconst_mat)
         return Curvature(cvx_mat, conc_mat, nonconst_mat)
 
     def __neg__(self):
@@ -162,9 +167,9 @@ class Curvature(object):
     def __eq__(self, other):
         """Checks equality of arguments' attributes.
         """
-        return self.cvx_mat == other.cvx_mat and \
-               self.conc_mat == other.conc_mat and \
-               self.nonconst_mat == other.nonconst_mat
+        return np.all(self.cvx_mat == other.cvx_mat) and \
+               np.all(self.conc_mat == other.conc_mat) and \
+               np.all(self.nonconst_mat == other.nonconst_mat)
 
     def promote(self, rows, cols):
         """Promotes the Curvature's internal matrices to the desired size.
@@ -173,9 +178,9 @@ class Curvature(object):
             rows: The number of rows in the promoted internal matrices.
             cols: The number of columns in the promoted internal matrices.
         """
-        cvx_mat = self.cvx_mat.promote(rows, cols)
-        conc_mat = self.conc_mat.promote(rows, cols)
-        nonconst_mat = self.nonconst_mat.promote(rows, cols)
+        cvx_mat = bu.promote(self.cvx_mat, rows, cols)
+        conc_mat = bu.promote(self.conc_mat, rows, cols)
+        nonconst_mat = bu.promote(self.nonconst_mat, rows, cols)
         return Curvature(cvx_mat, conc_mat, nonconst_mat)
 
     def __repr__(self):

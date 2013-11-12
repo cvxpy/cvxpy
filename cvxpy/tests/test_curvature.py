@@ -29,15 +29,13 @@ class TestCurvature(object):
     @classmethod
     def setup_class(self):
         self.n = 5
-        self.arr = np.array(self.n*[[True]])
-        true_mat = sparse.coo_matrix(self.arr)
-        false_mat = sparse.coo_matrix(~self.arr)
+        self.arr = np.atleast_2d(self.n*[[np.bool_(True)]])
         # Vectors
-        self.cvx_vec = Curvature(true_mat, false_mat, False)
-        self.conc_vec = Curvature(false_mat, true_mat, False)
-        self.noncvx_vec = Curvature(true_mat, true_mat, False)
-        self.aff_vec = Curvature(false_mat, false_mat, False)
-        self.const_vec = Curvature(false_mat, false_mat, True)
+        self.cvx_vec = Curvature(self.arr, ~self.arr, np.bool_(False))
+        self.conc_vec = Curvature(~self.arr, self.arr, np.bool_(False))
+        self.noncvx_vec = Curvature(self.arr, self.arr, np.bool_(False))
+        self.aff_vec = Curvature(~self.arr, ~self.arr, np.bool_(False))
+        self.const_vec = Curvature(~self.arr, ~self.arr, np.bool_(True))
 
     # TODO tests with matrices.
     def test_add(self):
@@ -97,8 +95,8 @@ class TestCurvature(object):
     # Tests the promote method.
     def test_promote(self):
         curv = Curvature.CONSTANT.promote(3, 4)
-        assert_equals(curv.cvx_mat.value.shape, (3, 4))
-        assert_equals(curv.conc_mat.value.shape, (3, 4))
+        assert_equals(curv.cvx_mat.shape, (3, 4))
+        assert_equals(curv.conc_mat.shape, (3, 4))
 
     # # Test the vstack method.
     # def test_vstack(self):

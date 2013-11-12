@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import bool_mat_utils as bu
 from curvature import Curvature
+import key_utils as ku
 from shape import Shape
 from sign import Sign
-import key_utils as ku
 
 class DCPAttr(object):
     """ A data structure for the sign, curvature, and shape of an expression.
@@ -47,11 +48,12 @@ class DCPAttr(object):
         """
         shape = Shape(*ku.size(key, self.shape))
 
-        neg_mat = self.sign.neg_mat[key]
-        pos_mat = self.sign.pos_mat[key]
-        cvx_mat = self.curvature.cvx_mat[key]
-        conc_mat = self.curvature.conc_mat[key]
-        nonconst_mat = self.curvature.nonconst_mat[key]
+        # Reduce 1x1 matrices to scalars.
+        neg_mat = bu.to_scalar(self.sign.neg_mat[key])
+        pos_mat = bu.to_scalar(self.sign.pos_mat[key])
+        cvx_mat = bu.to_scalar(self.curvature.cvx_mat[key])
+        conc_mat = bu.to_scalar(self.curvature.conc_mat[key])
+        nonconst_mat = bu.to_scalar(self.curvature.nonconst_mat[key])
 
         return DCPAttr(Sign(neg_mat, pos_mat),
                        Curvature(cvx_mat, conc_mat, nonconst_mat),

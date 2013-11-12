@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from scipy import sparse
 import numpy as np
 
 class SparseBoolMat(object):
@@ -38,7 +37,7 @@ class SparseBoolMat(object):
     def all(self):
         """Returns whether all the entries are False.
         """
-        return self.value.nnz == len(self)
+        return self.value.nnz == self.size
 
     def __getitem__(self, key):
         """Indexes/slices into self's matrix.
@@ -53,83 +52,69 @@ class SparseBoolMat(object):
         value = value[key]
         return SparseBoolMat(value.tocoo())
 
-    def __len__(self):
-        """The number of entries in self's matrix.
+    @property
+    def shape(self):
+        """The dimensions of the internal matrix.
+        """
+        return self.value.shape
+
+    @property
+    def size(self):
+        """The number of entries in the internal matrix.
         """
         return self.value.shape[0]*self.value.shape[1]
 
-    def promote(self, rows, cols):
-        """Promotes a 1x1 matrix to the desired size.
-
-        Has no effect on a SparseBoolMat containing a matrix
-        that's not 1x1.
-
-        Args:
-            rows: The number of rows in the promoted matrix.
-            cols: The number of columns in the promoted matrix.
-
-        Returns:
-            A SparseBoolMat
-        """
-        size = (rows, cols)
-        if size != (1, 1) and len(self) == 1:
-            # Promote True to a full matrix.
-            if self.all():
-                mat = np.empty(size)
-                mat.fill(True)
-                mat = sparse.coo_matrix(mat)
-            # Promote False to an empty matrix.
-            else:
-                mat = sparse.coo_matrix(([], ([], [])),
-                                        shape=size, dtype='bool')
-            return SparseBoolMat(mat)
-        else:
-            return self
-
-    @staticmethod
-    def _promote_args(lh_mat, rh_mat):
-        """Promotes the arguments to a common size.
-
-        Args:
-            lh_mat: A SparseBoolMat
-            rh_mat: A SparseBoolMat
-
-        Returns:
-            A tuple of SparseBoolMats with a common size.
-        """
-        size = max(lh_mat.value.shape, rh_mat.value.shape)
-        lh_mat = lh_mat.promote(*size)
-        rh_mat = rh_mat.promote(*size)
-        return (lh_mat, rh_mat)
-
     def __or__(self, other):
-        """Elementwise OR between two SparseBoolMats.
+        """Elementwise OR between a SparseBoolMat and a bool scalar/matrix.
 
         Args:
             self: The left-hand SparseBoolMat.
-            other: The right-hand SparseBoolMat.
+            other: The right-hand bool scalar/matrix.
 
         Returns:
-            The SparseBoolMat result of the elementwise OR.
+            The result of the elementwise OR.
         """
-        self, other = SparseBoolMat._promote_args(self, other)
-        result = (self.value + other.value).astype('bool')
-        return SparseBoolMat(result)
+        # Short-circuit evaluation for bools.
+        if isinstance(other, (np.bool_, bool)):
+            if other:
+                return np.bool_(True)
+            else:
+                return self
+        # Convert to ndarray if other is ndarray.
+        elif isinstance(other, np.ndarray):
+            return self.todense() | other
+        else:
+            result = (self.value + other.value).astype('bool_')
+            return SparseBoolMat(result)
+
+    def __ror__(self, other):
+        return self | other
 
     def __and__(self, other):
-        """Elementwise AND between two SparseBoolMats.
+        """Elementwise AND between a SparseBoolMat and a bool scalar/matrix.
 
         Args:
             self: The left-hand SparseBoolMat.
-            other: The right-hand SparseBoolMat.
+            other: The right-hand bool scalar/matrix.
 
         Returns:
-            The SparseBoolMat result of the elementwise AND.
+            The result of the elementwise AND.
         """
-        self, other = SparseBoolMat._promote_args(self, other)
-        result = self.value.multiply(other.value).astype('bool')
-        return SparseBoolMat(result)
+        # Short-circuit evaluation for bools.
+        if isinstance(other, (np.bool_, bool)):
+            if not other:
+                return np.bool_(False)
+            else:
+                return self
+        # Convert to ndarray if other is ndarray.
+        elif isinstance(other, np.ndarray):
+            return self.todense() | other
+        else:
+            result = self.value.multiply(other.value).astype('bool_')
+            return SparseBoolMat(result)
 
+    def __rand__(self, other):
+        return self & other
 
     def __mul__(self, other):
         """Matrix multiplication of two SparseBoolMats.
@@ -141,12 +126,8 @@ class SparseBoolMat(object):
         Returns:
             The product of the SparseBoolMats.
         """
-        # Scalar multiplication is equivalent to elementwise AND.
-        if self.value.shape == (1, 1) or other.value.shape == (1, 1):
-            return self & other
-        else:
-            result = self.value.dot(other.value).astype('bool')
-            return SparseBoolMat(result)
+        result = self.value.dot(other.value).astype('bool_')
+        return SparseBoolMat(result)
 
     def __eq__(self, other):
         """Evaluates matrix equality.
@@ -159,6 +140,15 @@ class SparseBoolMat(object):
         Returns:
             Whether the matrices are equal.
         """
+        # Short-circuit evaluation for bools.
+        if isinstance(other, (np.bool_)):
+            if other:
+                return self.all()
+            else:
+                return not self.any()
+        # Convert to ndarray if other is ndarray.
+        elif isinstance(other, np.ndarray):
+            return self.todense() == other
         return (self.value.shape == other.value.shape and \
                 abs(self.value - other.value).nnz == 0) or \
                 self.all() and other.all() or \
@@ -176,32 +166,10 @@ class SparseBoolMat(object):
         """
         return SparseBoolMat(self.value.T)
 
-    @staticmethod
-    def vstack(*args):
-        """Vertically stacks the arguments into a single matrix.
-
-        Args:
-            *args: SparseBoolMats
-
-        Returns:
-            A SparseBoolMat
+    def todense(self):
+        """Converts the SparseBoolMat to a Numpy ndarray.
         """
-        cols = args[0].value.shape[1]
-        rows = sum([spmat.value.shape[0] for spmat in args])
-        stacked = sparse.coo_matrix(([], ([], [])),
-                                    shape=(rows, cols), dtype='bool')
-        stacked = stacked.tolil()
-        offset = 0
-        for spmat in args:
-            height = spmat.value.shape[1]
-            stacked[offset:offset + height, :] = spmat.value
-            offset += height
-        return SparseBoolMat(stacked.tocoo())
-
-# Scalar SparseBoolMat's for external use.
-TRUE_SCALAR = sparse.coo_matrix(([True], ([0], [0])),
-                                shape=(1, 1), dtype='bool')
-FALSE_SCALAR = sparse.coo_matrix(([], ([], [])),
-                                 shape=(1, 1), dtype='bool')
-SparseBoolMat.TRUE_MAT = SparseBoolMat(TRUE_SCALAR)
-SparseBoolMat.FALSE_MAT = SparseBoolMat(FALSE_SCALAR)
+        # Must be int64 for todense().
+        dense = self.value.astype('int64').todense()
+        # Convert back to bool.
+        return dense.astype('bool_')

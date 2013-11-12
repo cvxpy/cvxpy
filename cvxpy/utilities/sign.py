@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from sparse_bool_mat import SparseBoolMat
+import bool_mat_utils as bu
+import numpy as np
 
 class Sign(object):
     """Signs of the entries in an expression.
@@ -35,10 +36,10 @@ class Sign(object):
     # Map of sign string to scalar (neg_mat, pos_mat) values.
     # Zero is (False, False) and UNKNOWN is (True, True).
     SIGN_MAP = {
-        POSITIVE_KEY: (SparseBoolMat.FALSE_MAT, SparseBoolMat.TRUE_MAT),
-        NEGATIVE_KEY: (SparseBoolMat.TRUE_MAT, SparseBoolMat.FALSE_MAT),
-        UNKNOWN_KEY: (SparseBoolMat.TRUE_MAT, SparseBoolMat.TRUE_MAT),
-        ZERO_KEY: (SparseBoolMat.FALSE_MAT, SparseBoolMat.FALSE_MAT),
+        POSITIVE_KEY: (np.bool_(False), np.bool_(True)),
+        NEGATIVE_KEY: (np.bool_(True), np.bool_(False)),
+        UNKNOWN_KEY: (np.bool_(True), np.bool_(True)),
+        ZERO_KEY: (np.bool_(False), np.bool_(False)),
     }
 
     def __init__(self, neg_mat, pos_mat):
@@ -112,10 +113,13 @@ class Sign(object):
         Returns:
             The Sign of the product.
         """
-        neg_mat = self.neg_mat * other.pos_mat | \
-                  self.pos_mat * other.neg_mat
-        pos_mat = self.neg_mat * other.neg_mat | \
-                  self.pos_mat * other.pos_mat
+        neg_mat = bu.dot(self.neg_mat, other.pos_mat) | \
+                  bu.dot(self.pos_mat, other.neg_mat)
+        pos_mat = bu.dot(self.neg_mat, other.neg_mat) | \
+                  bu.dot(self.pos_mat, other.pos_mat)
+        # Reduce 1x1 matrices to scalars.
+        neg_mat = bu.to_scalar(neg_mat)
+        pos_mat = bu.to_scalar(pos_mat)
         return Sign(neg_mat, pos_mat)
 
     def __neg__(self):
@@ -126,7 +130,8 @@ class Sign(object):
     def __eq__(self, other):
         """Checks equality of arguments' attributes.
         """
-        return self.neg_mat == other.neg_mat and self.pos_mat == other.pos_mat
+        return np.all(self.neg_mat == other.neg_mat) and \
+               np.all(self.pos_mat == other.pos_mat)
 
     def promote(self, rows, cols):
         """Promotes the Sign's internal matrices to the desired size.
@@ -135,8 +140,8 @@ class Sign(object):
             rows: The number of rows in the promoted internal matrices.
             cols: The number of columns in the promoted internal matrices.
         """
-        neg_mat = self.neg_mat.promote(rows, cols)
-        pos_mat = self.pos_mat.promote(rows, cols)
+        neg_mat = bu.promote(self.neg_mat, rows, cols)
+        pos_mat = bu.promote(self.pos_mat, rows, cols)
         return Sign(neg_mat, pos_mat)
 
     def __repr__(self):
