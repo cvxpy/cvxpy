@@ -17,8 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from error import Error
+
 class Shape(object):
-    """ The dimensions of an expression. """
+    """ Represents the dimensions of a matrix.
+
+    Attributes:
+        rows: The number of rows.
+        cols: The number of columns.
+    """
+
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
@@ -26,41 +34,61 @@ class Shape(object):
 
     @property
     def size(self):
+        """Getter for (rows, cols)
+        """
         return (self.rows, self.cols)
 
-    # The expression's sizes must match unless one is a scalar,
-    # in which case it is promoted to the size of the other.
     def __add__(self, other):
-        shape = Shape.promoted_shape(self, other)
-        if shape is not None:
-            return shape
+        """Determines the shape of two matrices added together.
+
+        The expression's sizes must match unless one is a scalar,
+        in which case it is promoted to the size of the other.
+
+        Args:
+            self: The shape of the left-hand matrix.
+            other: The shape of the right-hand matrix.
+
+        Returns:
+            The shape of the matrix sum.
+
+        Raises:
+            Error: Incompatible dimensions.
+        """
+        if self.size == (1, 1):
+            return other
+        elif other.size == (1, 1):
+            return self
         elif self.size == other.size:
             return self
         else:
             raise Exception("Incompatible dimensions.")
 
-    # Same as add.
     def __sub__(self, other):
+        """Same as add.
+        """
         return self + other
 
-    # Handles matrix and scalar multiplication.
     def __mul__(self, other):
-        shape = Shape.promoted_shape(self, other)
-        if shape is not None:
-            return shape
+        """Determines the shape of two matrices multiplied together.
+
+        The left-hand columns must match the right-hand rows, unless
+        one side is a scalar.
+
+        Args:
+            self: The shape of the left-hand matrix.
+            other: The shape of the right-hand matrix.
+
+        Returns:
+            The shape of the matrix product.
+
+        Raises:
+            Error: Incompatible dimensions.
+        """
+        if self.size == (1, 1):
+            return other
+        elif other.size == (1, 1):
+            return self
         elif self.cols == other.rows:
             return Shape(self.rows, other.cols)
         else:
-            raise Exception("Incompatible dimensions.")
-
-    # Returns the shape of the expression if scalars were promoted.
-    # Returns None if neither the lefthand nor righthand shapes can be
-    # promoted.
-    @staticmethod
-    def promoted_shape(lh_shape, rh_shape):
-        if lh_shape.size == (1,1):
-            return rh_shape
-        elif rh_shape.size == (1,1):
-            return lh_shape
-        else:
-            return None
+            raise Error("Incompatible dimensions.")

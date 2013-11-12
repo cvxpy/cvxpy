@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.utilities.sparse_bool_mat import SparseBoolMat
+from sparse_bool_mat import SparseBoolMat
 
 class Curvature(object):
     """Curvatures of the entries in an expression.
@@ -166,12 +166,16 @@ class Curvature(object):
                self.conc_mat == other.conc_mat and \
                self.nonconst_mat == other.nonconst_mat
 
-    def promote(self, size):
+    def promote(self, rows, cols):
         """Promotes the Curvature's internal matrices to the desired size.
+
+        Args:
+            rows: The number of rows in the promoted internal matrices.
+            cols: The number of columns in the promoted internal matrices.
         """
-        cvx_mat = self.cvx_mat.promote(size)
-        conc_mat = self.conc_mat.promote(size)
-        nonconst_mat = self.nonconst_mat.promote(size)
+        cvx_mat = self.cvx_mat.promote(rows, cols)
+        conc_mat = self.conc_mat.promote(rows, cols)
+        nonconst_mat = self.nonconst_mat.promote(rows, cols)
         return Curvature(cvx_mat, conc_mat, nonconst_mat)
 
     def __repr__(self):

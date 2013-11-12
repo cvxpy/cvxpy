@@ -17,9 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from dcp_attr import DCPAttr
-from curvature import Curvature
-import monotonicity
-from sign import Sign
-from sparse_bool_mat import SparseBoolMat
-from shape import Shape
+class Error(Exception):
+    """The exception type for the utilities module.
+    """
+    pass

@@ -58,18 +58,20 @@ class SparseBoolMat(object):
         """
         return self.value.shape[0]*self.value.shape[1]
 
-    def promote(self, size):
+    def promote(self, rows, cols):
         """Promotes a 1x1 matrix to the desired size.
 
         Has no effect on a SparseBoolMat containing a matrix
         that's not 1x1.
 
         Args:
-            size: The desired dimensions of the matrix.
+            rows: The number of rows in the promoted matrix.
+            cols: The number of columns in the promoted matrix.
 
         Returns:
             A SparseBoolMat
         """
+        size = (rows, cols)
         if size != (1, 1) and len(self) == 1:
             # Promote True to a full matrix.
             if self.all():
@@ -96,31 +98,33 @@ class SparseBoolMat(object):
             A tuple of SparseBoolMats with a common size.
         """
         size = max(lh_mat.value.shape, rh_mat.value.shape)
-        lh_mat = lh_mat.promote(size)
-        rh_mat = rh_mat.promote(size)
+        lh_mat = lh_mat.promote(*size)
+        rh_mat = rh_mat.promote(*size)
         return (lh_mat, rh_mat)
 
     def __or__(self, other):
-        """Elementwise OR
+        """Elementwise OR between two SparseBoolMats.
 
         Args:
-            other: A SparseBoolMat
+            self: The left-hand SparseBoolMat.
+            other: The right-hand SparseBoolMat.
 
         Returns:
-            A SparseBoolMat
+            The SparseBoolMat result of the elementwise OR.
         """
         self, other = SparseBoolMat._promote_args(self, other)
         result = (self.value + other.value).astype('bool')
         return SparseBoolMat(result)
 
     def __and__(self, other):
-        """Elementwise AND
+        """Elementwise AND between two SparseBoolMats.
 
         Args:
-            other: A SparseBoolMat
+            self: The left-hand SparseBoolMat.
+            other: The right-hand SparseBoolMat.
 
         Returns:
-            A SparseBoolMat
+            The SparseBoolMat result of the elementwise AND.
         """
         self, other = SparseBoolMat._promote_args(self, other)
         result = self.value.multiply(other.value).astype('bool')
@@ -128,16 +132,21 @@ class SparseBoolMat(object):
 
 
     def __mul__(self, other):
-        """Matrix multiplication.
+        """Matrix multiplication of two SparseBoolMats.
 
         Args:
-            other: A SparseBoolMat
+            self: The left-hand SparseBoolMat.
+            other: The right-hand SparseBoolMat.
 
         Returns:
-            A SparseBoolMat
+            The product of the SparseBoolMats.
         """
-        result = self.value.dot(other.value).astype('bool')
-        return SparseBoolMat(result)
+        # Scalar multiplication is equivalent to elementwise AND.
+        if self.value.shape == (1, 1) or other.value.shape == (1, 1):
+            return self & other
+        else:
+            result = self.value.dot(other.value).astype('bool')
+            return SparseBoolMat(result)
 
     def __eq__(self, other):
         """Evaluates matrix equality.

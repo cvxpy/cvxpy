@@ -17,7 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-""" Utility functions to handle indexing/slicing into an expression. """
+# Utility functions to handle indexing/slicing into an expression.
+
+from error import Error
 
 def validate_key(key, shape):
     """Check if the key is a valid index.
@@ -30,7 +32,7 @@ def validate_key(key, shape):
         The key as a tuple of slices.
 
     Raises:
-        Exception: Key out of bounds.
+        Error: Index/slice out of bounds.
     """
     rows, cols = shape.size
     # Change single indexes for vectors into double indices.
@@ -46,7 +48,7 @@ def validate_key(key, shape):
     # Check that index is in bounds.
     if not (0 <= key[0].start and key[0].start < rows and \
             0 <= key[1].start and key[1].start < cols):
-        raise Exception("Key out of bounds.")
+        raise Error("Index/slice out of bounds.")
     return key
 
 def format_slice(key_val):

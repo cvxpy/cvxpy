@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.utilities.sparse_bool_mat import SparseBoolMat
+from sparse_bool_mat import SparseBoolMat
 
 class Sign(object):
     """Signs of the entries in an expression.
@@ -128,11 +128,15 @@ class Sign(object):
         """
         return self.neg_mat == other.neg_mat and self.pos_mat == other.pos_mat
 
-    def promote(self, size):
+    def promote(self, rows, cols):
         """Promotes the Sign's internal matrices to the desired size.
+
+        Args:
+            rows: The number of rows in the promoted internal matrices.
+            cols: The number of columns in the promoted internal matrices.
         """
-        neg_mat = self.neg_mat.promote(size)
-        pos_mat = self.pos_mat.promote(size)
+        neg_mat = self.neg_mat.promote(rows, cols)
+        pos_mat = self.pos_mat.promote(rows, cols)
         return Sign(neg_mat, pos_mat)
 
     def __repr__(self):

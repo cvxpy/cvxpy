@@ -92,7 +92,7 @@ def sign(constant):
             pos_mat = u.SparseBoolMat.TRUE_MAT
         return u.Sign(neg_mat, pos_mat)
     else:
-        mat = INTERFACES[cvxopt.sparse].const_to_matrix(constant)
+        mat = INTERFACES[cvxopt.spmatrix].const_to_matrix(constant)
         # Convert to COO matrix.
         V = np.array(list(constant.V))
         I = list(constant.I)

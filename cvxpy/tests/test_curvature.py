@@ -96,9 +96,9 @@ class TestCurvature(object):
 
     # Tests the promote method.
     def test_promote(self):
-        curv = Curvature.CONSTANT.promote((3,4))
-        assert_equals(curv.cvx_mat.value.shape, (3,4))
-        assert_equals(curv.conc_mat.value.shape, (3,4))
+        curv = Curvature.CONSTANT.promote(3, 4)
+        assert_equals(curv.cvx_mat.value.shape, (3, 4))
+        assert_equals(curv.conc_mat.value.shape, (3, 4))
 
     # # Test the vstack method.
     # def test_vstack(self):

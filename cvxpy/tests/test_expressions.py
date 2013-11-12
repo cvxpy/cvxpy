@@ -326,7 +326,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.x[2,0])
-        self.assertEqual(str(cm.exception), "Invalid indices 2,0.")
+        self.assertEqual(str(cm.exception), "Index/slice out of bounds.")
 
         # Slicing
         exp = self.C[0:2,1]

@@ -29,26 +29,30 @@ class TestSign(object):
     def setup_class(self):
         self.n = 5
         self.arr = np.array(self.n*[[True]])
-        true_vec = sparse.coo_matrix(self.arr)
-        false_vec = sparse.coo_matrix(~self.arr)
+        self.true_vec = sparse.coo_matrix(self.arr)
+        self.false_vec = sparse.coo_matrix(~self.arr)
         # Vectors
-        self.neg_vec = Sign(SparseBoolMat(true_vec), SparseBoolMat(false_vec))
-        self.pos_vec = Sign(SparseBoolMat(false_vec), SparseBoolMat(true_vec))
-        self.unknown_vec = Sign(SparseBoolMat(true_vec), SparseBoolMat(true_vec))
-        self.zero_vec = Sign(SparseBoolMat(false_vec), SparseBoolMat(false_vec))
+        self.neg_vec = Sign(SparseBoolMat(self.true_vec),
+                            SparseBoolMat(self.false_vec))
+        self.pos_vec = Sign(SparseBoolMat(self.false_vec),
+                            SparseBoolMat(self.true_vec))
+        self.unknown_vec = Sign(SparseBoolMat(self.true_vec),
+                                SparseBoolMat(self.true_vec))
+        self.zero_vec = Sign(SparseBoolMat(self.false_vec),
+                            SparseBoolMat(self.false_vec))
 
         # Dense Matrices
-        self.mat = sparse.coo_matrix(np.vstack(self.n*[self.arr]))
-        self.neg_mat = sparse.coo_matrix(~np.vstack(self.n*[self.arr]))
-        self.neg_mat = Sign(SparseBoolMat(self.mat), SparseBoolMat(self.neg_mat))
-        self.pos_mat = Sign(SparseBoolMat(self.neg_mat), SparseBoolMat(self.mat))
-        self.unknown_mat = Sign(SparseBoolMat(self.mat), SparseBoolMat(self.mat))
-        self.zero_mat = Sign(SparseBoolMat(self.neg_mat), SparseBoolMat(self.neg_mat))
+        self.true_mat = sparse.coo_matrix(np.hstack(self.n*[self.arr]))
+        self.false_mat = sparse.coo_matrix(~np.hstack(self.n*[self.arr]))
+        self.neg_mat = Sign(SparseBoolMat(self.true_mat), SparseBoolMat(self.false_mat))
+        self.pos_mat = Sign(SparseBoolMat(self.false_mat), SparseBoolMat(self.true_mat))
+        self.unknown_mat = Sign(SparseBoolMat(self.true_mat), SparseBoolMat(self.true_mat))
+        self.zero_mat = Sign(SparseBoolMat(self.false_mat), SparseBoolMat(self.false_mat))
 
         # Sparse Matrices
         self.spmat = sparse.eye(self.n, self.n).astype('bool')
-        self.neg_spmat = Sign(SparseBoolMat(self.spmat), False)
-        self.pos_spmat = Sign(False, SparseBoolMat(self.spmat))
+        self.neg_spmat = Sign(SparseBoolMat(self.spmat), SparseBoolMat.FALSE_MAT)
+        self.pos_spmat = Sign(SparseBoolMat.FALSE_MAT, SparseBoolMat(self.spmat))
         self.unknown_spmat = Sign(SparseBoolMat(self.spmat), SparseBoolMat(self.spmat))
 
     # Scalar sign tests.
@@ -77,10 +81,10 @@ class TestSign(object):
     # Dense sign matrix tests.
     def test_dmat_add(self):
         assert_equals(self.pos_vec + self.neg_vec, self.unknown_vec)
-        result = Sign(True, true_vec) # Reduced to scalar
+        result = Sign(SparseBoolMat.TRUE_MAT, SparseBoolMat(self.true_vec))
         assert_equals(self.pos_vec + Sign.NEGATIVE, result)
         assert_equals(self.neg_vec + self.zero_vec, self.neg_vec)
-        result = Sign(True, BoolMat(~self.mat)) # Reduced to scalar
+        result = Sign(SparseBoolMat.TRUE_MAT, SparseBoolMat(self.false_mat))
         assert_equals(self.neg_mat + Sign.NEGATIVE, result)
         assert_equals(self.pos_vec + self.pos_vec, self.pos_vec)
         assert_equals(self.unknown_mat + self.zero_mat, self.unknown_mat)
@@ -88,24 +92,20 @@ class TestSign(object):
 
     def test_dmat_sub(self):
         assert_equals(self.pos_vec - self.neg_vec, self.pos_vec)
-        result = Sign(BoolMat(false_mat), True) # Reduced to scalar
+        result = Sign(SparseBoolMat(self.false_mat), SparseBoolMat.TRUE_MAT)
         assert_equals(Sign.POSITIVE - self.neg_vec, result)
         assert_equals(self.neg_vec - self.zero_vec, self.neg_vec)
         assert_equals(self.pos_mat - self.pos_mat, self.unknown_mat)
         assert_equals(self.zero_vec - Sign.UNKNOWN, Sign.UNKNOWN)
 
     def test_dmat_mult(self):
-        assert_equals(Sign.mul(Sign.ZERO, (1,1), self.pos_vec, (self.n,1)), Sign.ZERO)
-        assert_equals(Sign.mul(self.unknown_vec, (self.n,1), Sign.POSITIVE, (1,1)), self.unknown_vec)
-        assert_equals(Sign.mul(self.pos_vec, (self.n,1), Sign.NEGATIVE, (1,1)), self.neg_vec)
-        assert_equals(Sign.mul(self.neg_mat, (self.n,self.n),
-                               self.neg_vec, (self.n,1)), self.pos_vec)
-        assert_equals(Sign.mul(self.zero_mat, (self.n,self.n),
-                               self.unknown_vec, (self.n,1)), self.zero_vec)
-        assert_equals(Sign.mul(self.neg_mat, (self.n,self.n),
-                               self.pos_mat, (self.n,self.n)), self.neg_mat)
-        assert_equals(Sign.mul(self.unknown_mat, (self.n,self.n),
-                               self.pos_mat, (self.n,self.n)), self.unknown_mat)
+        assert_equals(Sign.ZERO.promote(1, self.n) * self.pos_vec, Sign.ZERO)
+        assert_equals(self.unknown_vec * Sign.POSITIVE, self.unknown_vec)
+        assert_equals(self.pos_vec * Sign.NEGATIVE, self.neg_vec)
+        assert_equals(self.neg_mat * self.neg_vec, self.pos_vec)
+        assert_equals(self.zero_mat * self.unknown_vec, self.zero_vec)
+        assert_equals(self.neg_mat * self.pos_mat, self.neg_mat)
+        assert_equals(self.unknown_mat * self.pos_mat, self.unknown_mat)
 
     def test_dmat_neg(self):
         assert_equals(-self.zero_vec, self.zero_vec)
@@ -118,7 +118,7 @@ class TestSign(object):
         assert_equals(self.neg_spmat + Sign.ZERO, self.neg_spmat)
         assert_equals(self.pos_spmat + self.pos_spmat, self.pos_spmat)
         assert_equals(self.unknown_mat + self.neg_mat, self.unknown_mat)
-        result = Sign(self.true_mat, SparseBoolMat(self.spmat))
+        result = Sign(SparseBoolMat(self.true_mat), SparseBoolMat(self.spmat))
         assert_equals(self.pos_spmat + Sign.NEGATIVE, result)
         assert_equals(self.neg_spmat + self.unknown_mat, self.unknown_mat)
         assert_equals(self.pos_spmat + self.pos_mat, self.pos_mat)
@@ -132,19 +132,23 @@ class TestSign(object):
         assert_equals(self.neg_spmat - self.pos_spmat, self.neg_spmat)
 
     def test_sparse_mult(self):
-        assert_equals(Sign.ZERO * self.pos_spmat, Sign.ZERO)
+        size = (self.n, self.n)
+        assert_equals(Sign.ZERO.promote(*size) * self.pos_spmat.promote(*size),
+                      Sign.ZERO.promote(*size))
         assert_equals(self.unknown_spmat * Sign.POSITIVE, self.unknown_spmat)
-        assert_equals(self.pos_spmat * Sign.NEGATIVE, self.neg_spmat)
-        assert_equals(self.neg_mat * self.neg_spmat, self.pos_mat)
-        assert_equals(self.zero_mat * self.unknown_spmat, self.zero_mat)
-        assert_equals(self.neg_spmat * self.pos_spmat, self.neg_spmat)
-        assert_equals(self.unknown_spmat * self.pos_spmat, self.unknown_spmat)
+        assert_equals(self.pos_spmat.promote(*size) * Sign.NEGATIVE, self.neg_spmat)
+        assert_equals(self.neg_mat * self.neg_spmat.promote(*size), self.pos_mat)
+        assert_equals(self.zero_mat.promote(*size) * self.unknown_spmat, self.zero_mat)
+        assert_equals(self.neg_spmat.promote(*size) * self.pos_spmat.promote(*size), self.neg_spmat)
+        assert_equals(self.unknown_spmat * self.pos_spmat.promote(*size), self.unknown_spmat)
 
         # Asymmetric multiplication.
         m = 2
-        fat = np.vstack(m*[self.arr])
-        fat_pos = Sign(False, BoolMat(fat))
-        assert_equals(Sign.mul(fat_pos, (1,1), self.pos_spmat, (1,1)), fat_pos)
+        fat = sparse.coo_matrix(np.hstack(m*[self.arr]).T)
+        fat_pos = Sign(SparseBoolMat.FALSE_MAT, SparseBoolMat(fat))
+        fat_size = (m, self.n)
+        assert_equals(fat_pos.promote(*fat_size) * self.pos_spmat.promote(*size),
+                      fat_pos.promote(*fat_size))
 
     def test_sparse_neg(self):
         assert_equals(-self.unknown_spmat, self.unknown_spmat)
@@ -153,9 +157,9 @@ class TestSign(object):
 
     # Tests the promote method.
     def test_promote(self):
-        sign = Sign.POSITIVE.promote((3,4))
-        assert_equals(sign.neg_mat.value.shape, (3,4))
-        assert_equals(sign.pos_mat.value.shape, (3,4))
+        sign = Sign.POSITIVE.promote(3, 4)
+        assert_equals(sign.neg_mat.value.shape, (3, 4))
+        assert_equals(sign.pos_mat.value.shape, (3, 4))
 
     # Tests the is_positive and is_negative methods.
     def test_is_sign(self):
