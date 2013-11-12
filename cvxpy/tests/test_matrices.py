@@ -58,7 +58,7 @@ class TestMatrices(unittest.TestCase):
         # Matrix
         A = numpy.arange(8).reshape((4,2))
         self.assertEquals((A*self.x).size, (4,1))
-        
+
     # Test numpy matrices
     def test_numpy_matrices(self):
         # Vector

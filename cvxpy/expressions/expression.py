@@ -63,7 +63,7 @@ class Expression(object):
                 next = node.subexpressions[stack[-1]["index"]]
                 stack[-1]["index"] += 1
                 stack.append(next.starting_state())
-    
+
     # Helper function for value.
     # Returns the starting state dict for the expression.
     def starting_state(self):
@@ -155,7 +155,7 @@ class Expression(object):
     @staticmethod
     def cast_to_const(expr):
         return expr if isinstance(expr, Expression) else types.constant()(expr)
-        
+
     @cast_other
     def __add__(self, other):
         return types.add_expr()(self, other)

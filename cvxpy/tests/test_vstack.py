@@ -54,7 +54,7 @@ class TestVstack(unittest.TestCase):
 
         exp = vstack(self.x, self.y).canonicalize()[0]
         coeffs = exp.coefficients()
-        self.assertItemsEqual(coeffs.keys(), 
+        self.assertItemsEqual(coeffs.keys(),
             self.x.coefficients().keys() + \
             self.y.coefficients().keys())
         for k,blocks in coeffs.items():

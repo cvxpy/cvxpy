@@ -35,8 +35,8 @@ class Variable(Leaf, AffExpression):
         self._init_id()
         self._name = self.id if name is None else name
         self.primal_value = None
-        dcp_attr = u.DCPAttr(u.Sign.UNKNOWN, 
-                             u.Curvature.AFFINE, 
+        dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
+                             u.Curvature.AFFINE,
                              u.Shape(rows, cols))
         coeffs = self.init_coefficients(rows, cols)
         super(Variable, self).__init__(coeffs, dcp_attr)

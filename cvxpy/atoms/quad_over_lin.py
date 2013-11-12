@@ -58,7 +58,7 @@ class quad_over_lin(Atom):
             raise TypeError("The first argument to quad_over_lin must be a vector.")
         elif not self.args[1].is_scalar():
             raise TypeError("The second argument to quad_over_lin must be a scalar.")
-    
+
     def graph_implementation(self, arg_objs):
         v = Variable()
         x = arg_objs[0]

@@ -31,7 +31,7 @@ class vstack(AffAtom):
     @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.vstack(values)
-        
+
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
         cols = self.args[0].size[1]

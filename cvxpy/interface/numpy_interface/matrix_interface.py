@@ -22,8 +22,8 @@ import cvxopt
 import numpy
 
 class MatrixInterface(NDArrayInterface):
-    """ 
-    An interface to convert constant values to the numpy matrix class. 
+    """
+    An interface to convert constant values to the numpy matrix class.
     """
     TARGET_MATRIX = numpy.matrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.

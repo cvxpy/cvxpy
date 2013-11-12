@@ -50,7 +50,7 @@ class TestAffineConstraints(unittest.TestCase):
         exp = self.xAff - self.yAff
         expCoeffs = exp.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), expCoeffs.keys())
-        self.assertEqual(list(coeffs[self.y]), 
+        self.assertEqual(list(coeffs[self.y]),
                          list(expCoeffs[self.y]))
 
         with self.assertRaises(Exception) as cm:
@@ -66,7 +66,7 @@ class TestAffineConstraints(unittest.TestCase):
         exp = self.xAff - self.yAff
         expCoeffs = exp.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), expCoeffs.keys())
-        self.assertEqual(list(coeffs[self.y]), 
+        self.assertEqual(list(coeffs[self.y]),
                          list(expCoeffs[self.y]))
 
         with self.assertRaises(Exception) as cm:

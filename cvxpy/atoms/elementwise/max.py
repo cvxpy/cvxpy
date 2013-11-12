@@ -61,7 +61,7 @@ class max(Elementwise):
 
     def monotonicity(self):
         return len(self.args)*[u.Monotonicity.INCREASING]
-    
+
     def graph_implementation(self, arg_objs):
         t = Variable(*size)
         constraints = [x <= t for x in arg_objs]

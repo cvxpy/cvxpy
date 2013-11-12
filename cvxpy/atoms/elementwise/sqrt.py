@@ -45,7 +45,7 @@ class sqrt(Elementwise):
 
     def monotonicity(self):
         return [u.Monotonicity.INCREASING]
-    
+
     def graph_implementation(self, arg_objs):
         rows,cols = self.size
         t = Variable(rows,cols)

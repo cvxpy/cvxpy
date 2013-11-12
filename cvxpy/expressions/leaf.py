@@ -32,7 +32,7 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
     # Leaf has no subexpressions.
     subexpressions = []
-    
+
     # Returns a new unique name based on a global counter.
     COUNT = 0
     @staticmethod

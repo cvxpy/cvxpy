@@ -49,7 +49,7 @@ class log(Atom):
     """ Elementwise logarithm. """
     def __init__(self, x):
         super(log, self).__init__(x)
-                
+
     # Returns the elementwise natural log of x.
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -59,11 +59,11 @@ class log(Atom):
     def set_shape(self):
         self.validate_arguments()
         self._shape = self.args[0].shape
-    
+
     # Verify that the argument x is a vector.
     def validate_arguments(self):
         if not self.args[0].is_vector():
-            raise Exception("The argument '%s' to log must resolve to a vector." 
+            raise Exception("The argument '%s' to log must resolve to a vector."
                 % self.args[0].name())
 
     # Always positive.
@@ -76,26 +76,26 @@ class log(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.INCREASING]
-        
+
     def graph_implementation(self, arg_objs):
         """ any expression that involves log
-        
+
                 f*log(a*x + b) + g
-                
+
             becomes
-            
+
                 f*t1 + g
                 t1 - log(t2) <= 0  # this is always homogeneous
                 t2 = a*x + b
-            
+
             even if the argument is just a single variable
         """
         x = arg_objs[0]
-        t1 = Variable(*size)      
+        t1 = Variable(*size)
         t2 = Variable(*size)
         constraints = [
             NonlinearConstraint(neg_log_func(size[0]*size[1]),[t1,t2]),
             x == t2,
         ]
-        
+
         return (t1, constraints)

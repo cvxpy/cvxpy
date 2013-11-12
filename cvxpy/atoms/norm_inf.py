@@ -48,7 +48,7 @@ class normInf(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
-    
+
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
         t = Variable()

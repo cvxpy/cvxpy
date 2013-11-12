@@ -42,7 +42,7 @@ class Atom(Expression):
 
     # Returns the string representation of the function call.
     def name(self):
-        return "%s(%s)" % (self.__class__.__name__, 
+        return "%s(%s)" % (self.__class__.__name__,
                            ", ".join([arg.name() for arg in self.args]))
 
     # Determines the curvature, sign, and shape from the arguments.
@@ -50,8 +50,8 @@ class Atom(Expression):
         # Initialize _shape. Raises an error for invalid argument sizes.
         shape = self.shape_from_args()
         sign = self.sign_from_args()
-        curvature = Atom.dcp_curvature(self.func_curvature(), 
-                                       self.args, 
+        curvature = Atom.dcp_curvature(self.func_curvature(),
+                                       self.args,
                                        self.monotonicity())
         return u.DCPAttr(sign, curvature, shape)
 
@@ -103,7 +103,7 @@ class Atom(Expression):
             graph_obj,graph_constr = self.graph_implementation(arg_objs)
             return (graph_obj, constraints + graph_constr)
 
-    # Returns an affine expression and list of 
+    # Returns an affine expression and list of
     # constraints equivalent to the atom.
     # arg_objs - the canonical objectives of the arguments.
     @abc.abstractmethod

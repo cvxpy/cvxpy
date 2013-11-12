@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 class SOC(object):
-    """ 
+    """
     A second-order cone constraint:
         norm2(x) <= t
     """

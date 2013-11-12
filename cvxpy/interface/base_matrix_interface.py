@@ -86,7 +86,7 @@ class BaseMatrixInterface(object):
         return NotImplemented
 
     # Add the block to the matrix at the given offset.
-    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols, 
+    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
                   vert_step=1, horiz_step=1):
         # If the block is a scalar, promote it.
         if intf.is_scalar(block):

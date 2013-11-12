@@ -22,8 +22,8 @@ import cvxopt
 import numbers
 
 class DenseMatrixInterface(BaseMatrixInterface):
-    """ 
-    An interface to convert constant values to the cvxopt dense matrix class. 
+    """
+    An interface to convert constant values to the cvxopt dense matrix class.
     """
     TARGET_MATRIX = cvxopt.matrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.

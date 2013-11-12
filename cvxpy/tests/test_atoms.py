@@ -39,7 +39,7 @@ class TestAtoms(unittest.TestCase):
     def test_norm(self):
         with self.assertRaises(Exception) as cm:
             norm(self.C, 3)
-        self.assertEqual(str(cm.exception), 
+        self.assertEqual(str(cm.exception),
             "Invalid value 3 for p.")
 
     # Test the normInf class.
@@ -105,7 +105,7 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(max(-3, -2).sign, u.Sign.NEGATIVE)
 
         # Many args.
-        self.assertEquals(max(-2, Variable(), 0, -1, Variable(), 1).sign, 
+        self.assertEquals(max(-2, Variable(), 0, -1, Variable(), 1).sign,
                           u.Sign.POSITIVE)
 
     # Test sign logic for min.
@@ -132,7 +132,7 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(min(-3, -2).sign, u.Sign.NEGATIVE)
 
         # Many args.
-        self.assertEquals(min(-2, Variable(), 0, -1, Variable(), 1).sign, 
+        self.assertEquals(min(-2, Variable(), 0, -1, Variable(), 1).sign,
                           u.Sign.NEGATIVE)
 
     # Test the vstack class.
@@ -151,10 +151,10 @@ class TestAtoms(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             vstack(self.C, 1)
-        self.assertEqual(str(cm.exception), 
+        self.assertEqual(str(cm.exception),
             "All arguments to vstack must have the same number of columns.")
 
         with self.assertRaises(Exception) as cm:
             vstack()
-        self.assertEqual(str(cm.exception), 
+        self.assertEqual(str(cm.exception),
             "No arguments given to 'vstack'.")

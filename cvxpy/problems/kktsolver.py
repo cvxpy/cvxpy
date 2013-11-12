@@ -48,26 +48,26 @@ def get_kktsolver(G, dims, A, F=None):
 
 def kkt_ldl(G, dims, A, mnl = 0):
     """
-    Solution of KKT equations by a dense LDL factorization of the 
+    Solution of KKT equations by a dense LDL factorization of the
     3 x 3 system.
-    
+
     Returns a function that (1) computes the LDL factorization of
-    
-        [ H           A'   GG'*W^{-1} ] 
+
+        [ H           A'   GG'*W^{-1} ]
         [ A           0    0          ],
-        [ W^{-T}*GG   0   -I          ] 
-    
-    given H, Df, W, where GG = [Df; G], and (2) returns a function for 
-    solving 
-    
+        [ W^{-T}*GG   0   -I          ]
+
+    given H, Df, W, where GG = [Df; G], and (2) returns a function for
+    solving
+
         [ H     A'   GG'   ]   [ ux ]   [ bx ]
         [ A     0    0     ] * [ uy ] = [ by ].
         [ GG    0   -W'*W  ]   [ uz ]   [ bz ]
-    
+
     H is n x n,  A is p x n, Df is mnl x n, G is N x n where
     N = dims['l'] + sum(dims['q']) + sum( k**2 for k in dims['s'] ).
     """
-    
+
     p, n = A.size
     ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
         for k in dims['s'] ])
@@ -110,7 +110,7 @@ def kkt_ldl(G, dims, A, mnl = 0):
             blas.scal(0.0, sltn)
             blas.copy(x, u)
             blas.copy(y, u, offsety = n)
-            scale(z, W, trans = 'T', inverse = 'I') 
+            scale(z, W, trans = 'T', inverse = 'I')
             pack(z, u, dims, mnl, offsety = n + p)
             blas.copy(u, b)
             # Iterative refinement algorithm:

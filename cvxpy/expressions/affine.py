@@ -104,7 +104,7 @@ class AffExpression(Expression):
         return self._coeffs
 
     """ Indexing/Slicing """
-    # Indexes/slices into the coefficients of the argument.  
+    # Indexes/slices into the coefficients of the argument.
     def __getitem__(self, key):
         # Format and validate the key.
         key = ku.validate_key(key, self.shape)
@@ -120,7 +120,7 @@ class AffExpression(Expression):
         return AffExpression(new_coeffs, self._dcp_attr()[key])
 
     """ Arithmetic operators """
-    # Expression OP AffExpression is handled by the 
+    # Expression OP AffExpression is handled by the
     # Expression class.
     @staticmethod
     def cast_to_const(expr):
@@ -130,7 +130,7 @@ class AffExpression(Expression):
             return NotImplemented
         else:
             return types.constant()(expr)
-                
+
     # Multiplies by a ones matrix to promote scalar coefficients.
     # Returns an updated coefficient dict.
     @staticmethod

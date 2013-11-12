@@ -45,7 +45,7 @@ class index(AffAtom):
     # The shape, sign, and curvature of the index/slice.
     def _dcp_attr(self):
         return self.args[0]._dcp_attr()[self.key]
-    
-    # Indexes/slices into the coefficients of the argument.    
+
+    # Indexes/slices into the coefficients of the argument.
     def graph_implementation(self, arg_objs):
         return (arg_objs[0][self.key], [])

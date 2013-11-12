@@ -36,7 +36,7 @@ class Parameter(Leaf):
     def name(self):
         return self._name
 
-    # Returns the 
+    # Returns the
     def _dcp_attr(self):
         shape = u.Shape(self._rows, self._cols)
         sign = u.Sign.name_to_sign(self.sign_str)

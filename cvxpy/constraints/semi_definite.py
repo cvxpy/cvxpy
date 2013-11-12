@@ -30,7 +30,7 @@ class SDP(object):
 
     def __str__(self):
         return "SDP(%s)" % self.A
-        
+
     # Formats SDP constraints for the solver.
     def format(self):
         return [-self.A <= 0]

@@ -31,7 +31,7 @@ __ARRAY_CREATION = ['arange','empty','empty_like','eye','identity',
 def __wrap_array_creator(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs).view(ndarray)
-    
+
     return wrapper
 
 for func in __ARRAY_CREATION:
@@ -43,7 +43,7 @@ class _BinaryOpsWrapper(type):
     Metaclass to wrap all binary ops for the classes created.
     http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python
     """
-    _WRAPPED_OPS = ["__add__", "__sub__", "__mul__", 
+    _WRAPPED_OPS = ["__add__", "__sub__", "__mul__",
                     "__eq__", "__le__", "__ge__"]
     def __new__(cls, name, bases, dct):
         for func in _BinaryOpsWrapper._WRAPPED_OPS:
@@ -64,14 +64,14 @@ class _BinaryOpsWrapper(type):
         return wrapper
 
 class ndarray(numpy.ndarray):
-    """ 
+    """
     A wrapper on numpy.ndarray so that builtin operators work with
     Expressions as expected.
     """
     __metaclass__ = _BinaryOpsWrapper
 
 class matrix(numpy.matrix):
-    """ 
+    """
     A wrapper on numpy.matrix so that builtin operators work with
     Expressions as expected.
     """

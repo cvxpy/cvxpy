@@ -67,9 +67,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 #         self.assertEqual(len(constr), 1)
 
 #         var_id = coeffs.keys()[0]
-#         self.assertItemsEqual(constr[0].coefficients.keys(), 
+#         self.assertItemsEqual(constr[0].coefficients.keys(),
 #                              [self.A.id, var_id])
-#         self.assertAlmostEqual(coeffs[var_id], 
+#         self.assertAlmostEqual(coeffs[var_id],
 #                                Variable(2,2).coefficient(self.intf))
 
 #     # Test the dequeue_mults function with complex arguments.
@@ -92,16 +92,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 #         var_id = coeffs.keys()[0]
 #         assert var_id in constr[1].coefficients.keys()
 #         var2_id = [id for id in constr[1].coefficients.keys() if id != var_id][0]
-#         self.assertAlmostEqual(coeffs[var_id], 
+#         self.assertAlmostEqual(coeffs[var_id],
 #                                Variable(2,2).coefficient(self.intf))
-#         self.assertAlmostEqual(constr[1].coefficients[var_id], 
+#         self.assertAlmostEqual(constr[1].coefficients[var_id],
 #                                -Variable(2,2).coefficient(self.intf))
-#         self.assertEqual(constr[1].coefficients[var2_id], 
+#         self.assertEqual(constr[1].coefficients[var2_id],
 #                          self.A.coefficient(self.intf))
 #         self.assertItemsEqual(constr[0].coefficients.keys(), [var2_id, c.id])
-#         self.assertAlmostEqual(constr[0].coefficients[var2_id], 
+#         self.assertAlmostEqual(constr[0].coefficients[var2_id],
 #                                -Variable(2).coefficient(self.intf))
-#         self.assertAlmostEqual(constr[0].coefficients[c.id], 
+#         self.assertAlmostEqual(constr[0].coefficients[c.id],
 #                                c.coefficient(self.intf))
 
 #         # Constant * Parameter
@@ -111,10 +111,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 #         v,mult = terms[0]
 #         coeffs,constr = Leaf.dequeue_mults(mult, self.intf)
 #         var_id = coeffs.keys()[0]
-#         self.assertAlmostEqual(coeffs[var_id], 
+#         self.assertAlmostEqual(coeffs[var_id],
 #                                T.coefficient(self.intf))
 #         self.assertItemsEqual(constr[0].coefficients.keys(), [self.A.id, var_id])
-#         self.assertAlmostEqual(constr[0].coefficients[var_id], 
+#         self.assertAlmostEqual(constr[0].coefficients[var_id],
 #                                -Variable(2,2).coefficient(self.intf))
 #         self.assertEqual(constr[0].coefficients[self.A.id], self.A)
 
@@ -124,10 +124,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 #         v,mult = terms[0]
 #         coeffs,constr = Leaf.dequeue_mults(mult, self.intf)
 #         var_id = coeffs.keys()[0]
-#         self.assertAlmostEqual(coeffs[var_id], 
+#         self.assertAlmostEqual(coeffs[var_id],
 #                                Variable(2).coefficient(self.intf))
 #         self.assertItemsEqual(constr[0].coefficients.keys(), [self.x.id, var_id])
-#         self.assertAlmostEqual(constr[0].coefficients[var_id], 
+#         self.assertAlmostEqual(constr[0].coefficients[var_id],
 #                                -Variable(2).coefficient(self.intf))
 #         self.assertEqual(constr[0].coefficients[self.x.id], self.A)
 
@@ -139,16 +139,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 #         coeffs,constr = Leaf.dequeue_mults(mult, self.intf)
 #         self.assertEqual(len(constr), 2)
 #         var_id = coeffs.keys()[0]
-#         self.assertAlmostEqual(coeffs[var_id], 
+#         self.assertAlmostEqual(coeffs[var_id],
 #                                Variable(2).coefficient(self.intf))
 #         assert var_id in constr[1].coefficients.keys()
 #         var2_id = [id for id in constr[1].coefficients.keys() if id != var_id][0]
-#         self.assertAlmostEqual(constr[1].coefficients[var_id], 
+#         self.assertAlmostEqual(constr[1].coefficients[var_id],
 #                                -Variable(2,2).coefficient(self.intf))
-#         self.assertEqual(constr[1].coefficients[var2_id], 
+#         self.assertEqual(constr[1].coefficients[var2_id],
 #                          self.A)
 #         self.assertItemsEqual(constr[0].coefficients.keys(), [var2_id, self.x.id])
-#         self.assertAlmostEqual(constr[0].coefficients[var2_id], 
+#         self.assertAlmostEqual(constr[0].coefficients[var2_id],
 #                                -Variable(2).coefficient(self.intf))
-#         self.assertAlmostEqual(constr[0].coefficients[self.x.id], 
+#         self.assertAlmostEqual(constr[0].coefficients[self.x.id],
 #                                T.coefficient(self.intf))

@@ -48,7 +48,7 @@ class lambda_min(Atom):
     # Verify that the argument A is square.
     def validate_arguments(self):
         if not self.args[0].size[0] == self.args[0].size[1]:
-            raise TypeError("The argument '%s' to lambda_min must resolve to a square matrix." 
+            raise TypeError("The argument '%s' to lambda_min must resolve to a square matrix."
                 % self.args[0].name())
 
     # Always unknown.
@@ -61,7 +61,7 @@ class lambda_min(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
-    
+
     def graph_implementation(self, arg_objs):
         A = arg_objs[0]
         n,m = A.size

@@ -23,8 +23,8 @@ import cvxopt
 import numbers
 
 class NDArrayInterface(base.BaseMatrixInterface):
-    """ 
-    An interface to convert constant values to the numpy ndarray class. 
+    """
+    An interface to convert constant values to the numpy ndarray class.
     """
     TARGET_MATRIX = numpy.ndarray
     # Convert an arbitrary value into a matrix of type self.target_matrix.

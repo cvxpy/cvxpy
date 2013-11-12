@@ -34,7 +34,7 @@ class square(Elementwise):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.square(values[0])
-        
+
     # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
@@ -45,7 +45,7 @@ class square(Elementwise):
 
     def monotonicity(self):
         return [u.Monotonicity.SIGNED]
-    
+
     def graph_implementation(self, arg_objs):
         rows,cols = self.size
         t = Variable(rows,cols)

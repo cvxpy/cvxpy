@@ -17,39 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from curvature import Curvature
+from cvxpy.utilities.curvature import Curvature
 
-class Monotonicity(object):
-    """ Monotonicity of atomic functions in a given argument. """
-    INCREASING_KEY = 'INCREASING'
-    DECREASING_KEY = 'DECREASING'
-    SIGNED_KEY = 'SIGNED'
-    NONMONOTONIC_KEY = 'NONMONOTONIC'
+INCREASING = 'INCREASING'
+DECREASING = 'DECREASING'
+SIGNED = 'SIGNED'
+NONMONOTONIC = 'NONMONOTONIC'
 
-    MONOTONICITY_SET = set([
-        INCREASING_KEY, 
-        DECREASING_KEY,
-        SIGNED_KEY,
-        NONMONOTONIC_KEY,
-    ])
+def dcp_curvature(monotonicity, func_curvature, arg_sign, arg_curvature):
+    """Applies DCP composition rules to determine curvature in each argument.
 
-    def __init__(self,monotonicity_str):
-        monotonicity_str = monotonicity_str.upper()
-        if monotonicity_str in Monotonicity.MONOTONICITY_SET:
-            self.monotonicity_str = monotonicity_str
-        else:
-            raise Exception("No such monotonicity %s exists." % str(monotonicity_str))
-
-    def __repr__(self):
-        return "Monotonicity('%s')" % self.monotonicity_str
-    
-    def __str__(self):
-        return self.monotonicity_str
-    
-    """
-    Applies DCP composition rules to determine curvature in each argument.
     Composition rules:
-        Key: Function curvature + monotonicity + argument curvature == curvature in argument
+        Key: Function curvature + monotonicity + argument curvature
+             == curvature in argument
         anything + anything + constant == constant
         anything + anything + affine == original curvature
         convex/affine + increasing + convex == convex
@@ -57,26 +37,29 @@ class Monotonicity(object):
         concave/affine + increasing + concave == concave
         concave/affine + decreasing + convex == concave
     Notes: Increasing (decreasing) means non-decreasing (non-increasing).
-        Any combinations not covered by the rules result in a nonconvex expression.
-    """
-    def dcp_curvature(self, func_curvature, arg_sign, arg_curvature):
-        if arg_curvature.is_constant():
-            return Curvature.CONSTANT
-        elif self.monotonicity_str == Monotonicity.INCREASING_KEY:
-            return func_curvature + arg_curvature
-        elif self.monotonicity_str == Monotonicity.DECREASING_KEY:
-            return func_curvature - arg_curvature
-        # Absolute value style monotonicity.
-        elif self.monotonicity_str == Monotonicity.SIGNED_KEY and \
-             func_curvature.is_convex():
-            conc_mat = arg_sign.neg_mat & arg_curvature.cvx_mat | \
-                       arg_sign.pos_mat & arg_curvature.conc_mat
-            return Curvature(True, conc_mat, False)
-        else: # non-monotonic
-            return func_curvature + arg_curvature - arg_curvature
+           Any combinations not covered by the rules result in a
+           nonconvex expression.
 
-# Class constants for all monotonicity types.
-Monotonicity.INCREASING = Monotonicity(Monotonicity.INCREASING_KEY)
-Monotonicity.DECREASING = Monotonicity(Monotonicity.DECREASING_KEY)
-Monotonicity.SIGNED = Monotonicity(Monotonicity.SIGNED_KEY)
-Monotonicity.NONMONOTONIC = Monotonicity(Monotonicity.NONMONOTONIC_KEY)
+    Args:
+        monotonicity: The monotonicity of the function in the given argument.
+        func_curvature: The curvature of the function.
+        arg_sign: The sign of the given argument.
+        arg_curvature: The curvature of the given argument.
+
+    Returns:
+        The Curvature of the composition of function and arguments.
+    """
+    if arg_curvature.is_constant():
+        return Curvature.CONSTANT
+    elif monotonicity == INCREASING:
+        return func_curvature + arg_curvature
+    elif monotonicity == DECREASING:
+        return func_curvature - arg_curvature
+    # Absolute value style monotonicity.
+    elif monotonicity == SIGNED and \
+         func_curvature.is_convex():
+        conc_mat = arg_sign.neg_mat & arg_curvature.cvx_mat | \
+                   arg_sign.pos_mat & arg_curvature.conc_mat
+        return Curvature(True, conc_mat, False)
+    else: # non-monotonic
+        return func_curvature + arg_curvature - arg_curvature

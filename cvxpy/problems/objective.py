@@ -32,7 +32,7 @@ class Minimize(object):
         self.expr = Expression.cast_to_const(expr)
         # Validate that the objective resolves to a scalar.
         if self.expr.size != (1,1):
-            raise Exception("The objective '%s' must resolve to a scalar." 
+            raise Exception("The objective '%s' must resolve to a scalar."
                             % self.name())
 
     def __repr__(self):

@@ -19,73 +19,101 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 """ Utility functions to handle indexing/slicing into an expression. """
 
-# Raise an Exception if the key is not a valid index.
-# Returns the key as a tuple of slices.
-# key - the key used to index/slice.
-# shape - the shape of the expression.
 def validate_key(key, shape):
-    rows,cols = shape.size
+    """Check if the key is a valid index.
+
+    Args:
+        key: The key used to index/slice.
+        shape: The shape of the expression.
+
+    Returns:
+        The key as a tuple of slices.
+
+    Raises:
+        Exception: Key out of bounds.
+    """
+    rows, cols = shape.size
     # Change single indexes for vectors into double indices.
     if not isinstance(key, tuple):
         if rows == 1:
-            key = (slice(0,1,None),key)
+            key = (slice(0, 1, None), key)
         elif cols == 1:
-            key = (key,slice(0,1,None))
+            key = (key, slice(0, 1, None))
         else:
             raise Exception("Invalid index %s." % key)
     # Change numbers into slices and ensure all slices have a start and step.
-    key = tuple(map(format_slice, key))
+    key = tuple(format_slice(slice_) for slice_ in key)
     # Check that index is in bounds.
     if not (0 <= key[0].start and key[0].start < rows and \
             0 <= key[1].start and key[1].start < cols):
-       raise Exception("Invalid indices %s,%s." % to_str(key))
+        raise Exception("Key out of bounds.")
     return key
 
-# Utility method to convert a number to a slice and
-# ensure all slices have a start and step.
-# val - the value to convert into a slice.
-def format_slice(val):
-    if isinstance(val, slice):
-        start = val.start if val.start is not None else 0
-        step = val.step if val.step is not None else 1
-        return slice(start, val.stop, step)
+def format_slice(key_val):
+    """Converts part of a key into a slice with a start and step.
+
+    Args:
+        key_val: The value to convert into a slice.
+
+    Returns:
+        A slice with a start and step.
+    """
+    if isinstance(key_val, slice):
+        start = key_val.start if key_val.start is not None else 0
+        step = key_val.step if key_val.step is not None else 1
+        return slice(start, key_val.stop, step)
     else:
-        return slice(val, val+1, 1)
+        return slice(key_val, key_val+1, 1)
 
-# Utility method to convert a slice to a string.
-def slice_to_str(slice_val):
-    if is_single_index(slice_val):
-        return str(slice_val.start)
-    stop = slice_val.stop if slice_val.stop is not None else ''
-    if slice_val.step != 1:
-        return "%s:%s:%s" % (slice_val.start, stop, slice_val.step)
+def slice_to_str(slice_):
+    """Converts a slice into a string.
+    """
+    if is_single_index(slice_):
+        return str(slice_.start)
+    stop = slice_.stop if slice_.stop is not None else ''
+    if slice_.step != 1:
+        return "%s:%s:%s" % (slice_.start, stop, slice_.step)
     else:
-        return "%s:%s" % (slice_val.start, stop)
+        return "%s:%s" % (slice_.start, stop)
 
-# Returns true if the slice reduces to a single index.
-def is_single_index(slice_val):
-    return slice_val.stop is not None and \
-    slice_val.start + slice_val.step >= slice_val.stop
+def is_single_index(slice_):
+    """Is the slice equivalent to a single index?
+    """
+    return slice_.stop is not None and \
+    slice_.start + slice_.step >= slice_.stop
 
-# Returns the stop index in the context of the expression.
-# slice_val - a slice object.
-# exp_dim - the length of the expression in the relevant dimension.
-def get_stop(slice_val, exp_dim):
-    if slice_val.stop is None:
+def get_stop(slice_, exp_dim):
+    """Returns the stopping index for the slice applied to the expression.
+
+    Args:
+        slice_: A Slice into the expression.
+        exp_dim: The length of the expression along the sliced dimension.
+
+    Returns:
+        The stopping index for the slice applied to the expression.
+    """
+    if slice_.stop is None:
         return exp_dim
     else:
-        return min(slice_val.stop, exp_dim)
+        return min(slice_.stop, exp_dim)
 
-# Find the dimensions of a sliced expression.
-# key - the key used to index/slice.
-# shape - the shape of the expression.
 def size(key, shape):
+    """Finds the dimensions of a sliced expression.
+
+    Args:
+        key: The key used to index/slice.
+        shape: The shape of the expression.
+
+    Returns:
+        The dimensions of the expression as (rows, cols).
+    """
     dims = []
     for i in range(2):
         stop = get_stop(key[i], shape.size[i])
         dims.append(1 + (stop-1-key[i].start)/key[i].step)
     return tuple(dims)
 
-# Converts a key (i.e. two slices) to a string.
 def to_str(key):
+    """Converts a key (i.e. two slices) into a string.
+    """
     return (slice_to_str(key[0]), slice_to_str(key[1]))

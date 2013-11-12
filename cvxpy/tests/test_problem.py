@@ -105,7 +105,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 6)
         self.assertAlmostEqual(self.a.value, 2)
 
-        p = Problem(Maximize(3*self.a - self.b), 
+        p = Problem(Maximize(3*self.a - self.b),
             [self.a <= 2, self.b == self.a, self.b <= 5])
         result = p.solve()
         self.assertAlmostEqual(result, 4.0)
@@ -113,9 +113,9 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.b.value, 2)
 
         # With a constant in the objective.
-        p = Problem(Minimize(3*self.a - self.b + 100), 
-            [self.a >= 2, 
-             self.b + 5*self.c - 2 == self.a, 
+        p = Problem(Minimize(3*self.a - self.b + 100),
+            [self.a >= 2,
+             self.b + 5*self.c - 2 == self.a,
              self.b <= 5 + self.c])
         result = p.solve()
         self.assertAlmostEqual(result, 101 + 1.0/6)
@@ -156,7 +156,7 @@ class TestProblem(BaseTest):
 
         A = matrix([[3,5],[1,2]])
         I = Constant([[1,0],[0,1]])
-        p = Problem(Minimize(c.T*self.x + self.a), 
+        p = Problem(Minimize(c.T*self.x + self.a),
             [A*self.x >= [-1,1],
              4*I*self.z == self.x,
              self.z >= [2,2],
@@ -177,7 +177,7 @@ class TestProblem(BaseTest):
 
         T = matrix(2,(2,3))
         c = matrix([3,4])
-        p = Problem(Minimize(1), [self.A >= T*self.C, 
+        p = Problem(Minimize(1), [self.A >= T*self.C,
             self.A == self.B, self.C == T.T])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
@@ -195,8 +195,8 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
-        p = Problem(Minimize(self.a), 
-            [self.A <= self.a, 
+        p = Problem(Minimize(self.a),
+            [self.A <= self.a,
              self.A == [[1,2],[3,4]]
              ])
         result = p.solve()
@@ -204,7 +204,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, 4)
 
         # Promotion must happen before the multiplication.
-        p = Problem(Minimize([[1],[1]]*(self.x + self.a + 1)), 
+        p = Problem(Minimize([[1],[1]]*(self.x + self.a + 1)),
             [self.a + self.x >= [1,2]])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
@@ -229,7 +229,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
-        p = Problem(Minimize(3*normInf(self.a + 2*self.b) + self.c), 
+        p = Problem(Minimize(3*normInf(self.a + 2*self.b) + self.c),
             [self.a >= 2, self.b <= -1, self.c == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
@@ -243,7 +243,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
-        p = Problem(Minimize(normInf(self.x - self.z) + 5), 
+        p = Problem(Minimize(normInf(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
         self.assertAlmostEqual(result, 12)
@@ -269,7 +269,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
-        p = Problem(Minimize(norm1(self.x - self.z) + 5), 
+        p = Problem(Minimize(norm1(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
@@ -295,7 +295,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
-        p = Problem(Minimize(norm2(self.x - self.z) + 5), 
+        p = Problem(Minimize(norm2(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
         self.assertAlmostEqual(result, 12.6158)
@@ -341,9 +341,9 @@ class TestProblem(BaseTest):
 
     # Test combining atoms
     def test_mixed_atoms(self):
-        p = Problem(Minimize(norm2(5 + norm1(self.z) 
-                                  + norm1(self.x) + 
-                                  normInf(self.x - self.z) ) ), 
+        p = Problem(Minimize(norm2(5 + norm1(self.z)
+                                  + norm1(self.x) +
+                                  normInf(self.x - self.z) ) ),
             [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 22)
@@ -359,9 +359,9 @@ class TestProblem(BaseTest):
 
     # Test recovery of dual variables.
     def test_dual_variables(self):
-        p = Problem(Minimize( norm1(self.x + self.z) ), 
+        p = Problem(Minimize( norm1(self.x + self.z) ),
             [self.x >= [2,3],
-             [[1,2],[3,4]]*self.z == [-1,-4], 
+             [[1,2],[3,4]]*self.z == [-1,-4],
              norm2(self.x + self.z) <= 100])
         result = p.solve()
         self.assertAlmostEqual(result, 4)
@@ -372,12 +372,12 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(p.constraints[1].dual, [-1, 0.5])
         self.assertAlmostEqual(p.constraints[2].dual, 0)
 
-    
+
         T = matrix(2,(2,3))
         c = matrix([3,4])
-        p = Problem(Minimize(1), 
-            [self.A >= T*self.C, 
-             self.A == self.B, 
+        p = Problem(Minimize(1),
+            [self.A >= T*self.C,
+             self.A == self.B,
              self.C == T.T])
         result = p.solve()
         # Dual values
@@ -402,7 +402,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, answer)
 
         # Matrix variables
-        p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ), 
+        p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
                              [self.A <= [[1,-2],[-3,4]]])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
@@ -422,13 +422,13 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
 
-        p = Problem(Maximize(sum(self.C[0:3:2,1])), 
+        p = Problem(Maximize(sum(self.C[0:3:2,1])),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.C.value[0:3:2,1], [1,2])
 
-        p = Problem(Maximize(sum( (self.C[0:2,:] + self.A)[:,0:2] )), 
+        p = Problem(Maximize(sum( (self.C[0:2,:] + self.A)[:,0:2] )),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1,
              (self.A + self.B)[:,0] == 3, (self.A + self.B)[:,1] == 2,
              self.B == 1])
@@ -437,7 +437,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.C.value[0:2,:], [1,2,1,2])
         self.assertItemsAlmostEqual(self.A.value, [2,2,1,1])
 
-        p = Problem(Maximize( [[3],[4]]*(self.C[0:2,:] + self.A)[:,0] ), 
+        p = Problem(Maximize( [[3],[4]]*(self.C[0:2,:] + self.A)[:,0] ),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1,
              [[1],[2]]*(self.A + self.B)[:,0] == 3, (self.A + self.B)[:,1] == 2,
              self.B == 1, 3*self.A[:,0] <= 3])
@@ -446,7 +446,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.C.value[0:2,0], [1,2])
         self.assertItemsAlmostEqual(self.A.value, [1,-.5,1,1])
 
-        p = Problem(Minimize(norm2((self.C[0:2,:] + self.A)[:,0] )), 
+        p = Problem(Minimize(norm2((self.C[0:2,:] + self.A)[:,0] )),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1,
              (self.A + self.B)[:,0] == 3, (self.A + self.B)[:,1] == 2,
              self.B == 1])
@@ -464,28 +464,28 @@ class TestProblem(BaseTest):
     # Test the vstack atom.
     def test_vstack(self):
         c = matrix(1, (1,5))
-        p = Problem(Minimize(c * vstack(self.x, self.y)), 
+        p = Problem(Minimize(c * vstack(self.x, self.y)),
             [self.x == [1,2],
             self.y == [3,4,5]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
 
         c = matrix(1, (1,4))
-        p = Problem(Minimize(c * vstack(self.x, self.x)), 
+        p = Problem(Minimize(c * vstack(self.x, self.x)),
             [self.x == [1,2]])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
 
         c = matrix(1, (2,2))
-        p = Problem( Minimize( sum(vstack(self.A, self.C)) ), 
+        p = Problem( Minimize( sum(vstack(self.A, self.C)) ),
             [self.A >= 2*c,
             self.C == -2])
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
         c = matrix(1, (1,2))
-        p = Problem( Minimize( sum(vstack(c*self.A, c*self.B)) ), 
+        p = Problem( Minimize( sum(vstack(c*self.A, c*self.B)) ),
             [self.A >= 2,
             self.B == -2])
         result = p.solve()
@@ -515,7 +515,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, result2)
         self.assertItemsAlmostEqual(self.C.value, value)
 
-        p = Problem(Minimize(self.A[0,1] - self.A.T[1,0]), 
+        p = Problem(Minimize(self.A[0,1] - self.A.T[1,0]),
                     [self.A == [[1,2],[3,4]]])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
@@ -562,7 +562,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
-        p = Problem(Minimize((self.x.T + self.z.T)*c), 
+        p = Problem(Minimize((self.x.T + self.z.T)*c),
             [self.x >= 2, self.z >= 1])
         result = p.solve()
         self.assertAlmostEqual(result, 9)
@@ -606,7 +606,7 @@ class TestProblem(BaseTest):
         # Ensure sdp constraints enforce transpose.
         obj = Maximize(self.A[1,0] - self.A[0,1])
         p = Problem(obj, [lambda_max(self.A) <= 100,
-                          self.A[0,0] == 2, 
+                          self.A[0,0] == 2,
                           self.A[1,1] == 2,
                           self.A[1,0] == 2])
         result = p.solve()
@@ -629,7 +629,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(diff_exp.value, self.x.value - self.z.value)
         self.assertAlmostEqual(inf_exp.value,
             LA.norm(self.x.value - self.z.value, numpy.inf))
-        self.assertAlmostEqual(sum_exp.value, 
+        self.assertAlmostEqual(sum_exp.value,
             5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) + \
             LA.norm(self.x.value - self.z.value, numpy.inf))
         self.assertAlmostEqual(constr_exp.value,

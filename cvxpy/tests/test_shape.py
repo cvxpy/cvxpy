@@ -34,7 +34,7 @@ class TestShape(unittest.TestCase):
     # Test adding two shapes.
     def test_add(self):
         self.assertEqual((Shape(3,4) + Shape(3,4)).size, (3,4))
-        
+
         with self.assertRaises(Exception) as cm:
             (Shape(1,3) + Shape(4,3))
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")
@@ -46,7 +46,7 @@ class TestShape(unittest.TestCase):
     # Test multiplying two shapes.
     def test_mul(self):
         self.assertEqual((Shape(5,9) * Shape(9,2)).size, (5,2))
-        
+
         with self.assertRaises(Exception) as cm:
             (Shape(5,3) * Shape(9,2))
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")

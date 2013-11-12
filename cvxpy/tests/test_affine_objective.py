@@ -43,12 +43,12 @@ class TestAffExpression(unittest.TestCase):
     # Test adding AffExpressions.
     def test_add(self):
         add = self.xAff + self.yAff
-        self.assertItemsEqual(add._terms, [deque([self.x]), 
+        self.assertItemsEqual(add._terms, [deque([self.x]),
                                            deque([self.y])])
         self.assertItemsEqual(add.variables(), [self.x, self.y])
 
         add = self.xAff + self.xAff
-        self.assertItemsEqual(add._terms, [deque([self.x]), 
+        self.assertItemsEqual(add._terms, [deque([self.x]),
                                            deque([self.x])])
         self.assertItemsEqual(add.variables(), [self.x, self.x])
 
@@ -120,4 +120,4 @@ class TestAffExpression(unittest.TestCase):
         xCoeffs = self.x.coefficients(self.intf)
         yCoeffs = self.y.coefficients(self.intf)
         self.assertItemsEqual(coeffs.keys(), xCoeffs.keys() + yCoeffs.keys())
-        self.assertEqual(list(coeffs[self.x]), [1,2,1,2])        
+        self.assertEqual(list(coeffs[self.x]), [1,2,1,2])

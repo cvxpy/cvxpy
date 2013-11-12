@@ -65,7 +65,7 @@ class TestExamples(unittest.TestCase):
             a3.T*x_c + np.linalg.norm(a3)*r <= b[2],
             a4.T*x_c + np.linalg.norm(a4)*r <= b[3],
         ]
-        
+
         p = Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 0.4472)
@@ -133,7 +133,7 @@ class TestExamples(unittest.TestCase):
     def test_readme_examples(self):
         import cvxopt
         import numpy
-        
+
         # Problem data.
         m = 30
         n = 20

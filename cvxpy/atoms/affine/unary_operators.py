@@ -22,7 +22,7 @@ import operator as op
 
 class UnaryOperator(AffAtom):
     """
-    Base class for expressions involving unary operators. 
+    Base class for expressions involving unary operators.
     """
     def __init__(self, expr):
         super(UnaryOperator, self).__init__(expr)
@@ -33,7 +33,7 @@ class UnaryOperator(AffAtom):
     # Applies the unary operator to the value.
     def numeric(self, values):
         return self.OP_FUNC(values[0])
-        
+
     # Returns the sign, curvature, and shape.
     def _dcp_attr(self):
         return self.OP_FUNC(self.args[0]._dcp_attr())

@@ -48,7 +48,7 @@ class Constant(Leaf, AffExpression):
         shape = u.Shape(*intf.size(self.value))
         sign = intf.sign(self.value)
         return u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
-        
+
     # Returns a coefficient dict with s.CONSTANT as the key
     # and the constant value split into columns as the value.
     def init_coefficients(self, rows, cols):

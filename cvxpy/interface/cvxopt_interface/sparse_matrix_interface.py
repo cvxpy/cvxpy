@@ -23,8 +23,8 @@ import numbers
 import numpy
 
 class SparseMatrixInterface(DenseMatrixInterface):
-    """ 
-    An interface to convert constant values to the cvxopt sparse matrix class. 
+    """
+    An interface to convert constant values to the cvxopt sparse matrix class.
     """
     TARGET_MATRIX = cvxopt.spmatrix
     # Convert an arbitrary value into a matrix of type self.target_matrix.

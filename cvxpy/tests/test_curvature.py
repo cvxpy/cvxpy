@@ -55,14 +55,14 @@ class TestCurvature(object):
         assert_equals(Curvature.AFFINE - Curvature.CONCAVE, Curvature.CONVEX)
 
     def test_sign_mult(self):
-        assert_equals(Curvature.sign_mul(Sign.POSITIVE, 
+        assert_equals(Curvature.sign_mul(Sign.POSITIVE,
                       Curvature.CONVEX), Curvature.CONVEX)
-        assert_equals(Curvature.sign_mul(Sign.UNKNOWN, 
+        assert_equals(Curvature.sign_mul(Sign.UNKNOWN,
                       Curvature.CONSTANT), Curvature.CONSTANT)
-        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, 
+        assert_equals(Curvature.sign_mul(Sign.NEGATIVE,
                       Curvature.CONCAVE), Curvature.CONVEX)
-        assert_equals(Curvature.sign_mul(Sign.ZERO, 
-                      Curvature.UNKNOWN), Curvature.AFFINE)
+        assert_equals(Curvature.sign_mul(Sign.ZERO,
+                      Curvature.UNKNOWN), Curvature.CONSTANT)
 
     def test_neg(self):
         assert_equals(-Curvature.CONVEX, Curvature.CONCAVE)

@@ -125,7 +125,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(Constant(0).sign, u.Sign.ZERO)
         self.assertEqual(c.canonicalize()[0].size, (1,1))
         self.assertEqual(c.canonicalize()[1], [])
-        
+
         coeffs = c.coefficients()
         self.assertEqual(coeffs.keys(), [s.CONSTANT])
         self.assertEqual(coeffs[s.CONSTANT], [2])
@@ -166,7 +166,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
         p = Parameter(4, 3, sign="negative")
-        with self.assertRaises(Exception) as cm:         
+        with self.assertRaises(Exception) as cm:
             p.value = val
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 

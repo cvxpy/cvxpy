@@ -17,12 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from sparse_bool_mat import SparseBoolMat
+from cvxpy.utilities.sparse_bool_mat import SparseBoolMat
 
 class Sign(object):
-    """ 
-    Signs of the entries in an expression.
+    """Signs of the entries in an expression.
+
+    Attributes:
+        neg_mat: A boolean matrix indicating whether each entry is negative.
+        pos_mat: A boolean matrix indicating whether each entry is positive.
     """
+
     POSITIVE_KEY = 'POSITIVE'
     NEGATIVE_KEY = 'NEGATIVE'
     UNKNOWN_KEY = 'UNKNOWN'
@@ -37,75 +41,100 @@ class Sign(object):
         ZERO_KEY: (SparseBoolMat.FALSE_MAT, SparseBoolMat.FALSE_MAT),
     }
 
-    # neg_mat - a boolean matrix indicating whether each entry is negative.
-    # pos_mat - a boolean matrix indicating whether each entry is positive.
     def __init__(self, neg_mat, pos_mat):
         self.neg_mat = neg_mat
         self.pos_mat = pos_mat
 
     @staticmethod
     def name_to_sign(sign_str):
+        """Converts a sign name to a Sign object.
+
+        Args:
+            sign_str: A key in the SIGN_MAP.
+
+        Returns:
+            A Sign initialized with the selected value from SIGN_MAP.
+        """
         sign_str = sign_str.upper()
         if sign_str in Sign.SIGN_MAP:
             return Sign(*Sign.SIGN_MAP[sign_str])
         else:
             raise Exception("'%s' is not a valid sign name." % str(sign_str))
 
-    # Is the expression positive?
     def is_positive(self):
+        """Is the expression positive?
+        """
         return not self.neg_mat.any()
 
-    # Is the expression negative?
     def is_negative(self):
+        """Is the expression negative?
+        """
         return not self.pos_mat.any()
 
-    # Arithmetic operators.
-    """
-    Handles logic of sign addition:
-        ZERO + ANYTHING = ANYTHING
-        UNKNOWN + ANYTHING = UNKNOWN
-        POSITIVE + NEGATIVE = UNKNOWN
-        SAME + SAME = SAME
-    """
     def __add__(self, other):
+        """Handles the logic of adding signs.
+
+        Cases:
+            ZERO + ANYTHING = ANYTHING
+            UNKNOWN + ANYTHING = UNKNOWN
+            POSITIVE + NEGATIVE = UNKNOWN
+            SAME + SAME = SAME
+
+        Args:
+            self: The Sign of the left-hand summand.
+            other: The Sign of the right-hand summand.
+
+        Returns:
+            The Sign of the sum.
+        """
         return Sign(
             self.neg_mat | other.neg_mat,
             self.pos_mat | other.pos_mat,
         )
-    
+
     def __sub__(self, other):
         return self + -other
-    
-    """
-    Handles logic of sign multiplication:
-        ZERO * ANYTHING = ZERO
-        UNKNOWN * NON-ZERO = UNKNOWN
-        POSITIVE * NEGATIVE = NEGATIVE
-        POSITIVE * POSITIVE = POSITIVE
-        NEGATIVE * NEGATIVE = POSITIVE
-    """
+
     def __mul__(self, other):
+        """Handles logic of multiplying signs.
+
+        Cases:
+            ZERO * ANYTHING = ZERO
+            UNKNOWN * NON-ZERO = UNKNOWN
+            POSITIVE * NEGATIVE = NEGATIVE
+            POSITIVE * POSITIVE = POSITIVE
+            NEGATIVE * NEGATIVE = POSITIVE
+
+        Args:
+            self: The Sign of the left-hand multiplier.
+            other: The Sign of the right-hand multiplier.
+
+        Returns:
+            The Sign of the product.
+        """
         neg_mat = self.neg_mat * other.pos_mat | \
                   self.pos_mat * other.neg_mat
         pos_mat = self.neg_mat * other.neg_mat | \
                   self.pos_mat * other.pos_mat
         return Sign(neg_mat, pos_mat)
-    
-    # Equivalent to NEGATIVE * self
+
     def __neg__(self):
+        """Equivalent to NEGATIVE * self.
+        """
         return Sign(self.pos_mat, self.neg_mat)
 
-    # Comparison.
     def __eq__(self, other):
+        """Checks equality of arguments' attributes.
+        """
         return self.neg_mat == other.neg_mat and self.pos_mat == other.pos_mat
 
-    # Promotes neg_mat and pos_mat to BoolMats of the given size.
     def promote(self, size):
+        """Promotes the Sign's internal matrices to the desired size.
+        """
         neg_mat = self.neg_mat.promote(size)
         pos_mat = self.pos_mat.promote(size)
         return Sign(neg_mat, pos_mat)
-        
-    # To string methods.
+
     def __repr__(self):
         return "Sign(%s, %s)" % (self.neg_mat, self.pos_mat)
 

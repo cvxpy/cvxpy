@@ -41,7 +41,7 @@ class TestConstraints(unittest.TestCase):
         self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.size, (2,1))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
-        
+
         with self.assertRaises(Exception) as cm:
             (self.x == self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")
@@ -52,7 +52,7 @@ class TestConstraints(unittest.TestCase):
         self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.size, (2,1))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
-        
+
         with self.assertRaises(Exception) as cm:
             (self.x <= self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions.")

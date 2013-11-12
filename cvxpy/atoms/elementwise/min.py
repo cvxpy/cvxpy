@@ -46,11 +46,11 @@ class min(max):
             neg_mat = neg_mat | arg.sign.neg_mat
             pos_mat = pos_mat & arg.sign.pos_mat
         return u.Sign(neg_mat, pos_mat)
-        
+
     # Default curvature.
     def func_curvature(self):
         return u.Curvature.CONCAVE
-    
+
     def graph_implementation(self, arg_objs):
         t = Variable(*self.size)
         constraints = [t <= x for x in arg_objs]

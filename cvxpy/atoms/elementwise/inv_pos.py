@@ -43,7 +43,7 @@ class inv_pos(Elementwise):
 
     def monotonicity(self):
         return [u.Monotonicity.DECREASING]
-    
+
     def graph_implementation(self, arg_objs):
         rows,cols = self.size
         t = Variable(rows,cols)

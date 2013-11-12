@@ -43,7 +43,7 @@ class DCPAttr(object):
         constant = self.curvature.constant
 
         return DCPAttr(Sign(neg_mat, pos_mat),
-                       Curvature(cvx_mat, conc_mat, constant), 
+                       Curvature(cvx_mat, conc_mat, constant),
                        shape)
 
     # Transpose
@@ -59,7 +59,7 @@ class DCPAttr(object):
         constant = self.curvature.constant
 
         return DCPAttr(Sign(neg_mat, pos_mat),
-                       Curvature(cvx_mat, conc_mat, constant), 
+                       Curvature(cvx_mat, conc_mat, constant),
                        shape)
 
     """ Arithmetic operations """
@@ -75,15 +75,17 @@ class DCPAttr(object):
         curvature = self.curvature - other.curvature
         return DCPAttr(sign, curvature, shape)
 
-    # Assumes self has all constant curvature.
     def __mul__(self, other):
-        shape = self.shape * other.shape
-        lh_sign = self.sign.promote(self.shape.size)
-        rh_sign = other.sign.promote(other.shape.size)
-        sign = lh_sign * rh_sign
-        rh_curvature = other.curvature.promote(other.shape.size)
-        curvature = Curvature.sign_mul(lh_sign, rh_curvature)
-        return DCPAttr(sign, curvature, shape)
+        if self.is_constant():
+            shape = self.shape * other.shape
+            lh_sign = self.sign.promote(self.shape.size)
+            rh_sign = other.sign.promote(other.shape.size)
+            sign = lh_sign * rh_sign
+            rh_curvature = other.curvature.promote(other.shape.size)
+            curvature = Curvature.sign_mul(lh_sign, rh_curvature)
+            return DCPAttr(sign, curvature, shape)
+        else:
+            return (other.T * self.T).T
 
     def __neg__(self):
         return DCPAttr(-self.sign, -self.curvature, self.shape)

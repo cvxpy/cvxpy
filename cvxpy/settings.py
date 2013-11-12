@@ -43,12 +43,12 @@ UNKNOWN = "solver_error"
 # Map of solver status to cvxpy status.
 CVXOPT = "cvxopt"
 CVXOPT_STATUS = {'optimal': SOLVED,
-                 'primal infeasible': INFEASIBLE, 
+                 'primal infeasible': INFEASIBLE,
                  'dual infeasible': UNBOUNDED,
                  'unknown': UNKNOWN}
 ECOS = "ecos"
 ECOS_STATUS = {0: SOLVED,
-               1: INFEASIBLE, 
+               1: INFEASIBLE,
                2: UNBOUNDED,
                3: UNKNOWN,
                -1: UNKNOWN,

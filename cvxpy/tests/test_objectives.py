@@ -37,11 +37,11 @@ class TestObjectives(unittest.TestCase):
         new_obj,constraints = obj.canonicalize()
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
-        self.assertEqual(len(constraints), 0) 
+        self.assertEqual(len(constraints), 0)
 
         with self.assertRaises(Exception) as cm:
             Minimize(self.y).canonicalize()
-        self.assertEqual(str(cm.exception), 
+        self.assertEqual(str(cm.exception),
             "The objective 'minimize y' must resolve to a scalar.")
 
     # Test the Maximize class.
@@ -52,11 +52,11 @@ class TestObjectives(unittest.TestCase):
         new_obj,constraints = obj.canonicalize()
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
-        self.assertEqual(len(constraints), 0) 
+        self.assertEqual(len(constraints), 0)
 
         with self.assertRaises(Exception) as cm:
             Maximize(self.y).canonicalize()
-        self.assertEqual(str(cm.exception), 
+        self.assertEqual(str(cm.exception),
             "The objective 'maximize y' must resolve to a scalar.")
 
     # Test is_dcp for Minimize and Maximize

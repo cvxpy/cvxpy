@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from dcp_attr import DCPAttr
 from curvature import Curvature
-from monotonicity import Monotonicity
+import monotonicity
 from sign import Sign
 from sparse_bool_mat import SparseBoolMat
 from shape import Shape

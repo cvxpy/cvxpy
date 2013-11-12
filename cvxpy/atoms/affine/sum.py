@@ -41,8 +41,8 @@
 #             for col in arg_attr.shape.size[1]:
 #                 index_attr.append( arg_attr[row,col] )
 #         return reduce(op.add, index_attr)
-    
-#     # Indexes/slices into the coefficients of the argument.    
+
+#     # Indexes/slices into the coefficients of the argument.
 #     def graph_implementation(self, arg_objs):
 #         lh_ones = self.size[0]*[[1]]
 #         rh_ones = self.size[1]*[1]

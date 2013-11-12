@@ -20,11 +20,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import utilities as u
 
 class NonlinearConstraint(object):
-    """ 
+    """
     A nonlinear inequality constraint:
         f(x) <= 0
     where f is twice-differentiable.
-    
+
     TODO: this may not be the best way to handle these constraints, but it is
     one of many (of course).
     """
@@ -65,7 +65,7 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_Df = Df[:,horiz_offset:horiz_offset+var_size]
-            interface.block_add(big_Df, var_Df, vert_offset, var_offsets[var], 
+            interface.block_add(big_Df, var_Df, vert_offset, var_offsets[var],
                                 self.size[0], var_size)
             horiz_offset += var_size
 
@@ -75,7 +75,7 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_H = H[offset:offset+var_size,offset:offset+var_size]
-            interface.block_add(big_H, var_H, var_offsets[var], var_offsets[var], 
+            interface.block_add(big_H, var_H, var_offsets[var], var_offsets[var],
                                 var_size, var_size)
             offset += var_size
 

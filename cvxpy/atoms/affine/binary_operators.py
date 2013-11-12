@@ -30,14 +30,14 @@ class BinaryOperator(AffAtom):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
     def name(self):
-        return ' '.join([self.args[0].name(), 
-                         self.OP_NAME, 
+        return ' '.join([self.args[0].name(),
+                         self.OP_NAME,
                          self.args[1].name()])
 
     # Applies the binary operator to the values.
     def numeric(self, values):
         return reduce(self.OP_FUNC, values)
-        
+
     # Returns the sign, curvature, and shape.
     def _dcp_attr(self):
         return self.OP_FUNC(self.args[0]._dcp_attr(), self.args[1]._dcp_attr())

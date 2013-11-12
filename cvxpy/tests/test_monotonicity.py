@@ -25,88 +25,88 @@ class TestMonotonicity(object):
     # Test application of DCP composition rules to determine curvature.
     def test_dcp_curvature(self):
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.AFFINE,
-                                                            Sign.POSITIVE, 
-                                                            Curvature.CONVEX), 
+                                                            Sign.POSITIVE,
+                                                            Curvature.CONVEX),
                       Curvature.CONVEX)
         assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.AFFINE,
                                                               Sign.POSITIVE,
-                                                              Curvature.AFFINE), 
+                                                              Curvature.AFFINE),
                     Curvature.AFFINE)
         assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.UNKNOWN,
-                                                            Sign.POSITIVE, 
-                                                            Curvature.CONSTANT), 
+                                                            Sign.POSITIVE,
+                                                            Curvature.CONSTANT),
                       Curvature.CONSTANT)
 
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONVEX,
-                                                            Sign.POSITIVE,  
-                                                            Curvature.CONVEX), 
+                                                            Sign.POSITIVE,
+                                                            Curvature.CONVEX),
                        Curvature.CONVEX)
         assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.CONVEX,
                                                             Sign.POSITIVE,
-                                                            Curvature.CONCAVE), 
+                                                            Curvature.CONCAVE),
                        Curvature.CONVEX)
 
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONCAVE,
                                                             Sign.POSITIVE,
-                                                            Curvature.CONCAVE), 
+                                                            Curvature.CONCAVE),
                       Curvature.CONCAVE)
         assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.CONCAVE,
-                                                            Sign.POSITIVE, 
-                                                            Curvature.CONVEX), 
+                                                            Sign.POSITIVE,
+                                                            Curvature.CONVEX),
                       Curvature.CONCAVE)
 
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONCAVE,
                                                             Sign.POSITIVE,
-                                                            Curvature.CONVEX), 
+                                                            Curvature.CONVEX),
                       Curvature.UNKNOWN)
         assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONCAVE,
-                                                              Sign.POSITIVE, 
-                                                              Curvature.AFFINE), 
+                                                              Sign.POSITIVE,
+                                                              Curvature.AFFINE),
                       Curvature.CONCAVE)
 
         assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONSTANT,
                                                               Sign.POSITIVE,
-                                                              Curvature.UNKNOWN), 
+                                                              Curvature.UNKNOWN),
                       Curvature.UNKNOWN)
-    
+
     # Test DCP composition rules with signed monotonicity.
     def test_signed_curvature(self):
         # Convex argument.
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.POSITIVE,
-                                                        Curvature.CONVEX), 
+                                                        Curvature.CONVEX),
                       Curvature.CONVEX)
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.NEGATIVE,
-                                                        Curvature.CONVEX), 
+                                                        Curvature.CONVEX),
                       Curvature.UNKNOWN)
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.UNKNOWN,
-                                                        Curvature.CONVEX), 
+                                                        Curvature.CONVEX),
                       Curvature.UNKNOWN)
         # Concave argument.
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.POSITIVE,
-                                                        Curvature.CONCAVE), 
+                                                        Curvature.CONCAVE),
                       Curvature.UNKNOWN)
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.NEGATIVE,
-                                                        Curvature.CONCAVE), 
+                                                        Curvature.CONCAVE),
                       Curvature.CONVEX)
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.UNKNOWN,
-                                                        Curvature.CONCAVE), 
+                                                        Curvature.CONCAVE),
                       Curvature.UNKNOWN)
         # Affine argument.
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.POSITIVE,
-                                                        Curvature.AFFINE), 
+                                                        Curvature.AFFINE),
                       Curvature.CONVEX)
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.NEGATIVE,
-                                                        Curvature.AFFINE), 
+                                                        Curvature.AFFINE),
                       Curvature.CONVEX)
         assert_equals(Monotonicity.SIGNED.dcp_curvature(Curvature.CONVEX,
                                                         Sign.UNKNOWN,
-                                                        Curvature.AFFINE), 
+                                                        Curvature.AFFINE),
                       Curvature.CONVEX)

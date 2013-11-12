@@ -109,9 +109,9 @@ class Problem(object):
             else:
                 raise Exception("Problem does not follow DCP rules.")
         objective,constr_map,dims = self.canonicalize()
-        var_offsets,x_length = self.variables(objective, 
+        var_offsets,x_length = self.variables(objective,
                                               constr_map[s.EQ] + constr_map[s.INEQ])
-       
+
         c,obj_offset = self.constraints_matrix([objective], var_offsets, x_length,
                                                self.dense_interface, self.dense_interface)
         A,b = self.constraints_matrix(constr_map[s.EQ], var_offsets, x_length,
@@ -162,12 +162,12 @@ class Problem(object):
                 bnp = None
             else:
                 Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
-                
+
             # ECHU: end conversion
             results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
-        
+
         if status == s.SOLVED:
             self.save_values(results['x'], var_offsets.keys())
             self.save_values(results['y'], constr_map[s.EQ])
@@ -192,7 +192,7 @@ class Problem(object):
             vert_offset += var.size[0]*var.size[1]
         return (var_offsets, vert_offset)
 
-    # Saves the values of the optimal primary/dual variables 
+    # Saves the values of the optimal primary/dual variables
     # as fields in the variable/constraint objects.
     def save_values(self, result_vec, objects):
         offset = 0
@@ -203,7 +203,7 @@ class Problem(object):
                 value = result_vec[offset]
             else:
                 value = self.dense_interface.zeros(rows, cols)
-                self.dense_interface.block_add(value, 
+                self.dense_interface.block_add(value,
                                                result_vec[offset:offset + rows*cols],
                                                0, 0, rows, cols)
             obj.save_value(value)
@@ -246,17 +246,17 @@ class Problem(object):
         """
         rows = sum([func.size[0] * func.size[1] for func in nl_funcs])
         cols = x_length
-        
+
         big_x = self.dense_interface.zeros(cols, 1)
         for func in nl_funcs:
             func.place_x0(big_x, var_offsets, self.dense_interface)
-        
+
         def F(x=None, z=None):
             if x is None: return rows, big_x
             big_f = self.dense_interface.zeros(rows, 1)
             big_Df = self.interface.zeros(rows, cols)
             if z: big_H = self.interface.zeros(cols, cols)
-            
+
             offset = 0
             for func in nl_funcs:
                 local_x = func.extract_variables(x, var_offsets, self.dense_interface)
@@ -273,7 +273,7 @@ class Problem(object):
                 if z:
                     func.place_H(big_H, H, var_offsets, self.interface)
                 offset += func.size[0]
-            
+
             if z is None: return big_f, big_Df
             return big_f, big_Df, big_H
         return F

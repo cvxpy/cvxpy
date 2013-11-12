@@ -25,8 +25,8 @@ class LeqConstraint(object):
         self._expr = self.lh_exp - self.rh_exp
 
     def name(self):
-        return ' '.join([self.lh_exp.name(), 
-                         self.OP_NAME, 
+        return ' '.join([self.lh_exp.name(),
+                         self.OP_NAME,
                          self.rh_exp.name()])
 
     def __repr__(self):

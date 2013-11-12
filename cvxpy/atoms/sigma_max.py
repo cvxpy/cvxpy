@@ -51,7 +51,7 @@ class sigma_max(Atom):
 
     def monotonicity(self):
         return [u.Monotonicity.NONMONOTONIC]
-    
+
     def graph_implementation(self, arg_objs):
         A = arg_objs[0] # m by n matrix.
         n,m = A.size

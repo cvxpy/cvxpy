@@ -42,7 +42,7 @@ class geo_mean(Atom):
     # Always unknown.
     def sign_from_args(self):
         return u.Sign.UNKNOWN
-        
+
     # Default curvature.
     def func_curvature(self):
         return u.Curvature.CONCAVE
@@ -54,7 +54,7 @@ class geo_mean(Atom):
     def validate_arguments(self):
         if not self.args[0].is_scalar() or not self.args[1].is_scalar():
             raise TypeError("The arguments to geo_mean must resolve to scalars." )
-    
+
     def graph_implementation(self, arg_objs):
         v = Variable()
         x = arg_objs[0]
