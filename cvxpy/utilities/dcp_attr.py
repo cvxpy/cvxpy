@@ -49,11 +49,11 @@ class DCPAttr(object):
         shape = Shape(*ku.size(key, self.shape))
 
         # Reduce 1x1 matrices to scalars.
-        neg_mat = bu.to_scalar(self.sign.neg_mat[key])
-        pos_mat = bu.to_scalar(self.sign.pos_mat[key])
-        cvx_mat = bu.to_scalar(self.curvature.cvx_mat[key])
-        conc_mat = bu.to_scalar(self.curvature.conc_mat[key])
-        nonconst_mat = bu.to_scalar(self.curvature.nonconst_mat[key])
+        neg_mat = bu.to_scalar(bu.index(self.sign.neg_mat, key))
+        pos_mat = bu.to_scalar(bu.index(self.sign.pos_mat, key))
+        cvx_mat = bu.to_scalar(bu.index(self.curvature.cvx_mat, key))
+        conc_mat = bu.to_scalar(bu.index(self.curvature.conc_mat, key))
+        nonconst_mat = bu.to_scalar(bu.index(self.curvature.nonconst_mat, key))
 
         return DCPAttr(Sign(neg_mat, pos_mat),
                        Curvature(cvx_mat, conc_mat, nonconst_mat),

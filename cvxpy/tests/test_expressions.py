@@ -133,7 +133,7 @@ class TestExpressions(unittest.TestCase):
         # Test the sign.
         c = Constant([[2],[2]])
         self.assertEqual(c.size, (1,2))
-        self.assertEqual(c.sign.neg_mat.value.shape, (1,2))
+        self.assertEqual(c.sign.neg_mat.shape, (1,2))
 
         # Test sign of a complex expression.
         c = Constant([1, 2])
@@ -142,9 +142,9 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.sign, u.Sign.POSITIVE)
         self.assertEqual((c.T*c).sign, u.Sign.POSITIVE)
         exp = c.T.T
-        self.assertEqual(exp.sign.pos_mat.value.ndim, 2)
+        self.assertEqual(exp.sign.pos_mat.shape, (2,1))
         exp = c.T*self.A
-        self.assertEqual(exp.sign.pos_mat.value.ndim, 2)
+        self.assertEqual(exp.sign.pos_mat.shape, (1,2))
 
     # Test the Parameter class.
     def test_parameters(self):

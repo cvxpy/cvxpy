@@ -61,6 +61,18 @@ def dot(lh_mat, rh_mat):
         rh_mat = rh_mat.todense()
     return np.dot(lh_mat, rh_mat)
 
+def index(value, key):
+    """Indexes/slices into the value.
+
+    Args:
+        value: A bool Numpy ndarray, SparseBoolMat, or Numpy bool_.
+        key: The indices/slices into the value.
+    """
+    if isinstance(value, np.bool_):
+        return value
+    else:
+        return value[key]
+
 def promote(value, rows, cols):
     """Promotes a scalar to a matrix of the desired size.
 
