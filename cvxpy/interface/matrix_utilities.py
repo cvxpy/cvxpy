@@ -20,11 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxopt_interface as co_intf
 import numpy_interface as np_intf
 import numpy_wrapper
-import cvxpy.utilities as u
 import cvxopt
 import scipy.sparse as sp
 import numbers
 import numpy as np
+from ..utilities.sign import Sign
+from ..utilities.sparse_bool_mat import SparseBoolMat
 
 # A mapping of class to interface.
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
@@ -84,7 +85,7 @@ def scalar_value(constant):
 # TODO scipy sparse matrices.
 def sign(constant):
     if isinstance(constant, numbers.Number):
-        return u.Sign(np.bool_(constant < 0), np.bool_(constant > 0))
+        return Sign(np.bool_(constant < 0), np.bool_(constant > 0))
     elif isinstance(constant, cvxopt.spmatrix):
         # Convert to COO matrix.
         V = np.array(list(constant.V))
@@ -93,10 +94,10 @@ def sign(constant):
         # Check if entries > 0 for pos_mat, < 0 for neg_mat.
         neg_mat = sp.coo_matrix((V < 0,(I,J)), shape=constant.size, dtype='bool')
         pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
-        return u.Sign(u.SparseBoolMat(neg_mat), u.SparseBoolMat(pos_mat))
+        return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
     else:
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
-        return u.Sign(mat < 0, mat > 0)
+        return Sign(mat < 0, mat > 0)
 
 # Get the value at the given index.
 def index(constant, key):

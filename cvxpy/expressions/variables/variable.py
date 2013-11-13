@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from ... import settings as s
 from ... import utilities as u
+from ...utilities import coefficient_utils as cu
 from ... import interface as intf
 from ..affine import AffExpression
 from ..constants import Constant
@@ -62,3 +63,8 @@ class Variable(Leaf, AffExpression):
         identity = intf.DEFAULT_SPARSE_INTERFACE.identity(rows*cols)
         blocks = [identity[i*rows:(i+1)*rows,:] for i in range(cols)]
         return {self: np.array(blocks, dtype="object", ndmin=1)}
+
+    def coefficients(self):
+        """TODO replace init_coefficients with this.
+        """
+        return cu.format_coeffs(self.init_coefficients(*self.size))
