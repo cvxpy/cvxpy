@@ -40,19 +40,19 @@ class TestVstack(unittest.TestCase):
 
     # Test the variables method.
     def test_variables(self):
-        exp,constr = vstack(self.x, self.y, self.x+self.y).canonicalize()
+        exp,constr = vstack(self.x, self.y, self.x+self.y).canonical_form
         self.assertEquals(constr, [])
         self.assertItemsEqual(exp.variables(), [self.x, self.y])
-        exp = vstack(self.A, self.B, self.C).canonicalize()[0]
+        exp = vstack(self.A, self.B, self.C).canonical_form[0]
         self.assertItemsEqual(exp.variables(), [self.A, self.B])
 
     # Test coefficients method.
     def test_coefficients(self):
-        exp = vstack(self.x).canonicalize()[0]
+        exp = vstack(self.x).canonical_form[0]
         coeffs = exp.coefficients()
         self.assertEqual(coeffs.keys(), self.x.coefficients().keys())
 
-        exp = vstack(self.x, self.y).canonicalize()[0]
+        exp = vstack(self.x, self.y).canonical_form[0]
         coeffs = exp.coefficients()
         self.assertItemsEqual(coeffs.keys(),
             self.x.coefficients().keys() + \
@@ -62,7 +62,7 @@ class TestVstack(unittest.TestCase):
             for block in blocks:
                 self.assertEqual(intf.size(block), (4,2))
 
-        exp = vstack(self.A, self.B, self.C).canonicalize()[0]
+        exp = vstack(self.A, self.B, self.C).canonical_form[0]
         coeffs = exp.coefficients()
         blocks = coeffs[self.A]
         self.assertEqual(len(blocks), 2)

@@ -43,7 +43,9 @@ class Problem(object):
     REGISTERED_SOLVE_METHODS = {}
     # objective - the problem objective.
     # constraints - the problem constraints.
-    def __init__(self, objective, constraints=[]):
+    def __init__(self, objective, constraints=None):
+        if constraints is None:
+            constraints = []
         self.objective = objective
         self.constraints = constraints
         self.interface = intf.DEFAULT_SPARSE_INTERFACE
@@ -73,10 +75,12 @@ class Problem(object):
     # Convert the problem into an affine objective and affine constraints.
     # Also returns the dimensions of the cones for the solver.
     def canonicalize(self):
-        obj,constraints = self.objective.canonicalize()
+        constraints = []
+        obj, constr = self.objective.canonical_form
+        constraints += constr
         unique_constraints = list(set(self.constraints))
         for constr in unique_constraints:
-            constraints += constr.canonicalize()[1]
+            constraints += constr.canonical_form[1]
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
         # Formats SOC and SDP constraints for the solver.

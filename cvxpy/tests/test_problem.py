@@ -124,7 +124,8 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.c.value, -1.0/6)
 
         # Test get_status.
-        p = Problem(Maximize(self.a), [self.a <= 2])
+        exp = Maximize(self.a)
+        p = Problem(exp, [self.a <= 2])
         status = s.get_status(p.solve(solver=s.ECOS))
         self.assertEqual(status, s.SOLVED)
 

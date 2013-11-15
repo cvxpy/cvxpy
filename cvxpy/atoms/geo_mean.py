@@ -59,6 +59,6 @@ class geo_mean(Atom):
         v = Variable()
         x = arg_objs[0]
         y = arg_objs[1]
-        obj,constraints = vstack(y - x, 2*v).canonicalize()
+        obj,constraints = vstack(y - x, 2*v).canonical_form
         constraints += [SOC(x + y, obj), 0 <= x, 0 <= y]
         return (v, constraints)

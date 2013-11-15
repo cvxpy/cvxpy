@@ -9,16 +9,6 @@ class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """
 
-    def __init__(self, *args):
-        super(AddExpression, self).__init__(*args)
-        # Promote the terms if necessary.
-        rows, cols = self.size
-        promoted_args = []
-        for arg in self.args:
-            promoted_args.append( self._promote(arg) )
-        self.args = promoted_args
-        self.subexpressions = self.args
-
     def _promote(self, expr):
         """Promote a scalar expression to a matrix.
 
@@ -58,7 +48,12 @@ class AddExpression(AffAtom):
     def func_coefficients(self):
         """Return the dict of Variable to coefficient for the sum.
         """
-        coeff_list = [arg.coefficients() for arg in self.args]
+        # Promote the terms if necessary.
+        rows, cols = self.size
+        promoted_args = []
+        for arg in self.args:
+            promoted_args.append( self._promote(arg) )
+        coeff_list = [arg.coefficients() for arg in promoted_args]
         return reduce(cu.add, coeff_list)
 
     def __add__(self, other):

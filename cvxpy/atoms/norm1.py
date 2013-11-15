@@ -52,5 +52,5 @@ class norm1(Atom):
 
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
-        obj,constraints = abs(x).canonicalize()
+        obj,constraints = abs(x).canonical_form
         return (sum(obj),constraints)

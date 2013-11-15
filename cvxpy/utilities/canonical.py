@@ -18,30 +18,29 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-import types
-import expression
-from .. import utilities as u
-from .. import interface as intf
+import performance_utils as pu
 
-class Leaf(expression.Expression):
+class Canonical(object):
     """
-    A leaf node, i.e. a Variable, Constant, or Parameter.
+    An interface for objects that can be canonicalized.
     """
+
     __metaclass__ = abc.ABCMeta
-    # Leaf has no subexpressions.
-    subexpressions = []
 
-    # Returns a new unique name based on a global counter.
-    COUNT = 0
-    @staticmethod
-    def next_name(prefix):
-        Leaf.COUNT += 1
-        return "%s%d" % (prefix, Leaf.COUNT)
-
-    # Returns the leaf's value.
-    def numeric(self, values):
-        return self.value
-
-    # Default canonicalization for leaf nodes.
+    @abc.abstractmethod
     def canonicalize(self):
-        return (self, [])
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        return NotImplemented
+
+    @pu.lazyprop
+    def canonical_form(self):
+        """The graph implementation of the object stored as a property.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        return self.canonicalize()

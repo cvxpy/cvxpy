@@ -53,6 +53,6 @@ class sqrt(Elementwise):
         for i in xrange(rows):
             for j in xrange(cols):
                 xi = arg_objs[0][i,j]
-                obj,constr = geo_mean(xi, 1).canonicalize()
+                obj,constr = geo_mean(xi, 1).canonical_form
                 constraints += constr + [obj >= t[i,j], 0 <= xi]
         return (t, constraints)

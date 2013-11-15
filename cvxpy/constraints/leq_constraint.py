@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import utilities as u
 
-class LeqConstraint(u.Affine):
+class LeqConstraint(u.Affine, u.Canonical):
     OP_NAME = "<="
     def __init__(self, lh_exp, rh_exp, parent=None):
         self.lh_exp = lh_exp
@@ -44,7 +44,7 @@ class LeqConstraint(u.Affine):
         return self._expr.curvature.is_convex()
 
     def canonicalize(self):
-        obj, constraints = self._expr.canonicalize()
+        obj, constraints = self._expr.canonical_form
         dual_holder = self.__class__(obj, 0, parent=self)
         return (None, constraints + [dual_holder])
 
@@ -56,8 +56,12 @@ class LeqConstraint(u.Affine):
     def dual_value(self):
         return self._dual_value
 
-    # Save the value of the dual variable for the constraint's parent.
     def save_value(self, value):
+        """Save the value of the dual variable for the constraint's parent.
+
+        Args:
+            value: The value of the dual variable.
+        """
         if self.parent is None:
             self._dual_value = value
         else:

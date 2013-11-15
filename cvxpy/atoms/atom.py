@@ -99,7 +99,7 @@ class Atom(Expression):
             arg_objs = []
             constraints = []
             for arg in self.args:
-                obj,constr = arg.canonicalize()
+                obj,constr = arg.canonical_form
                 arg_objs.append(obj)
                 constraints += constr
             graph_obj,graph_constr = self.graph_implementation(arg_objs)
@@ -116,7 +116,7 @@ class Atom(Expression):
     def func_coefficients(self):
         """Only affine atoms can return coefficients if non-constant.
         """
-        raise Exception("Cannot canonicalize a non-affine expression.")
+        raise Exception("Cannot get the coefficients of a non-affine expression.")
 
     # Returns an affine expression and list of
     # constraints equivalent to the atom.

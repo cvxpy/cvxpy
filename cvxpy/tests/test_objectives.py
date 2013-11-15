@@ -34,13 +34,13 @@ class TestObjectives(unittest.TestCase):
         exp = self.x + self.z
         obj = Minimize(exp)
         self.assertEqual(obj.name(), "minimize %s" % exp.name())
-        new_obj,constraints = obj.canonicalize()
+        new_obj,constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
         self.assertEqual(len(constraints), 0)
 
         with self.assertRaises(Exception) as cm:
-            Minimize(self.y).canonicalize()
+            Minimize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
             "The objective 'minimize y' must resolve to a scalar.")
 
@@ -49,13 +49,13 @@ class TestObjectives(unittest.TestCase):
         exp = self.x + self.z
         obj = Maximize(exp)
         self.assertEqual(obj.name(), "maximize %s" % exp.name())
-        new_obj,constraints = obj.canonicalize()
+        new_obj,constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
         self.assertEqual(len(constraints), 0)
 
         with self.assertRaises(Exception) as cm:
-            Maximize(self.y).canonicalize()
+            Maximize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
             "The objective 'maximize y' must resolve to a scalar.")
 

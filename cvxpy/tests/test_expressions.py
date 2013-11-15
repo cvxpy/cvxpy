@@ -55,8 +55,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.size, (2,1))
         self.assertEqual(y.size, (1,1))
         self.assertEqual(x.curvature, u.Curvature.AFFINE)
-        self.assertEqual(x.canonicalize()[0].size, (2,1))
-        self.assertEqual(x.canonicalize()[1], [])
+        self.assertEqual(x.canonical_form[0].size, (2,1))
+        self.assertEqual(x.canonical_form[1], [])
 
         # Scalar variable
         coeff = self.a.coefficients()
@@ -98,7 +98,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(var.name(), "C.T")
         self.assertEquals(var.size, (2,3))
 
-        # coeffs = var.canonicalize()[0].coefficients()
+        # coeffs = var.canonical_form[0].coefficients()
         # mat = coeffs.values()[0][0]
         # self.assertEqual(mat.size, (2,6))
         # self.assertEqual(mat[1,3], 1)
@@ -123,8 +123,8 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.sign, u.Sign.POSITIVE)
         self.assertEqual(Constant(-2).sign, u.Sign.NEGATIVE)
         self.assertEqual(Constant(0).sign, u.Sign.ZERO)
-        self.assertEqual(c.canonicalize()[0].size, (1,1))
-        self.assertEqual(c.canonicalize()[1], [])
+        self.assertEqual(c.canonical_form[0].size, (1,1))
+        self.assertEqual(c.canonical_form[1], [])
 
         coeffs = c.coefficients()
         self.assertEqual(coeffs.keys(), [s.CONSTANT])
@@ -181,8 +181,8 @@ class TestExpressions(unittest.TestCase):
         exp = self.x + c
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.sign, u.Sign.UNKNOWN)
-        self.assertEqual(exp.canonicalize()[0].size, (2,1))
-        self.assertEqual(exp.canonicalize()[1], [])
+        self.assertEqual(exp.canonical_form[0].size, (2,1))
+        self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " + " + c.name())
         self.assertEqual(exp.size, (2,1))
 
@@ -210,8 +210,8 @@ class TestExpressions(unittest.TestCase):
         exp = self.x - c
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.sign, u.Sign.UNKNOWN)
-        self.assertEqual(exp.canonicalize()[0].size, (2,1))
-        self.assertEqual(exp.canonicalize()[1], [])
+        self.assertEqual(exp.canonical_form[0].size, (2,1))
+        self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
         self.assertEqual(exp.size, (2,1))
 
@@ -238,8 +238,8 @@ class TestExpressions(unittest.TestCase):
         exp = c*self.x
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual((c[0]*self.x).sign, u.Sign.UNKNOWN)
-        self.assertEqual(exp.canonicalize()[0].size, (1,1))
-        self.assertEqual(exp.canonicalize()[1], [])
+        self.assertEqual(exp.canonical_form[0].size, (1,1))
+        self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
         self.assertEqual(exp.size, (1,1))
 
@@ -274,8 +274,8 @@ class TestExpressions(unittest.TestCase):
         exp = -self.x
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.sign, u.Sign.UNKNOWN)
-        self.assertEqual(exp.canonicalize()[0].size, (2,1))
-        self.assertEqual(exp.canonicalize()[1], [])
+        self.assertEqual(exp.canonical_form[0].size, (2,1))
+        self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), "-%s" % self.x.name())
         self.assertEqual(exp.size, self.x.size)
 
@@ -290,8 +290,8 @@ class TestExpressions(unittest.TestCase):
         exp = self.x + 2
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEqual(exp.sign, u.Sign.UNKNOWN)
-        self.assertEqual(exp.canonicalize()[0].size, (2,1))
-        self.assertEqual(exp.canonicalize()[1], [])
+        self.assertEqual(exp.canonical_form[0].size, (2,1))
+        self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
         self.assertEqual(exp.size, (2,1))
 
@@ -315,7 +315,7 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
-        # coeff = exp.canonicalize()[0].coefficients()[self.x][0]
+        # coeff = exp.canonical_form[0].coefficients()[self.x][0]
         # self.assertEqual(coeff[0,1], 1)
         self.assertEqual(exp.value, None)
 

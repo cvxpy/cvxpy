@@ -61,7 +61,7 @@ class sigma_max(Atom):
         I_n = Constant(np.eye(n))
         I_m = Constant(np.eye(m))
         # Expand A.T.
-        obj,constr = A.T.canonicalize()
+        obj,constr = A.T.canonical_form
         # Fix X using the fact that A must be affine by the DCP rules.
         constr += [X[0:n,0:n] == I_n*t,
                    X[0:n,n:n+m] == A,

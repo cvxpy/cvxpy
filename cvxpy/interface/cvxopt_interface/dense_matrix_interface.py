@@ -29,7 +29,11 @@ class DenseMatrixInterface(BaseMatrixInterface):
     # Convert an arbitrary value into a matrix of type self.target_matrix.
     @BaseMatrixInterface.scalar_const
     def const_to_matrix(self, value):
-        return cvxopt.matrix(value, tc='d')
+        # ECHU: temporary workaround when travis fails
+        try:
+            return cvxopt.matrix(value, tc='d')
+        except TypeError:
+            return cvxopt.matrix(value.T.tolist(), tc='d')
 
     # Return an identity matrix.
     def identity(self, size):

@@ -17,11 +17,23 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine import Affine
-from canonical import Canonical
-from curvature import Curvature
-from dcp_attr import DCPAttr
-import monotonicity
-from sign import Sign
-from sparse_bool_mat import SparseBoolMat
-from shape import Shape
+#http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
+
+def lazyprop(fn):
+    """Wraps a property so it is lazily evaluated.
+
+    Args:
+        fn: The property to wrap.
+
+    Returns:
+        A property that only does computation the first time it is called.
+    """
+    attr_name = '_lazy_' + fn.__name__
+    @property
+    def _lazyprop(self):
+        """A lazily evaluated propery.
+        """
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+    return _lazyprop

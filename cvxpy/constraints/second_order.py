@@ -39,4 +39,4 @@ class SOC(object):
     # The dimensions of the second-order cone.
     @property
     def size(self):
-        return (self.x.size[0]*self.x.size[1] + self.t.size[0],1)
+        return (self.x.size[0]*self.x.size[1] + self.t.size[0], 1)

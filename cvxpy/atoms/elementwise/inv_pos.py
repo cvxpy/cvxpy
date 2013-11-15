@@ -51,6 +51,6 @@ class inv_pos(Elementwise):
         for i in xrange(rows):
             for j in xrange(cols):
                 xi = arg_objs[0][i,j]
-                obj,constr = quad_over_lin(1, xi).canonicalize()
+                obj,constr = quad_over_lin(1, xi).canonical_form
                 constraints += constr + [obj <= t[i,j], 0 <= xi]
         return (t, constraints)

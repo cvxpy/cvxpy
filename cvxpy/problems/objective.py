@@ -21,7 +21,7 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions.expression import Expression
 
-class Minimize(object):
+class Minimize(u.Canonical):
     """
     An optimization objective for minimization.
     """
@@ -43,7 +43,7 @@ class Minimize(object):
 
     # Pass on the target expression's objective and constraints.
     def canonicalize(self):
-        return self.expr.canonicalize()
+        return self.expr.canonical_form
 
     # Objective must be convex.
     def is_dcp(self):
@@ -65,7 +65,7 @@ class Maximize(Minimize):
     An optimization objective for maximization.
     """
     def canonicalize(self):
-        obj,constraints = super(Maximize, self).canonicalize()
+        obj, constraints = super(Maximize, self).canonicalize()
         return (-obj, constraints)
 
     # Objective must be concave.

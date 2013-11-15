@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import interface as intf
 from .. import utilities as u
+from ..utilities import performance_utils as pu
 from ..constraints import EqConstraint, LeqConstraint
 import types
 import abc
@@ -39,21 +40,12 @@ def _cast_other(binary_op):
         return binary_op(self, other)
     return cast_op
 
-class Expression(u.Affine):
+class Expression(u.Affine, u.Canonical):
     """
     A mathematical expression in a convex optimization problem.
     """
 
     __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def canonicalize(self):
-        """Returns the graph implementation of the expression.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
-        return NotImplemented
 
     @property
     def value(self):

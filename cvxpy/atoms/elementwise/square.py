@@ -53,6 +53,6 @@ class square(Elementwise):
         for i in xrange(rows):
             for j in xrange(cols):
                 xi = arg_objs[0][i,j]
-                obj,constr = quad_over_lin(xi, 1).canonicalize()
+                obj,constr = quad_over_lin(xi, 1).canonical_form
                 constraints += constr + [obj <= t[i,j]]
         return (t, constraints)
