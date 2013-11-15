@@ -1,3 +1,22 @@
+"""
+Copyright 2013 Steven Diamond
+
+This file is part of CVXPY.
+
+CVXPY is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+CVXPY is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from affine_atom import AffAtom
 from ...utilities import coefficient_utils as cu
 from ...expressions.expression import Expression
@@ -77,5 +96,5 @@ class AddExpression(AffAtom):
     def __add__(self, other):
         """Multiple additions become a single expression rather than a tree.
         """
-        other = Expression.cast_to_const(other)
+        other = AddExpression.cast_to_const(other)
         return AddExpression(self.args + [other], prev_sum=self)

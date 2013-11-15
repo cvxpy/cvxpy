@@ -17,12 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import *
-from cvxpy.expressions.constants import Parameter
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables import Variable
-from cvxpy.problems.objective import *
-from cvxpy.problems.problem import Problem
+import cvxpy as cp
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.interface.numpy_wrapper as np
 import unittest
@@ -56,9 +51,9 @@ class TestExamples(unittest.TestCase):
         b = np.ones([4,1])
 
         # Create and solve the model
-        r = Variable(name='r')
-        x_c = Variable(2,name='x_c')
-        obj = Maximize(r)
+        r = cp.Variable(name='r')
+        x_c = cp.Variable(2,name='x_c')
+        obj = cp.Maximize(r)
         constraints = [ #TODO have atoms compute values for constants.
             a1.T*x_c + np.linalg.norm(a1)*r <= b[0],
             a2.T*x_c + np.linalg.norm(a2)*r <= b[1],
@@ -66,7 +61,7 @@ class TestExamples(unittest.TestCase):
             a4.T*x_c + np.linalg.norm(a4)*r <= b[3],
         ]
 
-        p = Problem(obj, constraints)
+        p = cp.Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 0.4472)
         self.assertAlmostEqual(r.value, result)
@@ -100,18 +95,18 @@ class TestExamples(unittest.TestCase):
         r2 = cvxopt.normal(1, 1)
         r3 = cvxopt.normal(1, 1)
 
-        slack = Variable()
+        slack = cp.Variable()
         # Form the problem
-        x = Variable(n)
-        objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 + slack)
-        constraints = [0.5*quad_form(x,P1) + q1.T*x + r1 <= slack,
-                       0.5*quad_form(x,P2) + q2.T*x + r2 <= slack,
-                       0.5*quad_form(x,P3) + q3.T*x + r3 <= slack,
+        x = cp.Variable(n)
+        objective = cp.Minimize( 0.5*cp.quad_form(x,P0) + q0.T*x + r0 + slack)
+        constraints = [0.5*cp.quad_form(x,P1) + q1.T*x + r1 <= slack,
+                       0.5*cp.quad_form(x,P2) + q2.T*x + r2 <= slack,
+                       0.5*cp.quad_form(x,P3) + q3.T*x + r3 <= slack,
         ]
 
         # We now find the primal result and compare it to the dual result
         # to check if strong duality holds i.e. the duality gap is effectively zero
-        p = Problem(objective, constraints)
+        p = cp.Problem(objective, constraints)
         primal_result = p.solve()
 
         # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
@@ -141,10 +136,10 @@ class TestExamples(unittest.TestCase):
         b = cvxopt.normal(m)
 
         # Construct the problem.
-        x = Variable(n)
-        objective = Minimize(sum(square(A*x - b)))
+        x = cp.Variable(n)
+        objective = cp.Minimize(sum(cp.square(A*x - b)))
         constraints = [0 <= x, x <= 1]
-        p = Problem(objective, constraints)
+        p = cp.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
         result = p.solve()
@@ -157,36 +152,36 @@ class TestExamples(unittest.TestCase):
         ####################################################
 
         # Scalar variable.
-        a = Variable()
+        a = cp.Variable()
 
         # Column vector variable of length 5.
-        x = Variable(5)
+        x = cp.Variable(5)
 
         # Matrix variable with 4 rows and 7 columns.
-        A = Variable(4,7)
+        A = cp.Variable(4, 7)
 
         ####################################################
-
+        
         # Positive scalar parameter.
-        m = Parameter(sign="positive")
+        m = cp.Parameter(sign="positive")
 
         # Column vector parameter with unknown sign (by default).
-        c = Parameter(5)
+        c = cp.Parameter(5)
 
         # Matrix parameter with negative entries.
-        G = Parameter(4,7,sign="negative")
+        G = cp.Parameter(4, 7, sign="negative")
 
         # Assigns a constant value to G.
-        G.value = -numpy.ones((4,7))
+        G.value = -numpy.ones((4, 7))
 
         ####################################################
-        a = Variable()
-        x = Variable(5)
+        a = cp.Variable()
+        x = cp.Variable(5)
 
         # expr is an Expression object after each assignment.
         expr = 2*x
         expr = expr - a
-        expr = sum(expr) + norm2(x)
+        expr = sum(expr) + cp.norm(x, 2)
 
         ####################################################
 
@@ -199,12 +194,12 @@ class TestExamples(unittest.TestCase):
         m = 5
         A = cvxopt.normal(n,m)
         b = cvxopt.normal(n)
-        gamma = Parameter(sign="positive")
+        gamma = cp.Parameter(sign="positive")
 
         # Construct the problem.
-        x = Variable(m)
-        objective = Minimize(sum(square(A*x - b)) + gamma*norm1(x))
-        p = Problem(objective)
+        x = cp.Variable(m)
+        objective = cp.Minimize(sum(cp.square(A*x - b)) + gamma*cp.norm(x, 1))
+        p = cp.Problem(objective)
 
         # Assign a value to gamma and find the optimal x.
         def get_x(gamma_value):
@@ -222,9 +217,9 @@ class TestExamples(unittest.TestCase):
         mu = cvxopt.normal(1, n)
         sigma = cvxopt.normal(n,n)
         sigma = sigma.T*sigma
-        gamma = Parameter(sign="positive")
+        gamma = cp.Parameter(sign="positive")
         gamma.value = 1
-        x = Variable(n)
+        x = cp.Variable(n)
 
         # Constants:
         # mu is the vector of expected returns.
@@ -235,10 +230,10 @@ class TestExamples(unittest.TestCase):
         # x is a vector of stock holdings as fractions of total assets.
 
         expected_return = mu*x
-        risk = quad_form(x, sigma)
+        risk = cp.quad_form(x, sigma)
 
-        objective = Maximize(expected_return - gamma*risk)
-        p = Problem(objective, [sum(x) == 1])
+        objective = cp.Maximize(expected_return - gamma*risk)
+        p = cp.Problem(objective, [sum(x) == 1])
         result = p.solve()
 
         # The optimal expected return.
@@ -246,6 +241,41 @@ class TestExamples(unittest.TestCase):
 
         # The optimal risk.
         print risk.value
+
+        ###########################################
+
+        N = 50
+        M = 40
+        n = 10
+        data = []
+        for i in range(N):
+            data += [(1, cvxopt.normal(n, mean=1.0, std=2.0))]
+        for i in range(M):
+            data += [(-1, cvxopt.normal(n, mean=-1.0, std=2.0))]
+
+        # Construct problem.
+        gamma = cp.Parameter(sign="positive")
+        gamma.value = 0.1
+        # 'a' is a variable constrained to have at most 6 non-zero entries.
+        a = cp.Variable(n)#mi.SparseVar(n, nonzeros=6)
+        b = cp.Variable()
+
+        slack = [cp.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
+        objective = cp.Minimize(cp.norm(a, 2) + gamma*sum(slack))
+        p = cp.Problem(objective)
+        # Extensions can attach new solve methods to the CVXPY Problem class. 
+        #p.solve(method="admm")
+        p.solve()
+
+        # Count misclassifications.
+        errors = 0
+        for label, sample in data:
+            if label*(sample.T*a - b).value < 0:
+                errors += 1
+
+        print "%s misclassifications" % errors
+        print a.value
+        print b.value
 
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
@@ -265,12 +295,12 @@ class TestExamples(unittest.TestCase):
     #     N = 100
     #     # CVXPY
     #     Sroot = numpy.asmatrix(scipy.linalg.sqrtm(S))
-    #     x = Variable(n, name='x')
-    #     mu = Parameter(name='mu')
-    #     mu.value = 1 # TODO Parameter("positive")
-    #     objective = Minimize(-pbar*x + mu*quad_over_lin(Sroot*x,1))
+    #     x = cp.Variable(n, name='x')
+    #     mu = cp.Parameter(name='mu')
+    #     mu.value = 1 # TODO cp.Parameter("positive")
+    #     objective = cp.Minimize(-pbar*x + mu*quad_over_lin(Sroot*x,1))
     #     constraints = [sum(x) == 1, x >= 0]
-    #     p = Problem(objective, constraints)
+    #     p = cp.Problem(objective, constraints)
 
     #     mus = [ 10**(5.0*t/N-1.0) for t in range(N) ]
     #     xs = []

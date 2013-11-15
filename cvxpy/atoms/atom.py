@@ -37,7 +37,7 @@ class Atom(Expression):
                 "No arguments given to '%s'." % self.__class__.__name__
             )
         # Convert raw values to Constants.
-        self.args = [Expression.cast_to_const(arg) for arg in args]
+        self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self.init_dcp_attr()
         self.subexpressions = self.args

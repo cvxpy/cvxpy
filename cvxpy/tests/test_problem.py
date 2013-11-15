@@ -403,7 +403,8 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, answer)
 
         # Matrix variables
-        p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
+        import __builtin__
+        p = Problem(Maximize( __builtin__.sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
                              [self.A <= [[1,-2],[-3,4]]])
         result = p.solve()
         self.assertAlmostEqual(result, 0)

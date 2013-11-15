@@ -30,6 +30,7 @@ from quad_form import quad_form
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
 
+from affine.sum import sum
 from affine.vstack import vstack
 
 from elementwise.abs import abs
