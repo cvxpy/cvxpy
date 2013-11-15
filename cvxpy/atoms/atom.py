@@ -131,12 +131,30 @@ class Atom(Expression):
         # Remove duplicates.
         return list(set(param_list))
 
+    @property
+    def value(self):
+        arg_values = []
+        for arg in self.args:
+            # A argument without a value makes all higher level
+            # values None.
+            if arg.value is None:
+                return None
+            else:
+                arg_values.append(arg.value)
+        result = self.numeric(arg_values)
+        # Reduce to a scalar if possible.
+        if intf.size(result) == (1, 1):
+            return intf.scalar_value(result)
+        else:
+            return result
+
     # Wraps an atom's numeric function that requires numpy ndarrays as input.
     # Ensures both inputs and outputs are the correct matrix types.
     @staticmethod
     def numpy_numeric(numeric_func):
         def new_numeric(self, values):
-            values = map(intf.DEFAULT_NP_INTERFACE.const_to_matrix, values)
+            interface = intf.DEFAULT_NP_INTERFACE
+            values = [interface.const_to_matrix(v) for v in values]
             result = numeric_func(self, values)
             return intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(result)
         return new_numeric

@@ -27,9 +27,8 @@ class Leaf(expression.Expression, u.Affine):
     """
     A leaf node, i.e. a Variable, Constant, or Parameter.
     """
+
     __metaclass__ = abc.ABCMeta
-    # Leaf has no subexpressions.
-    subexpressions = []
 
     # Returns a new unique name based on a global counter.
     COUNT = 0
@@ -37,10 +36,6 @@ class Leaf(expression.Expression, u.Affine):
     def next_name(prefix):
         Leaf.COUNT += 1
         return "%s%d" % (prefix, Leaf.COUNT)
-
-    # Returns the leaf's value.
-    def numeric(self, values):
-        return self.value
 
     # Default canonicalization for leaf nodes.
     def canonicalize(self):

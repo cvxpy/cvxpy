@@ -47,47 +47,14 @@ class Expression(u.Canonical):
 
     __metaclass__ = abc.ABCMeta
 
-    @property
+    @abc.abstractmethod
     def value(self):
         """Returns the numeric value of the expression.
 
         Returns:
             A cvxopt sparse matrix or a scalar.
         """
-        # Simulates recursion with stack to avoid stack overflow.
-        # TODO switch to recursive.
-        stack = [self._starting_state()]
-        while True:
-            node = stack[-1]["expression"]
-            if stack[-1]["index"] >= len(node.subexpressions):
-                value = node.numeric(stack[-1]["values"])
-                # Break if the node does not have a value.
-                if value is None:
-                    return None
-                stack.pop()
-                if len(stack) > 0:
-                    stack[-1]["values"].append(value)
-                else:
-                    # Reduce 1x1 matrices to scalars.
-                    if intf.size(value) == (1,1):
-                        return intf.scalar_value(value)
-                    else:
-                        return value
-            else:
-                next_node = node.subexpressions[stack[-1]["index"]]
-                stack[-1]["index"] += 1
-                stack.append(next_node._starting_state())
-
-    def _starting_state(self):
-        """Helper function for value.
-
-        Returns:
-            The starting state dict for the expression.
-        """
-        return {"expression": self,
-                "index": 0,
-                "values": [],
-        }
+        return NotImplemented
 
     def __repr__(self):
         """TODO priority
