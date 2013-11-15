@@ -48,8 +48,8 @@ class LeqConstraint(u.Affine, u.Canonical):
         dual_holder = self.__class__(obj, 0, parent=self)
         return (None, constraints + [dual_holder])
 
-    def coefficients(self):
-        return self._expr.coefficients()
+    def _tree_to_coeffs(self):
+        return self._expr.coefficients
 
     # The value of the dual variable.
     @property

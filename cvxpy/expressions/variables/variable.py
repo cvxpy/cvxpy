@@ -56,7 +56,7 @@ class Variable(Leaf):
 
     # Returns a coefficients dict with the variable as the key
     # and a list of offset identity matrices as the coefficients.
-    def coefficients(self):
+    def _tree_to_coeffs(self):
         rows, cols = self.size
         identity = intf.DEFAULT_SPARSE_INTERFACE.identity(rows*cols)
         blocks = [identity[i*rows:(i+1)*rows,:] for i in range(cols)]

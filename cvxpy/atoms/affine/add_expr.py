@@ -45,7 +45,7 @@ class AddExpression(AffAtom):
         shapes = [arg.shape for arg in self.args]
         reduce(op.add, shapes)
 
-    def func_coefficients(self):
+    def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the sum.
         """
         # Promote the terms if necessary.
@@ -53,7 +53,7 @@ class AddExpression(AffAtom):
         promoted_args = []
         for arg in self.args:
             promoted_args.append( self._promote(arg) )
-        coeff_list = [arg.coefficients() for arg in promoted_args]
+        coeff_list = [arg.coefficients for arg in promoted_args]
         return reduce(cu.add, coeff_list)
 
     def __add__(self, other):

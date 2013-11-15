@@ -40,7 +40,7 @@ def _cast_other(binary_op):
         return binary_op(self, other)
     return cast_op
 
-class Expression(u.Affine, u.Canonical):
+class Expression(u.Canonical):
     """
     A mathematical expression in a convex optimization problem.
     """

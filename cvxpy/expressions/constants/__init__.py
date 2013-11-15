@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# from index_constant import IndexConstant
-# from transpose_constant import TransposeConstant
 from constant import Constant
+from constant_atom import ConstantAtom
 from parameter import Parameter

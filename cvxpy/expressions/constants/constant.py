@@ -48,7 +48,7 @@ class Constant(Leaf):
 
     # Returns a coefficient dict with s.CONSTANT as the key
     # and the constant value split into columns as the value.
-    def coefficients(self):
+    def _tree_to_coeffs(self):
         rows, cols = self.size
         blocks = []
         for i in range(cols):

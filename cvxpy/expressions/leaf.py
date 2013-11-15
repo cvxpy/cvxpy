@@ -23,7 +23,7 @@ import expression
 from .. import utilities as u
 from .. import interface as intf
 
-class Leaf(expression.Expression):
+class Leaf(expression.Expression, u.Affine):
     """
     A leaf node, i.e. a Variable, Constant, or Parameter.
     """

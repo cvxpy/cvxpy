@@ -50,7 +50,7 @@ class transpose(AffAtom):
             constraints = [X == arg_objs[0]]
             return (X.T, constraints)
 
-    def func_coefficients(self):
+    def _tree_to_coeffs(self):
         """Create a coefficients dict for the transposed variable.
 
         Returns:

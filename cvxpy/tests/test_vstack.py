@@ -49,21 +49,21 @@ class TestVstack(unittest.TestCase):
     # Test coefficients method.
     def test_coefficients(self):
         exp = vstack(self.x).canonical_form[0]
-        coeffs = exp.coefficients()
-        self.assertEqual(coeffs.keys(), self.x.coefficients().keys())
+        coeffs = exp.coefficients
+        self.assertEqual(coeffs.keys(), self.x.coefficients.keys())
 
         exp = vstack(self.x, self.y).canonical_form[0]
-        coeffs = exp.coefficients()
+        coeffs = exp.coefficients
         self.assertItemsEqual(coeffs.keys(),
-            self.x.coefficients().keys() + \
-            self.y.coefficients().keys())
+            self.x.coefficients.keys() + \
+            self.y.coefficients.keys())
         for k,blocks in coeffs.items():
             self.assertEqual(len(blocks), 1)
             for block in blocks:
                 self.assertEqual(intf.size(block), (4,2))
 
         exp = vstack(self.A, self.B, self.C).canonical_form[0]
-        coeffs = exp.coefficients()
+        coeffs = exp.coefficients
         blocks = coeffs[self.A]
         self.assertEqual(len(blocks), 2)
         for block in blocks:

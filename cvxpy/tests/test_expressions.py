@@ -59,18 +59,18 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.canonical_form[1], [])
 
         # Scalar variable
-        coeff = self.a.coefficients()
+        coeff = self.a.coefficients
         self.assertEqual(coeff[self.a], [1])
 
         # Vector variable.
-        coeffs = x.coefficients()
+        coeffs = x.coefficients
         self.assertItemsEqual(coeffs.keys(), [x])
         vec = coeffs[x][0]
         self.assertEqual(vec.size, (2,2))
         self.assertEqual(vec[0,0], 1)
 
         # Matrix variable.
-        coeffs = self.A.coefficients()
+        coeffs = self.A.coefficients
         self.assertItemsEqual(coeffs.keys(), [self.A])
         self.assertEqual(len(coeffs[self.A]), 2)
         mat = coeffs[self.A][1]
@@ -98,7 +98,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(var.name(), "C.T")
         self.assertEquals(var.size, (2,3))
 
-        # coeffs = var.canonical_form[0].coefficients()
+        # coeffs = var.canonical_form[0].coefficients
         # mat = coeffs.values()[0][0]
         # self.assertEqual(mat.size, (2,6))
         # self.assertEqual(mat[1,3], 1)
@@ -126,7 +126,7 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.canonical_form[0].size, (1,1))
         self.assertEqual(c.canonical_form[1], [])
 
-        coeffs = c.coefficients()
+        coeffs = c.coefficients
         self.assertEqual(coeffs.keys(), [s.CONSTANT])
         self.assertEqual(coeffs[s.CONSTANT], [2])
 
@@ -315,7 +315,7 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
-        # coeff = exp.canonical_form[0].coefficients()[self.x][0]
+        # coeff = exp.canonical_form[0].coefficients[self.x][0]
         # self.assertEqual(coeff[0,1], 1)
         self.assertEqual(exp.value, None)
 
