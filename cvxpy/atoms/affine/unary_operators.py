@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from affine_atom import AffAtom
+from ...utilities import coefficient_utils as cu
 import operator as op
 
 class UnaryOperator(AffAtom):
@@ -35,8 +36,8 @@ class UnaryOperator(AffAtom):
         return self.OP_FUNC(values[0])
 
     # Returns the sign, curvature, and shape.
-    def _dcp_attr(self):
-        return self.OP_FUNC(self.args[0]._dcp_attr())
+    def init_dcp_attr(self):
+        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr)
 
     # Apply the unary operator to the argument.
     def graph_implementation(self, arg_objs):
@@ -45,3 +46,8 @@ class UnaryOperator(AffAtom):
 class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
+
+    def coefficients(self):
+        """Return the dict of Variable to coefficient for the negation.
+        """
+        return cu.neg(self.args[0].coefficients())

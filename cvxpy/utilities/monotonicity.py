@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.utilities.curvature import Curvature
-from cvxpy.utilities.sparse_bool_mat import SparseBoolMat
+import numpy as np
 
 INCREASING = 'INCREASING'
 DECREASING = 'DECREASING'
@@ -61,8 +61,6 @@ def dcp_curvature(monotonicity, func_curvature, arg_sign, arg_curvature):
          func_curvature.is_convex():
         conc_mat = arg_sign.neg_mat & arg_curvature.cvx_mat | \
                    arg_sign.pos_mat & arg_curvature.conc_mat
-        return Curvature(SparseBoolMat.TRUE_MAT,
-                         conc_mat,
-                         SparseBoolMat.TRUE_MAT)
+        return Curvature(np.bool_(True), conc_mat, np.bool_(True))
     else: # non-monotonic
         return func_curvature + arg_curvature - arg_curvature

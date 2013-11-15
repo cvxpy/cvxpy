@@ -127,7 +127,7 @@ class TestExamples(unittest.TestCase):
         r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
         dual_result = -0.5*q_lam.T*P_lam*q_lam + r_lam
         print dual_result[0,0]
-        self.assertEquals(dual_result.size, (1,1))
+        self.assertEquals(intf.size(dual_result), (1,1))
 
     # Tests examples from the README.
     def test_readme_examples(self):

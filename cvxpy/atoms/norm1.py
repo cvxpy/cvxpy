@@ -48,9 +48,9 @@ class norm1(Atom):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.SIGNED]
+        return [u.monotonicity.SIGNED]
 
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
-        obj,constraints = abs(x)
+        obj,constraints = abs(x).canonicalize()
         return (sum(obj),constraints)

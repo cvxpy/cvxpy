@@ -21,8 +21,8 @@ from affine_atom import AffAtom
 from ... import settings as s
 from ... import utilities as u
 from ...utilities import bool_mat_utils as bu
+from ...utilities import coefficient_utils as cu
 from ... import interface as intf
-from ...expressions.affine import AffExpression
 import numpy as np
 
 class vstack(AffAtom):
@@ -47,31 +47,37 @@ class vstack(AffAtom):
 
     # Vertically concatenates sign and curvature as dense matrices.
     def sign_curv_from_args(self):
-        sizes = [arg.size for arg in self.args]
+        signs = []
+        curvatures = []
+        # Promote the sign and curvature matrices to the declared size.
+        for arg in self.args:
+            signs.append( arg.sign.promote(*arg.size) )
+            curvatures.append( arg.curvature.promote(*arg.size) )
+
         # Sign.
-        neg_mat = bu.vstack([arg.sign.neg_mat for arg in self.args], sizes)
-        pos_mat = bu.vstack([arg.sign.pos_mat for arg in self.args], sizes)
+        neg_mat = bu.vstack([sign.neg_mat for sign in signs])
+        pos_mat = bu.vstack([sign.pos_mat for sign in signs])
         # Curvature.
-        cvx_mat = bu.vstack([arg.curvature.cvx_mat for arg in self.args], sizes)
-        conc_mat = bu.vstack([arg.curvature.conc_mat for arg in self.args], sizes)
-        constant = all(arg.curvature.is_constant() for arg in self.args)
+        cvx_mat = bu.vstack([c.cvx_mat for c in curvatures])
+        conc_mat = bu.vstack([c.conc_mat for c in curvatures])
+        constant = bu.vstack([c.nonconst_mat for c in curvatures])
 
         return (u.Sign(neg_mat, pos_mat),
                 u.Curvature(cvx_mat, conc_mat, constant))
 
     # Sets the shape, sign, and curvature.
-    def _dcp_attr(self):
+    def init_dcp_attr(self):
         shape = self.shape_from_args()
         sign,curvature = self.sign_curv_from_args()
-        return u.DCPAttr(sign, curvature, shape)
+        self._dcp_attr = u.DCPAttr(sign, curvature, shape)
 
     # Places all the coefficients as blocks in sparse matrices.
-    def graph_implementation(self, arg_objs):
+    def coefficients(self):
         # Use sparse matrices as coefficients.
         interface = intf.DEFAULT_SPARSE_INTERFACE
         new_coeffs = {}
         offset = 0
-        for arg in arg_objs:
+        for arg in self.args:
             rows = arg.size[0]
             arg_coeffs = arg.coefficients()
             for var,blocks in arg_coeffs.items():
@@ -86,7 +92,7 @@ class vstack(AffAtom):
                     new_blocks = []
                     for i in xrange(self.size[1]):
                         new_blocks.append( interface.zeros(self.size[0], cols) )
-                    new_coeffs[var] = new_blocks
+                    new_coeffs[var] = np.array(new_blocks, dtype="object", ndmin=1)
                 # Add the coefficient blocks into the new blocks.
                 for i,block in enumerate(blocks):
                     new_block = new_coeffs[var][i]
@@ -94,5 +100,4 @@ class vstack(AffAtom):
                     new_coeffs[var][i][offset:offset+rows,0:cols] = new_block
             offset += rows
 
-        obj = AffExpression(new_coeffs, self._dcp_attr())
-        return (obj, [])
+        return cu.format_coeffs(new_coeffs)

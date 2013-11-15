@@ -92,3 +92,7 @@ class Shape(object):
             return Shape(self.rows, other.cols)
         else:
             raise Error("Incompatible dimensions.")
+
+    def __repr__(self):
+        return "Shape(%s, %s)" % (self.rows, self.cols)
+

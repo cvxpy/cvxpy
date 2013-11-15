@@ -75,8 +75,8 @@ class BaseMatrixInterface(object):
     def index(self, matrix, key):
         value = matrix[key]
         # Reduce to a scalar if possible.
-        if self.size(value) == (1,1):
-            return value[0,0]
+        if intf.size(value) == (1,1):
+            return intf.scalar_value(value)
         else:
             return value
 

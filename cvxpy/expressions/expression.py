@@ -17,16 +17,23 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import settings as s
-from .. import utilities as u
 from .. import interface as intf
 from ..constraints import EqConstraint, LeqConstraint
 import types
 import abc
 
-# Casts the second argument of a binary operator as an Expression.
-def cast_other(binary_op):
+def _cast_other(binary_op):
+    """Casts the second argument of a binary operator as an Expression.
+
+    Args:
+        binary_op: A binary operator in the Expression class.
+
+    Returns:
+        A wrapped binary operator that can handle non-Expression arguments.
+    """
     def cast_op(self, other):
+        """A wrapped binary operator that can handle non-Expression arguments.
+        """
         other = self.cast_to_const(other)
         return binary_op(self, other)
     return cast_op
@@ -35,18 +42,28 @@ class Expression(object):
     """
     A mathematical expression in a convex optimization problem.
     """
+
     __metaclass__ = abc.ABCMeta
-    # Returns the graph implementation of the expression:
-    # a tuple of (AffExpression, [constraints]).
+
     @abc.abstractmethod
     def canonicalize(self):
+        """Returns the graph implementation of the expression.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
         return NotImplemented
 
-    # Returns the value of the expression.
-    # Simulates recursion with stack to avoid stack overflow.
     @property
     def value(self):
-        stack = [self.starting_state()]
+        """Returns the numeric value of the expression.
+
+        Returns:
+            A cvxopt sparse matrix or a scalar.
+        """
+        # Simulates recursion with stack to avoid stack overflow.
+        # TODO switch to recursive.
+        stack = [self._starting_state()]
         while True:
             node = stack[-1]["expression"]
             if stack[-1]["index"] >= len(node.subexpressions):
@@ -58,143 +75,180 @@ class Expression(object):
                 if len(stack) > 0:
                     stack[-1]["values"].append(value)
                 else:
-                    return value
+                    # Reduce 1x1 matrices to scalars.
+                    if intf.size(value) == (1,1):
+                        return intf.scalar_value(value)
+                    else:
+                        return value
             else:
-                next = node.subexpressions[stack[-1]["index"]]
+                next_node = node.subexpressions[stack[-1]["index"]]
                 stack[-1]["index"] += 1
-                stack.append(next.starting_state())
+                stack.append(next_node._starting_state())
 
-    # Helper function for value.
-    # Returns the starting state dict for the expression.
-    def starting_state(self):
+    def _starting_state(self):
+        """Helper function for value.
+
+        Returns:
+            The starting state dict for the expression.
+        """
         return {"expression": self,
                 "index": 0,
                 "values": [],
         }
 
-    # Applies the argument for the expression to the values.
-    @abc.abstractmethod
-    def numeric(self, values):
-        return NotImplemented
-
-    # TODO priority
     def __repr__(self):
+        """TODO priority
+        """
         return self.name()
 
-    # Returns string representation of the expression.
     @abc.abstractmethod
     def name(self):
+        """Returns the string representation of the expression.
+        """
         return NotImplemented
 
-    # Returns the DCP attributes of the expression,
-    # i.e. curvature, sign, and shape.
-    @abc.abstractmethod
-    def _dcp_attr(self):
-        return NotImplemented
-
-    # The curvature of the expression.
     @property
     def curvature(self):
-        return self._dcp_attr().curvature
+        """ Returns the curvature of the expression.
+        """
+        return self._dcp_attr.curvature
 
-    # The sign of the expression, a (row,col) tuple.
     @property
     def sign(self):
-        return self._dcp_attr().sign
+        """ Returns the sign of the expression.
+        """
+        return self._dcp_attr.sign
 
     # The shape of the expression, an object.
     @property
     def shape(self):
-        return self._dcp_attr().shape
+        """ Returns the shape of the expression.
+        """
+        return self._dcp_attr.shape
 
-    # The dimensions of the expression.
     @property
     def size(self):
+        """ Returns the (row, col) dimensions of the expression.
+        """
         return self.shape.size
 
-    # Is the expression a scalar?
     def is_scalar(self):
-        return self.size == (1,1)
+        """Is the expression a scalar?
+        """
+        return self.size == (1, 1)
 
-    # Is the expression a column vector?
     def is_vector(self):
+        """Is the expression a column vector?
+        """
         return self.size[1] == 1
 
-    # Return a slice/index into the expression.
     def __getitem__(self, key):
+        """Return a slice/index into the expression.
+        """
         # Indexing into a scalar returns the scalar.
-        if self.size == (1,1):
+        if self.size == (1, 1):
             return self
         else:
             return types.index()(self, key)
 
-    # Iterating over the leaf returns the index expressions
-    # in column major order.
     def __iter__(self):
+        """Yields indices into the expression in column major order.
+        """
         for col in range(self.size[1]):
             for row in range(self.size[0]):
-                yield self[row,col]
+                yield self[row, col]
 
     def __len__(self):
+        """The number of entries in a matrix expression.
+        """
         length = self.size[0]*self.size[1]
         if length == 1: # Numpy will iterate over anything with a length.
             return NotImplemented
         else:
             return length
 
-    # The transpose of the expression.
     @property
     def T(self):
-        if self.size == (1,1): # Transpose of a scalar is that scalar.
+        """The transpose of an expression.
+        """
+        # Transpose of a scalar is that scalar.
+        if self.size == (1, 1):
             return self
         else:
             return types.transpose()(self)
 
-    """ Arithmetic operators """
-    # Cast to Constant if not an Expression.
+    # Arithmetic operators.
     @staticmethod
     def cast_to_const(expr):
+        """Converts a non-Expression to a Constant.
+        """
         return expr if isinstance(expr, Expression) else types.constant()(expr)
 
-    @cast_other
+    @_cast_other
     def __add__(self, other):
+        """The sum of two expressions.
+        """
         return types.add_expr()(self, other)
 
-    # Called for Number + Expression.
-    @cast_other
+    @_cast_other
     def __radd__(self, other):
-        return types.add_expr()(other, self)
+        """Called for Number + Expression.
+        """
+        return other + self
 
-    @cast_other
+    @_cast_other
     def __sub__(self, other):
-        return types.sub_expr()(self, other)
+        """The difference of two expressions.
+        """
+        return self + -other
 
-    # Called for Number - Expression.
-    @cast_other
+    @_cast_other
     def __rsub__(self, other):
-        return types.sub_expr()(other, self)
+        """Called for Number - Expression.
+        """
+        return other - self
 
-    @cast_other
+    @_cast_other
     def __mul__(self, other):
-        return types.mul_expr()(self, other)
+        """The product of two expressions.
+        """
+        # Cannot multiply two non-constant expressions.
+        if not self.curvature.is_constant() and \
+           not other.curvature.is_constant():
+            # TODO replace with special exception.
+            raise Exception("Cannot multiply two non-constants.")
+        # The constant term must always be on the left.
+        elif not self.curvature.is_constant():
+            return (other.T * self.T).T
+        else:
+            return types.mul_expr()(self, other)
 
-    # Called for Number * Expression.
-    @cast_other
+    @_cast_other
     def __rmul__(self, other):
-        return types.mul_expr()(other, self)
+        """Called for Number * Expression.
+        """
+        return other * self
 
     def __neg__(self):
+        """The negation of the expression.
+        """
         return types.neg_expr()(self)
 
-    """ Comparison operators """
-    @cast_other
+    # Comparison operators.
+    @_cast_other
     def __eq__(self, other):
+        """Returns an equality constraint.
+        """
         return EqConstraint(self, other)
 
-    @cast_other
+    @_cast_other
     def __le__(self, other):
+        """Returns an inequality constraint.
+        """
         return LeqConstraint(self, other)
 
-    @cast_other
+    @_cast_other
     def __ge__(self, other):
+        """Returns an inequality constraint.
+        """
         return other.__le__(self)

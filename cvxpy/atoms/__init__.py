@@ -31,7 +31,6 @@ from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
 
 from affine.vstack import vstack
-# from affine.sum import sum
 
 from elementwise.abs import abs
 from elementwise.inv_pos import inv_pos

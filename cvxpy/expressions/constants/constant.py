@@ -21,21 +21,17 @@ from ... import utilities as u
 from ...utilities import coefficient_utils as cu
 from ... import interface as intf
 from ... import settings as s
-from ..affine import AffExpression
 from ..leaf import Leaf
 import numpy as np
 
-class Constant(Leaf, AffExpression):
+class Constant(Leaf):
     """
     A constant, either matrix or scalar.
     """
     def __init__(self, value):
-        self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
+        self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
         # Set DCP attributes.
-        dcp_attr = self.init_dcp_attr()
-        # Set coefficients.
-        coeffs = self.init_coefficients(*dcp_attr.shape.size)
-        super(Constant, self).__init__(coeffs, dcp_attr)
+        self.init_dcp_attr()
 
     def name(self):
         return str(self.value)
@@ -48,17 +44,14 @@ class Constant(Leaf, AffExpression):
     def init_dcp_attr(self):
         shape = u.Shape(*intf.size(self.value))
         sign = intf.sign(self.value)
-        return u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
+        self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     # Returns a coefficient dict with s.CONSTANT as the key
     # and the constant value split into columns as the value.
-    def init_coefficients(self, rows, cols):
+    def coefficients(self):
+        rows, cols = self.size
         blocks = []
         for i in range(cols):
             blocks.append( intf.index(self.value, (slice(None,None,None), i)) )
-        return {s.CONSTANT: np.array(blocks, dtype="object", ndmin=1)}
-
-    def coefficients(self):
-        """TODO replace init_coefficients with this.
-        """
-        return cu.format_coeffs(self.init_coefficients(*self.size))
+        coeffs = {s.CONSTANT: np.array(blocks, dtype="object", ndmin=1)}
+        return cu.format_coeffs(coeffs)

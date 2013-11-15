@@ -20,9 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from affine_atom import AffAtom
 from ... import utilities as u
 from ...utilities import bool_mat_utils as bu
+from ...utilities import coefficient_utils as cu
 from ...utilities import key_utils as ku
 from ...expressions.variables import Variable
-from ...expressions.affine import AffExpression
 
 class index(AffAtom):
     """ Indexing/slicing into a matrix. """
@@ -43,9 +43,13 @@ class index(AffAtom):
         return values[0][self.key]
 
     # The shape, sign, and curvature of the index/slice.
-    def _dcp_attr(self):
-        return self.args[0]._dcp_attr()[self.key]
+    def init_dcp_attr(self):
+        self._dcp_attr = self.args[0]._dcp_attr[self.key]
+
+    def graph_implementation(self, arg_objs):
+        # By default, canonicalization applies the atom to the arg_objs.
+        return (index(arg_objs[0], self.key), [])
 
     # Indexes/slices into the coefficients of the argument.
-    def graph_implementation(self, arg_objs):
-        return (arg_objs[0][self.key], [])
+    def coefficients(self):
+        return cu.index(self.args[0].coefficients(), self.key)

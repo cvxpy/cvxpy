@@ -42,7 +42,7 @@ class inv_pos(Elementwise):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.DECREASING]
+        return [u.monotonicity.DECREASING]
 
     def graph_implementation(self, arg_objs):
         rows,cols = self.size

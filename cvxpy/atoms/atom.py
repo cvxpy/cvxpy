@@ -38,6 +38,7 @@ class Atom(Expression):
         # Convert raw values to Constants.
         self.args = map(Expression.cast_to_const, args)
         self.validate_arguments()
+        self.init_dcp_attr()
         self.subexpressions = self.args
 
     # Returns the string representation of the function call.
@@ -46,14 +47,14 @@ class Atom(Expression):
                            ", ".join([arg.name() for arg in self.args]))
 
     # Determines the curvature, sign, and shape from the arguments.
-    def _dcp_attr(self):
+    def init_dcp_attr(self):
         # Initialize _shape. Raises an error for invalid argument sizes.
         shape = self.shape_from_args()
         sign = self.sign_from_args()
         curvature = Atom.dcp_curvature(self.func_curvature(),
                                        self.args,
                                        self.monotonicity())
-        return u.DCPAttr(sign, curvature, shape)
+        self._dcp_attr = u.DCPAttr(sign, curvature, shape)
 
     # Returns argument curvatures as a list.
     def argument_curvatures(self):
@@ -70,7 +71,7 @@ class Atom(Expression):
         return NotImplemented
 
     # Returns a list with the monotonicity in each argument.
-    # Monotonicity can depend on the sign of the argument.
+    # monotonicity can depend on the sign of the argument.
     @abc.abstractmethod
     def monotonicity(self):
         return NotImplemented
@@ -84,7 +85,8 @@ class Atom(Expression):
                             ' equal to the number of monotonicities.')
         arg_curvatures = []
         for arg,monotonicity in zip(args,monotonicities):
-            arg_curv = monotonicity.dcp_curvature(curvature, arg.sign, arg.curvature)
+            arg_curv = u.monotonicity.dcp_curvature(monotonicity, curvature,
+                                                    arg.sign, arg.curvature)
             arg_curvatures.append(arg_curv)
         return reduce(lambda x,y: x+y, arg_curvatures)
 

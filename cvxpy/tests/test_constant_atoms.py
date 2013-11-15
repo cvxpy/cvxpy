@@ -69,19 +69,19 @@ atoms = [
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
     ], Minimize),
     ([
-        # (geo_mean(4,1), Constant([2])),
-        # (geo_mean(2,2), Constant([2])),
-        # (lambda_min([[2,0],[0,1]]), Constant([1])),
-        # (lambda_min([[5,7],[7,-3]]), Constant([-7.06225775])),
-        # (min([-5,2],[-3,1],0,[1,2]), Constant([-5,0])),
-        # (min([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), Constant([-5,0,-3,-1])),
-        # #(pow_rat(4,1,2), 2),
-        # #(pow_rat(8,1,3), 2),
-        # #(pow_rat(16,1,4),2),
-        # #(pow_rat(8,2,3), 4),
-        # #(pow_rat(4,2,4), 2),
-        # #(pow_rat(16,3,4),8),
-        # (sqrt([[2,4],[16,1]]), Constant([1.414213562373095,2,4,1])),
+        (geo_mean(4,1), Constant([2])),
+        (geo_mean(2,2), Constant([2])),
+        (lambda_min([[2,0],[0,1]]), Constant([1])),
+        (lambda_min([[5,7],[7,-3]]), Constant([-7.06225775])),
+        (min([-5,2],[-3,1],0,[1,2]), Constant([-5,0])),
+        (min([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), Constant([[-5,0],[-3,-1]])),
+        #(pow_rat(4,1,2), 2),
+        #(pow_rat(8,1,3), 2),
+        #(pow_rat(16,1,4),2),
+        #(pow_rat(8,2,3), 4),
+        #(pow_rat(4,2,4), 2),
+        #(pow_rat(16,3,4),8),
+        (sqrt([[2,4],[16,1]]), Constant([[1.414213562373095,2],[4,1]])),
     ], Maximize),
 ]
 
@@ -101,19 +101,19 @@ def test_atom():
                 for col in xrange(atom.size[1]):
                     # Atoms with Constant arguments.
                     yield run_atom, Problem(objective_type(atom[row,col])), obj_val[row,col].value
-                    # # Atoms with Variable arguments.
-                    # variables = []
-                    # constraints = []
-                    # for exp in atom.subexpressions:
-                    #     variables.append( Variable(*exp.size) )
-                    #     constraints.append( variables[-1] == exp)
-                    # atom_func = atom.__class__
-                    # objective = objective_type(atom_func(*variables)[row,col])
-                    # yield run_atom, Problem(objective, constraints), obj_val[row,col].value
-                    # # Atoms with Parameter arguments.
-                    # parameters = []
-                    # for exp in atom.subexpressions:
-                    #     parameters.append( Parameter(*exp.size) )
-                    #     parameters[-1].value = exp.value
-                    # objective = objective_type(atom_func(*parameters)[row,col])
-                    # yield run_atom, Problem(objective), obj_val[row,col].value
+                    # Atoms with Variable arguments.
+                    variables = []
+                    constraints = []
+                    for exp in atom.subexpressions:
+                        variables.append( Variable(*exp.size) )
+                        constraints.append( variables[-1] == exp)
+                    atom_func = atom.__class__
+                    objective = objective_type(atom_func(*variables)[row,col])
+                    yield run_atom, Problem(objective, constraints), obj_val[row,col].value
+                    # Atoms with Parameter arguments.
+                    parameters = []
+                    for exp in atom.subexpressions:
+                        parameters.append( Parameter(*exp.size) )
+                        parameters[-1].value = exp.value
+                    objective = objective_type(atom_func(*parameters)[row,col])
+                    yield run_atom, Problem(objective), obj_val[row,col].value

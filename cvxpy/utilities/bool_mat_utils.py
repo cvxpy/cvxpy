@@ -31,11 +31,13 @@ def vstack(values):
     """
     matrices = []
     for value in values:
-        if isinstance(value, np.ndarray):
-            matrices.append( value.value )
-        else:
-            mat = value.todense()
-            matrices.append( mat.value )
+        # Convert bool to ndarray.
+        if isinstance(value, np.bool_):
+            value = np.atleast_2d(value)
+        # Convert SparseBoolMat to ndarray.
+        elif isinstance(value, SparseBoolMat):
+            value = value.todense()
+        matrices.append(value)
     return np.vstack(matrices)
 
 def dot(lh_mat, rh_mat):

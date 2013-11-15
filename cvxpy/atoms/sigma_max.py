@@ -50,7 +50,7 @@ class sigma_max(Atom):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.NONMONOTONIC]
+        return [u.monotonicity.NONMONOTONIC]
 
     def graph_implementation(self, arg_objs):
         A = arg_objs[0] # m by n matrix.

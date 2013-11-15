@@ -42,12 +42,13 @@ def validate_key(key, shape):
         elif cols == 1:
             key = (key, slice(0, 1, None))
         else:
-            raise Exception("Invalid index %s." % key)
+            raise Error("Invalid index/slice.")
     # Change numbers into slices and ensure all slices have a start and step.
     key = tuple(format_slice(slice_) for slice_ in key)
     # Check that index is in bounds.
     if not (0 <= key[0].start and key[0].start < rows and \
             0 <= key[1].start and key[1].start < cols):
+
         raise Error("Index/slice out of bounds.")
     return key
 

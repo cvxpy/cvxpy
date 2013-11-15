@@ -48,7 +48,7 @@ class geo_mean(Atom):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
-        return len(self.args)*[u.Monotonicity.INCREASING]
+        return len(self.args)*[u.monotonicity.INCREASING]
 
     # Any argument size is valid.
     def validate_arguments(self):

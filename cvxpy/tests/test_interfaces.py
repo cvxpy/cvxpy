@@ -148,17 +148,3 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         assert not (mat - np.matrix("2 4; 4 6")).any()
-
-    # Test interface for lists.
-    def test_lists(self):
-        # index
-        mat = intf.index([[1,2,3,4],[3,4,5,6]], (slice(1,4,2), slice(0,2,None)))
-        self.assertItemsEqual(mat, [[2,4],[4,6]])
-        mat = intf.index([[1,2,3,4],[3,4,5,6]], (slice(1,4,2), slice(0,1,None)))
-        self.assertItemsEqual(mat, [2,4])
-        mat = intf.index([[1,2,3,4],[3,4,5,6]], (slice(1,2,None), slice(1,2,None)))
-        self.assertEquals(mat, 4)
-        mat = intf.index([[2],[2]], (slice(0,1,None), slice(0,1,None)))
-        self.assertEquals(mat, 2)
-        sign = intf.sign([[2],[2]])
-        assert sign.pos_mat.value[0,0] == True

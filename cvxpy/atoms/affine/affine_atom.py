@@ -19,8 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 from ..atom import Atom
+from ...import utilities as u
 
-class AffAtom(Atom):
+class AffAtom(Atom, u.Affine):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta
     # The curvature of the atom if all arguments conformed to DCP.
@@ -29,4 +30,8 @@ class AffAtom(Atom):
 
     # Doesn't matter for affine atoms.
     def monotonicity(self):
-        return len(self.args)*[u.Monotonicity.INCREASING]
+        return len(self.args)*[u.monotonicity.INCREASING]
+
+    def graph_implementation(self, arg_objs):
+        # By default, canonicalization applies the atom to the arg_objs.
+        return (self.__class__(*arg_objs), [])

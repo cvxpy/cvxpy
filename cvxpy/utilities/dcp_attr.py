@@ -73,7 +73,7 @@ class DCPAttr(object):
         pos_mat = self.sign.pos_mat.T
         cvx_mat = self.curvature.cvx_mat.T
         conc_mat = self.curvature.conc_mat.T
-        nonconst_mat = self.curvature.nonconst_mat
+        nonconst_mat = self.curvature.nonconst_mat.T
 
         return DCPAttr(Sign(neg_mat, pos_mat),
                        Curvature(cvx_mat, conc_mat, nonconst_mat),
@@ -121,17 +121,13 @@ class DCPAttr(object):
         Returns:
             The DCPAttr of the product.
         """
-        if self.curvature.is_constant():
-            shape = self.shape * other.shape
-            lh_sign = self.sign.promote(*self.shape.size)
-            rh_sign = other.sign.promote(*other.shape.size)
-            sign = lh_sign * rh_sign
-            rh_curvature = other.curvature.promote(*other.shape.size)
-            curvature = Curvature.sign_mul(lh_sign, rh_curvature)
-            return DCPAttr(sign, curvature, shape)
-        # If the left-hand is non-constant, flip the multiplication.
-        else:
-            return (other.T * self.T).T
+        shape = self.shape * other.shape
+        lh_sign = self.sign.promote(*self.shape.size)
+        rh_sign = other.sign.promote(*other.shape.size)
+        sign = lh_sign * rh_sign
+        rh_curvature = other.curvature.promote(*other.shape.size)
+        curvature = Curvature.sign_mul(lh_sign, rh_curvature)
+        return DCPAttr(sign, curvature, shape)
 
     def __neg__(self):
         """Determines the DCP attributes of a negated expression.

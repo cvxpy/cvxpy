@@ -17,17 +17,20 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-class LeqConstraint(object):
+from .. import utilities as u
+
+class LeqConstraint(u.Affine):
     OP_NAME = "<="
-    def __init__(self, lh_exp, rh_exp):
+    def __init__(self, lh_exp, rh_exp, parent=None):
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp
         self._expr = self.lh_exp - self.rh_exp
+        self.parent = parent
 
     def name(self):
-        return ' '.join([self.lh_exp.name(),
+        return ' '.join([str(self.lh_exp),
                          self.OP_NAME,
-                         self.rh_exp.name()])
+                         str(self.rh_exp)])
 
     def __repr__(self):
         return self.name()
@@ -40,15 +43,10 @@ class LeqConstraint(object):
     def is_dcp(self):
         return self._expr.curvature.is_convex()
 
-    # Replace inequality with an equality with slack.
     def canonicalize(self):
-        lh_obj,lh_constr = self.lh_exp.canonicalize()
-        rh_obj,rh_constr = self.rh_exp.canonicalize()
-        constraints = lh_constr + rh_constr + [self.__class__(lh_obj, rh_obj)]
-        return (None, constraints)
-
-    def variables(self):
-        return self._expr.variables()
+        obj, constraints = self._expr.canonicalize()
+        dual_holder = self.__class__(obj, 0, parent=self)
+        return (None, constraints + [dual_holder])
 
     def coefficients(self):
         return self._expr.coefficients()
@@ -60,4 +58,7 @@ class LeqConstraint(object):
 
     # Save the value of the dual variable for the constraint's parent.
     def save_value(self, value):
-        self._dual_value = value
+        if self.parent is None:
+            self._dual_value = value
+        else:
+            self.parent._dual_value = value

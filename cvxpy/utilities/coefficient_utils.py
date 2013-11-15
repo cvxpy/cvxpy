@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import interface as intf
 from .. import settings as s
+import numpy as np
 
 # Operations on a dict of Variable to coefficient for an affine expression.
 
@@ -51,7 +52,7 @@ def index(coeffs, key):
             block_key = (key[0], slice(None, None, None))
             block_val = intf.index(block, block_key)
             new_blocks.append(block_val)
-        new_coeffs[var_id] = new_blocks
+        new_coeffs[var_id] = np.array(new_blocks, dtype="object", ndmin=1)
 
     return format_coeffs(new_coeffs)
 

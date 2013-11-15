@@ -60,9 +60,9 @@ class max(Elementwise):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return len(self.args)*[u.Monotonicity.INCREASING]
+        return len(self.args)*[u.monotonicity.INCREASING]
 
     def graph_implementation(self, arg_objs):
-        t = Variable(*size)
+        t = Variable(*self.size)
         constraints = [x <= t for x in arg_objs]
         return (t, constraints)

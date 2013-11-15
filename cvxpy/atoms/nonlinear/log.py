@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. atom import Atom
-import cvxpy.expressions.types as types
+from ..elementwise.elementwise import Elementwise
 from cvxpy.expressions.variables import Variable
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 import cvxpy.utilities as u
@@ -45,7 +45,7 @@ def neg_log_func(m):
         return f, Df, H
     return F
 
-class log(Atom):
+class log(Elementwise):
     """ Elementwise logarithm. """
     def __init__(self, x):
         super(log, self).__init__(x)
@@ -54,11 +54,6 @@ class log(Atom):
     @Atom.numpy_numeric
     def numeric(self, values):
         return np.log(values[0])
-
-    # The shape is the common shape of all the arguments.
-    def set_shape(self):
-        self.validate_arguments()
-        self._shape = self.args[0].shape
 
     # Verify that the argument x is a vector.
     def validate_arguments(self):
@@ -75,7 +70,7 @@ class log(Atom):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
-        return [u.Monotonicity.INCREASING]
+        return [u.monotonicity.INCREASING]
 
     def graph_implementation(self, arg_objs):
         """ any expression that involves log
@@ -91,10 +86,11 @@ class log(Atom):
             even if the argument is just a single variable
         """
         x = arg_objs[0]
-        t1 = Variable(*size)
-        t2 = Variable(*size)
+        t1 = Variable(*self.size)
+        t2 = Variable(*self.size)
         constraints = [
-            NonlinearConstraint(neg_log_func(size[0]*size[1]),[t1,t2]),
+            NonlinearConstraint(neg_log_func(self.size[0]*self.size[1]), 
+                                [t1,t2]),
             x == t2,
         ]
 

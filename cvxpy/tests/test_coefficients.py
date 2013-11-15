@@ -22,6 +22,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import cvxpy.utilities.coefficient_utils as cu
+import cvxpy.utilities.key_utils as ku
 import cvxpy.interface as intf
 import cvxpy.settings as s
 import unittest
@@ -161,3 +162,32 @@ class test_coefficients(unittest.TestCase):
         self.assertEqual(len(blocks), 2)
         self.assertEqual(blocks[0].size, (2,1))
         self.assertEqual(blocks[0][1,0], 2)
+        self.assertEqual(blocks[1].size, (2,1))
+        self.assertEqual(blocks[1][1,0], 2)
+
+    def test_index(self):
+        """Test indexing/slicing into coefficients.
+        """
+        # Index.
+        sum_coeffs = cu.add(self.x.coefficients(), self.y.coefficients())
+        key = ku.validate_key((1, 0), self.x.shape)
+        coeffs = cu.index(sum_coeffs, key)
+        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
+        blocks = coeffs[self.y]
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0].size, (1,2))
+        self.assertEqual(blocks[0][0,0], 0)
+
+        # Slice.
+        sum_coeffs = cu.add(self.A.coefficients(), self.C.coefficients())
+        key = ku.validate_key((slice(None, None, None), 1), self.A.shape)
+        coeffs = cu.index(sum_coeffs, key)
+        self.assertItemsEqual(coeffs.keys(), [self.A, s.CONSTANT])
+        # Variable.
+        blocks = coeffs[self.A]
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0].size, (2,4))
+        # Constant.
+        blocks = coeffs[s.CONSTANT]
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0].size, (2,1))

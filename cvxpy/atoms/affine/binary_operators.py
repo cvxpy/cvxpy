@@ -18,7 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from affine_atom import AffAtom
-import operator as op
+from ...utilities import coefficient_utils as cu
+from ... import interface as intf
+from ...expressions.constants import Constant
 import operator as op
 import numpy as np
 
@@ -39,36 +41,23 @@ class BinaryOperator(AffAtom):
         return reduce(self.OP_FUNC, values)
 
     # Returns the sign, curvature, and shape.
-    def _dcp_attr(self):
-        return self.OP_FUNC(self.args[0]._dcp_attr(), self.args[1]._dcp_attr())
+    def init_dcp_attr(self):
+        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
+                                      self.args[1]._dcp_attr)
 
     # Validate the dimensions.
     def validate_arguments(self):
         self.OP_FUNC(self.args[0].shape, self.args[1].shape)
 
-    # Apply the binary operator to the arguments.
-    def graph_implementation(self, arg_objs):
-        obj = self.OP_FUNC(arg_objs[0], arg_objs[1])
-        return (obj, [])
-
-class AddExpression(BinaryOperator):
-    OP_NAME = "+"
-    OP_FUNC = op.add
-
-class SubExpression(BinaryOperator):
-    OP_NAME = "-"
-    OP_FUNC = op.sub
-
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
-    # Raise an error if the multiplication is invalid.
-    def validate_arguments(self):
-        # Cannot multiply two non-constant expressions.
-        if not self.args[0].curvature.is_constant() and \
-           not self.args[1].curvature.is_constant():
-            raise Exception("Cannot multiply two non-constants.")
+    def coefficients(self):
+        """Return the dict of Variable to coefficient for the product.
+        """
+        return cu.mul(self.args[0].coefficients(),
+                      self.args[1].coefficients())
 
     # If left-hand side is non-constant, replace lh*rh with x, x.T == rh.T*lh.T.
     def graph_implementation(self, arg_objs):

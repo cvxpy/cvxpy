@@ -21,12 +21,11 @@ from ... import settings as s
 from ... import utilities as u
 from ...utilities import coefficient_utils as cu
 from ... import interface as intf
-from ..affine import AffExpression
 from ..constants import Constant
 from ..leaf import Leaf
 import numpy as np
 
-class Variable(Leaf, AffExpression):
+class Variable(Leaf):
     """ The base variable class """
     VAR_COUNT = 0
     # name - unique identifier.
@@ -36,11 +35,9 @@ class Variable(Leaf, AffExpression):
         self._init_id()
         self._name = self.id if name is None else name
         self.primal_value = None
-        dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
-                             u.Curvature.AFFINE,
-                             u.Shape(rows, cols))
-        coeffs = self.init_coefficients(rows, cols)
-        super(Variable, self).__init__(coeffs, dcp_attr)
+        self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
+                                   u.Curvature.AFFINE,
+                                   u.Shape(rows, cols))
 
     # Initialize the id.
     def _init_id(self):
@@ -59,12 +56,9 @@ class Variable(Leaf, AffExpression):
 
     # Returns a coefficients dict with the variable as the key
     # and a list of offset identity matrices as the coefficients.
-    def init_coefficients(self, rows, cols):
+    def coefficients(self):
+        rows, cols = self.size
         identity = intf.DEFAULT_SPARSE_INTERFACE.identity(rows*cols)
         blocks = [identity[i*rows:(i+1)*rows,:] for i in range(cols)]
-        return {self: np.array(blocks, dtype="object", ndmin=1)}
-
-    def coefficients(self):
-        """TODO replace init_coefficients with this.
-        """
-        return cu.format_coeffs(self.init_coefficients(*self.size))
+        coeffs = {self: np.array(blocks, dtype="object", ndmin=1)}
+        return cu.format_coeffs(coeffs)

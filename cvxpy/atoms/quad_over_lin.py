@@ -50,7 +50,7 @@ class quad_over_lin(Atom):
 
     # Increasing for positive entry of x, decreasing for negative.
     def monotonicity(self):
-        return [u.Monotonicity.SIGNED, u.Monotonicity.DECREASING]
+        return [u.monotonicity.SIGNED, u.monotonicity.DECREASING]
 
     # Any argument size is valid.
     def validate_arguments(self):

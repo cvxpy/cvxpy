@@ -44,15 +44,15 @@ class sqrt(Elementwise):
         return u.Curvature.CONCAVE
 
     def monotonicity(self):
-        return [u.Monotonicity.INCREASING]
+        return [u.monotonicity.INCREASING]
 
     def graph_implementation(self, arg_objs):
-        rows,cols = self.size
-        t = Variable(rows,cols)
+        rows, cols = self.size
+        t = Variable(rows, cols)
         constraints = []
         for i in xrange(rows):
             for j in xrange(cols):
                 xi = arg_objs[0][i,j]
-                obj,constr = quad_over_lin(xi, 1).canonicalize()
-                constraints += constr + [obj <= t[i,j], 0 <= xi]
+                obj,constr = geo_mean(xi, 1).canonicalize()
+                constraints += constr + [obj >= t[i,j], 0 <= xi]
         return (t, constraints)

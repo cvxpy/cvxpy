@@ -44,7 +44,7 @@ class square(Elementwise):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.Monotonicity.SIGNED]
+        return [u.monotonicity.SIGNED]
 
     def graph_implementation(self, arg_objs):
         rows,cols = self.size

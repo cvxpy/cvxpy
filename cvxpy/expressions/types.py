@@ -22,14 +22,6 @@ def constant():
     import constants
     return constants.Constant
 
-def index_variable():
-    import variables
-    return variables.IndexVariable
-
-def transpose_variable():
-    import variables
-    return variables.TransposeVariable
-
 def variable():
     import variables
     return variables.Variable
@@ -42,17 +34,9 @@ def expression():
     import expression
     return expression.Expression
 
-def aff_expr():
-    import affine
-    return affine.AffExpression
-
 def add_expr():
-    from ..atoms.affine import binary_operators
-    return binary_operators.AddExpression
-
-def sub_expr():
-    from ..atoms.affine import binary_operators
-    return binary_operators.SubExpression
+    from ..atoms.affine import add_expr
+    return add_expr.AddExpression
 
 def mul_expr():
     from ..atoms.affine import binary_operators

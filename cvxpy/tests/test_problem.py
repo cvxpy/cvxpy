@@ -163,7 +163,8 @@ class TestProblem(BaseTest):
              self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 26, places=3)
-        self.assertAlmostEqual(self.a.value, 2)
+        obj = c.T*self.x.value + self.a.value
+        self.assertAlmostEqual(obj[0], result)
         self.assertItemsAlmostEqual(self.x.value, [8,8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2,2], places=3)
 
@@ -214,7 +215,7 @@ class TestProblem(BaseTest):
         a = Parameter()
         exp = [[1,2],[3,4]]*a
         a.value = 2
-        assert (exp.value == 2*numpy.array([[1,2],[3,4]]).T).all()
+        assert not (exp.value - 2*numpy.array([[1,2],[3,4]]).T).any()
 
     # Test problems with normInf
     def test_normInf(self):
@@ -368,10 +369,9 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [4,3])
         self.assertItemsAlmostEqual(self.z.value, [-4,1])
         # Dual values
-        self.assertItemsAlmostEqual(p.constraints[0].dual, [0, 1])
-        self.assertItemsAlmostEqual(p.constraints[1].dual, [-1, 0.5])
-        self.assertAlmostEqual(p.constraints[2].dual, 0)
-
+        self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1])
+        self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5])
+        self.assertAlmostEqual(p.constraints[2].dual_value, 0)
 
         T = matrix(2,(2,3))
         c = matrix([3,4])
@@ -381,9 +381,9 @@ class TestProblem(BaseTest):
              self.C == T.T])
         result = p.solve()
         # Dual values
-        self.assertItemsAlmostEqual(p.constraints[0].dual, 4*[0])
-        self.assertItemsAlmostEqual(p.constraints[1].dual, 4*[0])
-        self.assertItemsAlmostEqual(p.constraints[2].dual, 6*[0])
+        self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0])
+        self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0])
+        self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0])
 
     # Test problems with indexing.
     def test_indexing(self):
@@ -566,7 +566,6 @@ class TestProblem(BaseTest):
             [self.x >= 2, self.z >= 1])
         result = p.solve()
         self.assertAlmostEqual(result, 9)
-
 
     # Test redundant constraints in cvxopt.
     def test_redundant_constraints(self):

@@ -98,10 +98,10 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(var.name(), "C.T")
         self.assertEquals(var.size, (2,3))
 
-        coeffs = var.canonicalize()[0].coefficients()
-        mat = coeffs.values()[0][0]
-        self.assertEqual(mat.size, (2,6))
-        self.assertEqual(mat[1,3], 1)
+        # coeffs = var.canonicalize()[0].coefficients()
+        # mat = coeffs.values()[0][0]
+        # self.assertEqual(mat.size, (2,6))
+        # self.assertEqual(mat[1,3], 1)
 
         index = var[1,0]
         self.assertEquals(index.name(), "C.T[1,0]")
@@ -266,7 +266,7 @@ class TestExpressions(unittest.TestCase):
         # Expression that would break sign multiplication without promotion.
         c = Constant([[2],[2],[-2]])
         exp = [[1],[2]] + c*self.C
-        self.assertEqual(exp.sign.pos_mat.value.shape, (1,2))
+        self.assertEqual(exp.sign.pos_mat.shape, (1,2))
 
     # Test the NegExpression class.
     def test_neg_expression(self):
@@ -315,8 +315,8 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE)
         self.assertEquals(exp.size, (1,1))
-        coeff = exp.canonicalize()[0].coefficients()[self.x][0]
-        self.assertEqual(coeff[0,1], 1)
+        # coeff = exp.canonicalize()[0].coefficients()[self.x][0]
+        # self.assertEqual(coeff[0,1], 1)
         self.assertEqual(exp.value, None)
 
         exp = self.x[1,0].T

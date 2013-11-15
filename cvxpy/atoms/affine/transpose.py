@@ -19,9 +19,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from affine_atom import AffAtom
 from ... import utilities as u
+from ... import interface as intf
 from ...utilities import bool_mat_utils as bu
+from ...utilities import coefficient_utils as cu
 from ...expressions.variables import Variable
-from ...expressions.affine import AffExpression
+import numpy as np
 
 class transpose(AffAtom):
     """ Matrix transpose. """
@@ -35,28 +37,41 @@ class transpose(AffAtom):
         return values[0].T
 
     # Transposes shape, sign, and curvature.
-    def _dcp_attr(self):
-        return self.args[0]._dcp_attr().T
+    def init_dcp_attr(self):
+        self._dcp_attr = self.args[0]._dcp_attr.T
 
     # Create a new variable equal to the argument transposed.
     def graph_implementation(self, arg_objs):
         # If arg_objs[0] is a Variable, no need to create a new variable.
         if isinstance(arg_objs[0], Variable):
-            X = arg_objs[0]
-            constraints = []
+            return super(transpose, self).graph_implementation(arg_objs)
         else:
-            X = Variable(self.size[1], self.size[0])
+            X = Variable(*arg_objs[0].size)
             constraints = [X == arg_objs[0]]
-        # Create a coefficients dict for the transposed variable.
-        # Each row in each block selects the appropriate elements
-        # from the vectorized X.
-        var_blocks = X.coefficients()[X]
-        transpose_coeffs = X.init_coefficients(self.size[0], self.size[1])
-        transpose_blocks = transpose_coeffs[X]
-        for k in xrange(self.size[0]):
-            for row in xrange(self.size[1]):
-                transpose_blocks[row][k,:] = var_blocks[k][row,:]
-        transpose_coeffs[X] = transpose_blocks
-        # The objective is X.T.
-        obj = AffExpression(transpose_coeffs, X._dcp_attr().T)
-        return (obj, constraints)
+            return (X.T, constraints)
+
+    def coefficients(self):
+        """Create a coefficients dict for the transposed variable.
+
+        Returns:
+            A dict of Variable to Numpy ndarray coefficient.
+        """
+        X = self.args[0]
+        # The dimensions of the coefficients.
+        cols = X.size[0]*X.size[1]
+        rows = self.size[0]
+        num_blocks = self.size[1]
+        # Create cvxopt spmatrices to select the correct entries
+        # from the vectorized X for each entry in the column.
+        interface = intf.DEFAULT_SPARSE_INTERFACE
+        blocks = []
+        for k in xrange(num_blocks):
+            coeff = interface.zeros(rows, cols)
+            for i in xrange(rows):
+                # Get the ith entry in row k of X.
+                j = i*X.size[0] + k
+                coeff[i,j] = 1
+            blocks.append(coeff)
+
+        new_coeffs = {X: np.array(blocks, dtype="object", ndmin=1)}
+        return cu.format_coeffs(new_coeffs)

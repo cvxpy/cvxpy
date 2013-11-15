@@ -32,8 +32,8 @@ class Minimize(object):
         self.expr = Expression.cast_to_const(expr)
         # Validate that the objective resolves to a scalar.
         if self.expr.size != (1,1):
-            raise Exception("The objective '%s' must resolve to a scalar."
-                            % self.name())
+            raise Exception("The objective '%s' must resolve to a scalar." 
+                            % self)
 
     def __repr__(self):
         return self.name()
@@ -49,8 +49,14 @@ class Minimize(object):
     def is_dcp(self):
         return self.expr.curvature.is_convex()
 
+    @property
+    def value(self):
+        """The value of the objective expression.
+        """
+        return self.expr.value
+
     # The value of the objective given the solver primal value.
-    def value(self, result):
+    def _primal_to_result(self, result):
         return result
 
 class Maximize(Minimize):
@@ -67,5 +73,5 @@ class Maximize(Minimize):
         return self.expr.curvature.is_concave()
 
     # The value of the objective given the solver primal value.
-    def value(self, result):
+    def _primal_to_result(self, result):
         return -result

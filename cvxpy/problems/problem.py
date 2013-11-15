@@ -26,6 +26,7 @@ from ..constraints import *
 from .objective import Minimize, Maximize
 from kktsolver import get_kktsolver
 
+from collections import OrderedDict
 import numbers
 import cvxopt
 import cvxopt.solvers
@@ -55,7 +56,6 @@ class Problem(object):
     # Divide the constraints into separate types.
     # Remove duplicate constraint objects.
     def filter_constraints(self, constraints):
-        constraints = list(set(constraints)) # TODO generalize
         constr_map = {s.EQ: [], s.INEQ: [], s.SOC: [], s.SDP: [], s.NONLIN: []}
         for c in constraints:
             if isinstance(c, EqConstraint):
@@ -74,7 +74,8 @@ class Problem(object):
     # Also returns the dimensions of the cones for the solver.
     def canonicalize(self):
         obj,constraints = self.objective.canonicalize()
-        for constr in self.constraints:
+        unique_constraints = list(set(self.constraints))
+        for constr in unique_constraints:
             constraints += constr.canonicalize()[1]
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
@@ -175,19 +176,19 @@ class Problem(object):
                 self.save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self.save_values(results['z'], constr_map[s.INEQ])
-            return self.objective.value(primal_val - obj_offset[0])
+            return self.objective._primal_to_result(primal_val - obj_offset[0])
         else:
             return status
 
     # Returns a map of variable id to horizontal offset
     # and the length of the x vector.
     def variables(self, objective, constraints):
-        vars = objective.variables()
+        vars_ = objective.variables()
         for constr in constraints:
-            vars += constr.variables()
-        var_offsets = {}
+            vars_ += constr.variables()
+        var_offsets = OrderedDict()
         vert_offset = 0
-        for var in sorted(set(vars)):
+        for var in set(vars_):
             var_offsets[var] = vert_offset
             vert_offset += var.size[0]*var.size[1]
         return (var_offsets, vert_offset)
@@ -195,17 +196,20 @@ class Problem(object):
     # Saves the values of the optimal primary/dual variables
     # as fields in the variable/constraint objects.
     def save_values(self, result_vec, objects):
+        if len(result_vec) > 0:
+            # Cast to desired matrix type.
+            result_vec = self.dense_interface.const_to_matrix(result_vec)
         offset = 0
         for obj in objects:
             rows,cols = obj.size
             # Handle scalars
             if (rows,cols) == (1,1):
-                value = result_vec[offset]
+                value = intf.index(result_vec, (offset, 0))
             else:
                 value = self.dense_interface.zeros(rows, cols)
                 self.dense_interface.block_add(value,
-                                               result_vec[offset:offset + rows*cols],
-                                               0, 0, rows, cols)
+                    result_vec[offset:offset + rows*cols],
+                    0, 0, rows, cols)
             obj.save_value(value)
             offset += rows*cols
 
@@ -277,3 +281,9 @@ class Problem(object):
             if z is None: return big_f, big_Df
             return big_f, big_Df, big_H
         return F
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        return "Problem(%s, %s)" % (repr(self.objective), repr(self.constraints))

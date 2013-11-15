@@ -42,9 +42,9 @@ class TestVstack(unittest.TestCase):
     def test_variables(self):
         exp,constr = vstack(self.x, self.y, self.x+self.y).canonicalize()
         self.assertEquals(constr, [])
-        self.assertItemsEqual(exp.variables().keys(), [self.x.id, self.y.id])
+        self.assertItemsEqual(exp.variables(), [self.x, self.y])
         exp = vstack(self.A, self.B, self.C).canonicalize()[0]
-        self.assertItemsEqual(exp.variables().keys(), [self.A.id, self.B.id])
+        self.assertItemsEqual(exp.variables(), [self.A, self.B])
 
     # Test coefficients method.
     def test_coefficients(self):
@@ -64,7 +64,7 @@ class TestVstack(unittest.TestCase):
 
         exp = vstack(self.A, self.B, self.C).canonicalize()[0]
         coeffs = exp.coefficients()
-        blocks = coeffs[self.A.id]
+        blocks = coeffs[self.A]
         self.assertEqual(len(blocks), 2)
         for block in blocks:
             self.assertEqual(intf.size(block), (10,6))
