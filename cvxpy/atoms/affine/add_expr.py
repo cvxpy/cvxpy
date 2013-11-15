@@ -55,7 +55,7 @@ class AddExpression(AffAtom):
         shapes = [arg.shape for arg in self.args]
         reduce(op.add, shapes)
 
-    def coefficients(self):
+    def func_coefficients(self):
         """Return the dict of Variable to coefficient for the sum.
         """
         coeff_list = [arg.coefficients() for arg in self.args]

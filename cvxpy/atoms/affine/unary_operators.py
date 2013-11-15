@@ -47,7 +47,7 @@ class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
 
-    def coefficients(self):
+    def func_coefficients(self):
         """Return the dict of Variable to coefficient for the negation.
         """
         return cu.neg(self.args[0].coefficients())

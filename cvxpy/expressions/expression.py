@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import interface as intf
+from .. import utilities as u
 from ..constraints import EqConstraint, LeqConstraint
 import types
 import abc
@@ -38,7 +39,7 @@ def _cast_other(binary_op):
         return binary_op(self, other)
     return cast_op
 
-class Expression(object):
+class Expression(u.Affine):
     """
     A mathematical expression in a convex optimization problem.
     """

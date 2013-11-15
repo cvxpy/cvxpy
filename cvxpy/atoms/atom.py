@@ -94,7 +94,7 @@ class Atom(Expression):
     def canonicalize(self):
         # Constant atoms are treated as a leaf.
         if self.curvature.is_constant():
-            return Constant(self.value).canonicalize()
+            return (self, [])
         else:
             arg_objs = []
             constraints = []
@@ -104,6 +104,19 @@ class Atom(Expression):
                 constraints += constr
             graph_obj,graph_constr = self.graph_implementation(arg_objs)
             return (graph_obj, constraints + graph_constr)
+
+    def coefficients(self):
+        """Coefficients for a constant expression with non-affine atoms.
+        """
+        if self.curvature.is_constant():
+            return Constant(self.value).coefficients()
+        else:
+            return self.func_coefficients()
+
+    def func_coefficients(self):
+        """Only affine atoms can return coefficients if non-constant.
+        """
+        raise Exception("Cannot canonicalize a non-affine expression.")
 
     # Returns an affine expression and list of
     # constraints equivalent to the atom.

@@ -19,9 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 from ..atom import Atom
-from ...import utilities as u
+from ... import utilities as u
 
-class AffAtom(Atom, u.Affine):
+class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta
     # The curvature of the atom if all arguments conformed to DCP.

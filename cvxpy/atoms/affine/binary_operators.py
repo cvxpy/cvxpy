@@ -53,7 +53,7 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
-    def coefficients(self):
+    def func_coefficients(self):
         """Return the dict of Variable to coefficient for the product.
         """
         return cu.mul(self.args[0].coefficients(),

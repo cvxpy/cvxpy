@@ -22,7 +22,7 @@ from .. import settings as s
 
 class Affine(object):
     """
-    An ABC for affine expressions and constraints.
+    An interface for objects that can be or can contain affine expressions.
     """
 
     __metaclass__ = abc.ABCMeta

@@ -72,7 +72,7 @@ class vstack(AffAtom):
         self._dcp_attr = u.DCPAttr(sign, curvature, shape)
 
     # Places all the coefficients as blocks in sparse matrices.
-    def coefficients(self):
+    def func_coefficients(self):
         # Use sparse matrices as coefficients.
         interface = intf.DEFAULT_SPARSE_INTERFACE
         new_coeffs = {}
