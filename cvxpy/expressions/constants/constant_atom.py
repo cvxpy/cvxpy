@@ -32,4 +32,3 @@ class ConstantAtom(Constant):
         """The value of the atom evaluated on its arguments.
         """
         return self.atom.value
-
