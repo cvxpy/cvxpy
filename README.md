@@ -4,7 +4,7 @@ CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png)](https://travis-c
 
 What is CVXPY?
 ---------------------
-CVXPY is a Python-embedded modeling language for optimization problems. CVXPY lets you express your problem in a natural way. It automatically transforms the problem into standard form, calls a solver, and unpacks the results.
+CVXPY is a Python-embedded modeling language for optimization problems. CVXPY allows you to express your problem in a natural way. It automatically transforms the problem into standard form, calls a solver, and unpacks the results.
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
@@ -71,7 +71,7 @@ A = cp.Variable(4, 7)
 ```
 
 ### Constants
-CVXPY allows you to use your numeric library of choice to construct problem data. Numeric constants (i.e. scalars, vectors, and matrices) may be combined with CVXPY objects in arbitrary [expressions](#expressions). For instance, if `x` is a CVXPY Variable in the expression `A*x + b`, `A` and `b` could be Numpy ndarrays, Python floats, CVXOPT matrices, etc. `A` and `b` could even be different types.
+CVXPY allows you to use your numeric library of choice to construct problem data. Numeric constants (i.e., scalars, vectors, and matrices) may be combined with CVXPY objects in arbitrary [expressions](#expressions). For instance, if `x` is a CVXPY Variable in the expression `A*x + b`, `A` and `b` could be Numpy ndarrays, Python floats, CVXOPT matrices, etc. `A` and `b` could even be different types.
 
 Currently the following types may be used as constants:
 * Python numeric types
@@ -85,7 +85,7 @@ Support for additional types will be added per request. See [Problem Data](#prob
 ### Parameters
 Parameters are symbolic representations of constants. Parameters should only be used in special cases. The purpose of Parameters is to change the value of a constant in a problem without reconstructing the entire problem. For example, to efficiently solve `Problem(Minimize(expr1 + gamma*expr2), constraints)` for many different values of `gamma`, make `gamma` a Parameter. See [Problem Data](#problem-data) for an example problem that uses parameters.
 
-Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When creating a parameter, there is also the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created.
+Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When you create a parameter you have the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created. The constant value must have the same dimensions and sign as those specified when the Parameter was created.
 
 ```
 # Positive scalar parameter.
@@ -140,10 +140,10 @@ CVXPY currently supports the following atoms:
         * For p = "fro", the Frobenius norm of `x`.
         * Defaults to p = 2 if no value of p is given.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
-    * `quad_over_lin(x,y)`, x'*x/y, where y is a positive scalar.
+    * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
 * Matrix to matrix atoms
-    * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[1,3]`.
-    * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e. `max([1,2],[-1,3])` returns `[-1,2]`. 
+    * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[1,3]`.
+    * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`. 
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
@@ -158,7 +158,7 @@ CVXPY currently supports the following atoms:
 
 Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
-DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e. non-negative), negative (i.e. non-positive), and unknown.
+DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
 
 The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. For matrix constants, a sign is determined for each entry. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
 
@@ -166,19 +166,19 @@ The curvature and sign of Variables, constants, and Parameters are easy to deter
 
 ##### The No-Product Rule
 
-You can never multiply two non-constant expressions. Doing so in cvxpy will immediately raise an exception.
+You can never multiply two non-constant expressions. Doing so in CVXPY will immediately raise an exception.
 
 ##### Curvature Rules
 
-The curvature composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
+The composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
 
 * `f` is non-decreasing in argument i and `expi` is convex
 * `f` is non-increasing in argument i and `expi` is concave
 * `expi` is affine
 
-If one of the `expi` does not satisfy any of the conditions, the curvature of `f(exp1, exp2, ..., expn)` is unknown.
+If one of the `expi` does not satisfy any of the conditions, the curvature of `f(exp1, exp2, ..., expn)` is unknown. In addition, if all the `expi` are constant, then `f(exp1, exp2, ..., expn)` is constant.
 
-All other DCP rules for determining the curvature of an expression can be derived from the curvature composition rule. For example, if `f` is concave then the curvature composition rule can be applied to `-f`. Arithmetic operators are affine functions, so the curvature composition rule also applies to arithmetic expressions.
+All other DCP rules for determining the curvature of an expression can be derived from the composition rule. For example, if `f` is concave then the composition rule can be applied to `-f`. Arithmetic operators are affine functions, so the composition rule also applies to arithmetic expressions.
 
 #### Sign Rules
 
@@ -186,12 +186,10 @@ For some functions monotonicity (i.e. whether the function is increasing or decr
 
 Each function in cvxpy (i.e. atom or arithmetic operator) has a different rule for determining the sign of the function output from the signs of the arguments. These rules are exhaustive, meaning they capture every case where the sign of the output can be determined from the sign of the inputs. Here is the rule for `+` applied to the scalar expressions `exp1` and `exp2`:
 
-```
 The sign of the expression exp1 + exp2 is
 * positive if exp1 and exp2 are both positive
 * negative if exp1 and exp2 are both negative
 * unknown in all other cases
-```
 
 The rules for other functions are equally straightforward.
 
@@ -330,13 +328,11 @@ x_values = pool.map(get_x, gammas)
 ...
 ```
 
-Parameterized problems can be solved in parallel. See examples/stock_tradeoff.py for an example.
-
 Object Oriented Optimization
 ---------------------
-CVXPY enables an object oriented approach to constructing optimization problems. An object oriented approach is simpler and more flexible than the traditional method of constructing problems by embedding information in matrices.
+CVXPY enables an object-oriented approach to constructing optimization problems. An object-oriented approach is simpler and more flexible than the traditional method of constructing problems by embedding information in matrices.
 
-Consider the max-flow problem with N nodes and E edges. We can define the problem explicitly by constructing an N by E incidence matrix A. A[i,j] is +1 if edge j enters node i, -1 if edge j leaves node i, and 0 otherwise. The source and sink are the last two edges. The problem becomes:
+Consider the max-flow problem with N nodes and E edges. We can define the problem explicitly by constructing an N by E incidence matrix A. A[i,j] is +1 if edge j enters node i, -1 if edge j leaves node i, and 0 otherwise. The source and sink are the last two edges. The problem becomes
 
 ```
 # A is the incidence matrix. c is a vector of edge capacities.
@@ -368,7 +364,7 @@ class Edge(object):
         return [cp.abs(self.flow) <= self.capacity]
 ```
 
-The Edge class exposes the flow into and out of the edge. The constraints linking the flow in and out and the flows with the capacity are stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
+The Edge class exposes the flow into and out of the edge. The capacity constraint is stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
 
 We also define a Node class:
 
@@ -397,7 +393,7 @@ p = cp.Problem(cp.Maximize(sink.accumulation), constraints)
 
 Note that the problem has been reframed from maximizing the flow along the source edge to maximizing the accumulation at the sink node. We could easily extend the Edge and Node class to model an electrical grid. Sink nodes would be consumers. Source nodes would be power stations, which generate electricity at a cost. A node could be both a source and a sink, which would represent energy storage facilities or a consumer who contributes to the grid. We could add energy loss along edges to more accurately model transmission lines. The entire grid construct could be embedded in a time series model.
 
-To see the object oriented approach to flow problems fleshed out in more detail, look in the examples/flows/ directory.
+To see the object-oriented approach applied to more complex flow problems, look in the examples/flows/ directory.
 
 Non-Convex Extensions
 ---------------------

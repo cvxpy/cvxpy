@@ -174,6 +174,11 @@ class TestExamples(unittest.TestCase):
         # Assigns a constant value to G.
         G.value = -numpy.ones((4, 7))
 
+        # Raises an error for assigning a value with invalid sign.
+        with self.assertRaises(Exception) as cm:
+            G.value = numpy.ones((4,7))
+        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+
         ####################################################
         a = cp.Variable()
         x = cp.Variable(5)
