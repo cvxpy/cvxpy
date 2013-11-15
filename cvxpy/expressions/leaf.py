@@ -45,3 +45,13 @@ class Leaf(expression.Expression, u.Affine):
     # Default canonicalization for leaf nodes.
     def canonicalize(self):
         return (self, [])
+
+    def variables(self):
+        """Default is empty list of Variables.
+        """
+        return []
+
+    def parameters(self):
+        """Default is empty list of Parameters.
+        """
+        return []

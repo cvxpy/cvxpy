@@ -53,7 +53,7 @@ class AddExpression(AffAtom):
         promoted_args = []
         for arg in self.args:
             promoted_args.append( self._promote(arg) )
-        coeff_list = [arg.coefficients for arg in promoted_args]
+        coeff_list = [arg.coefficients() for arg in promoted_args]
         return reduce(cu.add, coeff_list)
 
     def __add__(self, other):

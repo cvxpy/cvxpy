@@ -113,6 +113,24 @@ class Atom(Expression):
     def graph_implementation(self, arg_objs):
         return NotImplemented
 
+    def variables(self):
+        """Returns all the variables present in the arguments.
+        """
+        var_list = []
+        for arg in self.args:
+            var_list += arg.variables()
+        # Remove duplicates.
+        return list(set(var_list))
+
+    def parameters(self):
+        """Returns all the parameters present in the arguments.
+        """
+        param_list = []
+        for arg in self.args:
+            param_list += arg.parameters()
+        # Remove duplicates.
+        return list(set(param_list))
+
     # Wraps an atom's numeric function that requires numpy ndarrays as input.
     # Ensures both inputs and outputs are the correct matrix types.
     @staticmethod

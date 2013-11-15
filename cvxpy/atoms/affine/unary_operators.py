@@ -50,4 +50,4 @@ class NegExpression(UnaryOperator):
     def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the negation.
         """
-        return cu.neg(self.args[0].coefficients)
+        return cu.neg(self.args[0].coefficients())

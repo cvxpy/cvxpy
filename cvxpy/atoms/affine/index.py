@@ -52,4 +52,4 @@ class index(AffAtom):
 
     # Indexes/slices into the coefficients of the argument.
     def _tree_to_coeffs(self):
-        return cu.index(self.args[0].coefficients, self.key)
+        return cu.index(self.args[0].coefficients(), self.key)

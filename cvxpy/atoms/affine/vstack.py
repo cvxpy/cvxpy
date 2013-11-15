@@ -79,7 +79,7 @@ class vstack(AffAtom):
         offset = 0
         for arg in self.args:
             rows = arg.size[0]
-            arg_coeffs = arg.coefficients
+            arg_coeffs = arg.coefficients()
             for var,blocks in arg_coeffs.items():
                 # Constant coefficients have one column.
                 if var is s.CONSTANT:

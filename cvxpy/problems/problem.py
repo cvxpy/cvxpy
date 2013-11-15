@@ -233,7 +233,7 @@ class Problem(object):
         const_vec = vec_intf.zeros(rows, 1)
         vert_offset = 0
         for aff_exp in aff_expressions:
-            coefficients = aff_exp.coefficients
+            coefficients = aff_exp.coefficients()
             for var,blocks in coefficients.items():
                 # Constant is not in var_offsets.
                 for col,block in enumerate(blocks):

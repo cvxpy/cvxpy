@@ -54,6 +54,11 @@ class Variable(Leaf):
     def value(self):
         return self.primal_value
 
+    def variables(self):
+        """Returns itself as a variable.
+        """
+        return [self]
+
     # Returns a coefficients dict with the variable as the key
     # and a list of offset identity matrices as the coefficients.
     def _tree_to_coeffs(self):

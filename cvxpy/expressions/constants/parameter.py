@@ -62,3 +62,8 @@ class Parameter(Constant):
            self.sign == u.Sign.NEGATIVE and not sign.is_negative():
             raise Exception("Invalid sign for Parameter value.")
         self._value = val
+
+    def parameters(self):
+        """Returns itself as a parameter.
+        """
+        return [self]

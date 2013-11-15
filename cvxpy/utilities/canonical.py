@@ -44,3 +44,21 @@ class Canonical(object):
             A tuple of (affine expression, [constraints]).
         """
         return self.canonicalize()
+
+    @abc.abstractmethod
+    def variables(self):
+        """The object's internal variables.
+
+        Returns:
+            A list of Variable objects.
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def parameters(self):
+        """The object's internal parameters.
+
+        Returns:
+            A list of Parameter objects.
+        """
+        return NotImplemented

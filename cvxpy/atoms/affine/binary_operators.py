@@ -56,8 +56,8 @@ class MulExpression(BinaryOperator):
     def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the product.
         """
-        return cu.mul(self.args[0].coefficients,
-                      self.args[1].coefficients)
+        return cu.mul(self.args[0].coefficients(),
+                      self.args[1].coefficients())
 
     # If left-hand side is non-constant, replace lh*rh with x, x.T == rh.T*lh.T.
     def graph_implementation(self, arg_objs):

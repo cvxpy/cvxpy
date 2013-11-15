@@ -28,9 +28,23 @@ class Affine(object):
 
     __metaclass__ = abc.ABCMeta
 
-    @pu.lazyprop
     def coefficients(self):
-        """Returns a dict representing the terms and their coefficients.
+        """Returns a dict of Variable to coefficient.
+
+        Returns:
+            A dict of Variable object to Numpy ndarray of column coefficients.
+            Also includes the key settings.CONSTANT for constant terms.
+        """
+        # With no parameters, the coefficients can be cached.
+        if len(self.parameters()) == 0:
+            return self._cached_coeffs
+        # If there are parameters, the coefficients must be recalculated.
+        else:
+            return self._tree_to_coeffs()
+
+    @pu.lazyprop
+    def _cached_coeffs(self):
+        """Caches the coefficients after the first call.
 
         Returns:
             A dict of Variable object to Numpy ndarray of column coefficients.
@@ -47,15 +61,3 @@ class Affine(object):
             Also includes the key settings.CONSTANT for constant terms.
         """
         return NotImplemented
-
-    def variables(self):
-        """Returns the variables in the expression/constraint.
-
-        Returns:
-            A list of Variable objects.
-        """
-        variables = []
-        for var in self.coefficients.keys():
-            if var is not s.CONSTANT:
-                variables.append(var)
-        return variables

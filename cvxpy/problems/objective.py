@@ -29,9 +29,9 @@ class Minimize(u.Canonical):
 
     # expr - the expression to minimize.
     def __init__(self, expr):
-        self.expr = Expression.cast_to_const(expr)
+        self._expr = Expression.cast_to_const(expr)
         # Validate that the objective resolves to a scalar.
-        if self.expr.size != (1,1):
+        if self._expr.size != (1,1):
             raise Exception("The objective '%s' must resolve to a scalar." 
                             % self)
 
@@ -39,21 +39,31 @@ class Minimize(u.Canonical):
         return self.name()
 
     def name(self):
-        return ' '.join([self.NAME, self.expr.name()])
+        return ' '.join([self.NAME, self._expr.name()])
 
     # Pass on the target expression's objective and constraints.
     def canonicalize(self):
-        return self.expr.canonical_form
+        return self._expr.canonical_form
+
+    def variables(self):
+        """Returns the variables in the objective.
+        """
+        return self._expr.variables()
+
+    def parameters(self):
+        """Returns the parameters in the objective.
+        """
+        return self._expr.parameters()
 
     # Objective must be convex.
     def is_dcp(self):
-        return self.expr.curvature.is_convex()
+        return self._expr.curvature.is_convex()
 
     @property
     def value(self):
         """The value of the objective expression.
         """
-        return self.expr.value
+        return self._expr.value
 
     # The value of the objective given the solver primal value.
     def _primal_to_result(self, result):
@@ -70,7 +80,7 @@ class Maximize(Minimize):
 
     # Objective must be concave.
     def is_dcp(self):
-        return self.expr.curvature.is_concave()
+        return self._expr.curvature.is_concave()
 
     # The value of the objective given the solver primal value.
     def _primal_to_result(self, result):

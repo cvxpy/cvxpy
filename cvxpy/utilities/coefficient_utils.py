@@ -36,7 +36,7 @@ def format_coeffs(coefficients):
     return coefficients
 
 def index(coeffs, key):
-    """Indexes/slices into the coefficients of each variable.
+    """Indexes/slices into the coefficients() of each variable.
 
     Args:
         key: A (slice, slice) tuple.
@@ -47,7 +47,7 @@ def index(coeffs, key):
     new_coeffs = {}
     for var_id, blocks in coeffs.items():
         new_blocks = []
-        # Indexes into the rows of the coefficients.
+        # Indexes into the rows of the coefficients().
         for block in blocks[key[1]]:
             block_key = (key[0], slice(None, None, None))
             block_val = intf.index(block, block_key)
@@ -56,7 +56,7 @@ def index(coeffs, key):
 
     return format_coeffs(new_coeffs)
 
-    # # Multiplies by a ones matrix to promote scalar coefficients.
+    # # Multiplies by a ones matrix to promote scalar coefficients().
     # # Returns an updated coefficient dict.
     # @staticmethod
     # def promote(coeffs, shape):
@@ -75,7 +75,7 @@ def add(lh_coeffs, rh_coeffs):
         rh_coeffs: The coefficents of the right-hand expression.
 
     Returns:
-        The coefficients of the sum.
+        The coefficients() of the sum.
     """
     # Merge the dicts, summing common variables.
     new_coeffs = lh_coeffs.copy()
@@ -90,8 +90,8 @@ def sub(lh_coeffs, rh_coeffs):
     """Determines the coefficients of the difference of two expressions.
 
     Args:
-        lh_coeffs: The coefficents of the left-hand expression.
-        rh_coeffs: The coefficents of the right-hand expression.
+        lh_coeffs: The coefficients of the left-hand expression.
+        rh_coeffs: The coefficients of the right-hand expression.
 
     Returns:
         The coefficients of the difference.
@@ -102,7 +102,7 @@ def _merge_cols(blocks):
     """Utility method to merge column blocks into a single matrix.
 
     Args:
-        blocks: An ndarray of coefficients for columns.
+        blocks: An ndarray of coefficients() for columns.
 
     Returns:
         A cvxopt spmatrix or a scalar.
@@ -122,8 +122,8 @@ def mul(lh_coeffs, rh_coeffs):
     """Determines the coefficients of two expressions multiplied together.
 
     Args:
-        lh_coeffs: The coefficents of the left-hand expression.
-        other: The coefficents of the right-hand expression.
+        lh_coeffs: The coefficients of the left-hand expression.
+        other: The coefficients of the right-hand expression.
 
     Returns:
         The coefficients of the product.
