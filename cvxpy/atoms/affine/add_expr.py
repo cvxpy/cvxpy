@@ -1,5 +1,6 @@
 from affine_atom import AffAtom
 from ...utilities import coefficient_utils as cu
+from ...expressions.expression import Expression
 from ...expressions.constants import Constant
 from ... import expressions as exp
 from ... import interface as intf
@@ -7,7 +8,45 @@ import operator as op
 
 class AddExpression(AffAtom):
     """The sum of any number of expressions.
+
+    Attributes:
+        prev_sum: The AddExpression for the first n-1 terms of the sum.
     """
+
+    def __init__(self, terms, prev_sum=None):
+        self.prev_sum = prev_sum
+        self.args = terms
+        self.validate_arguments()
+        self.init_dcp_attr()
+        self.subexpressions = self.args
+
+    def name(self):
+        result = str(self.args[0])
+        for i in xrange(1, len(self.args)):
+            result += " + " + str(self.args[i])
+        return result
+
+    def numeric(self, values):
+        return reduce(op.add, values)
+
+    # Validate the dimensions.
+    def validate_arguments(self):
+        if self.prev_sum is None:
+            shapes = (arg.shape for arg in self.args)
+            reduce(op.add, shapes)
+        else:
+            self.prev_sum.shape + self.args[-1].shape
+
+    # Returns the sign, curvature, and shape.
+    def init_dcp_attr(self):
+        if self.prev_sum is None:
+            dcp = (arg._dcp_attr for arg in self.args)
+            self._dcp_attr = reduce(op.add, dcp)
+        else:
+            self._dcp_attr = self.prev_sum._dcp_attr + self.args[-1]._dcp_attr
+
+    def graph_implementation(self, arg_objs):
+        return (AddExpression(arg_objs), [])
 
     def _promote(self, expr):
         """Promote a scalar expression to a matrix.
@@ -26,38 +65,17 @@ class AddExpression(AffAtom):
         else:
             return expr
 
-    def name(self):
-        result = str(self.args[0])
-        for i in xrange(1, len(self.args)):
-            result += " + " + str(self.args[i])
-        return result
-
-    def numeric(self, values):
-        return reduce(op.add, values)
-
-    # Returns the sign, curvature, and shape.
-    def init_dcp_attr(self):
-        dcp_attrs = [arg._dcp_attr for arg in self.args]
-        self._dcp_attr = reduce(op.add, dcp_attrs)
-
-    # Validate the dimensions.
-    def validate_arguments(self):
-        shapes = [arg.shape for arg in self.args]
-        reduce(op.add, shapes)
-
     def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the sum.
         """
         # Promote the terms if necessary.
         rows, cols = self.size
-        promoted_args = []
-        for arg in self.args:
-            promoted_args.append( self._promote(arg) )
-        coeff_list = [arg.coefficients() for arg in promoted_args]
-        return reduce(cu.add, coeff_list)
+        promoted_args = (self._promote(arg) for arg in self.args)
+        coeffs = (arg.coefficients() for arg in promoted_args)
+        return reduce(cu.add, coeffs)
 
     def __add__(self, other):
         """Multiple additions become a single expression rather than a tree.
         """
-        terms = self.args + [other]
-        return AddExpression(*terms)
+        other = Expression.cast_to_const(other)
+        return AddExpression(self.args + [other], prev_sum=self)

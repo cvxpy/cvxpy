@@ -181,7 +181,7 @@ class Expression(u.Canonical):
     def __add__(self, other):
         """The sum of two expressions.
         """
-        return types.add_expr()(self, other)
+        return types.add_expr()([self, other])
 
     @_cast_other
     def __radd__(self, other):
