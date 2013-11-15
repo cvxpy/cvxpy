@@ -20,7 +20,7 @@ class AddExpression(AffAtom):
         Returns:
             An expression with size (rows, cols).
         """
-        if expr.size == (1,1) and expr.size != self.size:
+        if expr.size == (1, 1) and expr.size != self.size:
             ones = Constant(intf.DEFAULT_INTERFACE.ones(*self.size))
             return ones*expr
         else:
@@ -59,6 +59,5 @@ class AddExpression(AffAtom):
     def __add__(self, other):
         """Multiple additions become a single expression rather than a tree.
         """
-        terms = self.args[:]
-        terms.append(other)
+        terms = self.args + [other]
         return AddExpression(*terms)

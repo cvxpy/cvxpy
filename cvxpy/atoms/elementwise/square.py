@@ -47,8 +47,8 @@ class square(Elementwise):
         return [u.monotonicity.SIGNED]
 
     def graph_implementation(self, arg_objs):
-        rows,cols = self.size
-        t = Variable(rows,cols)
+        rows, cols = self.size
+        t = Variable(rows, cols)
         constraints = []
         for i in xrange(rows):
             for j in xrange(cols):

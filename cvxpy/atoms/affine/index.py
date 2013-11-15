@@ -25,6 +25,7 @@ from ...utilities import key_utils as ku
 from ...expressions.variables import Variable
 
 class index(AffAtom):
+    TOTAL = 0
     """ Indexing/slicing into a matrix. """
     # expr - the expression indexed/sliced into.
     # key - the index/slicing key (i.e. expr[key[0],key[1]]).

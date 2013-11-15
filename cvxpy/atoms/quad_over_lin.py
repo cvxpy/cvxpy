@@ -63,6 +63,6 @@ class quad_over_lin(Atom):
         v = Variable()
         x = arg_objs[0]
         y = arg_objs[1]
-        obj,constraints = vstack(y - v, 2*x).canonical_form
+        obj, constraints = vstack(y - v, 2*x).canonical_form
         constraints += [SOC(y + v, obj), 0 <= y]
         return (v, constraints)

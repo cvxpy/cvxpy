@@ -32,3 +32,8 @@ class ConstantAtom(Constant):
         """The value of the atom evaluated on its arguments.
         """
         return self.atom.value
+
+    def parameters(self):
+        """Return all the parameters in the atom.
+        """
+        return self.atom.parameters()

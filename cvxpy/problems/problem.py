@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import settings as s
 from .. import interface as intf
+from ..utilities.ordered_set import OrderedSet
 from ..expressions.expression import Expression
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
@@ -27,6 +28,7 @@ from .objective import Minimize, Maximize
 from kktsolver import get_kktsolver
 
 from collections import OrderedDict
+import itertools
 import numbers
 import cvxopt
 import cvxopt.solvers
@@ -58,18 +60,22 @@ class Problem(object):
     # Divide the constraints into separate types.
     # Remove duplicate constraint objects.
     def filter_constraints(self, constraints):
-        constr_map = {s.EQ: [], s.INEQ: [], s.SOC: [], s.SDP: [], s.NONLIN: []}
+        constr_map = {s.EQ: OrderedSet([]), 
+                      s.INEQ: OrderedSet([]), 
+                      s.SOC: OrderedSet([]), 
+                      s.SDP: OrderedSet([]), 
+                      s.NONLIN: OrderedSet([])}
         for c in constraints:
             if isinstance(c, EqConstraint):
-                constr_map[s.EQ].append(c)
+                constr_map[s.EQ].add(c)
             elif isinstance(c, LeqConstraint):
-                constr_map[s.INEQ].append(c)
+                constr_map[s.INEQ].add(c)
             elif isinstance(c, SOC):
-                constr_map[s.SOC].append(c)
+                constr_map[s.SOC].add(c)
             elif isinstance(c, SDP):
-                constr_map[s.SDP].append(c)
+                constr_map[s.SDP].add(c)
             elif isinstance(c, NonlinearConstraint):
-                constr_map[s.NONLIN].append(c)
+                constr_map[s.NONLIN].add(c)
         return constr_map
 
     # Convert the problem into an affine objective and affine constraints.
@@ -84,11 +90,12 @@ class Problem(object):
         constr_map = self.filter_constraints(constraints)
         dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
         # Formats SOC and SDP constraints for the solver.
-        for constr in constr_map[s.SOC] + constr_map[s.SDP]:
-            constr_map[s.INEQ] += constr.format()
+        for constr in itertools.chain(constr_map[s.SOC], constr_map[s.SDP]):
+            for ineq_constr in constr.format():
+                constr_map[s.INEQ].add(ineq_constr)
         dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
         dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
-        return (obj,constr_map,dims)
+        return (obj, constr_map, dims)
 
     # Dispatcher for different solve methods.
     def solve(self, *args, **kwargs):
@@ -106,7 +113,7 @@ class Problem(object):
 
     # Solves DCP compliant optimization problems.
     # Saves the values of primal and dual variables.
-    def _solve(self, solver=s.ECOS, ignore_dcp=False):
+    def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False):
         if not self.is_dcp():
             if ignore_dcp:
                 print ("Problem does not follow DCP rules. "
@@ -114,9 +121,10 @@ class Problem(object):
             else:
                 raise Exception("Problem does not follow DCP rules.")
         objective,constr_map,dims = self.canonicalize()
-        var_offsets,x_length = self.variables(objective,
-                                              constr_map[s.EQ] + constr_map[s.INEQ])
-
+        
+        all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+        var_offsets,x_length = self.variables(objective, all_ineq)
+       
         c,obj_offset = self.constraints_matrix([objective], var_offsets, x_length,
                                                self.dense_interface, self.dense_interface)
         A,b = self.constraints_matrix(constr_map[s.EQ], var_offsets, x_length,
@@ -128,6 +136,12 @@ class Problem(object):
         F = self.nonlinear_constraint_function(constr_map[s.NONLIN], var_offsets,
                                                x_length)
 
+        # Save original cvxopt solver options.
+        old_options = cvxopt.solvers.options
+        # Silence cvxopt if verbose is False.
+        cvxopt.solvers.options['show_progress'] = verbose
+        # Always do one step of iterative refinement after solving KKT system.
+        cvxopt.solvers.options['refinement'] = 1
         # Target cvxopt clp if nonlinear constraints exist
         if constr_map[s.NONLIN]:
             # Get custom kktsolver.
@@ -167,11 +181,14 @@ class Problem(object):
                 bnp = None
             else:
                 Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
-
+                
             # ECHU: end conversion
-            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp)
+            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp,verbose=verbose)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
+
+        # Restore original cvxopt solver options.
+        cvxopt.solvers.options = old_options
 
         if status == s.SOLVED:
             self.save_values(results['x'], var_offsets.keys())
