@@ -77,13 +77,13 @@ Currently the following types may be used as constants:
 * Python numeric types
 * CVXOPT dense matrices
 * CVXOPT sparse matrices
-* Numpy ndarrays (see [Problem Data](#problem-data))
-* Numpy matrices (see [Problem Data](#problem-data))
+* Numpy ndarrays
+* Numpy matrices
 
-Support for additional types will be added per request. See [Problem Data](#problem-data) for more information on using numeric libraries with CVXPY.
+Support for additional types will be added per request.
 
 ### Parameters
-Parameters are symbolic representations of constants. Parameters should only be used in special cases. The purpose of Parameters is to change the value of a constant in a problem without reconstructing the entire problem. For example, to efficiently solve `Problem(Minimize(expr1 + gamma*expr2), constraints)` for many different values of `gamma`, make `gamma` a Parameter. See [Problem Data](#problem-data) for an example problem that uses parameters.
+Parameters are symbolic representations of constants. Parameters should only be used in special cases. The purpose of Parameters is to change the value of a constant in a problem without reconstructing the entire problem. For example, to efficiently solve `Problem(Minimize(expr1 + gamma*expr2), constraints)` for many different values of `gamma`, make `gamma` a Parameter. See [Parameterized Problems](#parameterized-problems) for an example problem that uses parameters.
 
 Parameters are created using the Parameter class. Parameters are created with fixed dimensions. When you create a parameter you have the option of specifying the sign of the parameter's entries (positive, negative, or unknown). The sign is unknown by default. The sign is used in [DCP convexity analysis](#disciplined-convex-programming-dcp). Parameters can be assigned a constant value any time after they are created. The constant value must have the same dimensions and sign as those specified when the Parameter was created.
 
@@ -279,18 +279,9 @@ result = p.solve(solver=cvxpy.CVXOPT)
 Features
 =====================
 
-Problem Data
+Parameterized Problems
 ---------------------
-CVXPY lets you construct problem data using your library of choice. Certain libraries, such as Numpy, require a lightweight wrapper to support operator overloading. The following code constructs A and b from Numpy ndarrays.
-
-```
-from cvxpy import numpy as np
-
-A = np.ndarray(...)
-b = np.ndarray(...)
-```
-
-Parameters allow you to change the problem data without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to construct a tradeoff curve of the least squares penalty vs. the cardinality of x. The problem instances can be solved efficiently both serially or in parallel.
+Parameters allow you to change value of constants without reconstructing the problem. The following example defines a LASSO problem. The value of gamma is varied to construct a tradeoff curve of the least squares penalty vs. the cardinality of x. The problem instances can be solved efficiently both serially or in parallel.
 
 ```
 from cvxpy import *
