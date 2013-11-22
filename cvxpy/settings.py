@@ -27,6 +27,9 @@ VAR_PREFIX = "var"
 # Prefix for default named parameters.
 PARAM_PREFIX = "param"
 
+# Used to trick Numpy so cvxpy can overload ==.
+NP_EQUAL_STR = "equal"
+
 # Key for the constant term.
 CONSTANT = "CONSTANT"
 

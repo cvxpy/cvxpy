@@ -19,10 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import interface as intf
 from .. import utilities as u
+from .. import settings as s
 from ..utilities import performance_utils as pu
 from ..constraints import EqConstraint, LeqConstraint
 import types
 import abc
+import numpy as np
 
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
@@ -46,6 +48,14 @@ class Expression(u.Canonical):
     """
 
     __metaclass__ = abc.ABCMeta
+
+    # Handles arithmetic operator overloading with Numpy.
+    __array_priority__ = 100
+
+    def __array__(self):
+        """Prevents Numpy == from iterating over the Expression.
+        """
+        return np.array([s.NP_EQUAL_STR], dtype="object")
 
     @abc.abstractmethod
     def value(self):

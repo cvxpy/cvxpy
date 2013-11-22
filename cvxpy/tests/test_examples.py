@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy as cp
-import cvxpy.interface.matrix_utilities as intf
-import cvxpy.interface.numpy_wrapper as np
+import cvxpy.interface as intf
+import numpy as np
 import unittest
 import cvxopt
 import numbers

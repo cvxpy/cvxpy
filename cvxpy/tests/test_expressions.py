@@ -27,7 +27,7 @@ import cvxpy.settings as s
 from collections import deque
 import unittest
 from cvxopt import matrix
-from cvxpy import numpy as np
+import numpy as np
 
 class TestExpressions(unittest.TestCase):
     """ Unit tests for the expression/expression module. """

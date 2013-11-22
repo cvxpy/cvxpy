@@ -32,16 +32,11 @@ class Variable(Leaf):
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
-        self._init_id()
-        self._name = self.id if name is None else name
+        self._name = self.next_name(s.VAR_PREFIX) if name is None else name
         self.primal_value = None
         self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
                                    u.Curvature.AFFINE,
                                    u.Shape(rows, cols))
-
-    # Initialize the id.
-    def _init_id(self):
-        self.id = self.next_name(s.VAR_PREFIX)
 
     def name(self):
         return self._name

@@ -23,5 +23,5 @@ from expressions.constants import Parameter
 from expressions.constants import Constant
 from problems.problem import Problem
 from problems.objective import Maximize, Minimize
-import interface.numpy_wrapper as numpy
+import interface.numpy_wrapper
 from settings import CVXOPT, ECOS, SOLVED, UNBOUNDED, INFEASIBLE, UNKNOWN, get_status

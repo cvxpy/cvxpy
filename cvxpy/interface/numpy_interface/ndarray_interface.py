@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import base_matrix_interface as base
-from .. import numpy_wrapper as numpy
+import numpy
 import cvxopt
 import numbers
 

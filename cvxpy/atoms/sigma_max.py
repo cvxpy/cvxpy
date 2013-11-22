@@ -24,7 +24,7 @@ from .. import interface as intf
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
 from ..constraints.semi_definite import SDP
-from ..interface import numpy_wrapper as np
+import numpy as np
 from numpy import linalg as LA
 
 class sigma_max(Atom):

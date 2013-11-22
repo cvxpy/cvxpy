@@ -23,7 +23,8 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
-import cvxpy.interface.numpy_wrapper as numpy
+import cvxpy.interface.numpy_wrapper
+import numpy
 import cvxopt
 import scipy
 import unittest

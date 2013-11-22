@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxopt_interface as co_intf
 import numpy_interface as np_intf
-import numpy_wrapper
 import cvxopt
 import scipy.sparse as sp
 import numbers
@@ -31,9 +30,7 @@ from ..utilities.sparse_bool_mat import SparseBoolMat
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
               cvxopt.spmatrix: co_intf.SparseMatrixInterface(),
               np.ndarray: np_intf.NDArrayInterface(),
-              numpy_wrapper.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
-              numpy_wrapper.matrix: np_intf.MatrixInterface(),
 }
 # Default Numpy interface.
 DEFAULT_NP_INTERFACE = INTERFACES[np.ndarray]

@@ -17,62 +17,41 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ..expressions import types
-from numpy import *
-import numpy
-import sys
+import numpy as np
+from ..expressions import expression as exp
+from .. import settings as s
 
-thismodule = sys.modules[__name__]
+# http://stackoverflow.com/questions/14619449/how-can-i-override-comparisons-between-numpys-ndarray-and-my-type
 
-# Wrap numpy ndarray creation functions to return ndarray.
-__ARRAY_CREATION = ['arange','empty','empty_like','eye','identity',
-                    'ones','ones_like','zeros','zeros_like',
-                    'array','atleast_2d']
-def __wrap_array_creator(func):
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs).view(ndarray)
+def override(name):
+    """Wraps a Numpy comparison ufunc so cvxpy can overload the operator.
 
-    return wrapper
+    Args:
+        name: The name of a numpy comparison ufunc.
 
-for func in __ARRAY_CREATION:
-    setattr( thismodule, func, __wrap_array_creator(getattr(numpy, func)) )
-
-
-class _BinaryOpsWrapper(type):
+    Returns:
+        A function. 
     """
-    Metaclass to wrap all binary ops for the classes created.
-    http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python
-    """
-    _WRAPPED_OPS = ["__add__", "__sub__", "__mul__",
-                    "__eq__", "__le__", "__ge__"]
-    def __new__(cls, name, bases, dct):
-        for func in _BinaryOpsWrapper._WRAPPED_OPS:
-            dct[func] = _BinaryOpsWrapper._wrap_binary_op(func)
+    # Numpy tries to convert the Expression to an array for ==.
+    if name == "equal":
+        def ufunc(x, y):
+            if isinstance(y, np.ndarray) and y.ndim > 0 \
+               and y[0] is s.NP_EQUAL_STR:
+                    raise Exception("Prevent Numpy equal ufunc.")
+            return getattr(np, name)(x, y)
+        return ufunc
+    else:
+        def ufunc(x, y):
+            if isinstance(y, exp.Expression): 
+                return NotImplemented
+            return getattr(np, name)(x, y)
+        return ufunc
 
-        return type.__new__(cls, name, bases, dct)
-
-    # Wraps the given func to handle Expressions.
-    @staticmethod
-    def _wrap_binary_op(func):
-        def wrapper(self, other):
-            if isinstance(other, types.expression()):
-                return getattr(types.constant()(self), func)(other)
-            else:
-                parent = super(self.__class__, self)
-                return getattr(parent, func)(other)
-
-        return wrapper
-
-class ndarray(numpy.ndarray):
-    """
-    A wrapper on numpy.ndarray so that builtin operators work with
-    Expressions as expected.
-    """
-    __metaclass__ = _BinaryOpsWrapper
-
-class matrix(numpy.matrix):
-    """
-    A wrapper on numpy.matrix so that builtin operators work with
-    Expressions as expected.
-    """
-    __metaclass__ = _BinaryOpsWrapper
+# Implements operator overloading with comparisons.
+np.set_numeric_ops(
+    ** {
+        ufunc : override(ufunc) for ufunc in (
+            "less_equal", "equal", "greater_equal"
+        )
+    }
+)
