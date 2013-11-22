@@ -77,6 +77,19 @@ class TestMatrices(unittest.TestCase):
         self.assertEquals((A*self.x).size, (4,1))
         self.assertEquals(( (A.T*A) * self.x).size, (2,1))
 
+    def test_numpy_scalars(self):
+        """Test numpy scalars."""
+        v = numpy.float64(2.0)
+        self.assertEquals((self.x + v).size, (2,1))
+        self.assertEquals((v + self.x).size, (2,1))
+        self.assertEquals((v * self.x).size, (2,1))
+        self.assertEquals((self.x - v).size, (2,1))
+        self.assertEquals((v - v - self.x).size, (2,1))
+        self.assertEquals((self.x <= v).size, (2,1))
+        self.assertEquals((v <= self.x).size, (2,1))
+        self.assertEquals((self.x == v).size, (2,1))
+        self.assertEquals((v == self.x).size, (2,1))
+
     # Test cvxopt sparse matrices.
     def test_cvxopt_sparse(self):
         m = 100
