@@ -17,23 +17,24 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-#http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
+# Taken from
+# http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
 
-def lazyprop(fn):
+def lazyprop(func):
     """Wraps a property so it is lazily evaluated.
 
     Args:
-        fn: The property to wrap.
+        func: The property to wrap.
 
     Returns:
         A property that only does computation the first time it is called.
     """
-    attr_name = '_lazy_' + fn.__name__
+    attr_name = '_lazy_' + func.__name__
     @property
     def _lazyprop(self):
         """A lazily evaluated propery.
         """
         if not hasattr(self, attr_name):
-            setattr(self, attr_name, fn(self))
+            setattr(self, attr_name, func(self))
         return getattr(self, attr_name)
     return _lazyprop

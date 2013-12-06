@@ -89,7 +89,7 @@ class log(Elementwise):
         t1 = Variable(*self.size)
         t2 = Variable(*self.size)
         constraints = [
-            NonlinearConstraint(neg_log_func(self.size[0]*self.size[1]), 
+            NonlinearConstraint(neg_log_func(self.size[0]*self.size[1]),
                                 [t1,t2]),
             x == t2,
         ]

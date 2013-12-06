@@ -1,11 +1,16 @@
-#http://code.activestate.com/recipes/576694/
+"""Taken from http://code.activestate.com/recipes/576694/
+"""
 
 import collections
 
 class OrderedSet(collections.MutableSet):
+    """A set with ordered keys.
+
+    Backed by a map and linked list.
+    """
 
     def __init__(self, iterable=None):
-        self.end = end = [] 
+        self.end = end = []
         end += [None, end, end]         # sentinel node for doubly linked list
         self.map = {}                   # key --> [key, prev, next]
         if iterable is not None:
@@ -18,16 +23,28 @@ class OrderedSet(collections.MutableSet):
         return key in self.map
 
     def add(self, key):
+        """Adds the key to the set.
+
+        Args:
+            key: A hashable object.
+        """
         if key not in self.map:
             end = self.end
             curr = end[1]
             curr[2] = end[1] = self.map[key] = [key, curr, end]
 
     def discard(self, key):
-        if key in self.map:        
-            key, prev, next = self.map.pop(key)
-            prev[2] = next
-            next[1] = prev
+        """Removes the key from the set.
+
+        Preserves the order of the remaining keys.
+
+        Args:
+            key: A hashable object.
+        """
+        if key in self.map:
+            key, prev, next_ = self.map.pop(key)
+            prev[2] = next_
+            next_[1] = prev
 
     def __iter__(self):
         end = self.end
@@ -44,6 +61,14 @@ class OrderedSet(collections.MutableSet):
             curr = curr[1]
 
     def pop(self, last=True):
+        """Adds the key to the set.
+
+        Args:
+            last: If True returns the last element. If False returns the first.
+
+        Returns:
+            The last (or first) element in the set.
+        """
         if not self:
             raise KeyError('set is empty')
         key = self.end[1][0] if last else self.end[2][0]
@@ -59,11 +84,3 @@ class OrderedSet(collections.MutableSet):
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
         return set(self) == set(other)
-
-            
-if __name__ == '__main__':
-    s = OrderedSet('abracadaba')
-    t = OrderedSet('simsalabim')
-    print(s | t)
-    print(s & t)
-    print(s - t)

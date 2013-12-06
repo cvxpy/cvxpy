@@ -30,7 +30,7 @@ def override(name):
         name: The name of a numpy comparison ufunc.
 
     Returns:
-        A function. 
+        A function.
     """
     # Numpy tries to convert the Expression to an array for ==.
     if name == "equal":
@@ -42,7 +42,7 @@ def override(name):
         return ufunc
     else:
         def ufunc(x, y):
-            if isinstance(y, exp.Expression): 
+            if isinstance(y, exp.Expression):
                 return NotImplemented
             return getattr(np, name)(x, y)
         return ufunc

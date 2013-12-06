@@ -161,7 +161,7 @@ class TestExamples(unittest.TestCase):
         A = cp.Variable(4, 7)
 
         ####################################################
-        
+
         # Positive scalar parameter.
         m = cp.Parameter(sign="positive")
 
@@ -268,7 +268,7 @@ class TestExamples(unittest.TestCase):
         slack = [cp.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
         objective = cp.Minimize(cp.norm(a, 2) + gamma*sum(slack))
         p = cp.Problem(objective)
-        # Extensions can attach new solve methods to the CVXPY Problem class. 
+        # Extensions can attach new solve methods to the CVXPY Problem class.
         #p.solve(method="admm")
         p.solve()
 

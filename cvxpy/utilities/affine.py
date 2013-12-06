@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 import performance_utils as pu
-from .. import settings as s
 
 class Affine(object):
     """

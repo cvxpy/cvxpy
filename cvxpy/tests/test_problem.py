@@ -48,6 +48,23 @@ class TestProblem(BaseTest):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
+    def test_variables(self):
+        """Test the variables method.
+        """
+        p = Problem(Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
+        vars_ = p.variables()
+        self.assertItemsEqual(vars_, [self.a, self.x, self.b, self.A])
+
+    def test_parameters(self):
+        """Test the parameters method.
+        """
+        p1 = Parameter()
+        p2 = Parameter(3, sign="negative")
+        p3 = Parameter(4, 4, sign="positive")
+        p = Problem(Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
+        params = p.parameters()
+        self.assertItemsEqual(params, [p1, p2, p3])
+
     # Test silencing and enabling solver messages.
     def test_verbose(self):
         # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
@@ -65,7 +82,7 @@ class TestProblem(BaseTest):
                 outputs[verbose].append(out.upper())
         # ####
 
-        sys.stdout.close()  # close the stream 
+        sys.stdout.close()  # close the stream
         sys.stdout = backup # restore original stdout
 
         for output in outputs[True]:
@@ -215,7 +232,7 @@ class TestProblem(BaseTest):
         self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
 
         # Test variables are dense.
-        self.assertEqual(type(self.A.value), p.dense_interface.TARGET_MATRIX)
+        self.assertEqual(type(self.A.value), p._DENSE_INTF.TARGET_MATRIX)
 
     # Test variable promotion.
     def test_variable_promotion(self):

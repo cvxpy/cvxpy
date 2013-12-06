@@ -184,9 +184,9 @@ class Curvature(object):
         return Curvature(cvx_mat, conc_mat, nonconst_mat)
 
     def __repr__(self):
-        return "Curvature(%s, %s, %s)" % (self.cvx_mat.__repr__(),
-                                          self.conc_mat.__repr__(),
-                                          self.nonconst_mat.__repr__())
+        return "Curvature(%s, %s, %s)" % (repr(self.cvx_mat),
+                                          repr(self.conc_mat),
+                                          repr(self.nonconst_mat))
 
     def __str__(self):
         return "Curvature(%s, %s, %s)" % (self.cvx_mat,

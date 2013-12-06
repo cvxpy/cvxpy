@@ -30,15 +30,17 @@ class Leaf(expression.Expression, u.Affine):
 
     __metaclass__ = abc.ABCMeta
 
-    # Returns a new unique name based on a global counter.
     COUNT = 0
     @staticmethod
     def next_name(prefix):
+        """Returns a new unique name based on a global counter.
+        """
         Leaf.COUNT += 1
         return "%s%d" % (prefix, Leaf.COUNT)
 
-    # Default canonicalization for leaf nodes.
     def canonicalize(self):
+        """Default is the leaf as the objective and no constraints.
+        """
         return (self, [])
 
     def variables(self):
