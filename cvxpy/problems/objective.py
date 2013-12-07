@@ -18,31 +18,30 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .. import utilities as u
-from .. import interface as intf
 from ..expressions.expression import Expression
 
 class Minimize(u.Canonical):
+    """An optimization objective for minimization.
     """
-    An optimization objective for minimization.
-    """
+
     NAME = "minimize"
 
-    # expr - the expression to minimize.
     def __init__(self, expr):
         self._expr = Expression.cast_to_const(expr)
         # Validate that the objective resolves to a scalar.
-        if self._expr.size != (1,1):
+        if self._expr.size != (1, 1):
             raise Exception("The objective '%s' must resolve to a scalar."
                             % self)
 
     def __repr__(self):
-        return self.name()
+        return "%s(%s)" % (self.__class__.__name__, repr(self._expr))
 
-    def name(self):
+    def __str__(self):
         return ' '.join([self.NAME, self._expr.name()])
 
-    # Pass on the target expression's objective and constraints.
     def canonicalize(self):
+        """Pass on the target expression's objective and constraints.
+        """
         return self._expr.canonical_form
 
     def variables(self):
@@ -55,8 +54,9 @@ class Minimize(u.Canonical):
         """
         return self._expr.parameters()
 
-    # Objective must be convex.
     def is_dcp(self):
+        """The objective must be convex.
+        """
         return self._expr.curvature.is_convex()
 
     @property
@@ -65,23 +65,29 @@ class Minimize(u.Canonical):
         """
         return self._expr.value
 
-    # The value of the objective given the solver primal value.
-    def _primal_to_result(self, result):
+    @staticmethod
+    def _primal_to_result(result):
+        """The value of the objective given the solver primal value.
+        """
         return result
 
 class Maximize(Minimize):
+    """An optimization objective for maximization.
+    """
+
     NAME = "maximize"
-    """
-    An optimization objective for maximization.
-    """
+
     def canonicalize(self):
         obj, constraints = super(Maximize, self).canonicalize()
         return (-obj, constraints)
 
-    # Objective must be concave.
     def is_dcp(self):
+        """The objective must be concave.
+        """
         return self._expr.curvature.is_concave()
 
-    # The value of the objective given the solver primal value.
-    def _primal_to_result(self, result):
+    @staticmethod
+    def _primal_to_result(result):
+        """The value of the objective given the solver primal value.
+        """
         return -result

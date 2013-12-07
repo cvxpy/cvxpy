@@ -33,7 +33,7 @@ class TestObjectives(unittest.TestCase):
     def test_minimize(self):
         exp = self.x + self.z
         obj = Minimize(exp)
-        self.assertEqual(obj.name(), "minimize %s" % exp.name())
+        self.assertEqual(str(obj), "minimize %s" % exp.name())
         new_obj,constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
@@ -48,7 +48,7 @@ class TestObjectives(unittest.TestCase):
     def test_maximize(self):
         exp = self.x + self.z
         obj = Maximize(exp)
-        self.assertEqual(obj.name(), "maximize %s" % exp.name())
+        self.assertEqual(str(obj), "maximize %s" % exp.name())
         new_obj,constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints

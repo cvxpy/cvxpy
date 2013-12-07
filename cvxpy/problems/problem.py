@@ -95,7 +95,7 @@ class Problem(u.Canonical):
         """Computes the graph implementation of the problem.
 
         Returns:
-            A tuple (affine objective, constraints list) 
+            A tuple (affine objective, constraints list)
             and the cone dimensions.
         """
         constraints = []
@@ -132,8 +132,18 @@ class Problem(u.Canonical):
         # Remove duplicates.
         return list(set(params))
 
-    # Dispatcher for different solve methods.
     def solve(self, *args, **kwargs):
+        """Solves the problem using the specified method.
+
+        Args:
+            method: The solve method to use.
+            solver: The solver to use. Defaults to ECOS.
+            verbose: Overrides the default of hiding solver output.
+
+        Returns:
+            The optimal value for the problem, or a string indicating
+            why the problem could not be solved.
+        """
         func_name = kwargs.pop("method", None)
         if func_name is not None:
             func = Problem.REGISTERED_SOLVE_METHODS[func_name]
@@ -141,14 +151,32 @@ class Problem(u.Canonical):
         else:
             return self._solve(*args, **kwargs)
 
-    # Register a solve method.
-    @staticmethod
-    def register_solve(name, func):
-        Problem.REGISTERED_SOLVE_METHODS[name] = func
+    @classmethod
+    def register_solve(cls, name, func):
+        """Adds a solve method to the Problem class.
 
-    # Solves DCP compliant optimization problems.
-    # Saves the values of primal and dual variables.
+        Args:
+            name: The keyword for the method.
+            func: The function that executes the solve method.
+        """
+        cls.REGISTERED_SOLVE_METHODS[name] = func
+
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False):
+        """Solves a DCP compliant optimization problem.
+
+        Saves the values of primal and dual variables in the variable
+        and constraint objects, respectively.
+
+        Args:
+            solver: The solver to use. Defaults to ECOS.
+            ignore_dcp: Overrides the default of raising an exception if
+                        the problem is not DCP.
+            verbose: Overrides the default of hiding solver output.
+
+        Returns:
+            The optimal value for the problem, or a string indicating
+            why the problem could not be solved.
+        """
         if not self.is_dcp():
             if ignore_dcp:
                 print ("Problem does not follow DCP rules. "
@@ -161,7 +189,7 @@ class Problem(u.Canonical):
         var_offsets, x_length = self._get_var_offsets(objective, all_ineq)
 
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
-                                            self._DENSE_INTF, 
+                                            self._DENSE_INTF,
                                             self._DENSE_INTF)
         A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
@@ -204,22 +232,31 @@ class Problem(u.Canonical):
             # ideally, CVXPY would no longer user CVXOPT, except when calling
             # conelp
             #
-            cnp, hnp, bnp = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (c, h, b))
-            Gp,Gi,Gx = G.CCS
-            m,n1 = G.size
-            Ap,Ai,Ax = A.CCS
-            p,n2 = A.size
-            Gp, Gi, Ap, Ai = map(lambda x: np.fromiter(iter(x),dtype=np.int32,count=len(x)), (Gp,Gi,Ap,Ai))
-            Gx, Ax = map(lambda x: np.fromiter(iter(x),dtype=np.double,count=len(x)), (Gx, Ax))
-            Gsp = sp.csc_matrix((Gx,Gi,Gp),shape=(m,n1))
+            cnp, hnp, bnp = (np.fromiter(iter(x), 
+                                        dtype=np.double, 
+                                        count=len(x))
+                             for x in (c, h, b))
+            Gp, Gi, Gx = G.CCS
+            m, n1 = G.size
+            Ap, Ai, Ax = A.CCS
+            p, n2 = A.size
+            Gp, Gi, Ap, Ai = (np.fromiter(iter(x), 
+                                         dtype=np.int32, 
+                                         count=len(x))
+                              for x in (Gp, Gi, Ap, Ai))
+            Gx, Ax = (np.fromiter(iter(x), 
+                                  dtype=np.double, 
+                                  count=len(x))
+                      for x in (Gx, Ax))
+            Gsp = sp.csc_matrix((Gx, Gi, Gp), shape=(m, n1))
             if p == 0:
                 Asp = None
                 bnp = None
             else:
-                Asp = sp.csc_matrix((Ax,Ai,Ap),shape=(p,n2))
+                Asp = sp.csc_matrix((Ax, Ai, Ap), shape=(p, n2))
 
             # ECHU: end conversion
-            results = ecos.solve(cnp,Gsp,hnp,dims,Asp,bnp,verbose=verbose)
+            results = ecos.solve(cnp, Gsp, hnp, dims, Asp, bnp, verbose=verbose)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
 
@@ -262,7 +299,7 @@ class Problem(u.Canonical):
 
         Args:
             results_vec: A vector containing the variable values.
-            objects: The variables or constraints where the values 
+            objects: The variables or constraints where the values
                      will be stored.
         """
         if len(result_vec) > 0:
@@ -287,7 +324,7 @@ class Problem(u.Canonical):
         """Returns a matrix and vector representing a list of constraints.
 
         In the matrix, each constraint is given a block of rows.
-        Each variable coefficient is inserted as a block with upper 
+        Each variable coefficient is inserted as a block with upper
         left corner at matrix[variable offset, constraint offset].
         The constant term in the constraint is added to the vector.
 
