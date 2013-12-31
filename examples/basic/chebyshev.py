@@ -37,10 +37,10 @@ a4 = cvxopt.matrix([-1,-2], (2,1))
 b = cvxopt.matrix(1, (4,1))
 
 
-constraints = [ a1.T*center + numpy.linalg.norm(a1, 2)*radius <= b[0],
-				a2.T*center + numpy.linalg.norm(a2, 2)*radius <= b[1],
-				a3.T*center + numpy.linalg.norm(a3, 2)*radius <= b[2],
-				a4.T*center + numpy.linalg.norm(a4, 2)*radius <= b[3] ]
+constraints = [ a1.T*center + np.linalg.norm(a1, 2)*radius <= b[0],
+				a2.T*center + np.linalg.norm(a2, 2)*radius <= b[1],
+				a3.T*center + np.linalg.norm(a3, 2)*radius <= b[2],
+				a4.T*center + np.linalg.norm(a4, 2)*radius <= b[3] ]
 
 
 # objective

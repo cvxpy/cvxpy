@@ -170,7 +170,7 @@ You can never multiply two non-constant expressions. Doing so in CVXPY will imme
 
 ##### Curvature Rules
 
-The composition rule explains how the curvature of an expression is determined from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
+The composition rule determines the curvature of an expression from its sub-expressions. Let `f` be a function applied to the expressions `exp1, exp2, ..., expn`. Then `f(exp1, exp2, ..., expn)` is convex if `f` is a convex function and for each `expi` one of the following conditions holds:
 
 * `f` is non-decreasing in argument i and `expi` is convex
 * `f` is non-increasing in argument i and `expi` is concave
