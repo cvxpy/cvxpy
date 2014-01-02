@@ -346,20 +346,20 @@ class Problem(u.Canonical):
         vert_offset = 0
         for aff_exp in aff_expressions:
             coefficients = aff_exp.coefficients()
-            for var,blocks in coefficients.items():
+            for var, blocks in coefficients.items():
                 # Constant is not in var_offsets.
-                for col,block in enumerate(blocks):
+                for col, block in enumerate(blocks):
                     vert_start = vert_offset + col*aff_exp.size[0]
                     vert_end = vert_start + aff_exp.size[0]
                     if var is s.CONSTANT:
-                        const_vec[vert_start:vert_end,:] = block
+                        const_vec[vert_start:vert_end, :] = block
                     else:
                         horiz_offset = var_offsets[var]
                         horiz_end = horiz_offset + var.size[0]*var.size[1]
                         matrix[vert_start:vert_end, horiz_offset:horiz_end] = block
                         horiz_offset += var.size[1]
             vert_offset += aff_exp.size[0]*aff_exp.size[1]
-        return (matrix,-const_vec)
+        return (matrix, -const_vec)
 
     def _nonlin_constr_func(self, nl_funcs, var_offsets, x_length):
         """ TODO: ensure that this works with numpy data structs...

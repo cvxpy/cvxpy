@@ -80,7 +80,7 @@ class vstack(AffAtom):
         for arg in self.args:
             rows = arg.size[0]
             arg_coeffs = arg.coefficients()
-            for var,blocks in arg_coeffs.items():
+            for var, blocks in arg_coeffs.items():
                 # Constant coefficients have one column.
                 if var is s.CONSTANT:
                     cols = 1
@@ -96,8 +96,8 @@ class vstack(AffAtom):
                 # Add the coefficient blocks into the new blocks.
                 for i,block in enumerate(blocks):
                     new_block = new_coeffs[var][i]
-                    new_block = new_block[offset:offset+rows,0:cols] + block
-                    new_coeffs[var][i][offset:offset+rows,0:cols] = new_block
+                    new_block = new_block[offset:offset+rows, 0:cols] + block
+                    new_coeffs[var][i][offset:offset+rows, 0:cols] = new_block
             offset += rows
 
         return cu.format_coeffs(new_coeffs)

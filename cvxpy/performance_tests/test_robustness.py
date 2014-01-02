@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import *
+import cvxpy.atoms as at
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
@@ -52,8 +52,9 @@ class TestProblem(unittest.TestCase):
         except Exception:
             super(TestProblem, self).assertAlmostEqual(a,b,places=4)
 
-    # Test large expresssions.
-    def test_large_expression(self):
+    def test_large_sum(self):
+        """Test large number of variables summed.
+        """
         for n in [10, 20, 30, 40, 50]:
             A = matrix(range(n*n), (n,n))
             x = Variable(n,n)
@@ -62,3 +63,14 @@ class TestProblem(unittest.TestCase):
             answer = n*n*(n*n+1)/2 - n*n
             print result - answer
             self.assertAlmostEqual(result, answer)
+
+    def test_large_square(self):
+        """Test large number of variables squared.
+        """
+        for n in [10, 20, 30, 40, 50, 100]:
+            A = matrix(range(n*n), (n,n))
+            x = Variable(n,n)
+            p = Problem(Minimize(at.square(x[0, 0])), 
+                [x >= A])
+            result = p.solve()
+            self.assertAlmostEqual(result, 0)

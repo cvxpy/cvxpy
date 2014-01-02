@@ -61,7 +61,7 @@ class TestConstraints(unittest.TestCase):
     def test_soc_constraint(self):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
-        constr = SOC(exp, scalar_exp)
+        constr = SOC(scalar_exp, [exp])
         self.assertEqual(constr.size, (3,1))
         self.assertEqual(len(constr.format()), 2)
 
@@ -69,6 +69,6 @@ class TestConstraints(unittest.TestCase):
     def test_sdc_constraint(self):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
-        constr = SOC(exp, scalar_exp)
+        constr = SOC(scalar_exp, [exp])
         self.assertEqual(constr.size, (3,1))
         self.assertEqual(len(constr.format()), 2)

@@ -18,25 +18,31 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 class SOC(object):
+    """A second-order cone constraint, i.e., norm2(x) <= t.
+
+    Attributes:
+        t: The scalar part of the second-order constraint.
+        x_elems: The elements of the vector part of the constraint.
     """
-    A second-order cone constraint:
-        norm2(x) <= t
-    """
-    # x - an affine expression or objective.
-    # t - an affine expression or objective.
-    def __init__(self, t, x):
-        self.x = x
+    def __init__(self, t, x_elems):
         self.t = t
+        self.x_elems = x_elems
         super(SOC, self).__init__()
 
     def __str__(self):
-        return "SOC(%s, %s)" % (self.x, self.t)
+        return "SOC(%s, %s)" % (self.t, self.x_elems)
 
     # Formats SOC constraints for the solver.
     def format(self):
-        return [-self.t <= 0, -self.x <= 0]
+        constraints = [0 <= self.t]
+        for elem in self.x_elems:
+            constraints.append(0 <= elem)
+        return constraints
 
     # The dimensions of the second-order cone.
     @property
     def size(self):
-        return (self.x.size[0]*self.x.size[1] + self.t.size[0], 1)
+        rows = 1
+        for elem in self.x_elems:
+            rows += elem.size[0]*elem.size[1]
+        return (rows, 1)

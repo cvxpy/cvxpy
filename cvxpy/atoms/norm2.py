@@ -52,4 +52,4 @@ class norm2(Atom):
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
         t = Variable()
-        return (t, [SOC(t, x)])
+        return (t, [SOC(t, [x])])
