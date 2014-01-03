@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 m = 100
-n = 4503
+n = 450
 prob = 0.999
 
 a_arr = np.random.random((m, n))
@@ -44,11 +44,13 @@ c, obj_offset = p._constr_matrix([objective], var_offsets, x_length,
                                  p._DENSE_INTF)
 A, b = p._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                            p._SPARSE_INTF, p._DENSE_INTF)
+
 G, h = p._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
                            p._SPARSE_INTF, p._DENSE_INTF)
 
 print len(constr_map[s.EQ])
 print len(constr_map[s.INEQ])
+
 cProfile.run("""
 G, h = p._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
                            p._SPARSE_INTF, p._DENSE_INTF)
