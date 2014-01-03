@@ -67,7 +67,7 @@ class TestProblem(unittest.TestCase):
     def test_large_square(self):
         """Test large number of variables squared.
         """
-        for n in [10, 20, 30, 40, 50, 100]:
+        for n in [10, 20, 30, 40, 50]:
             A = matrix(range(n*n), (n,n))
             x = Variable(n,n)
             p = Problem(Minimize(at.square(x[0, 0])), 

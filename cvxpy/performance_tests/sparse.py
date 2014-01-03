@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 m = 100
-n = 450
+n = 4503
 prob = 0.999
 
 a_arr = np.random.random((m, n))
@@ -18,7 +18,7 @@ a_arr_sp = spmatrix(a_arr[a_arr.nonzero()[0],
 					a_arr.nonzero()[1],
 					size=(m, n))
 
-W = cp.Variable(n, 5)
+W = cp.Variable(n, 2)
 constraints = []
 
 constraints.append(W[0,0] == 0)
