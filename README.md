@@ -319,7 +319,7 @@ x_values = pool.map(get_x, gammas)
 ...
 ```
 
-Object Oriented Optimization
+Object Oriented Convex Optimization
 ---------------------
 CVXPY enables an object-oriented approach to constructing optimization problems. An object-oriented approach is simpler and more flexible than the traditional method of constructing problems by embedding information in matrices.
 

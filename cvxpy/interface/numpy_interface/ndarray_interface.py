@@ -27,8 +27,17 @@ class NDArrayInterface(base.BaseMatrixInterface):
     An interface to convert constant values to the numpy ndarray class.
     """
     TARGET_MATRIX = numpy.ndarray
-    # Convert an arbitrary value into a matrix of type self.target_matrix.
+    
     def const_to_matrix(self, value):
+        """Convert an arbitrary value into a matrix of type self.target_matrix.
+
+        Args:
+            value: The constant to be converted.
+            convert_scalars: Should scalars be converted?
+
+        Returns:
+            A matrix of type self.target_matrix or a scalar.
+        """
         if isinstance(value, cvxopt.spmatrix):
             value = cvxopt.matrix(value)
         mat = numpy.array(value, dtype='float64')

@@ -215,7 +215,7 @@ class TestProblem(BaseTest):
 
     # Test matrix LP problems.
     def test_matrix_lp(self):
-        T = matrix(1,(2,2))
+        T = matrix(1, (2, 2))
         p = Problem(Minimize(1), [self.A == T])
         result = p.solve()
         self.assertAlmostEqual(result, 1)

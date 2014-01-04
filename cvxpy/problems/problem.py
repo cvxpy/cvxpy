@@ -336,29 +336,44 @@ class Problem(u.Canonical):
             vec_intf: The matrix interface to use for creating the constant vector.
 
         Returns:
-            A sparse matrix and dense vector.
+            A (matrix, vector) tuple.
         """
 
         rows = sum([aff.size[0] * aff.size[1] for aff in aff_expressions])
         cols = x_length
-        matrix = matrix_intf.zeros(rows, cols)
+        V, I, J = [], [], []
         const_vec = vec_intf.zeros(rows, 1)
         vert_offset = 0
         for aff_exp in aff_expressions:
             coefficients = aff_exp.coefficients()
             for var, blocks in coefficients.items():
                 # Constant is not in var_offsets.
+                horiz_offset = var_offsets.get(var)
                 for col, block in enumerate(blocks):
                     vert_start = vert_offset + col*aff_exp.size[0]
                     vert_end = vert_start + aff_exp.size[0]
                     if var is s.CONSTANT:
                         const_vec[vert_start:vert_end, :] = block
                     else:
-                        horiz_offset = var_offsets[var]
-                        horiz_end = horiz_offset + var.size[0]*var.size[1]
-                        matrix[vert_start:vert_end, horiz_offset:horiz_end] = block
-                        horiz_offset += var.size[1]
+                        if isinstance(block, numbers.Number):
+                            V.append(block)
+                            I.append(vert_start)
+                            J.append(horiz_offset)
+                        else: # Block is a matrix or spmatrix.
+                            if isinstance(block, cvxopt.matrix):
+                                block = cvxopt.sparse(block)
+                            V.extend(block.V)
+                            I.extend(block.I + vert_start)
+                            J.extend(block.J + horiz_offset)
             vert_offset += aff_exp.size[0]*aff_exp.size[1]
+
+        # Create the constraints matrix.
+        if len(V) > 0:
+            matrix = cvxopt.spmatrix(V, I, J, (rows, cols), tc='d')
+            # Convert the constraints matrix to the correct type.
+            matrix = matrix_intf.const_to_matrix(matrix, convert_scalars=True)
+        else: # Empty matrix.
+            matrix = matrix_intf.zeros(rows, cols)
         return (matrix, -const_vec)
 
     def _nonlin_constr_func(self, nl_funcs, var_offsets, x_length):

@@ -2,11 +2,12 @@ import cvxpy as cp
 import cvxpy.settings as s
 import itertools
 from cvxopt import spmatrix
+import cvxopt
 import numpy as np
 import time
 
-m = 100
-n = 4503
+m = 10
+n = 45
 prob = 0.999
 
 a_arr = np.random.random((m, n))
@@ -18,7 +19,7 @@ a_arr_sp = spmatrix(a_arr[a_arr.nonzero()[0],
 					a_arr.nonzero()[1],
 					size=(m, n))
 
-W = cp.Variable(n, 2)
+W = cp.Variable(n, 4)
 constraints = []
 
 constraints.append(W[0,0] == 0)
@@ -51,7 +52,71 @@ G, h = p._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
 print len(constr_map[s.EQ])
 print len(constr_map[s.INEQ])
 
-cProfile.run("""
-G, h = p._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
-                           p._SPARSE_INTF, p._DENSE_INTF)
-""")
+# cProfile.run("""
+# G, h = p._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
+#                            p._SPARSE_INTF, p._DENSE_INTF)
+# """)
+import numbers
+
+aff_expressions = constr_map[s.INEQ]
+matrix_intf, vec_intf = p._SPARSE_INTF, p._DENSE_INTF
+
+expr_offsets = {}
+vert_offset = 0
+for aff_exp in aff_expressions:
+    expr_offsets[str(aff_exp)] = vert_offset
+    vert_offset += aff_exp.size[0]*aff_exp.size[1]
+
+#rows = sum([aff.size[0] * aff.size[1] for aff in aff_expressions])
+rows = vert_offset
+cols = x_length
+#const_vec = vec_intf.zeros(rows, 1)
+vert_offset = 0
+
+def carrier(expr_offsets, var_offsets):
+    def f(aff_exp):
+        V, I, J = [], [], []
+        vert_offset = expr_offsets[str(aff_exp)]
+        coefficients = aff_exp.coefficients()
+        for var, blocks in coefficients.items():
+            # Constant is not in var_offsets.
+            horiz_offset = var_offsets.get(var)
+            for col, block in enumerate(blocks):
+                vert_start = vert_offset + col*aff_exp.size[0]
+                vert_end = vert_start + aff_exp.size[0]
+                if var is s.CONSTANT:
+                    pass
+                    #const_vec[vert_start:vert_end, :] = block
+                else:
+                    if isinstance(block, numbers.Number):
+                        V.append(block)
+                        I.append(vert_start)
+                        J.append(horiz_offset)
+                    else: # Block is a matrix or spmatrix.
+                        if isinstance(block, cvxopt.matrix):
+                            block = cvxopt.sparse(block)
+                        V.extend(block.V)
+                        I.extend(block.I + vert_start)
+                        J.extend(block.J + horiz_offset)
+        return (V, I, J)
+    return f
+
+f = carrier(expr_offsets, var_offsets)
+
+from multiprocessing import Pool
+p = Pool(1)
+result = p.map(f, aff_expressions)
+V, I, J = [], [], []
+for v, i, j in result:
+    V.extend(v)
+    I.extend(i)
+    J.extend(j)
+
+#[item for sublist in l for item in sublist]
+# Create the constraints matrix.
+if len(V) > 0:
+    matrix = cvxopt.spmatrix(V, I, J, (rows, cols), tc='d')
+    # Convert the constraints matrix to the correct type.
+    matrix = matrix_intf.const_to_matrix(matrix, convert_scalars=True)
+else: # Empty matrix.
+    matrix = matrix_intf.zeros(rows, cols)

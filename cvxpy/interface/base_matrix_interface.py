@@ -28,16 +28,25 @@ class BaseMatrixInterface(object):
     and the target matrix used internally.
     """
     __metaclass__ = abc.ABCMeta
-    # Convert an arbitrary value into a matrix of type self.target_matrix.
+
     @abc.abstractmethod
-    def const_to_matrix(self, value):
+    def const_to_matrix(self, value, convert_scalars=False):
+        """Convert an arbitrary value into a matrix of type self.target_matrix.
+
+        Args:
+            value: The constant to be converted.
+            convert_scalars: Should scalars be converted?
+
+        Returns:
+            A matrix of type self.target_matrix or a scalar.
+        """
         return NotImplemented
 
     # Adds a case for scalars to const_to_matrix methods.
     @staticmethod
     def scalar_const(converter):
-        def new_converter(self, value):
-            if intf.is_scalar(value):
+        def new_converter(self, value, convert_scalars=False):
+            if not convert_scalars and intf.is_scalar(value):
                 return intf.scalar_value(value)
             else:
                 return converter(self, value)

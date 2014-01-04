@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from dense_matrix_interface import DenseMatrixInterface
 import cvxopt
-import numbers
 import numpy
 
 class SparseMatrixInterface(DenseMatrixInterface):
@@ -27,9 +26,18 @@ class SparseMatrixInterface(DenseMatrixInterface):
     An interface to convert constant values to the cvxopt sparse matrix class.
     """
     TARGET_MATRIX = cvxopt.spmatrix
-    # Convert an arbitrary value into a matrix of type self.target_matrix.
+
     @DenseMatrixInterface.scalar_const
-    def const_to_matrix(self, value):
+    def const_to_matrix(self, value, convert_scalars=False):
+        """Convert an arbitrary value into a matrix of type self.target_matrix.
+
+        Args:
+            value: The constant to be converted.
+            convert_scalars: Should scalars be converted?
+
+        Returns:
+            A matrix of type self.target_matrix or a scalar.
+        """
         if isinstance(value, numpy.ndarray):
             # ECHU: temporary workaround when travis fails
             try:

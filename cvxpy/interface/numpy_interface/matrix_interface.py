@@ -26,9 +26,18 @@ class MatrixInterface(NDArrayInterface):
     An interface to convert constant values to the numpy matrix class.
     """
     TARGET_MATRIX = numpy.matrix
-    # Convert an arbitrary value into a matrix of type self.target_matrix.
+    
     @NDArrayInterface.scalar_const
-    def const_to_matrix(self, value):
+    def const_to_matrix(self, value, convert_scalars=False):
+        """Convert an arbitrary value into a matrix of type self.target_matrix.
+
+        Args:
+            value: The constant to be converted.
+            convert_scalars: Should scalars be converted?
+
+        Returns:
+            A matrix of type self.target_matrix or a scalar.
+        """
         if isinstance(value, list):
             mat = numpy.asmatrix(value, dtype='float64')
             return mat.T
