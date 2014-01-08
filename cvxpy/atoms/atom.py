@@ -100,7 +100,7 @@ class Atom(Expression):
             arg_objs = []
             constraints = []
             for arg in self.args:
-                obj,constr = arg.canonical_form
+                obj, constr = arg.canonical_form
                 arg_objs.append(obj)
                 constraints += constr
             graph_obj,graph_constr = self.graph_implementation(arg_objs)
@@ -133,15 +133,20 @@ class Atom(Expression):
 
     @property
     def value(self):
-        arg_values = []
-        for arg in self.args:
-            # A argument without a value makes all higher level
-            # values None.
-            if arg.value is None:
-                return None
-            else:
-                arg_values.append(arg.value)
-        result = self.numeric(arg_values)
+        # Catch the case when the expression is known to be
+        # zero through DCP analysis.
+        if self.sign.is_zero():
+            result = intf.DEFAULT_INTERFACE.zeros(*self.size)
+        else:
+            arg_values = []
+            for arg in self.args:
+                # A argument without a value makes all higher level
+                # values None.
+                if arg.value is None:
+                    return None
+                else:
+                    arg_values.append(arg.value)
+            result = self.numeric(arg_values)
         # Reduce to a scalar if possible.
         if intf.size(result) == (1, 1):
             return intf.scalar_value(result)

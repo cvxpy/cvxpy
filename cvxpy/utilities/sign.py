@@ -62,6 +62,11 @@ class Sign(object):
         else:
             raise Exception("'%s' is not a valid sign name." % str(sign_str))
 
+    def is_zero(self):
+        """Is the expression all zero?
+        """
+        return self.is_positive() and self.is_negative()
+
     def is_positive(self):
         """Is the expression positive?
         """

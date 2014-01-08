@@ -24,7 +24,6 @@ setup(
         url='http://github.com/cvxgrp/cvxpy/',
     license='...',
     description='A domain-specific language for modeling convex optimization problems in Python.',
-    long_description=open('README.md').read(),
     requires = ["cvxopt(>= 1.1.6)",
                 "ecos(>=1.0)"] # this doesn't appear to do anything unfortunately
 )

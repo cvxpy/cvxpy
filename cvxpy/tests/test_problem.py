@@ -680,3 +680,13 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(constr_exp.value,
             LA.norm(self.x.value + self.z.value, 2))
         self.assertAlmostEqual(obj.value, result)
+
+    def test_mult_by_zero(self):
+        """Test multiplication by zero.
+        """
+        exp = 0*self.a
+        self.assertEqual(exp.value, 0)
+        obj = Minimize(exp)
+        p = Problem(obj)
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)

@@ -165,3 +165,6 @@ class TestSign(object):
         assert Sign.NEGATIVE.is_negative()
         assert not Sign.UNKNOWN.is_negative()
         assert Sign.ZERO.is_negative()
+
+        assert Sign.ZERO.is_zero()
+        assert not Sign.NEGATIVE.is_zero()
