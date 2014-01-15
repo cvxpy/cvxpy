@@ -52,29 +52,30 @@ r3 = cvxopt.normal(1, 1)
 # Form the problem
 x = Variable(n)
 objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 )
-constraints = [	0.5*quad_form(x,P1) + q1.T*x + r1 <= 0,
-				0.5*quad_form(x,P2) + q2.T*x + r2 <= 0,
-				0.5*quad_form(x,P3) + q3.T*x + r3 <= 0
-				]
+constraints = [ 0.5*quad_form(x,P1) + q1.T*x + r1 <= 0,
+                0.5*quad_form(x,P2) + q2.T*x + r2 <= 0,
+                0.5*quad_form(x,P3) + q3.T*x + r3 <= 0
+               ]
 
 # We now find the primal result and compare it to the dual result
 # to check if strong duality holds i.e. the duality gap is effectively zero
 p = Problem(objective, constraints)
 primal_result = p.solve()
 
-# Note that since our data is random, we may need to run this program multiple times to get a feasible primal
-# When feasible, we can print out the following values
-print x.value # solution
-lam1 = constraints[0].dual_value
-lam2 = constraints[1].dual_value
-lam3 = constraints[2].dual_value
+if get_status(primal_result) is SOLVED:
+    # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
+    # When feasible, we can print out the following values
+    print x.value # solution
+    lam1 = constraints[0].dual_value
+    lam2 = constraints[1].dual_value
+    lam3 = constraints[2].dual_value
 
 
-P_lam = P0 + lam1*P1 + lam2*P2 + lam3*P3
-q_lam = q0 + lam1*q1 + lam2*q2 + lam3*q3
-r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
-dual_result = -0.5*q_lam.T*P_lam*q_lam + r_lam
-# ISSUE: dual result is matrix for some reason
+    P_lam = P0 + lam1*P1 + lam2*P2 + lam3*P3
+    q_lam = q0 + lam1*q1 + lam2*q2 + lam3*q3
+    r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
+    dual_result = -0.5*q_lam.T*P_lam*q_lam + r_lam
+    # ISSUE: dual result is matrix for some reason
 
-print 'Our duality gap is:'
-print (primal_result - dual_result);
+    print 'Our duality gap is:'
+    print (primal_result - dual_result)

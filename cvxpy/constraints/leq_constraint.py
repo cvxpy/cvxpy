@@ -26,6 +26,7 @@ class LeqConstraint(u.Affine, u.Canonical):
         self.rh_exp = rh_exp
         self._expr = self.lh_exp - self.rh_exp
         self.parent = parent
+        self._dual_value = None
 
     def name(self):
         return ' '.join([str(self.lh_exp),

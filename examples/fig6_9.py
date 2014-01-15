@@ -26,12 +26,13 @@ from multiprocessing import Pool
 #           minimize    ||x - x_cor||^2 + delta*||Dx||^2
 # where x_cor is the a problem parameter, ||Dx|| is a measure of smoothness
 
-#Input data
-n = 4000
+# Input data
+n = 400
 t = np.array(range(0,n))
 
 exact = 0.5*sin(2*np.pi*t/n) * sin(0.01*t)
 corrupt = exact + 0.05 * np.random.randn(len(exact))
+corrupt = cvxopt.matrix(corrupt)
 
 e = np.ones(n).T
 ee = np.column_stack((-e,e)).T
@@ -41,11 +42,11 @@ D = cvxopt.matrix(D)
 
 # Solve in parallel
 nopts = 10
-lambdas = np.linspace(0,50,nopts)
+lambdas = np.linspace(0, 50, nopts)
 # Frame the problem with a parameter
-lamb = Parameter()
+lamb = Parameter(sign="positive")
 x = Variable(n)
-p = Problem( Minimize( norm(x-corrupt) + norm(D*x) * lamb ) , [])
+p = Problem( Minimize( norm(x-corrupt) + norm(D*x) * lamb ) )
 
 
 # For a value of lambda g, we solve the problem
@@ -53,14 +54,13 @@ p = Problem( Minimize( norm(x-corrupt) + norm(D*x) * lamb ) , [])
 def get_value(g):
 	lamb.value = g
 	result = p.solve()
-	return [ np.linalg.norm( x.value - corrupt ), np.linalg.norm(D*x.value) ]
+	return [np.linalg.norm( x.value - corrupt ), np.linalg.norm(D*x.value) ]
 
 
 pool = Pool(processes = 4)
 # compute allocation in parallel
-norms1, norms2 = zip(*pool.map(get_value, lambdas))#pool.map(get_value, lambdas) #zip(*pool.map(get_value, lambdas))
+norms1, norms2 = zip(*pool.map(get_value, lambdas))
 
-print norms1
 plot(norms1, norms2)
 xlabel('||x - x_{cor}||_2')
 ylabel('||Dx||_2')
