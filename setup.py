@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='cvxpy',
@@ -24,6 +24,6 @@ setup(
         url='http://github.com/cvxgrp/cvxpy/',
     license='...',
     description='A domain-specific language for modeling convex optimization problems in Python.',
-    requires = ["cvxopt(>= 1.1.6)",
-                "ecos(>=1.0)"] # this doesn't appear to do anything unfortunately
+    install_requires = ["cvxopt >= 1.1.6",
+                "ecos >= 1.0"]
 )
