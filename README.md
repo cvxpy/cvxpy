@@ -37,6 +37,7 @@ Prerequisites
 ---------------------
 CVXPY requires:
 * Python 2.7
+* [setuptools](https://pypi.python.org/pypi/setuptools)
 * [CVXOPT](http://abel.ee.ucla.edu/cvxopt/)
 * [ECOS](http://github.com/ifa-ethz/ecos)
 * [NumPy](http://www.numpy.org/)
