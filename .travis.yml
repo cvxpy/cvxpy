@@ -9,7 +9,6 @@ before_install:
 # install dependencies
 install:
     - pip install coverage
-    - sudo ./get_ecos.sh
     - sudo python setup.py install
 # command to run tests
 script:
