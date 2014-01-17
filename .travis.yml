@@ -9,7 +9,7 @@ before_install:
 # install dependencies
 install:
     - pip install coverage
-    - sudo python setup.py install
+    - sudo python travis_setup.py install
 # command to run tests
 script:
     - nosetests --with-cover --cover-package=cvxpy
