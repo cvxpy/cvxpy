@@ -33,9 +33,9 @@ def norm(x, p=2):
         return normInf(x)
     elif p == "nuc":
         return normNuc(x)
-    elif p == 2 and x.is_vector() or p == "fro":
+    elif p == 2 or p == "fro":
         return norm2(x)
-    elif p == 2:
+    elif p == "spec":
         return sigma_max(x)
     else:
         raise Exception("Invalid value %s for p." % p)

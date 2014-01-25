@@ -135,10 +135,11 @@ CVXPY currently supports the following atoms:
     * `lambda_min(x)`, the minimum eigenvalue of `x`. Constrains `x` to be symmetric.
     * `norm(x, [p = 2])`
         * For p = 1, the L1 norm of `x`.
-        * For p = 2, the L2 norm of `x` for vector `x` and the maximum singular value for matrix `x`.
+        * For p = 2, the L2 norm of `x` for vector `x` and the Frobenius norm for matrix `x`.
         * For p = "inf", the Infinity norm of `x`.
         * For p = "nuc", the nuclear norm of `x` (i.e. the sum of the singular values).
         * For p = "fro", the Frobenius norm of `x`.
+        * For p = "spec", maximum singular value of `x`.
         * Defaults to p = 2 if no value of p is given.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
     * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
