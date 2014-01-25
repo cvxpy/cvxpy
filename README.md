@@ -231,7 +231,6 @@ You can also examine the curvature and sign of an expression using the following
     * expr.is_affine()
     * expr.is_convex()
     * expr.is_concave()
-    * expr.is_dcp() (i.e., known curvature)
 * Sign Methods
     * expr.is_positive()
     * expr.is_negative()
