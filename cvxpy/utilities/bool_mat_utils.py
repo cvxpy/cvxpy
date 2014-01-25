@@ -75,7 +75,7 @@ def index(value, key):
     else:
         return value[key]
 
-def promote(value, rows, cols):
+def promote(value, rows, cols, keep_scalars=True):
     """Promotes a scalar to a matrix of the desired size.
 
     Has no effect on non-scalar values.
@@ -84,12 +84,13 @@ def promote(value, rows, cols):
         value: The scalar to promote.
         rows: The number of rows in the promoted matrix.
         cols: The number of columns in the promoted matrix.
+        keep_scalars: Don't convert scalars to matrices.
 
     Returns:
         A Numpy bool ndarray.
     """
     size = (rows, cols)
-    if size != (1, 1) and value.size == 1:
+    if value.size == 1 and not (keep_scalars and size == (1, 1)):
         value = to_scalar(value)
         mat = np.empty(size, dtype='bool')
         mat.fill(value)

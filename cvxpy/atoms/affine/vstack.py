@@ -51,8 +51,8 @@ class vstack(AffAtom):
         curvatures = []
         # Promote the sign and curvature matrices to the declared size.
         for arg in self.args:
-            signs.append( arg.sign.promote(*arg.size) )
-            curvatures.append( arg.curvature.promote(*arg.size) )
+            signs.append( arg._dcp_attr.sign.promote(*arg.size) )
+            curvatures.append( arg._dcp_attr.curvature.promote(*arg.size) )
 
         # Sign.
         neg_mat = bu.vstack([sign.neg_mat for sign in signs])

@@ -32,9 +32,9 @@ def quad_form(x, P):
     n = P.size[0]
     if P.size[1] != n or x.size != (n,1):
         raise Exception("Invalid dimensions for arguments.")
-    if x.curvature.is_constant():
+    if x.is_constant():
         return x.T*P*x
-    elif P.curvature.is_constant():
+    elif P.is_constant():
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
         # Replace P with symmetric version.

@@ -77,17 +77,61 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    # Curvature properties.
+
     @property
     def curvature(self):
         """ Returns the curvature of the expression.
         """
-        return self._dcp_attr.curvature
+        return self._dcp_attr.curvature.get_readable_repr(*self.size)
+
+    def is_constant(self):
+        """Is the expression constant?
+        """
+        return self._dcp_attr.curvature.is_constant()
+
+    def is_affine(self):
+        """Is the expression affine?
+        """
+        return self._dcp_attr.curvature.is_affine()
+
+    def is_convex(self):
+        """Is the expression convex?
+        """
+        return self._dcp_attr.curvature.is_convex()
+
+    def is_concave(self):
+        """Is the expression concave?
+        """
+        return self._dcp_attr.curvature.is_concave()
+
+    def is_dcp(self):
+        """Is the expression DCP compliant? (i.e., no unknown curvatures).
+        """
+        return self._dcp_attr.curvature.is_dcp()
+
+    # Sign properties.
 
     @property
     def sign(self):
         """ Returns the sign of the expression.
         """
-        return self._dcp_attr.sign
+        return self._dcp_attr.sign.get_readable_repr(*self.size)
+
+    def is_zero(self):
+        """Is the expression all zero?
+        """
+        return self._dcp_attr.sign.is_zero()
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self._dcp_attr.sign.is_positive()
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self._dcp_attr.sign.is_negative()
 
     # The shape of the expression, an object.
     @property
@@ -183,12 +227,12 @@ class Expression(u.Canonical):
         """The product of two expressions.
         """
         # Cannot multiply two non-constant expressions.
-        if not self.curvature.is_constant() and \
-           not other.curvature.is_constant():
+        if not self.is_constant() and \
+           not other.is_constant():
             # TODO replace with special exception.
             raise Exception("Cannot multiply two non-constants.")
         # The constant term must always be on the left.
-        elif not self.curvature.is_constant():
+        elif not self.is_constant():
             return (other.T * self.T).T
         else:
             return types.mul_expr()(self, other)

@@ -23,4 +23,4 @@ class EqConstraint(LeqConstraint):
     OP_NAME = "=="
     # Both sides must be affine.
     def is_dcp(self):
-        return self._expr.curvature.is_affine()
+        return self._expr.is_affine()

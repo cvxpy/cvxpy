@@ -58,8 +58,8 @@ class Parameter(Constant):
         # All signs are valid if sign is unknown.
         # Otherwise value sign must match declared sign.
         sign = intf.sign(val)
-        if self.sign == u.Sign.POSITIVE and not sign.is_positive() or \
-           self.sign == u.Sign.NEGATIVE and not sign.is_negative():
+        if self.is_positive() and not sign.is_positive() or \
+           self.is_negative() and not sign.is_negative():
             raise Exception("Invalid sign for Parameter value.")
         self._value = val
 

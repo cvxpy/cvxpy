@@ -61,7 +61,7 @@ class MulExpression(BinaryOperator):
 
     def graph_implementation(self, arg_objs):
         # If left-hand side is non-constant, replace lh*rh with x, x.T == rh.T*lh.T.
-        if not self.args[0].curvature.is_constant():
+        if not self.args[0].is_constant():
             x = Variable(*self.size)
             constraints = (x.T == arg_objs[1].T*arg_objs[0].T).canonical_form[1]
             return (x, constraints)

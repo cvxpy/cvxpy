@@ -57,7 +57,7 @@ class Minimize(u.Canonical):
     def is_dcp(self):
         """The objective must be convex.
         """
-        return self._expr.curvature.is_convex()
+        return self._expr.is_convex()
 
     @property
     def value(self):
@@ -84,7 +84,7 @@ class Maximize(Minimize):
     def is_dcp(self):
         """The objective must be concave.
         """
-        return self._expr.curvature.is_concave()
+        return self._expr.is_concave()
 
     @staticmethod
     def _primal_to_result(result):

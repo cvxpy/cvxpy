@@ -42,7 +42,7 @@ class LeqConstraint(u.Affine, u.Canonical):
 
     # Left hand expression must be convex and right hand must be concave.
     def is_dcp(self):
-        return self._expr.curvature.is_convex()
+        return self._expr.is_convex()
 
     def canonicalize(self):
         obj, constraints = self._expr.canonical_form

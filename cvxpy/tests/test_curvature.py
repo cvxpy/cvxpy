@@ -31,11 +31,11 @@ class TestCurvature(object):
         self.n = 5
         self.arr = np.atleast_2d(self.n*[[np.bool_(True)]])
         # Vectors
-        self.cvx_vec = Curvature(self.arr, ~self.arr, np.bool_(False))
-        self.conc_vec = Curvature(~self.arr, self.arr, np.bool_(False))
-        self.noncvx_vec = Curvature(self.arr, self.arr, np.bool_(False))
-        self.aff_vec = Curvature(~self.arr, ~self.arr, np.bool_(False))
-        self.const_vec = Curvature(~self.arr, ~self.arr, np.bool_(True))
+        self.cvx_vec = Curvature(self.arr, ~self.arr, np.bool_(True))
+        self.conc_vec = Curvature(~self.arr, self.arr, np.bool_(True))
+        self.noncvx_vec = Curvature(self.arr, self.arr, np.bool_(True))
+        self.aff_vec = Curvature(~self.arr, ~self.arr, np.bool_(True))
+        self.const_vec = Curvature(~self.arr, ~self.arr, np.bool_(False))
 
     # TODO tests with matrices.
     def test_add(self):
@@ -97,6 +97,38 @@ class TestCurvature(object):
         curv = Curvature.CONSTANT.promote(3, 4)
         assert_equals(curv.cvx_mat.shape, (3, 4))
         assert_equals(curv.conc_mat.shape, (3, 4))
+
+    def test_get_readable_repr(self):
+        """Tests the get_readable_repr method.
+        """
+        assert_equals(Curvature.CONSTANT.get_readable_repr(1,1), Curvature.CONSTANT_KEY)
+        assert_equals(Curvature.CONSTANT.get_readable_repr(5,4), Curvature.CONSTANT_KEY)
+
+        assert_equals(Curvature.AFFINE.get_readable_repr(1,1), Curvature.AFFINE_KEY)
+        assert_equals(Curvature.AFFINE.get_readable_repr(5,4), Curvature.AFFINE_KEY)
+
+        assert_equals(Curvature.CONVEX.get_readable_repr(1,1), Curvature.CONVEX_KEY)
+        assert_equals(Curvature.CONVEX.get_readable_repr(5,4), Curvature.CONVEX_KEY)
+
+        assert_equals(Curvature.CONCAVE.get_readable_repr(1,1), Curvature.CONCAVE_KEY)
+        assert_equals(Curvature.CONCAVE.get_readable_repr(5,4), Curvature.CONCAVE_KEY)
+
+        assert_equals(Curvature.UNKNOWN.get_readable_repr(1,1), Curvature.UNKNOWN_KEY)
+        assert_equals(Curvature.UNKNOWN.get_readable_repr(5,4), Curvature.UNKNOWN_KEY)
+
+        # Mixed curvatures.
+        mix_vec = np.vstack([self.arr, ~self.arr])
+        cv = Curvature(mix_vec, mix_vec, np.bool_(True))
+        unknown_str_arr = np.atleast_2d(self.n*[[Curvature.UNKNOWN_KEY]])
+        affine_str_arr = np.atleast_2d(self.n*[[Curvature.AFFINE_KEY]])
+        str_arr = np.vstack([unknown_str_arr, affine_str_arr])
+        assert (cv.get_readable_repr(2*self.n, 1) == str_arr).all()
+
+        cv = Curvature(mix_vec, ~mix_vec, np.bool_(True))
+        conc_str_arr = np.atleast_2d(self.n*[[Curvature.CONCAVE_KEY]])
+        cvx_str_arr = np.atleast_2d(self.n*[[Curvature.CONVEX_KEY]])
+        str_arr = np.vstack([cvx_str_arr, conc_str_arr])
+        assert (cv.get_readable_repr(2*self.n, 1) == str_arr).all()
 
     # # Test the vstack method.
     # def test_vstack(self):

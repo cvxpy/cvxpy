@@ -48,9 +48,11 @@ class TestAtoms(unittest.TestCase):
         atom = normInf(exp)
         # self.assertEquals(atom.name(), "normInf(x + y)")
         self.assertEquals(atom.size, (1,1))
-        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
-        self.assertEquals(normInf(atom).curvature, u.Curvature.CONVEX)
-        self.assertEquals(normInf(-atom).curvature, u.Curvature.CONVEX)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        assert atom.is_convex()
+        assert (-atom).is_concave()
+        self.assertEquals(normInf(atom).curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(normInf(-atom).curvature, u.Curvature.CONVEX_KEY)
 
     # Test the norm1 class.
     def test_norm1(self):
@@ -58,9 +60,9 @@ class TestAtoms(unittest.TestCase):
         atom = norm1(exp)
         # self.assertEquals(atom.name(), "norm1(x + y)")
         self.assertEquals(atom.size, (1,1))
-        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
-        self.assertEquals(norm1(atom).curvature, u.Curvature.CONVEX)
-        self.assertEquals(norm1(-atom).curvature, u.Curvature.CONVEX)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(norm1(atom).curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(norm1(-atom).curvature, u.Curvature.CONVEX_KEY)
 
     # Test the norm2 class.
     def test_norm2(self):
@@ -68,72 +70,73 @@ class TestAtoms(unittest.TestCase):
         atom = norm2(exp)
         # self.assertEquals(atom.name(), "norm2(x + y)")
         self.assertEquals(atom.size, (1,1))
-        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
-        self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX)
-        self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX_KEY)
 
     # Test quad_over_lin DCP.
     def test_quad_over_lin(self):
         atom = quad_over_lin(square(self.x), self.a)
-        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         atom = quad_over_lin(-square(self.x), self.a)
-        self.assertEquals(atom.curvature, u.Curvature.CONVEX)
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         atom = quad_over_lin(sqrt(self.x), self.a)
-        self.assertEquals(atom.curvature, u.Curvature.UNKNOWN)
+        self.assertEquals(atom.curvature, u.Curvature.UNKNOWN_KEY)
+        assert not atom.is_dcp()
 
     # Test sign logic for max.
     def test_max_sign(self):
         # One arg.
-        self.assertEquals(max(1).sign, u.Sign.POSITIVE)
-        self.assertEquals(max(-2).sign, u.Sign.NEGATIVE)
-        self.assertEquals(max(Variable()).sign, u.Sign.UNKNOWN)
-        self.assertEquals(max(0).sign, u.Sign.ZERO)
+        self.assertEquals(max(1).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max(-2).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(max(Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(max(0).sign, u.Sign.ZERO_KEY)
 
         # Two args.
-        self.assertEquals(max(1, 2).sign, u.Sign.POSITIVE)
-        self.assertEquals(max(1, Variable()).sign, u.Sign.POSITIVE)
-        self.assertEquals(max(1, -2).sign, u.Sign.POSITIVE)
-        self.assertEquals(max(1, 0).sign, u.Sign.POSITIVE)
+        self.assertEquals(max(1, 2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max(1, Variable()).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max(1, -2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max(1, 0).sign, u.Sign.POSITIVE_KEY)
 
-        self.assertEquals(max(Variable(), 0).sign, u.Sign.POSITIVE)
-        self.assertEquals(max(Variable(), Variable()).sign, u.Sign.UNKNOWN)
-        self.assertEquals(max(Variable(), -2).sign, u.Sign.UNKNOWN)
+        self.assertEquals(max(Variable(), 0).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max(Variable(), Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(max(Variable(), -2).sign, u.Sign.UNKNOWN_KEY)
 
-        self.assertEquals(max(0, 0).sign, u.Sign.ZERO)
-        self.assertEquals(max(0, -2).sign, u.Sign.ZERO)
+        self.assertEquals(max(0, 0).sign, u.Sign.ZERO_KEY)
+        self.assertEquals(max(0, -2).sign, u.Sign.ZERO_KEY)
 
-        self.assertEquals(max(-3, -2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(max(-3, -2).sign, u.Sign.NEGATIVE_KEY)
 
         # Many args.
         self.assertEquals(max(-2, Variable(), 0, -1, Variable(), 1).sign,
-                          u.Sign.POSITIVE)
+                          u.Sign.POSITIVE_KEY)
 
     # Test sign logic for min.
     def test_min_sign(self):
         # One arg.
-        self.assertEquals(min(1).sign, u.Sign.POSITIVE)
-        self.assertEquals(min(-2).sign, u.Sign.NEGATIVE)
-        self.assertEquals(min(Variable()).sign, u.Sign.UNKNOWN)
-        self.assertEquals(min(0).sign, u.Sign.ZERO)
+        self.assertEquals(min(1).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(min(-2).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min(Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(min(0).sign, u.Sign.ZERO_KEY)
 
         # Two args.
-        self.assertEquals(min(1, 2).sign, u.Sign.POSITIVE)
-        self.assertEquals(min(1, Variable()).sign, u.Sign.UNKNOWN)
-        self.assertEquals(min(1, -2).sign, u.Sign.NEGATIVE)
-        self.assertEquals(min(1, 0).sign, u.Sign.ZERO)
+        self.assertEquals(min(1, 2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(min(1, Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(min(1, -2).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min(1, 0).sign, u.Sign.ZERO_KEY)
 
-        self.assertEquals(min(Variable(), 0).sign, u.Sign.NEGATIVE)
-        self.assertEquals(min(Variable(), Variable()).sign, u.Sign.UNKNOWN)
-        self.assertEquals(min(Variable(), -2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(min(Variable(), 0).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min(Variable(), Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(min(Variable(), -2).sign, u.Sign.NEGATIVE_KEY)
 
-        self.assertEquals(min(0, 0).sign, u.Sign.ZERO)
-        self.assertEquals(min(0, -2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(min(0, 0).sign, u.Sign.ZERO_KEY)
+        self.assertEquals(min(0, -2).sign, u.Sign.NEGATIVE_KEY)
 
-        self.assertEquals(min(-3, -2).sign, u.Sign.NEGATIVE)
+        self.assertEquals(min(-3, -2).sign, u.Sign.NEGATIVE_KEY)
 
         # Many args.
         self.assertEquals(min(-2, Variable(), 0, -1, Variable(), 1).sign,
-                          u.Sign.NEGATIVE)
+                          u.Sign.NEGATIVE_KEY)
 
     # Test the vstack class.
     def test_vstack(self):

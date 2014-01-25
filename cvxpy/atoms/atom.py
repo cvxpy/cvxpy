@@ -85,16 +85,17 @@ class Atom(Expression):
             raise Exception('The number of args be'
                             ' equal to the number of monotonicities.')
         arg_curvatures = []
-        for arg,monotonicity in zip(args,monotonicities):
+        for arg, monotonicity in zip(args,monotonicities):
             arg_curv = u.monotonicity.dcp_curvature(monotonicity, curvature,
-                                                    arg.sign, arg.curvature)
+                                                    arg._dcp_attr.sign,
+                                                    arg._dcp_attr.curvature)
             arg_curvatures.append(arg_curv)
         return reduce(lambda x,y: x+y, arg_curvatures)
 
     # Represent the atom as an affine objective and affine/basic SOC constraints.
     def canonicalize(self):
         # Constant atoms are treated as a leaf.
-        if self.curvature.is_constant():
+        if self.is_constant():
             return ConstantAtom(self).canonical_form
         else:
             arg_objs = []
@@ -135,7 +136,7 @@ class Atom(Expression):
     def value(self):
         # Catch the case when the expression is known to be
         # zero through DCP analysis.
-        if self.sign.is_zero():
+        if self.is_zero():
             result = intf.DEFAULT_INTERFACE.zeros(*self.size)
         else:
             arg_values = []

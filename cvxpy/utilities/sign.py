@@ -138,15 +138,16 @@ class Sign(object):
         return np.all(self.neg_mat == other.neg_mat) and \
                np.all(self.pos_mat == other.pos_mat)
 
-    def promote(self, rows, cols):
+    def promote(self, rows, cols, keep_scalars=True):
         """Promotes the Sign's internal matrices to the desired size.
 
         Args:
             rows: The number of rows in the promoted internal matrices.
             cols: The number of columns in the promoted internal matrices.
+            keep_scalars: Don't convert scalars to matrices.
         """
-        neg_mat = bu.promote(self.neg_mat, rows, cols)
-        pos_mat = bu.promote(self.pos_mat, rows, cols)
+        neg_mat = bu.promote(self.neg_mat, rows, cols, keep_scalars)
+        pos_mat = bu.promote(self.pos_mat, rows, cols, keep_scalars)
         return Sign(neg_mat, pos_mat)
 
     def __repr__(self):
@@ -155,6 +156,40 @@ class Sign(object):
     def __str__(self):
         return "negative entries = %s, positive entries = %s" % \
             (self.neg_mat, self.pos_mat)
+
+    def get_readable_repr(self, rows, cols):
+        """Converts the internal representation to a matrix of strings.
+
+        Args:
+            rows: The number of rows in the expression.
+            cols: The number of columns in the expression.
+
+        Returns:
+            A sign string or a Numpy 2D array of sign strings.
+        """
+        sign = self.promote(rows, cols, False)
+        readable_mat = np.empty((rows, cols), dtype="object")
+        for i in xrange(rows):
+            for j in xrange(cols):
+                # Is the entry unknown?
+                if sign.pos_mat[i, j] and \
+                     sign.neg_mat[i, j]:
+                    readable_mat[i, j] = self.UNKNOWN_KEY
+                # Is the entry positive?
+                elif sign.pos_mat[i, j]:
+                    readable_mat[i, j] = self.POSITIVE_KEY
+                # Is the entry negative?
+                elif sign.neg_mat[i, j]:
+                    readable_mat[i, j] = self.NEGATIVE_KEY
+                # The entry is zero.
+                else:
+                    readable_mat[i, j] = self.ZERO_KEY
+
+        # Reduce readable_mat to a single string if homogeneous.
+        if (readable_mat == readable_mat[0, 0]).all():
+            return readable_mat[0, 0]
+        else:
+            return readable_mat
 
 # Scalar signs.
 Sign.POSITIVE = Sign.name_to_sign(Sign.POSITIVE_KEY)

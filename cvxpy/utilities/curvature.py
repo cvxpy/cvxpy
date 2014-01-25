@@ -171,16 +171,17 @@ class Curvature(object):
                np.all(self.conc_mat == other.conc_mat) and \
                np.all(self.nonconst_mat == other.nonconst_mat)
 
-    def promote(self, rows, cols):
+    def promote(self, rows, cols, keep_scalars=True):
         """Promotes the Curvature's internal matrices to the desired size.
 
         Args:
             rows: The number of rows in the promoted internal matrices.
             cols: The number of columns in the promoted internal matrices.
+            keep_scalars: Don't convert scalars to matrices.
         """
-        cvx_mat = bu.promote(self.cvx_mat, rows, cols)
-        conc_mat = bu.promote(self.conc_mat, rows, cols)
-        nonconst_mat = bu.promote(self.nonconst_mat, rows, cols)
+        cvx_mat = bu.promote(self.cvx_mat, rows, cols, keep_scalars)
+        conc_mat = bu.promote(self.conc_mat, rows, cols, keep_scalars)
+        nonconst_mat = bu.promote(self.nonconst_mat, rows, cols, keep_scalars)
         return Curvature(cvx_mat, conc_mat, nonconst_mat)
 
     def __repr__(self):
@@ -192,6 +193,43 @@ class Curvature(object):
         return "Curvature(%s, %s, %s)" % (self.cvx_mat,
                                           self.conc_mat,
                                           self.nonconst_mat)
+
+    def get_readable_repr(self, rows, cols):
+        """Converts the internal representation to a matrix of strings.
+
+        Args:
+            rows: The number of rows in the expression.
+            cols: The number of columns in the expression.
+
+        Returns:
+            A curvature string or a Numpy 2D array of curvature strings.
+        """
+        curvature = self.promote(rows, cols, False)
+        readable_mat = np.empty((rows, cols), dtype="object")
+        for i in xrange(rows):
+            for j in xrange(cols):
+                # Is the entry constant?
+                if not curvature.nonconst_mat[i, j]:
+                    readable_mat[i, j] = self.CONSTANT_KEY
+                # Is the entry unknown?
+                elif curvature.cvx_mat[i, j] and \
+                     curvature.conc_mat[i, j]:
+                    readable_mat[i, j] = self.UNKNOWN_KEY
+                # Is the entry convex?
+                elif curvature.cvx_mat[i, j]:
+                    readable_mat[i, j] = self.CONVEX_KEY
+                # Is the entry concave?
+                elif curvature.conc_mat[i, j]:
+                    readable_mat[i, j] = self.CONCAVE_KEY
+                # The entry is affine.
+                else:
+                    readable_mat[i, j] = self.AFFINE_KEY
+
+        # Reduce readable_mat to a single string if homogeneous.
+        if (readable_mat == readable_mat[0, 0]).all():
+            return readable_mat[0, 0]
+        else:
+            return readable_mat
 
 # Scalar curvatures.
 Curvature.CONVEX = Curvature.name_to_curvature(Curvature.CONVEX_KEY)

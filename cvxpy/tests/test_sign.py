@@ -168,3 +168,32 @@ class TestSign(object):
 
         assert Sign.ZERO.is_zero()
         assert not Sign.NEGATIVE.is_zero()
+
+    def test_get_readable_repr(self):
+        """Tests the get_readable_repr method.
+        """
+        assert_equals(Sign.POSITIVE.get_readable_repr(1,1), Sign.POSITIVE_KEY)
+        assert_equals(Sign.POSITIVE.get_readable_repr(5,4), Sign.POSITIVE_KEY)
+
+        assert_equals(Sign.NEGATIVE.get_readable_repr(1,1), Sign.NEGATIVE_KEY)
+        assert_equals(Sign.NEGATIVE.get_readable_repr(5,4), Sign.NEGATIVE_KEY)
+
+        assert_equals(Sign.ZERO.get_readable_repr(1,1), Sign.ZERO_KEY)
+        assert_equals(Sign.ZERO.get_readable_repr(5,4), Sign.ZERO_KEY)
+
+        assert_equals(Sign.UNKNOWN.get_readable_repr(1,1), Sign.UNKNOWN_KEY)
+        assert_equals(Sign.UNKNOWN.get_readable_repr(5,4), Sign.UNKNOWN_KEY)
+
+        # Mixed signs.
+        mix_vec = np.vstack([self.arr, ~self.arr])
+        cv = Sign(mix_vec, mix_vec)
+        unknown_str_arr = np.atleast_2d(self.n*[[Sign.UNKNOWN_KEY]])
+        zero_str_arr = np.atleast_2d(self.n*[[Sign.ZERO_KEY]])
+        str_arr = np.vstack([unknown_str_arr, zero_str_arr])
+        assert (cv.get_readable_repr(2*self.n, 1) == str_arr).all()
+
+        cv = Sign(mix_vec, ~mix_vec)
+        neg_str_arr = np.atleast_2d(self.n*[[Sign.NEGATIVE_KEY]])
+        pos_str_arr = np.atleast_2d(self.n*[[Sign.POSITIVE_KEY]])
+        str_arr = np.vstack([neg_str_arr, pos_str_arr])
+        assert (cv.get_readable_repr(2*self.n, 1) == str_arr).all()

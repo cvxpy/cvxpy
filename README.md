@@ -127,7 +127,7 @@ Expressions are iterable. Iterating over an expression returns indices into the 
 The transpose of any expression can be obtained using the syntax `expr.T`.
 
 ### Atoms
-Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object. 
+Atoms are functions that can be used in expressions. Atoms take Expression objects and constants as arguments and return an Expression object.
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
@@ -141,11 +141,11 @@ CVXPY currently supports the following atoms:
         * For p = "fro", the Frobenius norm of `x`.
         * For p = "spec", maximum singular value of `x`.
         * Defaults to p = 2 if no value of p is given.
-    * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive. 
+    * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive.
     * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[1,3]`.
-    * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`. 
+    * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`.
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
@@ -199,16 +199,42 @@ The rules for other functions are equally straightforward.
 
 To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. [Constraints](#constraints), [Objectives](#objectives), and [Problems](#problems) also have an `is_dcp` method.
 
-The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. The curvature and sign are complex objects. The simplest way to examine the curvature and sign is to use the following methods:
+The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. For scalar expressions, the curvature and sign are strings. For example,
+
+```
+x = cp.Variable()
+x.curvature == 'AFFINE'
+x.sign == 'UNKNOWN'
+
+expr = cp.square(x)
+expr.curvature == 'CONVEX'
+expr.sign == 'POSITIVE'
+```
+
+The curvature and sign of matrix expressions are Numpy 2D arrays of strings, with one string for each entry in the expression. For example,
+
+```
+x = cp.Variable()
+expr = cp.vstack(x, cp.square(x))
+expr.curvature ==  array([['AFFINE'],
+                          ['CONVEX']], dtype=object)
+expr.sign ==  array([['UNKNOWN'],
+                     ['POSITIVE']], dtype=object)
+```
+
+If all entries in the matrix expression have the same curvature (or sign), the expression curvature (or sign) is a single string instead of a matrix.
+
+You can also examine the curvature and sign of an expression using the following methods:
 
 * Curvature Methods
-    * expr.curvature.is_constant()
-    * expr.curvature.is_affine()
-    * expr.curvature.is_convex()
-    * expr.curvature.is_concave()
+    * expr.is_constant()
+    * expr.is_affine()
+    * expr.is_convex()
+    * expr.is_concave()
+    * expr.is_dcp() (i.e., known curvature)
 * Sign Methods
-    * expr.sign.is_positive()
-    * expr.sign.is_negative()
+    * expr.is_positive()
+    * expr.is_negative()
 
 For scalar expressions, these methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
 
@@ -235,11 +261,11 @@ p = Problem(objective, constraints)
 result = p.solve()
 ```
 
-If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is unfeasible or unbounded, `p.solve()` will return the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively. Finally, if the solver fails to return a definite result, `p.solve()` will return `cvxpy.UNKNOWN`. 
+If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is unfeasible or unbounded, `p.solve()` will return the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively. Finally, if the solver fails to return a definite result, `p.solve()` will return `cvxpy.UNKNOWN`.
 
 Use the method `cvxpy.get_status(result)` to convert the result of `p.solve()` to a constant indicating the status. The status will be `cvxpy.SOLVED` if the result is a number and the result itself otherwise.
 
-Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object. 
+Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
 
 The value of expressions in the problem can also be read from `expr.value`. For example, consider the portfolio optimization problem below:
 
@@ -367,7 +393,7 @@ class Node(object):
     def __init__(self, accumulation=0):
         self.accumulation = accumulation
         self.edge_flows = []
-    
+
     # Returns the node's internal constraints.
     def constraints(self):
         return [sum(f for f in self.edge_flows) == self.accumulation]
@@ -409,7 +435,7 @@ b = Variable()
 slack = [pos(1 - label*(sample.T*a - b)) for (label,sample) in data]
 objective = Minimize(norm2(a) + gamma*sum(slack))
 p = Problem(objective)
-# Extensions can attach new solve methods to the CVXPY Problem class. 
+# Extensions can attach new solve methods to the CVXPY Problem class.
 p.solve(method="admm")
 
 # Count misclassifications.
@@ -441,7 +467,7 @@ b = cp.Variable()
 slack = [cp.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
 objective = cp.Minimize(cp.norm(a, 2) + gamma*sum(slack))
 p = cp.Problem(objective)
-# Extensions can attach new solve methods to the CVXPY Problem class. 
+# Extensions can attach new solve methods to the CVXPY Problem class.
 p.solve(method="admm")
 
 # Count misclassifications.
