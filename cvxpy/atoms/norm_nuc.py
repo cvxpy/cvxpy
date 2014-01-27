@@ -42,7 +42,7 @@ class normNuc(Atom):
     def shape_from_args(self):
         return u.Shape(1,1)
 
-    # Always unknown.
+    # Always positive.
     def sign_from_args(self):
         return u.Sign.POSITIVE
 

@@ -131,8 +131,12 @@ Atoms are functions that can be used in expressions. Atoms take Expression objec
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
+    * `det_rootn`, the function `det(x)^(1/n)` for an n by n matrix x.
     * `lambda_max(x)`, the maximum eigenvalue of `x`. Constrains `x` to be symmetric.
-    * `lambda_min(x)`, the minimum eigenvalue of `x`. Constrains `x` to be symmetric.
+    * `lambda_min(x)`, the minimum eigenvalue of `x`.
+    Constrains `x` to be symmetric.
+    * `log_det`, the function `log(det(x))` for a positive semidefinite matrix x.
+    * `log_sum_exp(x)`, the function `log(sum(exp(x)))`.
     * `norm(x, [p = 2])`
         * For p = 1, the L1 norm of `x`.
         * For p = 2, the L2 norm of `x` for vector `x` and the Frobenius norm for matrix `x`.
@@ -149,6 +153,7 @@ CVXPY currently supports the following atoms:
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
+    * `exp(x)`, e^element for each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
     * `log(x)`, the natural log of each element of `x`.
     * `neg(x)`, `max(-element,0)` for each element of `x`.

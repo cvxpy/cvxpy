@@ -72,6 +72,7 @@ atoms = [
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
     ], Minimize),
     ([
+        (det_rootn([[5,2],[2,4]]), Constant([4])),
         (geo_mean(4,1), Constant([2])),
         (geo_mean(2,2), Constant([2])),
         (lambda_min([[2,0],[0,1]]), Constant([1])),
