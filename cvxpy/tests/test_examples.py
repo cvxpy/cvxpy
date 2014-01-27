@@ -282,6 +282,28 @@ class TestExamples(unittest.TestCase):
         print a.value
         print b.value
 
+    def test_log_det(self):
+        # TODO
+        # Generate data
+        x = np.matrix("0.55  0.0;"
+                      "0.25  0.35;"
+                      "-0.2   0.2;"
+                      "-0.25 -0.1;"
+                      "-0.0  -0.3;"
+                      "0.4  -0.2").T
+        (n, m) = x.shape
+
+        # Create and solve the model
+        A = cp.Variable(n, n);
+        b = cp.Variable(n);
+        obj = cp.Maximize( cp.log_det(A) )
+        constraints = []
+        for i in range(m):
+            constraints.append( cp.norm(A*x[:, i] + b) <= 1 )
+        p = cp.Problem(obj, constraints)
+        result = p.solve()
+        self.assertAlmostEqual(result, 1.9746)
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

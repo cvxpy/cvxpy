@@ -131,7 +131,6 @@ Atoms are functions that can be used in expressions. Atoms take Expression objec
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
-    * `det_rootn`, the function `det(x)^(1/n)` for an n by n positive semidefinite matrix `x`.
     * `lambda_max(x)`, the maximum eigenvalue of `x`. Constrains `x` to be symmetric.
     * `lambda_min(x)`, the minimum eigenvalue of `x`.
     Constrains `x` to be symmetric.
