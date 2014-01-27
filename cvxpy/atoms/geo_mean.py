@@ -37,7 +37,7 @@ class geo_mean(Atom):
 
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
-        return u.Shape(1,1)
+        return u.Shape(1, 1)
 
     # Always unknown.
     def sign_from_args(self):

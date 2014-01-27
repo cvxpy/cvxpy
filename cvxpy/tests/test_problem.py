@@ -388,9 +388,14 @@ class TestProblem(BaseTest):
     def test_log_det(self):
         """Test problems with log_det.
         """
-        p = Problem(Maximize(log_det(self.A)), [self.A == [[5,2],[2,4]]])
+        M = Variable(4, 4)
+        p = Problem(Maximize(log_det(M)),
+            [M == [[20, 8, 5, 2],
+                        [8, 16, 2, 4],
+                        [5, 2, 5, 2],
+                        [2, 4, 2, 4]]])
         result = p.solve()
-        self.assertAlmostEqual(result, math.log(16))
+        self.assertAlmostEqual(result, math.log(2304**.25))
 
     # Test combining atoms
     def test_mixed_atoms(self):
