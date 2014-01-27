@@ -24,6 +24,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 import cvxopt
+import math
 from nose.tools import assert_raises
 
 TOL = 1e-3
@@ -33,11 +34,13 @@ v = cvxopt.matrix([-1,2,-2], tc='d')
 atoms = [
     ([
         (abs([[-5,2],[-3,1]]), Constant([[5,2],[3,1]])),
+        (exp([[1, 0],[2, -1]]), Constant([[math.e, 1],[math.e**2, 1.0/math.e]])),
         #(huber(0.5), 0.25),
         #(huber(-1.5), 2),
         (inv_pos([[1,2],[3,4]]), Constant([[1,1.0/2],[1.0/3,1.0/4]])),
         (lambda_max([[2,0],[0,1]]), Constant([2])),
         (lambda_max([[5,7],[7,-3]]), Constant([9.06225775])),
+        (log_sum_exp([[5, 7], [0, -3]]), Constant([7.1277708268])),
         (max([-5,2],[-3,1],0,[-1,2]), Constant([0,2])),
         (max([[-5,2],[-3,1]],0,[[5,4],[-1,2]]), Constant([[5,4],[0,2]])),
         #(norm(v), 3),
@@ -73,6 +76,7 @@ atoms = [
         (geo_mean(2,2), Constant([2])),
         (lambda_min([[2,0],[0,1]]), Constant([1])),
         (lambda_min([[5,7],[7,-3]]), Constant([-7.06225775])),
+        (log([[1, math.e],[math.e**2, 1.0/math.e]]), Constant([[0, 1],[2, -1]])),
         (min([-5,2],[-3,1],0,[1,2]), Constant([-5,0])),
         (min([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), Constant([[-5,0],[-3,-1]])),
         #(pow_rat(4,1,2), 2),
@@ -89,6 +93,7 @@ atoms = [
 def run_atom(problem, obj_val):
     assert problem.is_dcp()
     print problem.objective
+    print problem.constraints
     result = problem.solve()
     print result
     print obj_val
@@ -104,16 +109,16 @@ def test_atom():
                     # Atoms with Variable arguments.
                     variables = []
                     constraints = []
-                    for exp in atom.subexpressions:
-                        variables.append( Variable(*exp.size) )
-                        constraints.append( variables[-1] == exp)
+                    for expr in atom.subexpressions:
+                        variables.append( Variable(*expr.size) )
+                        constraints.append( variables[-1] == expr)
                     atom_func = atom.__class__
                     objective = objective_type(atom_func(*variables)[row,col])
                     yield run_atom, Problem(objective, constraints), obj_val[row,col].value
                     # Atoms with Parameter arguments.
                     parameters = []
-                    for exp in atom.subexpressions:
-                        parameters.append( Parameter(*exp.size) )
-                        parameters[-1].value = exp.value
+                    for expr in atom.subexpressions:
+                        parameters.append( Parameter(*expr.size) )
+                        parameters[-1].value = expr.value
                     objective = objective_type(atom_func(*parameters)[row,col])
                     yield run_atom, Problem(objective), obj_val[row,col].value

@@ -31,7 +31,6 @@ class NonlinearConstraint(object):
     # f - a nonlinear function
     # x - the variables involved in the function
     def __init__(self, f, x):
-        # assert(isinstance(f, NonlinearFunc))
         self.f = f
         self.x = x
         # The shape of x in f(x)
@@ -64,7 +63,7 @@ class NonlinearConstraint(object):
         horiz_offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
-            var_Df = Df[:,horiz_offset:horiz_offset+var_size]
+            var_Df = Df[:, horiz_offset:horiz_offset+var_size]
             interface.block_add(big_Df, var_Df, vert_offset, var_offsets[var],
                                 self.size[0], var_size)
             horiz_offset += var_size
@@ -74,7 +73,7 @@ class NonlinearConstraint(object):
         offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
-            var_H = H[offset:offset+var_size,offset:offset+var_size]
+            var_H = H[offset:offset+var_size, offset:offset+var_size]
             interface.block_add(big_H, var_H, var_offsets[var], var_offsets[var],
                                 var_size, var_size)
             offset += var_size

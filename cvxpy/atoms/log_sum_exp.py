@@ -17,42 +17,42 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ... import utilities as u
-from ... import interface as intf
-from ...expressions import types
-from ...expressions.variables import Variable
-from ..geo_mean import geo_mean
-from elementwise import Elementwise
+from atom import Atom
+from elementwise.exp import exp
+from affine.sum import sum as _sum
+from .. import utilities as u
+from ..expressions.variables import Variable
 import numpy as np
 
-class sqrt(Elementwise):
-    """ Elementwise square root """
+class log_sum_exp(Atom):
+    """ log(sum(e^x)) """
     def __init__(self, x):
-        super(sqrt, self).__init__(x)
+        super(log_sum_exp, self).__init__(x)
 
-    # Returns the elementwise square root of x.
-    @Elementwise.numpy_numeric
+    # Evaluates e^x elementwise, sums, and takes the log.
+    @Atom.numpy_numeric
     def numeric(self, values):
-        return np.sqrt(values[0])
+        exp_mat = np.exp(values[0])
+        exp_sum = exp_mat.sum(axis = 1).sum(axis = 0)
+        return np.log(exp_sum)
 
-    # Always positive.
+    # Resolves to a scalar.
+    def shape_from_args(self):
+        return u.Shape(1, 1)
+
+    # Always unknown.
     def sign_from_args(self):
-        return u.Sign.POSITIVE
+        return u.Sign.UNKNOWN
 
     # Default curvature.
     def func_curvature(self):
-        return u.Curvature.CONCAVE
+        return u.Curvature.CONVEX
 
     def monotonicity(self):
         return [u.monotonicity.INCREASING]
 
     def graph_implementation(self, arg_objs):
-        rows, cols = self.size
-        t = Variable(rows, cols)
-        constraints = []
-        for i in xrange(rows):
-            for j in xrange(cols):
-                xi = arg_objs[0][i,j]
-                obj,constr = geo_mean(xi, 1).canonical_form
-                constraints += constr + [obj >= t[i,j], 0 <= xi]
-        return (t, constraints)
+        x = arg_objs[0]
+        t = Variable()
+        obj, constr = _sum(exp(x - t)).canonical_form
+        return (t, constr + [obj <= 1])

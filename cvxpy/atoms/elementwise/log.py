@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, Eric Chu
 
 This file is part of CVXPY.
 
@@ -17,27 +17,26 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ... import utilities as u
-from ... import interface as intf
-from ...expressions import types
-from ...expressions.variables import Variable
-from ..geo_mean import geo_mean
 from elementwise import Elementwise
+from cvxpy.expressions.variables import Variable
+from cvxpy.constraints.exponential import ExpCone
+import cvxpy.utilities as u
+import cvxpy.interface as intf
 import numpy as np
 
-class sqrt(Elementwise):
-    """ Elementwise square root """
+class log(Elementwise):
+    """ Elementwise logarithm. """
     def __init__(self, x):
-        super(sqrt, self).__init__(x)
+        super(log, self).__init__(x)
 
-    # Returns the elementwise square root of x.
+    # Returns the elementwise natural log of x.
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        return np.sqrt(values[0])
+        return np.log(values[0])
 
-    # Always positive.
+    # Always unknown.
     def sign_from_args(self):
-        return u.Sign.POSITIVE
+        return u.Sign.UNKNOWN
 
     # Default curvature.
     def func_curvature(self):
@@ -52,7 +51,8 @@ class sqrt(Elementwise):
         constraints = []
         for i in xrange(rows):
             for j in xrange(cols):
-                xi = arg_objs[0][i,j]
-                obj,constr = geo_mean(xi, 1).canonical_form
-                constraints += constr + [obj >= t[i,j], 0 <= xi]
+                xi = arg_objs[0][i, j]
+                x, y, z = Variable(), Variable(), Variable()
+                constraints += [ExpCone(x, y, z),
+                                x == t[i, j], y == 1, z == xi]
         return (t, constraints)

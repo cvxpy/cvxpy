@@ -22,3 +22,4 @@ from leq_constraint import LeqConstraint
 from nonlinear import NonlinearConstraint
 from second_order import SOC
 from semi_definite import SDP
+from exponential import ExpCone

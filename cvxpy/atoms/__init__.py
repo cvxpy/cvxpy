@@ -21,6 +21,7 @@ from geo_mean import geo_mean
 
 from lambda_max import lambda_max
 from lambda_min import lambda_min
+from log_sum_exp import log_sum_exp
 from norm import norm
 from norm1 import norm1
 from norm2 import norm2
@@ -34,12 +35,12 @@ from affine.sum import sum
 from affine.vstack import vstack
 
 from elementwise.abs import abs
+from elementwise.exp import exp
 from elementwise.inv_pos import inv_pos
+from elementwise.log import log
 from elementwise.max import max
 from elementwise.min import min
 from elementwise.neg import neg
 from elementwise.pos import pos
 from elementwise.sqrt import sqrt
 from elementwise.square import square
-
-from nonlinear.log import log
