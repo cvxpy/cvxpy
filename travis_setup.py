@@ -9,7 +9,6 @@ setup(
               'cvxpy.atoms',
               'cvxpy.atoms.affine',
               'cvxpy.atoms.elementwise',
-              'cvxpy.atoms.nonlinear',
               'cvxpy.constraints',
               'cvxpy.expressions',
               'cvxpy.expressions.constants',
