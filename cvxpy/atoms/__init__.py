@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from det_rootn import det_rootn
 from geo_mean import geo_mean
 from lambda_max import lambda_max
 from lambda_min import lambda_min
