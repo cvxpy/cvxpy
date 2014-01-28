@@ -35,6 +35,7 @@ import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
+import scs
 # ECHU: ECOS now depends on numpy
 import numpy as np
 import scipy.sparse as sp
@@ -247,16 +248,35 @@ class Problem(u.Canonical):
                                   count=len(x))
                       for x in (Gx, Ax))
             Gsp = sp.csc_matrix((Gx, Gi, Gp), shape=(m, n1))
+
+            data = {"c": cnp}
             if p == 0:
                 Asp = None
                 bnp = None
+                # SCS
+                dims["f"] = 0
+                data["A"] = Gsp
+                data["b"] = hnp
             else:
                 Asp = sp.csc_matrix((Ax, Ai, Ap), shape=(p, n2))
+                # SCS
+                dims["f"] = Asp.shape[0]
+                data["A"] = sp.vstack([Asp, Gsp])
+                data["b"] = np.vstack([bnp, hnp])
 
             # ECHU: end conversion
-            results = ecos.solve(cnp, Gsp, hnp, dims, Asp, bnp, verbose=verbose)
-            status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
-            primal_val = results['info']['pcost']
+            # results = ecos.solve(cnp, Gsp, hnp, dims, Asp, bnp, verbose=verbose)
+            # status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
+            # primal_val = results['info']['pcost']
+
+            results = scs.solve(data, dims)
+            status = s.SOLVER_STATUS[s.SCS][results['info']['status']]
+            primal_val = results['info']['pobj']
+            if status == s.SOLVED:
+                self._save_values(results['x'], var_offsets.keys())
+                all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+                self._save_values(results['y'], all_ineq)
+                return self.objective._primal_to_result(primal_val - obj_offset[0])
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
