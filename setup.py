@@ -1,8 +1,10 @@
 from setuptools import setup
 
+from cvxpy import __version__
+
 setup(
     name='cvxpy',
-    version='0.1',
+    version=__version__,
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     packages=['cvxpy',
