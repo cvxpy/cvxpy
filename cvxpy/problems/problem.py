@@ -42,9 +42,12 @@ import scipy.sparse as sp
 class Problem(u.Canonical):
     """A convex optimization problem.
 
-    Attributes:
-        objective: The expression to minimize or maximize.
-        constraints: The constraints on the problem variables.
+    Attributes
+    ----------
+    objective :
+        The expression to minimize or maximize.
+    constraints :
+        The constraints on the problem variables.
     """
 
     # The solve methods available.
@@ -69,10 +72,14 @@ class Problem(u.Canonical):
     def _filter_constraints(self, constraints):
         """Separate the constraints by type.
 
-        Args:
-            constraints: A list of constraints.
+        Parameters
+        ----------
+        constraints :
+            A list of constraints.
 
-        Returns:
+        Returns
+        -------
+        dict
             A map of type key to an ordered set of constraints.
         """
         constr_map = {s.EQ: OrderedSet([]),
@@ -96,9 +103,10 @@ class Problem(u.Canonical):
     def canonicalize(self):
         """Computes the graph implementation of the problem.
 
-        Returns:
-            A tuple (affine objective, constraints list)
-            and the cone dimensions.
+        Returns
+        -------
+        tuple
+            (affine objective, constraints list, the cone dimensions)
         """
         constraints = []
         obj, constr = self.objective.canonical_form
@@ -137,12 +145,18 @@ class Problem(u.Canonical):
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
 
-        Args:
-            method: The solve method to use.
-            solver: The solver to use. Defaults to ECOS.
-            verbose: Overrides the default of hiding solver output.
+        Parameters
+        ----------
+        method :
+            The solve method to use.
+        solver :
+            The solver to use. Defaults to ECOS.
+        verbose :
+            Overrides the default of hiding solver output.
 
-        Returns:
+        Returns
+        -------
+        float
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
@@ -157,9 +171,12 @@ class Problem(u.Canonical):
     def register_solve(cls, name, func):
         """Adds a solve method to the Problem class.
 
-        Args:
-            name: The keyword for the method.
-            func: The function that executes the solve method.
+        Parameters
+        ----------
+        name :
+            The keyword for the method.
+        func :
+            The function that executes the solve method.
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
@@ -169,13 +186,19 @@ class Problem(u.Canonical):
         Saves the values of primal and dual variables in the variable
         and constraint objects, respectively.
 
-        Args:
-            solver: The solver to use. Defaults to ECOS.
-            ignore_dcp: Overrides the default of raising an exception if
-                        the problem is not DCP.
-            verbose: Overrides the default of hiding solver output.
+        Parameters
+        ----------
+        solver :
+            The solver to use. Defaults to ECOS.
+        ignore_dcp :
+            Overrides the default of raising an exception if the problem is not
+            DCP.
+        verbose :
+            Overrides the default of hiding solver output.
 
-        Returns:
+        Returns
+        -------
+        float
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
@@ -263,12 +286,17 @@ class Problem(u.Canonical):
     def _get_var_offsets(self, objective, constraints):
         """Maps each variable to a horizontal offset.
 
-        Args:
-            objective: The canonicalized objective.
-            constraints: The canonicalized constraints.
+        Parameters
+        ----------
+        objective :
+            The canonicalized objective.
+        constraints :
+            The canonicalized constraints.
 
-        Returns:
-            A tuple (map of variable to offset, length of variable vector).
+        Returns
+        -------
+        tuple
+            (map of variable to offset, length of variable vector)
         """
         vars_ = objective.variables()
         for constr in constraints:
@@ -283,10 +311,12 @@ class Problem(u.Canonical):
     def _save_values(self, result_vec, objects):
         """Saves the values of the optimal primal/dual variables.
 
-        Args:
-            results_vec: A vector containing the variable values.
-            objects: The variables or constraints where the values
-                     will be stored.
+        Parameters
+        ----------
+        results_vec :
+            A vector containing the variable values.
+        objects :
+            The variables or constraints where the values will be stored.
         """
         if len(result_vec) > 0:
             # Cast to desired matrix type.
@@ -314,14 +344,22 @@ class Problem(u.Canonical):
         left corner at matrix[variable offset, constraint offset].
         The constant term in the constraint is added to the vector.
 
-        Args:
-            aff_expressions: A list of affine expressions or constraints.
-            var_offsets: A dict of variable id to horizontal offset.
-            x_length: The length of the x vector.
-            matrix_intf: The matrix interface to use for creating the constraints matrix.
-            vec_intf: The matrix interface to use for creating the constant vector.
+        Parameters
+        ----------
+        aff_expressions :
+            A list of affine expressions or constraints.
+        var_offsets :
+            A dict of variable id to horizontal offset.
+        x_length :
+            The length of the x vector.
+        matrix_intf :
+            The matrix interface to use for creating the constraints matrix.
+        vec_intf :
+            The matrix interface to use for creating the constant vector.
 
-        Returns:
+        Returns
+        -------
+        tuple
             A (matrix, vector) tuple.
         """
 
