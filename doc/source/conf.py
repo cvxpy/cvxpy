@@ -16,7 +16,10 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
+# To import cvxpy:
 sys.path.insert(0, os.path.abspath('../..'))
+# To import sphinx extensions we've put in the repository:
+sys.path.insert(0, os.path.abspath('../sphinxext'))
 
 from cvxpy import __version__
 
@@ -29,7 +32,7 @@ from cvxpy import __version__
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage',
-'sphinx.ext.mathjax', 'sphinx.ext.viewcode']
+'sphinx.ext.mathjax', 'sphinx.ext.viewcode', 'numpydoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -45,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'cvxpy'
-copyright = u'2014, Steve Diamond'
+copyright = u'2014, Steve Diamond, Eric Chu, Stephen Boyd'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -188,7 +191,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'cvxpy.tex', u'cvxpy Documentation',
-   u'Steve Diamond', 'manual'),
+   u'Steve Diamond, Eric Chu, Stephen Boyd', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
