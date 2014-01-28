@@ -49,13 +49,13 @@ class ExpCone(NonlinearConstraint):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
     @staticmethod
-    def _solver_hook(_vars=None, scaling=None):
+    def _solver_hook(vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.
 
         Based on f(x,y,z) = ye^(x/y) - z.
 
         Args:
-            _vars: A cvxopt dense matrix with values for (x,y,z).
+            vars_: A cvxopt dense matrix with values for (x,y,z).
             scaling: A scaling for the Hessian.
 
         Returns:
@@ -64,10 +64,10 @@ class ExpCone(NonlinearConstraint):
             _solver_hook(x, z) returns the function value, gradient,
             and (z scaled) Hessian at x.
         """
-        if _vars is None:
+        if vars_ is None:
             return ExpCone.size[0], cvxopt.matrix([0.0, 1.0, 1.0])
-        # Unpack _vars
-        x, y, z = _vars
+        # Unpack vars_
+        x, y, z = vars_
         # Out of domain.
         if y < 0.0 or y == 0.0 and (x > 0.0 or z < 0.0):
             return None
