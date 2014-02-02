@@ -30,7 +30,8 @@ from cvxpy import __version__
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary',
+'sphinx.ext.doctest',
 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage',
 'sphinx.ext.mathjax', 'sphinx.ext.viewcode', 'numpydoc']
 

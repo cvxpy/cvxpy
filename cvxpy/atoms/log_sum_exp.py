@@ -25,7 +25,9 @@ from ..expressions.variables import Variable
 import numpy as np
 
 class log_sum_exp(Atom):
-    """ log(sum(e^x)) """
+    """:math:`\log\sum_i e^{x_i}`
+    
+    """
     def __init__(self, x):
         super(log_sum_exp, self).__init__(x)
 

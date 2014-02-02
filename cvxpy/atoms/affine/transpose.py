@@ -53,8 +53,10 @@ class transpose(AffAtom):
     def _tree_to_coeffs(self):
         """Create a coefficients dict for the transposed variable.
 
-        Returns:
-            A dict of Variable to Numpy ndarray coefficient.
+        Returns
+        -------
+        dict
+            A dict of Variable to NumPy ndarray coefficient.
         """
         X = self.args[0]
         # The dimensions of the coefficients.

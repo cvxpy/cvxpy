@@ -23,10 +23,14 @@ from ... import interface as intf
 def sum(X):
     """Returns an expression representing the sum of the expression's entries.
 
-    Args:
-        X: An Expression.
+    Parameters
+    ----------
+    X : Expression
+        An Expression.
 
-    Returns:
+    Returns
+    -------
+    Expession
         A scalar Expression.
     """
     X = AffAtom.cast_to_const(X)

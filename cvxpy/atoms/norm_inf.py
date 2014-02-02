@@ -24,7 +24,9 @@ import numpy as np
 from numpy import linalg as LA
 
 class normInf(Atom):
-    """ Infinity norm max{|x|} """
+    """Infinity norm; :math:`\max_i\{|x_i|, \dots, |x_n|\}`.
+    
+    """
     def __init__(self, x):
         super(normInf, self).__init__(x)
 
