@@ -27,7 +27,9 @@ from affine.vstack import vstack
 import numpy as np
 
 class quad_over_lin(Atom):
-    """ x'*x/y """
+    """ :math:`x^Tx/y`
+    
+    """
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
 

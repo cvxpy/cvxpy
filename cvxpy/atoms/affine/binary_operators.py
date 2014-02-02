@@ -27,6 +27,7 @@ import numpy as np
 class BinaryOperator(AffAtom):
     """
     Base class for expressions involving binary operators.
+
     """
     def __init__(self, lh_exp, rh_exp):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
@@ -55,6 +56,7 @@ class MulExpression(BinaryOperator):
 
     def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the product.
+
         """
         return cu.mul(self.args[0].coefficients(),
                       self.args[1].coefficients())

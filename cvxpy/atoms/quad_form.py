@@ -25,8 +25,10 @@ from elementwise.square import square
 from scipy import linalg as LA
 import numpy as np
 
-""" Alias for x.T*P*x """
 def quad_form(x, P):
+    """ Alias for :math:`x^T P x`.
+    
+    """
     x,P = map(Expression.cast_to_const, (x,P))
     # Check dimensions.
     n = P.size[0]

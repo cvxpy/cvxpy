@@ -28,7 +28,9 @@ import numpy as np
 from numpy import linalg as LA
 
 class lambda_min(Atom):
-    """ Maximum eigenvalue. """
+    """ Miximum eigenvalue; :math:`\lambda_{\min}(A)`.
+    
+    """
     def __init__(self, A):
         super(lambda_min, self).__init__(A)
 

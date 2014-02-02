@@ -27,7 +27,9 @@ import numpy as np
 from numpy import linalg as LA
 
 class log_det(Atom):
-    """ det(A)^(1/n) """
+    """:math:`\log\det A`
+    
+    """
     def __init__(self, A):
         super(log_det, self).__init__(A)
 
@@ -58,19 +60,28 @@ class log_det(Atom):
         return [u.monotonicity.NONMONOTONIC]
 
     def graph_implementation(self, arg_objs):
-        """Creates the equivalent problem:
-          maximize geo_mean(diag(D))
-          subject to:
-                    D diagonal
-                    diag(D) = diag(Z)
-                    Z is upper triangular.
-                   [D Z; Z.T A] is positive semidefinite
+        """Creates the equivalent problem::
 
-         The problem computes the LDL factorization
-              A = (Z.T*D^-1)*D*(D^-1*Z)
-         This follows from the inequality
-              det(A) >= det(D) + det([D Z; Z.T A])/det(D)
-         and the fact that det(Z) = det(D).
+           maximize    geo_mean(diag(D))
+           subject to: D diagonal
+                       diag(D) = diag(Z)
+                       Z is upper triangular.
+                       [D Z; Z.T A] is positive semidefinite
+
+        The problem computes the LDL factorization:
+
+        .. math::
+
+           A = (Z^TD^{-1})D(D^{-1}Z)
+
+        This follows from the inequality:
+
+        .. math::
+
+           \det(A) >= \det(D) + \det([D, Z; Z^T, A])/\det(D)
+
+        and the fact that :math:`\det(Z) = \det(D)`.
+
         """
         A = arg_objs[0] # n by n matrix.
         n, _ = A.size

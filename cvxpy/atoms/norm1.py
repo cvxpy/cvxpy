@@ -25,7 +25,9 @@ from elementwise.abs import abs
 from numpy import linalg as LA
 
 class norm1(Atom):
-    """ L1 norm sum(|x|) """
+    """L1 norm; :math:`\sum_i|x_i|`.
+    
+    """
     def __init__(self, x):
         super(norm1, self).__init__(x)
 

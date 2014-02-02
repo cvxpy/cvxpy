@@ -27,7 +27,7 @@ from affine.vstack import vstack
 import math
 
 class geo_mean(Atom):
-    """ Geometric mean of two scalars """
+    """ Geometric mean of two scalars; :math:`(x_1, \cdots, x_n)^{1/n}`. """
     def __init__(self, x, y):
         super(geo_mean, self).__init__(x, y)
 
