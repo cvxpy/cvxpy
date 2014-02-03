@@ -191,7 +191,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.x + self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
         # Matrices
         exp = self.A + self.B
@@ -200,7 +200,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A + self.C)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
 
     # Test the SubExpresion class.
@@ -220,7 +220,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.x - self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
         # Matrices
         exp = self.A - self.B
@@ -229,7 +229,7 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A - self.C)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
     # Test the MulExpresion class.
     def test_mul_expression(self):
@@ -246,12 +246,12 @@ class TestExpressions(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x)
         print cm.exception
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (3, 1) (2, 1)")
 
         # Matrices
         with self.assertRaises(Exception) as cm:
             Constant([[2, 1],[2, 2]]) * self.C
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
         with self.assertRaises(Exception) as cm:
             (self.A * self.B)

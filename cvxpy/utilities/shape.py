@@ -61,7 +61,7 @@ class Shape(object):
         elif self.size == other.size:
             return self
         else:
-            raise Exception("Incompatible dimensions.")
+            raise ValueError("Incompatible dimensions %s %s" % (self, other))
 
     def __sub__(self, other):
         """Same as add.
@@ -91,7 +91,10 @@ class Shape(object):
         elif self.cols == other.rows:
             return Shape(self.rows, other.cols)
         else:
-            raise Error("Incompatible dimensions.")
+            raise ValueError("Incompatible dimensions %s %s" % (self, other))
+
+    def __str__(self):
+        return "(%s, %s)" % (self.rows, self.cols)
 
     def __repr__(self):
         return "Shape(%s, %s)" % (self.rows, self.cols)

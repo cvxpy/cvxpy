@@ -37,7 +37,7 @@ class TestShape(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (Shape(1,3) + Shape(4,3))
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (1, 3) (4, 3)")
 
         # Promotion
         self.assertEqual((Shape(3,4) + Shape(1,1)).size, (3,4))
@@ -49,7 +49,7 @@ class TestShape(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (Shape(5,3) * Shape(9,2))
-        self.assertEqual(str(cm.exception), "Incompatible dimensions.")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (5, 3) (9, 2)")
 
         # Promotion
         self.assertEqual((Shape(3,4) * Shape(1,1)).size, (3,4))
