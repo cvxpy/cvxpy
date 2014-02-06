@@ -28,8 +28,11 @@ import operator as op
 class AddExpression(AffAtom):
     """The sum of any number of expressions.
 
-    Attributes:
-        prev_sum: The AddExpression for the first n-1 terms of the sum.
+    Attributes
+    ----------
+    prev_sum : AddExpression
+        The AddExpression for the first n-1 terms of the sum.
+
     """
 
     def __init__(self, terms, prev_sum=None):
@@ -70,13 +73,20 @@ class AddExpression(AffAtom):
     def _promote(self, expr):
         """Promote a scalar expression to a matrix.
 
-        Args:
-            expr: The expression to promote.
-            rows: The number of rows in the promoted matrix.
-            cols: The number of columns in the promoted matrix.
+        Parameters
+        ----------
+        expr : Expression
+            The expression to promote.
+        rows : int
+            The number of rows in the promoted matrix.
+        cols : int
+            The number of columns in the promoted matrix.
 
-        Returns:
+        Returns
+        -------
+        Expression
             An expression with size (rows, cols).
+
         """
         if expr.size == (1, 1) and expr.size != self.size:
             ones = Constant(intf.DEFAULT_INTERFACE.ones(*self.size))

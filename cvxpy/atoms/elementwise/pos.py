@@ -19,6 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from max import max
 
-""" Alias for neg{x,0}. """
 def pos(x):
+    """ Alias for max{x,0}.
+    
+    """
     return max(x,0)

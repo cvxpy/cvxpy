@@ -28,7 +28,9 @@ import numpy as np
 from numpy import linalg as LA
 
 class lambda_max(Atom):
-    """ Maximum eigenvalue. """
+    """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
+    
+    """
     def __init__(self, A):
         super(lambda_max, self).__init__(A)
 

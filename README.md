@@ -43,7 +43,10 @@ CVXPY requires:
 * [NumPy](http://www.numpy.org/)
 * [SciPy](http://www.scipy.org/)
 
-To run the unit tests, you additionally need [Nose](http://nose.readthedocs.org).
+To run the unit tests, you additionally need
+[Nose](http://nose.readthedocs.org). To build the documentation, you need
+[Sphinx][sphinx].
+
 
 Installation
 ---------------------
@@ -54,6 +57,12 @@ python setup.py install
 If you have [Nose](http://nose.readthedocs.org) installed, you can verify the CVXPY installation by running
 ```
 nosetests cvxpy/tests/
+```
+
+If you have [Sphinx][sphinx] installed, you can build the documentation by running
+```
+cd doc
+make html
 ```
 
 Basic Usage
@@ -483,3 +492,5 @@ print "%s misclassifications" % errors
 print a.value
 print b.value
 ```
+
+[sphinx]: http://sphinx-doc.org

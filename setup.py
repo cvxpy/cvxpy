@@ -1,8 +1,10 @@
 from setuptools import setup
 
+from cvxpy import __version__
+
 setup(
     name='cvxpy',
-    version='0.1',
+    version=__version__,
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     packages=['cvxpy',
@@ -23,6 +25,7 @@ setup(
         url='http://github.com/cvxgrp/cvxpy/',
     license='...',
     description='A domain-specific language for modeling convex optimization problems in Python.',
-    install_requires = ["cvxopt >= 1.1.6",
-                        "ecos >= 1.0"]
+    install_requires=["cvxopt >= 1.1.6",
+                        "ecos >= 1.0"],
+    extras_require={'doc': ['sphinx']},
 )
