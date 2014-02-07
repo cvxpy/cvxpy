@@ -72,7 +72,6 @@ class SparseMatrixInterface(NDArrayInterface):
     def zeros(self, rows, cols):
         """Return a matrix with all 0's.
         """
-        print rows, cols
         return sp.csc_matrix((rows, cols), dtype='float64')
 
     def reshape(self, matrix, size):
