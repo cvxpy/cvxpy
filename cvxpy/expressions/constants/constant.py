@@ -29,6 +29,7 @@ class Constant(Leaf):
     A constant, either matrix or scalar.
     """
     def __init__(self, value):
+        # TODO keep sparse matrices sparse.
         self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
         # Set DCP attributes.
         self.init_dcp_attr()

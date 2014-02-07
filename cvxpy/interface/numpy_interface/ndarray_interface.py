@@ -38,6 +38,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
+        # Convert cvxopt sparse to dense.
         if isinstance(value, cvxopt.spmatrix):
             value = cvxopt.matrix(value)
         mat = numpy.array(value, dtype='float64')

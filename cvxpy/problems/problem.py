@@ -348,7 +348,6 @@ class Problem(u.Canonical):
                             I.append(vert_start)
                             J.append(horiz_offset)
                         else: # Block is a matrix or spmatrix.
-                            #print repr(block)
                             if isinstance(block, np.matrix):
                                 block = matrix_intf.const_to_matrix(block)
                             block = block.tocoo()

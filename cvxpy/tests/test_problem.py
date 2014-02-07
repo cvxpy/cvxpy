@@ -229,7 +229,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, self.B.value)
         self.assertItemsAlmostEqual(self.C.value, T)
-        self.assertGreaterEqual(list(self.A.value), list(T*self.C.value))
+        assert (self.A.value >= T*self.C.value).all()
 
         # Test variables are dense.
         self.assertEqual(type(self.A.value), p._DENSE_INTF.TARGET_MATRIX)
@@ -452,7 +452,7 @@ class TestProblem(BaseTest):
                              [self.A <= [[1,-2],[-3,4]]])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
-        self.assertItemsAlmostEqual(self.A, [1,-2,-3,4])
+        self.assertItemsAlmostEqual(self.A.value, [1,-2,-3,4])
 
         # Indexing arithmetic expressions.
         exp = [[1,2],[3,4]]*self.z + self.x
@@ -466,7 +466,7 @@ class TestProblem(BaseTest):
         p = Problem(Maximize(sum(self.C)), [self.C[1:3,:] <= 2, self.C[0,:] == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
-        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+        self.assertItemsAlmostEqual(self.C.value, 2*[1,2,2])
 
         p = Problem(Maximize(sum(self.C[0:3:2,1])),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1])
@@ -505,7 +505,7 @@ class TestProblem(BaseTest):
         p = Problem(Maximize(sum(self.C)), [self.C[1:3,:].T <= 2, self.C[0,:].T == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
-        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+        self.assertItemsAlmostEqual(self.C.value, 2*[1,2,2])
 
     # Test the vstack atom.
     def test_vstack(self):
@@ -549,7 +549,6 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(sum(self.x)), [self.x.T >= matrix([1,2]).T])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
-        print self.x.value
         self.assertItemsAlmostEqual(self.x.value, [1,2])
 
         p = Problem(Minimize(sum(self.C)), [matrix([1,1]).T*self.C.T >= matrix([0,1,2]).T])
@@ -592,7 +591,7 @@ class TestProblem(BaseTest):
         p = Problem(Maximize(sum(self.C)), [self.C.T[:,1:3] <= 2, self.C.T[:,0] == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
-        self.assertItemsAlmostEqual(self.C, 2*[1,2,2])
+        self.assertItemsAlmostEqual(self.C.value, 2*[1,2,2])
 
     # Test multiplication on the left by a non-constant.
     def test_multiplication_on_left(self):

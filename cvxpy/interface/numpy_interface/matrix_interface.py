@@ -39,6 +39,9 @@ class MatrixInterface(NDArrayInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
+        # Convert cvxopt sparse to dense.
+        if isinstance(value, cvxopt.spmatrix):
+            value = cvxopt.matrix(value)
         # Lists and 1D arrays become column vectors.
         if isinstance(value, list) or \
            isinstance(value, np.ndarray) and value.ndim == 1:

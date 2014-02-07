@@ -20,11 +20,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy as cp
 import cvxpy.interface as intf
 import numpy as np
-import unittest
+from base_test import BaseTest
 import cvxopt
 import numbers
 
-class TestExamples(unittest.TestCase):
+class TestExamples(BaseTest):
     """ Unit tests using example problems. """
 
     # Overriden method to handle lists and lower accuracy.
@@ -65,7 +65,7 @@ class TestExamples(unittest.TestCase):
         result = p.solve()
         self.assertAlmostEqual(result, 0.4472)
         self.assertAlmostEqual(r.value, result)
-        self.assertAlmostEqual(x_c.value, [0,0])
+        self.assertItemsAlmostEqual(x_c.value, [0,0])
 
     # Test issue with numpy scalars.
     def test_numpy_scalars(self):
@@ -120,8 +120,8 @@ class TestExamples(unittest.TestCase):
         P_lam = P0 + lam1*P1 + lam2*P2 + lam3*P3
         q_lam = q0 + lam1*q1 + lam2*q2 + lam3*q3
         r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
-        dual_result = -0.5*q_lam.T*P_lam*q_lam + r_lam
-        print dual_result[0,0]
+        dual_result = -0.5*q_lam.T.dot(P_lam).dot(q_lam) + r_lam
+        print dual_result.shape
         self.assertEquals(intf.size(dual_result), (1,1))
 
     # Tests examples from the README.

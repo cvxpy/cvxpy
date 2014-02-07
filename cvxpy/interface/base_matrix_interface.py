@@ -94,9 +94,33 @@ class BaseMatrixInterface(object):
     def reshape(self, matrix, size):
         return NotImplemented
 
-    # Add the block to the matrix at the given offset.
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
                   vert_step=1, horiz_step=1):
+        """Add the block to a slice of the matrix.
+
+        Args:
+            matrix: The matrix the block will be added to.
+            block: The matrix/scalar to be added.
+            vert_offset: The starting row for the matrix slice.
+            horiz_offset: The starting column for the matrix slice.
+            rows: The height of the block.
+            cols: The width of the block.
+            vert_step: The row step size for the matrix slice.
+            horiz_step: The column step size for the matrix slice.
+        """
+        block = self._format_block(matrix, block, rows, cols)
+        matrix[vert_offset:(rows+vert_offset):vert_step,
+               horiz_offset:(horiz_offset+cols):horiz_step] += block
+
+    def _format_block(self, matrix, block, rows, cols):
+        """Formats the block for block_add.
+
+        Args:
+            matrix: The matrix the block will be added to.
+            block: The matrix/scalar to be added.
+            rows: The height of the block.
+            cols: The width of the block.
+        """
         # If the block is a scalar, promote it.
         if intf.is_scalar(block):
             block = self.scalar_matrix(intf.scalar_value(block), rows, cols)
@@ -109,5 +133,4 @@ class BaseMatrixInterface(object):
         # Ensure the block is the same type as the matrix.
         elif type(block) != type(matrix):
             block = self.const_to_matrix(block)
-        matrix[vert_offset:(rows+vert_offset):vert_step,
-               horiz_offset:(horiz_offset+cols):horiz_step] += block
+        return block

@@ -21,6 +21,7 @@ from ndarray_interface import NDArrayInterface
 import scipy.sparse as sp
 import numpy as np
 import numbers
+import cvxopt
 
 class SparseMatrixInterface(NDArrayInterface):
     """
@@ -39,6 +40,16 @@ class SparseMatrixInterface(NDArrayInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
+        # Convert cvxopt sparse to coo matrix.
+        if isinstance(value, cvxopt.spmatrix):
+            Vp, Vi, Vx = value.CCS
+            Vp, Vi = (np.fromiter(iter(x),
+                                  dtype=np.int32,
+                                  count=len(x))
+                      for x in (Vp, Vi))
+            Vx = np.fromiter(iter(Vx), dtype=np.double)
+            m, n = value.size
+            return sp.csc_matrix((Vx, Vi, Vp), shape=(m, n))
         if isinstance(value, list):
             return sp.csc_matrix(value).T
         return sp.csc_matrix(value)
@@ -69,3 +80,23 @@ class SparseMatrixInterface(NDArrayInterface):
         matrix = matrix.todense()
         matrix = super(SparseMatrixInterface, self).reshape(matrix, size)
         return self.const_to_matrix(matrix)
+
+    def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
+                  vert_step=1, horiz_step=1):
+        """Add the block to a slice of the matrix.
+
+        Args:
+            matrix: The matrix the block will be added to.
+            block: The matrix/scalar to be added.
+            vert_offset: The starting row for the matrix slice.
+            horiz_offset: The starting column for the matrix slice.
+            rows: The height of the block.
+            cols: The width of the block.
+            vert_step: The row step size for the matrix slice.
+            horiz_step: The column step size for the matrix slice.
+        """
+        block = self._format_block(matrix, block, rows, cols)
+        _slice = [slice(vert_offset, rows+vert_offset, vert_step),
+                  slice(horiz_offset, horiz_offset+cols, horiz_step)]
+        # Convert to lil before changing sparsity structure.
+        matrix[_slice[0], _slice[1]] = matrix[_slice[0], _slice[1]] + block

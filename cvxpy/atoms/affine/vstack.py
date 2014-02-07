@@ -94,10 +94,12 @@ class vstack(AffAtom):
                         new_blocks.append( interface.zeros(self.size[0], cols) )
                     new_coeffs[var] = np.array(new_blocks, dtype="object", ndmin=1)
                 # Add the coefficient blocks into the new blocks.
-                for i,block in enumerate(blocks):
-                    new_block = new_coeffs[var][i]
-                    new_block = new_block[offset:offset+rows, 0:cols] + block
-                    new_coeffs[var][i][offset:offset+rows, 0:cols] = new_block
+                for i, block in enumerate(blocks):
+                    # Convert to lil before changing structure.
+                    new_block = new_coeffs[var][i].tolil()
+                    interface.block_add(new_block, block,
+                                        offset, 0, rows, cols)
+                    new_coeffs[var][i] = new_block.tocsc()
             offset += rows
 
         return cu.format_coeffs(new_coeffs)

@@ -139,8 +139,6 @@ class test_coefficients(unittest.TestCase):
         """Test multiplying coefficients.
         """
         coeffs = cu.add(self.x.coefficients(), self.y.coefficients())
-        print coeffs
-        print self.C.coefficients()
         coeffs = cu.mul(self.C.coefficients(), coeffs)
         self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
         blocks = coeffs[self.y]

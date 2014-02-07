@@ -157,6 +157,9 @@ class TestInterfaces(unittest.TestCase):
         # const_to_matrix
         mat = interface.const_to_matrix([1,2,3])
         self.assertEquals(interface.size(mat), (3,1))
+        C = cvxopt.spmatrix([1,1,1,1,1],[0,1,2,0,0,],[0,0,0,1,2])
+        mat = interface.const_to_matrix(C)
+        self.assertEquals(interface.size(mat), (3, 3))
         # identity
         mat = interface.identity(4)
         cmp_mat = interface.const_to_matrix(np.eye(4))
