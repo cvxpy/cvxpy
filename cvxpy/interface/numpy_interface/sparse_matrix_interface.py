@@ -57,7 +57,7 @@ class SparseMatrixInterface(NDArrayInterface):
     def identity(self, size):
         """Return an identity matrix.
         """
-        return sp.eye(size, format="csc")
+        return sp.eye(size, size, format="csc")
 
     def size(self, matrix):
         """Return the dimensions of the matrix.
