@@ -56,17 +56,6 @@ def index(coeffs, key):
 
     return format_coeffs(new_coeffs)
 
-    # # Multiplies by a ones matrix to promote scalar coefficients().
-    # # Returns an updated coefficient dict.
-    # @staticmethod
-    # def promote(coeffs, shape):
-    #     rows,cols = shape.size
-    #     ones = intf.DEFAULT_SPARSE_INTERFACE.ones(rows, 1)
-    #     new_coeffs = {}
-    #     for key,blocks in coeffs.items():
-    #         new_coeffs[key] = [ones*blocks[0] for i in range(cols)]
-    #     return new_coeffs
-
 def add(lh_coeffs, rh_coeffs):
     """Determines the coefficients of two expressions added together.
 
@@ -105,7 +94,7 @@ def _merge_cols(blocks):
         blocks: An ndarray of coefficients() for columns.
 
     Returns:
-        A cvxopt spmatrix or a scalar.
+        A scipy sparse matrix or a scalar.
     """
     rows = intf.size(blocks[0])[0]
     cols = len(blocks)
@@ -114,9 +103,11 @@ def _merge_cols(blocks):
         return blocks[0]
     interface = intf.DEFAULT_SPARSE_INTERFACE
     result = interface.zeros(rows, cols)
+    # Convert to lil matrix for efficient construction.
+    result = result.tolil()
     for i in xrange(cols):
         result[:, i] = blocks[i]
-    return result
+    return result.tocsc()
 
 def mul(lh_coeffs, rh_coeffs):
     """Determines the coefficients of two expressions multiplied together.
@@ -136,10 +127,10 @@ def mul(lh_coeffs, rh_coeffs):
     for var_id, blocks in rh_coeffs.items():
         # For scalars distribute across constant blocks.
         if len(blocks) == 1 and intf.size(blocks[0])[0] == 1:
-            new_coeffs[var_id] = lh_blocks * blocks[0]
+            new_coeffs[var_id] = np.multiply(lh_blocks, blocks)
         # For matrices distribute constant across coefficient blocks.
         else:
-            new_coeffs[var_id] = constant_term * blocks
+            new_coeffs[var_id] = np.multiply(constant_term, blocks)
     return format_coeffs(new_coeffs)
 
 def neg(coeffs):

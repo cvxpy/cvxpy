@@ -38,7 +38,7 @@ class lambda_max(Atom):
     def numeric(self, values):
         if not (values[0].T == values[0]).all():
             raise Exception("lambda_max called on a non-symmetric matrix.")
-        w,v = LA.eig(values[0])
+        w, v = LA.eig(values[0])
         return max(w)
 
     # Resolves to a scalar.
@@ -64,10 +64,10 @@ class lambda_max(Atom):
 
     def graph_implementation(self, arg_objs):
         A = arg_objs[0]
-        n,m = A.size
+        n, m = A.size
         # Requires that A is symmetric.
         constr = (A == A.T).canonical_form[1]
         # SDP constraint.
         t = Variable()
-        I = Constant(np.eye(n,m))
+        I = Constant(np.eye(n, m))
         return (t, [SDP(I*t - A)] + constr)

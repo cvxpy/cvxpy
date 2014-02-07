@@ -66,12 +66,13 @@ class transpose(AffAtom):
         interface = intf.DEFAULT_SPARSE_INTERFACE
         blocks = []
         for k in xrange(num_blocks):
-            coeff = interface.zeros(rows, cols)
+            # Convert to lil while constructing the matrix.
+            coeff = interface.zeros(rows, cols).tolil()
             for i in xrange(rows):
                 # Get the ith entry in row k of X.
                 j = i*X.size[0] + k
-                coeff[i,j] = 1
-            blocks.append(coeff)
+                coeff[i, j] = 1
+            blocks.append(coeff.tocsc())
 
         new_coeffs = {X: np.array(blocks, dtype="object", ndmin=1)}
         return cu.format_coeffs(new_coeffs)

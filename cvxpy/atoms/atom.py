@@ -159,8 +159,9 @@ class Atom(Expression):
     @staticmethod
     def numpy_numeric(numeric_func):
         def new_numeric(self, values):
-            interface = intf.DEFAULT_NP_INTERFACE
-            values = [interface.const_to_matrix(v) for v in values]
+            interface = intf.DEFAULT_INTERFACE
+            values = [interface.const_to_matrix(v, convert_scalars=True)
+                      for v in values]
             result = numeric_func(self, values)
             return intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(result)
         return new_numeric

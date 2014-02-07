@@ -62,7 +62,7 @@ class normNuc(Atom):
         #            [U A; A.T V] is positive semidefinite
         X = Variable(n+m, n+m)
         # Expand A.T.
-        obj,constr = A.T.canonical_form
+        obj, constr = A.T.canonical_form
         # Fix X using the fact that A must be affine by the DCP rules.
         constr += [X[0:n,n:n+m] == A, X[n:n+m,0:n] == obj]
         trace = 0.5*sum([X[i,i] for i in range(n+m)])

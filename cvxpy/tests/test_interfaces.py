@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import numpy as np
+import scipy.sparse as sp
 import cvxopt
 import scipy
 import unittest
@@ -148,3 +149,35 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         assert not (mat - np.matrix("2 4; 4 6")).any()
+
+
+    # Test cvxopt sparse interface.
+    def test_scipy_sparse(self):
+        interface = intf.get_matrix_interface(sp.csc_matrix)
+        # const_to_matrix
+        mat = interface.const_to_matrix([1,2,3])
+        self.assertEquals(interface.size(mat), (3,1))
+        # identity
+        mat = interface.identity(4)
+        cmp_mat = interface.const_to_matrix(np.eye(4))
+        self.assertEquals(interface.size(mat), interface.size(cmp_mat))
+        assert (mat - cmp_mat).nnz == 0
+        # scalar_matrix
+        mat = interface.scalar_matrix(2,4,3)
+        self.assertEquals(interface.size(mat), (4,3))
+        self.assertEquals(interface.index(mat, (1,2)), 2)
+        # reshape
+        mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
+        mat = interface.reshape(mat, (6,1))
+        self.assertEquals(interface.index(mat, (4,0)), 4)
+        # Test scalars.
+        scalar = interface.scalar_matrix(1, 1, 1)
+        self.assertEquals(type(scalar), np.ndarray)
+        scalar = interface.scalar_matrix(1, 1, 3)
+        self.assertEquals(scalar.shape, (1,3))
+        # index
+        mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
+        self.assertEquals( interface.index(mat, (0,1)), 3)
+        mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
+        assert not (mat - np.matrix("2 4; 4 6")).any()
+

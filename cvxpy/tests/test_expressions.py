@@ -66,7 +66,7 @@ class TestExpressions(unittest.TestCase):
         coeffs = x.coefficients()
         self.assertItemsEqual(coeffs.keys(), [x])
         vec = coeffs[x][0]
-        self.assertEqual(vec.size, (2,2))
+        self.assertEqual(vec.shape, (2,2))
         self.assertEqual(vec[0,0], 1)
 
         # Matrix variable.
@@ -74,7 +74,7 @@ class TestExpressions(unittest.TestCase):
         self.assertItemsEqual(coeffs.keys(), [self.A])
         self.assertEqual(len(coeffs[self.A]), 2)
         mat = coeffs[self.A][1]
-        self.assertEqual(mat.size, (2,4))
+        self.assertEqual(mat.shape, (2,4))
         self.assertEqual(mat[0,2], 1)
 
     # Test tranposing variables.

@@ -31,12 +31,13 @@ INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
               cvxopt.spmatrix: co_intf.SparseMatrixInterface(),
               np.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
+              sp.csc_matrix: np_intf.SparseMatrixInterface(),
 }
 # Default Numpy interface.
 DEFAULT_NP_INTERFACE = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
-DEFAULT_INTERFACE = INTERFACES[cvxopt.matrix]
-DEFAULT_SPARSE_INTERFACE = INTERFACES[cvxopt.spmatrix]
+DEFAULT_INTERFACE = INTERFACES[np.matrix]
+DEFAULT_SPARSE_INTERFACE = INTERFACES[sp.csc_matrix]
 
 # Returns the interface for interacting with the target matrix class.
 def get_matrix_interface(target_class):
@@ -55,6 +56,9 @@ def size(constant):
             return (len(constant[0]),len(constant))
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].size(constant)
+    # Direct all sparse matrices to CSC interface.
+    elif sp.issparse(constant):
+        return INTERFACES[sp.csc_matrix].size(constant)
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
@@ -75,6 +79,9 @@ def scalar_value(constant):
         return constant[0]
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].scalar_value(constant)
+    # Direct all sparse matrices to CSC interface.
+    elif sp.issparse(constant):
+        return INTERFACES[sp.csc_matrix].size(constant.tocsc())
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 

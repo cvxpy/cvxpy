@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from dense_matrix_interface import DenseMatrixInterface
+import scipy.sparse as sp
 import cvxopt
 import numpy
 
@@ -45,6 +46,13 @@ class SparseMatrixInterface(DenseMatrixInterface):
             except TypeError:
                 retval = cvxopt.sparse(cvxopt.matrix(value.T.tolist()), tc='d')
             return retval
+        # Convert scipy sparse matrices to coo form first.
+        if sp.issparse(value):
+            value = value.tocoo()
+            V = value.data
+            I = value.row
+            J = value.col
+            return cvxopt.spmatrix(V, I, J, value.shape)
         return cvxopt.sparse(value, tc='d')
 
     # Return an identity matrix.

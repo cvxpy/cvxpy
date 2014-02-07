@@ -18,15 +18,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from ndarray_interface import NDArrayInterface
+import scipy.sparse as sp
 import cvxopt
-import numpy
+import numpy as np
 
 class MatrixInterface(NDArrayInterface):
     """
     An interface to convert constant values to the numpy matrix class.
     """
-    TARGET_MATRIX = numpy.matrix
-    
+    TARGET_MATRIX = np.matrix
+
     @NDArrayInterface.scalar_const
     def const_to_matrix(self, value, convert_scalars=False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
@@ -38,19 +39,24 @@ class MatrixInterface(NDArrayInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        if isinstance(value, list):
-            mat = numpy.asmatrix(value, dtype='float64')
+        # Lists and 1D arrays become column vectors.
+        if isinstance(value, list) or \
+           isinstance(value, np.ndarray) and value.ndim == 1:
+            mat = np.asmatrix(value, dtype='float64')
             return mat.T
-        return numpy.asmatrix(value, dtype='float64')
+        # First convert sparse to dense.
+        if sp.issparse(value):
+            value = value.todense()
+        return np.asmatrix(value, dtype='float64')
 
     # Return an identity matrix.
     def identity(self, size):
-        return numpy.asmatrix(numpy.eye(size))
+        return np.asmatrix(np.eye(size))
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
-        mat = numpy.zeros((rows,cols), dtype='float64') + value
-        return numpy.asmatrix(mat)
+        mat = np.zeros((rows,cols), dtype='float64') + value
+        return np.asmatrix(mat)
 
     def reshape(self, matrix, size):
-        return numpy.reshape(matrix, size, order='F')
+        return np.reshape(matrix, size, order='F')

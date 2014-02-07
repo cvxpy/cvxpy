@@ -549,6 +549,7 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(sum(self.x)), [self.x.T >= matrix([1,2]).T])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
+        print self.x.value
         self.assertItemsAlmostEqual(self.x.value, [1,2])
 
         p = Problem(Minimize(sum(self.C)), [matrix([1,1]).T*self.C.T >= matrix([0,1,2]).T])

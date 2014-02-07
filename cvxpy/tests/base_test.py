@@ -1,5 +1,6 @@
 # Base class for unit tests.
 import unittest
+import numpy as np
 
 class BaseTest(unittest.TestCase):
     # AssertAlmostEqual for lists.

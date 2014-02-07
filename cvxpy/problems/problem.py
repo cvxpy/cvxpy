@@ -52,6 +52,8 @@ class Problem(u.Canonical):
     # Interfaces for interacting with matrices.
     _SPARSE_INTF = intf.DEFAULT_SPARSE_INTERFACE
     _DENSE_INTF = intf.DEFAULT_INTERFACE
+    _CVXOPT_DENSE_INTF = intf.get_matrix_interface(cvxopt.matrix)
+    _CVXOPT_SPARSE_INTF = intf.get_matrix_interface(cvxopt.spmatrix)
 
     def __init__(self, objective, constraints=None):
         if constraints is None:
@@ -191,6 +193,9 @@ class Problem(u.Canonical):
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
                                             self._DENSE_INTF,
                                             self._DENSE_INTF)
+        # Convert obj_offset to a scalar.
+        obj_offset =self._DENSE_INTF.scalar_value(obj_offset)
+
         A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
         G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
@@ -202,59 +207,42 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['show_progress'] = verbose
         # Always do one step of iterative refinement after solving KKT system.
         cvxopt.solvers.options['refinement'] = 1
-        # Target cvxopt clp if nonlinear constraints exist
-        if constr_map[s.NONLIN]:
-            # Get the nonlinear constraints.
-            F = self._merge_nonlin(constr_map[s.NONLIN], var_offsets, x_length)
-            # Get custom kktsolver.
-            kktsolver = get_kktsolver(G, dims, A, F)
-            results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
-                                         dims=dims,kktsolver=kktsolver)
-            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-            primal_val = results['primal objective']
         # Target cvxopt solver if SDP or invalid for ECOS.
-        elif solver == s.CVXOPT or len(dims['s']) > 0 or min(G.size) == 0:
-            # Get custom kktsolver.
-            kktsolver = get_kktsolver(G, dims, A)
-            # Adjust tolerance to account for regularization.
-            cvxopt.solvers.options['feastol'] = 2*1e-6
-            results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
-                                            dims=dims, kktsolver=kktsolver)
-            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-            primal_val = results['primal objective']
-        else: # If possible, target ECOS.
-            # ECHU: ecos interface has changed and no longer relies on CVXOPT
-            # as a result, we have to convert cvxopt data structures into
-            # numpy arrays
-            #
-            # ideally, CVXPY would no longer user CVXOPT, except when calling
-            # conelp
-            #
-            cnp, hnp, bnp = (np.fromiter(iter(x),
-                                        dtype=np.double,
-                                        count=len(x))
-                             for x in (c, h, b))
-            Gp, Gi, Gx = G.CCS
-            m, n1 = G.size
-            Ap, Ai, Ax = A.CCS
-            p, n2 = A.size
-            Gp, Gi, Ap, Ai = (np.fromiter(iter(x),
-                                         dtype=np.int32,
-                                         count=len(x))
-                              for x in (Gp, Gi, Ap, Ai))
-            Gx, Ax = (np.fromiter(iter(x),
-                                  dtype=np.double,
-                                  count=len(x))
-                      for x in (Gx, Ax))
-            Gsp = sp.csc_matrix((Gx, Gi, Gp), shape=(m, n1))
-            if p == 0:
-                Asp = None
-                bnp = None
+        if solver == s.CVXOPT or len(dims['s']) > 0 \
+            or min(G.shape) == 0 or constr_map[s.NONLIN]:
+            # Convert c,A,b,G,h to cvxopt matrices.
+            c, b, h = map(lambda vec:
+                self._CVXOPT_DENSE_INTF.const_to_matrix(vec,
+                    convert_scalars=True),
+                [c, b, h])
+            A, G = map(lambda mat:
+                self._CVXOPT_SPARSE_INTF.const_to_matrix(mat,
+                    convert_scalars=True),
+                [A, G])
+            # Target cvxopt clp if nonlinear constraints exist
+            if constr_map[s.NONLIN]:
+                # Get the nonlinear constraints.
+                F = self._merge_nonlin(constr_map[s.NONLIN], var_offsets,
+                                       x_length)
+                # Get custom kktsolver.
+                kktsolver = get_kktsolver(G, dims, A, F)
+                results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
+                                             dims=dims,kktsolver=kktsolver)
+                status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+                primal_val = results['primal objective']
             else:
-                Asp = sp.csc_matrix((Ax, Ai, Ap), shape=(p, n2))
-
-            # ECHU: end conversion
-            results = ecos.solve(cnp, Gsp, hnp, dims, Asp, bnp, verbose=verbose)
+                # Get custom kktsolver.
+                kktsolver = get_kktsolver(G, dims, A)
+                # Adjust tolerance to account for regularization.
+                cvxopt.solvers.options['feastol'] = 2*1e-6
+                results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
+                                                dims=dims, kktsolver=kktsolver)
+                status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+                primal_val = results['primal objective']
+        else: # If possible, target ECOS.
+            # Convert c,h,b to 1D arrays.
+            c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
+            results = ecos.solve(c, G, h, dims, A, b, verbose=verbose)
             status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
             primal_val = results['info']['pcost']
 
@@ -268,7 +256,7 @@ class Problem(u.Canonical):
                 self._save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self._save_values(results['z'], constr_map[s.INEQ])
-            return self.objective._primal_to_result(primal_val - obj_offset[0])
+            return self.objective._primal_to_result(primal_val - obj_offset)
         else:
             return status
 
@@ -305,7 +293,7 @@ class Problem(u.Canonical):
             result_vec = self._DENSE_INTF.const_to_matrix(result_vec)
         offset = 0
         for obj in objects:
-            rows,cols = obj.size
+            rows, cols = obj.size
             # Handle scalars
             if (rows,cols) == (1,1):
                 value = intf.index(result_vec, (offset, 0))
@@ -351,6 +339,8 @@ class Problem(u.Canonical):
                     vert_start = vert_offset + col*aff_exp.size[0]
                     vert_end = vert_start + aff_exp.size[0]
                     if var is s.CONSTANT:
+                        # Convert the block to a dense column.
+                        block = self._DENSE_INTF.const_to_matrix(block)
                         const_vec[vert_start:vert_end, :] = block
                     else:
                         if isinstance(block, numbers.Number):
@@ -358,16 +348,18 @@ class Problem(u.Canonical):
                             I.append(vert_start)
                             J.append(horiz_offset)
                         else: # Block is a matrix or spmatrix.
-                            if isinstance(block, cvxopt.matrix):
-                                block = cvxopt.sparse(block)
-                            V.extend(block.V)
-                            I.extend(block.I + vert_start)
-                            J.extend(block.J + horiz_offset)
+                            #print repr(block)
+                            if isinstance(block, np.matrix):
+                                block = matrix_intf.const_to_matrix(block)
+                            block = block.tocoo()
+                            V.extend(block.data)
+                            I.extend(block.row + vert_start)
+                            J.extend(block.col + horiz_offset)
             vert_offset += aff_exp.size[0]*aff_exp.size[1]
 
         # Create the constraints matrix.
         if len(V) > 0:
-            matrix = cvxopt.spmatrix(V, I, J, (rows, cols), tc='d')
+            matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
             # Convert the constraints matrix to the correct type.
             matrix = matrix_intf.const_to_matrix(matrix, convert_scalars=True)
         else: # Empty matrix.
@@ -380,22 +372,22 @@ class Problem(u.Canonical):
         rows = sum([constr.size[0] * constr.size[1] for constr in nl_constr])
         cols = x_length
 
-        big_x = self._DENSE_INTF.zeros(cols, 1)
+        big_x = self._CVXOPT_DENSE_INTF.zeros(cols, 1)
         for constr in nl_constr:
-            constr.place_x0(big_x, var_offsets, self._DENSE_INTF)
+            constr.place_x0(big_x, var_offsets, self._CVXOPT_DENSE_INTF)
 
         def F(x=None, z=None):
             if x is None:
                 return rows, big_x
-            big_f = self._DENSE_INTF.zeros(rows, 1)
-            big_Df = self._SPARSE_INTF.zeros(rows, cols)
+            big_f = self._CVXOPT_DENSE_INTF.zeros(rows, 1)
+            big_Df = self._CVXOPT_SPARSE_INTF.zeros(rows, cols)
             if z:
-                big_H = self._SPARSE_INTF.zeros(cols, cols)
+                big_H = self._CVXOPT_SPARSE_INTF.zeros(cols, cols)
 
             offset = 0
             for constr in nl_constr:
                 local_x = constr.extract_variables(x, var_offsets,
-                                                   self._DENSE_INTF)
+                                                   self._CVXOPT_DENSE_INTF)
                 if z:
                     f, Df, H = constr.f(local_x,
                                         z[offset:offset + constr.size[0]])
@@ -407,9 +399,10 @@ class Problem(u.Canonical):
                         return None
                 big_f[offset:offset + constr.size[0]] = f
                 constr.place_Df(big_Df, Df, var_offsets,
-                                offset, self._SPARSE_INTF)
+                                offset, self._CVXOPT_SPARSE_INTF)
                 if z:
-                    constr.place_H(big_H, H, var_offsets, self._SPARSE_INTF)
+                    constr.place_H(big_H, H, var_offsets,
+                                   self._CVXOPT_SPARSE_INTF)
                 offset += constr.size[0]
 
             if z is None:

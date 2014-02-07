@@ -19,3 +19,4 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from ndarray_interface import NDArrayInterface
 from matrix_interface import MatrixInterface
+from sparse_matrix_interface import SparseMatrixInterface

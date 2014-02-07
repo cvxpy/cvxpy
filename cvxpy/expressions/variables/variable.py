@@ -59,6 +59,6 @@ class Variable(Leaf):
     def _tree_to_coeffs(self):
         rows, cols = self.size
         identity = intf.DEFAULT_SPARSE_INTERFACE.identity(rows*cols)
-        blocks = [identity[i*rows:(i+1)*rows,:] for i in range(cols)]
+        blocks = [identity[i*rows:(i+1)*rows, :] for i in range(cols)]
         coeffs = {self: np.array(blocks, dtype="object", ndmin=1)}
         return cu.format_coeffs(coeffs)
