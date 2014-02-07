@@ -96,7 +96,7 @@ class SparseMatrixInterface(NDArrayInterface):
             horiz_step: The column step size for the matrix slice.
         """
         block = self._format_block(matrix, block, rows, cols)
-        _slice = [slice(vert_offset, rows+vert_offset, vert_step),
+        slice_ = [slice(vert_offset, rows+vert_offset, vert_step),
                   slice(horiz_offset, horiz_offset+cols, horiz_step)]
         # Convert to lil before changing sparsity structure.
-        matrix[_slice[0], _slice[1]] = matrix[_slice[0], _slice[1]] + block
+        matrix[slice_[0], slice_[1]] = matrix[slice_[0], slice_[1]] + block
