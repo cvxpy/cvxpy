@@ -8,7 +8,7 @@ before_install:
     - sudo apt-get install python-numpy python-cvxopt
 # install dependencies
 install:
- 	- pip install scipy
+    - pip install scipy
     - pip install coverage
     - sudo python travis_setup.py install
 # command to run tests
