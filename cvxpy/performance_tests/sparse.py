@@ -7,7 +7,7 @@ import numpy as np
 import time
 
 m = 100
-n = 900
+n = 1000
 prob = 0.999
 
 a_arr = np.random.random((m, n))

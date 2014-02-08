@@ -5,7 +5,7 @@ virtualenv:
     system_site_packages: true
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install python-numpy python-scipy python-cvxopt
+    - sudo apt-get install python-numpy python-scipy=0.13 python-cvxopt
 # install dependencies
 install:
     - pip install coverage
