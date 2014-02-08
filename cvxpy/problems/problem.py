@@ -194,7 +194,7 @@ class Problem(u.Canonical):
                                             self._DENSE_INTF,
                                             self._DENSE_INTF)
         # Convert obj_offset to a scalar.
-        obj_offset =self._DENSE_INTF.scalar_value(obj_offset)
+        obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
 
         A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
