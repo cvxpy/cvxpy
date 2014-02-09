@@ -40,12 +40,7 @@ class SparseMatrixInterface(DenseMatrixInterface):
             A matrix of type self.target_matrix or a scalar.
         """
         if isinstance(value, numpy.ndarray):
-            # ECHU: temporary workaround when travis fails
-            try:
-                retval = cvxopt.sparse(cvxopt.matrix(value), tc='d')
-            except TypeError:
-                retval = cvxopt.sparse(cvxopt.matrix(value.T.tolist()), tc='d')
-            return retval
+            return cvxopt.sparse(cvxopt.matrix(value), tc='d')
         # Convert scipy sparse matrices to coo form first.
         if sp.issparse(value):
             value = value.tocoo()
