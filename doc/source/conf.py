@@ -230,7 +230,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'cvxpy', u'CVXPY Documentation',
-     [u'Steve Diamond, Eric Chu, Stephen Boyd'], 1)
+     [u'Steven Diamond, Eric Chu, Stephen Boyd'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -244,7 +244,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'cvxpy', u'CVXPY Documentation',
-   u'Steve Diamond, Eric Chu, Stephen Boyd', 'CVXPY', 'One line description of project.',
+   u'Steven Diamond, Eric Chu, Stephen Boyd', 'CVXPY', 'One line description of project.',
    'Miscellaneous'),
 ]
 
