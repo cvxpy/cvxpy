@@ -30,17 +30,17 @@ class CvxPyDomainError(Exception):
     pass
 
 
-def _decomp_quad(A, cond=None, rcond=None, lower=True, check_finite=True):
+def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
     Compute a matrix decomposition.
 
-    Compute sgn, scale, M such that A = sgn * scale * dot(M, M.T).
+    Compute sgn, scale, M such that P = sgn * scale * dot(M, M.T).
     The strategy of determination of eigenvalue negligibility follows
     the pinvh contributions from the scikit-learn project to scipy.
 
     Parameters
     ----------
-    A : matrix or ndarray
+    P : matrix or ndarray
         A real symmetric positive or negative (semi)definite input matrix
     cond, rcond : float, optional
         Cutoff for small eigenvalues.
@@ -48,7 +48,7 @@ def _decomp_quad(A, cond=None, rcond=None, lower=True, check_finite=True):
         are considered negligible.
         If None or -1, suitable machine precision is used (default).
     lower : bool, optional
-        Whether the array data is taken from the lower or upper triangle of A.
+        Whether the array data is taken from the lower or upper triangle of P.
         The default is to take it from the lower triangle.
     check_finite : bool, optional
         Whether to check that the input matrix contains only finite numbers.
@@ -59,14 +59,14 @@ def _decomp_quad(A, cond=None, rcond=None, lower=True, check_finite=True):
     Returns
     -------
     sgn : -1 or 1
-        1 if A is positive (semi)definite otherwise -1
+        1 if P is positive (semi)definite otherwise -1
     scale : float
-        induced matrix 2-norm of A
+        induced matrix 2-norm of P
     M : 2d ndarray
-        A rectangular ndarray such that A = sgn * scale * dot(M, M.T)
+        A rectangular ndarray such that P = sgn * scale * dot(M, M.T)
         
     """
-    w, V = LA.eigh(A, lower=lower, check_finite=check_finite)
+    w, V = LA.eigh(P, lower=lower, check_finite=check_finite)
     abs_w = np.absolute(w)
     sgn_w = np.sign(w)
     scale, sgn = max(zip(np.absolute(w), np.sign(w)))
@@ -79,7 +79,7 @@ def _decomp_quad(A, cond=None, rcond=None, lower=True, check_finite=True):
     scaled_abs_w = abs_w / scale
     mask = scaled_abs_w > cond
     if np.any(w[mask] * sgn < 0):
-        msg = 'the matrix has both positive and negative eigenvalues'
+        msg = 'P has both positive and negative eigenvalues.'
         raise CvxPyDomainError(msg)
     M = V[:, mask] * np.sqrt(scaled_abs_w[mask])
     return sgn, scale, M
@@ -98,8 +98,7 @@ def quad_form(x, P):
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
         sgn, scale, M = _decomp_quad(P)
-        squared_scale = scale * scale
-        return sgn * squared_scale * square(norm2(Constant(M) * x))
+        return sgn * scale * square(norm2(Constant(M.T) * x))
     else:
         raise Exception("At least one argument to quad_form must be constant.")
 
