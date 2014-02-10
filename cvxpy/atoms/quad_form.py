@@ -40,16 +40,15 @@ def quad_form(x, P):
         # Replace P with symmetric version.
         P = (P + P.T)/2
         # Check if P is PSD.
-        eigvals, V = LA.eig(P)
-        eigvals = eigvals.real
+        eigvals, V = LA.eigh(P)
         if min(eigvals) >= 0:
             diag_eig = np.diag(np.sqrt(eigvals))
             P_sqrt = Constant(diag_eig.dot(V.T))
-            return square(norm2(P_sqrt*x))
+            return sum(square(P_sqrt * x))
         elif max(eigvals) <= 0:
             diag_eig = np.diag(np.sqrt(-eigvals))
             P_sqrt = Constant(diag_eig.dot(V.T))
-            return -square(norm2(P_sqrt*x))
+            return -sum(square(P_sqrt * x))
         else:
             raise Exception("P has both positive and negative eigenvalues.")
     else:
