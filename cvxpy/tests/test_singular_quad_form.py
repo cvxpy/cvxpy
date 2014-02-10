@@ -25,7 +25,6 @@ def test_singular_quad_form():
             Q = np.dot(E, np.dot(Q, E.T))
             observed_rank = np.linalg.matrix_rank(Q)
             desired_rank = n-1
-            w, V = linalg.eigh(Q)
             yield assert_equal, observed_rank, desired_rank
 
             for action in 'minimize', 'maximize':
