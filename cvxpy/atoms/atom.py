@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
+import settings as s
 from .. import utilities as u
 from ..utilities import performance_utils as pu
 from .. import interface as intf
