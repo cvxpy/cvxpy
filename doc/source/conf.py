@@ -34,8 +34,7 @@ class Mock(object):
             return Mock()
 
 MOCK_MODULES = ['numpy', 'scipy', 'scipy.sparse',
-                'cvxopt', 'cvxopt.matrix', 'cvxopt.spmatrix',
-                'cvxopt.solver', 'ecos']
+                'cvxopt', 'cvxopt.solvers', 'ecos']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
@@ -47,7 +46,8 @@ sys.path.insert(0, os.path.abspath('../..'))
 # To import sphinx extensions we've put in the repository:
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
-from cvxpy.settings import __version__
+# TODO factor this out.
+__version__ = "0.1"
 
 # -- General configuration -----------------------------------------------------
 
