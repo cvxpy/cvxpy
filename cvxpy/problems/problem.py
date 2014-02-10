@@ -44,9 +44,9 @@ class Problem(u.Canonical):
 
     Attributes
     ----------
-    objective :
+    objective : Minimize or Maximize
         The expression to minimize or maximize.
-    constraints :
+    constraints : list
         The constraints on the problem variables.
     """
 
@@ -74,7 +74,7 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        constraints :
+        constraints : list
             A list of constraints.
 
         Returns
@@ -147,11 +147,11 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        method :
+        method : function
             The solve method to use.
-        solver :
+        solver : str, optional
             The solver to use. Defaults to ECOS.
-        verbose :
+        verbose : bool, optional
             Overrides the default of hiding solver output.
 
         Returns
@@ -173,9 +173,9 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        name :
+        name : str
             The keyword for the method.
-        func :
+        func : function
             The function that executes the solve method.
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
@@ -188,12 +188,12 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        solver :
+        solver : str, optional
             The solver to use. Defaults to ECOS.
-        ignore_dcp :
+        ignore_dcp : bool, optional
             Overrides the default of raising an exception if the problem is not
             DCP.
-        verbose :
+        verbose : bool, optional
             Overrides the default of hiding solver output.
 
         Returns
@@ -288,9 +288,9 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        objective :
+        objective : Expression
             The canonicalized objective.
-        constraints :
+        constraints : list
             The canonicalized constraints.
 
         Returns
@@ -313,9 +313,9 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        results_vec :
+        results_vec : array_like
             A vector containing the variable values.
-        objects :
+        objects : list
             The variables or constraints where the values will be stored.
         """
         if len(result_vec) > 0:
@@ -346,15 +346,15 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        aff_expressions :
+        aff_expressions : list
             A list of affine expressions or constraints.
-        var_offsets :
+        var_offsets : dict
             A dict of variable id to horizontal offset.
-        x_length :
+        x_length : int
             The length of the x vector.
-        matrix_intf :
+        matrix_intf : interface
             The matrix interface to use for creating the constraints matrix.
-        vec_intf :
+        vec_intf : interface
             The matrix interface to use for creating the constant vector.
 
         Returns
