@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atoms import *
+#from atoms import *
 from expressions.variables import Variable, SDPVar
 from expressions.constants import Parameter
 from expressions.constants import Constant
