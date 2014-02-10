@@ -15,7 +15,7 @@ before_install:
   - sudo ln -s /run/shm /dev/shm
 # Install packages
 install:
-  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION atlas numpy scipy nose
+  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy cvxopt nose
   - pip install python-coveralls --use-mirrors
   - pip install nose-cov --use-mirrors
   - python setup.py install
