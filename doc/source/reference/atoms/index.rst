@@ -39,7 +39,7 @@ Summary
     :members:
     :undoc-members:
 
-.. autoclass:: cvxpy.atoms.geo_mean.geo_mean
+.. autoclass:: cvxpy.geo_mean
     :members:
     :undoc-members:
 
