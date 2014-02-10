@@ -35,7 +35,7 @@ Summary
     square
 
 
-.. autoclass:: cvxpy.atoms.atom.Atom
+.. autoclass:: cvxpy.atoms.atom
     :members:
     :undoc-members:
 
