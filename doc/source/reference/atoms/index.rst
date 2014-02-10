@@ -35,11 +35,11 @@ Summary
     square
 
 
-.. autoclass:: cvxpy.atoms.atom
+.. autoclass:: cvxpy.atoms.atom.Atom
     :members:
     :undoc-members:
 
-.. autoclass:: cvxpy.geo_mean
+.. autoclass:: cvxpy.atoms.geo_mean.geo_mean
     :members:
     :undoc-members:
 
