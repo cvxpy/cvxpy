@@ -232,6 +232,7 @@ class Problem(u.Canonical):
         # Always do one step of iterative refinement after solving KKT system.
         cvxopt.solvers.options['refinement'] = 1
         # Target cvxopt solver if SDP or invalid for ECOS.
+<<<<<<< HEAD
         if solver == s.CVXOPT or len(dims['s']) > 0 \
             or min(G.shape) == 0 or constr_map[s.NONLIN]:
             # Convert c,A,b,G,h to cvxopt matrices.
