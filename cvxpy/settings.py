@@ -58,8 +58,14 @@ ECOS_STATUS = {0: SOLVED,
                -2: UNKNOWN,
                -3: UNKNOWN,
                -7: UNKNOWN}
+
+SCS = "scs"
+SCS_STATUS = {"Solved": SOLVED,
+}
+
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
-                 ECOS: ECOS_STATUS}
+                 ECOS: ECOS_STATUS,
+                 SCS: SCS_STATUS}
 
 import numbers
 # Converts the result from the Problem.solve method to a status string.

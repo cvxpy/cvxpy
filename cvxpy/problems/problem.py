@@ -35,6 +35,7 @@ import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
+import scs
 # ECHU: ECOS now depends on numpy
 import numpy as np
 import scipy.sparse as sp
@@ -262,6 +263,26 @@ class Problem(u.Canonical):
                                                 dims=dims, kktsolver=kktsolver)
                 status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
                 primal_val = results['primal objective']
+        elif solver == s.SCS:
+            c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
+            data = {"c": c}
+            if A.shape[0] == 0:
+                dims["f"] = 0
+                data["A"] = G
+                data["b"] = h
+            else:
+                dims["f"] = A.shape[0]
+                data["A"] = sp.vstack([A, G])
+                data["b"] = np.vstack([b, h])
+            opt = {'VERBOSE': verbose}
+            results = scs.solve(data, dims, opt, USE_INDIRECT = True)
+            status = s.SOLVER_STATUS[s.SCS][results['info']['status']]
+            primal_val = results['info']['pobj']
+            if status == s.SOLVED:
+                self._save_values(results['x'], var_offsets.keys())
+                all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+                self._save_values(results['y'], all_ineq)
+                return self.objective._primal_to_result(primal_val - obj_offset)
         else: # If possible, target ECOS.
             # Convert c,h,b to 1D arrays.
             c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
