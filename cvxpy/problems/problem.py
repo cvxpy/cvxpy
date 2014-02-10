@@ -385,9 +385,12 @@ class Problem(u.Canonical):
                             V.append(block)
                             I.append(vert_start)
                             J.append(horiz_offset)
-                        else: # Block is a matrix or spmatrix.
+                        else:
+                            # Block is a numpy matrix or
+                            # scipy CSC sparse matrix.
                             if isinstance(block, np.matrix):
-                                block = matrix_intf.const_to_matrix(block)
+                                block = self._SPARSE_INTF.const_to_matrix(
+                                        block)
                             block = block.tocoo()
                             V.extend(block.data)
                             I.extend(block.row + vert_start)
