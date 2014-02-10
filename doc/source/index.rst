@@ -9,16 +9,16 @@ Welcome to CVXPY's documentation!
 We can solve the following quadratic program:
 
 .. math::
-    
+
     \begin{array}{ll}
         \mbox{minimize} & \frac{1}{2} x^T P x + q^T x + r \\\\
-        \mbox{subject to} & -1 \leq x_i \leq 1, i = 1, 2, 3 \\\\
+        \mbox{subject to} & -1 \leq x_i \leq 1, i = 1, ..., n \\\\
     \end{array}
 
 with just a few lines of code::
-    
+
     import cvxopt
-    from cvxpy import *
+    import cvxpy as cp
     # Generate the data.
     n = 3
     P = cvxopt.matrix([	13, 12, -2,
@@ -26,13 +26,13 @@ with just a few lines of code::
     			-2,  6, 12], (n, n))
     q = cvxopt.matrix([-22, -14.5, 13], (n, 1))
     r = 1
-    
+
     # Frame and solve the problem.
-    x = Variable(n)
-    objective = Minimize(  0.5 * quad_form(x, P)  + q.T * x + r )
+    x = cp.Variable(n)
+    objective = cp.Minimize(  0.5 * cp.quad_form(x, P)  + q.T * x + r )
     constraints = [ x >= -1, x <= 1]
-    
-    p = Problem(objective, constraints)
+
+    p = cp.Problem(objective, constraints)
     # The optimal objective is returned by p.solve().
     result = p.solve()
 

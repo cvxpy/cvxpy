@@ -44,8 +44,9 @@ CVXPY requires:
 * [SciPy](http://www.scipy.org/)
 
 To run the unit tests, you additionally need
-[Nose](http://nose.readthedocs.org). To build the documentation, you need
-[Sphinx][sphinx].
+[Nose](http://nose.readthedocs.org).
+
+To build the documentation, you need [Sphinx][sphinx].
 
 
 Installation
