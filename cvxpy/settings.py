@@ -17,7 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Constants for operators
+# Current CVXPY version.
+__version__ = "0.1"
+
+# Constants for operators.
 PLUS = "+"
 MINUS = "-"
 MUL = "*"

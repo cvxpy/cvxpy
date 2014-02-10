@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # To import sphinx extensions we've put in the repository:
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
-from cvxpy import __version__
+from cvxpy.settings import __version__
 
 # -- General configuration -----------------------------------------------------
 
