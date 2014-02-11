@@ -23,6 +23,7 @@ from ...utilities import coefficient_utils as cu
 from ... import interface as intf
 from ..constants import Constant
 from ..leaf import Leaf
+import scipy.sparse as sp
 import numpy as np
 
 class Variable(Leaf):
@@ -58,7 +59,14 @@ class Variable(Leaf):
     # and a list of offset identity matrices as the coefficients.
     def _tree_to_coeffs(self):
         rows, cols = self.size
-        identity = intf.DEFAULT_SPARSE_INTERFACE.identity(rows*cols)
-        blocks = [identity[i*rows:(i+1)*rows, :] for i in range(cols)]
-        coeffs = {self: blocks}
+        V = rows*[1.0]
+        I = [i for i in range(rows)]
+        # Create the blocks.
+        blocks = []
+        for col in range(cols):
+            shape = (rows, rows*cols)
+            selection = [i for i in range(col*rows, (col+1)*rows)]
+            mat = sp.coo_matrix((V, (I, selection)), shape)
+            blocks.append(mat.tocsc())
+        coeffs = {self: np.array(blocks, dtype="object", ndmin=1)}
         return cu.format_coeffs(coeffs)

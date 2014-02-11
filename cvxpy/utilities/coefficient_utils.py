@@ -52,7 +52,7 @@ def index(coeffs, key):
             block_key = (key[0], slice(None, None, None))
             block_val = intf.index(block, block_key)
             new_blocks.append(block_val)
-        new_coeffs[var_id] = new_blocks
+        new_coeffs[var_id] = np.array(new_blocks, dtype="object", ndmin=1)
 
     return format_coeffs(new_coeffs)
 
@@ -70,8 +70,7 @@ def add(lh_coeffs, rh_coeffs):
     new_coeffs = lh_coeffs.copy()
     for var_id, blocks in rh_coeffs.items():
         if var_id in new_coeffs:
-            new_coeffs[var_id] = [a + b for (a,b) in
-                                  zip(new_coeffs[var_id], blocks)]
+            new_coeffs[var_id] = new_coeffs[var_id] + blocks
         else:
             new_coeffs[var_id] = blocks
     return new_coeffs
@@ -103,8 +102,13 @@ def _merge_cols(blocks):
     if (rows, cols) == (1, 1):
         return blocks[0]
     else:
-        # TODO keep sparse constants sparse.
-        return np.matrix(np.hstack(blocks))
+        interface = intf.DEFAULT_SPARSE_INTERFACE
+        result = interface.zeros(rows, cols)
+        # Convert to lil matrix for efficient construction.
+        result = result.tolil()
+        for i in xrange(cols):
+            result[:, i] = blocks[i]
+        return result.tocsc()
 
 def mul(lh_coeffs, rh_coeffs):
     """Determines the coefficients of two expressions multiplied together.
@@ -124,10 +128,10 @@ def mul(lh_coeffs, rh_coeffs):
     for var_id, blocks in rh_coeffs.items():
         # For scalars distribute across constant blocks.
         if len(blocks) == 1 and intf.size(blocks[0])[0] == 1:
-            new_coeffs[var_id] = [lh*blocks[0] for lh in lh_blocks]
+            new_coeffs[var_id] = np.multiply(lh_blocks, blocks)
         # For matrices distribute constant across coefficient blocks.
         else:
-            new_coeffs[var_id] = [constant_term*rh for rh in blocks]
+            new_coeffs[var_id] = np.multiply(constant_term, blocks)
     return format_coeffs(new_coeffs)
 
 def neg(coeffs):
@@ -135,5 +139,5 @@ def neg(coeffs):
     """
     new_coeffs = {}
     for var_id, blocks in coeffs.items():
-        new_coeffs[var_id] = [-b for b in blocks]
+        new_coeffs[var_id] = -blocks
     return new_coeffs
