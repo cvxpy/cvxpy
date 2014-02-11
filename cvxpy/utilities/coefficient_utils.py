@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import interface as intf
 from .. import settings as s
 import numpy as np
+import scipy.sparse as sp
 
 # Operations on a dict of Variable to coefficient for an affine expression.
 
@@ -102,13 +103,7 @@ def _merge_cols(blocks):
     if (rows, cols) == (1, 1):
         return blocks[0]
     else:
-        interface = intf.DEFAULT_SPARSE_INTERFACE
-        result = interface.zeros(rows, cols)
-        # Convert to lil matrix for efficient construction.
-        result = result.tolil()
-        for i in xrange(cols):
-            result[:, i] = blocks[i]
-        return result.tocsc()
+        return sp.hstack(blocks).tocsc()
 
 def mul(lh_coeffs, rh_coeffs):
     """Determines the coefficients of two expressions multiplied together.

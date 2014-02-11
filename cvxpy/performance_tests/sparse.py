@@ -6,35 +6,48 @@ import cvxopt
 import numpy as np
 import time
 
-m = 100
-n = 1000
-prob = 0.999
-
-a_arr = np.random.random((m, n))
-a_arr[a_arr < prob] = 0
-
-a_arr_sp = spmatrix(a_arr[a_arr.nonzero()[0],
-						  a_arr.nonzero()[1]],
-					a_arr.nonzero()[0],
-					a_arr.nonzero()[1],
-					size=(m, n))
-
-W = cp.Variable(n, n)
-constraints = []
-
-constraints.extend( [W[i,i] == 0 for i in range(n)] )
-constraints.append(W >= 0)
-lam = 8
-beta = 0.5
-loss = cp.sum(a_arr_sp - a_arr_sp*W)
-l2_reg = 0.5*beta*cp.square(cp.norm(W))
-l1_reg = lam*cp.sum(W)
-obj = cp.Minimize(loss + l2_reg + l1_reg)
-# TODO No constraints, get error.
-p = cp.Problem(obj, constraints)
-
 import cProfile
-cProfile.run('p.solve()')
+cProfile.run("""
+import cvxpy as cp
+n = 1000
+A = cp.Variable(n, n)
+obj = cp.Minimize(cp.norm(A, 'fro'))
+p = cp.Problem(obj, [A >= 2])
+result = p.solve(verbose=True)
+print result
+""")
+
+# m = 100
+# n = 500
+# prob = 0.999
+
+# a_arr = np.random.random((m, n))
+# a_arr[a_arr < prob] = 0
+
+# a_arr_sp = spmatrix(a_arr[a_arr.nonzero()[0],
+# 						  a_arr.nonzero()[1]],
+# 					a_arr.nonzero()[0],
+# 					a_arr.nonzero()[1],
+# 					size=(m, n))
+
+# W = cp.Variable(n, n)
+# constraints = []
+
+# constraints.extend( [W[i,i] == 0 for i in range(n)] )
+# constraints.append(W >= 0)
+# lam = 8
+# beta = 0.5
+# loss = cp.sum(a_arr_sp - a_arr_sp*W)
+# l2_reg = 0.5*beta*cp.square(cp.norm(W))
+# l1_reg = lam*cp.sum(W)
+# obj = cp.Minimize(loss + l2_reg + l1_reg)
+# # TODO No constraints, get error.
+# p = cp.Problem(obj, constraints)
+
+# import cProfile
+# cProfile.run('p.solve()')
+
+
 # objective, constr_map, dims = p.canonicalize()
 
 # all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
