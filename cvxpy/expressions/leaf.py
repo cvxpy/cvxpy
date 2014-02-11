@@ -30,6 +30,18 @@ class Leaf(expression.Expression, u.Affine):
 
     __metaclass__ = abc.ABCMeta
 
+    def coefficients(self, cache=False):
+        """Returns a dict of Variable to coefficient.
+
+        Leaves cache their coefficients.
+
+        Returns:
+            A dict of Variable object to scipy sparse matrix
+            of column coefficients.
+            Also includes the key settings.CONSTANT for constant terms.
+        """
+        return super(Leaf, self).coefficients(cache=True)
+
     COUNT = 0
     @staticmethod
     def next_name(prefix):

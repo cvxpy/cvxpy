@@ -27,15 +27,18 @@ class Affine(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def coefficients(self):
+    def coefficients(self, cache=False):
         """Returns a dict of Variable to coefficient.
+
+        Args:
+            cache: Should the coefficients be cached?
 
         Returns:
             A dict of Variable object to Numpy ndarray of column coefficients.
             Also includes the key settings.CONSTANT for constant terms.
         """
         # With no parameters, the coefficients can be cached.
-        if len(self.parameters()) == 0:
+        if cache and len(self.parameters()) == 0:
             return self._cached_coeffs
         # If there are parameters, the coefficients must be recalculated.
         else:
