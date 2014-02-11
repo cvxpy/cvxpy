@@ -7,14 +7,15 @@ import numpy as np
 import time
 
 import cProfile
-#cProfile.run("""
-n = 2000
+cProfile.run("""
+import cvxpy as cp
+n = 1000
 A = cp.Variable(n, n)
 obj = cp.Minimize(cp.norm(A, 'fro'))
 p = cp.Problem(obj, [A >= 2])
-result = p.solve(verbose=True, solver=cp.SCS)
+result = p.solve(verbose=True)
 print result
-#""")
+""")
 
 # m = 100
 # n = 500

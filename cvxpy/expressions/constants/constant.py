@@ -54,6 +54,6 @@ class Constant(Leaf):
         blocks = []
         for i in range(cols):
             val = intf.index(self.value, (slice(None,None,None), i))
-            blocks.append(val)
-        coeffs = {s.CONSTANT: blocks}
+            blocks.append( intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(val) )
+        coeffs = {s.CONSTANT: np.array(blocks, dtype="object", ndmin=1)}
         return cu.format_coeffs(coeffs)
