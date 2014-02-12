@@ -62,7 +62,7 @@ class Expression(u.Canonical):
         """Returns the numeric value of the expression.
 
         Returns:
-            A cvxopt sparse matrix or a scalar.
+            A numpy matrix or a scalar.
         """
         return NotImplemented
 

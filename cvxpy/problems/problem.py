@@ -63,6 +63,28 @@ class Problem(u.Canonical):
             constraints = []
         self.objective = objective
         self.constraints = constraints
+        self._value = None
+        self._status = None
+
+    @property
+    def value(self):
+        """The value from the last time the problem was solved.
+
+        Returns
+        -------
+        float or None
+        """
+        return self._value
+
+    @property
+    def status(self):
+        """The status from the last time the problem was solved.
+
+        Returns
+        -------
+        str
+        """
+        return self._status
 
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
@@ -272,16 +294,45 @@ class Problem(u.Canonical):
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
 
-        if status == s.SOLVED:
+        if status == s.OPTIMAL:
             self._save_values(results['x'], var_offsets.keys())
             self._save_values(results['y'], constr_map[s.EQ])
             if constr_map[s.NONLIN]:
                 self._save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self._save_values(results['z'], constr_map[s.INEQ])
-            return self.objective._primal_to_result(primal_val - obj_offset)
+            self._value = self.objective._primal_to_result(
+                          primal_val - obj_offset)
         else:
-            return status
+            self._handle_failure(status, var_offsets.keys(),
+                itertools.chain(constr_map[s.EQ], constr_map[s.INEQ]))
+        self._status = status
+        return self.value
+
+    def _handle_failure(self, status, variables, constraints):
+        """Updates value fields based on the cause of solver failure.
+
+        Parameters
+        ----------
+            status: str
+                The status of the solver.
+            variables: list
+                The problem variables.
+            constraints: list
+                The problem constraints.
+        """
+        # Set all primal and dual variable values to None.
+        for var_ in variables:
+            var_.save_value(None)
+        for constr in constraints:
+            constr.save_value(None)
+        # Set the problem value.
+        if status == s.INFEASIBLE:
+            self._value = self.objective._primal_to_result(np.inf)
+        elif status == s.UNBOUNDED:
+            self._value = self.objective._primal_to_result(-np.inf)
+        else: # Solver error
+            self._value = None
 
     def _get_var_offsets(self, objective, constraints):
         """Maps each variable to a horizontal offset.

@@ -167,29 +167,46 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.b.value, 5-1.0/6)
         self.assertAlmostEqual(self.c.value, -1.0/6)
 
-        # Test get_status.
+        # Test status and value.
         exp = Maximize(self.a)
         p = Problem(exp, [self.a <= 2])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.SOLVED)
+        p.solve(solver=s.ECOS)
+        self.assertEqual(p.status, s.OPTIMAL)
+        assert self.a.value is not None
+        assert p.constraints[0].dual_value is not None
 
         # Unbounded problems.
         p = Problem(Maximize(self.a), [self.a >= 2])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.UNBOUNDED)
+        p.solve(solver=s.ECOS)
+        self.assertEqual(p.status, s.UNBOUNDED)
+        assert numpy.isinf(p.value)
+        assert p.value > 0
+        assert self.a.value is None
+        assert p.constraints[0].dual_value is None
 
-        p = Problem(Maximize(self.a), [self.a >= 2])
-        status = s.get_status(p.solve(solver=s.CVXOPT))
-        self.assertEqual(status, s.UNBOUNDED)
+        p = Problem(Minimize(-self.a), [self.a >= 2])
+        result = p.solve(solver=s.CVXOPT)
+        self.assertEqual(p.status, s.UNBOUNDED)
+        assert numpy.isinf(p.value)
+        assert p.value < 0
 
         # Infeasible problems.
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.INFEASIBLE)
+        self.a.save_value(2)
+        p.constraints[0].save_value(2)
 
-        p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.INFEASIBLE)
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(p.status, s.INFEASIBLE)
+        assert numpy.isinf(p.value)
+        assert p.value < 0
+        assert self.a.value is None
+        assert p.constraints[0].dual_value is None
+
+        p = Problem(Minimize(-self.a), [self.a >= 2, self.a <= 1])
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(p.status, s.INFEASIBLE)
+        assert numpy.isinf(p.value)
+        assert p.value > 0
 
     # Test vector LP problems.
     def test_vector_lp(self):
@@ -643,8 +660,8 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, self.A.value.T)
 
         p = Problem(Minimize(lambda_max(self.A)), [self.A == [[1,2],[3,4]]])
-        status = s.get_status(p.solve())
-        self.assertEqual(status, s.INFEASIBLE)
+        result = p.solve()
+        self.assertEqual(p.status, s.INFEASIBLE)
 
     # Test SDP
     def test_sdp(self):
