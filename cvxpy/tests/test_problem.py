@@ -170,7 +170,8 @@ class TestProblem(BaseTest):
         # Test status and value.
         exp = Maximize(self.a)
         p = Problem(exp, [self.a <= 2])
-        p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.OPTIMAL)
         assert self.a.value is not None
         assert p.constraints[0].dual_value is not None
@@ -186,6 +187,7 @@ class TestProblem(BaseTest):
 
         p = Problem(Minimize(-self.a), [self.a >= 2])
         result = p.solve(solver=s.CVXOPT)
+        self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.UNBOUNDED)
         assert numpy.isinf(p.value)
         assert p.value < 0
@@ -196,6 +198,7 @@ class TestProblem(BaseTest):
         p.constraints[0].save_value(2)
 
         result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.INFEASIBLE)
         assert numpy.isinf(p.value)
         assert p.value < 0
@@ -204,6 +207,7 @@ class TestProblem(BaseTest):
 
         p = Problem(Minimize(-self.a), [self.a >= 2, self.a <= 1])
         result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, p.value)
         self.assertEqual(p.status, s.INFEASIBLE)
         assert numpy.isinf(p.value)
         assert p.value > 0
