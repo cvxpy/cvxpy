@@ -278,10 +278,10 @@ If the problem is feasible and bounded, `p.solve()` will return the optimal valu
 
 The field `p.status` stores a string indicating the status of the most recent call to `p.solve()`. The possible statuses are
 
-* cvxpy.OPTIMAL
-* cvxpy.INFEASIBLE
-* cvxpy.UNBOUNDED
-* cvxpy.UNKNOWN (for solver error)
+* `cvxpy.OPTIMAL`, for problems with solutions.
+* `cvxpy.INFEASIBLE`, for infeasible problems.
+* `cvxpy.UNBOUNDED`, for unbounded problems.
+* `cvxpy.UNKNOWN`, for solver error.
 
 Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
 
