@@ -24,3 +24,16 @@ class EqConstraint(LeqConstraint):
     # Both sides must be affine.
     def is_dcp(self):
         return self._expr.is_affine()
+
+    @property
+    def value(self):
+        """Does the constraint hold?
+
+        Returns
+        -------
+        bool
+        """
+        if self._expr.value is None:
+            return None
+        else:
+            return abs(self._expr.value) <= self.TOLERANCE
