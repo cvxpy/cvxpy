@@ -23,6 +23,7 @@ from ... import interface as intf
 from ... import settings as s
 from ..leaf import Leaf
 import numpy as np
+import scipy.sparse as sp
 
 class Constant(Leaf):
     """
@@ -30,7 +31,10 @@ class Constant(Leaf):
     """
     def __init__(self, value):
         # TODO keep sparse matrices sparse.
-        self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
+        if sp.issparse(value):
+            self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
+        else:
+            self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
         # Set DCP attributes.
         self.init_dcp_attr()
 
