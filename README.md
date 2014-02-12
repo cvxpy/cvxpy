@@ -285,6 +285,8 @@ The field `p.status` stores a string indicating the status of the most recent ca
 
 Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
 
+If the problem had no optimal solution, the values of all the primal and dual variables are `None`.
+
 The value of expressions in the problem can also be read from `expr.value`. For example, consider the portfolio optimization problem below:
 
 ```
