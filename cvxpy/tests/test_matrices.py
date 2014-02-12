@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms import *
 from cvxpy.expressions.expression import *
+from cvxpy.expressions.constants import *
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -27,6 +28,7 @@ import cvxpy.interface.numpy_wrapper
 import numpy
 import cvxopt
 import scipy
+import scipy.sparse as sp
 import unittest
 
 class TestMatrices(unittest.TestCase):
@@ -100,6 +102,14 @@ class TestMatrices(unittest.TestCase):
         D = cvxopt.spdiag( cvxopt.uniform(m) )
         x = Variable(m)
         exp = square(norm2(D*x))
+        print Constant(D).sign
+
+    def test_scipy_sparse(self):
+        """Test scipy sparse matrices."""
+        A = numpy.matrix( numpy.arange(8).reshape((4,2)) )
+        A = sp.csc_matrix(A)
+        print Constant(A).sign
+
 
     # # TODO
     # # Test scipy sparse matrices.

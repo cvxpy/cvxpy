@@ -50,7 +50,10 @@ class SparseBoolMat(object):
         """
         value = self.value.tolil()
         value = value[key]
-        return SparseBoolMat(value.tocoo())
+        if np.isscalar(value):
+            return value
+        else:
+            return SparseBoolMat(value.tocoo())
 
     @property
     def shape(self):
