@@ -35,7 +35,6 @@ import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
-# ECHU: ECOS now depends on numpy
 import numpy as np
 import scipy.sparse as sp
 
