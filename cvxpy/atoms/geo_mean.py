@@ -50,7 +50,7 @@ class geo_mean(Atom):
     def monotonicity(self):
         return len(self.args)*[u.monotonicity.INCREASING]
 
-    # Any argument size is valid.
+    # Only scalar arguments are valid.
     def validate_arguments(self):
         if not self.args[0].is_scalar() or not self.args[1].is_scalar():
             raise TypeError("The arguments to geo_mean must resolve to scalars." )

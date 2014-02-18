@@ -18,25 +18,23 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atom import Atom
-from elementwise.exp import exp
-from affine.sum import sum as sum_
+from ..constraints import ExpCone
 from .. import utilities as u
 from ..expressions.variables import Variable
 import numpy as np
 
-class log_sum_exp(Atom):
-    """:math:`\log\sum_i e^{x_i}`
+class kl_div(Atom):
+    """:math:`x\log(x/y) - x + y`
 
     """
-    def __init__(self, x):
-        super(log_sum_exp, self).__init__(x)
+    def __init__(self, x, y):
+        super(kl_div, self).__init__(x, y)
 
-    # Evaluates e^x elementwise, sums, and takes the log.
     @Atom.numpy_numeric
     def numeric(self, values):
-        exp_mat = np.exp(values[0])
-        exp_sum = exp_mat.sum(axis = 1).sum(axis = 0)
-        return np.log(exp_sum)
+        x = values[0]
+        y = values[1]
+        return x*np.log(x/y) - x + y
 
     # Resolves to a scalar.
     def shape_from_args(self):
@@ -51,10 +49,16 @@ class log_sum_exp(Atom):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+        return len(self.args)*[u.monotonicity.NONMONOTONIC]
+
+    # Only scalar arguments are valid.
+    def validate_arguments(self):
+        if not self.args[0].is_scalar() or not self.args[1].is_scalar():
+            raise TypeError("The arguments to kl_div must resolve to scalars." )
 
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
+        y = arg_objs[1]
         t = Variable()
-        obj, constr = sum_(exp(x - t)).canonical_form
-        return (t, constr + [obj <= 1])
+        constraints = [ExpCone(t, x, y), y >= 0]
+        return (-t - x + y, constraints)
