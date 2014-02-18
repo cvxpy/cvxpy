@@ -40,8 +40,8 @@ CVXPY requires:
 * [setuptools](https://pypi.python.org/pypi/setuptools) >= 1.4
 * [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) >= 1.1.6
 * [ECOS](http://github.com/ifa-ethz/ecos) >= 1.0.1
-* [NumPy](http://www.numpy.org/) == 1.7.1
-* [SciPy](http://www.scipy.org/) == 0.13.2
+* [NumPy](http://www.numpy.org/) >= 1.7.1
+* [SciPy](http://www.scipy.org/) >= 0.13.2
 
 To run the unit tests, you additionally need
 [Nose](http://nose.readthedocs.org).
