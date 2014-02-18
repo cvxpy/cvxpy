@@ -141,6 +141,7 @@ Atoms are functions that can be used in expressions. Atoms take Expression objec
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
+    * `kl_div(x, y)`, `xlog(x/y) - x + y` for scalar `x` and `y`.
     * `lambda_max(x)`, the maximum eigenvalue of `x`. Constrains `x` to be symmetric.
     * `lambda_min(x)`, the minimum eigenvalue of `x`.
     Constrains `x` to be symmetric.
