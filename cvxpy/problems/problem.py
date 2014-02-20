@@ -88,14 +88,6 @@ class Problem(u.Canonical):
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
-
-        for exp in self.constraints:
-            if not exp.is_dcp():
-                print("Error: this constraint is not DCP: %s." % str(exp))
-
-        if not self.objective.is_dcp():
-            print("Error: the objective is not DCP.")
-
         return all(exp.is_dcp() for exp in self.constraints + [self.objective])
 
     def _filter_constraints(self, constraints):

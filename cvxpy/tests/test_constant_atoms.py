@@ -76,6 +76,7 @@ atoms = [
     ([
         (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
          Constant([[0, -math.e], [-2*math.e**2, 1.0/math.e]])),
+        #(entr(0), Constant([0])),
         (log_det([[20, 8, 5, 2],
                   [8, 16, 2, 4],
                   [5, 2, 5, 2],
