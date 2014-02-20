@@ -34,8 +34,6 @@ v = cvxopt.matrix([-1,2,-2], tc='d')
 atoms = [
     ([
         (abs([[-5,2],[-3,1]]), Constant([[5,2],[3,1]])),
-        (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
-         Constant([[0, math.e], [2*math.e**2, -1.0/math.e]])),
         (exp([[1, 0],[2, -1]]), Constant([[math.e, 1],[math.e**2, 1.0/math.e]])),
         #(huber(0.5), 0.25),
         #(huber(-1.5), 2),
@@ -76,6 +74,8 @@ atoms = [
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
     ], Minimize),
     ([
+        (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
+         Constant([[0, -math.e], [-2*math.e**2, 1.0/math.e]])),
         (log_det([[20, 8, 5, 2],
                   [8, 16, 2, 4],
                   [5, 2, 5, 2],
