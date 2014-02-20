@@ -36,6 +36,7 @@ from affine.sum import sum
 from affine.vstack import vstack
 
 from elementwise.abs import abs
+from elementwise.entr import entr
 from elementwise.exp import exp
 from elementwise.inv_pos import inv_pos
 from elementwise.log import log

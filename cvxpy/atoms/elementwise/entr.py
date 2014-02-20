@@ -24,27 +24,27 @@ import cvxpy.utilities as u
 import cvxpy.interface as intf
 import numpy as np
 
-class exp(Elementwise):
-    """Elementwise :math:`e^{x}`.
+class entr(Elementwise):
+    """Elementwise :math:`x\log x`.
     """
     def __init__(self, x):
-        super(exp, self).__init__(x)
+        super(entr, self).__init__(x)
 
-    # Returns the matrix e^x[i, j].
+    # Returns the elementwise natural log of xlog(x).
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        return np.exp(values[0])
+        return np.multiply(values[0], np.log(values[0]))
 
-    # Always positive.
+    # Always unknown.
     def sign_from_args(self):
-        return u.Sign.POSITIVE
+        return u.Sign.UNKNOWN
 
     # Default curvature.
     def func_curvature(self):
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+        return [u.monotonicity.NONMONOTONIC]
 
     def graph_implementation(self, arg_objs):
         rows, cols = self.size
@@ -55,5 +55,5 @@ class exp(Elementwise):
                 xi = arg_objs[0][i, j]
                 x, y, z = Variable(), Variable(), Variable()
                 constraints += [ExpCone(x, y, z),
-                                x == xi, y == 1, z == t[i, j]]
+                                -x == t[i, j], y == xi, z == 1]
         return (t, constraints)

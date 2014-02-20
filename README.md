@@ -163,6 +163,7 @@ CVXPY currently supports the following atoms:
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
+    *  `entr(x)`, `element*log(element)` for each element of `x`.
     * `exp(x)`, e^element for each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
     * `log(x)`, the natural log of each element of `x`.
