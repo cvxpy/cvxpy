@@ -25,7 +25,7 @@ import cvxpy.interface as intf
 import numpy as np
 
 class entr(Elementwise):
-    """Elementwise :math:`x\log x`.
+    """Elementwise :math:`-x\log x`.
     """
     def __init__(self, x):
         super(entr, self).__init__(x)
@@ -33,7 +33,7 @@ class entr(Elementwise):
     # Returns the elementwise natural log of xlog(x).
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        return np.multiply(values[0], np.log(values[0]))
+        return -np.multiply(values[0], np.log(values[0]))
 
     # Always unknown.
     def sign_from_args(self):
@@ -41,7 +41,7 @@ class entr(Elementwise):
 
     # Default curvature.
     def func_curvature(self):
-        return u.Curvature.CONVEX
+        return u.Curvature.CONCAVE
 
     def monotonicity(self):
         return [u.monotonicity.NONMONOTONIC]
@@ -55,5 +55,5 @@ class entr(Elementwise):
                 xi = arg_objs[0][i, j]
                 x, y, z = Variable(), Variable(), Variable()
                 constraints += [ExpCone(x, y, z),
-                                -x == t[i, j], y == xi, z == 1]
+                                x == t[i, j], y == xi, z == 1]
         return (t, constraints)
