@@ -22,6 +22,7 @@ from ..constraints import ExpCone
 from .. import utilities as u
 from ..expressions.variables import Variable
 import numpy as np
+from scipy.special import xlogy
 
 class kl_div(Atom):
     """:math:`x\log(x/y) - x + y`
@@ -34,7 +35,8 @@ class kl_div(Atom):
     def numeric(self, values):
         x = values[0]
         y = values[1]
-        return x*np.log(x/y) - x + y
+        #TODO return inf outside the domain
+        return xlogy(x, x/y) - x + y
 
     # Resolves to a scalar.
     def shape_from_args(self):

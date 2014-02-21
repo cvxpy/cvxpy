@@ -23,6 +23,7 @@ from cvxpy.constraints.exponential import ExpCone
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 import numpy as np
+from scipy.special import xlogy
 
 class entr(Elementwise):
     """Elementwise :math:`-x\log x`.
@@ -30,10 +31,11 @@ class entr(Elementwise):
     def __init__(self, x):
         super(entr, self).__init__(x)
 
-    # Returns the elementwise natural log of xlog(x).
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        return -np.multiply(values[0], np.log(values[0]))
+        x = values[0]
+        #TODO return -inf outside the domain
+        return -xlogy(x, x)
 
     # Always unknown.
     def sign_from_args(self):

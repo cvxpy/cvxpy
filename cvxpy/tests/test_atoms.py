@@ -161,3 +161,4 @@ class TestAtoms(unittest.TestCase):
             vstack()
         self.assertEqual(str(cm.exception),
             "No arguments given to 'vstack'.")
+
