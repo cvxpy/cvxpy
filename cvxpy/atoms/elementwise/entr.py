@@ -34,8 +34,10 @@ class entr(Elementwise):
     @Elementwise.numpy_numeric
     def numeric(self, values):
         x = values[0]
-        #TODO return -inf outside the domain
-        return -xlogy(x, x)
+        results = -xlogy(x, x)
+        # Return -inf outside the domain
+        results[np.isnan(results)] = -np.inf
+        return results
 
     # Always unknown.
     def sign_from_args(self):

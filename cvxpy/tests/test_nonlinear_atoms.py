@@ -24,6 +24,7 @@ import cvxopt.solvers
 import cvxopt
 import unittest
 import math
+import numpy as np
 
 class TestNonlinearAtoms(BaseTest):
     """ Unit tests for the nonlinear atoms module. """
@@ -86,3 +87,18 @@ class TestNonlinearAtoms(BaseTest):
         p = Problem(obj,constr)
         result = p.solve()
         self.assertAlmostEqual(result, 1)
+
+    def test_entr(self):
+        """Test the entr atom.
+        """
+        self.assertEqual(entr(0).value, 0)
+        assert np.isneginf(entr(-1).value)
+
+    # def test_kl_div(self):
+    #     """Test the kl_div atom.
+    #     """
+    #     self.assertEqual(kl_div(0, 0).value, 0)
+    #     self.assertEqual(kl_div(1, 0).value, np.inf)
+    #     self.assertEqual(kl_div(0, 1).value, np.inf)
+    #     self.assertEqual(kl_div(-1, -1).value, np.inf)
+

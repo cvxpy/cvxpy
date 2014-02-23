@@ -42,9 +42,9 @@ class kl_div(Atom):
     def shape_from_args(self):
         return u.Shape(1, 1)
 
-    # Always unknown.
+    # Always positive.
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
+        return u.Sign.POSITIVE
 
     # Default curvature.
     def func_curvature(self):
@@ -62,5 +62,8 @@ class kl_div(Atom):
         x = arg_objs[0]
         y = arg_objs[1]
         t = Variable()
-        constraints = [ExpCone(t, x, y), y >= 0]
+        # Duplicate variables for x, y.
+        xc, yc = Variable(), Variable()
+        constraints = [ExpCone(t, xc, yc), y >= 0,
+                       xc == x, yc == y]
         return (-t - x + y, constraints)
