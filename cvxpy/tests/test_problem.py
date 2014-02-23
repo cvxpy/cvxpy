@@ -78,6 +78,8 @@ class TestProblem(BaseTest):
                 sys.stdout = StringIO()     # capture output
                 p = Problem(Minimize(self.a), [self.a >= 2])
                 p.solve(verbose=verbose, solver=solver)
+                p = Problem(Minimize(self.a), [log(self.a) >= 2])
+                p.solve(verbose=verbose, solver=solver)
                 out = sys.stdout.getvalue() # release output
                 outputs[verbose].append(out.upper())
         # ####

@@ -55,7 +55,6 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_x0 = x0[offset:offset+var_size]
-            print big_x, var_x0
             interface.block_add(big_x, var_x0, var_offsets[var],
                                 0, var_size, 1)
             offset += var_size
