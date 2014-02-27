@@ -19,10 +19,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from . variable import Variable
 from ... constraints.semi_definite import SDP
 
-class SDPVar(Variable):
+class semidefinite(Variable):
     """ A semidefinite variable. """
     def __init__(self, n, name=None):
-        super(SDPVar, self).__init__(n,n,name)
+        super(semidefinite, self).__init__(n,n,name)
 
     # A semidefinite variable is no different from a normal variable except
     # that it adds an SDP constraint on the variable.
