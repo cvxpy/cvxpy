@@ -1,8 +1,6 @@
 # An object oriented approach to geometric problems with convex sets.
 # Convex sets can be used as Variables.
 
-from cvxpy.expressions.affine import AffObjective
-from cvxpy.constraints.affine import AffEqConstraint, AffLeqConstraint
 import cvxpy as cp
 import numpy.linalg as la
 
@@ -15,13 +13,14 @@ class ConvexSet(cp.Variable):
         super(ConvexSet, self).__init__(rows, cols)
 
     # Applies the objective to the constr_func to get the affine constraints.
-    def _constraints(self):
-        return self.constr_func(self._objective())
+    def canonicalize(self):
+        return (self, self.constr_func(self))
 
 # Returns whether the value is contained in the set.
 def contains(cvx_set, value):
     p = cp.Problem(cp.Minimize(0), [cvx_set == value])
-    return cp.get_status(p.solve()) == cp.SOLVED
+    p.solve(solver=cp.CVXOPT)
+    return p.status == cp.OPTIMAL
 
 # Returns whether the set is empty.
 def is_empty(cvx_set):
@@ -29,13 +28,13 @@ def is_empty(cvx_set):
 
 # Returns the Euclidean distance between two sets.
 def dist(lh_set, rh_set):
-    objective = cp.Minimize(cp.norm2(lh_set - rh_set))
-    return cp.Problem(objective).solve()
+    objective = cp.Minimize(cp.norm(lh_set - rh_set, 2))
+    return cp.Problem(objective).solve(solver=cp.CVXOPT)
 
 # Returns the Euclidean projection of the value onto the set.
 def proj(cvx_set, value):
-    objective = cp.Minimize(cp.norm2(cvx_set - value))
-    cp.Problem(objective).solve()
+    objective = cp.Minimize(cp.norm(cvx_set - value, 2))
+    cp.Problem(objective).solve(solver=cp.CVXOPT)
     return cvx_set.value
 
 # Returns a separating hyperplane between two sets
@@ -43,8 +42,8 @@ def proj(cvx_set, value):
 # for all x on the hyperplane.
 def sep_hyp(lh_set, rh_set):
     w = cp.Variable(*lh_set.size)
-    p = cp.Problem(cp.Minimize(cp.norm2(w)), [lh_set - rh_set == w])
-    p.solve()
+    p = cp.Problem(cp.Minimize(cp.norm(w, 2)), [lh_set - rh_set == w])
+    p.solve(solver=cp.CVXOPT)
     # Normal vector to the hyperplane.
     normal = p.constraints[0].dual_value
     # A point on the hyperplane.
@@ -57,10 +56,10 @@ def sep_hyp(lh_set, rh_set):
 def intersect(lh_set, rh_set):
     def constr_func(aff_obj):
         # Combine the constraints from both sides and add an equality constraint.
-        lh_obj,lh_constr = lh_set.canonical_form()
-        rh_obj,rh_constr = rh_set.canonical_form()
-        constraints = [AffEqConstraint(aff_obj, lh_obj),
-                       AffEqConstraint(aff_obj, rh_obj),
+        lh_obj,lh_constr = lh_set.canonical_form
+        rh_obj,rh_constr = rh_set.canonical_form
+        constraints = [aff_obj == lh_obj,
+                       aff_obj == rh_obj,
         ]
         return constraints + lh_constr + rh_constr
     return ConvexSet(lh_set.size[0], lh_set.size[1], constr_func)
@@ -72,11 +71,9 @@ class Polyhedron(ConvexSet):
     def __init__(self, G, h, A=None, b=None):
         G = self.cast_to_const(G)
         def constr_func(aff_obj):
-            G_aff = G._objective()
-            constraints = [AffLeqConstraint(G_aff*aff_obj, h)]
+            constraints = [G*aff_obj <= h]
             if A is not None:
-                A_aff = self.cast_to_const(A)._objective()
-                constraints += [AffEqConstraint(A_aff*aff_obj, b)]
+                constraints += [A*aff_obj == b]
             return constraints
         super(Polyhedron, self).__init__(G.size[1], 1, constr_func)
 
@@ -88,8 +85,8 @@ class ConvexHull(ConvexSet):
         def constr_func(aff_obj):
             theta = cp.Variable(len(values))
             convex_combo = sum(v*t for (t,v) in zip(theta, values))
-            constraints = [AffEqConstraint(aff_obj, convex_combo),
-                           AffEqConstraint(sum(theta), 1), 
-                           AffLeqConstraint(0, theta)]
+            constraints = [aff_obj == convex_combo,
+                           sum(theta) == 1,
+                           0 <= theta]
             return constraints
         super(ConvexHull, self).__init__(rows,cols,constr_func)
