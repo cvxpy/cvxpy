@@ -24,6 +24,6 @@ setup(
     license='...',
     description='A domain-specific language for modeling convex optimization problems in Python.',
     install_requires=["cvxopt >= 1.1.6",
-                      "ecos >= 1.0"],
+                      "ecos == 1.0.1"],
     extras_require={'doc': ['sphinx']},
 )
