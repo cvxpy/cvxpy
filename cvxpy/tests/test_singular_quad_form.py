@@ -45,5 +45,5 @@ def test_singular_quad_form():
                 # check that cvxpy found the right answer
                 xopt = x.value.A.flatten()
                 yopt = np.dot(xopt, np.dot(Q, xopt))
-                assert_allclose(yopt, 0, atol=1e-4)
-                assert_allclose(xopt, v, atol=1e-4)
+                assert_allclose(yopt, 0, atol=1e-3)
+                assert_allclose(xopt, v, atol=1e-3)
