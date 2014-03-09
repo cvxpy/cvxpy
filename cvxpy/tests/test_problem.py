@@ -398,7 +398,7 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(norm2(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
-        self.assertAlmostEqual(result, 12.6158)
+        self.assertAlmostEqual(result, 12.61577)
         self.assertItemsAlmostEqual(self.x.value, [2,3])
         self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 

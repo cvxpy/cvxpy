@@ -66,7 +66,7 @@ class TestSemidefiniteVariable(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
-        self.assertAlmostEqual(self.Y.value[0,0], 1)
+        self.assertAlmostEqual(self.Y.value[0,0], 1, places=4)
         self.assertAlmostEqual(self.Y.value[0,1], 0)
         self.assertAlmostEqual(self.Y.value[1,0], 0)
         self.assertAlmostEqual(self.Y.value[1,1], 0)
@@ -81,7 +81,7 @@ class TestSemidefiniteVariable(BaseTest):
         print self.X.value
         self.assertAlmostEqual(result, 0)
 
-        self.assertAlmostEqual(self.X.value[0,0], 1)
-        self.assertAlmostEqual(self.X.value[0,1], 3)
-        self.assertAlmostEqual(self.X.value[1,0], 2, places=3)
-        self.assertAlmostEqual(self.X.value[1,1], 4)
+        self.assertAlmostEqual(self.X.value[0,0], 1, places=4)
+        self.assertAlmostEqual(self.X.value[0,1], 3, places=4)
+        self.assertAlmostEqual(self.X.value[1,0], 2, places=4)
+        self.assertAlmostEqual(self.X.value[1,1], 4, places=4)
