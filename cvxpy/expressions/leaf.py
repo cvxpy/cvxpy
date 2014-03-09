@@ -43,12 +43,11 @@ class Leaf(expression.Expression, u.Affine):
         return super(Leaf, self).coefficients(cache=True)
 
     COUNT = 0
-    @staticmethod
-    def next_name(prefix):
-        """Returns a new unique name based on a global counter.
+    def set_id(self):
+        """Sets a new unique id based on a global counter.
         """
         Leaf.COUNT += 1
-        return "%s%d" % (prefix, Leaf.COUNT)
+        self.id = Leaf.COUNT
 
     def canonicalize(self):
         """Default is the leaf as the objective and no constraints.

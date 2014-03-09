@@ -28,10 +28,14 @@ class Parameter(Constant):
     """
     PARAM_COUNT = 0
     def __init__(self, rows=1, cols=1, name=None, sign="unknown"):
+        self.set_id()
         self._rows = rows
         self._cols = cols
         self.sign_str = sign
-        self._name = self.next_name(s.PARAM_PREFIX) if name is None else name
+        if name is None:
+            self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
+        else:
+            self._name = name
         self.init_dcp_attr()
 
     def name(self):

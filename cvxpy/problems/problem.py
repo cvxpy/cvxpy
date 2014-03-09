@@ -132,7 +132,7 @@ class Problem(u.Canonical):
         constraints = []
         obj, constr = self.objective.canonical_form
         constraints += constr
-        unique_constraints = list(set(self.constraints))
+        unique_constraints = list(OrderedSet(self.constraints))
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
@@ -232,7 +232,8 @@ class Problem(u.Canonical):
         objective, constr_map, dims = self.canonicalize()
 
         all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
-        var_offsets, x_length = self._get_var_offsets(objective, all_ineq)
+        var_info = self._get_var_offsets(objective, all_ineq)
+        sorted_vars, var_offsets, x_length = var_info
 
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
                                             self._DENSE_INTF,
@@ -294,7 +295,7 @@ class Problem(u.Canonical):
         cvxopt.solvers.options = old_options
 
         if status == s.OPTIMAL:
-            self._save_values(results['x'], var_offsets.keys())
+            self._save_values(results['x'], sorted_vars)
             self._save_values(results['y'], constr_map[s.EQ])
             if constr_map[s.NONLIN]:
                 self._save_values(results['zl'], constr_map[s.INEQ])
@@ -303,7 +304,7 @@ class Problem(u.Canonical):
             self._value = self.objective._primal_to_result(
                           primal_val - obj_offset)
         else:
-            self._handle_failure(status, var_offsets.keys(),
+            self._handle_failure(status, sorted_vars,
                 itertools.chain(constr_map[s.EQ], constr_map[s.INEQ]))
         self._status = status
         return self.value
@@ -346,17 +347,24 @@ class Problem(u.Canonical):
         Returns
         -------
         tuple
-            (map of variable to offset, length of variable vector)
+            (ordered list of variables, map of variable to offset,
+             length of variable vector)
         """
         vars_ = objective.variables()
         for constr in constraints:
             vars_ += constr.variables()
         var_offsets = OrderedDict()
         vert_offset = 0
-        for var in set(vars_):
-            var_offsets[var] = vert_offset
+        # TODO Ensure the variables are always in the same
+        # order for the same problem.
+        var_names = [(v, v.id) for v in set(vars_)]
+        var_names.sort(key=lambda (var, var_id): var_id)
+        for var, var_id in var_names:
+            var_offsets[var_id] = vert_offset
             vert_offset += var.size[0]*var.size[1]
-        return (var_offsets, vert_offset)
+        # Return an ordered list of variables.
+        vars_ = [v for v, var_id in var_names]
+        return (vars_, var_offsets, vert_offset)
 
     def _save_values(self, result_vec, objects):
         """Saves the values of the optimal primal/dual variables.

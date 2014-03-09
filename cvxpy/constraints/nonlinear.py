@@ -55,7 +55,7 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_x0 = x0[offset:offset+var_size]
-            interface.block_add(big_x, var_x0, var_offsets[var],
+            interface.block_add(big_x, var_x0, var_offsets[var.id],
                                 0, var_size, 1)
             offset += var_size
 
@@ -65,7 +65,8 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_Df = Df[:, horiz_offset:horiz_offset+var_size]
-            interface.block_add(big_Df, var_Df, vert_offset, var_offsets[var],
+            interface.block_add(big_Df, var_Df,
+                                vert_offset, var_offsets[var.id],
                                 self.size[0], var_size)
             horiz_offset += var_size
 
@@ -75,7 +76,8 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_H = H[offset:offset+var_size, offset:offset+var_size]
-            interface.block_add(big_H, var_H, var_offsets[var], var_offsets[var],
+            interface.block_add(big_H, var_H,
+                                var_offsets[var.id], var_offsets[var.id],
                                 var_size, var_size)
             offset += var_size
 
@@ -85,7 +87,7 @@ class NonlinearConstraint(object):
         offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
-            value = x[var_offsets[var]:var_offsets[var]+var_size]
+            value = x[var_offsets[var.id]:var_offsets[var.id]+var_size]
             interface.block_add(local_x, value, offset, 0, var_size, 1)
             offset += var_size
         return local_x

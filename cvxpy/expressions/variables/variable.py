@@ -33,7 +33,11 @@ class Variable(Leaf):
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
-        self._name = self.next_name(s.VAR_PREFIX) if name is None else name
+        self.set_id()
+        if name is None:
+            self._name = "%s%d" % (s.VAR_PREFIX, self.id)
+        else:
+            self._name = name
         self.primal_value = None
         self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
                                    u.Curvature.AFFINE,
@@ -68,5 +72,5 @@ class Variable(Leaf):
             selection = [i for i in range(col*rows, (col+1)*rows)]
             mat = sp.coo_matrix((V, (I, selection)), shape)
             blocks.append(mat.tocsc())
-        coeffs = {self: np.array(blocks, dtype="object", ndmin=1)}
+        coeffs = {self.id: np.array(blocks, dtype="object", ndmin=1)}
         return cu.format_coeffs(coeffs)

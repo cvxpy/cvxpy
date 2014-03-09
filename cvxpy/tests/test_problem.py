@@ -110,6 +110,37 @@ class TestProblem(BaseTest):
         result = p.solve(1,method="test",b=4)
         self.assertEqual(result, (1,4))
 
+    def test_consistency(self):
+        """Test that variables and constraints keep a consistent order.
+        """
+        import itertools
+        num_solves = 4
+        vars_lists = []
+        ineqs_lists = []
+        for k in range(num_solves):
+            sum = 0
+            constraints = []
+            for i in range(100):
+                var = Variable(name=str(i))
+                sum += var
+                constraints.append(var >= i)
+            obj = Minimize(sum)
+            p = Problem(obj, constraints)
+            objective, constr_map, dims = p.canonicalize()
+            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+            var_info = p._get_var_offsets(objective, all_ineq)
+            sorted_vars, var_offsets, x_length = var_info
+            vars_lists.append([int(v.name()) for v in sorted_vars])
+            ineqs_lists.append(constr_map[s.INEQ])
+
+        # Verify order of variables is consistent.
+        for i in range(num_solves):
+            self.assertEqual(range(100), vars_lists[i])
+        for i in range(num_solves):
+            for idx, constr in enumerate(ineqs_lists[i]):
+                var = constr.variables()[0]
+                self.assertEqual(idx, int(var.name()))
+
     # Test removing duplicate constraint objects.
     def test_duplicate_constraints(self):
         eq = (self.x == 2)
