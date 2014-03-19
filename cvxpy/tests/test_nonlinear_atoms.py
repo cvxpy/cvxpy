@@ -94,6 +94,17 @@ class TestNonlinearAtoms(BaseTest):
         self.assertEqual(entr(0).value, 0)
         assert np.isneginf(entr(-1).value)
 
+    def test_entr_problem(self):
+        """Test a simple entropy problem.
+        """
+        for N in [10, 20, 30]:
+            print N
+            x = Variable(N)
+            p = Problem(Maximize( sum(entr(x)) ), [sum(x) == 1 ])
+            result = p.solve(verbose=True)
+            self.assertEqual(p.status, 'optimal')
+            self.assertItemsAlmostEqual(x.value, [1.0/N]*N)
+
     # def test_kl_div(self):
     #     """Test the kl_div atom.
     #     """

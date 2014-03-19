@@ -54,6 +54,10 @@ class ExpCone(NonlinearConstraint):
 
         Based on f(x,y,z) = ye^(x/y) - z.
 
+        want y e^(x/y) - z <= 0
+        equiv to
+            x/y - log(z) + log(y) <= 0
+
         Args:
             vars_: A cvxopt dense matrix with values for (x,y,z).
             scaling: A scaling for the Hessian.
@@ -69,20 +73,21 @@ class ExpCone(NonlinearConstraint):
         # Unpack vars_
         x, y, z = vars_
         # Out of domain.
-        if y < 0.0 or y == 0.0 and (x > 0.0 or z < 0.0):
+        if y < 0.0 or y == 0.0 and x > 0.0 or z < 0.0:
             return None
         # Evaluate the function.
-        f = y*math.exp(x/y) - z
+        f = x/y - math.log(z) + math.log(y) #y*math.exp(x/y) - z
+#        print f, x, y, z
         # Compute the gradient.
-        Df = cvxopt.matrix([math.exp(x/y),
-                            math.exp(x/y)*(1-x/y),
-                            -1]).T
+        Df = cvxopt.matrix([1.0/y,
+                            (y-x)/(y**2),
+                            -1.0/z]).T
         if scaling is None:
             return f, Df
         # Compute the Hessian.
-        H = math.exp(x/y)*cvxopt.matrix([
-                [1.0/y, -x/y**2, 0.0],
-                [-x/y**2, x**2/y**3, 0.0],
-                [0.0, 0.0, 0.0],
+        H = cvxopt.matrix([
+                [0, -1.0/(y**2), 0.0],
+                [-1.0/(y**2), (2.0*x - y)/(y**3), 0.0],
+                [0.0, 0.0, 1.0/(z**2)],
             ])
         return f, Df, scaling*H
