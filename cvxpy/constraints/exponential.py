@@ -76,8 +76,7 @@ class ExpCone(NonlinearConstraint):
         if y < 0.0 or (y == 0.0 and x > 0.0) or z < 0.0:
             return None
         # Evaluate the function.
-        f = x/y - math.log(z) + math.log(y) #y*math.exp(x/y) - z
-#        print f, x, y, z
+        f = x/y - math.log(z) + math.log(y)
         # Compute the gradient.
         Df = cvxopt.matrix([1.0/y,
                             (y-x)/(y**2),
