@@ -73,7 +73,7 @@ class ExpCone(NonlinearConstraint):
         # Unpack vars_
         x, y, z = vars_
         # Out of domain.
-        if y < 0.0 or y == 0.0 and x > 0.0 or z < 0.0:
+        if y < 0.0 or (y == 0.0 and x > 0.0) or z < 0.0:
             return None
         # Evaluate the function.
         f = x/y - math.log(z) + math.log(y) #y*math.exp(x/y) - z
