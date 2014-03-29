@@ -62,7 +62,7 @@ constraints = [ 0.5*quad_form(x,P1) + q1.T*x + r1 <= 0,
 p = Problem(objective, constraints)
 primal_result = p.solve()
 
-if get_status(primal_result) is SOLVED:
+if p.status is OPTIMAL:
     # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
     # When feasible, we can print out the following values
     print x.value # solution

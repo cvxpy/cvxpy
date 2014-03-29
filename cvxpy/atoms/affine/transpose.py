@@ -76,5 +76,5 @@ class transpose(AffAtom):
                 coeff[i, j] = 1
             blocks.append(coeff.tocsc())
 
-        new_coeffs = {X: np.array(blocks, dtype="object", ndmin=1)}
+        new_coeffs = {X.id: np.array(blocks, dtype="object", ndmin=1)}
         return cu.format_coeffs(new_coeffs)

@@ -99,6 +99,11 @@ def sign(constant):
         neg_mat = sp.coo_matrix((V < 0,(I,J)), shape=constant.size, dtype='bool')
         pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
         return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
+    elif sp.issparse(constant):
+        constant = constant.tocoo()
+        neg_mat = constant < 0
+        pos_mat = constant > 0
+        return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
     else:
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         return Sign(mat < 0, mat > 0)

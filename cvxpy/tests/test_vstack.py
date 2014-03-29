@@ -64,7 +64,7 @@ class TestVstack(unittest.TestCase):
 
         exp = vstack(self.A, self.B, self.C).canonical_form[0]
         coeffs = exp.coefficients()
-        blocks = coeffs[self.A]
+        blocks = coeffs[self.A.id]
         self.assertEqual(len(blocks), 2)
         for block in blocks:
             self.assertEqual(intf.size(block), (10,6))

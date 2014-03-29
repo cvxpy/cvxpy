@@ -1,4 +1,4 @@
-CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png)](https://travis-ci.org/cvxgrp/cvxpy)
+CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy)
 =====================
 **Although this project is similar to and named the same as [CVXPY](https://code.google.com/p/cvxpy/), this version is a total rewrite and is incompatible with the old one.**
 
@@ -37,11 +37,11 @@ Prerequisites
 ---------------------
 CVXPY requires:
 * Python 2.7
-* [setuptools](https://pypi.python.org/pypi/setuptools)
-* [CVXOPT](http://abel.ee.ucla.edu/cvxopt/)
-* [ECOS](http://github.com/ifa-ethz/ecos)
-* [NumPy](http://www.numpy.org/)
-* [SciPy](http://www.scipy.org/)
+* [setuptools](https://pypi.python.org/pypi/setuptools) >= 1.4
+* [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) >= 1.1.6
+* [ECOS](http://github.com/ifa-ethz/ecos) >= 1.0.1
+* [NumPy](http://www.numpy.org/) >= 1.7.1
+* [SciPy](http://www.scipy.org/) >= 0.13.2
 
 To run the unit tests, you additionally need
 [Nose](http://nose.readthedocs.org).
@@ -141,6 +141,7 @@ Atoms are functions that can be used in expressions. Atoms take Expression objec
 
 CVXPY currently supports the following atoms:
 * Matrix to scalar atoms
+    * `kl_div(x, y)`, `xlog(x/y) - x + y` for scalar `x` and `y`.
     * `lambda_max(x)`, the maximum eigenvalue of `x`. Constrains `x` to be symmetric.
     * `lambda_min(x)`, the minimum eigenvalue of `x`.
     Constrains `x` to be symmetric.
@@ -162,6 +163,7 @@ CVXPY currently supports the following atoms:
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
+    *  `entr(x)`, `element*log(element)` for each element of `x`.
     * `exp(x)`, e^element for each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
     * `log(x)`, the natural log of each element of `x`.
@@ -274,11 +276,18 @@ p = Problem(objective, constraints)
 result = p.solve()
 ```
 
-If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is unfeasible or unbounded, `p.solve()` will return the constant `cvxpy.INFEASIBLE` or `cvxpy.UNBOUNDED`, respectively. Finally, if the solver fails to return a definite result, `p.solve()` will return `cvxpy.UNKNOWN`.
+If the problem is feasible and bounded, `p.solve()` will return the optimal value of the objective. If the problem is infeasible, `p.solve()` will return Inf (-Inf) for minimization (maximization) problems. If the problem is unbounded, `p.solve()` will return -Inf (Inf) for minimization (maximization) problems. Finally, if the solver has an error, `p.solve()` will return None. The result of the most recent call to `p.solve()` is stored in `p.value`.
 
-Use the method `cvxpy.get_status(result)` to convert the result of `p.solve()` to a constant indicating the status. The status will be `cvxpy.SOLVED` if the result is a number and the result itself otherwise.
+The field `p.status` stores a string indicating the status of the most recent call to `p.solve()`. The possible statuses are
+
+* `cvxpy.OPTIMAL`, for problems with solutions.
+* `cvxpy.INFEASIBLE`, for infeasible problems.
+* `cvxpy.UNBOUNDED`, for unbounded problems.
+* `cvxpy.UNKNOWN`, for solver error.
 
 Once a problem has been solved, the optimal values of the variables can be read from `variable.value`, where `variable` is a Variable object. The values of the dual variables can be read from `constraint.dual_value`, where `constraint` is a Constraint object.
+
+If the problem had no optimal solution, the values of all the primal and dual variables are `None`.
 
 The value of expressions in the problem can also be read from `expr.value`. For example, consider the portfolio optimization problem below:
 

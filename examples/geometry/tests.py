@@ -1,8 +1,7 @@
 # Problems involving polyhedra.
 
 import convex_sets as cs
-from cvxpy import numpy as np
-import cvxpy
+import numpy as np
 
 n = 2
 m = 2*n
@@ -27,7 +26,9 @@ print cs.contains(hull, 0.3*b1 + 0.7*b2)
 
 print cs.dist(poly1, 5*hull[0:2] + 2)
 print cs.dist(poly1, np.matrix("1 5; -1 3")*poly2 + [1,5])
-assert cs.dist(poly1, np.matrix("1 0; 0 1")*poly2 + [1,5]) - cs.dist(poly2, poly1 - [1,5]) == 0
+d1 = cs.dist(poly1, np.matrix("1 0; 0 1")*poly2 + [1,5])
+d2 = cs.dist(poly2, poly1 - [1,5])
+assert abs(d1 - d2) < 1e-6
 
 poly_hull = hull[0:2] + poly1 + poly2
 assert cs.dist(poly_hull, poly1) > 0

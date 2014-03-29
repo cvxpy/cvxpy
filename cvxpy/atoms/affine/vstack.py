@@ -71,8 +71,18 @@ class vstack(AffAtom):
         sign,curvature = self.sign_curv_from_args()
         self._dcp_attr = u.DCPAttr(sign, curvature, shape)
 
+    def _id_to_var(self):
+        """Returns a map of variable id to variable object.
+        """
+        id_to_var = {}
+        for arg in self.args:
+            for var in arg.variables():
+                id_to_var[var.id] = var
+        return id_to_var
+
     # Places all the coefficients as blocks in sparse matrices.
     def _tree_to_coeffs(self):
+        id_to_var = self._id_to_var()
         # Use sparse matrices as coefficients.
         interface = intf.DEFAULT_SPARSE_INTERFACE
         new_coeffs = {}
@@ -80,26 +90,27 @@ class vstack(AffAtom):
         for arg in self.args:
             rows = arg.size[0]
             arg_coeffs = arg.coefficients()
-            for var, blocks in arg_coeffs.items():
+            for var_id, blocks in arg_coeffs.items():
                 # Constant coefficients have one column.
-                if var is s.CONSTANT:
+                if var_id is s.CONSTANT:
                     cols = 1
                 # Variable coefficients have a column for each entry.
                 else:
+                    var = id_to_var[var_id]
                     cols = var.size[0]*var.size[1]
                 # Initialize blocks as zero matrices.
-                if var not in new_coeffs:
+                if var_id not in new_coeffs:
                     new_blocks = []
                     for i in xrange(self.size[1]):
                         new_blocks.append( interface.zeros(self.size[0], cols) )
-                    new_coeffs[var] = np.array(new_blocks, dtype="object", ndmin=1)
+                    new_coeffs[var_id] = np.array(new_blocks, dtype="object", ndmin=1)
                 # Add the coefficient blocks into the new blocks.
                 for i, block in enumerate(blocks):
                     # Convert to lil before changing structure.
-                    new_block = new_coeffs[var][i].tolil()
+                    new_block = new_coeffs[var_id][i].tolil()
                     interface.block_add(new_block, block,
                                         offset, 0, rows, cols)
-                    new_coeffs[var][i] = new_block.tocsc()
+                    new_coeffs[var_id][i] = new_block.tocsc()
             offset += rows
 
         return cu.format_coeffs(new_coeffs)

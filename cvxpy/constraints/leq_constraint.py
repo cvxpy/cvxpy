@@ -21,6 +21,7 @@ from .. import utilities as u
 
 class LeqConstraint(u.Affine, u.Canonical):
     OP_NAME = "<="
+    TOLERANCE = 1e-4
     def __init__(self, lh_exp, rh_exp, parent=None):
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp
@@ -61,6 +62,19 @@ class LeqConstraint(u.Affine, u.Canonical):
 
     def _tree_to_coeffs(self):
         return self._expr.coefficients()
+
+    @property
+    def value(self):
+        """Does the constraint hold?
+
+        Returns
+        -------
+        bool
+        """
+        if self._expr.value is None:
+            return None
+        else:
+            return self._expr.value <= self.TOLERANCE
 
     # The value of the dual variable.
     @property

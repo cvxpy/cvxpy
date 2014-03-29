@@ -60,20 +60,20 @@ class TestExpressions(unittest.TestCase):
 
         # Scalar variable
         coeff = self.a.coefficients()
-        self.assertEqual(coeff[self.a], [1])
+        self.assertEqual(coeff[self.a.id], [1])
 
         # Vector variable.
         coeffs = x.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [x])
-        vec = coeffs[x][0]
+        self.assertItemsEqual(coeffs.keys(), [x.id])
+        vec = coeffs[x.id][0]
         self.assertEqual(vec.shape, (2,2))
         self.assertEqual(vec[0,0], 1)
 
         # Matrix variable.
         coeffs = self.A.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [self.A])
-        self.assertEqual(len(coeffs[self.A]), 2)
-        mat = coeffs[self.A][1]
+        self.assertItemsEqual(coeffs.keys(), [self.A.id])
+        self.assertEqual(len(coeffs[self.A.id]), 2)
+        mat = coeffs[self.A.id][1]
         self.assertEqual(mat.shape, (2,4))
         self.assertEqual(mat[0,2], 1)
 

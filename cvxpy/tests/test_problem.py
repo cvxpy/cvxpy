@@ -78,6 +78,8 @@ class TestProblem(BaseTest):
                 sys.stdout = StringIO()     # capture output
                 p = Problem(Minimize(self.a), [self.a >= 2])
                 p.solve(verbose=verbose, solver=solver)
+                p = Problem(Minimize(self.a), [log(self.a) >= 2])
+                p.solve(verbose=verbose, solver=solver)
                 out = sys.stdout.getvalue() # release output
                 outputs[verbose].append(out.upper())
         # ####
@@ -107,6 +109,37 @@ class TestProblem(BaseTest):
         self.assertEqual(result, (1,2))
         result = p.solve(1,method="test",b=4)
         self.assertEqual(result, (1,4))
+
+    def test_consistency(self):
+        """Test that variables and constraints keep a consistent order.
+        """
+        import itertools
+        num_solves = 4
+        vars_lists = []
+        ineqs_lists = []
+        for k in range(num_solves):
+            sum = 0
+            constraints = []
+            for i in range(100):
+                var = Variable(name=str(i))
+                sum += var
+                constraints.append(var >= i)
+            obj = Minimize(sum)
+            p = Problem(obj, constraints)
+            objective, constr_map, dims = p.canonicalize()
+            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+            var_info = p._get_var_offsets(objective, all_ineq)
+            sorted_vars, var_offsets, x_length = var_info
+            vars_lists.append([int(v.name()) for v in sorted_vars])
+            ineqs_lists.append(constr_map[s.INEQ])
+
+        # Verify order of variables is consistent.
+        for i in range(num_solves):
+            self.assertEqual(range(100), vars_lists[i])
+        for i in range(num_solves):
+            for idx, constr in enumerate(ineqs_lists[i]):
+                var = constr.variables()[0]
+                self.assertEqual(idx, int(var.name()))
 
     # Test removing duplicate constraint objects.
     def test_duplicate_constraints(self):
@@ -167,29 +200,50 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.b.value, 5-1.0/6)
         self.assertAlmostEqual(self.c.value, -1.0/6)
 
-        # Test get_status.
+        # Test status and value.
         exp = Maximize(self.a)
         p = Problem(exp, [self.a <= 2])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.SOLVED)
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, p.value)
+        self.assertEqual(p.status, s.OPTIMAL)
+        assert self.a.value is not None
+        assert p.constraints[0].dual_value is not None
 
         # Unbounded problems.
         p = Problem(Maximize(self.a), [self.a >= 2])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.UNBOUNDED)
+        p.solve(solver=s.ECOS)
+        self.assertEqual(p.status, s.UNBOUNDED)
+        assert numpy.isinf(p.value)
+        assert p.value > 0
+        assert self.a.value is None
+        assert p.constraints[0].dual_value is None
 
-        p = Problem(Maximize(self.a), [self.a >= 2])
-        status = s.get_status(p.solve(solver=s.CVXOPT))
-        self.assertEqual(status, s.UNBOUNDED)
+        p = Problem(Minimize(-self.a), [self.a >= 2])
+        result = p.solve(solver=s.CVXOPT)
+        self.assertEqual(result, p.value)
+        self.assertEqual(p.status, s.UNBOUNDED)
+        assert numpy.isinf(p.value)
+        assert p.value < 0
 
         # Infeasible problems.
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.INFEASIBLE)
+        self.a.save_value(2)
+        p.constraints[0].save_value(2)
 
-        p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        status = s.get_status(p.solve(solver=s.ECOS))
-        self.assertEqual(status, s.INFEASIBLE)
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, p.value)
+        self.assertEqual(p.status, s.INFEASIBLE)
+        assert numpy.isinf(p.value)
+        assert p.value < 0
+        assert self.a.value is None
+        assert p.constraints[0].dual_value is None
+
+        p = Problem(Minimize(-self.a), [self.a >= 2, self.a <= 1])
+        result = p.solve(solver=s.ECOS)
+        self.assertEqual(result, p.value)
+        self.assertEqual(p.status, s.INFEASIBLE)
+        assert numpy.isinf(p.value)
+        assert p.value > 0
 
     # Test vector LP problems.
     def test_vector_lp(self):
@@ -344,7 +398,7 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(norm2(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
-        self.assertAlmostEqual(result, 12.6158)
+        self.assertAlmostEqual(result, 12.61577)
         self.assertItemsAlmostEqual(self.x.value, [2,3])
         self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 
@@ -643,8 +697,8 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, self.A.value.T)
 
         p = Problem(Minimize(lambda_max(self.A)), [self.A == [[1,2],[3,4]]])
-        status = s.get_status(p.solve())
-        self.assertEqual(status, s.INFEASIBLE)
+        result = p.solve()
+        self.assertEqual(p.status, s.INFEASIBLE)
 
     # Test SDP
     def test_sdp(self):

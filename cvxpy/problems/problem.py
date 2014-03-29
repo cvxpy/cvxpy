@@ -35,8 +35,11 @@ import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
+<<<<<<< HEAD
 import scs
 # ECHU: ECOS now depends on numpy
+=======
+>>>>>>> origin
 import numpy as np
 import scipy.sparse as sp
 
@@ -64,6 +67,28 @@ class Problem(u.Canonical):
             constraints = []
         self.objective = objective
         self.constraints = constraints
+        self._value = None
+        self._status = None
+
+    @property
+    def value(self):
+        """The value from the last time the problem was solved.
+
+        Returns
+        -------
+        float or None
+        """
+        return self._value
+
+    @property
+    def status(self):
+        """The status from the last time the problem was solved.
+
+        Returns
+        -------
+        str
+        """
+        return self._status
 
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
@@ -112,7 +137,7 @@ class Problem(u.Canonical):
         constraints = []
         obj, constr = self.objective.canonical_form
         constraints += constr
-        unique_constraints = list(set(self.constraints))
+        unique_constraints = list(OrderedSet(self.constraints))
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
@@ -212,7 +237,8 @@ class Problem(u.Canonical):
         objective, constr_map, dims = self.canonicalize()
 
         all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
-        var_offsets, x_length = self._get_var_offsets(objective, all_ineq)
+        var_info = self._get_var_offsets(objective, all_ineq)
+        sorted_vars, var_offsets, x_length = var_info
 
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
                                             self._DENSE_INTF,
@@ -293,16 +319,45 @@ class Problem(u.Canonical):
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
 
-        if status == s.SOLVED:
-            self._save_values(results['x'], var_offsets.keys())
+        if status == s.OPTIMAL:
+            self._save_values(results['x'], sorted_vars)
             self._save_values(results['y'], constr_map[s.EQ])
             if constr_map[s.NONLIN]:
                 self._save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self._save_values(results['z'], constr_map[s.INEQ])
-            return self.objective._primal_to_result(primal_val - obj_offset)
+            self._value = self.objective._primal_to_result(
+                          primal_val - obj_offset)
         else:
-            return status
+            self._handle_failure(status, sorted_vars,
+                itertools.chain(constr_map[s.EQ], constr_map[s.INEQ]))
+        self._status = status
+        return self.value
+
+    def _handle_failure(self, status, variables, constraints):
+        """Updates value fields based on the cause of solver failure.
+
+        Parameters
+        ----------
+            status: str
+                The status of the solver.
+            variables: list
+                The problem variables.
+            constraints: list
+                The problem constraints.
+        """
+        # Set all primal and dual variable values to None.
+        for var_ in variables:
+            var_.save_value(None)
+        for constr in constraints:
+            constr.save_value(None)
+        # Set the problem value.
+        if status == s.INFEASIBLE:
+            self._value = self.objective._primal_to_result(np.inf)
+        elif status == s.UNBOUNDED:
+            self._value = self.objective._primal_to_result(-np.inf)
+        else: # Solver error
+            self._value = None
 
     def _get_var_offsets(self, objective, constraints):
         """Maps each variable to a horizontal offset.
@@ -317,17 +372,24 @@ class Problem(u.Canonical):
         Returns
         -------
         tuple
-            (map of variable to offset, length of variable vector)
+            (ordered list of variables, map of variable to offset,
+             length of variable vector)
         """
         vars_ = objective.variables()
         for constr in constraints:
             vars_ += constr.variables()
         var_offsets = OrderedDict()
         vert_offset = 0
-        for var in set(vars_):
-            var_offsets[var] = vert_offset
+        # TODO Ensure the variables are always in the same
+        # order for the same problem.
+        var_names = [(v, v.id) for v in set(vars_)]
+        var_names.sort(key=lambda (var, var_id): var_id)
+        for var, var_id in var_names:
+            var_offsets[var_id] = vert_offset
             vert_offset += var.size[0]*var.size[1]
-        return (var_offsets, vert_offset)
+        # Return an ordered list of variables.
+        vars_ = [v for v, var_id in var_names]
+        return (vars_, var_offsets, vert_offset)
 
     def _save_values(self, result_vec, objects):
         """Saves the values of the optimal primal/dual variables.

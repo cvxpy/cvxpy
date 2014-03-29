@@ -38,6 +38,8 @@ atoms = [
         #(huber(0.5), 0.25),
         #(huber(-1.5), 2),
         (inv_pos([[1,2],[3,4]]), Constant([[1,1.0/2],[1.0/3,1.0/4]])),
+        (kl_div(math.e, 1), Constant([1])),
+        (kl_div(math.e, math.e), Constant([0])),
         (lambda_max([[2,0],[0,1]]), Constant([2])),
         (lambda_max([[5,7],[7,-3]]), Constant([9.06225775])),
         (log_sum_exp([[5, 7], [0, -3]]), Constant([7.1277708268])),
@@ -72,6 +74,9 @@ atoms = [
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
     ], Minimize),
     ([
+        (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
+         Constant([[0, -math.e], [-2*math.e**2, 1.0/math.e]])),
+        #(entr(0), Constant([0])),
         (log_det([[20, 8, 5, 2],
                   [8, 16, 2, 4],
                   [5, 2, 5, 2],

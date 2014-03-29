@@ -9,8 +9,8 @@ import time
 import cProfile
 cProfile.run("""
 import cvxpy as cp
-n = 1000
-A = cp.Variable(n, n)
+n = 2000
+A = cp.Variable(n*n, 1)
 obj = cp.Minimize(cp.norm(A, 'fro'))
 p = cp.Problem(obj, [A >= 2])
 result = p.solve(verbose=True)
@@ -18,7 +18,7 @@ print result
 """)
 
 # m = 100
-# n = 500
+# n = 1000
 # prob = 0.999
 
 # a_arr = np.random.random((m, n))

@@ -25,7 +25,8 @@ import cvxpy.interface as intf
 import numpy as np
 
 class log(Elementwise):
-    """ Elementwise logarithm. """
+    """Elementwise :math:`\log x`.
+    """
     def __init__(self, x):
         super(log, self).__init__(x)
 

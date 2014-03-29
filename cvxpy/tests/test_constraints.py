@@ -41,7 +41,14 @@ class TestConstraints(unittest.TestCase):
         self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.size, (2,1))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
+        # Test value and dual_value.
         assert constr.dual_value is None
+        assert constr.value is None
+        self.x.save_value(2)
+        self.z.save_value(2)
+        assert constr.value
+        self.x.save_value(3)
+        assert not constr.value
 
         with self.assertRaises(Exception) as cm:
             (self.x == self.y)
@@ -52,7 +59,14 @@ class TestConstraints(unittest.TestCase):
         constr = self.x <= self.z
         self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.size, (2,1))
+        # Test value and dual_value.
         assert constr.dual_value is None
+        assert constr.value is None
+        self.x.save_value(1)
+        self.z.save_value(2)
+        assert constr.value
+        self.x.save_value(3)
+        assert not constr.value
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
 
         with self.assertRaises(Exception) as cm:

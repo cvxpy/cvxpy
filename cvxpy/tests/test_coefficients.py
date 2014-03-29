@@ -45,22 +45,22 @@ class test_coefficients(unittest.TestCase):
         """
         # Scalars
         coeffs = self.a.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [self.a])
-        blocks = coeffs[self.a]
+        self.assertItemsEqual(coeffs.keys(), [self.a.id])
+        blocks = coeffs[self.a.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0], 1)
 
         # Vectors
         coeffs = self.x.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [self.x])
-        blocks = coeffs[self.x]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id])
+        blocks = coeffs[self.x.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2, 2))
 
         # Matrices
         coeffs = self.A.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [self.A])
-        blocks = coeffs[self.A]
+        self.assertItemsEqual(coeffs.keys(), [self.A.id])
+        blocks = coeffs[self.A.id]
         self.assertEqual(len(blocks), 2)
         self.assertEqual(blocks[0].shape, (2,4))
 
@@ -83,20 +83,20 @@ class test_coefficients(unittest.TestCase):
         """Test adding coefficients.
         """
         coeffs = cu.add(self.x.coefficients(), self.y.coefficients())
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.x]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.x.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,2))
 
         coeffs = cu.add(coeffs, coeffs)
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.x]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.x.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,2))
         self.assertEqual(blocks[0][0,0], 2)
 
         coeffs = cu.add(coeffs, self.C.coefficients())
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y, s.CONSTANT])
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id, s.CONSTANT])
         blocks = coeffs[s.CONSTANT]
         self.assertEqual(len(blocks), 2)
         self.assertEqual(blocks[0].shape, (2,1))
@@ -106,14 +106,14 @@ class test_coefficients(unittest.TestCase):
         """Test negating coefficients.
         """
         coeffs = cu.neg(self.a.coefficients())
-        self.assertItemsEqual(coeffs.keys(), [self.a])
-        blocks = coeffs[self.a]
+        self.assertItemsEqual(coeffs.keys(), [self.a.id])
+        blocks = coeffs[self.a.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0], -1)
 
         coeffs = cu.neg(self.A.coefficients())
-        self.assertItemsEqual(coeffs.keys(), [self.A])
-        blocks = coeffs[self.A]
+        self.assertItemsEqual(coeffs.keys(), [self.A.id])
+        blocks = coeffs[self.A.id]
         self.assertEqual(len(blocks), 2)
         self.assertEqual(blocks[0].shape, (2,4))
         self.assertEqual(blocks[0][0,0], -1)
@@ -122,15 +122,15 @@ class test_coefficients(unittest.TestCase):
         """Test subtracting coefficients.
         """
         coeffs = cu.sub(self.x.coefficients(), self.y.coefficients())
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.y]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.y.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,2))
         self.assertEqual(blocks[0][0,0], -1)
 
         coeffs = cu.sub(coeffs, self.x.coefficients())
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.x]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.x.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,2))
         self.assertEqual(blocks[0][0,0], 0)
@@ -140,8 +140,8 @@ class test_coefficients(unittest.TestCase):
         """
         coeffs = cu.add(self.x.coefficients(), self.y.coefficients())
         coeffs = cu.mul(self.C.coefficients(), coeffs)
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.y]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.y.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,2))
         self.assertEqual(blocks[0][1,0], 2)
@@ -149,8 +149,8 @@ class test_coefficients(unittest.TestCase):
         # Scalar by Matrix multiplication.
         coeffs = cu.add(self.x.coefficients(), self.y.coefficients())
         coeffs = cu.mul(self.c.coefficients(), coeffs)
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.y]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.y.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,2))
         self.assertEqual(blocks[0][0,0], 3)
@@ -158,8 +158,8 @@ class test_coefficients(unittest.TestCase):
         # Matrix by Scalar multiplication.
         coeffs = self.a.coefficients()
         coeffs = cu.mul(self.C.coefficients(), coeffs)
-        self.assertItemsEqual(coeffs.keys(), [self.a])
-        blocks = coeffs[self.a]
+        self.assertItemsEqual(coeffs.keys(), [self.a.id])
+        blocks = coeffs[self.a.id]
         self.assertEqual(len(blocks), 2)
         self.assertEqual(blocks[0].shape, (2,1))
         self.assertEqual(blocks[0][1,0], 2)
@@ -173,8 +173,8 @@ class test_coefficients(unittest.TestCase):
         sum_coeffs = cu.add(self.x.coefficients(), self.y.coefficients())
         key = ku.validate_key((1, 0), self.x.shape)
         coeffs = cu.index(sum_coeffs, key)
-        self.assertItemsEqual(coeffs.keys(), [self.x, self.y])
-        blocks = coeffs[self.y]
+        self.assertItemsEqual(coeffs.keys(), [self.x.id, self.y.id])
+        blocks = coeffs[self.y.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (1,2))
         self.assertEqual(blocks[0][0,0], 0)
@@ -183,9 +183,9 @@ class test_coefficients(unittest.TestCase):
         sum_coeffs = cu.add(self.A.coefficients(), self.C.coefficients())
         key = ku.validate_key((slice(None, None, None), 1), self.A.shape)
         coeffs = cu.index(sum_coeffs, key)
-        self.assertItemsEqual(coeffs.keys(), [self.A, s.CONSTANT])
+        self.assertItemsEqual(coeffs.keys(), [self.A.id, s.CONSTANT])
         # Variable.
-        blocks = coeffs[self.A]
+        blocks = coeffs[self.A.id]
         self.assertEqual(len(blocks), 1)
         self.assertEqual(blocks[0].shape, (2,4))
         # Constant.
