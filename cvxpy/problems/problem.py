@@ -274,17 +274,13 @@ class Problem(u.Canonical):
                 kktsolver = get_kktsolver(G, dims, A, F)
                 results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
                                              dims=dims,kktsolver=kktsolver)
-                status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-                primal_val = results['primal objective']
             else:
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A)
-                # Adjust tolerance to account for regularization.
-                cvxopt.solvers.options['feastol'] = 2*1e-6
                 results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
                                                 dims=dims, kktsolver=kktsolver)
-                status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-                primal_val = results['primal objective']
+            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+            primal_val = results['primal objective']
         else: # If possible, target ECOS.
             # Convert c,h,b to 1D arrays.
             c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
