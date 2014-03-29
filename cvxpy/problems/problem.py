@@ -136,6 +136,7 @@ class Problem(u.Canonical):
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
+        dims = {}
         dims['l'] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
         # Formats SOC and SDP constraints for the solver.
         for constr in itertools.chain(constr_map[s.SOC], constr_map[s.SDP]):

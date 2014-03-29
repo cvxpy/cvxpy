@@ -304,33 +304,33 @@ class TestExamples(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1.9746)
 
-    def test_kl_div(self):
-        """Test a problem with kl_div.
-        """
-        import numpy as np
-        import cvxpy as cp
+    # def test_kl_div(self):
+    #     """Test a problem with kl_div.
+    #     """
+    #     import numpy as np
+    #     import cvxpy as cp
 
-        kK=10
-        kSeed=10
+    #     kK=10
+    #     kSeed=10
 
-        prng=np.random.RandomState(kSeed)
-        #Generate a random reference distribution
-        npSPriors=prng.uniform(0.0,1.0,kK)
-        npSPriors=npSPriors/np.sum(npSPriors)
+    #     prng=np.random.RandomState(kSeed)
+    #     #Generate a random reference distribution
+    #     npSPriors=prng.uniform(0.0,1.0,kK)
+    #     npSPriors=npSPriors/np.sum(npSPriors)
 
-        #Reference distribution
-        p_refProb=cp.Parameter(kK,1,sign='positive')
-        #Distribution to be estimated
-        v_prob=cp.Variable(kK,1)
-        objkl=0.0
-        for k in xrange(kK):
-            objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
+    #     #Reference distribution
+    #     p_refProb=cp.Parameter(kK,1,sign='positive')
+    #     #Distribution to be estimated
+    #     v_prob=cp.Variable(kK,1)
+    #     objkl=0.0
+    #     for k in xrange(kK):
+    #         objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
 
-        constrs=[sum([v_prob[k,0] for k in xrange(kK)])==1]
-        klprob=cp.Problem(cp.Minimize(objkl),constrs)
-        p_refProb.value=npSPriors
-        result = klprob.solve(verbose=True)
-        self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+    #     constrs=[sum([v_prob[k,0] for k in xrange(kK)])==1]
+    #     klprob=cp.Problem(cp.Minimize(objkl),constrs)
+    #     p_refProb.value=npSPriors
+    #     result = klprob.solve(verbose=True)
+    #     self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):

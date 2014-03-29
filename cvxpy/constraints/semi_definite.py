@@ -34,12 +34,12 @@ class SDP(object):
         return "SDP(%s)" % self.A
 
     def format(self):
-    """Formats SDP constraints as inequalities for the solver.
-    """
+        """Formats SDP constraints as inequalities for the solver.
+        """
         return [-self.A <= 0]
 
     @property
     def size(self):
-    """The dimensions of the semi-definite cone.
-    """
+        """The dimensions of the semi-definite cone.
+        """
         return self.A.size
