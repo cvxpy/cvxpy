@@ -45,10 +45,10 @@ UNKNOWN = "solver_error"
 
 # Map of solver status to cvxpy status.
 CVXOPT = "cvxopt"
-CVXOPT_STATUS = {'optimal': OPTIMAL,
-                 'primal infeasible': INFEASIBLE,
-                 'dual infeasible': UNBOUNDED,
-                 'unknown': UNKNOWN}
+CVXOPT_STATUS = {"optimal": OPTIMAL,
+                 "primal infeasible": INFEASIBLE,
+                 "dual infeasible": UNBOUNDED,
+                 "unknown": UNKNOWN}
 ECOS = "ecos"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
@@ -60,7 +60,7 @@ ECOS_STATUS = {0: OPTIMAL,
                -7: UNKNOWN}
 
 SCS = "scs"
-SCS_STATUS = {"Solved": SOLVED,
+SCS_STATUS = {"Solved": OPTIMAL,
 }
 
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,

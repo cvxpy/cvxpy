@@ -141,13 +141,16 @@ class Problem(u.Canonical):
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
-        dims = {'l': sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])}
+        dims['l'] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
         # Formats SOC and SDP constraints for the solver.
-        for constr in itertools.chain(constr_map[s.SOC], constr_map[s.SDP]):
+        for constr in itertools.chain(constr_map[s.SOC],
+                                      constr_map[s.SDP],
+                                      constr_map[s.NONLIN]):
             for ineq_constr in constr.format():
                 constr_map[s.INEQ].add(ineq_constr)
         dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
         dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
+        dims['ep'] = sum(c.size[0] for c in constr_map[s.NONLIN])
         return (obj, constr_map, dims)
 
     def variables(self):
@@ -259,7 +262,7 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['refinement'] = 1
         # Target cvxopt solver if SDP or invalid for ECOS.
         if solver == s.CVXOPT or len(dims['s']) > 0 \
-            or min(G.shape) == 0 or constr_map[s.NONLIN]:
+            or min(G.shape) == 0:
             # Convert c,A,b,G,h to cvxopt matrices.
             c, b, h = map(lambda vec:
                 self._CVXOPT_DENSE_INTF.const_to_matrix(vec,
@@ -289,7 +292,7 @@ class Problem(u.Canonical):
                                                 dims=dims, kktsolver=kktsolver)
                 status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
                 primal_val = results['primal objective']
-        elif solver == s.SCS:
+        elif solver == s.SCS or constr_map[s.NONLIN]:
             c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
             data = {"c": c}
             if A.shape[0] == 0:

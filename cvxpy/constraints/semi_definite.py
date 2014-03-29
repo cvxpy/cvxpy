@@ -23,19 +23,23 @@ class SDP(object):
         { symmetric A | x.T*A*x >= 0 for all x }
     (the set of all symmetric matrices such that the quadratic
     form x.T*A*x is positive for all x).
+
+    Attributes:
+        A: The matrix variable constrained to be semi-definite.
     """
-    # A - an affine expression or objective.
     def __init__(self, A):
         self.A = A
 
     def __str__(self):
         return "SDP(%s)" % self.A
 
-    # Formats SDP constraints for the solver.
     def format(self):
+    """Formats SDP constraints as inequalities for the solver.
+    """
         return [-self.A <= 0]
 
-    # The dimensions of the semi-definite cone.
     @property
     def size(self):
+    """The dimensions of the semi-definite cone.
+    """
         return self.A.size
