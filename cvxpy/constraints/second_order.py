@@ -32,16 +32,18 @@ class SOC(object):
     def __str__(self):
         return "SOC(%s, %s)" % (self.t, self.x_elems)
 
-    # Formats SOC constraints for the solver.
     def format(self):
+        """Formats SOC constraints as inequalities for the solver.
+        """
         constraints = [0 <= self.t]
         for elem in self.x_elems:
             constraints.append(0 <= elem)
         return constraints
 
-    # The dimensions of the second-order cone.
     @property
     def size(self):
+        """The dimensions of the second-order cone.
+        """
         rows = 1
         for elem in self.x_elems:
             rows += elem.size[0]*elem.size[1]
