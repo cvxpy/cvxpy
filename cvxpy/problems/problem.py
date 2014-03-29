@@ -35,11 +35,7 @@ import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
-<<<<<<< HEAD
 import scs
-# ECHU: ECOS now depends on numpy
-=======
->>>>>>> origin
 import numpy as np
 import scipy.sparse as sp
 
@@ -141,6 +137,7 @@ class Problem(u.Canonical):
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
+        dims = {}
         dims['l'] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
         # Formats SOC and SDP constraints for the solver.
         for constr in itertools.chain(constr_map[s.SOC],
@@ -286,8 +283,6 @@ class Problem(u.Canonical):
             else:
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A)
-                # Adjust tolerance to account for regularization.
-                cvxopt.solvers.options['feastol'] = 2*1e-6
                 results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
                                                 dims=dims, kktsolver=kktsolver)
                 status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
@@ -301,14 +296,14 @@ class Problem(u.Canonical):
                 data["b"] = h
             else:
                 dims["f"] = A.shape[0]
-                data["A"] = sp.vstack([A, G])
-                data["b"] = np.vstack([b, h])
+                data["A"] = sp.vstack([A, G]).tocsc()
+                data["b"] = np.hstack([b, h])
             opt = {'VERBOSE': verbose}
             results = scs.solve(data, dims, opt, USE_INDIRECT = True)
             status = s.SOLVER_STATUS[s.SCS][results['info']['status']]
             primal_val = results['info']['pobj']
-            if status == s.SOLVED:
-                self._save_values(results['x'], var_offsets.keys())
+            if status == s.OPTIMAL:
+                self._save_values(results['x'], sorted_vars)
                 all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
                 self._save_values(results['y'], all_ineq)
                 return self.objective._primal_to_result(primal_val - obj_offset)

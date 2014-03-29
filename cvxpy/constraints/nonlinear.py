@@ -29,13 +29,13 @@ class NonlinearConstraint(object):
     one of many (of course).
     """
     # f - a nonlinear function
-    # x - the variables involved in the function
-    def __init__(self, f, x):
+    # vars_ - the variables involved in the function
+    def __init__(self, f, vars_):
         self.f = f
-        self.x = x
-        # The shape of x in f(x)
-        cols = self.x[0].size[1]
-        rows = sum(var.size[0] for var in self.x)
+        self.vars_ = vars_
+        # The shape of vars_ in f(vars_)
+        cols = self.vars_[0].size[1]
+        rows = sum(var.size[0] for var in self.vars_)
         self.x_shape = u.Shape(rows, cols)
         super(NonlinearConstraint, self).__init__()
 
@@ -44,9 +44,9 @@ class NonlinearConstraint(object):
         return (self.f()[0],1)
 
     # Returns the variables involved in the function
-    # in order, i.e. f(x) = f(vstack(variables))
+    # in order, i.e. f(vars_) = f(vstack(variables))
     def variables(self):
-        return self.x
+        return self.vars_
 
     # Place x0 = f() in the vector of all variables.
     def place_x0(self, big_x, var_offsets, interface):

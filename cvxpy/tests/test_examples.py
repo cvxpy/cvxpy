@@ -283,7 +283,6 @@ class TestExamples(BaseTest):
         print b.value
 
     def test_log_det(self):
-        # TODO
         # Generate data
         x = np.matrix("0.55  0.0;"
                       "0.25  0.35;"
@@ -329,7 +328,7 @@ class TestExamples(BaseTest):
         constrs=[sum([v_prob[k,0] for k in xrange(kK)])==1]
         klprob=cp.Problem(cp.Minimize(objkl),constrs)
         p_refProb.value=npSPriors
-        result = klprob.solve(verbose=True)
+        result = klprob.solve(verbose=True, solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     # # Risk return tradeoff curve
