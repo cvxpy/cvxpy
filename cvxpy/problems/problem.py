@@ -141,13 +141,11 @@ class Problem(u.Canonical):
         dims['l'] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
         # Formats SOC and SDP constraints for the solver.
         for constr in itertools.chain(constr_map[s.SOC],
-                                      constr_map[s.SDP],
-                                      constr_map[s.NONLIN]):
+                                      constr_map[s.SDP]):
             for ineq_constr in constr.format():
                 constr_map[s.INEQ].add(ineq_constr)
         dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
         dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
-        dims['ep'] = sum(c.size[0] for c in constr_map[s.NONLIN])
         return (obj, constr_map, dims)
 
     def variables(self):
@@ -236,7 +234,7 @@ class Problem(u.Canonical):
                 raise Exception("Problem does not follow DCP rules.")
         objective, constr_map, dims = self.canonicalize()
 
-        all_ineq = constr_map[s.EQ] + constr_map[s.INEQ]
+        all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
         var_info = self._get_var_offsets(objective, all_ineq)
         sorted_vars, var_offsets, x_length = var_info
 
@@ -258,7 +256,8 @@ class Problem(u.Canonical):
             self._save_values(z, constr_map[s.INEQ])
             self._value = value
         else:
-            self._handle_failure(status, sorted_vars, all_ineq)
+            self._handle_failure(status, sorted_vars,
+                itertools.chain(constr_map[s.EQ], constr_map[s.INEQ]))
         self._status = status
         return self.value
 
@@ -365,7 +364,21 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['show_progress'] = verbose
         # Always do one step of iterative refinement after solving KKT system.
         cvxopt.solvers.options['refinement'] = 1
-
+        # Target cvxopt clp if nonlinear constraints exist
+        if constr_map[s.EXP]:
+            # Get the nonlinear constraints.
+            F = self._merge_nonlin(constr_map[s.EXP], var_offsets,
+                                   x_length)
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(G, dims, A, F)
+            results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
+                                         dims=dims,kktsolver=kktsolver)
+        else:
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(G, dims, A)
+            results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
+                                            dims=dims, kktsolver=kktsolver)
+        status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
         if status == s.OPTIMAL:
             primal_val = results['primal objective']
             value = self.objective._primal_to_result(
@@ -411,6 +424,11 @@ class Problem(u.Canonical):
              optimal inequality constraint dual)
 
         """
+        for constr in constr_map[s.EXP]:
+            for ineq_constr in constr.format():
+                constr_map[s.INEQ].add(ineq_constr)
+        dims['ep'] = sum(c.size[0] for c in constr_map[s.EXP])
+
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
                                             self._DENSE_INTF,
                                             self._DENSE_INTF)
