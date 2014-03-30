@@ -435,26 +435,26 @@ class Problem(u.Canonical):
         # Convert obj_offset to a scalar.
         obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
 
-        A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
+        A, b = self._constr_matrix(itertools.chain(constr_map[s.EQ],
+                                                  constr_map[s.INEQ]),
+                                   var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
-        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
-                                   self._SPARSE_INTF, self._DENSE_INTF)
+
         # Convert c,h,b to 1D arrays.
         c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
         data = {"c": c}
         dims["f"] = sum([c.size[0] for c in constr_map[s.EQ]])
         data["A"] = A
         data["b"] = b
-        opt = {'VERBOSE': verbose}
+        opt = {"VERBOSE": verbose}
         results = scs.solve(data, dims, opt, USE_INDIRECT = True)
-        status = s.SOLVER_STATUS[s.SCS][results['info']['status']]
+        status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
-            primal_val = results['info']['pobj']
+            primal_val = results["info"]["pobj"]
             value = self.objective._primal_to_result(primal_val - obj_offset)
-            self._save_values(results['x'], sorted_vars)
-            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
-            self._save_values(results['y'], all_ineq)
-            return self.objective._primal_to_result(primal_val - obj_offset)
+            eq_dual = results["y"][0:dims["f"]]
+            ineq_dual = esults["y"][dims["f"]:]
+            return (status, value, results["x"], eq_dual, ineq_dual)
         else:
             return (status, None, None, None, None)
 
