@@ -94,6 +94,68 @@ class TestNonlinearAtoms(BaseTest):
         self.assertEqual(entr(0).value, 0)
         assert np.isneginf(entr(-1).value)
 
+    def test_kl_div(self):
+        """Test a problem with kl_div.
+        """
+        import numpy as np
+        import cvxpy as cp
+
+        kK=50
+        kSeed=10
+
+        prng=np.random.RandomState(kSeed)
+        #Generate a random reference distribution
+        npSPriors=prng.uniform(0.0,1.0,kK)
+        npSPriors=npSPriors/np.sum(npSPriors)
+
+        #Reference distribution
+        p_refProb=cp.Parameter(kK,1,sign='positive')
+        #Distribution to be estimated
+        v_prob=cp.Variable(kK,1)
+        objkl=0.0
+        for k in xrange(kK):
+            objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
+
+        constrs=[__builtins__['sum']([v_prob[k,0] for k in xrange(kK)])==1]
+        klprob=cp.Problem(cp.Minimize(objkl),constrs)
+        p_refProb.value=npSPriors
+        result = klprob.solve(verbose=True)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+
+    def test_entr(self):
+        """Test a problem with entr.
+        """
+        for n in [5, 10, 25]:
+            print n
+            x = Variable(n)
+            obj = Maximize(sum(entr(x)))
+            p = Problem(obj, [sum(x) == 1])
+            p.solve(verbose=True)
+            self.assertItemsAlmostEqual(x.value, n*[1./n])
+
+    def test_exp(self):
+        """Test a problem with exp.
+        """
+        for n in [5, 10, 25]:
+            print n
+            x = Variable(n)
+            obj = Minimize(sum(exp(x)))
+            p = Problem(obj, [sum(x) == 1])
+            p.solve(verbose=True)
+            self.assertItemsAlmostEqual(x.value, n*[1./n])
+
+    def test_log(self):
+        """Test a problem with log.
+        """
+        for n in [5, 10, 25]:
+            print n
+            x = Variable(n)
+            obj = Maximize(sum(log(x)))
+            p = Problem(obj, [sum(x) == 1])
+            p.solve(verbose=True)
+            self.assertItemsAlmostEqual(x.value, n*[1./n])
+
+
     # def test_kl_div(self):
     #     """Test the kl_div atom.
     #     """

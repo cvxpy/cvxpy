@@ -25,7 +25,7 @@ from ..expressions.expression import Expression
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
 from ..constraints import EqConstraint, LeqConstraint, \
-                          SOC, SDP, NonlinearConstraint
+                          SOC, SDP, ExpCone
 from .objective import Minimize, Maximize
 from kktsolver import get_kktsolver
 
@@ -117,7 +117,7 @@ class Problem(u.Canonical):
                 constr_map[s.SOC].add(c)
             elif isinstance(c, SDP):
                 constr_map[s.SDP].add(c)
-            elif isinstance(c, NonlinearConstraint):
+            elif isinstance(c, ExpCone):
                 constr_map[s.EXP].add(c)
         return constr_map
 
