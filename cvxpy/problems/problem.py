@@ -25,7 +25,7 @@ from ..expressions.expression import Expression
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
 from ..constraints import EqConstraint, LeqConstraint, \
-                          SOC, SDP, NonlinearConstraint
+                          SOC, SDP, ExpCone
 from .objective import Minimize, Maximize
 from kktsolver import get_kktsolver
 
@@ -108,7 +108,7 @@ class Problem(u.Canonical):
                       s.INEQ: OrderedSet([]),
                       s.SOC: OrderedSet([]),
                       s.SDP: OrderedSet([]),
-                      s.NONLIN: OrderedSet([])}
+                      s.EXP: OrderedSet([])}
         for c in constraints:
             if isinstance(c, EqConstraint):
                 constr_map[s.EQ].add(c)
@@ -118,8 +118,8 @@ class Problem(u.Canonical):
                 constr_map[s.SOC].add(c)
             elif isinstance(c, SDP):
                 constr_map[s.SDP].add(c)
-            elif isinstance(c, NonlinearConstraint):
-                constr_map[s.NONLIN].add(c)
+            elif isinstance(c, ExpCone):
+                constr_map[s.EXP].add(c)
         return constr_map
 
     def canonicalize(self):
@@ -270,23 +270,21 @@ class Problem(u.Canonical):
                     convert_scalars=True),
                 [A, G])
             # Target cvxopt clp if nonlinear constraints exist
-            if constr_map[s.NONLIN]:
+            if constr_map[s.EXP]:
                 # Get the nonlinear constraints.
-                F = self._merge_nonlin(constr_map[s.NONLIN], var_offsets,
+                F = self._merge_nonlin(constr_map[s.EXP], var_offsets,
                                        x_length)
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A, F)
                 results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
                                              dims=dims,kktsolver=kktsolver)
-                status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-                primal_val = results['primal objective']
             else:
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A)
                 results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
                                                 dims=dims, kktsolver=kktsolver)
-                status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-                primal_val = results['primal objective']
+            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+            primal_val = results['primal objective']
         elif solver == s.SCS or constr_map[s.NONLIN]:
             c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
             data = {"c": c}
@@ -320,7 +318,7 @@ class Problem(u.Canonical):
         if status == s.OPTIMAL:
             self._save_values(results['x'], sorted_vars)
             self._save_values(results['y'], constr_map[s.EQ])
-            if constr_map[s.NONLIN]:
+            if constr_map[s.EXP]:
                 self._save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self._save_values(results['z'], constr_map[s.INEQ])

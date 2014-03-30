@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from elementwise import Elementwise
 from cvxpy.expressions.variables import Variable
-from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.exponential import LogCone
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 import numpy as np
@@ -58,6 +58,6 @@ class entr(Elementwise):
             for j in xrange(cols):
                 xi = arg_objs[0][i, j]
                 x, y, z = Variable(), Variable(), Variable()
-                constraints += [ExpCone(x, y, z),
+                constraints += [LogCone(x, y, z),
                                 x == t[i, j], y == xi, z == 1]
         return (t, constraints)
