@@ -35,6 +35,9 @@ class TestInterfaces(unittest.TestCase):
         # const_to_matrix
         mat = interface.const_to_matrix([1,2,3])
         self.assertEquals(interface.size(mat), (3,1))
+        sp_mat = sp.coo_matrix(([1,2], ([3,4], [2,1])), (5, 5))
+        mat = interface.const_to_matrix(sp_mat)
+        self.assertEquals(interface.size(mat), (5,5))
         # identity
         mat = interface.identity(4)
         cmp_mat = interface.const_to_matrix(np.eye(4))

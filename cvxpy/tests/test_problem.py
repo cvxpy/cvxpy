@@ -267,6 +267,15 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [8,8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2,2], places=3)
 
+    def test_ecos_noineq(self):
+        """Test ECOS with no inequality constraints.
+        """
+        T = matrix(1, (2, 2))
+        p = Problem(Minimize(1), [self.A == T])
+        result = p.solve(solver=s.ECOS)
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.A.value, T)
+
     # Test matrix LP problems.
     def test_matrix_lp(self):
         T = matrix(1, (2, 2))
