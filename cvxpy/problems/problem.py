@@ -370,7 +370,7 @@ class Problem(u.Canonical):
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A, F)
             results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
-                                         dims=dims,kktsolver=kktsolver)
+                                         dims=dims, kktsolver=kktsolver)
         else:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A)
