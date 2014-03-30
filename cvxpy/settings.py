@@ -62,4 +62,4 @@ SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS}
 
 # Map of constraint types.
-EQ,INEQ,SOC,SDP,NONLIN = range(5)
+EQ,INEQ,SOC,SDP,EXP = range(5)

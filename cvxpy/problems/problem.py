@@ -107,7 +107,7 @@ class Problem(u.Canonical):
                       s.INEQ: OrderedSet([]),
                       s.SOC: OrderedSet([]),
                       s.SDP: OrderedSet([]),
-                      s.NONLIN: OrderedSet([])}
+                      s.EXP: OrderedSet([])}
         for c in constraints:
             if isinstance(c, EqConstraint):
                 constr_map[s.EQ].add(c)
@@ -118,7 +118,7 @@ class Problem(u.Canonical):
             elif isinstance(c, SDP):
                 constr_map[s.SDP].add(c)
             elif isinstance(c, NonlinearConstraint):
-                constr_map[s.NONLIN].add(c)
+                constr_map[s.EXP].add(c)
         return constr_map
 
     def canonicalize(self):
@@ -255,7 +255,7 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['refinement'] = 1
         # Target cvxopt solver if SDP or invalid for ECOS.
         if solver == s.CVXOPT or len(dims['s']) > 0 \
-            or min(G.shape) == 0 or constr_map[s.NONLIN]:
+            or min(G.shape) == 0 or constr_map[s.EXP]:
             # Convert c,A,b,G,h to cvxopt matrices.
             c, b, h = map(lambda vec:
                 self._CVXOPT_DENSE_INTF.const_to_matrix(vec,
@@ -266,9 +266,9 @@ class Problem(u.Canonical):
                     convert_scalars=True),
                 [A, G])
             # Target cvxopt clp if nonlinear constraints exist
-            if constr_map[s.NONLIN]:
+            if constr_map[s.EXP]:
                 # Get the nonlinear constraints.
-                F = self._merge_nonlin(constr_map[s.NONLIN], var_offsets,
+                F = self._merge_nonlin(constr_map[s.EXP], var_offsets,
                                        x_length)
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A, F)
@@ -294,7 +294,7 @@ class Problem(u.Canonical):
         if status == s.OPTIMAL:
             self._save_values(results['x'], sorted_vars)
             self._save_values(results['y'], constr_map[s.EQ])
-            if constr_map[s.NONLIN]:
+            if constr_map[s.EXP]:
                 self._save_values(results['zl'], constr_map[s.INEQ])
             else:
                 self._save_values(results['z'], constr_map[s.INEQ])
