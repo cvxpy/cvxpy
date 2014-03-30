@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from ..base_matrix_interface import BaseMatrixInterface
 import cvxopt
+import scipy.sparse as sp
 import numbers
 
 class DenseMatrixInterface(BaseMatrixInterface):
@@ -38,6 +39,8 @@ class DenseMatrixInterface(BaseMatrixInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
+        if sp.issparse(value):
+            value = value.todense()
         return cvxopt.matrix(value, tc='d')
 
     # Return an identity matrix.
