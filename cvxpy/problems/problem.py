@@ -234,16 +234,19 @@ class Problem(u.Canonical):
                 raise Exception("Problem does not follow DCP rules.")
         objective, constr_map, dims = self.canonicalize()
 
-        all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+        all_ineq = constr_map[s.EQ].concat(constr_map[s.INEQ])
         var_info = self._get_var_offsets(objective, all_ineq)
         sorted_vars, var_offsets, x_length = var_info
 
         # Target cvxopt solver if SDP or invalid for ECOS.
-        if solver == s.CVXOPT or constr_map[s.SDP] \
-            or constr_map[s.EXP]:
+        if solver == s.CVXOPT or constr_map[s.SDP]:
             result = self._cvxopt_solve(objective, constr_map, dims,
                                         sorted_vars, var_offsets, x_length,
                                         verbose)
+        elif solver == s.SCS or constr_map[s.EXP]:
+            result = self._scs_solve(objective, constr_map, dims,
+                                     sorted_vars, var_offsets, x_length,
+                                     verbose)
         else: # If possible, target ECOS.
             result = self._ecos_solve(objective, constr_map, dims,
                                       sorted_vars, var_offsets, x_length,
@@ -256,8 +259,7 @@ class Problem(u.Canonical):
             self._save_values(z, constr_map[s.INEQ])
             self._value = value
         else:
-            self._handle_failure(status, sorted_vars,
-                itertools.chain(constr_map[s.EQ], constr_map[s.INEQ]))
+            self._handle_failure(status, sorted_vars, all_ineq)
         self._status = status
         return self.value
 
@@ -427,7 +429,8 @@ class Problem(u.Canonical):
         for constr in constr_map[s.EXP]:
             for ineq_constr in constr.format():
                 constr_map[s.INEQ].add(ineq_constr)
-        dims['ep'] = sum(c.size[0] for c in constr_map[s.EXP])
+        dims["ep"] = sum(c.size[0] for c in constr_map[s.EXP])
+        dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
 
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
                                             self._DENSE_INTF,
@@ -435,15 +438,14 @@ class Problem(u.Canonical):
         # Convert obj_offset to a scalar.
         obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
 
-        A, b = self._constr_matrix(itertools.chain(constr_map[s.EQ],
-                                                  constr_map[s.INEQ]),
+        all_ineq = constr_map[s.EQ].concat(constr_map[s.INEQ])
+        A, b = self._constr_matrix(all_ineq,
                                    var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
 
-        # Convert c,h,b to 1D arrays.
-        c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
+        # Convert c, b to 1D arrays.
+        c, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, b])
         data = {"c": c}
-        dims["f"] = sum([c.size[0] for c in constr_map[s.EQ]])
         data["A"] = A
         data["b"] = b
         opt = {"VERBOSE": verbose}
@@ -453,7 +455,7 @@ class Problem(u.Canonical):
             primal_val = results["info"]["pobj"]
             value = self.objective._primal_to_result(primal_val - obj_offset)
             eq_dual = results["y"][0:dims["f"]]
-            ineq_dual = esults["y"][dims["f"]:]
+            ineq_dual = results["y"][dims["f"]:]
             return (status, value, results["x"], eq_dual, ineq_dual)
         else:
             return (status, None, None, None, None)

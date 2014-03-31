@@ -27,7 +27,7 @@ import cvxopt
 import math
 from nose.tools import assert_raises
 
-TOL = 1e-3
+TOL = 1e-2
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 

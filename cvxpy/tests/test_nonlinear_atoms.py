@@ -69,7 +69,7 @@ class TestNonlinearAtoms(BaseTest):
         obj = Maximize(sum(log(self.x)))
         constr = [self.x <= [1, math.e]]
         p = Problem(obj, constr)
-        result = p.solve()
+        result = p.solve(solver=CVXOPT)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.x.value, [1, math.e])
 
@@ -77,7 +77,7 @@ class TestNonlinearAtoms(BaseTest):
         obj = Minimize(sum(self.x))
         constr = [log(self.x) >= 0, self.x <= [1,1]]
         p = Problem(obj, constr)
-        result = p.solve()
+        result = p.solve(solver=CVXOPT)
         self.assertAlmostEqual(result, 2)
         self.assertItemsAlmostEqual(self.x.value, [1,1])
 
@@ -85,7 +85,7 @@ class TestNonlinearAtoms(BaseTest):
         obj = Maximize(log(self.x)[1])
         constr = [self.x <= [1, math.e]]
         p = Problem(obj,constr)
-        result = p.solve()
+        result = p.solve(solver=CVXOPT)
         self.assertAlmostEqual(result, 1)
 
     def test_entr(self):
@@ -119,7 +119,7 @@ class TestNonlinearAtoms(BaseTest):
         constrs=[__builtins__['sum']([v_prob[k,0] for k in xrange(kK)])==1]
         klprob=cp.Problem(cp.Minimize(objkl),constrs)
         p_refProb.value=npSPriors
-        result = klprob.solve(verbose=True)
+        result = klprob.solve(solver=CVXOPT, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_entr(self):
@@ -130,7 +130,7 @@ class TestNonlinearAtoms(BaseTest):
             x = Variable(n)
             obj = Maximize(sum(entr(x)))
             p = Problem(obj, [sum(x) == 1])
-            p.solve(verbose=True)
+            p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_exp(self):
@@ -141,7 +141,7 @@ class TestNonlinearAtoms(BaseTest):
             x = Variable(n)
             obj = Minimize(sum(exp(x)))
             p = Problem(obj, [sum(x) == 1])
-            p.solve(verbose=True)
+            p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_log(self):
@@ -152,7 +152,7 @@ class TestNonlinearAtoms(BaseTest):
             x = Variable(n)
             obj = Maximize(sum(log(x)))
             p = Problem(obj, [sum(x) == 1])
-            p.solve(verbose=True)
+            p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
 

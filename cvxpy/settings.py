@@ -61,6 +61,7 @@ ECOS_STATUS = {0: OPTIMAL,
 
 SCS = "scs"
 SCS_STATUS = {"Solved": OPTIMAL,
+              "Failure": UNKNOWN,
 }
 
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
