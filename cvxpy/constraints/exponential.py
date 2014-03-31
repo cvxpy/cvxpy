@@ -50,7 +50,7 @@ def get_solver_hook(func_oracle):
             and (z scaled) Hessian at x.
         """
         if vars_ is None:
-            return ExpCone.size[0], cvxopt.matrix([0.0, 1.0, 1.0])
+            return ExpCone.size[0], cvxopt.matrix([0.0, 0.5, 1.0])
         # Unpack vars_
         x, y, z = vars_
         # Out of domain.
@@ -127,7 +127,7 @@ class ExpCone(NonlinearConstraint):
 class LogCone(ExpCone):
     """A reformulated exponential cone constraint.
 
-    K = {(x,y,z) | y > 0, log(y) + x/y <= log(z)}
+    K = {(x,y,z) | y > 0, y * log(y) + x <= y * log(z)}
          U {(x,y,z) | x <= 0, y = 0, z >= 0}
     """
 
@@ -150,15 +150,15 @@ class LogCone(ExpCone):
             (function value, gradient cvxopt matrix, Hessian cvxopt matrix)
         """
         # Evaluate the function.
-        f = x/y - math.log(z) + math.log(y)
+        f = x - y*math.log(z) + y*math.log(y)
         # Compute the gradient.
-        Df = cvxopt.matrix([1.0/y,
-                            (y-x)/(y**2),
-                            -1.0/z]).T
+        Df = cvxopt.matrix([1.0,
+                            math.log(y) - math.log(z) + 1.0,
+                            -y/z]).T
         # Compute the Hessian.
         H = cvxopt.matrix([
-                [0, -1.0/(y**2), 0.0],
-                [-1.0/(y**2), (2.0*x - y)/(y**3), 0.0],
-                [0.0, 0.0, 1.0/(z**2)],
+                [0.0, 0.0, 0.0],
+                [0.0, 1.0/y, -1.0/z],
+                [0.0, -1.0/z, y/(z**2)],
             ])
         return (f, Df, H)
