@@ -24,6 +24,10 @@ import cvxopt
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
 
+    Original cone:
+    K = {(x,y,z) | y > 0, ye^(x/y) <= z}
+         U {(x,y,z) | x <= 0, y = 0, z >= 0}
+    Reformulated cone:
     K = {(x,y,z) | y, z > 0, y * log(y) + x <= y * log(z)}
          U {(x,y,z) | x <= 0, y = 0, z >= 0}
 
@@ -51,7 +55,7 @@ class ExpCone(NonlinearConstraint):
     def _solver_hook(vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.
 
-        Based on f(x,y,z) = ye^(x/y) - z.
+        Based on f(x,y,z) = y * log(y) + x - y * log(z).
 
         Parameters
         ----------
@@ -70,8 +74,8 @@ class ExpCone(NonlinearConstraint):
         # Unpack vars_
         x, y, z = vars_
         # Out of domain.
-        if y <= 0.0 or z <= 0.0 or \
-           y == 0.0 and (x > 0.0 or z < 0.0):
+        # TODO what if y == 0.0?
+        if y <= 0.0 or z <= 0.0:
             return None
         # Evaluate the function.
         f = x - y*math.log(z) + y*math.log(y)
