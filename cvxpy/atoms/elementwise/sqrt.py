@@ -21,7 +21,7 @@ from ... import utilities as u
 from ... import interface as intf
 from ...expressions import types
 from ...expressions.variables import Variable
-from ..geo_mean import geo_mean
+from square import square
 from elementwise import Elementwise
 import numpy as np
 
@@ -47,12 +47,7 @@ class sqrt(Elementwise):
         return [u.monotonicity.INCREASING]
 
     def graph_implementation(self, arg_objs):
-        rows, cols = self.size
-        t = Variable(rows, cols)
-        constraints = []
-        for i in xrange(rows):
-            for j in xrange(cols):
-                xi = arg_objs[0][i,j]
-                obj,constr = geo_mean(xi, 1).canonical_form
-                constraints += constr + [obj >= t[i,j], 0 <= xi]
+        x = arg_objs[0]
+        t = Variable(*self.size)
+        obj, constraints = (x >= square(t)).canonical_form
         return (t, constraints)
