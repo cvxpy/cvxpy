@@ -437,7 +437,7 @@ class Problem(u.Canonical):
             vars_ += constr.variables()
         var_offsets = OrderedDict()
         vert_offset = 0
-        # TODO Ensure the variables are always in the same
+        # Ensure the variables are always in the same
         # order for the same problem.
         var_names = [(v, v.id) for v in set(vars_)]
         var_names.sort(key=lambda (var, var_id): var_id)

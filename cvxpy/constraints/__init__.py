@@ -21,4 +21,4 @@ from eq_constraint import EqConstraint
 from leq_constraint import LeqConstraint
 from second_order import SOC
 from semi_definite import SDP
-from exponential import ExpCone, LogCone
+from exponential import ExpCone
