@@ -126,7 +126,7 @@ class TestProblem(BaseTest):
                 constraints.append(var >= i)
             obj = Minimize(sum)
             p = Problem(obj, constraints)
-            objective, constr_map, dims = p.canonicalize()
+            objective, constr_map, dims, solver = p.canonicalize(s.ECOS)
             all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
             var_info = p._get_var_offsets(objective, all_ineq)
             sorted_vars, var_offsets, x_length = var_info
@@ -147,7 +147,7 @@ class TestProblem(BaseTest):
         le = (self.x <= 2)
         obj = 0
         def test(self):
-            objective,constr_map,dims = self.canonicalize()
+            objective,constr_map,dims,solver = self.canonicalize(s.ECOS)
             return (len(constr_map[s.EQ]),len(constr_map[s.INEQ]))
         Problem.register_solve("test", test)
         p = Problem(Minimize(obj),[eq,eq,le,le])

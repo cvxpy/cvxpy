@@ -122,13 +122,21 @@ class Problem(u.Canonical):
                 constr_map[s.EXP].add(c)
         return constr_map
 
-    def canonicalize(self):
+    def canonicalize(self, solver):
         """Computes the graph implementation of the problem.
+
+        Parameters
+        ----------
+        solver: str
+            The solver being targetted.
 
         Returns
         -------
         tuple
-            (affine objective, constraints list, the cone dimensions)
+            (affine objective,
+             constraints list,
+             cone dimensions,
+             solver chosen)
         """
         constraints = []
         obj, constr = self.objective.canonical_form
@@ -137,6 +145,7 @@ class Problem(u.Canonical):
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
+        solver = self._choose_solver(constr_map, solver)
         dims = {}
         dims['l'] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
         # Formats SOC and SDP constraints for the solver.
@@ -146,7 +155,42 @@ class Problem(u.Canonical):
                 constr_map[s.INEQ].add(ineq_constr)
         dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
         dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
-        return (obj, constr_map, dims)
+
+        # Format exponential cone constraints.
+        if solver == s.CVXOPT:
+            for constr in constr_map[s.EXP]:
+                for eq_constr in constr.format(s.CVXOPT):
+                    constr_map[s.EQ].add(eq_constr)
+        elif solver == s.SCS:
+            for constr in constr_map[s.EXP]:
+                for ineq_constr in constr.format(s.SCS):
+                    constr_map[s.INEQ].add(ineq_constr)
+            dims["ep"] = sum(c.size[0] for c in constr_map[s.EXP])
+            dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
+        return (obj, constr_map, dims, solver)
+
+    def _choose_solver(self, constr_map, solver):
+        """Determines the appropriate solver.
+
+        Parameters
+        ----------
+        constr_map: dict
+            A dict of the canonicalized constraints.
+        solver: str
+            The solver being targetted.
+
+        Returns
+        -------
+        str
+            The solver that will be used.
+        """
+        # Target cvxopt solver if SDP or invalid for ECOS.
+        if solver == s.CVXOPT or constr_map[s.SDP]:
+            return s.CVXOPT
+        elif solver == s.SCS or constr_map[s.EXP]:
+            return s.SCS
+        else: # If possible, target ECOS.
+            return s.ECOS
 
     def variables(self):
         """Returns a list of the variables in the problem.
@@ -232,7 +276,7 @@ class Problem(u.Canonical):
                        "Solving a convex relaxation.")
             else:
                 raise Exception("Problem does not follow DCP rules.")
-        objective, constr_map, dims = self.canonicalize()
+        objective, constr_map, dims, solver = self.canonicalize(solver)
 
         all_ineq = constr_map[s.EQ].concat(constr_map[s.INEQ])
         var_info = self._get_var_offsets(objective, all_ineq)
@@ -426,12 +470,6 @@ class Problem(u.Canonical):
              optimal inequality constraint dual)
 
         """
-        for constr in constr_map[s.EXP]:
-            for ineq_constr in constr.format():
-                constr_map[s.INEQ].add(ineq_constr)
-        dims["ep"] = sum(c.size[0] for c in constr_map[s.EXP])
-        dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
-
         c, obj_offset = self._constr_matrix([objective], var_offsets, x_length,
                                             self._DENSE_INTF,
                                             self._DENSE_INTF)

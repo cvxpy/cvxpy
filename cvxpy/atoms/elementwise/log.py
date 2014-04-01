@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from elementwise import Elementwise
 from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.constants import Constant
 from cvxpy.constraints.exponential import ExpCone
 import cvxpy.utilities as u
 import cvxpy.interface as intf
@@ -49,11 +50,12 @@ class log(Elementwise):
     def graph_implementation(self, arg_objs):
         rows, cols = self.size
         t = Variable(rows, cols)
+        x = arg_objs[0]
         constraints = []
         for i in xrange(rows):
             for j in xrange(cols):
-                xi = arg_objs[0][i, j]
-                x, y, z = Variable(), Variable(), Variable()
-                constraints += [ExpCone(x, y, z),
-                                x == t[i, j], y == 1, z == xi]
+                constraints.append( ExpCone(t[i, j],
+                                            Constant(1),
+                                            x[i, j])
+                )
         return (t, constraints)

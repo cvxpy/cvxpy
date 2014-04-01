@@ -61,6 +61,7 @@ ECOS_STATUS = {0: OPTIMAL,
 
 SCS = "scs"
 SCS_STATUS = {"Solved": OPTIMAL,
+              "Solved/Inaccurate": OPTIMAL,
               "Failure": UNKNOWN,
 }
 

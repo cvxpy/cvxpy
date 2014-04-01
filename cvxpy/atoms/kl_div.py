@@ -62,8 +62,5 @@ class kl_div(Atom):
         x = arg_objs[0]
         y = arg_objs[1]
         t = Variable()
-        # Duplicate variables for x, y.
-        xc, yc = Variable(), Variable()
-        constraints = [ExpCone(t, xc, yc), y >= 0,
-                       xc == x, yc == y]
+        constraints = [ExpCone(t, x, y), y >= 0]
         return (-t - x + y, constraints)
