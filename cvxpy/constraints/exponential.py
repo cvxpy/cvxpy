@@ -51,6 +51,11 @@ class ExpCone(NonlinearConstraint):
     def __str__(self):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
+    def format(self):
+        """Formats EXP constraints as inequalities for the solver.
+        """
+        return [self.x >= 0, self.y >= 0, self.z >= 0]
+
     @staticmethod
     def _solver_hook(vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.
