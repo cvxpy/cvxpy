@@ -41,23 +41,23 @@ INEQ_CONSTR = "<="
 OPTIMAL = "optimal"
 INFEASIBLE = "infeasible"
 UNBOUNDED = "unbounded"
-UNKNOWN = "solver_error"
+SOLVER_ERROR = "solver_error"
 
 # Map of solver status to cvxpy status.
 CVXOPT = "cvxopt"
 CVXOPT_STATUS = {'optimal': OPTIMAL,
                  'primal infeasible': INFEASIBLE,
                  'dual infeasible': UNBOUNDED,
-                 'unknown': UNKNOWN}
+                 'unknown': SOLVER_ERROR}
 ECOS = "ecos"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
                2: UNBOUNDED,
-               3: UNKNOWN,
-               -1: UNKNOWN,
-               -2: UNKNOWN,
-               -3: UNKNOWN,
-               -7: UNKNOWN}
+               3: SOLVER_ERROR,
+               -1: SOLVER_ERROR,
+               -2: SOLVER_ERROR,
+               -3: SOLVER_ERROR,
+               -7: SOLVER_ERROR}
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS}
 
