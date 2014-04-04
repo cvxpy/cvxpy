@@ -223,7 +223,8 @@ class Problem(u.Canonical):
             Overrides the default of hiding solver output.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
-            In general, these options will override any default settings imposed by cvxpy.
+            In general, these options will override any default settings
+            imposed by cvxpy.
 
         Returns
         -------
@@ -251,7 +252,8 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def _solve(self, solver=None, ignore_dcp=False, verbose=False, solver_specific_opts={}):
+    def _solve(self, solver=None, ignore_dcp=False, verbose=False,
+               solver_specific_opts={}):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -268,7 +270,8 @@ class Problem(u.Canonical):
             Overrides the default of hiding solver output.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
-            In general, these options will override any default settings imposed by cvxpy.
+            In general, these options will override any default settings
+            imposed by cvxpy.
 
         Returns
         -------
@@ -390,7 +393,8 @@ class Problem(u.Canonical):
             verbose: bool
                 Should the solver show output?
             opts: dict
-                List of user-specific options for CVXOPT; will be inserted into cvxopt.solvers.options
+                List of user-specific options for CVXOPT;
+                will be inserted into cvxopt.solvers.options.
 
         Returns
         -------
@@ -421,7 +425,7 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['refinement'] = 1
 
         # Apply any user-specific options
-        for key, value in opt:
+        for key, value in opts:
             cvxopt.solvers.options[key] = value
 
         # Target cvxopt clp if nonlinear constraints exist
@@ -503,7 +507,7 @@ class Problem(u.Canonical):
         data = {"c": c}
         data["A"] = A
         data["b"] = b
-        # Set the options to be VERBOSE plus any user-specific options
+        # Set the options to be VERBOSE plus any user-specific options.
         opts = dict({ "VERBOSE": verbose }.items() + opts.items())
         results = scs.solve(data, dims, opts, USE_INDIRECT = True)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
