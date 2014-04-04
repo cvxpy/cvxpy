@@ -253,7 +253,7 @@ class Problem(u.Canonical):
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
     def _solve(self, solver=None, ignore_dcp=False, verbose=False,
-               solver_specific_opts={}):
+               solver_specific_opts=None):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -279,6 +279,10 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+        # Safely set default as empty dict.
+        if solver_specific_opts is None:
+            solver_specific_opts = {}
+
         if not self.is_dcp():
             if ignore_dcp:
                 print ("Problem does not follow DCP rules. "
