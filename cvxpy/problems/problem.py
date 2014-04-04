@@ -177,6 +177,9 @@ class Problem(u.Canonical):
             The solver to use. Defaults to ECOS.
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        solver_specific_opts : dict, optional
+            A dict of options that will be passed to the specific solver.
+            In general, these options will override any default settings imposed by cvxpy.
 
         Returns
         -------
@@ -204,7 +207,7 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def _solve(self, solver=None, ignore_dcp=False, verbose=False):
+    def _solve(self, solver=None, ignore_dcp=False, verbose=False, solver_specific_opts={}):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -219,6 +222,9 @@ class Problem(u.Canonical):
             DCP.
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        solver_specific_opts : dict, optional
+            A dict of options that will be passed to the specific solver.
+            In general, these options will override any default settings imposed by cvxpy.
 
         Returns
         -------
@@ -242,15 +248,15 @@ class Problem(u.Canonical):
         if solver == s.CVXOPT or constr_map[s.SDP]:
             result = self._cvxopt_solve(objective, constr_map, dims,
                                         sorted_vars, var_offsets, x_length,
-                                        verbose)
+                                        verbose, solver_specific_opts)
         elif solver == s.SCS or constr_map[s.EXP]:
             result = self._scs_solve(objective, constr_map, dims,
                                      sorted_vars, var_offsets, x_length,
-                                     verbose)
+                                     verbose, solver_specific_opts)
         else: # If possible, target ECOS.
             result = self._ecos_solve(objective, constr_map, dims,
                                       sorted_vars, var_offsets, x_length,
-                                      verbose)
+                                      verbose, solver_specific_opts)
 
         status, value, x, y, z = result
         if status == s.OPTIMAL:
@@ -265,7 +271,7 @@ class Problem(u.Canonical):
 
     def _ecos_solve(self, objective, constr_map, dims,
                     sorted_vars, var_offsets, x_length,
-                    verbose):
+                    verbose, opts):
         """Calls the ECOS solver and returns the result.
 
         Parameters
@@ -284,7 +290,8 @@ class Problem(u.Canonical):
                 The height of x.
             verbose: bool
                 Should the solver show output?
-
+            opts: dict
+                List of user-specific options for ECOS
         Returns
         -------
         tuple
@@ -319,7 +326,7 @@ class Problem(u.Canonical):
 
     def _cvxopt_solve(self, objective, constr_map, dims,
                       sorted_vars, var_offsets, x_length,
-                      verbose):
+                      verbose, opts):
         """Calls the CVXOPT conelp or cpl solver and returns the result.
 
         Parameters
@@ -338,6 +345,8 @@ class Problem(u.Canonical):
                 The height of x.
             verbose: bool
                 Should the solver show output?
+            opts: dict
+                List of user-specific options for CVXOPT; will be inserted into cvxopt.solvers.options
 
         Returns
         -------
@@ -366,6 +375,11 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['show_progress'] = verbose
         # Always do one step of iterative refinement after solving KKT system.
         cvxopt.solvers.options['refinement'] = 1
+
+        # Apply any user-specific options
+        for key, value in opt:
+            cvxopt.solvers.options[key] = value
+
         # Target cvxopt clp if nonlinear constraints exist
         if constr_map[s.EXP]:
             # Get the nonlinear constraints.
@@ -393,12 +407,13 @@ class Problem(u.Canonical):
                 ineq_dual = results['z']
             return (status, value, results['x'], results['y'], ineq_dual)
         else:
+            # TODO: shouldn't we restore cvxopt solver options in this case too?
             return (status, None, None, None, None)
 
 
     def _scs_solve(self, objective, constr_map, dims,
                    sorted_vars, var_offsets, x_length,
-                   verbose):
+                   verbose, opts):
         """Calls the SCS solver and returns the result.
 
         Parameters
@@ -417,6 +432,8 @@ class Problem(u.Canonical):
                 The height of x.
             verbose: bool
                 Should the solver show output?
+            opts: dict
+                A dict of the solver parameters passed to scs
 
         Returns
         -------
@@ -448,8 +465,9 @@ class Problem(u.Canonical):
         data = {"c": c}
         data["A"] = A
         data["b"] = b
-        opt = {"VERBOSE": verbose}
-        results = scs.solve(data, dims, opt, USE_INDIRECT = True)
+        # Set the options to be VERBOSE plus any user-specific options
+        opts = dict({ "VERBOSE": verbose }.items() + opts.items())
+        results = scs.solve(data, dims, opts, USE_INDIRECT = True)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
             primal_val = results["info"]["pobj"]
