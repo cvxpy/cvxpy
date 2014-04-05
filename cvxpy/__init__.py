@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from settings import CVXOPT, ECOS, OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR
 from atoms import *
 from expressions.variables import Variable, semidefinite
 from expressions.constants import Parameter
@@ -25,3 +24,4 @@ from expressions.constants import Constant
 from problems.problem import Problem
 from problems.objective import Maximize, Minimize
 import interface.numpy_wrapper
+from settings import CVXOPT, ECOS, OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR

@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import settings as s
 from .. import utilities as u
-from ..utilities import performance_utils as pu
 from .. import interface as intf
 from ..expressions.constants import Constant, ConstantAtom
 from ..expressions.variables import Variable
