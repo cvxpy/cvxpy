@@ -18,12 +18,3 @@ Getting Started
     :maxdepth: 2
 
     tutorial/index
-
-Developer Docs
---------------
-
-.. toctree::
-    :maxdepth: 1
-
-    reference/index
-
