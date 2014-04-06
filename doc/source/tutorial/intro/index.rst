@@ -185,8 +185,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
 Parameters
 ----------
 
-Parameters are symbolic representations of constants. Parameters should
-only be used in special cases. The purpose of parameters is to change
+Parameters are symbolic representations of constants. The purpose of parameters is to change
 the value of a constant in a problem without reconstructing the entire
 problem.
 
