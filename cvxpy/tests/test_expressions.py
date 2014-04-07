@@ -268,6 +268,35 @@ class TestExpressions(unittest.TestCase):
         exp = [[1],[2]] + c*self.C
         self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (1,2))
 
+    # Test the DivExpresion class.
+    def test_div_expression(self):
+        # Vectors
+        exp = self.x/2
+        self.assertEqual(exp.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(exp.canonical_form[0].size, (2,1))
+        self.assertEqual(exp.canonical_form[1], [])
+        # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
+        self.assertEqual(exp.size, (2,1))
+
+        with self.assertRaises(Exception) as cm:
+            (self.x/[2,2,3])
+        print cm.exception
+        self.assertEqual(str(cm.exception), "Can only divide by a scalar constant.")
+
+        # Constant expressions.
+        c = Constant(2)
+        exp = c/(3 - 5)
+        self.assertEqual(exp.curvature, u.Curvature.CONSTANT_KEY)
+        self.assertEqual(exp.size, (1,1))
+        self.assertEqual(exp.sign, u.Sign.NEGATIVE_KEY)
+
+        # Parameters.
+        p = Parameter(sign="positive")
+        exp = 2/p
+        p.value = 2
+        self.assertEquals(exp.value, 1)
+
     # Test the NegExpression class.
     def test_neg_expression(self):
         # Vectors

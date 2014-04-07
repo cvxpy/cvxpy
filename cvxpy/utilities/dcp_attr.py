@@ -129,6 +129,20 @@ class DCPAttr(object):
         curvature = Curvature.sign_mul(lh_sign, rh_curvature)
         return DCPAttr(sign, curvature, shape)
 
+    def __div__(self, other):
+        """Determines the DCP attributes of one expression divided by another.
+
+        Assumes one of the arguments has constant curvature.
+
+        Args:
+            self: The DCPAttr of the left-hand expression.
+            other: The DCPAttr of the right-hand expression.
+
+        Returns:
+            The DCPAttr of the product.
+        """
+        return other*self
+
     def __neg__(self):
         """Determines the DCP attributes of a negated expression.
         """

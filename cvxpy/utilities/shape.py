@@ -93,6 +93,18 @@ class Shape(object):
         else:
             raise ValueError("Incompatible dimensions %s %s" % (self, other))
 
+    def __div__(self, other):
+        """Determines the shape of a matrix divided by a scalar.
+
+        Args:
+            self: The shape of the left-hand matrix.
+            other: The shape of the right-hand scalar.
+
+        Returns:
+            The shape of the matrix division.
+        """
+        return self
+
     def __str__(self):
         return "(%s, %s)" % (self.rows, self.cols)
 
