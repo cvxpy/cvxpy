@@ -15,6 +15,7 @@ Getting Started
 ---------------
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
-    tutorial/index
+    intro/index
+    dcp/index
