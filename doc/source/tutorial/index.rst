@@ -8,3 +8,4 @@ Tutorial
     :maxdepth: 2
 
     intro/index
+    dcp/index
