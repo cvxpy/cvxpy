@@ -1,5 +1,15 @@
 .. _dcp:
 
+Disciplined Convex Programming
+==============================
+
+Disciplined convex programming (DCP) is a system for constructing mathematical expressions with known curvature from a given library of base functions. CVXPY uses DCP to ensure that the specified optimization problems are convex.
+
+This section of the tutorial explains the rules of DCP and how they are applied by CVXPY.
+
+Visit `dcp.stanford.edu <http://dcp.stanford.edu>`__ for a
+more interactive introduction to DCP.
+
 Expressions
 -----------
 
@@ -24,16 +34,7 @@ arithmetic operators ``+, -, *, /``, and a library of
 
 
 
-.. parsed-literal::
-
-    max(2.66 + -sqrt(var15), square(var14 + 2 * var15))
-
-
-
-Expressions can be scalars, vectors, or matrices. Use ``expr.size`` to
-see the dimensions of an expression. You can also use the helper methods
-``expr.is_scalar()`` and ``expr.is_vector()`` to test if the expression
-is a scalar or vector (1xN or Nx1). CVXPY will raise an exception if an
+Expressions can be scalars, vectors, or matrices. The dimensions of an expression are stored as ``expr.size``. CVXPY will raise an exception if an
 expression is used in a way that doesn't make sense given its
 dimensions, for example adding matrices of different size.
 
@@ -49,10 +50,6 @@ dimensions, for example adding matrices of different size.
     print "dimensions of sum(X):", sum(X).size
     print "dimensions of A*X:", (A*X).size
 
-    # Helper methods.
-    print "sum(X) is a scalar:", sum(X).is_scalar()
-    print "A*X is a vector:", (A*X).is_vector()
-
     # ValueError raised for invalid dimensions.
     try:
         A + X
@@ -64,19 +61,9 @@ dimensions, for example adding matrices of different size.
     dimensions of X: (5, 4)
     dimensions of sum(X): (1, 1)
     dimensions of A*X: (3, 4)
-    sum(X) is a scalar: True
-    A*X is a vector: False
     Incompatible dimensions (3, 5) (5, 4)
 
-
-Disciplined Convex Programming
-------------------------------
-
-CVXPY uses Disciplined Convex Programming (DCP) to determine the sign
-and curvature of each expression. The following sections explain how DCP
-works and how to get sign and curvature information from a CVXPY
-expression. Visit `dcp.stanford.edu <http://dcp.stanford.edu>`__ for a
-more interactive introduction to DCP.
+CVXPY uses DCP analysis to determine the sign and curvature of each expression.
 
 Sign
 ----
@@ -129,106 +116,15 @@ Curvature
 
 Each (sub)expression is flagged as one of the following curvatures
 
-.. raw:: html
-
-   <table>
-   <tr>
-    <th>
-
-Curvature
-
-.. raw:: html
-
-   </th>
-    <th>
-
-Meaning
-
-.. raw:: html
-
-   </th>
-   </tr>
-   <tr>
-     <td>
-
-constant
-
-.. raw:: html
-
-   </td>
-     <td>
-
-$ f(x) $ independent of $ x $
-
-.. raw:: html
-
-   </td>
-   </tr>
-   <tr>
-     <td>
-
-affine
-
-.. raw:: html
-
-   </td>
-     <td>
-
-$ f(x + (1-)y) = f(x) + (1-)f(y) $
-
-.. raw:: html
-
-   </td>
-   </tr>
-   <tr>
-     <td>
-
-convex
-
-.. raw:: html
-
-   </td>
-     <td>
-
-$ f(x + (1-)y) f(x) + (1-)f(y) $
-
-.. raw:: html
-
-   </td>
-   </tr>
-   <tr>
-     <td>
-
-concave
-
-.. raw:: html
-
-   </td>
-     <td>
-
-$ f(x + (1-)y) f(x) + (1-)f(y) $
-
-.. raw:: html
-
-   </td>
-   </tr>
-   <tr>
-     <td>
-
-unknown
-
-.. raw:: html
-
-   </td>
-     <td>
-
-DCP analysis cannot determine the curvature
-
-.. raw:: html
-
-   </td>
-   </tr>
-   </table>
+==========   =======
+Curvature    Meaning
+==========   =======
+constant     :math:`f(x)` independent of :math:`x`
+affine       :math:`f(\theta x + (1-\theta)y) = \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]`
+convex       :math:`f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]`
+concave      :math:`f(\theta x + (1-\theta)y) \geq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]`
+unknown      DCP analysis cannot determine the curvature
+==========   =======
 
 using the curvature rules given below. As with sign analysis, the
 conclusion is always correct, but the simple analysis can flag
@@ -320,11 +216,19 @@ visualization below shows how this works for the expression
 ``2*square(x) + 3``. Each subexpression is shown in a blue box. We mark
 its curvature on the left and its sign on the right.
 
+.. raw:: html
+
+  <img class="dcp-example" src="http://dcp.stanford.edu/static/dcp_sandbox/images/example1.png" alt="sqrt(1 + square(x))" title="" style="height: 250; display: block; margin-left: auto; margin-right: auto;">
+
 Example 2
 ---------
 
 We'll walk through the application of the DCP rules to the expression
 ``sqrt(1 + square(x))``.
+
+.. raw:: html
+
+  <img class="dcp-example" src="http://dcp.stanford.edu/static/dcp_sandbox/images/example2.png" alt="sqrt(1 + square(x))" title="" style="height: 250; display: block; margin-left: auto; margin-right: auto;">
 
 The variable ``x`` has affine curvature and unknown sign. The ``square``
 function is convex and non-monotone for arguments of unknown sign. It
