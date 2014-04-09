@@ -258,3 +258,75 @@ certified as convex using the DCP rules.
     curvature of sqrt(1 + square(x)) UNKNOWN
     curvature of norm(vstack(1, x), 2) CONVEX
 
+DCP Problems
+------------
+
+A problem is constructed from an objective and a list of constraints. If
+a problem follows the DCP rules, it is guaranteed to be convex and
+solvable by CVXPY. The DCP rules require that the problem objective have
+one of two forms:
+
+-  Minimize(convex)
+-  Maximize(concave)
+
+The only valid constraints under the DCP rules are
+
+-  affine == affine
+-  convex <= concave
+-  concave >= convex
+
+You can check that a problem, constraint, or objective satisfies the DCP
+rules by calling ``object.is_dcp()``. Here are some examples of DCP and
+non-DCP problems:
+
+.. code:: python
+
+    x = Variable()
+    y = Variable()
+
+    # DCP problems.
+    prob1 = Problem(Minimize(square(x - y)), [x + y >= 0])
+    prob2 = Problem(Maximize(sqrt(x - y)),
+                    [2*x - 3 == y,
+                     square(x) <= 2])
+
+    print "prob1 is DCP:", prob1.is_dcp()
+    print "prob2 is DCP:", prob2.is_dcp()
+
+    # Non-DCP problems.
+    prob3 = Problem(Maximize(square(x))) # Non-DCP objective.
+
+    print "prob3 is DCP:", prob3.is_dcp()
+    print "Maximize(square(x)) is DCP:", Maximize(square(x)).is_dcp()
+
+    prob4 = Problem(Minimize(square(x)), [sqrt(x) <= 2]) # Non-DCP constraint.
+
+    print "prob4 is DCP:", prob4.is_dcp()
+    print "sqrt(x) <= 2 is DCP:", (sqrt(x) <= 2).is_dcp()
+
+.. parsed-literal::
+
+    prob1 is DCP: True
+    prob2 is DCP: True
+    prob3 is DCP: False
+    Maximize(square(x)) is DCP: False
+    prob4 is DCP: False
+    sqrt(x) <= 2 is DCP: False
+
+
+CVXPY will raise an exception if you call ``problem.solve()`` on a
+non-DCP problem.
+
+.. code:: python
+
+    # ValueError raised for invalid dimensions.
+    prob = Problem(Minimize(sqrt(x)))
+
+    try:
+        prob.solve()
+    except Exception, e:
+        print e
+
+.. parsed-literal::
+
+    Problem does not follow DCP rules.
