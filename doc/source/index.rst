@@ -11,11 +11,12 @@ The code is open source, and `available on github`_.
 
 .. _available on github: https://github.com/cvxgrp/cvxpy
 
-Getting Started
----------------
+Tutorial
+--------
 
 .. toctree::
     :maxdepth: 2
 
     intro/index
     dcp/index
+    functions/index

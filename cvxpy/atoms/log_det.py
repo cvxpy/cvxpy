@@ -28,7 +28,7 @@ from numpy import linalg as LA
 
 class log_det(Atom):
     """:math:`\log\det A`
-    
+
     """
     def __init__(self, A):
         super(log_det, self).__init__(A)
@@ -44,7 +44,7 @@ class log_det(Atom):
 
     # Always positive.
     def sign_from_args(self):
-        return u.Sign.POSITIVE
+        return u.Sign.UNKNOWN
 
     # Any argument size is valid.
     def validate_arguments(self):

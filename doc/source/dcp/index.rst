@@ -114,7 +114,7 @@ entries.
 Curvature
 ---------
 
-Each (sub)expression is flagged as one of the following curvatures
+Each (sub)expression is flagged as one of the following curvatures (with respect to its variables)
 
 ==========   =======
 Curvature    Meaning
@@ -216,9 +216,9 @@ visualization below shows how this works for the expression
 ``2*square(x) + 3``. Each subexpression is shown in a blue box. We mark
 its curvature on the left and its sign on the right.
 
-.. raw:: html
-
-  <img class="dcp-example" src="http://dcp.stanford.edu/static/dcp_sandbox/images/example1.png" alt="sqrt(1 + square(x))" title="" style="height: 250; display: block; margin-left: auto; margin-right: auto;">
+.. image:: DCP_files/example1.png
+    :scale: 80%
+    :align: center
 
 Example 2
 ---------
@@ -226,9 +226,9 @@ Example 2
 We'll walk through the application of the DCP rules to the expression
 ``sqrt(1 + square(x))``.
 
-.. raw:: html
-
-  <img class="dcp-example" src="http://dcp.stanford.edu/static/dcp_sandbox/images/example2.png" alt="sqrt(1 + square(x))" title="" style="height: 250; display: block; margin-left: auto; margin-right: auto;">
+.. image:: DCP_files/example2.png
+    :scale: 80%
+    :align: center
 
 The variable ``x`` has affine curvature and unknown sign. The ``square``
 function is convex and non-monotone for arguments of unknown sign. It
