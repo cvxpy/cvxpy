@@ -139,8 +139,8 @@ and returns a scalar.
 |                     | X_{i,j}`                 | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 
-Add min_entries, max_entries. Discuss norm(x,2) vector vs norm(X,2) matrix. Define Sn, Sn+, Sn-.
-Add huber.
+Add min_entries, max_entries. Compare with max_elemwise, min_elemwise. Discuss norm(x,2) vector vs norm(X,2) matrix. Define Sn, Sn+, Sn-.
+Add huber. Talk about sum_entries vs. built-in sum.
 
 Elementwise functions
 ---------------------
@@ -150,7 +150,7 @@ then ``abs(X)`` is a 5 by 4 matrix expression. ``abs(X)[1, 2]`` is equivalent to
 
 Elementwise functions that take multiple arguments, such as ``max_elemwise``, operate on the corresponding elements of each argument.
 For example, if ``X`` and ``Y`` are both 3 by 3 matrix variables, then ``max_elemwise(X, Y)`` is a 3 by 3 matrix expression.
-``max_elemwise(X)[2, 0]`` is equivalent to ``max_elemwise(X[2, 0], Y[2, 0])``. This means all arguments must have the same dimensions or be
+``max_elemwise(X, Y)[2, 0]`` is equivalent to ``max_elemwise(X[2, 0], Y[2, 0])``. This means all arguments must have the same dimensions or be
 scalars, which are promoted.
 
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
@@ -190,6 +190,8 @@ scalars, which are promoted.
 |                           |                         |                            |                     |                   | !decr! for       |
 |                           |                         |                            |                     |                   | :math:`x \leq 0` |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
+
+Change name of abs so doesn't conflict with built-in?
 
 Vector/Matrix functions
 -----------------------
