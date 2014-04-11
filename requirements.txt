@@ -1,6 +1,4 @@
 cvxpy
-cvxopt >= 1.1.6
-ecos >= 1.0.3
 sphinx
 cloud_sptheme
 alabaster
