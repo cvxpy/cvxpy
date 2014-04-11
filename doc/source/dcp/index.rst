@@ -132,7 +132,7 @@ expressions as unknown even when they are convex or concave. Note that
 any constant expression is also affine, and any affine expression is
 convex and concave.
 
-Curvature Rules
+Curvature rules
 ---------------
 
 DCP analysis is based on applying a general composition theorem from
@@ -194,7 +194,7 @@ curvatures of all the entries.
      ['CONCAVE']]
 
 
-Infix Operators
+Infix operators
 ---------------
 
 The infix operators ``+, -, *, /`` are treated exactly like functions.
@@ -258,7 +258,7 @@ certified as convex using the DCP rules.
     curvature of sqrt(1 + square(x)) UNKNOWN
     curvature of norm(vstack(1, x), 2) CONVEX
 
-DCP Problems
+DCP problems
 ------------
 
 A problem is constructed from an objective and a list of constraints. If

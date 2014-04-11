@@ -50,7 +50,43 @@ achieve the optimal objective.
 ``prob.value``, and the ``value`` field of all the variables in the
 problem.
 
-Changing the Problem
+Namespace
+---------
+
+The Python examples in this tutorial import CVXPY using the syntax ``from cvxpy import *``.
+This is done to make the examples simpler and more concise. But for production
+code you should always import CVXPY as a namespace. For example,
+``import cvxpy as cvx``. Here's the code from the previous section with
+CVXPY imported as a namespace.
+
+.. code:: python
+
+    import cvxpy as cvx
+
+    # Create two scalar variables.
+    x = cvx.Variable()
+    y = cvx.Variable()
+
+    # Create two constraints.
+    constraints = [x + y == 1,
+                   x - y >= 1]
+
+    # Form objective.
+    obj = cvx.Minimize(cvx.square(x - y))
+
+    # Form and solve problem.
+    prob = cvx.Problem(obj, constraints)
+    prob.solve()  # Returns the optimal value.
+    print "status:", prob.status
+    print "optimal value", prob.value
+    print "optimal var", x.value, y.value
+
+Nonetheless we have constructed CVXPY so that using ``from cvxpy import *``
+is generally safe for short scripts. The biggest catch is that the built-in
+``max`` and ``min`` cannot be used on CVXPY expressions. Instead use the
+CVXPY [functions](/functions) ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
+
+Changing the problem
 --------------------
 
 After you create a problem object, you can still modify the objective
@@ -72,7 +108,7 @@ and constraints.
     optimal value 3.00000000006
 
 
-Infeasible and Unbounded Problems
+Infeasible and unbounded problems
 ---------------------------------
 
 If a problem is infeasible or unbounded, the status field will be set to
@@ -116,7 +152,7 @@ the discussion of `Solvers <#solvers>`__ for details.
 CVXPY provides the constants ``OPTIMAL``, ``INFEASIBLE``, ``UNBOUNDED``,
 and ``SOLVER_ERROR`` as aliases for the different status strings.
 
-Vectors and Matrices
+Vectors and matrices
 --------------------
 
 Variables can be scalars, vectors, or matrices.

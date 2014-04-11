@@ -3,3 +3,6 @@ cvxopt >= 1.1.6
 ecos >= 1.0.3
 numpy >= 1.7.1
 scipy >= 0.13.2
+sphinx
+cloud_sptheme
+alabaster
