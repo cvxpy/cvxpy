@@ -46,6 +46,14 @@ class LeqConstraint(u.Affine, u.Canonical):
         return self._expr.is_convex()
 
     def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Marks the top level constraint as the dual_holder,
+        so the dual value will be saved to the LeqConstraint.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
         obj, constraints = self._expr.canonical_form
         dual_holder = self.__class__(obj, 0, parent=self)
         return (None, constraints + [dual_holder])
