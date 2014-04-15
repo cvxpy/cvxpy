@@ -62,7 +62,7 @@ class log_det(Atom):
     def graph_implementation(self, arg_objs):
         """Creates the equivalent problem::
 
-           maximize    geo_mean(diag(D))
+           maximize    sum(log(D[i, i]))
            subject to: D diagonal
                        diag(D) = diag(Z)
                        Z is upper triangular.
@@ -79,9 +79,10 @@ class log_det(Atom):
         .. math::
 
            \det(A) >= \det(D) + \det([D, Z; Z^T, A])/\det(D)
+                   >= \det(D)
 
-        and the fact that :math:`\det(Z) = \det(D)`.
-
+        because (Z^TD^{-1})D(D^{-1}Z) is a feasible D, Z that achieves
+        det(A) = det(D) and the objective maximizes det(D).
         """
         A = arg_objs[0] # n by n matrix.
         n, _ = A.size
