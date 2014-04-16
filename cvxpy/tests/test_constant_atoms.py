@@ -69,8 +69,8 @@ atoms = [
         #(pow_rat(8,4,4), 8),
         (quad_over_lin(v, 2), Constant([4.5])),
         #(square_over_lin(2,4), 1),
-        (norm([[2,0],[0,1]], "spec"), Constant([2])),
-        (norm([[3,4,5],[6,7,8],[9,10,11]], "spec"), Constant([22.3686])),
+        (norm([[2,0],[0,1]], 2), Constant([2])),
+        (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
     ], Minimize),
     ([

@@ -33,9 +33,12 @@ def norm(x, p=2):
         return normInf(x)
     elif p == "nuc":
         return normNuc(x)
-    elif p == 2 or p == "fro":
+    elif p == "fro":
         return norm2(x)
-    elif p == "spec":
-        return sigma_max(x)
+    elif p == 2:
+        if x.is_matrix():
+            return sigma_max(x)
+        else:
+            return norm2(x)
     else:
         raise Exception("Invalid value %s for p." % p)
