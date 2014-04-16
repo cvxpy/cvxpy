@@ -18,18 +18,27 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
+from cvxpy.settings import SCS, ECOS, CVXOPT, OPTIMAL
 from cvxpy.atoms import *
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.utilities.ordered_set import OrderedSet
 import cvxopt
 import math
 from nose.tools import assert_raises
 
-TOL = 1e-2
+SOLVER_TO_TOL = {SCS: 1e-1,
+                 ECOS: 1e-4,
+                 CVXOPT: 1e-4}
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
+
+# Atom, solver pairs known to fail.
+KNOWN_SOLVER_ERRORS = [(lambda_min, SCS),
+                       (lambda_max, SCS),
+]
 
 atoms = [
     ([
@@ -69,8 +78,8 @@ atoms = [
         #(pow_rat(8,4,4), 8),
         (quad_over_lin(v, 2), Constant([4.5])),
         #(square_over_lin(2,4), 1),
-        (norm([[2,0],[0,1]], "spec"), Constant([2])),
-        (norm([[3,4,5],[6,7,8],[9,10,11]], "spec"), Constant([22.3686])),
+        (norm([[2,0],[0,1]], 2), Constant([2])),
+        (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
     ], Minimize),
     ([
@@ -98,36 +107,68 @@ atoms = [
     ], Maximize),
 ]
 
+def get_solver(prob, solver):
+    """Gets the solver that will be used by CVXPY.
+    """
+    constraints = []
+    obj, constr = prob.objective.canonical_form
+    constraints += constr
+    unique_constraints = list(OrderedSet(prob.constraints))
+    for constr in unique_constraints:
+        constraints += constr.canonical_form[1]
+    constr_map = prob._filter_constraints(constraints)
+    solver = prob._choose_solver(constr_map, solver)
+    return solver
+
 # Tests numeric version of atoms.
-def run_atom(problem, obj_val):
+def run_atom(atom, problem, obj_val, solver):
     assert problem.is_dcp()
     print problem.objective
     print problem.constraints
-    result = problem.solve()
-    print result
-    print obj_val
-    assert( -TOL <= result - obj_val <= TOL )
+    solver = get_solver(problem, solver)
+    tolerance = SOLVER_TO_TOL[solver]
+    result = problem.solve(solver=solver)
+    if problem.status is OPTIMAL:
+        print "solver", solver
+        print result
+        print obj_val
+        assert( -tolerance <= result - obj_val <= tolerance )
+    else:
+        assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
 
 def test_atom():
     for atom_list, objective_type in atoms:
         for atom, obj_val in atom_list:
             for row in xrange(atom.size[0]):
                 for col in xrange(atom.size[1]):
-                    # Atoms with Constant arguments.
-                    yield run_atom, Problem(objective_type(atom[row,col])), obj_val[row,col].value
-                    # Atoms with Variable arguments.
-                    variables = []
-                    constraints = []
-                    for expr in atom.subexpressions:
-                        variables.append( Variable(*expr.size) )
-                        constraints.append( variables[-1] == expr)
-                    atom_func = atom.__class__
-                    objective = objective_type(atom_func(*variables)[row,col])
-                    yield run_atom, Problem(objective, constraints), obj_val[row,col].value
-                    # Atoms with Parameter arguments.
-                    parameters = []
-                    for expr in atom.subexpressions:
-                        parameters.append( Parameter(*expr.size) )
-                        parameters[-1].value = expr.value
-                    objective = objective_type(atom_func(*parameters)[row,col])
-                    yield run_atom, Problem(objective), obj_val[row,col].value
+                    for solver in [ECOS, CVXOPT, SCS]:
+                        # Atoms with Constant arguments.
+                        yield (run_atom,
+                               atom,
+                               Problem(objective_type(atom[row,col])),
+                               obj_val[row,col].value,
+                               solver)
+                        # Atoms with Variable arguments.
+                        variables = []
+                        constraints = []
+                        for expr in atom.subexpressions:
+                            variables.append( Variable(*expr.size) )
+                            constraints.append( variables[-1] == expr)
+                        atom_func = atom.__class__
+                        objective = objective_type(atom_func(*variables)[row,col])
+                        yield (run_atom,
+                               atom,
+                               Problem(objective, constraints),
+                               obj_val[row,col].value,
+                               solver)
+                        # Atoms with Parameter arguments.
+                        parameters = []
+                        for expr in atom.subexpressions:
+                            parameters.append( Parameter(*expr.size) )
+                            parameters[-1].value = expr.value
+                        objective = objective_type(atom_func(*parameters)[row,col])
+                        yield (run_atom,
+                               atom,
+                               Problem(objective),
+                               obj_val[row,col].value,
+                               solver)

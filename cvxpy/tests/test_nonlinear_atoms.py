@@ -121,6 +121,8 @@ class TestNonlinearAtoms(BaseTest):
         p_refProb.value=npSPriors
         result = klprob.solve(solver=CVXOPT, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+        result = klprob.solve(solver=SCS, verbose=True)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
 
     def test_entr(self):
         """Test a problem with entr.
@@ -132,6 +134,8 @@ class TestNonlinearAtoms(BaseTest):
             p = Problem(obj, [sum(x) == 1])
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
+            p.solve(solver=SCS, verbose=True)
+            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
     def test_exp(self):
         """Test a problem with exp.
@@ -143,6 +147,8 @@ class TestNonlinearAtoms(BaseTest):
             p = Problem(obj, [sum(x) == 1])
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
+            p.solve(solver=SCS, verbose=True)
+            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
     def test_log(self):
         """Test a problem with log.
@@ -154,7 +160,8 @@ class TestNonlinearAtoms(BaseTest):
             p = Problem(obj, [sum(x) == 1])
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
-
+            p.solve(solver=SCS, verbose=True)
+            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
     # def test_kl_div(self):
     #     """Test the kl_div atom.

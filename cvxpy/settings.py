@@ -41,33 +41,42 @@ INEQ_CONSTR = "<="
 OPTIMAL = "optimal"
 INFEASIBLE = "infeasible"
 UNBOUNDED = "unbounded"
-UNKNOWN = "solver_error"
+SOLVER_ERROR = "solver_error"
 
 # Map of solver status to cvxpy status.
 CVXOPT = "cvxopt"
-CVXOPT_STATUS = {"optimal": OPTIMAL,
-                 "primal infeasible": INFEASIBLE,
-                 "dual infeasible": UNBOUNDED,
-                 "unknown": UNKNOWN}
+CVXOPT_STATUS = {'optimal': OPTIMAL,
+                 'primal infeasible': INFEASIBLE,
+                 'dual infeasible': UNBOUNDED,
+                 'unknown': SOLVER_ERROR}
 ECOS = "ecos"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
                2: UNBOUNDED,
-               3: UNKNOWN,
-               -1: UNKNOWN,
-               -2: UNKNOWN,
-               -3: UNKNOWN,
-               -7: UNKNOWN}
+               3: SOLVER_ERROR,
+               -1: SOLVER_ERROR,
+               -2: SOLVER_ERROR,
+               -3: SOLVER_ERROR,
+               -7: SOLVER_ERROR}
 
 SCS = "scs"
 SCS_STATUS = {"Solved": OPTIMAL,
               "Solved/Inaccurate": OPTIMAL,
-              "Failure": UNKNOWN,
-}
+              "Unbounded": UNBOUNDED,
+              "Unbounded/Inaccurate": SOLVER_ERROR,
+              "Infeasible": INFEASIBLE,
+              "Infeasible/Inaccurate": SOLVER_ERROR,
+              "Failure": SOLVER_ERROR,
+              "Indeterminate": SOLVER_ERROR}
 
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS,
                  SCS: SCS_STATUS}
+
+# Solver capabilities.
+SDP_CAPABLE = [CVXOPT, SCS]
+EXP_CAPABLE = [CVXOPT, SCS]
+SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
 
 # Map of constraint types.
 EQ,INEQ,SOC,SDP,EXP = range(5)

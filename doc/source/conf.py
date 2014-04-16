@@ -32,7 +32,7 @@ __version__ = "0.1"
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary',
-'sphinx.ext.doctest',
+'sphinx.ext.doctest', 'sphinx.ext.mathbase',
 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage',
 'sphinx.ext.mathjax', 'sphinx.ext.viewcode', 'numpydoc']
 
@@ -104,19 +104,31 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-on_readthedocs = os.environ.get('READTHEDOCS', None) == 'True'
-if on_readthedocs:
-    html_theme = 'default'
-else:
-    html_theme = 'f6'
+import alabaster
+
+table_styling_embed_css = False
+
+html_theme_path = [alabaster.get_path()]
+extensions += ['alabaster']# TODO get tables working, 'cloud_sptheme.ext.table_styling']
+html_theme = 'alabaster'
+html_sidebars = {
+   '**': [
+       'about.html', 'navigation.html', 'searchbox.html',
+   ]
+}
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+   'github_user': 'cvxgrp',
+   'github_repo': 'cvxpy',
+   'github_banner': True,
+   'travis_button': True,
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['../themes']
+# html_theme_path = ['../themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -201,7 +213,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'cvxpy.tex', u'CVXPY Documentation',
-   u'Steve Diamond, Eric Chu, Stephen Boyd', 'manual'),
+   u'Steven Diamond, Eric Chu, Stephen Boyd', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

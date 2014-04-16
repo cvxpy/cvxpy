@@ -1,0 +1,4 @@
+cvxpy
+sphinx
+cloud_sptheme
+alabaster

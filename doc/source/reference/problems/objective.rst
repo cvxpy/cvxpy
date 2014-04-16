@@ -1,8 +1,9 @@
 .. _cvxpy_problems_objective:
 
-===================================================
 Objective module -- :mod:`cvxpy.problems.objective`
 ===================================================
+
+.. currentmodule:: cvxpy.problems.objective
 
 .. autoclass:: cvxpy.problems.objective.Minimize
     :members:

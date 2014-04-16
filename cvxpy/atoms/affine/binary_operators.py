@@ -60,3 +60,14 @@ class MulExpression(BinaryOperator):
         """
         return cu.mul(self.args[0].coefficients(),
                       self.args[1].coefficients())
+
+class DivExpression(BinaryOperator):
+    OP_NAME = "/"
+    OP_FUNC = op.div
+
+    def _tree_to_coeffs(self):
+        """Return the dict of Variable to coefficient for the product.
+
+        """
+        return cu.div(self.args[0].coefficients(),
+                      self.args[1].coefficients())

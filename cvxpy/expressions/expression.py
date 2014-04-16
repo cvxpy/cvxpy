@@ -156,6 +156,11 @@ class Expression(u.Canonical):
         """
         return self.size[1] == 1
 
+    def is_matrix(self):
+        """Is the expression a matrix?
+        """
+        return self.size[1] > 1
+
     def __getitem__(self, key):
         """Return a slice/index into the expression.
         """
@@ -229,13 +234,28 @@ class Expression(u.Canonical):
         # Cannot multiply two non-constant expressions.
         if not self.is_constant() and \
            not other.is_constant():
-            # TODO replace with special exception.
-            raise Exception("Cannot multiply two non-constants.")
+            raise TypeError("Cannot multiply two non-constants.")
         # The constant term must always be on the left.
         elif not self.is_constant():
             return (other.T * self.T).T
         else:
             return types.mul_expr()(self, other)
+
+    @_cast_other
+    def __div__(self, other):
+        """One expression divided by another.
+        """
+        # Can only divide by scalar constants.
+        if other.is_constant() and other.is_scalar():
+            return types.div_expr()(self, other)
+        else:
+            raise TypeError("Can only divide by a scalar constant.")
+
+    @_cast_other
+    def __rdiv__(self, other):
+        """Called for Number / Expression.
+        """
+        return other / self
 
     @_cast_other
     def __rmul__(self, other):

@@ -1,10 +1,9 @@
 .. _cvxpy_atoms:
 
-===================================
 Atoms package -- :mod:`cvxpy.atoms`
 ===================================
 
-.. currentmodule:: cvxpy
+.. currentmodule:: cvxpy.atoms
 
 Summary
 -------

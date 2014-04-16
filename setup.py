@@ -21,9 +21,9 @@ setup(
               'cvxpy.utilities'],
     package_dir={'cvxpy': 'cvxpy'},
         url='http://github.com/cvxgrp/cvxpy/',
-    license='...',
+    license='GPLv3',
+    zip_safe=False,
     description='A domain-specific language for modeling convex optimization problems in Python.',
     install_requires=["cvxopt >= 1.1.6",
-                      "ecos >= 1.0"],
-    extras_require={'doc': ['sphinx']},
+                      "ecos >= 1.0.3"],
 )

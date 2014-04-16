@@ -78,6 +78,8 @@ class Maximize(Minimize):
     NAME = "maximize"
 
     def canonicalize(self):
+        """Negates the target expression's objective.
+        """
         obj, constraints = super(Maximize, self).canonicalize()
         return (-obj, constraints)
 

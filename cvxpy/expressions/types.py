@@ -42,6 +42,10 @@ def mul_expr():
     from ..atoms.affine import binary_operators
     return binary_operators.MulExpression
 
+def div_expr():
+    from ..atoms.affine import binary_operators
+    return binary_operators.DivExpression
+
 def neg_expr():
     from ..atoms.affine import unary_operators
     return unary_operators.NegExpression

@@ -184,13 +184,21 @@ class Problem(u.Canonical):
         str
             The solver that will be used.
         """
-        # Target cvxopt solver if SDP or invalid for ECOS.
-        if solver == s.CVXOPT or constr_map[s.SDP]:
-            return s.CVXOPT
-        elif solver == s.SCS or constr_map[s.EXP]:
-            return s.SCS
-        else: # If possible, target ECOS.
+        # If no constraints, use ECOS.
+        constraints_present = False
+        for constr_set in constr_map.values():
+            if len(constr_set) > 0:
+                constraints_present = True
+        if not constraints_present:
             return s.ECOS
+        # If SDP, defaults to CVXOPT.
+        if constr_map[s.SDP] and not solver in s.SDP_CAPABLE:
+            return s.CVXOPT
+        # If EXP cone without SDP, defaults to SCS.
+        elif constr_map[s.EXP] and not solver in s.EXP_CAPABLE:
+            return s.SCS
+        else:
+            return solver
 
     def variables(self):
         """Returns a list of the variables in the problem.
@@ -252,7 +260,7 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def _solve(self, solver=None, ignore_dcp=False, verbose=False,
+    def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
                solver_specific_opts=None):
         """Solves a DCP compliant optimization problem.
 
@@ -295,19 +303,20 @@ class Problem(u.Canonical):
         var_info = self._get_var_offsets(objective, all_ineq)
         sorted_vars, var_offsets, x_length = var_info
 
-        # Target cvxopt solver if SDP or invalid for ECOS.
-        if solver == s.CVXOPT or constr_map[s.SDP]:
+        if solver == s.CVXOPT:
             result = self._cvxopt_solve(objective, constr_map, dims,
                                         sorted_vars, var_offsets, x_length,
                                         verbose, solver_specific_opts)
-        elif solver == s.SCS or constr_map[s.EXP]:
+        elif solver == s.SCS:
             result = self._scs_solve(objective, constr_map, dims,
                                      sorted_vars, var_offsets, x_length,
                                      verbose, solver_specific_opts)
-        else: # If possible, target ECOS.
+        elif solver == s.ECOS:
             result = self._ecos_solve(objective, constr_map, dims,
                                       sorted_vars, var_offsets, x_length,
                                       verbose, solver_specific_opts)
+        else:
+            raise Exception("Unknown solver.")
 
         status, value, x, y, z = result
         if status == s.OPTIMAL:
@@ -440,7 +449,7 @@ class Problem(u.Canonical):
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A, F)
             results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
-                                         dims=dims,kktsolver=kktsolver)
+                                         dims=dims, kktsolver=kktsolver)
         else:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A)
@@ -570,7 +579,7 @@ class Problem(u.Canonical):
             vars_ += constr.variables()
         var_offsets = OrderedDict()
         vert_offset = 0
-        # TODO Ensure the variables are always in the same
+        # Ensure the variables are always in the same
         # order for the same problem.
         var_names = [(v, v.id) for v in set(vars_)]
         var_names.sort(key=lambda (var, var_id): var_id)

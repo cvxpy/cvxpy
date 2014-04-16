@@ -1,6 +1,5 @@
 .. _cvxpy_problems_problem:
 
-===============================================
 Problem module -- :mod:`cvxpy.problems.problem`
 ===============================================
 
