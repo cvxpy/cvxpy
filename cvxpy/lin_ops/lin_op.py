@@ -22,11 +22,10 @@ from collections import namedtuple
 # A linear operator applied to a variable
 # or a constant or function of parameters.
 LinOp = namedtuple("LinOp", ["type",
-                   "is_constant",
-                   "var_id",
-                   "var_size",
-                   "scalar_coeff",
-                   "data"])
+                             "var_id",
+                             "var_size",
+                             "scalar_coeff",
+                             "data"])
 
 # The types of linear operators.
 
@@ -61,11 +60,26 @@ SPARSE_CONST = "sparse_const"
 # Data: CVXPY expression.
 PARAM = "param"
 
-# Types that can be summed by adding their scalar_coeffs.
-IDENTICAL = [EYE_MUL, TRANSPOSE]
-# Types that can be summed by adding their data.
-SUMMABLE = [DENSE_MUL,
-            SPARSE_MUL,
-            SCALAR_CONST,
-            DENSE_CONST,
-            SPARSE_CONST]
+# ID for all constants.
+CONSTANT_ID = "constant"
+
+# Maps constant types by term types to the type of the product.
+# Scalar constants are a special case.
+MUL_TYPE = {
+    # Dense
+    (DENSE_CONST, EYE_MUL): DENSE_MUL,
+    (DENSE_CONST, DENSE_MUL): DENSE_MUL,
+    (DENSE_CONST, SPARSE_MUL): DENSE_MUL,
+    (DENSE_CONST, SCALAR_CONST): DENSE_CONST,
+    (DENSE_CONST, DENSE_CONST): DENSE_CONST,
+    (DENSE_CONST, SPARSE_CONST): DENSE_CONST,
+    # Sparse
+    (SPARSE_CONST, EYE_MUL): SPARSE_MUL,
+    (SPARSE_CONST, DENSE_MUL): DENSE_MUL,
+    (SPARSE_CONST, SPARSE_MUL): SPARSE_MUL,
+    (SPARSE_CONST, SCALAR_CONST): SPARSE_CONST,
+    (SPARSE_CONST, DENSE_CONST): DENSE_CONST,
+    (SPARSE_CONST, SPARSE_CONST): SPARSE_CONST,
+    # Param
+    (PARAM, EYE_MUL): PARAM_MUL,
+}

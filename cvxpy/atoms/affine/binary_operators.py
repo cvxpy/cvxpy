@@ -50,17 +50,6 @@ class BinaryOperator(AffAtom):
     def validate_arguments(self):
         self.OP_FUNC(self.args[0].shape, self.args[1].shape)
 
-class MulExpression(BinaryOperator):
-    OP_NAME = "*"
-    OP_FUNC = op.mul
-
-    def _tree_to_coeffs(self):
-        """Return the dict of Variable to coefficient for the product.
-
-        """
-        return cu.mul(self.args[0].coefficients(),
-                      self.args[1].coefficients())
-
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.div

@@ -40,6 +40,8 @@ class AddExpression(AffAtom):
         self.args = terms
         self.validate_arguments()
         self.init_dcp_attr()
+        # Promote args to the correct size.
+        self.args = [self._promote(arg) for arg in self.args]
         self.subexpressions = self.args
 
     def name(self):
@@ -97,14 +99,16 @@ class AddExpression(AffAtom):
     def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the sum.
         """
-        # Promote the terms if necessary.
-        rows, cols = self.size
-        promoted_args = (self._promote(arg) for arg in self.args)
-        coeffs = (arg.coefficients() for arg in promoted_args)
+        coeffs = (arg.coefficients() for arg in self.args)
         return reduce(cu.add, coeffs)
 
     def __add__(self, other):
         """Multiple additions become a single expression rather than a tree.
         """
         other = AddExpression.cast_to_const(other)
-        return AddExpression(self.args + [other], prev_sum=self)
+        # Concatenate the arguments.
+        if isinstance(other, AddExpression):
+            args = self.args + other.args
+        else:
+            args = self.args + [other]
+        return AddExpression(args, prev_sum=self)

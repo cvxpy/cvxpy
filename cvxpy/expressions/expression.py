@@ -239,11 +239,11 @@ class Expression(u.Canonical):
         elif not self.is_constant():
             # If other is a scalar, simply move it left.
             if other.is_scalar():
-                return types.mul_expr()(other, self)
+                return types.mul_expr()([other, self])
             else:
                 return (other.T * self.T).T
         else:
-            return types.mul_expr()(self, other)
+            return types.mul_expr()([self, other])
 
     @_cast_other
     def __div__(self, other):

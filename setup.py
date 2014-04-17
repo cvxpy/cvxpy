@@ -16,6 +16,7 @@ setup(
               'cvxpy.interface',
               'cvxpy.interface.numpy_interface',
               'cvxpy.interface.cvxopt_interface',
+              'cvxpy.lin_ops',
               'cvxpy.problems',
               'cvxpy.tests',
               'cvxpy.utilities'],

@@ -43,6 +43,11 @@ DEFAULT_SPARSE_INTERFACE = INTERFACES[sp.csc_matrix]
 def get_matrix_interface(target_class):
     return INTERFACES[target_class]
 
+def is_sparse(constant):
+    """Is the constant a sparse matrix?
+    """
+    return sp.issparse(constant)
+
 # Get the dimensions of the constant.
 def size(constant):
     if isinstance(constant, numbers.Number):
@@ -57,7 +62,7 @@ def size(constant):
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].size(constant)
     # Direct all sparse matrices to CSC interface.
-    elif sp.issparse(constant):
+    elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].size(constant)
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
