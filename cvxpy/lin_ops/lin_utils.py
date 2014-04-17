@@ -245,6 +245,25 @@ def create_leq(lh_expr, rh_expr):
     expr = sum_expr([lh_expr, neg_expr(rh_expr)])
     return LinLeqConstr(expr, lh_expr.size)
 
+def get_expr_vars(expr):
+    """Get a list of the unique variables in the expression and their sizes.
+
+    Parameters
+    ----------
+    expr: LinExpr
+        The expression to extract the variables from.
+
+    Returns
+    -------
+    list
+        A list of (var id, var size) pairs, where each var id is unique.
+    """
+    vars_ = set()
+    for term in expr.terms:
+        if term.var_id is not lo.CONSTANT_ID:
+            vars_.add((term.var_id, term.var_size))
+    return list(vars_)
+
 # def add_terms(lh_term, rh_term):
 #     """Adds two terms together.
 

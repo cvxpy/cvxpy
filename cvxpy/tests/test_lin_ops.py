@@ -87,6 +87,21 @@ class test_lin_ops(BaseTest):
         assert len(terms) == 2
         self.assertItemsEqual([x, y], terms)
 
+    def test_get_vars(self):
+        """Test getting vars from an expression.
+        """
+        size = (5, 4)
+        x = create_var(size)
+        y = create_var(size)
+        A = create_const(np.ones(size), size)
+        x_expr = LinExpr([x], size)
+        y_expr = LinExpr([y], size)
+        const_expr = LinExpr([A], size)
+        # Expanding dict.
+        add_expr = sum_expr([x_expr, y_expr, const_expr])
+        vars_ = get_expr_vars(add_expr)
+        self.assertItemsEqual(vars_, [(x.var_id, size), (y.var_id, size)])
+
     def test_neg_term(self):
         """Test negating a term.
         """
