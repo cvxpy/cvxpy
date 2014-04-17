@@ -202,6 +202,9 @@ class TestExpressions(unittest.TestCase):
             (self.A + self.C)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
+        # Test that sum is flattened.
+        exp = self.x + c + self.x
+        self.assertEqual(len(exp.args), 3)
 
     # Test the SubExpresion class.
     def test_sub_expression(self):
@@ -245,7 +248,6 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x)
-        print cm.exception
         self.assertEqual(str(cm.exception), "Incompatible dimensions (3, 1) (2, 1)")
 
         # Matrices
@@ -270,8 +272,13 @@ class TestExpressions(unittest.TestCase):
 
         # Scalar constants on the right should be moved left
         # instead of taking the transpose.
-        exp = self.C*2
-        self.assertEqual(exp.args[0].value, 2)
+        expr = self.C*2
+        self.assertEqual(expr.args[0].value, 2)
+
+        # Test that mul is flattened.
+        c = Constant(1)
+        expr = c * c * self.x
+        self.assertEqual(len(expr.args), 3)
 
     # Test the DivExpresion class.
     def test_div_expression(self):

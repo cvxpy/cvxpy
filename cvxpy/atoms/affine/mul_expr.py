@@ -25,23 +25,21 @@ from ... import expressions as exp
 from ... import interface as intf
 import operator as op
 
-class AddExpression(AffAtom):
-    """The sum of any number of expressions.
+class MulExpression(AffAtom):
+    """The product of any number of expressions.
     """
 
     def __init__(self, terms):
-        self._dcp_attr = reduce(op.add, [t._dcp_attr for t in terms])
+        self._dcp_attr = reduce(op.mul, [t._dcp_attr for t in terms])
         self.args = []
         for term in terms:
             self.args += self.expand_args(term)
-        # Promote args to the correct size.
-        self.args = [self._promote(arg) for arg in self.args]
         self.subexpressions = self.args
 
     def expand_args(self, expr):
         """Helper function to extract the arguments from an AddExpression.
         """
-        if isinstance(expr, AddExpression):
+        if isinstance(expr, MulExpression):
             return expr.args
         else:
             return [expr]
@@ -49,41 +47,17 @@ class AddExpression(AffAtom):
     def name(self):
         result = str(self.args[0])
         for i in xrange(1, len(self.args)):
-            result += " + " + str(self.args[i])
+            result += " * " + str(self.args[i])
         return result
 
     def numeric(self, values):
-        return reduce(op.add, values)
+        return reduce(op.mul, values)
 
     def graph_implementation(self, arg_objs):
-        return (AddExpression(arg_objs), [])
-
-    def _promote(self, expr):
-        """Promote a scalar expression to a matrix.
-
-        Parameters
-        ----------
-        expr : Expression
-            The expression to promote.
-        rows : int
-            The number of rows in the promoted matrix.
-        cols : int
-            The number of columns in the promoted matrix.
-
-        Returns
-        -------
-        Expression
-            An expression with size (rows, cols).
-
-        """
-        if expr.size == (1, 1) and expr.size != self.size:
-            ones = Constant(intf.DEFAULT_INTERFACE.ones(*self.size))
-            return ones*expr
-        else:
-            return expr
+        return (MulExpression(arg_objs), [])
 
     def _tree_to_coeffs(self):
         """Return the dict of Variable to coefficient for the sum.
         """
         coeffs = (arg.coefficients() for arg in self.args)
-        return reduce(cu.add, coeffs)
+        return reduce(cu.mul, coeffs)
