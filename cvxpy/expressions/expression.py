@@ -237,7 +237,11 @@ class Expression(u.Canonical):
             raise TypeError("Cannot multiply two non-constants.")
         # The constant term must always be on the left.
         elif not self.is_constant():
-            return (other.T * self.T).T
+            # If other is a scalar, simply move it left.
+            if other.is_scalar():
+                return types.mul_expr()(other, self)
+            else:
+                return (other.T * self.T).T
         else:
             return types.mul_expr()(self, other)
 

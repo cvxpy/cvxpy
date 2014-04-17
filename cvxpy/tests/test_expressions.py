@@ -268,6 +268,11 @@ class TestExpressions(unittest.TestCase):
         exp = [[1],[2]] + c*self.C
         self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (1,2))
 
+        # Scalar constants on the right should be moved left
+        # instead of taking the transpose.
+        exp = self.C*2
+        self.assertEqual(exp.args[0].value, 2)
+
     # Test the DivExpresion class.
     def test_div_expression(self):
         # Vectors
