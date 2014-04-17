@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.lin_ops.lin_to_matrix import get_matrix
 from cvxpy.lin_ops.lin_utils import *
 from cvxpy.lin_ops.lin_op import *
 from cvxpy.expressions.constants import Parameter
@@ -229,6 +230,70 @@ class test_lin_ops(BaseTest):
         assert len(constr.expr.terms) == 3
         coeffs = [t.scalar_coeff for t in constr.expr.terms]
         self.assertItemsEqual([1, 1, -1], coeffs)
+
+    def test_get_matrix(self):
+        """Test the get_matrix function.
+        """
+        size = (5, 4)
+        # Eye
+        x = create_var(size)
+        mat = get_matrix(x)
+        self.assertItemsAlmostEqual(mat.todense(), sp.eye(20).todense())
+        # Eye with scalar mult.
+        x = create_var(size)
+        A = create_const(5, (1, 1))
+        mat = get_matrix(mul_term(A, x))
+        self.assertItemsAlmostEqual(mat.todense(), 5*sp.eye(20).todense())
+        # Promoted
+        x = create_var((1, 1))
+        A = create_const(np.ones(size), size)
+        mat = get_matrix(mul_term(A, x))
+        self.assertEqual(mat.shape, (20, 1))
+        self.assertItemsAlmostEqual(mat, np.ones((20, 1)))
+        # Normal
+        size = (5, 5)
+        x = create_var((5, 1))
+        A = create_const(np.ones(size), size)
+        mat = get_matrix(mul_term(A, x))
+        self.assertEqual(mat.shape, (5, 5))
+        self.assertItemsAlmostEqual(mat.todense(), A.data)
+        # Blocks
+        size = (5, 5)
+        x = create_var(size)
+        A = create_const(np.ones(size), size)
+        mat = get_matrix(mul_term(A, x))
+        self.assertEqual(mat.shape, (25, 25))
+        self.assertItemsAlmostEqual(mat.todense(),
+         sp.block_diag(5*[np.ones(size)]).todense())
+        # Scalar constant
+        size = (1, 1)
+        A = create_const(5, size)
+        mat = get_matrix(A)
+        self.assertEqual(mat.shape, (1, 1))
+        self.assertItemsAlmostEqual(mat, np.array(5))
+        # Dense constant
+        size = (5, 4)
+        A = create_const(np.ones(size), size)
+        mat = get_matrix(A)
+        self.assertEqual(mat.shape, (20, 1))
+        self.assertItemsAlmostEqual(mat, np.ones((20, 1)))
+        # Sparse constant
+        size = (5, 5)
+        A = create_const(sp.eye(5), size)
+        mat = get_matrix(A)
+        self.assertEqual(mat.shape, (25, 1))
+        test_mat = np.zeros((25, 1))
+        for i in range(5):
+            test_mat[i*5 + i] = 1
+        self.assertItemsAlmostEqual(mat, test_mat)
+        # Parameter
+        size = (5, 4)
+        param = Parameter(*size)
+        param.value = np.ones(size)
+        A = LinOp(PARAM, CONSTANT_ID, size, 2.0, param)
+        mat = get_matrix(A)
+        self.assertEqual(mat.shape, (20, 1))
+        self.assertItemsAlmostEqual(mat, 2*np.ones((20, 1)))
 
     # def test_add_terms(self):
     #     """Test adding lin ops. Assume ids match.
