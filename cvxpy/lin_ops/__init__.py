@@ -16,3 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
+from cvxpy.lin_ops.lin_expr import LinExpr
+from cvxpy.lin_ops.lin_op import LinOp

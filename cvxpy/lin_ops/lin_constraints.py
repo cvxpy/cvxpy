@@ -20,9 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from collections import namedtuple
 
 # Constraints with linear expressions.
+# constr_id is used to recover dual variables.
 # expr == 0
 LinEqConstr = namedtuple("LinEqConstr", ["expr",
+                                         "constr_id",
                                          "size"])
 # expr <= 0
-LinLeqConstr = namedtuple("LinEqConstr", ["expr",
-                                          "size"])
+LinLeqConstr = namedtuple("LinLeqConstr", ["expr",
+                                           "constr_id",
+                                           "size"])

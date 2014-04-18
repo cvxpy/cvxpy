@@ -22,10 +22,11 @@ from .. import utilities as u
 from ..expressions.variables import Variable
 import numpy as np
 from numpy import linalg as LA
+import cvxpy.lin_ops.lin_utils as lu
 
 class normInf(Atom):
     """Infinity norm; :math:`\max_i\{|x_i|, \dots, |x_n|\}`.
-    
+
     """
     def __init__(self, x):
         super(normInf, self).__init__(x)
@@ -53,5 +54,10 @@ class normInf(Atom):
 
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
-        t = Variable()
-        return (t, [-t <= x, x <= t])
+        t = lu.create_var_expr((1, 1))
+        ones = lu.create_const_expr(np.ones(x.size), x.size)
+        promoted_t, _ = lu.mul_expr(ones, t, x.size)
+        constraints = [lu.create_leq(lu.neg_expr(promoted_t), x),
+                       lu.create_leq(promoted_t, x),
+        ]
+        return (t, constraints)

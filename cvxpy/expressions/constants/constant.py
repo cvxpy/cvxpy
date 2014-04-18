@@ -18,20 +18,19 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from ... import utilities as u
-from ...utilities import coefficient_utils as cu
 from ... import interface as intf
 from ... import settings as s
 from ..leaf import Leaf
-import numpy as np
-import scipy.sparse as sp
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.lin_ops import LinExpr
 
 class Constant(Leaf):
     """
     A constant, either matrix or scalar.
     """
     def __init__(self, value):
-        # TODO keep sparse matrices sparse.
-        if sp.issparse(value):
+        # Keep sparse matrices sparse.
+        if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
         else:
             self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
@@ -51,13 +50,11 @@ class Constant(Leaf):
         sign = intf.sign(self.value)
         self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
-    # Returns a coefficient dict with s.CONSTANT as the key
-    # and the constant value split into columns as the value.
-    def _tree_to_coeffs(self):
-        rows, cols = self.size
-        blocks = []
-        for i in range(cols):
-            val = intf.index(self.value, (slice(None,None,None), i))
-            blocks.append( intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(val) )
-        coeffs = {s.CONSTANT: np.array(blocks, dtype="object", ndmin=1)}
-        return cu.format_coeffs(coeffs)
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        obj = lu.create_const_expr(self.value, self.size)
+        return (obj, [])

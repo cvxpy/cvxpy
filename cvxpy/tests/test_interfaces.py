@@ -186,4 +186,6 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         assert not (mat - np.matrix("2 4; 4 6")).any()
-
+        # scalar value
+        mat = sp.eye(1)
+        self.assertEqual(intf.scalar_value(mat), 1.0)

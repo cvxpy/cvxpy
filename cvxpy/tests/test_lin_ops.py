@@ -37,14 +37,14 @@ class test_lin_ops(BaseTest):
         self.assertEqual(var.scalar_coeff, 1.0)
         self.assertEqual(var.type, EYE_MUL)
 
-    # def test_param(self):
-    #     """Test creating a parameter.
-    #     """
-    #     A = Parameter(5, 4)
-    #     var = create_param(A, (5, 4))
-    #     self.assertEqual(var.var_size, (5, 4))
-    #     self.assertEqual(var.scalar_coeff, 1.0)
-    #     self.assertEqual(var.type, PARAM)
+    def test_param(self):
+        """Test creating a parameter.
+        """
+        A = Parameter(5, 4)
+        var = create_param(A, (5, 4))
+        self.assertEqual(var.var_size, (5, 4))
+        self.assertEqual(var.scalar_coeff, 1.0)
+        self.assertEqual(var.type, PARAM)
 
     def test_constant(self):
         """Test creating a constant.
@@ -189,7 +189,7 @@ class test_lin_ops(BaseTest):
         self.assertEqual(term.type, DENSE_MUL)
         self.assertItemsAlmostEqual(term.data, np.ones(size)*value)
 
-    def test_mul_expr(self):
+    def test_mul_by_const(self):
         """Test multiplying an expression by a constant.
         """
         size = (5, 5)
@@ -199,7 +199,7 @@ class test_lin_ops(BaseTest):
         expr = LinExpr([x, y], size)
         value = np.ones(size)
         A = create_const(value, size)
-        product, constr = mul_expr(A, expr, size)
+        product, constr = mul_by_const(A, expr, size)
         assert len(constr) == 0
         assert len(product.terms) == 2
         self.assertEqual(product.terms[0].type, DENSE_MUL)
@@ -208,7 +208,36 @@ class test_lin_ops(BaseTest):
         op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
         expr = LinExpr([x, y, op], size)
         A = create_const(value, size)
-        product, constr = mul_expr(A, expr, size)
+        product, constr = mul_by_const(A, expr, size)
+        assert len(constr) == 1
+        assert len(constr[0].expr.terms) == 4
+        assert len(product.terms) == 1
+        self.assertEqual(product.terms[0].type, DENSE_MUL)
+
+    def test_mul_expr(self):
+        """Test multiplying two expressions.
+        """
+        size = (5, 5)
+        x = create_var(size)
+        y = create_var(size)
+        # No constraints needed.
+        rh_expr = LinExpr([x, y], size)
+        value = np.ones(size)
+        A = create_const(value, size)
+        B = create_const(5, (1, 1))
+        lh_expr = LinExpr([A, B], size)
+        product, constr = mul_expr(lh_expr, rh_expr, size)
+        assert len(constr) == 0
+        assert len(product.terms) == 2
+        self.assertEqual(product.terms[0].type, DENSE_MUL)
+
+        # Constraint needed.
+        op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
+        rh_expr = LinExpr([x, y, op], size)
+        A = create_const(value, size)
+        B = create_const(5, (1, 1))
+        lh_expr = LinExpr([A, B], size)
+        product, constr = mul_expr(lh_expr, rh_expr, size)
         assert len(constr) == 1
         assert len(constr[0].expr.terms) == 4
         assert len(product.terms) == 1

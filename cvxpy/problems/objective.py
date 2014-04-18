@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import utilities as u
 from ..expressions.expression import Expression
+import cvxpy.lin_ops.lin_utils as lu
 
 class Minimize(u.Canonical):
     """An optimization objective for minimization.
@@ -81,7 +82,7 @@ class Maximize(Minimize):
         """Negates the target expression's objective.
         """
         obj, constraints = super(Maximize, self).canonicalize()
-        return (-obj, constraints)
+        return (lu.neg_expr(obj), constraints)
 
     def is_dcp(self):
         """The objective must be concave.

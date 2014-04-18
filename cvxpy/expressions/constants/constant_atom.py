@@ -18,6 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from constant import Constant
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.lin_ops import LinExpr
 
 class ConstantAtom(Constant):
     """An atom with constant arguments.
@@ -37,3 +39,15 @@ class ConstantAtom(Constant):
         """Return all the parameters in the atom.
         """
         return self.atom.parameters()
+
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        if len(self.parameters()) > 0:
+            obj = lu.create_param_expr(self, self.size)
+        else:
+            obj = lu.create_const_expr(self.value, self.size)
+        return (obj, [])

@@ -21,6 +21,8 @@ from ... import settings as s
 from ... import utilities as u
 from ... import interface as intf
 from constant import Constant
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.lin_ops import LinExpr
 
 class Parameter(Constant):
     """
@@ -28,7 +30,7 @@ class Parameter(Constant):
     """
     PARAM_COUNT = 0
     def __init__(self, rows=1, cols=1, name=None, sign="unknown"):
-        self.set_id()
+        self.id = lu.get_id()
         self._rows = rows
         self._cols = cols
         self.sign_str = sign
@@ -71,3 +73,12 @@ class Parameter(Constant):
         """Returns itself as a parameter.
         """
         return [self]
+
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        obj = lu.create_param_expr(self.value, self.size)
+        return (obj, [])

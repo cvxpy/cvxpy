@@ -85,8 +85,8 @@ def scalar_value(constant):
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].scalar_value(constant)
     # Direct all sparse matrices to CSC interface.
-    elif sp.issparse(constant):
-        return INTERFACES[sp.csc_matrix].size(constant.tocsc())
+    elif is_sparse(constant):
+        return INTERFACES[sp.csc_matrix].scalar_value(constant.tocsc())
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 

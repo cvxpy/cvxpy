@@ -18,11 +18,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from affine_atom import AffAtom
-from ...utilities import coefficient_utils as cu
 from ...expressions.expression import Expression
 from ...expressions.constants import Constant
 from ... import expressions as exp
 from ... import interface as intf
+import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 
 class AddExpression(AffAtom):
@@ -56,7 +56,9 @@ class AddExpression(AffAtom):
         return reduce(op.add, values)
 
     def graph_implementation(self, arg_objs):
-        return (AddExpression(arg_objs), [])
+        """Sum the linear expressions.
+        """
+        return (lu.sum_expr(arg_objs), [])
 
     def _promote(self, expr):
         """Promote a scalar expression to a matrix.
@@ -81,9 +83,3 @@ class AddExpression(AffAtom):
             return ones*expr
         else:
             return expr
-
-    def _tree_to_coeffs(self):
-        """Return the dict of Variable to coefficient for the sum.
-        """
-        coeffs = (arg.coefficients() for arg in self.args)
-        return reduce(cu.add, coeffs)

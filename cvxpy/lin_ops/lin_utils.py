@@ -49,33 +49,92 @@ def get_id():
     ID_COUNTER.count += 1
     return new_id
 
-def create_var(size):
+def create_var(size, var_id=None):
     """Creates a new internal variable.
 
     Parameters
     ----------
     size: tuple
         The (rows, cols) dimensions of the variable.
+    var_id: int
+        The id of the variable.
 
     Returns
     -------
     LinOP
         A LinOp representing the new variable.
     """
-    return lo.LinOp(lo.EYE_MUL, get_id(), size, 1.0, None)
+    if var_id is None:
+        var_id = get_id()
+    return lo.LinOp(lo.EYE_MUL, var_id, size, 1.0, None)
+
+def create_var_expr(size, var_id=None):
+    """Creates an expression containing a single new internal variable.
+
+    Parameters
+    ----------
+    size: tuple
+        The (rows, cols) dimensions of the variable.
+    var_id: int
+        The id of the variable.
+
+    Returns
+    -------
+    LinExpr
+        A LinExpr representing the new variable.
+    """
+    new_var = create_var(size, var_id)
+    return LinExpr([new_var], size)
+
+def create_param(value, size):
+    """Wraps a parameter.
+
+    Parameters
+    ----------
+    value: CVXPY Expression
+        A function of parameters.
+    size: tuple
+        The (rows, cols) dimensions of the expression.
+
+    Returns
+    -------
+    LinOP
+        A LinOp wrapping the parameter.
+    """
+    return lo.LinOp(lo.PARAM, lo.CONSTANT_ID, size, 1.0, value)
+
+def create_param_expr(value, size):
+    """Creates an expression with a single parameter.
+
+    Parameters
+    ----------
+    value: CVXPY Expression
+        A function of parameters.
+    size: tuple
+        The (rows, cols) dimensions of the expression.
+
+    Returns
+    -------
+    LinExpr
+        A LinExpr wrapping the parameter.
+    """
+    param = create_param(value, size)
+    return LinExpr([param], size)
 
 def create_const(value, size):
     """Wraps a constant.
 
     Parameters
     ----------
+    value: scalar, NumPy matrix, or SciPy sparse matrix.
+        The numeric constant to wrap.
     size: tuple
-        The (rows, cols) dimensions of the variable.
+        The (rows, cols) dimensions of the constant.
 
     Returns
     -------
     LinOP
-        A LinOp representing the new variable.
+        A LinOp wrapping the constant.
     """
     # Check if scalar.
     if size == (1, 1):
@@ -86,6 +145,29 @@ def create_const(value, size):
     else:
         op_type = lo.DENSE_CONST
     return lo.LinOp(op_type, lo.CONSTANT_ID, size, 1.0, value)
+
+def create_const_expr(value, size):
+    """Creates an expression with a single constant.
+
+    Parameters
+    ----------
+    value: scalar, NumPy matrix, or SciPy sparse matrix.
+        The numeric constant to wrap.
+    size: tuple
+        The (rows, cols) dimensions of the constant.
+
+    Returns
+    -------
+    LinExpr
+        A LinExpr wrapping the constant.
+    """
+    const = create_const(value, size)
+    return LinExpr([const], size)
+
+def is_constant(term):
+    """Is the LinOp term a constant?
+    """
+    return term.var_id is lo.CONSTANT_ID
 
 def sum_expr(expressions):
     """Add linear expressions.
@@ -182,7 +264,7 @@ def mul_valid(constant, expr):
                 return False
     return True
 
-def mul_expr(constant, expr, size):
+def mul_by_const(constant, expr, size):
     """Multiply an expression on the left by a constant.
 
     Parameters
@@ -206,12 +288,47 @@ def mul_expr(constant, expr, size):
     else:
         new_var = create_var(expr.size)
         new_terms = [mul_term(constant, new_var)]
-        constr_terms = expr.terms[:] + [neg_term(new_var)]
-        constr_expr = LinExpr(constr_terms, expr.size)
-        constraints.append(LinEqConstr(constr_expr, expr.size))
+        var_expr = LinExpr([new_var], expr.size)
+        constr = create_eq(expr, var_expr, expr.size)
+        constraints.append(constr)
     return (LinExpr(new_terms, size), constraints)
 
-def create_eq(lh_expr, rh_expr):
+def mul_expr(lh_expr, rh_expr, size):
+    """Multiply two expression.
+
+    Assumes the lh_expr only contains constants.
+
+    Parameters
+    ----------
+    lh_expr: LinExpr
+        The left-hand expression in the product.
+    rh_expr: LinExpr
+        The right-hand expression in the product.
+    size: tuple
+        The size of the product.
+
+    Returns
+    -------
+    tuple
+        (LinExpr for product, list of constraints)
+    """
+    prod = rh_expr
+    constraints = []
+    for const in lh_expr.terms:
+        prod, constr = mul_by_const(const, prod, size)
+        constraints += constr
+    return (prod, constraints)
+
+def get_constr_expr(lh_expr, rh_expr):
+    """Returns the expression in the constraint.
+    """
+    # rh_expr defaults to 0.
+    if rh_expr is None:
+        return lh_expr
+    else:
+        return sum_expr([lh_expr, neg_expr(rh_expr)])
+
+def create_eq(lh_expr, rh_expr=None, constr_id=None):
     """Creates an internal equality constraint.
 
     Parameters
@@ -220,15 +337,19 @@ def create_eq(lh_expr, rh_expr):
         The left-hand expression in the equality constraint.
     rh_term: LinExpr
         The right-hand expression in the equality constraint.
+    constr_id: int
+        The id of the CVXPY equality constraint creating the constraint.
 
     Returns
     -------
     LinEqConstr
     """
-    expr = sum_expr([lh_expr, neg_expr(rh_expr)])
-    return LinEqConstr(expr, lh_expr.size)
+    if constr_id is None:
+        constr_id = get_id()
+    expr = get_constr_expr(lh_expr, rh_expr)
+    return LinEqConstr(expr, constr_id, lh_expr.size)
 
-def create_leq(lh_expr, rh_expr):
+def create_leq(lh_expr, rh_expr=None, constr_id=None):
     """Creates an internal less than or equal constraint.
 
     Parameters
@@ -237,13 +358,17 @@ def create_leq(lh_expr, rh_expr):
         The left-hand expression in the <= constraint.
     rh_term: LinExpr
         The right-hand expression in the <= constraint.
+    constr_id: int
+        The id of the CVXPY equality constraint creating the constraint.
 
     Returns
     -------
     LinEqConstr
     """
-    expr = sum_expr([lh_expr, neg_expr(rh_expr)])
-    return LinLeqConstr(expr, lh_expr.size)
+    if constr_id is None:
+        constr_id = get_id()
+    expr = get_constr_expr(lh_expr, rh_expr)
+    return LinLeqConstr(expr, constr_id, lh_expr.size)
 
 def get_expr_vars(expr):
     """Get a list of the unique variables in the expression and their sizes.
@@ -260,43 +385,6 @@ def get_expr_vars(expr):
     """
     vars_ = set()
     for term in expr.terms:
-        if term.var_id is not lo.CONSTANT_ID:
+        if not is_constant(term):
             vars_.add((term.var_id, term.var_size))
     return list(vars_)
-
-# def add_terms(lh_term, rh_term):
-#     """Adds two terms together.
-
-#     Parameters
-#     ----------
-#     lh_term: LinOp
-#         The left-hand term of the sum.
-#     rh_term: LinOp
-#         The right-hand term of the sum.
-
-#     Returns
-#     -------
-#     LinOp
-#         A LinOp representing the sum of the terms or None if can't be added.
-#     """
-#     # Combine identical operations.
-#     if lh_term.type == rh_term.type and lh_term.type in lo.IDENTICAL:
-#         term_sum = lo.LinOp(lh_term.type,
-#                             lh_term.var_id,
-#                             lh_term.var_size,
-#                             lh_term.scalar_coeff + rh_term.scalar_coeff,
-#                             lh_term.data)
-#     # Sum identical types when possible.
-#     elif lh_term.type == rh_term.type and lh_term.type in lo.SUMMABLE:
-#         term_sum = lo.LinOp(lh_term.type,
-#                             lh_term.var_id,
-#                             lh_term.var_size,
-#                             1.0,
-#                             lh_term.data*lh_term.scalar_coeff + \
-#                             rh_term.data*rh_term.scalar_coeff)
-#     # Split up different types by creating a new variable
-#     # and equality constraint.
-#     # TODO dense + sparse/eye
-#     else:
-#         term_sum = None
-#     return term_sum

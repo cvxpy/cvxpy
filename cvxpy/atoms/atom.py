@@ -103,7 +103,7 @@ class Atom(Expression):
                 obj, constr = arg.canonical_form
                 arg_objs.append(obj)
                 constraints += constr
-            graph_obj,graph_constr = self.graph_implementation(arg_objs)
+            graph_obj, graph_constr = self.graph_implementation(arg_objs)
             return (graph_obj, constraints + graph_constr)
 
     # Returns an affine expression and list of

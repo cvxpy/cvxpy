@@ -23,6 +23,7 @@ from ...expressions.expression import Expression
 from ...expressions.constants import Constant
 from ... import expressions as exp
 from ... import interface as intf
+import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 
 class MulExpression(AffAtom):
@@ -54,10 +55,11 @@ class MulExpression(AffAtom):
         return reduce(op.mul, values)
 
     def graph_implementation(self, arg_objs):
-        return (MulExpression(arg_objs), [])
-
-    def _tree_to_coeffs(self):
-        """Return the dict of Variable to coefficient for the sum.
+        """Multiply the last expression by each preceding constant.
         """
-        coeffs = (arg.coefficients() for arg in self.args)
-        return reduce(cu.mul, coeffs)
+        obj = arg_objs[-1]
+        constraints = []
+        for i in range(len(arg_objs)-2, -1, -1):
+            obj, constr = lu.mul_expr(arg_objs[i], obj, self.size)
+            constraints += constr
+        return (obj, constraints)
