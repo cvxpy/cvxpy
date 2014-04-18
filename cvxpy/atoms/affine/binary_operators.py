@@ -21,6 +21,7 @@ from affine_atom import AffAtom
 from ...utilities import coefficient_utils as cu
 from ... import interface as intf
 from ...expressions.constants import Constant
+import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 import numpy as np
 
@@ -49,6 +50,15 @@ class BinaryOperator(AffAtom):
     # Validate the dimensions.
     def validate_arguments(self):
         self.OP_FUNC(self.args[0].shape, self.args[1].shape)
+
+class MulExpression(BinaryOperator):
+    OP_NAME = "*"
+    OP_FUNC = op.mul
+
+    def graph_implementation(self, arg_objs):
+        """Multiply the linear expressions.
+        """
+        return (lu.mul_expr(arg_objs[0], arg_objs[1], self.size), [])
 
 class DivExpression(BinaryOperator):
     OP_NAME = "/"

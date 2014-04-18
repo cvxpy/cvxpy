@@ -22,7 +22,6 @@ from ... import utilities as u
 from ... import interface as intf
 from constant import Constant
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.lin_ops import LinExpr
 
 class Parameter(Constant):
     """

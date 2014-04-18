@@ -39,8 +39,8 @@ def add_expr():
     return add_expr.AddExpression
 
 def mul_expr():
-    from ..atoms.affine import mul_expr
-    return mul_expr.MulExpression
+    from ..atoms.affine import binary_operators
+    return binary_operators.MulExpression
 
 def div_expr():
     from ..atoms.affine import binary_operators

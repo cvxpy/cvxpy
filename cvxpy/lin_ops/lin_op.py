@@ -55,3 +55,5 @@ SPARSE_CONST = "sparse_const"
 # Some function of parameters.
 # Data: CVXPY expression.
 PARAM = "param"
+# ID in coefficients for constants.
+CONSTANT_ID = "constant_id"

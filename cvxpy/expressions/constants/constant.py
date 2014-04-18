@@ -22,7 +22,6 @@ from ... import interface as intf
 from ... import settings as s
 from ..leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.lin_ops import LinExpr
 
 class Constant(Leaf):
     """
@@ -56,5 +55,5 @@ class Constant(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_const_expr(self.value, self.size)
+        obj = lu.create_const(self.value, self.size)
         return (obj, [])

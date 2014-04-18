@@ -21,12 +21,12 @@ from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 from ..utilities.ordered_set import OrderedSet
 from ..expressions.expression import Expression
 from ..expressions.constants import Constant
 from ..expressions.variables import Variable
-from cvxpy.lin_ops import LinEqConstr, LinLeqConstr
 from ..constraints import EqConstraint, LeqConstraint, SOC, SDP, ExpCone
 from .objective import Minimize, Maximize
 from kktsolver import get_kktsolver
@@ -112,9 +112,9 @@ class Problem(u.Canonical):
                       s.SDP: [],
                       s.EXP: []}
         for c in constraints:
-            if isinstance(c, LinEqConstr):
+            if isinstance(c, lo.LinEqConstr):
                 constr_map[s.EQ].append(c)
-            elif isinstance(c, LinLeqConstr):
+            elif isinstance(c, lo.LinLeqConstr):
                 constr_map[s.INEQ].append(c)
             elif isinstance(c, SOC):
                 constr_map[s.SOC].append(c)
@@ -679,14 +679,20 @@ class Problem(u.Canonical):
         const_vec = vec_intf.zeros(rows, 1)
         vert_offset = 0
         for constr in constraints:
-            for term in constr.expr.terms:
-                block = op2mat.get_matrix(term)
+            coeffs = op2mat.get_coefficients(constr.expr)
+            for id_, size, block in coeffs:
                 vert_start = vert_offset
                 vert_end = vert_start + constr.size[0]*constr.size[1]
-                if lu.is_constant(term):
+                if id_ is lo.CONSTANT_ID:
+                    block = self._DENSE_INTF.const_to_matrix(block)
+                    block_size = intf.size(block)
+                    block = self._DENSE_INTF.reshape(
+                        block,
+                        (block_size[0]*block_size[1], 1)
+                    )
                     const_vec[vert_start:vert_end, :] += block
                 else:
-                    horiz_offset = var_offsets[term.var_id]
+                    horiz_offset = var_offsets[id_]
                     if intf.is_scalar(block):
                         block = intf.scalar_value(block)
                         V.append(block)

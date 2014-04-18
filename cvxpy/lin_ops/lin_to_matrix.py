@@ -20,11 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.interface as intf
 import scipy.sparse as sp
-import numpy as np
 
 # Utility functions for converting LinOps into matrices.
-
-CONSTANT_ID = "constant_id"
 
 def flatten(matrix):
     """Converts the matrix into a column vector.
@@ -59,9 +56,9 @@ def get_coefficients(lin_op):
             sp.eye(lin_op.size[0]*lin_op.size[1]))]
     # Constants convert directly to their value.
     elif lin_op.type is lo.PARAM:
-        return [(CONSTANT_ID, lin_op.size, lin_op.data.value)]
-    elif lin_op.type in [lo.DENSE_MUL, lo.SPARSE_MUL]:
-        return [(CONSTANT_ID, lin_op.size, lin_op.data)]
+        return [(lo.CONSTANT_ID, lin_op.size, lin_op.data.value)]
+    elif lin_op.type in [lo.DENSE_CONST, lo.SPARSE_CONST]:
+        return [(lo.CONSTANT_ID, lin_op.size, lin_op.data)]
 
     # Otherwise, recurse on args.
     elif lin_op.type is lo.SUM:
@@ -102,7 +99,7 @@ def neg_coeffs(lin_op):
     list
         A list of (id, size, coefficient) tuples.
     """
-    coeffs = get_coefficients(lin_op)
+    coeffs = get_coefficients(lin_op.args[0])
     new_coeffs = []
     for id_, size, block in coeffs:
         new_coeffs.append((id_, size, -block))
@@ -123,6 +120,23 @@ def mul_coeffs(lin_op):
     """
     lh_coeffs = get_coefficients(lin_op.args[0])
     rh_coeffs = get_coefficients(lin_op.args[1])
+    new_coeffs = []
+    cols = lin_op.size[1]
     # Multiply all left-hand constants by right-hand terms.
-    for (_, size, constant) in lh_coeffs:
-        for (id_, size, coeff) in rh_coeffs:
+    for (_, lh_size, constant) in lh_coeffs:
+        for (id_, rh_size, coeff) in rh_coeffs:
+            rep_mat = sp.block_diag(cols*[constant])
+            # For constants or single column, just multiply.
+            if id_ is lo.CONSTANT_ID or cols == 1:
+                product = constant*coeff
+            # For promoted variables, flatten the matrix.
+            elif lh_size != (1, 1) and rh_size == (1, 1):
+                flattened_const = flatten(constant)
+                product = flattened_const*coeff
+            # Otherwise replicate the matrix.
+            else:
+                product = rep_mat*coeff
+            new_coeffs.append((id_, rh_size, product))
+        rh_coeffs = new_coeffs
+
+    return new_coeffs

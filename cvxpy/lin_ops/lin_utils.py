@@ -65,7 +65,7 @@ def create_var(size, var_id=None):
     """
     if var_id is None:
         var_id = get_id()
-    return lo.LinOp(lo.VARIABLE, size, var_id)
+    return lo.LinOp(lo.VARIABLE, size, [], var_id)
 
 def create_param(value, size):
     """Wraps a parameter.
@@ -82,7 +82,7 @@ def create_param(value, size):
     LinOP
         A LinOp wrapping the parameter.
     """
-    return lo.LinOp(lo.PARAM, size, value)
+    return lo.LinOp(lo.PARAM, size, [], value)
 
 def create_const(value, size):
     """Wraps a constant.
@@ -104,7 +104,7 @@ def create_const(value, size):
         op_type = lo.SPARSE_CONST
     else:
         op_type = lo.DENSE_CONST
-    return lo.LinOp(op_type, size, value)
+    return lo.LinOp(op_type, size, [], value)
 
 def sum_expr(operators):
     """Add linear operators.
@@ -270,7 +270,7 @@ def get_expr_vars(operator):
         A list of (var id, var size) pairs.
     """
     if operator.type is lo.VARIABLE:
-        return (operator.data, operator.size)
+        return [(operator.data, operator.size)]
     else:
         vars_ = []
         for arg in operator.args:

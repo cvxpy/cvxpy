@@ -56,7 +56,7 @@ class normInf(Atom):
         x = arg_objs[0]
         t = lu.create_var((1, 1))
         ones = lu.create_const(np.ones(x.size), x.size)
-        promoted_t, _ = lu.mul_expr(ones, t, x.size)
+        promoted_t = lu.mul_expr(ones, t, x.size)
         constraints = [lu.create_leq(lu.neg_expr(promoted_t), x),
                        lu.create_leq(x, promoted_t),
         ]
