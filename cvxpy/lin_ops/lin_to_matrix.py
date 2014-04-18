@@ -28,7 +28,7 @@ def flatten(matrix):
 
     Parameters
     ----------
-    matrix:
+    matrix :
         The matrix to flatten.
     """
     np_mat = intf.DEFAULT_INTERFACE
@@ -41,7 +41,7 @@ def get_matrix(lin_op):
 
     Parameters
     ----------
-    lin_op: LinOp
+    lin_op : LinOp
         The linear op to convert.
 
     Returns
@@ -75,6 +75,8 @@ def get_matrix(lin_op):
         else:
             value = lin_op.data
         block = flatten(value)
+    elif lin_op.type is lo.SUM_ENTRIES:
+        block = np.ones((1, lin_op.var_size[0]*lin_op.var_size[1]))
     # TODO index, transpose
 
     return block*lin_op.scalar_coeff

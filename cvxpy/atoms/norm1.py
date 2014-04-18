@@ -26,7 +26,7 @@ from numpy import linalg as LA
 
 class norm1(Atom):
     """L1 norm; :math:`\sum_i|x_i|`.
-    
+
     """
     def __init__(self, x):
         super(norm1, self).__init__(x)
@@ -35,7 +35,7 @@ class norm1(Atom):
     @Atom.numpy_numeric
     def numeric(self, values):
         cols = values[0].shape[1]
-        return sum([LA.norm(values[0][:,i], 1) for i in range(cols)])
+        return sum([LA.norm(values[0][:, i], 1) for i in range(cols)])
 
     # Resolves to a scalar.
     def shape_from_args(self):
@@ -54,5 +54,5 @@ class norm1(Atom):
 
     def graph_implementation(self, arg_objs):
         x = arg_objs[0]
-        obj,constraints = abs(x).canonical_form
-        return (sum(obj),constraints)
+        obj, constraints = abs(x).canonical_form
+        return (sum(obj), constraints)

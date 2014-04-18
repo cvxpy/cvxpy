@@ -325,64 +325,64 @@ class TestProblem(BaseTest):
         a.value = 2
         assert not (exp.value - 2*numpy.array([[1,2],[3,4]]).T).any()
 
-    # # Test problems with normInf
-    # def test_normInf(self):
-    #     # Constant argument.
-    #     p = Problem(Minimize(normInf(-2)))
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
+    # Test problems with normInf
+    def test_normInf(self):
+        # Constant argument.
+        p = Problem(Minimize(normInf(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
 
-    #     # Scalar arguments.
-    #     p = Problem(Minimize(normInf(self.a)), [self.a >= 2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
-    #     self.assertAlmostEqual(self.a.value, 2)
+        # Scalar arguments.
+        p = Problem(Minimize(normInf(self.a)), [self.a >= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, 2)
 
-    #     p = Problem(Minimize(3*normInf(self.a + 2*self.b) + self.c),
-    #         [self.a >= 2, self.b <= -1, self.c == 3])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 3)
-    #     self.assertAlmostEqual(self.a.value + 2*self.b.value, 0)
-    #     self.assertAlmostEqual(self.c.value, 3)
+        p = Problem(Minimize(3*normInf(self.a + 2*self.b) + self.c),
+            [self.a >= 2, self.b <= -1, self.c == 3])
+        result = p.solve()
+        self.assertAlmostEqual(result, 3)
+        self.assertAlmostEqual(self.a.value + 2*self.b.value, 0)
+        self.assertAlmostEqual(self.c.value, 3)
 
-    #     # Maximize
-    #     p = Problem(Maximize(-normInf(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, -2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # Maximize
+        p = Problem(Maximize(-normInf(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # Vector arguments.
-    #     p = Problem(Minimize(normInf(self.x - self.z) + 5),
-    #         [self.x >= [2,3], self.z <= [-1,-4]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 12)
-    #     self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
+        # Vector arguments.
+        p = Problem(Minimize(normInf(self.x - self.z) + 5),
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12)
+        self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
 
-    # # Test problems with norm1
-    # def test_norm1(self):
-    #     # Constant argument.
-    #     p = Problem(Minimize(norm1(-2)))
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
+    # Test problems with norm1
+    def test_norm1(self):
+        # Constant argument.
+        p = Problem(Minimize(norm1(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
 
-    #     # Scalar arguments.
-    #     p = Problem(Minimize(norm1(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # Scalar arguments.
+        p = Problem(Minimize(norm1(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # Maximize
-    #     p = Problem(Maximize(-norm1(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, -2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # Maximize
+        p = Problem(Maximize(-norm1(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # Vector arguments.
-    #     p = Problem(Minimize(norm1(self.x - self.z) + 5),
-    #         [self.x >= [2,3], self.z <= [-1,-4]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 15)
-    #     self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
+        # Vector arguments.
+        p = Problem(Minimize(norm1(self.x - self.z) + 5),
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 15)
+        self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
 
     # # Test problems with norm2
     # def test_norm2(self):

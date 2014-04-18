@@ -110,7 +110,18 @@ class Atom(Expression):
     # constraints equivalent to the atom.
     # arg_objs - the canonical objectives of the arguments.
     @abc.abstractmethod
-    def graph_implementation(self, arg_objs):
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+        """
         return NotImplemented
 
     def variables(self):

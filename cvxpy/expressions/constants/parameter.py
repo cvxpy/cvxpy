@@ -43,7 +43,6 @@ class Parameter(Constant):
     def name(self):
         return self._name
 
-    # Returns the
     def init_dcp_attr(self):
         shape = u.Shape(self._rows, self._cols)
         sign = u.Sign.name_to_sign(self.sign_str)

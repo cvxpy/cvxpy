@@ -47,6 +47,9 @@ INDEX = "index"
 # The transpose of a variable.
 # Data: None.
 TRANSPOSE = "transpose"
+# The sum of the entries of a variable.
+# Data: None
+SUM_ENTRIES = "sum_entries"
 # A scalar constant.
 # Data: Python float.
 SCALAR_CONST = "scalar"

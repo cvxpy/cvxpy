@@ -339,6 +339,18 @@ class test_lin_ops(BaseTest):
         self.assertEqual(mat.shape, (20, 1))
         self.assertItemsAlmostEqual(mat, 2*np.ones((20, 1)))
 
+    def test_sum_entries(self):
+        """Test sum entries op.
+        """
+        size = (5, 5)
+        x = create_var(size)
+        y = create_var(size)
+        add_expr = LinExpr([x, y], size)
+        expr, constr = sum_entries(add_expr)
+        assert len(constr) == 0
+        self.assertEqual(expr.size, (1, 1))
+        self.assertEqual(expr.terms[0].type, lo.SUM_ENTRIES)
+
     # def test_add_terms(self):
     #     """Test adding lin ops. Assume ids match.
     #     """

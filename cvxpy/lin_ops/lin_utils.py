@@ -29,7 +29,7 @@ class Counter(object):
 
     Attributes
     ----------
-    count: int
+    count : int
         The current count.
     """
     def __init__(self):
@@ -54,9 +54,9 @@ def create_var(size, var_id=None):
 
     Parameters
     ----------
-    size: tuple
+    size : tuple
         The (rows, cols) dimensions of the variable.
-    var_id: int
+    var_id : int
         The id of the variable.
 
     Returns
@@ -73,9 +73,9 @@ def create_var_expr(size, var_id=None):
 
     Parameters
     ----------
-    size: tuple
+    size : tuple
         The (rows, cols) dimensions of the variable.
-    var_id: int
+    var_id : int
         The id of the variable.
 
     Returns
@@ -91,9 +91,9 @@ def create_param(value, size):
 
     Parameters
     ----------
-    value: CVXPY Expression
+    value : CVXPY Expression
         A function of parameters.
-    size: tuple
+    size : tuple
         The (rows, cols) dimensions of the expression.
 
     Returns
@@ -108,9 +108,9 @@ def create_param_expr(value, size):
 
     Parameters
     ----------
-    value: CVXPY Expression
+    value : CVXPY Expression
         A function of parameters.
-    size: tuple
+    size : tuple
         The (rows, cols) dimensions of the expression.
 
     Returns
@@ -126,9 +126,9 @@ def create_const(value, size):
 
     Parameters
     ----------
-    value: scalar, NumPy matrix, or SciPy sparse matrix.
+    value : scalar, NumPy matrix, or SciPy sparse matrix.
         The numeric constant to wrap.
-    size: tuple
+    size : tuple
         The (rows, cols) dimensions of the constant.
 
     Returns
@@ -151,9 +151,9 @@ def create_const_expr(value, size):
 
     Parameters
     ----------
-    value: scalar, NumPy matrix, or SciPy sparse matrix.
+    value : scalar, NumPy matrix, or SciPy sparse matrix.
         The numeric constant to wrap.
-    size: tuple
+    size : tuple
         The (rows, cols) dimensions of the constant.
 
     Returns
@@ -174,7 +174,7 @@ def sum_expr(expressions):
 
     Parameters
     ----------
-    expression: list
+    expression : list
         A list of linear expressions.
 
     Returns
@@ -192,7 +192,7 @@ def neg_term(term):
 
     Parameters
     ----------
-    term: LinOp
+    term : LinOp
         The term to be negated.
 
     Returns
@@ -211,7 +211,7 @@ def neg_expr(expr):
 
     Parameters
     ----------
-    expr: LinExpr
+    expr : LinExpr
         The expression to be negated.
 
     Returns
@@ -227,9 +227,9 @@ def mul_term(constant, term):
 
     Parameters
     ----------
-    constant: LinOp
+    constant : LinOp
         The constant to multiply by.
-    term: LinOp
+    term : LinOp
         The term to be multiplied.
 
     Returns
@@ -269,11 +269,11 @@ def mul_by_const(constant, expr, size):
 
     Parameters
     ----------
-    constant: LinOp
+    constant : LinOp
         A constant or parameter.
-    expr: LinExpr
+    expr : LinExpr
         A linear expression.
-    size: tuple
+    size : tuple
         The size of the product.
 
     Returns
@@ -300,11 +300,11 @@ def mul_expr(lh_expr, rh_expr, size):
 
     Parameters
     ----------
-    lh_expr: LinExpr
+    lh_expr : LinExpr
         The left-hand expression in the product.
-    rh_expr: LinExpr
+    rh_expr : LinExpr
         The right-hand expression in the product.
-    size: tuple
+    size : tuple
         The size of the product.
 
     Returns
@@ -318,6 +318,98 @@ def mul_expr(lh_expr, rh_expr, size):
         prod, constr = mul_by_const(const, prod, size)
         constraints += constr
     return (prod, constraints)
+
+def apply_to_vars(type_, expr, size, data=None):
+    """Replaces EYE_MUL terms with terms of the given type.
+
+    Parameters
+    ----------
+    type_ : str
+        The type of operation to apply.
+    expr : LinExpr
+        The expression to apply the operation to.
+    size : tuple
+        The size of the expression after applying the operation.
+    data :
+        data for the operation.
+
+    Returns
+    -------
+    tuple
+        (LinExpr, list of constraints)
+    """
+    # Apply op if all terms are raw variables.
+    if all([t.type == lo.EYE_MUL for t in expr.terms]):
+        new_terms = []
+        for term in expr.terms:
+            new_terms.append(
+                lo.LinOp(type_,
+                         term.var_id,
+                         term.var_size,
+                         term.scalar_coeff,
+                         data)
+            )
+        return (LinExpr(new_terms, size), [])
+    # Create a constraint otherwise.
+    else:
+        new_var = create_var(expr.size)
+        constr = create_eq(LinExpr([new_var], expr.size), expr)
+        new_term = lo.LinOp(type_,
+                            new_var.var_id,
+                            new_var.var_size,
+                            new_var.scalar_coeff,
+                            data)
+        return (LinExpr([new_term], size), [constr])
+
+def sum_entries(expr):
+    """Sum the entries of an expression.
+
+    Parameters
+    ----------
+    expr : LinExpr
+        The expression to sum the entries of.
+
+    Returns
+    -------
+    tuple
+        (LinExpr for sum, list of constraints)
+    """
+    return apply_to_vars(lo.SUM_ENTRIES, expr, (1, 1))
+
+def index(expr, size, keys):
+    """Indexes/slices an expression.
+
+    Parameters
+    ----------
+    expr : LinExpr
+        The expression to index.
+    keys : tuple
+        (row slice, column slice)
+    size : tuple
+        The size of the expression after indexing.
+
+    Returns
+    -------
+    tuple
+        (LinExpr for index, list of constraints)
+    """
+    return apply_to_vars(lo.INDEX, expr, size, keys)
+
+def transpose(expr):
+    """Transposes an expression.
+
+    Parameters
+    ----------
+    expr : LinExpr
+        The expression to transpose.
+
+    Returns
+    -------
+    tuple
+        (LinExpr for transpose, list of constraints)
+    """
+    size = (expr.size[1], expr.size[0])
+    return apply_to_vars(lo.TRANSPOSE, expr, size)
 
 def get_constr_expr(lh_expr, rh_expr):
     """Returns the expression in the constraint.
@@ -333,11 +425,11 @@ def create_eq(lh_expr, rh_expr=None, constr_id=None):
 
     Parameters
     ----------
-    lh_term: LinExpr
+    lh_term : LinExpr
         The left-hand expression in the equality constraint.
-    rh_term: LinExpr
+    rh_term : LinExpr
         The right-hand expression in the equality constraint.
-    constr_id: int
+    constr_id : int
         The id of the CVXPY equality constraint creating the constraint.
 
     Returns
@@ -354,11 +446,11 @@ def create_leq(lh_expr, rh_expr=None, constr_id=None):
 
     Parameters
     ----------
-    lh_term: LinExpr
+    lh_term : LinExpr
         The left-hand expression in the <= constraint.
-    rh_term: LinExpr
+    rh_term : LinExpr
         The right-hand expression in the <= constraint.
-    constr_id: int
+    constr_id : int
         The id of the CVXPY equality constraint creating the constraint.
 
     Returns
@@ -375,7 +467,7 @@ def get_expr_vars(expr):
 
     Parameters
     ----------
-    expr: LinExpr
+    expr : LinExpr
         The expression to extract the variables from.
 
     Returns
