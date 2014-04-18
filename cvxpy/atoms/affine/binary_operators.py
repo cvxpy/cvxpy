@@ -55,10 +55,20 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
         """Multiply the linear expressions.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
         """
-        return (lu.mul_expr(arg_objs[0], arg_objs[1], self.size), [])
+        return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 
 class DivExpression(BinaryOperator):
     OP_NAME = "/"

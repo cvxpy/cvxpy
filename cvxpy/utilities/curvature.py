@@ -184,6 +184,14 @@ class Curvature(object):
         nonconst_mat = bu.promote(self.nonconst_mat, rows, cols, keep_scalars)
         return Curvature(cvx_mat, conc_mat, nonconst_mat)
 
+    def sum_entries(self):
+        """Returns the curvature of the sum of the expression's entries.
+        """
+        cvx_mat = bu.sum_entries(self.cvx_mat)
+        conc_mat = bu.sum_entries(self.conc_mat)
+        nonconst_mat = bu.sum_entries(self.nonconst_mat)
+        return Curvature(cvx_mat, conc_mat, nonconst_mat)
+
     def __repr__(self):
         return "Curvature(%s, %s, %s)" % (repr(self.cvx_mat),
                                           repr(self.conc_mat),

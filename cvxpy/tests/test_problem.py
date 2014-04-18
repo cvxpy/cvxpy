@@ -24,6 +24,7 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_utils as lu
 from base_test import BaseTest
 from cvxopt import matrix
 from numpy import linalg as LA
@@ -92,54 +93,62 @@ class TestProblem(BaseTest):
     #     for output in outputs[False]:
     #         assert len(output) == 0
 
-    # # Test registering other solve methods.
-    # def test_register_solve(self):
-    #     Problem.register_solve("test",lambda self: 1)
-    #     p = Problem(Minimize(1))
-    #     result = p.solve(method="test")
-    #     self.assertEqual(result, 1)
+    # Test registering other solve methods.
+    def test_register_solve(self):
+        Problem.register_solve("test",lambda self: 1)
+        p = Problem(Minimize(1))
+        result = p.solve(method="test")
+        self.assertEqual(result, 1)
 
-    #     def test(self, a, b=2):
-    #         return (a,b)
-    #     Problem.register_solve("test", test)
-    #     p = Problem(Minimize(0))
-    #     result = p.solve(1,b=3,method="test")
-    #     self.assertEqual(result, (1,3))
-    #     result = p.solve(1,method="test")
-    #     self.assertEqual(result, (1,2))
-    #     result = p.solve(1,method="test",b=4)
-    #     self.assertEqual(result, (1,4))
+        def test(self, a, b=2):
+            return (a,b)
+        Problem.register_solve("test", test)
+        p = Problem(Minimize(0))
+        result = p.solve(1,b=3,method="test")
+        self.assertEqual(result, (1,3))
+        result = p.solve(1,method="test")
+        self.assertEqual(result, (1,2))
+        result = p.solve(1,method="test",b=4)
+        self.assertEqual(result, (1,4))
 
-    # def test_consistency(self):
-    #     """Test that variables and constraints keep a consistent order.
-    #     """
-    #     import itertools
-    #     num_solves = 4
-    #     vars_lists = []
-    #     ineqs_lists = []
-    #     for k in range(num_solves):
-    #         sum = 0
-    #         constraints = []
-    #         for i in range(100):
-    #             var = Variable(name=str(i))
-    #             sum += var
-    #             constraints.append(var >= i)
-    #         obj = Minimize(sum)
-    #         p = Problem(obj, constraints)
-    #         objective, constr_map, dims, solver = p.canonicalize(s.ECOS)
-    #         all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
-    #         var_info = p._get_var_offsets(objective, all_ineq)
-    #         sorted_vars, var_offsets, x_length = var_info
-    #         vars_lists.append([int(v.name()) for v in sorted_vars])
-    #         ineqs_lists.append(constr_map[s.INEQ])
+    def test_consistency(self):
+        """Test that variables and constraints keep a consistent order.
+        """
+        import itertools
+        num_solves = 4
+        vars_lists = []
+        ineqs_lists = []
+        var_ids_order_created = []
+        for k in range(num_solves):
+            sum = 0
+            constraints = []
+            var_ids = []
+            for i in range(100):
+                var = Variable(name=str(i))
+                var_ids.append(var.id)
+                sum += var
+                constraints.append(var >= i)
+            var_ids_order_created.append(var_ids)
+            obj = Minimize(sum)
+            p = Problem(obj, constraints)
+            objective, constr_map, dims, solver = p.canonicalize(s.ECOS)
+            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+            var_offsets, x_length = p._get_var_offsets(objective, all_ineq)
+            # Sort by offset.
+            vars_ = sorted(var_offsets.items(), key=lambda (var_id, offset): offset)
+            vars_ = [var_id for (var_id, offset) in vars_]
+            vars_lists.append(vars_)
+            ineqs_lists.append(constr_map[s.INEQ])
 
-    #     # Verify order of variables is consistent.
-    #     for i in range(num_solves):
-    #         self.assertEqual(range(100), vars_lists[i])
-    #     for i in range(num_solves):
-    #         for idx, constr in enumerate(ineqs_lists[i]):
-    #             var = constr.variables()[0]
-    #             self.assertEqual(idx, int(var.name()))
+        # Verify order of variables is consistent.
+        for i in range(num_solves):
+            self.assertEqual(var_ids_order_created[i],
+                vars_lists[i])
+        for i in range(num_solves):
+            for idx, constr in enumerate(ineqs_lists[i]):
+                var_id, _ = lu.get_expr_vars(constr.expr)[0]
+                self.assertEqual(var_ids_order_created[i][idx],
+                    var_id)
 
     # Test removing duplicate constraint objects.
     def test_duplicate_constraints(self):
@@ -384,39 +393,39 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 15)
         self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
 
-    # # Test problems with norm2
-    # def test_norm2(self):
-    #     # Constant argument.
-    #     p = Problem(Minimize(norm2(-2)))
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
+    # Test problems with norm2
+    def test_norm2(self):
+        # Constant argument.
+        p = Problem(Minimize(norm2(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
 
-    #     # Scalar arguments.
-    #     p = Problem(Minimize(norm2(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # Scalar arguments.
+        p = Problem(Minimize(norm2(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # Maximize
-    #     p = Problem(Maximize(-norm2(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, -2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # Maximize
+        p = Problem(Maximize(-norm2(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # Vector arguments.
-    #     p = Problem(Minimize(norm2(self.x - self.z) + 5),
-    #         [self.x >= [2,3], self.z <= [-1,-4]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 12.61577)
-    #     self.assertItemsAlmostEqual(self.x.value, [2,3])
-    #     self.assertItemsAlmostEqual(self.z.value, [-1,-4])
+        # Vector arguments.
+        p = Problem(Minimize(norm2(self.x - self.z) + 5),
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12.61577)
+        self.assertItemsAlmostEqual(self.x.value, [2,3])
+        self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 
-    # # Test problems with abs
-    # def test_abs(self):
-    #     p = Problem(Minimize(sum(abs(self.A))), [-2 >= self.A])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 8)
-    #     self.assertItemsAlmostEqual(self.A.value, [-2,-2,-2,-2])
+    # Test problems with abs
+    def test_abs(self):
+        p = Problem(Minimize(sum_entries(abs(self.A))), [-2 >= self.A])
+        result = p.solve()
+        self.assertAlmostEqual(result, 8)
+        self.assertItemsAlmostEqual(self.A.value, [-2,-2,-2,-2])
 
     # # Test problems with quad_form.
     # def test_quad_form(self):

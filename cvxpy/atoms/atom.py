@@ -103,12 +103,19 @@ class Atom(Expression):
                 obj, constr = arg.canonical_form
                 arg_objs.append(obj)
                 constraints += constr
-            graph_obj, graph_constr = self.graph_implementation(arg_objs)
+            # Special info required by the graph implementation.
+            data = self.get_data()
+            graph_obj, graph_constr = self.graph_implementation(arg_objs,
+                                                                self.size,
+                                                                data)
             return (graph_obj, constraints + graph_constr)
 
-    # Returns an affine expression and list of
-    # constraints equivalent to the atom.
-    # arg_objs - the canonical objectives of the arguments.
+
+    def get_data(self):
+        """Returns special info required for graph implementation.
+        """
+        return None
+
     @abc.abstractmethod
     def graph_implementation(arg_objs, size, data):
         """Reduces the atom to an affine expression and list of constraints.

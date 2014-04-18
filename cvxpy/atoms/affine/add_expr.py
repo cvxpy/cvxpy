@@ -55,8 +55,18 @@ class AddExpression(AffAtom):
     def numeric(self, values):
         return reduce(op.add, values)
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
         """Sum the linear expressions.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
         """
         return (lu.sum_expr(arg_objs), [])
 

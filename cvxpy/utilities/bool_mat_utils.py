@@ -20,6 +20,22 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 from sparse_bool_mat import SparseBoolMat
 
+def sum_entries(value):
+    """Returns the sum of the entries in value.
+
+    Equivalent to True if any entries are True.
+
+    Args:
+        value: A bool Numpy ndarray, SparseBoolMat, or Numpy bool_.
+
+    Returns:
+        Numpy bool
+    """
+    if isinstance(value, np.bool_):
+        return value
+    else:
+        return value.any()
+
 def vstack(values):
     """Vertically concatenates bool matrices.
 
@@ -69,6 +85,9 @@ def index(value, key):
     Args:
         value: A bool Numpy ndarray, SparseBoolMat, or Numpy bool_.
         key: The indices/slices into the value.
+
+    Returns:
+        An index/slice into the value.
     """
     if isinstance(value, np.bool_):
         return value

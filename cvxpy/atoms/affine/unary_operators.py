@@ -43,7 +43,17 @@ class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
         """Negate the affine objective.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
         """
         return (lu.neg_expr(arg_objs[0]), [])

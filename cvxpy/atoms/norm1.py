@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from ..expressions import types
-from ..expressions.variables import Variable
-from elementwise.abs import abs
+from cvxpy.atoms.atom import Atom
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.elementwise.abs import abs
+from cvxpy.atoms.affine.sum_entries import sum_entries
 from numpy import linalg as LA
 
 class norm1(Atom):
@@ -52,7 +52,20 @@ class norm1(Atom):
     def monotonicity(self):
         return [u.monotonicity.SIGNED]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+        """
         x = arg_objs[0]
-        obj, constraints = abs(x).canonical_form
-        return (sum(obj), constraints)
+        obj, abs_constr = abs.graph_implementation([x], x.size, None)
+        obj, sum_constr = sum_entries.graph_implementation([obj], (1, 1), None)
+        return (obj, abs_constr + sum_constr)

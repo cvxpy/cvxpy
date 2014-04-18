@@ -150,6 +150,13 @@ class Sign(object):
         pos_mat = bu.promote(self.pos_mat, rows, cols, keep_scalars)
         return Sign(neg_mat, pos_mat)
 
+    def sum_entries(self):
+        """Returns the sign of the sum of the expression's entries.
+        """
+        neg_mat = bu.sum_entries(self.neg_mat)
+        pos_mat = bu.sum_entries(self.pos_mat)
+        return Sign(neg_mat, pos_mat)
+
     def __repr__(self):
         return "Sign(%s, %s)" % (self.neg_mat, self.pos_mat)
 

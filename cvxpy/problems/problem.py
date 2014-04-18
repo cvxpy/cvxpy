@@ -684,6 +684,7 @@ class Problem(u.Canonical):
                 vert_start = vert_offset
                 vert_end = vert_start + constr.size[0]*constr.size[1]
                 if id_ is lo.CONSTANT_ID:
+                    # Flatten the block.
                     block = self._DENSE_INTF.const_to_matrix(block)
                     block_size = intf.size(block)
                     block = self._DENSE_INTF.reshape(

@@ -147,3 +147,14 @@ class DCPAttr(object):
         """Determines the DCP attributes of a negated expression.
         """
         return DCPAttr(-self.sign, -self.curvature, self.shape)
+
+    def sum_entries(self):
+        """Determines the DCP attributes of the sum of an expression's entries.
+
+        Returns:
+            The DCPAttr of the sum.
+        """
+        shape = Shape(1, 1)
+        sign = self.sign.sum_entries()
+        curvature = self.curvature.sum_entries()
+        return DCPAttr(sign, curvature, shape)
