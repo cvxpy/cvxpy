@@ -47,7 +47,7 @@ class ConstantAtom(Constant):
             A tuple of (affine expression, [constraints]).
         """
         if len(self.parameters()) > 0:
-            obj = lu.create_param_expr(self, self.size)
+            obj = lu.create_param(self, self.size)
         else:
-            obj = lu.create_const_expr(self.value, self.size)
+            obj = lu.create_const(self.value, self.size)
         return (obj, [])

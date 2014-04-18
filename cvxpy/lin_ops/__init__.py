@@ -18,5 +18,5 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
-from cvxpy.lin_ops.lin_expr import LinExpr
 from cvxpy.lin_ops.lin_op import LinOp
+from cvxpy.lin_ops.lin_to_matrix import CONSTANT_ID, get_coefficients

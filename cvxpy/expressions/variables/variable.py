@@ -21,7 +21,6 @@ from ... import settings as s
 from ... import utilities as u
 from ..leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.lin_ops import LinExpr
 
 class Variable(Leaf):
     """ The base variable class """
@@ -61,5 +60,5 @@ class Variable(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_var_expr(self.size, self.id)
+        obj = lu.create_var(self.size, self.id)
         return (obj, [])
