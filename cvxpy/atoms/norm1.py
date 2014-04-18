@@ -64,6 +64,11 @@ class norm1(Atom):
             The size of the resulting expression.
         data :
             Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
         """
         x = arg_objs[0]
         obj, abs_constr = abs.graph_implementation([x], x.size, None)

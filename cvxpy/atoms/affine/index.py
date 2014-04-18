@@ -17,14 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine_atom import AffAtom
-from ... import utilities as u
-from ...utilities import bool_mat_utils as bu
-from ...utilities import key_utils as ku
-from ...expressions.variables import Variable
+from cvxpy.atoms.affine.affine_atom import AffAtom
+import cvxpy.utilities as u
+from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.lin_ops.lin_op as lo
-from cvxpy.lin_ops import LinExpr
 
 class index(AffAtom):
     """ Indexing/slicing into a matrix. """
@@ -48,8 +44,23 @@ class index(AffAtom):
     def init_dcp_attr(self):
         self._dcp_attr = self.args[0]._dcp_attr[self.key]
 
-    def graph_implementation(self, arg_objs):
-        x = arg_objs[0]
-        index_op = lo.LinOp(lo.INDEX, x.var_id, x.var_size, 1.0, self.key)
-        obj = LinExpr([index_op], self.size)
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Index into the expression.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data : tuple
+            A tuple of slices.
+
+        Returns
+        -------
+        tuple
+            (LinOp, [constraints])
+        """
+        obj = lu.index(arg_objs[0], arg_objs[0].size, data)
         return (obj, [])

@@ -68,6 +68,19 @@ def format_slice(key_val):
     else:
         return slice(key_val, key_val+1, 1)
 
+def index_to_slice(idx):
+    """Converts an index to a slice.
+
+    Args:
+        idx: int
+            The index.
+
+    Returns:
+    slice
+        A slice equivalent to the index.
+    """
+    return slice(idx, idx+1, None)
+
 def slice_to_str(slice_):
     """Converts a slice into a string.
     """
@@ -78,6 +91,24 @@ def slice_to_str(slice_):
         return "%s:%s:%s" % (slice_.start, stop, slice_.step)
     else:
         return "%s:%s" % (slice_.start, stop)
+
+def scale_slice(slice_, scale):
+    """Rescales slice so each index is a block of size scale.
+
+    Args:
+        slice_: A slice into an expression.
+        scale: The block size represented by each index.
+
+    Returns:
+        A rescaled slice.
+    """
+    start = slice_.start*scale
+    stop = (slice_.stop-1)*scale + 1
+    if slice_.step is None:
+        return slice(start, stop, None)
+    else:
+        step = slice_.step*scale
+        return slice(start, stop, step)
 
 def is_single_index(slice_):
     """Is the slice equivalent to a single index?

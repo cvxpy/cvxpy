@@ -67,6 +67,11 @@ class MulExpression(BinaryOperator):
             The size of the resulting expression.
         data :
             Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
         """
         return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 

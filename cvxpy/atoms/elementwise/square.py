@@ -17,12 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elementwise import Elementwise
-from ..quad_over_lin import quad_over_lin
-from ... import utilities as u
-from ... import interface as intf
-from ...expressions import types
-from ...expressions.variables import Variable
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from  cvxpy.atoms.quad_over_lin import quad_over_lin
+from  cvxpy.atoms.affine.index import index
+import cvxpy.utilities as u
+from cvxpy.utilities import key_utils as ku
+import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 class square(Elementwise):
@@ -46,13 +46,39 @@ class square(Elementwise):
     def monotonicity(self):
         return [u.monotonicity.SIGNED]
 
-    def graph_implementation(self, arg_objs):
-        rows, cols = self.size
-        t = Variable(rows, cols)
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        rows, cols = size
+        x = arg_objs[0]
+        t = lu.create_var(size)
+        one = lu.create_const(1, (1, 1))
         constraints = []
         for i in xrange(rows):
+            row_slc = ku.index_to_slice(i)
             for j in xrange(cols):
-                xi = arg_objs[0][i,j]
-                obj, constr = quad_over_lin(xi, 1).canonical_form
-                constraints += constr + [obj <= t[i,j]]
+                col_slc = ku.index_to_slice(j)
+                key = (row_slc, col_slc)
+                xi, x_idx_constr = index.graph_implementation([x], x.size, key)
+                obj, qol_constr = quad_over_lin.graph_implementation([xi, one],
+                                                                     (1, 1),
+                                                                     None)
+                ti, t_idx_constr = index.graph_implementation([t], t.size, key)
+                constraints += x_idx_constr + qol_constr + t_idx_constr
+                constraints.append(lu.create_leq(obj, ti))
         return (t, constraints)

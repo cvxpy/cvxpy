@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.interface as intf
+import cvxpy.utilities.key_utils as ku
 import numpy as np
 import scipy.sparse as sp
 
@@ -69,6 +70,8 @@ def get_coefficients(lin_op):
         coeffs = mul_coeffs(lin_op)
     elif lin_op.type is lo.SUM_ENTRIES:
         coeffs = sum_entries_coeffs(lin_op)
+    elif lin_op.type is lo.INDEX:
+        coeffs = index_coeffs(lin_op)
     return coeffs
 
 def sum_coeffs(lin_op):
@@ -167,5 +170,40 @@ def mul_coeffs(lin_op):
                 product = rep_mat*coeff
             new_coeffs.append((id_, rh_size, product))
         rh_coeffs = new_coeffs
+
+    return new_coeffs
+
+def index_coeffs(lin_op):
+    """Returns the coefficients for INDEX linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The index linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    key = lin_op.data
+    coeffs = get_coefficients(lin_op.args[0])
+    new_coeffs = []
+    for id_, size, block in coeffs:
+        # Index/slice constants normally.
+        if id_ is lo.CONSTANT_ID:
+            size = lin_op.size
+            block = intf.index(block, key)
+        # Index/slice rows and zero out cols for variable.
+        else:
+            rows, _ = size
+            # Select columns.
+            col_key = (ku.scale_slice(key[1], rows),
+                       slice(None, None, None))
+            block = intf.index(block, col_key)
+            # Select rows.
+            row_key = (key[0], slice(None, None, None))
+            block = intf.index(block, row_key)
+        new_coeffs.append((id_, size, block))
 
     return new_coeffs

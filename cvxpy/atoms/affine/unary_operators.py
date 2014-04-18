@@ -55,5 +55,10 @@ class NegExpression(UnaryOperator):
             The size of the resulting expression.
         data :
             Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
         """
         return (lu.neg_expr(arg_objs[0]), [])

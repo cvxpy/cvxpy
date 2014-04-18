@@ -115,7 +115,12 @@ def sign(constant):
 
 # Get the value at the given index.
 def index(constant, key):
-    if isinstance(constant, numbers.Number):
+    if is_scalar(constant):
         return constant
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].index(constant, key)
+    # Use CSC interface for all sparse matrices.
+    elif is_sparse(constant):
+        interface = INTERFACES[sp.csc_matrix]
+        constant = interface.const_to_matrix(constant)
+        return interface.index(constant, key)

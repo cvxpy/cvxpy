@@ -136,6 +136,23 @@ def neg_expr(operator):
     """
     return lo.LinOp(lo.NEG, operator.size, [operator], None)
 
+def sub_expr(lh_op, rh_op):
+    """Difference of linear operators.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the difference.
+    rh_op : LinOp
+        The right-hand operator in the difference.
+
+    Returns
+    -------
+    LinOp
+        A LinOp representing the difference of the operators.
+    """
+    return sum_expr([lh_op, neg_expr(rh_op)])
+
 def mul_expr(lh_op, rh_op, size):
     """Multiply two linear operators.
 
