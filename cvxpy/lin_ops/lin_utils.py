@@ -99,8 +99,11 @@ def create_const(value, size):
     LinOP
         A LinOp wrapping the constant.
     """
+    # Check if scalar.
+    if intf.is_scalar(value):
+        op_type = lo.SCALAR_CONST
     # Check if sparse.
-    if intf.is_sparse(value):
+    elif intf.is_sparse(value):
         op_type = lo.SPARSE_CONST
     else:
         op_type = lo.DENSE_CONST
@@ -221,8 +224,8 @@ def transpose(operator):
     """
     size = (operator.size[1], operator.size[0])
     # If operator is a Variable, no need to create a new variable.
-    if operator.args[0].type is lo.VARIABLE:
-        return lo.LinOp(lo.TRANSPOSE, size, [operator], None)
+    if operator.type is lo.VARIABLE:
+        return (lo.LinOp(lo.TRANSPOSE, size, [operator], None), [])
     # Operator is not a variable, create a constraint and new variable.
     else:
         new_var = create_var(operator.size)

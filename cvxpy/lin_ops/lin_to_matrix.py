@@ -59,7 +59,7 @@ def get_coefficients(lin_op):
     # Constants convert directly to their value.
     elif lin_op.type is lo.PARAM:
         coeffs = [(lo.CONSTANT_ID, lin_op.size, lin_op.data.value)]
-    elif lin_op.type in [lo.DENSE_CONST, lo.SPARSE_CONST]:
+    elif lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
         coeffs = [(lo.CONSTANT_ID, lin_op.size, lin_op.data)]
     # For non-leaves, recurse on args.
     elif lin_op.type is lo.SUM:
@@ -162,8 +162,10 @@ def mul_coeffs(lin_op):
     for (_, lh_size, constant) in lh_coeffs:
         for (id_, rh_size, coeff) in rh_coeffs:
             rep_mat = sp.block_diag(cols*[constant])
-            # For constants or single column, just multiply.
-            if id_ is lo.CONSTANT_ID or cols == 1:
+            # For scalar right hand, constants
+            # or single column, just multiply.
+            if intf.is_scalar(constant) or \
+               id_ is lo.CONSTANT_ID or cols == 1:
                 product = constant*coeff
             # For promoted variables, flatten the matrix.
             elif lh_size != (1, 1) and rh_size == (1, 1):
@@ -200,14 +202,25 @@ def index_coeffs(lin_op):
             block = intf.index(block, key)
         # Index/slice rows and zero out cols for variable.
         else:
-            rows, _ = size
-            # Select columns.
+            # For promoted vars, the coeff is a flattened
+            # matrix with the same size as the argument.
+            if size == (1, 1):
+                rows, cols = lin_op.args[0].size
+            # For unpromoted vars, the coeff is one block
+            # for each column, stacked vertically.
+            # Each block has dimensions rows by size of var.
+            else:
+                rows = lin_op.args[0].size[0]
+                cols = size[1]
+            # Select column blocks.
             col_key = (ku.scale_slice(key[1], rows),
                        slice(None, None, None))
             block = intf.index(block, col_key)
-            # Select rows.
-            row_key = (key[0], slice(None, None, None))
-            block = intf.index(block, row_key)
+            # Select rows from each column block.
+            for col in range(cols):
+                row_key = (ku.offset_slice(key[0], col*rows),
+                           slice(None, None, None))
+                block = intf.index(block, row_key)
         new_coeffs.append((id_, size, block))
 
     return new_coeffs
@@ -234,10 +247,10 @@ def transpose_coeffs(lin_op):
     # Create a sparse matrix representing the transpose.
     interface = intf.DEFAULT_SPARSE_INTERFACE
     new_block = interface.zeros(rows*cols, rows*cols).tolil()
-    for col in xrange(cols):
-        for row in xrange(rows):
-            t_row = col*rows + row # row in transpose coeff.
-            t_col = row*cols + col # row in original coeff.
+    for row in xrange(rows):
+        for col in xrange(cols):
+            t_row = row*cols + col # row in transpose coeff.
+            t_col = col*rows + row # row in original coeff.
             new_block[t_row, t_col] = 1.0
 
     return [(id_, size, new_block.tocsc())]

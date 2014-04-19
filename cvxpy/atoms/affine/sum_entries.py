@@ -18,40 +18,35 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
-from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
-class index(AffAtom):
-    """ Indexing/slicing into a matrix. """
-    # expr - the expression indexed/sliced into.
-    # key - the index/slicing key (i.e. expr[key[0],key[1]]).
-    def __init__(self, expr, key):
-        # Format and validate key.
-        self.key = ku.validate_key(key, expr.shape)
-        super(index, self).__init__(expr)
+class sum_entries(AffAtom):
+    """ Summing the entries of an expression.
 
-    # The string representation of the atom.
-    def name(self):
-        return self.args[0].name() + "[%s, %s]" % ku.to_str(self.key)
+    Attributes
+    ----------
+    expr : CVXPY Expression
+        The expression to sum the entries of.
+    """
 
-    # Returns the index/slice into the given value.
+    def __init__(self, expr):
+        super(sum_entries, self).__init__(expr)
+
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        return values[0][self.key]
-
-    # The shape, sign, and curvature of the index/slice.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.args[0]._dcp_attr[self.key]
-
-    def get_data(self):
-        """Returns the (row slice, column slice).
+        """Sums the entries of value.
         """
-        return self.key
+        return np.sum(values[0])
+
+    def init_dcp_attr(self):
+        """The sign, curvature, and shape of the sum.
+        """
+        self._dcp_attr = self.args[0]._dcp_attr.sum_entries()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data):
-        """Index into the expression.
+        """Sum the linear expression's entries.
 
         Parameters
         ----------
@@ -59,13 +54,12 @@ class index(AffAtom):
             LinExpr for each argument.
         size : tuple
             The size of the resulting expression.
-        data : tuple
-            A tuple of slices.
+        data :
+            Additional data required by the atom.
 
         Returns
         -------
         tuple
-            (LinOp, [constraints])
+            (LinOp for objective, list of constraints)
         """
-        obj = lu.index(arg_objs[0], arg_objs[0].size, data)
-        return (obj, [])
+        return (lu.sum_entries(arg_objs[0]), [])

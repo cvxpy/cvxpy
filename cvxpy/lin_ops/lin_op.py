@@ -46,7 +46,10 @@ TRANSPOSE = "transpose"
 # The sum of the entries of an expression.
 # Data: None
 SUM_ENTRIES = "sum_entries"
-# A dense matrix/vector/scalar constant.
+# A scalar constant.
+# Data: Python float.
+SCALAR_CONST = "scalar_const"
+# A dense matrix/vector constant.
 # Data: NumPy matrix.
 DENSE_CONST = "dense_const"
 # A sparse matrix constant.

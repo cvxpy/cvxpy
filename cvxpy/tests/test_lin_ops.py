@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.lin_ops.lin_to_matrix import get_matrix
+from cvxpy.lin_ops.lin_to_matrix import get_coefficients
 from cvxpy.lin_ops.lin_utils import *
 from cvxpy.lin_ops.lin_op import *
 from cvxpy.expressions.constants import Parameter
@@ -32,18 +32,19 @@ class test_lin_ops(BaseTest):
     def test_variables(self):
         """Test creating a variable.
         """
-        var = create_var((5, 4))
-        self.assertEqual(var.var_size, (5, 4))
-        self.assertEqual(var.scalar_coeff, 1.0)
-        self.assertEqual(var.type, EYE_MUL)
+        var = create_var((5, 4), var_id=1)
+        self.assertEqual(var.size, (5, 4))
+        self.assertEqual(var.data, 1)
+        self.assertEqual(len(var.args), 0)
+        self.assertEqual(var.type, VARIABLE)
 
     def test_param(self):
         """Test creating a parameter.
         """
         A = Parameter(5, 4)
         var = create_param(A, (5, 4))
-        self.assertEqual(var.var_size, (5, 4))
-        self.assertEqual(var.scalar_coeff, 1.0)
+        self.assertEqual(var.size, (5, 4))
+        self.assertEqual(len(var.args), 0)
         self.assertEqual(var.type, PARAM)
 
     def test_constant(self):
@@ -52,24 +53,24 @@ class test_lin_ops(BaseTest):
         # Scalar constant.
         size = (1, 1)
         mat = create_const(1.0, size)
-        self.assertEqual(mat.var_size, size)
-        self.assertEqual(mat.scalar_coeff, 1.0)
+        self.assertEqual(mat.size, size)
+        self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, SCALAR_CONST)
         assert mat.data == 1.0
 
         # Dense matrix constant.
         size = (5, 4)
         mat = create_const(np.ones(size), size)
-        self.assertEqual(mat.var_size, size)
-        self.assertEqual(mat.scalar_coeff, 1.0)
+        self.assertEqual(mat.size, size)
+        self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, DENSE_CONST)
         assert (mat.data == np.ones(size)).all()
 
         # Sparse matrix constant.
         size = (5, 5)
         mat = create_const(sp.eye(5), size)
-        self.assertEqual(mat.var_size, size)
-        self.assertEqual(mat.scalar_coeff, 1.0)
+        self.assertEqual(mat.size, size)
+        self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, SPARSE_CONST)
         assert (mat.data.todense() == sp.eye(5).todense()).all()
 
@@ -79,13 +80,10 @@ class test_lin_ops(BaseTest):
         size = (5, 4)
         x = create_var(size)
         y = create_var(size)
-        x_expr = LinExpr([x], size)
-        y_expr = LinExpr([y], size)
         # Expanding dict.
-        add_expr = sum_expr([x_expr, y_expr])
-        terms = add_expr.terms
-        assert len(terms) == 2
-        self.assertItemsEqual([x, y], terms)
+        add_expr = sum_expr([x, y])
+        self.assertEqual(add_expr.size, size)
+        assert len(add_expr.args) == 2
 
     def test_get_vars(self):
         """Test getting vars from an expression.
@@ -94,154 +92,20 @@ class test_lin_ops(BaseTest):
         x = create_var(size)
         y = create_var(size)
         A = create_const(np.ones(size), size)
-        x_expr = LinExpr([x], size)
-        y_expr = LinExpr([y], size)
-        const_expr = LinExpr([A], size)
         # Expanding dict.
-        add_expr = sum_expr([x_expr, y_expr, const_expr])
+        add_expr = sum_expr([x, y, A])
         vars_ = get_expr_vars(add_expr)
-        self.assertItemsEqual(vars_, [(x.var_id, size), (y.var_id, size)])
+        self.assertItemsEqual(vars_, [(x.data, size), (y.data, size)])
 
-    def test_neg_term(self):
-        """Test negating a term.
+    def test_neg_expr(self):
+        """Test negating an expression.
         """
-        var = create_var((5, 4))
-        term = neg_term(var)
-        self.assertEqual(term.var_size, (5, 4))
-        self.assertEqual(term.scalar_coeff, -1.0)
-        self.assertEqual(term.type, EYE_MUL)
-
-    def test_mul_term(self):
-        """Test multiplying terms by a constant.
-        """
-        size = (5, 5)
-        # Eye times constants.
-        x = create_var(size)
-        # Scalar
-        A = create_const(2.0, (1, 1))
-        term = mul_term(A, x)
-        self.assertEqual(term.var_size, size)
-        self.assertEqual(term.scalar_coeff, 2.0)
-        self.assertEqual(term.type, EYE_MUL)
-        # Dense
-        A = create_const(np.ones(size), size)
-        term = mul_term(A, x)
-        self.assertEqual(term.scalar_coeff, 1.0)
-        self.assertEqual(term.type, DENSE_MUL)
-        self.assertItemsAlmostEqual(term.data, np.ones(size))
-        # Sparse
-        A = create_const(sp.eye(5), size)
-        term = mul_term(A, x)
-        self.assertEqual(term.scalar_coeff, 1.0)
-        self.assertEqual(term.type, SPARSE_MUL)
-        self.assertItemsAlmostEqual(term.data.todense(),
-            sp.eye(5).todense())
-        # Parameter
-        param = Parameter(*size)
-        param.value = np.ones(size)
-        A = LinOp(PARAM, CONSTANT_ID, size, 1.0, param)
-        term = mul_term(A, x)
-        self.assertEqual(term.scalar_coeff, 1.0)
-        self.assertEqual(term.type, PARAM_MUL)
-        self.assertItemsAlmostEqual(term.data.value, param.value)
-
-        # Multiplying by a scalar.
-        op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
-        A = create_const(5.0, (1, 1))
-        term = mul_term(A, op)
-        self.assertEqual(term.scalar_coeff, 5.0)
-        self.assertEqual(term.type, TRANSPOSE)
-
-        # Dense * Dense
-        value = np.ones(size)
-        A = create_const(value, size)
-        term = mul_term(A, x)
-        term = mul_term(A, term)
-        self.assertEqual(term.scalar_coeff, 1.0)
-        self.assertEqual(term.type, DENSE_MUL)
-        self.assertItemsAlmostEqual(term.data, value*value)
-
-        term = mul_term(A, A)
-        self.assertEqual(term.type, DENSE_CONST)
-        self.assertItemsAlmostEqual(term.data, value*value)
-
-        # Sparse * Sparse
-        value = 3*sp.eye(5)
-        A = create_const(value, size)
-        term = mul_term(A, x)
-        term = mul_term(A, term)
-        self.assertEqual(term.scalar_coeff, 1.0)
-        self.assertEqual(term.type, SPARSE_MUL)
-        self.assertItemsAlmostEqual(term.data.todense(),
-            (value*value).todense())
-
-        term = mul_term(A, A)
-        self.assertEqual(term.type, SPARSE_CONST)
-        self.assertItemsAlmostEqual(term.data.todense(),
-            (value*value).todense())
-
-        # Dense * Sparse
-        value = 3*sp.eye(5)
-        A = create_const(value, size)
-        B = create_const(np.ones(size), size)
-        term = mul_term(A, x)
-        term = mul_term(B, term)
-        self.assertEqual(term.type, DENSE_MUL)
-        self.assertItemsAlmostEqual(term.data, np.ones(size)*value)
-
-    def test_mul_by_const(self):
-        """Test multiplying an expression by a constant.
-        """
-        size = (5, 5)
-        x = create_var(size)
-        y = create_var(size)
-        # No constraints needed.
-        expr = LinExpr([x, y], size)
-        value = np.ones(size)
-        A = create_const(value, size)
-        product, constr = mul_by_const(A, expr, size)
-        assert len(constr) == 0
-        assert len(product.terms) == 2
-        self.assertEqual(product.terms[0].type, DENSE_MUL)
-
-        # Constraint needed.
-        op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
-        expr = LinExpr([x, y, op], size)
-        A = create_const(value, size)
-        product, constr = mul_by_const(A, expr, size)
-        assert len(constr) == 1
-        assert len(constr[0].expr.terms) == 4
-        assert len(product.terms) == 1
-        self.assertEqual(product.terms[0].type, DENSE_MUL)
-
-    def test_mul_expr(self):
-        """Test multiplying two expressions.
-        """
-        size = (5, 5)
-        x = create_var(size)
-        y = create_var(size)
-        # No constraints needed.
-        rh_expr = LinExpr([x, y], size)
-        value = np.ones(size)
-        A = create_const(value, size)
-        B = create_const(5, (1, 1))
-        lh_expr = LinExpr([A, B], size)
-        product, constr = mul_expr(lh_expr, rh_expr, size)
-        assert len(constr) == 0
-        assert len(product.terms) == 2
-        self.assertEqual(product.terms[0].type, DENSE_MUL)
-
-        # Constraint needed.
-        op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
-        rh_expr = LinExpr([x, y, op], size)
-        A = create_const(value, size)
-        B = create_const(5, (1, 1))
-        lh_expr = LinExpr([A, B], size)
-        product, constr = mul_expr(lh_expr, rh_expr, size)
-        assert len(constr) == 1
-        assert len(constr[0].expr.terms) == 4
-        assert len(product.terms) == 1
-        self.assertEqual(product.terms[0].type, DENSE_MUL)
+        size = (5, 4)
+        var = create_var(size)
+        expr = neg_expr(var)
+        assert len(expr.args) == 1
+        self.assertEqual(expr.size, size)
+        self.assertEqual(expr.type, NEG)
 
     def test_eq_constr(self):
         """Test creating an equality constraint.
@@ -249,15 +113,13 @@ class test_lin_ops(BaseTest):
         size = (5, 5)
         x = create_var(size)
         y = create_var(size)
-        lh_expr = LinExpr([x, y], size)
+        lh_expr = sum_expr([x, y])
         value = np.ones(size)
-        A = create_const(value, size)
-        rh_expr = LinExpr([A], size)
+        rh_expr = create_const(value, size)
         constr = create_eq(lh_expr, rh_expr)
         self.assertEqual(constr.size, size)
-        assert len(constr.expr.terms) == 3
-        coeffs = [t.scalar_coeff for t in constr.expr.terms]
-        self.assertItemsEqual([1, 1, -1], coeffs)
+        vars_ = get_expr_vars(constr.expr)
+        self.assertItemsEqual(vars_, [(x.data, size), (y.data, size)])
 
     def test_leq_constr(self):
         """Test creating a less than or equal constraint.
@@ -265,133 +127,212 @@ class test_lin_ops(BaseTest):
         size = (5, 5)
         x = create_var(size)
         y = create_var(size)
-        lh_expr = LinExpr([x, y], size)
+        lh_expr = sum_expr([x, y])
         value = np.ones(size)
-        A = create_const(value, size)
-        rh_expr = LinExpr([A], size)
+        rh_expr = create_const(value, size)
         constr = create_leq(lh_expr, rh_expr)
         self.assertEqual(constr.size, size)
-        assert len(constr.expr.terms) == 3
-        coeffs = [t.scalar_coeff for t in constr.expr.terms]
-        self.assertItemsEqual([1, 1, -1], coeffs)
+        vars_ = get_expr_vars(constr.expr)
+        self.assertItemsEqual(vars_, [(x.data, size), (y.data, size)])
 
-    def test_get_matrix(self):
-        """Test the get_matrix function.
+    def test_get_coefficients(self):
+        """Test the get_coefficients function.
         """
         size = (5, 4)
         # Eye
         x = create_var(size)
-        mat = get_matrix(x)
+        coeffs = get_coefficients(x)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(id_, x.data)
+        self.assertEqual(var_size, size)
         self.assertItemsAlmostEqual(mat.todense(), sp.eye(20).todense())
         # Eye with scalar mult.
         x = create_var(size)
         A = create_const(5, (1, 1))
-        mat = get_matrix(mul_term(A, x))
+        coeffs = get_coefficients(mul_expr(A, x, size))
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
         self.assertItemsAlmostEqual(mat.todense(), 5*sp.eye(20).todense())
         # Promoted
         x = create_var((1, 1))
         A = create_const(np.ones(size), size)
-        mat = get_matrix(mul_term(A, x))
+        coeffs = get_coefficients(mul_expr(A, x, size))
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
         self.assertEqual(mat.shape, (20, 1))
         self.assertItemsAlmostEqual(mat, np.ones((20, 1)))
         # Normal
         size = (5, 5)
         x = create_var((5, 1))
         A = create_const(np.ones(size), size)
-        mat = get_matrix(mul_term(A, x))
+        coeffs = get_coefficients(mul_expr(A, x, (5, 1)))
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
         self.assertEqual(mat.shape, (5, 5))
-        self.assertItemsAlmostEqual(mat.todense(), A.data)
+        self.assertItemsAlmostEqual(mat, A.data)
         # Blocks
         size = (5, 5)
         x = create_var(size)
         A = create_const(np.ones(size), size)
-        mat = get_matrix(mul_term(A, x))
+        coeffs = get_coefficients(mul_expr(A, x, size))
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
         self.assertEqual(mat.shape, (25, 25))
         self.assertItemsAlmostEqual(mat.todense(),
          sp.block_diag(5*[np.ones(size)]).todense())
         # Scalar constant
         size = (1, 1)
         A = create_const(5, size)
-        mat = get_matrix(A)
-        self.assertEqual(mat.shape, (1, 1))
-        self.assertItemsAlmostEqual(mat, np.array(5))
+        coeffs = get_coefficients(A)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(intf.size(mat), (1, 1))
+        self.assertEqual(mat, 5)
         # Dense constant
         size = (5, 4)
         A = create_const(np.ones(size), size)
-        mat = get_matrix(A)
-        self.assertEqual(mat.shape, (20, 1))
-        self.assertItemsAlmostEqual(mat, np.ones((20, 1)))
+        coeffs = get_coefficients(A)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, size)
+        self.assertItemsAlmostEqual(mat, np.ones(size))
         # Sparse constant
         size = (5, 5)
         A = create_const(sp.eye(5), size)
-        mat = get_matrix(A)
-        self.assertEqual(mat.shape, (25, 1))
-        test_mat = np.zeros((25, 1))
-        for i in range(5):
-            test_mat[i*5 + i] = 1
-        self.assertItemsAlmostEqual(mat, test_mat)
+        coeffs = get_coefficients(A)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, size)
+        self.assertItemsAlmostEqual(mat.todense(), sp.eye(5).todense())
         # Parameter
         size = (5, 4)
         param = Parameter(*size)
         param.value = np.ones(size)
-        A = LinOp(PARAM, CONSTANT_ID, size, 2.0, param)
-        mat = get_matrix(A)
-        self.assertEqual(mat.shape, (20, 1))
-        self.assertItemsAlmostEqual(mat, 2*np.ones((20, 1)))
+        A = create_param(param, size)
+        coeffs = get_coefficients(A)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, size)
+        self.assertItemsAlmostEqual(mat, param.value)
+
+    def test_transpose(self):
+        """Test transpose op and coefficients.
+        """
+        size = (5, 4)
+        x = create_var(size)
+        expr, constr = transpose(x)
+        assert len(constr) == 0
+        self.assertEqual(expr.size, (4, 5))
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        test_mat = np.mat(range(20)).T
+        self.assertItemsAlmostEqual((mat*test_mat).reshape((4, 5), order='F'),
+            test_mat.reshape(size, order='F').T)
+
+    def test_index(self):
+        """Test the get_coefficients function for index.
+        """
+        size = (5, 4)
+        # # Eye
+        # x = create_var(size)
+        # coeffs = get_coefficients(x)
+        # assert len(coeffs) == 1
+        # id_, var_size, mat = coeffs[0]
+        # self.assertEqual(id_, x.data)
+        # self.assertEqual(var_size, size)
+        # self.assertItemsAlmostEqual(mat.todense(), sp.eye(20).todense())
+        # # Eye with scalar mult.
+        # x = create_var(size)
+        # A = create_const(5, (1, 1))
+        # coeffs = get_coefficients(mul_expr(A, x, size))
+        # assert len(coeffs) == 1
+        # id_, var_size, mat = coeffs[0]
+        # self.assertItemsAlmostEqual(mat.todense(), 5*sp.eye(20).todense())
+        # Promoted
+        key = (slice(0,1,None), slice(0,2,None))
+        x = create_var((1, 1))
+        value = np.array(range(20)).reshape(size)
+        A = create_const(value, size)
+        expr = mul_expr(A, x, size)
+        expr = index(expr, (1, 2), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, (2, 1))
+        self.assertItemsAlmostEqual(mat, value[key].T)
+        # # Normal
+        # size = (5, 5)
+        # x = create_var((5, 1))
+        # A = create_const(np.ones(size), size)
+        # coeffs = get_coefficients(mul_expr(A, x, (5, 1)))
+        # assert len(coeffs) == 1
+        # id_, var_size, mat = coeffs[0]
+        # self.assertEqual(mat.shape, (5, 5))
+        # self.assertItemsAlmostEqual(mat, A.data)
+        # # Blocks
+        # size = (5, 5)
+        # x = create_var(size)
+        # A = create_const(np.ones(size), size)
+        # coeffs = get_coefficients(mul_expr(A, x, size))
+        # assert len(coeffs) == 1
+        # id_, var_size, mat = coeffs[0]
+        # self.assertEqual(mat.shape, (25, 25))
+        # self.assertItemsAlmostEqual(mat.todense(),
+        #  sp.block_diag(5*[np.ones(size)]).todense())
+        # Scalar constant
+        size = (1, 1)
+        A = create_const(5, size)
+        key = (slice(0,1,None), slice(0,1,None))
+        expr = index(A, (1, 1), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(intf.size(mat), (1, 1))
+        self.assertEqual(mat, 5)
+        # Dense constant
+        size = (5, 4)
+        key = (slice(0,2,None), slice(0,1,None))
+        value = np.array(range(20)).reshape(size)
+        A = create_const(value, size)
+        expr = index(A, (2, 1), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, (2, 1))
+        self.assertItemsAlmostEqual(mat, value[key])
+        # Sparse constant
+        size = (5, 5)
+        key = (slice(0,2,None), slice(0,1,None))
+        A = create_const(sp.eye(5), size)
+        expr = index(A, (2, 1), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, (2, 1))
+        self.assertItemsAlmostEqual(mat.todense(), sp.eye(5).todense()[key])
+        # Parameter
+        size = (5, 4)
+        key = (slice(0,2,None), slice(0,1,None))
+        param = Parameter(*size)
+        value = np.array(range(20)).reshape(size)
+        param.value = value
+        A = create_param(param, size)
+        expr = index(A, (2, 1), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, (2, 1))
+        self.assertItemsAlmostEqual(mat, param.value[key])
+
 
     def test_sum_entries(self):
         """Test sum entries op.
         """
         size = (5, 5)
         x = create_var(size)
-        y = create_var(size)
-        add_expr = LinExpr([x, y], size)
-        expr, constr = sum_entries(add_expr)
-        assert len(constr) == 0
+        expr = sum_entries(x)
         self.assertEqual(expr.size, (1, 1))
-        self.assertEqual(expr.terms[0].type, lo.SUM_ENTRIES)
-
-    # def test_add_terms(self):
-    #     """Test adding lin ops. Assume ids match.
-    #     """
-    #     size = (5, 4)
-    #     # Add variables.
-    #     x = create_var(size)
-    #     op = add_terms(x, x)
-    #     self.assertEqual(op.var_id, x.var_id)
-    #     self.assertEqual(op.var_size, size)
-    #     self.assertEqual(op.scalar_coeff, 2.0)
-    #     self.assertEqual(op.type, EYE_MUL)
-
-    #     # Add dense * var.
-    #     op = LinOp(DENSE_MUL, x.var_id, x.var_size, 2.0, np.ones((5, 5)))
-    #     add_op = add_terms(op, op)
-    #     self.assertEqual(add_op.var_id, x.var_id)
-    #     self.assertEqual(add_op.var_size, size)
-    #     self.assertEqual(add_op.scalar_coeff, 1.0)
-    #     self.assertEqual(add_op.type, DENSE_MUL)
-    #     self.assertItemsAlmostEqual(add_op.data, 4*np.ones((5, 5)))
-
-    #     # Add sparse * var.
-    #     op = LinOp(SPARSE_MUL, x.var_id, x.var_size, 2.0, sp.eye(5))
-    #     add_op = add_terms(op, op)
-    #     self.assertEqual(add_op.var_id, x.var_id)
-    #     self.assertEqual(add_op.var_size, size)
-    #     self.assertEqual(add_op.scalar_coeff, 1.0)
-    #     self.assertEqual(add_op.type, SPARSE_MUL)
-    #     self.assertItemsAlmostEqual(add_op.data.todense(), 4*sp.eye(5).todense())
-
-    #     # Add transpose.
-    #     op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
-    #     add_op = add_terms(op, op)
-    #     self.assertEqual(add_op.var_id, x.var_id)
-    #     self.assertEqual(add_op.var_size, size)
-    #     self.assertEqual(add_op.scalar_coeff, 2.0)
-    #     self.assertEqual(add_op.type, TRANSPOSE)
-
-    #     # Add transpose to eye.
-    #     size = (5, 5)
-    #     x = create_var(size)
-    #     op = LinOp(TRANSPOSE, x.var_id, x.var_size, 1.0, None)
-    #     add_op = add_terms(op, x)
-    #     assert add_op is None
+        self.assertEqual(len(expr.args), 1)
+        self.assertEqual(expr.type, lo.SUM_ENTRIES)
