@@ -625,17 +625,20 @@ class Problem(u.Canonical):
             result_vec = self._DENSE_INTF.const_to_matrix(result_vec)
         for obj in objects:
             rows, cols = obj.size
-            offset = offset_map[obj.id]
-            # Handle scalars
-            if (rows, cols) == (1,1):
-                value = intf.index(result_vec, (offset, 0))
-            else:
+            if obj.id in offset_map:
+                offset = offset_map[obj.id]
+                # Handle scalars
+                if (rows, cols) == (1,1):
+                    value = intf.index(result_vec, (offset, 0))
+                else:
+                    value = self._DENSE_INTF.zeros(rows, cols)
+                    self._DENSE_INTF.block_add(value,
+                        result_vec[offset:offset + rows*cols],
+                        0, 0, rows, cols)
+                offset += rows*cols
+            else: # The variable was multiplied by zero.
                 value = self._DENSE_INTF.zeros(rows, cols)
-                self._DENSE_INTF.block_add(value,
-                    result_vec[offset:offset + rows*cols],
-                    0, 0, rows, cols)
             obj.save_value(value)
-            offset += rows*cols
 
     def _get_obj(self, objective, var_offsets, x_length,
                  matrix_intf, vec_intf):
