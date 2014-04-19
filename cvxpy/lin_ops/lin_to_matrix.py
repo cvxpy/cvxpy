@@ -72,6 +72,10 @@ def get_coefficients(lin_op):
         coeffs = sum_entries_coeffs(lin_op)
     elif lin_op.type is lo.INDEX:
         coeffs = index_coeffs(lin_op)
+    elif lin_op.type is lo.TRANSPOSE:
+        coeffs = transpose_coeffs(lin_op)
+    else:
+        raise Exception("Unknown linear operator.")
     return coeffs
 
 def sum_coeffs(lin_op):
@@ -207,3 +211,33 @@ def index_coeffs(lin_op):
         new_coeffs.append((id_, size, block))
 
     return new_coeffs
+
+def transpose_coeffs(lin_op):
+    """Returns the coefficients for TRANSPOSE linear op.
+
+    Assumes lin_op's arg is a single variable.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The transpose linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    coeffs = get_coefficients(lin_op.args[0])
+    assert len(coeffs) == 1
+    id_, size, _ = coeffs[0]
+    rows, cols = size
+    # Create a sparse matrix representing the transpose.
+    interface = intf.DEFAULT_SPARSE_INTERFACE
+    new_block = interface.zeros(rows*cols, rows*cols).tolil()
+    for col in xrange(cols):
+        for row in xrange(rows):
+            t_row = col*rows + row # row in transpose coeff.
+            t_col = row*cols + col # row in original coeff.
+            new_block[t_row, t_col] = 1.0
+
+    return [(id_, size, new_block.tocsc())]

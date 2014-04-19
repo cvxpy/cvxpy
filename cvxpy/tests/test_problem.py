@@ -66,32 +66,32 @@ class TestProblem(BaseTest):
         params = p.parameters()
         self.assertItemsEqual(params, [p1, p2, p3])
 
-    # # Test silencing and enabling solver messages.
-    # def test_verbose(self):
-    #     # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
-    #     # setup the environment
-    #     outputs = {True: [], False: []}
-    #     backup = sys.stdout
+    # Test silencing and enabling solver messages.
+    def test_verbose(self):
+        # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
+        # setup the environment
+        outputs = {True: [], False: []}
+        backup = sys.stdout
 
-    #     # ####
-    #     for verbose in [True, False]:
-    #         for solver in ["ecos", "cvxopt"]:
-    #             sys.stdout = StringIO()     # capture output
-    #             p = Problem(Minimize(self.a), [self.a >= 2])
-    #             p.solve(verbose=verbose, solver=solver)
-    #             p = Problem(Minimize(self.a), [log(self.a) >= 2])
-    #             p.solve(verbose=verbose, solver=solver)
-    #             out = sys.stdout.getvalue() # release output
-    #             outputs[verbose].append(out.upper())
-    #     # ####
+        # ####
+        for verbose in [True, False]:
+            for solver in ["ecos", "cvxopt"]:
+                sys.stdout = StringIO()     # capture output
+                p = Problem(Minimize(self.a), [self.a >= 2])
+                p.solve(verbose=verbose, solver=solver)
+                p = Problem(Minimize(self.a), [log(self.a) >= 2])
+                p.solve(verbose=verbose, solver=solver)
+                out = sys.stdout.getvalue() # release output
+                outputs[verbose].append(out.upper())
+        # ####
 
-    #     sys.stdout.close()  # close the stream
-    #     sys.stdout = backup # restore original stdout
+        sys.stdout.close()  # close the stream
+        sys.stdout = backup # restore original stdout
 
-    #     for output in outputs[True]:
-    #         assert len(output) > 0
-    #     for output in outputs[False]:
-    #         assert len(output) == 0
+        for output in outputs[True]:
+            assert len(output) > 0
+        for output in outputs[False]:
+            assert len(output) == 0
 
     # Test registering other solve methods.
     def test_register_solve(self):
@@ -457,81 +457,81 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 40)
 
-    # # Test combining atoms
-    # def test_mixed_atoms(self):
-    #     p = Problem(Minimize(norm2(5 + norm1(self.z)
-    #                               + norm1(self.x) +
-    #                               normInf(self.x - self.z) ) ),
-    #         [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 22)
-    #     self.assertItemsAlmostEqual(self.x.value, [2,3])
-    #     self.assertItemsAlmostEqual(self.z.value, [-1,-4])
+    # Test combining atoms
+    def test_mixed_atoms(self):
+        p = Problem(Minimize(norm2(5 + norm1(self.z)
+                                  + norm1(self.x) +
+                                  normInf(self.x - self.z) ) ),
+            [self.x >= [2,3], self.z <= [-1,-4], norm2(self.x + self.z) <= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 22)
+        self.assertItemsAlmostEqual(self.x.value, [2,3])
+        self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 
-    # # Test multiplying by constant atoms.
-    # def test_mult_constant_atoms(self):
-    #     p = Problem(Minimize(norm2([3,4])*self.a), [self.a >= 2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 10)
-    #     self.assertAlmostEqual(self.a.value, 2)
+    # Test multiplying by constant atoms.
+    def test_mult_constant_atoms(self):
+        p = Problem(Minimize(norm2([3,4])*self.a), [self.a >= 2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertAlmostEqual(self.a.value, 2)
 
-    # # Test recovery of dual variables.
-    # def test_dual_variables(self):
-    #     p = Problem(Minimize( norm1(self.x + self.z) ),
-    #         [self.x >= [2,3],
-    #          [[1,2],[3,4]]*self.z == [-1,-4],
-    #          norm2(self.x + self.z) <= 100])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 4)
-    #     self.assertItemsAlmostEqual(self.x.value, [4,3])
-    #     self.assertItemsAlmostEqual(self.z.value, [-4,1])
-    #     # Dual values
-    #     self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1])
-    #     self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5])
-    #     self.assertAlmostEqual(p.constraints[2].dual_value, 0)
+    # Test recovery of dual variables.
+    def test_dual_variables(self):
+        p = Problem(Minimize( norm1(self.x + self.z) ),
+            [self.x >= [2,3],
+             [[1,2],[3,4]]*self.z == [-1,-4],
+             norm2(self.x + self.z) <= 100])
+        result = p.solve()
+        self.assertAlmostEqual(result, 4)
+        self.assertItemsAlmostEqual(self.x.value, [4,3])
+        self.assertItemsAlmostEqual(self.z.value, [-4,1])
+        # Dual values
+        self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1])
+        self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5])
+        self.assertAlmostEqual(p.constraints[2].dual_value, 0)
 
-    #     T = matrix(2,(2,3))
-    #     c = matrix([3,4])
-    #     p = Problem(Minimize(1),
-    #         [self.A >= T*self.C,
-    #          self.A == self.B,
-    #          self.C == T.T])
-    #     result = p.solve()
-    #     # Dual values
-    #     self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0])
-    #     self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0])
-    #     self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0])
+        T = matrix(2, (2, 3))
+        c = matrix([3,4])
+        p = Problem(Minimize(1),
+            [self.A >= T*self.C,
+             self.A == self.B,
+             self.C == T.T])
+        result = p.solve()
+        # Dual values
+        self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0])
+        self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0])
+        self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0])
 
-    # # Test problems with indexing.
-    # def test_indexing(self):
-    #     # Vector variables
-    #     p = Problem(Maximize(self.x[0,0]), [self.x[0,0] <= 2, self.x[1,0] == 3])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
-    #     self.assertItemsAlmostEqual(self.x, [2,3])
+    # Test problems with indexing.
+    def test_indexing(self):
+        # Vector variables
+        p = Problem(Maximize(self.x[0,0]), [self.x[0,0] <= 2, self.x[1,0] == 3])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertItemsAlmostEqual(self.x, [2,3])
 
-    #     n = 10
-    #     A = matrix(range(n*n), (n,n))
-    #     x = Variable(n,n)
-    #     p = Problem(Minimize(sum(x)), [x == A])
-    #     result = p.solve()
-    #     answer = n*n*(n*n+1)/2 - n*n
-    #     self.assertAlmostEqual(result, answer)
+        n = 10
+        A = matrix(range(n*n), (n,n))
+        x = Variable(n,n)
+        p = Problem(Minimize(sum(x)), [x == A])
+        result = p.solve()
+        answer = n*n*(n*n+1)/2 - n*n
+        self.assertAlmostEqual(result, answer)
 
-    #     # Matrix variables
-    #     import __builtin__
-    #     p = Problem(Maximize( __builtin__.sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
-    #                          [self.A <= [[1,-2],[-3,4]]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0)
-    #     self.assertItemsAlmostEqual(self.A.value, [1,-2,-3,4])
+        # Matrix variables
+        import __builtin__
+        p = Problem(Maximize( __builtin__.sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
+                             [self.A <= [[1,-2],[-3,4]]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+        self.assertItemsAlmostEqual(self.A.value, [1,-2,-3,4])
 
-    #     # Indexing arithmetic expressions.
-    #     exp = [[1,2],[3,4]]*self.z + self.x
-    #     p = Problem(Minimize(exp[1,0]), [self.x == self.z, self.z == [1,2]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 12)
-    #     self.assertItemsAlmostEqual(self.x.value, self.z.value)
+        # Indexing arithmetic expressions.
+        exp = [[1,2],[3,4]]*self.z + self.x
+        p = Problem(Minimize(exp[1,0]), [self.x == self.z, self.z == [1,2]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12)
+        self.assertItemsAlmostEqual(self.x.value, self.z.value)
 
     # # Test problems with slicing.
     # def test_slicing(self):

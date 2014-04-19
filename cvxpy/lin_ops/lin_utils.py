@@ -216,11 +216,19 @@ def transpose(operator):
 
     Returns
     -------
-    LinOp
-        A LinOp representing the transpose.
+    tuple
+       (LinOp representing the transpose, [constraints])
     """
     size = (operator.size[1], operator.size[0])
-    return lo.LinOp(lo.TRANSPOSE, size, [operator], None)
+    # If operator is a Variable, no need to create a new variable.
+    if operator.args[0].type is lo.VARIABLE:
+        return lo.LinOp(lo.TRANSPOSE, size, [operator], None)
+    # Operator is not a variable, create a constraint and new variable.
+    else:
+        new_var = create_var(operator.size)
+        new_op = lo.LinOp(lo.TRANSPOSE, size, [new_var], None)
+        constraints = [create_eq(new_var, operator)]
+        return (new_op, constraints)
 
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.
