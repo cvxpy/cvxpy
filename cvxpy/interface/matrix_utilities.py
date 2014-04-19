@@ -73,7 +73,7 @@ def is_vector(constant):
 
 # Is the constant a scalar?
 def is_scalar(constant):
-    return size(constant) == (1,1)
+    return size(constant) == (1, 1)
 
 # Get the value of the passed constant, interpreted as a scalar.
 def scalar_value(constant):

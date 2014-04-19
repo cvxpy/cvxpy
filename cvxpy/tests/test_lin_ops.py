@@ -235,52 +235,70 @@ class test_lin_ops(BaseTest):
         """Test the get_coefficients function for index.
         """
         size = (5, 4)
-        # # Eye
-        # x = create_var(size)
-        # coeffs = get_coefficients(x)
-        # assert len(coeffs) == 1
-        # id_, var_size, mat = coeffs[0]
-        # self.assertEqual(id_, x.data)
-        # self.assertEqual(var_size, size)
-        # self.assertItemsAlmostEqual(mat.todense(), sp.eye(20).todense())
-        # # Eye with scalar mult.
-        # x = create_var(size)
-        # A = create_const(5, (1, 1))
-        # coeffs = get_coefficients(mul_expr(A, x, size))
-        # assert len(coeffs) == 1
-        # id_, var_size, mat = coeffs[0]
-        # self.assertItemsAlmostEqual(mat.todense(), 5*sp.eye(20).todense())
+        # Eye
+        key = (slice(0,2,None), slice(0,2,None))
+        x = create_var(size)
+        expr = index(x, (2, 2), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(id_, x.data)
+        self.assertEqual(var_size, size)
+        self.assertEqual(mat.shape, (4, 20))
+        test_mat = np.mat(range(20)).T
+        self.assertItemsAlmostEqual((mat*test_mat).reshape((2, 2), order='F'),
+            test_mat.reshape(size, order='F')[key])
+        # Eye with scalar mult.
+        key = (slice(0,2,None), slice(0,2,None))
+        x = create_var(size)
+        A = create_const(5, (1, 1))
+        expr = mul_expr(A, x, size)
+        expr = index(expr, (2, 2), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        test_mat = np.mat(range(20)).T
+        self.assertItemsAlmostEqual((mat*test_mat).reshape((2, 2), order='F'),
+            5*test_mat.reshape(size, order='F')[key])
         # Promoted
-        key = (slice(0,1,None), slice(0,2,None))
+        key = (slice(0,2,None), slice(0,2,None))
         x = create_var((1, 1))
         value = np.array(range(20)).reshape(size)
         A = create_const(value, size)
         expr = mul_expr(A, x, size)
-        expr = index(expr, (1, 2), key)
+        expr = index(expr, (2, 2), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
         id_, var_size, mat = coeffs[0]
-        self.assertEqual(mat.shape, (2, 1))
-        self.assertItemsAlmostEqual(mat, value[key].T)
-        # # Normal
-        # size = (5, 5)
-        # x = create_var((5, 1))
-        # A = create_const(np.ones(size), size)
-        # coeffs = get_coefficients(mul_expr(A, x, (5, 1)))
-        # assert len(coeffs) == 1
-        # id_, var_size, mat = coeffs[0]
-        # self.assertEqual(mat.shape, (5, 5))
-        # self.assertItemsAlmostEqual(mat, A.data)
-        # # Blocks
-        # size = (5, 5)
-        # x = create_var(size)
-        # A = create_const(np.ones(size), size)
-        # coeffs = get_coefficients(mul_expr(A, x, size))
-        # assert len(coeffs) == 1
-        # id_, var_size, mat = coeffs[0]
-        # self.assertEqual(mat.shape, (25, 25))
-        # self.assertItemsAlmostEqual(mat.todense(),
-        #  sp.block_diag(5*[np.ones(size)]).todense())
+        self.assertEqual(mat.shape, (4, 1))
+        self.assertItemsAlmostEqual(mat.todense(), value[key])
+        # Normal
+        size = (5, 5)
+        key = (slice(0,2,None), slice(0,1,None))
+        x = create_var((5, 1))
+        A = create_const(np.ones(size), size)
+        expr = mul_expr(A, x, (5, 1))
+        expr = index(expr, (2, 1), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, (2, 5))
+        self.assertItemsAlmostEqual(mat.todense(), A.data[slice(0,2,None)])
+        # Blocks
+        size = (5, 5)
+        key = (slice(0,2,None), slice(0,2,None))
+        x = create_var(size)
+        value = np.array(range(25)).reshape(size)
+        A = create_const(value, size)
+        expr = mul_expr(A, x, size)
+        expr = index(expr, (2, 2), key)
+        coeffs = get_coefficients(expr)
+        assert len(coeffs) == 1
+        id_, var_size, mat = coeffs[0]
+        self.assertEqual(mat.shape, (4, 25))
+        test_mat = np.mat(range(25)).T
+        self.assertItemsAlmostEqual((mat*test_mat).reshape((2, 2), order='F'),
+            (A.data*test_mat.reshape(size, order='F'))[key])
         # Scalar constant
         size = (1, 1)
         A = create_const(5, size)

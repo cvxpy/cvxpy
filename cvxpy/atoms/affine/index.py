@@ -67,5 +67,5 @@ class index(AffAtom):
         tuple
             (LinOp, [constraints])
         """
-        obj = lu.index(arg_objs[0], arg_objs[0].size, data)
+        obj = lu.index(arg_objs[0], size, data)
         return (obj, [])

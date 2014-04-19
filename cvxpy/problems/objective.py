@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import utilities as u
-from ..expressions.expression import Expression
+import cvxpy.utilities as u
+from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 
 class Minimize(u.Canonical):

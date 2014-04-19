@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.interface as intf
-import cvxpy.utilities.key_utils as ku
 import numpy as np
 import scipy.sparse as sp
 
@@ -200,30 +199,49 @@ def index_coeffs(lin_op):
         if id_ is lo.CONSTANT_ID:
             size = lin_op.size
             block = intf.index(block, key)
-        # Index/slice rows and zero out cols for variable.
+        # Split into column blocks, slice column blocks list,
+        # then index each column block and merge.
         else:
-            # For promoted vars, the coeff is a flattened
-            # matrix with the same size as the argument.
-            if size == (1, 1):
-                rows, cols = lin_op.args[0].size
-            # For unpromoted vars, the coeff is one block
-            # for each column, stacked vertically.
-            # Each block has dimensions rows by size of var.
-            else:
-                rows = lin_op.args[0].size[0]
-                cols = size[1]
+            # Number of rows in each column block.
+            # and number of column blocks.
+            rows, cols = lin_op.args[0].size
+            # Split into column blocks.
+            col_blocks = split_into_col_blocks(rows, cols, block)
             # Select column blocks.
-            col_key = (ku.scale_slice(key[1], rows),
-                       slice(None, None, None))
-            block = intf.index(block, col_key)
-            # Select rows from each column block.
-            for col in range(cols):
-                row_key = (ku.offset_slice(key[0], col*rows),
-                           slice(None, None, None))
-                block = intf.index(block, row_key)
+            col_blocks = col_blocks[key[1]]
+            # Select rows from each remaining column block.
+            indexed_blocks = []
+            for col_block in col_blocks:
+                idx_block = intf.index(col_block, (key[0],
+                                                   slice(None, None, None)))
+                # Convert to sparse CSC matrix.
+                sp_intf = intf.DEFAULT_SPARSE_INTERFACE
+                idx_block = sp_intf.const_to_matrix(idx_block)
+                indexed_blocks.append(idx_block)
+            block = sp.vstack(indexed_blocks)
         new_coeffs.append((id_, size, block))
 
     return new_coeffs
+
+def split_into_col_blocks(rows, cols, coeff):
+    """Splits a coefficient matrix into one block for each column.
+
+    Parameters
+    ----------
+    rows : int
+        The number of rows in the expression.
+    cols : int
+        The number of columns in the expression.
+    coeff : NumPy matrix or SciPy sparse matrix
+        The coefficient matrix to split.
+    """
+    col_blocks = []
+    for col in range(cols):
+        key = (slice(col*rows, (col+1)*rows, 1),
+               slice(None, None, None))
+        block = intf.index(coeff, key)
+        col_blocks.append(block)
+    return col_blocks
 
 def transpose_coeffs(lin_op):
     """Returns the coefficients for TRANSPOSE linear op.
@@ -245,8 +263,8 @@ def transpose_coeffs(lin_op):
     id_, size, _ = coeffs[0]
     rows, cols = size
     # Create a sparse matrix representing the transpose.
-    interface = intf.DEFAULT_SPARSE_INTERFACE
-    new_block = interface.zeros(rows*cols, rows*cols).tolil()
+    sp_intf = intf.DEFAULT_SPARSE_INTERFACE
+    new_block = sp_intf.zeros(rows*cols, rows*cols).tolil()
     for row in xrange(rows):
         for col in xrange(cols):
             t_row = row*cols + col # row in transpose coeff.
