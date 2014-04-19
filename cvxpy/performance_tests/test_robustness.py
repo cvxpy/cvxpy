@@ -52,17 +52,17 @@ class TestProblem(unittest.TestCase):
         except Exception:
             super(TestProblem, self).assertAlmostEqual(a,b,places=4)
 
-    def test_large_sum(self):
-        """Test large number of variables summed.
-        """
-        for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n,n))
-            x = Variable(n,n)
-            p = Problem(Minimize(sum(x)), [x >= A])
-            result = p.solve()
-            answer = n*n*(n*n+1)/2 - n*n
-            print result - answer
-            self.assertAlmostEqual(result, answer)
+    # def test_large_sum(self):
+    #     """Test large number of variables summed.
+    #     """
+    #     for n in [10, 20, 30, 40, 50]:
+    #         A = matrix(range(n*n), (n,n))
+    #         x = Variable(n,n)
+    #         p = Problem(Minimize(sum(x)), [x >= A])
+    #         result = p.solve()
+    #         answer = n*n*(n*n+1)/2 - n*n
+    #         print result - answer
+    #         self.assertAlmostEqual(result, answer)
 
     def test_large_square(self):
         """Test large number of variables squared.
@@ -70,7 +70,7 @@ class TestProblem(unittest.TestCase):
         for n in [10, 20, 30, 40, 50]:
             A = matrix(range(n*n), (n,n))
             x = Variable(n,n)
-            p = Problem(Minimize(at.square(x[0, 0])), 
+            p = Problem(Minimize(at.square(x[0, 0])),
                 [x >= A])
             result = p.solve()
             self.assertAlmostEqual(result, 0)
