@@ -762,3 +762,4 @@ class TestProblem(BaseTest):
         p = Problem(obj)
         result = p.solve()
         self.assertAlmostEqual(result, 0)
+        assert self.a.value is not None

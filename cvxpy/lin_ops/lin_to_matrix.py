@@ -267,8 +267,10 @@ def transpose_coeffs(lin_op):
     new_block = sp_intf.zeros(rows*cols, rows*cols).tolil()
     for row in xrange(rows):
         for col in xrange(cols):
-            t_row = row*cols + col # row in transpose coeff.
-            t_col = col*rows + row # row in original coeff.
+            # Row in transpose coeff.
+            t_row = row*cols + col
+            # Row in original coeff.
+            t_col = col*rows + row
             new_block[t_row, t_col] = 1.0
 
     return [(id_, size, new_block.tocsc())]
