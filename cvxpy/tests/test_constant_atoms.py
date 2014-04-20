@@ -141,7 +141,7 @@ def test_atom():
         for atom, obj_val in atom_list:
             for row in xrange(atom.size[0]):
                 for col in xrange(atom.size[1]):
-                    for solver in [ECOS, SCS]: # CVXOPT,
+                    for solver in [ECOS, SCS, CVXOPT]:
                         # Atoms with Constant arguments.
                         yield (run_atom,
                                atom,

@@ -67,6 +67,8 @@ def get_coefficients(lin_op):
         coeffs = neg_coeffs(lin_op)
     elif lin_op.type is lo.MUL:
         coeffs = mul_coeffs(lin_op)
+    elif lin_op.type is lo.DIV:
+        coeffs = div_coeffs(lin_op)
     elif lin_op.type is lo.SUM_ENTRIES:
         coeffs = sum_entries_coeffs(lin_op)
     elif lin_op.type is lo.INDEX:

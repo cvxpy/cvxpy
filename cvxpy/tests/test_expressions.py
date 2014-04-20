@@ -58,24 +58,24 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.canonical_form[0].size, (2,1))
         self.assertEqual(x.canonical_form[1], [])
 
-        # Scalar variable
-        coeff = self.a.coefficients()
-        self.assertEqual(coeff[self.a.id], [1])
+        # # Scalar variable
+        # coeff = self.a.coefficients()
+        # self.assertEqual(coeff[self.a.id], [1])
 
-        # Vector variable.
-        coeffs = x.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [x.id])
-        vec = coeffs[x.id][0]
-        self.assertEqual(vec.shape, (2,2))
-        self.assertEqual(vec[0,0], 1)
+        # # Vector variable.
+        # coeffs = x.coefficients()
+        # self.assertItemsEqual(coeffs.keys(), [x.id])
+        # vec = coeffs[x.id][0]
+        # self.assertEqual(vec.shape, (2,2))
+        # self.assertEqual(vec[0,0], 1)
 
-        # Matrix variable.
-        coeffs = self.A.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [self.A.id])
-        self.assertEqual(len(coeffs[self.A.id]), 2)
-        mat = coeffs[self.A.id][1]
-        self.assertEqual(mat.shape, (2,4))
-        self.assertEqual(mat[0,2], 1)
+        # # Matrix variable.
+        # coeffs = self.A.coefficients()
+        # self.assertItemsEqual(coeffs.keys(), [self.A.id])
+        # self.assertEqual(len(coeffs[self.A.id]), 2)
+        # mat = coeffs[self.A.id][1]
+        # self.assertEqual(mat.shape, (2,4))
+        # self.assertEqual(mat[0,2], 1)
 
     # Test tranposing variables.
     def test_transpose_variable(self):
@@ -104,7 +104,7 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(mat[1,3], 1)
 
         index = var[1,0]
-        self.assertEquals(index.name(), "C.T[1,0]")
+        self.assertEquals(index.name(), "C.T[1, 0]")
         self.assertEquals(index.size, (1,1))
 
         var = self.x.T.T
@@ -126,9 +126,9 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.canonical_form[0].size, (1,1))
         self.assertEqual(c.canonical_form[1], [])
 
-        coeffs = c.coefficients()
-        self.assertEqual(coeffs.keys(), [s.CONSTANT])
-        self.assertEqual(coeffs[s.CONSTANT], [2])
+        # coeffs = c.coefficients()
+        # self.assertEqual(coeffs.keys(), [s.CONSTANT])
+        # self.assertEqual(coeffs[s.CONSTANT], [2])
 
         # Test the sign.
         c = Constant([[2],[2]])
@@ -274,11 +274,6 @@ class TestExpressions(unittest.TestCase):
         # instead of taking the transpose.
         expr = self.C*2
         self.assertEqual(expr.args[0].value, 2)
-
-        # Test that mul is flattened.
-        c = Constant(1)
-        expr = c * c * self.x
-        self.assertEqual(len(expr.args), 3)
 
     # Test the DivExpresion class.
     def test_div_expression(self):

@@ -83,5 +83,5 @@ class TestSemidefiniteVariable(BaseTest):
 
         self.assertAlmostEqual(self.X.value[0,0], 1, places=4)
         self.assertAlmostEqual(self.X.value[0,1], 3, places=4)
-        self.assertAlmostEqual(self.X.value[1,0], 2, places=4)
+        self.assertAlmostEqual(self.X.value[1,0], 2, places=3)
         self.assertAlmostEqual(self.X.value[1,1], 4, places=4)

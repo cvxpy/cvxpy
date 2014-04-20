@@ -21,6 +21,7 @@ from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
+import numpy as np
 import unittest
 
 class TestAtoms(unittest.TestCase):
@@ -137,6 +138,19 @@ class TestAtoms(unittest.TestCase):
         # Many args.
         self.assertEquals(min(-2, Variable(), 0, -1, Variable(), 1).sign,
                           u.Sign.NEGATIVE_KEY)
+
+    def test_sum_entries(self):
+        """Test the sum_entries atom.
+        """
+        self.assertEquals(sum_entries(1).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(sum_entries([1, -1]).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(sum_entries([1, -1]).curvature, u.Curvature.CONSTANT_KEY)
+        self.assertEquals(sum_entries(Variable(2)).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(sum_entries(Variable(2)).size, (1, 1))
+        self.assertEquals(sum_entries(Variable(2)).curvature, u.Curvature.AFFINE_KEY)
+        # Mixed curvature.
+        mat = np.mat("1 -1")
+        self.assertEquals(sum_entries(mat*square(Variable(2))).curvature, u.Curvature.UNKNOWN_KEY)
 
     # Test the vstack class.
     def test_vstack(self):

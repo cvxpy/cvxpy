@@ -176,6 +176,25 @@ def mul_expr(lh_op, rh_op, size):
     """
     return lo.LinOp(lo.MUL, size, [lh_op, rh_op], None)
 
+def div_expr(lh_op, rh_op, size):
+    """Divide one linear operator by another.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the quotient.
+    rh_op : LinOp
+        The right-hand operator in the quotient.
+    size : tuple
+        The size of the quotient.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the quotient.
+    """
+    return lo.LinOp(lo.DIV, size, [lh_op, rh_op], None)
+
 def promote(operator, size):
     """Promotes a scalar operator to the given size.
 

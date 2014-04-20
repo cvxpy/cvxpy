@@ -79,9 +79,22 @@ class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.div
 
-    def _tree_to_coeffs(self):
-        """Return the dict of Variable to coefficient for the product.
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Multiply the linear expressions.
 
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
         """
-        return cu.div(self.args[0].coefficients(),
-                      self.args[1].coefficients())
+        return (lu.div_expr(arg_objs[0], arg_objs[1], size), [])

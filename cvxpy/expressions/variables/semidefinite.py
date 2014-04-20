@@ -27,4 +27,5 @@ class semidefinite(Variable):
     # A semidefinite variable is no different from a normal variable except
     # that it adds an SDP constraint on the variable.
     def canonicalize(self):
-        return (self, [SDP(self)])
+        obj, constr = super(semidefinite, self).canonicalize()
+        return (obj, constr + [SDP(obj)])
