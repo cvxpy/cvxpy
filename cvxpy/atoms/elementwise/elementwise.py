@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from ..atom import Atom
+from cvxpy.atoms.atom import Atom
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """

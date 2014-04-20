@@ -17,12 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from  cvxpy.atoms.quad_over_lin import quad_over_lin
 from  cvxpy.atoms.affine.index import index
-import cvxpy.utilities as u
-from cvxpy.utilities import key_utils as ku
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 class square(Elementwise):
@@ -70,15 +69,12 @@ class square(Elementwise):
         one = lu.create_const(1, (1, 1))
         constraints = []
         for i in xrange(rows):
-            row_slc = ku.index_to_slice(i)
             for j in xrange(cols):
-                col_slc = ku.index_to_slice(j)
-                key = (row_slc, col_slc)
-                xi, x_idx_constr = index.graph_implementation([x], x.size, key)
+                xi = index.get_index(x, constraints, i, j)
+                ti = index.get_index(t, constraints, i, j)
                 obj, qol_constr = quad_over_lin.graph_implementation([xi, one],
                                                                      (1, 1),
                                                                      None)
-                ti, t_idx_constr = index.graph_implementation([t], t.size, key)
-                constraints += x_idx_constr + qol_constr + t_idx_constr
-                constraints.append(lu.create_leq(obj, ti))
+                constraints += qol_constr + [lu.create_leq(obj, ti)]
+
         return (t, constraints)

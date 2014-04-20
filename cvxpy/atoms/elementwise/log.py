@@ -17,12 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elementwise import Elementwise
-from cvxpy.expressions.variables import Variable
-from cvxpy.expressions.constants import Constant
-from cvxpy.constraints.exponential import ExpCone
 import cvxpy.utilities as u
-import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.atoms.affine.index import index
+from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 
 class log(Elementwise):
@@ -47,15 +46,33 @@ class log(Elementwise):
     def monotonicity(self):
         return [u.monotonicity.INCREASING]
 
-    def graph_implementation(self, arg_objs):
-        rows, cols = self.size
-        t = Variable(rows, cols)
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        rows, cols = size
+        t = lu.create_var(size)
         x = arg_objs[0]
+        one = lu.create_const(1, (1, 1))
         constraints = []
         for i in xrange(rows):
             for j in xrange(cols):
-                constraints.append( ExpCone(t[i, j],
-                                            Constant(1),
-                                            x[i, j])
-                )
+                xi = index.get_index(x, constraints, i, j)
+                ti = index.get_index(t, constraints, i, j)
+                constraints.append(ExpCone(ti, one, xi))
+
         return (t, constraints)

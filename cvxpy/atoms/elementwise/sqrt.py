@@ -17,12 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ... import utilities as u
-from ... import interface as intf
-from ...expressions import types
-from ...expressions.variables import Variable
-from square import square
-from elementwise import Elementwise
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.atoms.elementwise.square import square
 import numpy as np
 
 class sqrt(Elementwise):
@@ -46,8 +44,25 @@ class sqrt(Elementwise):
     def monotonicity(self):
         return [u.monotonicity.INCREASING]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         x = arg_objs[0]
-        t = Variable(*self.size)
-        obj, constraints = (x >= square(t)).canonical_form
-        return (t, constraints)
+        t = lu.create_var(size)
+        obj, constraints = square.graph_implementation([t], size, None)
+        return (t, constraints + [lu.create_leq(obj, x)])

@@ -149,25 +149,24 @@ class Problem(u.Canonical):
         constr_map = self._filter_constraints(constraints)
         solver = self._choose_solver(constr_map, solver)
         dims = {}
-        dims['l'] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
+        dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
         # Formats SOC and SDP constraints for the solver.
         for constr in constr_map[s.SOC] + constr_map[s.SDP]:
             for ineq_constr in constr.format():
                 constr_map[s.INEQ].append(ineq_constr)
-        dims['q'] = [c.size[0] for c in constr_map[s.SOC]]
-        dims['s'] = [c.size[0] for c in constr_map[s.SDP]]
+        dims["q"] = [c.size[0] for c in constr_map[s.SOC]]
+        dims["s"] = [c.size[0] for c in constr_map[s.SDP]]
 
         # Format exponential cone constraints.
         if solver == s.CVXOPT:
             for constr in constr_map[s.EXP]:
-                for eq_constr in constr.format(s.CVXOPT):
-                    constr_map[s.EQ].add(eq_constr)
+                constr_map[s.EQ] += constr.format(s.CVXOPT)
         elif solver == s.SCS:
             for constr in constr_map[s.EXP]:
-                for ineq_constr in constr.format(s.SCS):
-                    constr_map[s.INEQ].add(ineq_constr)
+                constr_map[s.INEQ] += constr.format(s.SCS)
             dims["ep"] = sum(c.size[0] for c in constr_map[s.EXP])
             dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
+
         return (obj, constr_map, dims, solver)
 
     def _choose_solver(self, constr_map, solver):
@@ -513,7 +512,6 @@ class Problem(u.Canonical):
         A, b = self._constr_matrix(constr_map[s.EQ] + constr_map[s.INEQ],
                                    var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
-
         # Convert c, b to 1D arrays.
         c, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, b])
         data = {"c": c}

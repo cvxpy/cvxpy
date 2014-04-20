@@ -126,10 +126,10 @@ def run_atom(atom, problem, obj_val, solver):
     print problem.objective
     print problem.constraints
     solver = get_solver(problem, solver)
+    print "solver", solver
     tolerance = SOLVER_TO_TOL[solver]
     result = problem.solve(solver=solver)
     if problem.status is OPTIMAL:
-        print "solver", solver
         print result
         print obj_val
         assert( -tolerance <= result - obj_val <= tolerance )
@@ -141,7 +141,7 @@ def test_atom():
         for atom, obj_val in atom_list:
             for row in xrange(atom.size[0]):
                 for col in xrange(atom.size[1]):
-                    for solver in [ECOS, CVXOPT, SCS]:
+                    for solver in [ECOS, SCS]: # CVXOPT,
                         # Atoms with Constant arguments.
                         yield (run_atom,
                                atom,

@@ -17,14 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from affine.transpose import transpose
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions.constants import Constant
-from ..expressions.variables import Variable
-from ..constraints.semi_definite import SDP
-import numpy as np
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.affine.index import index
+from cvxpy.atoms.affine.transpose import transpose
+from cvxpy.constraints.semi_definite import SDP
+import scipy.sparse as sp
 from numpy import linalg as LA
 
 class lambda_max(Atom):
@@ -64,12 +63,33 @@ class lambda_max(Atom):
     def monotonicity(self):
         return [u.monotonicity.NONMONOTONIC]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         A = arg_objs[0]
-        n, m = A.size
+        n, _ = A.size
         # Requires that A is symmetric.
-        constr = (A == A.T).canonical_form[1]
+        obj, constraints = transpose.graph_implementation([A], (n, n), None)
+        # A == A.T
+        constraints.append(lu.create_eq(A, obj))
         # SDP constraint.
-        t = Variable()
-        I = Constant(np.eye(n, m))
-        return (t, [SDP(I*t - A)] + constr)
+        t = lu.create_var((1, 1))
+        I = lu.create_const(sp.eye(n, n), (n, n))
+        # I*t - A
+        expr = lu.sub_expr(lu.mul_expr(I, t, (n, n)), A)
+        return (t, [SDP(expr)] + constraints)

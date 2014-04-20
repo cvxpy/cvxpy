@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from nonlinear import NonlinearConstraint
+import cvxpy.settings as s
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.lin_ops.lin_op import VARIABLE
+from cvxpy.constraints.nonlinear import NonlinearConstraint
 import math
 import cvxopt
-from ..expressions import types
-from .. import settings as s
 
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
@@ -58,21 +59,23 @@ class ExpCone(NonlinearConstraint):
 
         Parameters
         ----------
-            solver: str
+            solver : str
                 The solver targetted.
         """
         # Need x, y, z to be lone Variables.
         if solver == s.CVXOPT:
             constraints = []
             for i, var in enumerate(self.vars_):
-                if not isinstance(var, types.variable()):
-                    lone_var = types.variable()()
-                    constraints.append(lone_var == var)
+                if not var.type is VARIABLE:
+                    lone_var = lu.create_var((1, 1))
+                    constraints.append(lu.create_eq(lone_var, var))
                     self.vars_[i] = lone_var
             return constraints
         # Converts to an inequality constraint.
         elif solver == s.SCS:
-            return [self.x >= 0, self.y >= 0, self.z >= 0]
+            return [lu.create_geq(self.x),
+                    lu.create_geq(self.y),
+                    lu.create_geq(self.z)]
         else:
             raise TypeError("Solver does not support exponential cone.")
 

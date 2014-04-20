@@ -69,3 +69,60 @@ class index(AffAtom):
         """
         obj = lu.index(arg_objs[0], size, data)
         return (obj, [])
+
+    @staticmethod
+    def get_index(matrix, constraints, row, col):
+        """Returns a canonicalized index into a matrix.
+
+        Parameters
+        ----------
+        matrix : LinOp
+            The matrix to be indexed.
+        constraints : list
+            A list of constraints to append to.
+        row : int
+            The row index.
+        col : int
+            The column index.
+        """
+        key = (ku.index_to_slice(row),
+               ku.index_to_slice(col))
+        idx, idx_constr = index.graph_implementation([matrix],
+                                                     (1, 1),
+                                                     key)
+        constraints += idx_constr
+        return idx
+
+    @staticmethod
+    def block_eq(matrix, block, constraints,
+                 row_start, row_end, col_start, col_end):
+        """Adds an equality setting a section of the matrix equal to block.
+
+        Assumes block does not need to be promoted.
+
+        Parameters
+        ----------
+        matrix : LinOp
+            The matrix in the block equality.
+        block : LinOp
+            The block in the block equality.
+        constraints : list
+            A list of constraints to append to.
+        row_start : int
+            The first row of the matrix section.
+        row_end : int
+            The last row + 1 of the matrix section.
+        col_start : int
+            The first column of the matrix section.
+        col_end : int
+            The last column + 1 of the matrix section.
+        """
+        key = (slice(row_start, row_end, None),
+               slice(col_start, col_end, None))
+        rows = row_end - row_start
+        cols = col_end - col_start
+        assert block.size == (rows, cols)
+        slc, idx_constr = index.graph_implementation([matrix],
+                                                     (rows, cols),
+                                                     key)
+        constraints += [lu.create_eq(slc, block)] + idx_constr

@@ -37,10 +37,9 @@ class SOC(object):
     def format(self):
         """Formats SOC constraints as inequalities for the solver.
         """
-        constraints = [lu.create_leq(lu.neg_expr(self.t))]
+        constraints = [lu.create_geq(self.t)]
         for elem in self.x_elems:
-            constr = lu.create_leq(lu.neg_expr(elem))
-            constraints.append(constr)
+            constraints.append(lu.create_geq(elem))
         return constraints
 
     @property

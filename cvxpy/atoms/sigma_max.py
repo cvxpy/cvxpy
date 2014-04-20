@@ -17,14 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from affine.transpose import transpose
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions.constants import Constant
-from ..expressions.variables import Variable
-from ..constraints.semi_definite import SDP
-import numpy as np
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.affine.index import index
+from cvxpy.atoms.affine.transpose import transpose
+from cvxpy.constraints.semi_definite import SDP
+import scipy.sparse as sp
 from numpy import linalg as LA
 
 class sigma_max(Atom):
@@ -52,21 +51,45 @@ class sigma_max(Atom):
     def monotonicity(self):
         return [u.monotonicity.NONMONOTONIC]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         A = arg_objs[0] # m by n matrix.
-        n,m = A.size
+        n, m = A.size
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
-        X = Variable(n+m, n+m)
-        t = Variable()
-        I_n = Constant(np.eye(n))
-        I_m = Constant(np.eye(m))
+        X = lu.create_var((n+m, n+m))
+        t = lu.create_var((1, 1))
+        I_n = lu.create_const(sp.eye(n), (n, n))
+        I_m = lu.create_const(sp.eye(m), (m, m))
         # Expand A.T.
-        obj,constr = A.T.canonical_form
+        obj, constraints = transpose.graph_implementation([A], (m, n), None)
         # Fix X using the fact that A must be affine by the DCP rules.
-        constr += [X[0:n,0:n] == I_n*t,
-                   X[0:n,n:n+m] == A,
-                   X[n:n+m,0:n] == obj,
-                   X[n:n+m,n:n+m] == I_m*t,
-        ]
+        # X[0:n, 0:n] == I_n*t
+        index.block_eq(X, lu.mul_expr(I_n, t, (n, n)), constraints,
+                       0, n, 0, n)
+        # X[0:n, n:n+m] == A
+        index.block_eq(X, A, constraints,
+                       0, n, n, n+m)
+        # X[n:n+m, 0:n] == obj
+        index.block_eq(X, obj, constraints,
+                       n, n+m, 0, n)
+        # X[n:n+m, n:n+m] == I_m*t
+        index.block_eq(X, lu.mul_expr(I_m, t, (m, m)), constraints,
+                       n, n+m, n, n+m)
         # Add SDP constraint.
-        return (t, [SDP(X)] + constr)
+        return (t, constraints + [SDP(X)])
