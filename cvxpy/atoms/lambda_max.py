@@ -84,8 +84,8 @@ class lambda_max(Atom):
         A = arg_objs[0]
         n, _ = A.size
         # Requires that A is symmetric.
-        obj, constraints = transpose.graph_implementation([A], (n, n), None)
         # A == A.T
+        obj, constraints = transpose.graph_implementation([A], (n, n), None)
         constraints.append(lu.create_eq(A, obj))
         # SDP constraint.
         t = lu.create_var((1, 1))
