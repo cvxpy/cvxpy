@@ -38,7 +38,7 @@ def test_singular_quad_form():
                 elif action == 'maximize':
                     q = cvxpy.quad_form(x, -Q)
                     objective = cvxpy.Maximize(q)
-                constraints = [0 <= x, sum(x) == 1]
+                constraints = [0 <= x, cvxpy.sum_entries(x) == 1]
                 p = cvxpy.Problem(objective, constraints)
                 p.solve()
 

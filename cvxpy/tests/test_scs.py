@@ -73,7 +73,7 @@ class TestSCS(BaseTest):
 
     def test_log_problem(self):
         # Log in objective.
-        obj = Maximize(sum(log(self.x)))
+        obj = Maximize(sum_entries(log(self.x)))
         constr = [self.x <= [1, math.e]]
         p = Problem(obj, constr)
         result = p.solve(solver=SCS)
@@ -81,7 +81,7 @@ class TestSCS(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [1, math.e])
 
         # Log in constraint.
-        obj = Minimize(sum(self.x))
+        obj = Minimize(sum_entries(self.x))
         constr = [log(self.x) >= 0, self.x <= [1,1]]
         p = Problem(obj, constr)
         result = p.solve(solver=SCS)
@@ -113,7 +113,7 @@ class TestSCS(BaseTest):
         prng=np.random.RandomState(kSeed)
         #Generate a random reference distribution
         npSPriors=prng.uniform(0.0,1.0,kK)
-        npSPriors=npSPriors/np.sum(npSPriors)
+        npSPriors=npSPriors/sum(npSPriors)
 
         #Reference distribution
         p_refProb=cp.Parameter(kK,1,sign='positive')
@@ -123,7 +123,7 @@ class TestSCS(BaseTest):
         for k in xrange(kK):
             objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
 
-        constrs=[__builtins__['sum']([v_prob[k,0] for k in xrange(kK)])==1]
+        constrs=[sum([v_prob[k,0] for k in xrange(kK)])==1]
         klprob=cp.Problem(cp.Minimize(objkl),constrs)
         p_refProb.value=npSPriors
         result = klprob.solve(solver=SCS, verbose=True)
@@ -135,8 +135,8 @@ class TestSCS(BaseTest):
         for n in [5, 10, 25]:
             print n
             x = Variable(n)
-            obj = Maximize(sum(entr(x)))
-            p = Problem(obj, [sum(x) == 1])
+            obj = Maximize(sum_entries(entr(x)))
+            p = Problem(obj, [sum_entries(x) == 1])
             p.solve(solver=SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
@@ -146,8 +146,8 @@ class TestSCS(BaseTest):
         for n in [5, 10, 25]:
             print n
             x = Variable(n)
-            obj = Minimize(sum(exp(x)))
-            p = Problem(obj, [sum(x) == 1])
+            obj = Minimize(sum_entries(exp(x)))
+            p = Problem(obj, [sum_entries(x) == 1])
             p.solve(solver=SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
@@ -157,8 +157,8 @@ class TestSCS(BaseTest):
         for n in [5, 10, 25]:
             print n
             x = Variable(n)
-            obj = Maximize(sum(log(x)))
-            p = Problem(obj, [sum(x) == 1])
+            obj = Maximize(sum_entries(log(x)))
+            p = Problem(obj, [sum_entries(x) == 1])
             p.solve(solver=SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 

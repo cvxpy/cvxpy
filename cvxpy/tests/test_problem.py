@@ -526,14 +526,14 @@ class TestProblem(BaseTest):
         n = 10
         A = matrix(range(n*n), (n,n))
         x = Variable(n,n)
-        p = Problem(Minimize(sum(x)), [x == A])
+        p = Problem(Minimize(sum_entries(x)), [x == A])
         result = p.solve()
         answer = n*n*(n*n+1)/2 - n*n
         self.assertAlmostEqual(result, answer)
 
         # Matrix variables
         import __builtin__
-        p = Problem(Maximize( __builtin__.sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
+        p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
                              [self.A <= [[1,-2],[-3,4]]])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
@@ -548,18 +548,18 @@ class TestProblem(BaseTest):
 
     # Test problems with slicing.
     def test_slicing(self):
-        p = Problem(Maximize(sum(self.C)), [self.C[1:3,:] <= 2, self.C[0,:] == 1])
+        p = Problem(Maximize(sum_entries(self.C)), [self.C[1:3,:] <= 2, self.C[0,:] == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1,2,2])
 
-        p = Problem(Maximize(sum(self.C[0:3:2,1])),
+        p = Problem(Maximize(sum_entries(self.C[0:3:2,1])),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.C.value[0:3:2,1], [1,2])
 
-        p = Problem(Maximize(sum( (self.C[0:2,:] + self.A)[:,0:2] )),
+        p = Problem(Maximize(sum_entries( (self.C[0:2,:] + self.A)[:,0:2] )),
             [self.C[1:3,:] <= 2, self.C[0,:] == 1,
              (self.A + self.B)[:,0] == 3, (self.A + self.B)[:,1] == 2,
              self.B == 1])
@@ -587,7 +587,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, [2,2,1,1])
 
         # Transpose of slice.
-        p = Problem(Maximize(sum(self.C)), [self.C[1:3,:].T <= 2, self.C[0,:].T == 1])
+        p = Problem(Maximize(sum_entries(self.C)), [self.C[1:3,:].T <= 2, self.C[0,:].T == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1,2,2])
@@ -609,14 +609,14 @@ class TestProblem(BaseTest):
 
 
         c = matrix(1, (2,2))
-        p = Problem( Minimize( sum(vstack(self.A, self.C)) ),
+        p = Problem( Minimize( sum_entries(vstack(self.A, self.C)) ),
             [self.A >= 2*c,
             self.C == -2])
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
         c = matrix(1, (1,2))
-        p = Problem( Minimize( sum(vstack(c*self.A, c*self.B)) ),
+        p = Problem( Minimize( sum_entries(vstack(c*self.A, c*self.B)) ),
             [self.A >= 2,
             self.B == -2])
         result = p.solve()
@@ -631,17 +631,17 @@ class TestProblem(BaseTest):
 
     # Test variable transpose.
     def test_transpose(self):
-        p = Problem(Minimize(sum(self.x)), [self.x.T >= matrix([1,2]).T])
+        p = Problem(Minimize(sum_entries(self.x)), [self.x.T >= matrix([1,2]).T])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.x.value, [1,2])
 
-        p = Problem(Minimize(sum(self.C)), [matrix([1,1]).T*self.C.T >= matrix([0,1,2]).T])
+        p = Problem(Minimize(sum_entries(self.C)), [matrix([1,1]).T*self.C.T >= matrix([0,1,2]).T])
         result = p.solve()
         value = self.C.value
 
         constraints = [1*self.C[i,0] + 1*self.C[i,1] >= i for i in range(3)]
-        p = Problem(Minimize(sum(self.C)), constraints)
+        p = Problem(Minimize(sum_entries(self.C)), constraints)
         result2 = p.solve()
         self.assertAlmostEqual(result, result2)
         self.assertItemsAlmostEqual(self.C.value, value)
@@ -653,7 +653,7 @@ class TestProblem(BaseTest):
 
         exp = (-self.x).T
         print exp.size
-        p = Problem(Minimize(sum(self.x)), [(-self.x).T <= 1])
+        p = Problem(Minimize(sum_entries(self.x)), [(-self.x).T <= 1])
         result = p.solve()
         self.assertAlmostEqual(result, -2)
 
@@ -663,17 +663,17 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 2)
 
         c = matrix([[1,-1,2],[1,-1,2]])
-        p = Problem(Minimize(sum(max(c, 2, 2 + c).T[:,0])))
+        p = Problem(Minimize(sum_entries(max(c, 2, 2 + c).T[:,0])))
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
         c = matrix([[1,-1,2],[1,-1,2]])
-        p = Problem(Minimize(sum(square(c.T).T[:,0])))
+        p = Problem(Minimize(sum_entries(square(c.T).T[:,0])))
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
         # Slice of transpose.
-        p = Problem(Maximize(sum(self.C)), [self.C.T[:,1:3] <= 2, self.C.T[:,0] == 1])
+        p = Problem(Maximize(sum_entries(self.C)), [self.C.T[:,1:3] <= 2, self.C.T[:,0] == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1,2,2])
@@ -700,13 +700,13 @@ class TestProblem(BaseTest):
 
     # Test redundant constraints in cvxopt.
     def test_redundant_constraints(self):
-        obj = Minimize(sum(self.x))
+        obj = Minimize(sum_entries(self.x))
         constraints = [self.x == 2, self.x == 2, self.x.T == 2, self.x[0] == 2]
         p = Problem(obj, constraints)
         result = p.solve(solver=s.CVXOPT)
         self.assertAlmostEqual(result, 4)
 
-        obj = Minimize(sum(square(self.x)))
+        obj = Minimize(sum_entries(square(self.x)))
         constraints = [self.x == self.x]
         p = Problem(obj, constraints)
         result = p.solve(solver=s.CVXOPT)
@@ -746,9 +746,9 @@ class TestProblem(BaseTest):
     def test_expression_values(self):
         diff_exp = self.x - self.z
         inf_exp = normInf(diff_exp)
-        sum_exp = 5 + norm1(self.z) + norm1(self.x) + inf_exp
+        sum_entries_exp = 5 + norm1(self.z) + norm1(self.x) + inf_exp
         constr_exp = norm2(self.x + self.z)
-        obj = norm2(sum_exp)
+        obj = norm2(sum_entries_exp)
         p = Problem(Minimize(obj),
             [self.x >= [2,3], self.z <= [-1,-4], constr_exp <= 2])
         result = p.solve()
@@ -759,7 +759,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(diff_exp.value, self.x.value - self.z.value)
         self.assertAlmostEqual(inf_exp.value,
             LA.norm(self.x.value - self.z.value, numpy.inf))
-        self.assertAlmostEqual(sum_exp.value,
+        self.assertAlmostEqual(sum_entries_exp.value,
             5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) + \
             LA.norm(self.x.value - self.z.value, numpy.inf))
         self.assertAlmostEqual(constr_exp.value,

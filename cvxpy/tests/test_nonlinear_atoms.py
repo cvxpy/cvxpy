@@ -66,7 +66,7 @@ class TestNonlinearAtoms(BaseTest):
 
     def test_log_problem(self):
         # Log in objective.
-        obj = Maximize(sum(log(self.x)))
+        obj = Maximize(sum_entries(log(self.x)))
         constr = [self.x <= [1, math.e]]
         p = Problem(obj, constr)
         result = p.solve(solver=CVXOPT)
@@ -74,7 +74,7 @@ class TestNonlinearAtoms(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [1, math.e])
 
         # Log in constraint.
-        obj = Minimize(sum(self.x))
+        obj = Minimize(sum_entries(self.x))
         constr = [log(self.x) >= 0, self.x <= [1,1]]
         p = Problem(obj, constr)
         result = p.solve(solver=CVXOPT)
@@ -130,8 +130,8 @@ class TestNonlinearAtoms(BaseTest):
         for n in [5, 10, 25]:
             print n
             x = Variable(n)
-            obj = Maximize(sum(entr(x)))
-            p = Problem(obj, [sum(x) == 1])
+            obj = Maximize(sum_entries(entr(x)))
+            p = Problem(obj, [sum_entries(x) == 1])
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=SCS, verbose=True)
@@ -143,8 +143,8 @@ class TestNonlinearAtoms(BaseTest):
         for n in [5, 10, 25]:
             print n
             x = Variable(n)
-            obj = Minimize(sum(exp(x)))
-            p = Problem(obj, [sum(x) == 1])
+            obj = Minimize(sum_entries(exp(x)))
+            p = Problem(obj, [sum_entries(x) == 1])
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=SCS, verbose=True)
@@ -156,8 +156,8 @@ class TestNonlinearAtoms(BaseTest):
         for n in [5, 10, 25]:
             print n
             x = Variable(n)
-            obj = Maximize(sum(log(x)))
-            p = Problem(obj, [sum(x) == 1])
+            obj = Maximize(sum_entries(log(x)))
+            p = Problem(obj, [sum_entries(x) == 1])
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=SCS, verbose=True)

@@ -325,7 +325,7 @@ class TestExamples(BaseTest):
     #     mu = cp.Parameter(name='mu')
     #     mu.value = 1 # TODO cp.Parameter("positive")
     #     objective = cp.Minimize(-pbar*x + mu*quad_over_lin(Sroot*x,1))
-    #     constraints = [sum(x) == 1, x >= 0]
+    #     constraints = [sum_entries(x) == 1, x >= 0]
     #     p = cp.Problem(objective, constraints)
 
     #     mus = [ 10**(5.0*t/N-1.0) for t in range(N) ]
