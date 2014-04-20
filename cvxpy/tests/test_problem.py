@@ -334,6 +334,19 @@ class TestProblem(BaseTest):
         a.value = 2
         assert not (exp.value - 2*numpy.array([[1,2],[3,4]]).T).any()
 
+    def test_parameter_problems(self):
+        """Test problems with parameters.
+        """
+        p1 = Parameter()
+        p2 = Parameter(3, sign="negative")
+        p3 = Parameter(4, 4, sign="positive")
+        p = Problem(Maximize(p1*self.a), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
+        p1.value = 2
+        p2.value = -numpy.ones(3)
+        p3.value = numpy.ones((4, 4))
+        result = p.solve()
+        self.assertAlmostEqual(result, -6)
+
     # Test problems with normInf
     def test_normInf(self):
         # Constant argument.
