@@ -52,9 +52,7 @@ def get_coefficients(lin_op):
     """
     # VARIABLE converts to a giant identity matrix.
     if lin_op.type is lo.VARIABLE:
-        coeffs = [(lin_op.data,
-                   lin_op.size,
-                   sp.eye(lin_op.size[0]*lin_op.size[1]))]
+        coeffs = var_coeffs(lin_op)
     # Constants convert directly to their value.
     elif lin_op.type is lo.PARAM:
         coeffs = [(lo.CONSTANT_ID, lin_op.size, lin_op.data.value)]
@@ -78,6 +76,24 @@ def get_coefficients(lin_op):
     else:
         raise Exception("Unknown linear operator.")
     return coeffs
+
+def var_coeffs(lin_op):
+    """Returns the coefficients for a VARIABLE.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The variable linear op.
+
+    Returns
+    -------
+    list
+       A list of (id, size, coefficient) tuples.
+    """
+    id_ = lin_op.data
+    size = lin_op.size
+    coeff = sp.eye(lin_op.size[0]*lin_op.size[1]).tocsc()
+    return [(id_, size, coeff)]
 
 def sum_coeffs(lin_op):
     """Returns the coefficients for SUM linear op.
@@ -190,7 +206,7 @@ def mul_coeffs(lin_op):
     # Multiply all left-hand constants by right-hand terms.
     for (_, lh_size, constant) in lh_coeffs:
         for (id_, rh_size, coeff) in rh_coeffs:
-            rep_mat = sp.block_diag(cols*[constant])
+            rep_mat = sp.block_diag(cols*[constant]).tocsc()
             # For scalar right hand, constants
             # or single column, just multiply.
             if intf.is_scalar(constant) or \
@@ -235,26 +251,30 @@ def index_coeffs(lin_op):
             # Number of rows in each column block.
             # and number of column blocks.
             rows, cols = lin_op.args[0].size
+            col_selection = range(cols)[key[1]]
             # Split into column blocks.
-            col_blocks = split_into_col_blocks(rows, cols, block)
-            # Select column blocks.
-            col_blocks = col_blocks[key[1]]
+            col_blocks = get_col_blocks(rows, cols, block,
+                                        col_selection)
             # Select rows from each remaining column block.
-            indexed_blocks = []
-            for col_block in col_blocks:
-                idx_block = intf.index(col_block, (key[0],
-                                                   slice(None, None, None)))
-                # Convert to sparse CSC matrix.
-                sp_intf = intf.DEFAULT_SPARSE_INTERFACE
-                idx_block = sp_intf.const_to_matrix(idx_block)
-                indexed_blocks.append(idx_block)
-            block = sp.vstack(indexed_blocks)
+            row_key = (key[0], slice(None, None, None))
+            # Short circuit for single column.
+            if len(col_blocks) == 1:
+                block = intf.index(col_blocks[0], row_key)
+            else:
+                indexed_blocks = []
+                for col_block in col_blocks:
+                    idx_block = intf.index(col_block, row_key)
+                    # Convert to sparse CSC matrix.
+                    sp_intf = intf.DEFAULT_SPARSE_INTERFACE
+                    idx_block = sp_intf.const_to_matrix(idx_block)
+                    indexed_blocks.append(idx_block)
+                block = sp.vstack(indexed_blocks)
         new_coeffs.append((id_, size, block))
 
     return new_coeffs
 
-def split_into_col_blocks(rows, cols, coeff):
-    """Splits a coefficient matrix into one block for each column.
+def get_col_blocks(rows, cols, coeff, col_selection):
+    """Selects column blocks from a matrix.
 
     Parameters
     ----------
@@ -264,9 +284,11 @@ def split_into_col_blocks(rows, cols, coeff):
         The number of columns in the expression.
     coeff : NumPy matrix or SciPy sparse matrix
         The coefficient matrix to split.
+    col_selection : list
+        The indices of the columns to select.
     """
     col_blocks = []
-    for col in range(cols):
+    for col in col_selection:
         key = (slice(col*rows, (col+1)*rows, 1),
                slice(None, None, None))
         block = intf.index(coeff, key)
