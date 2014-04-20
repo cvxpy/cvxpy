@@ -137,7 +137,7 @@ class TestExamples(BaseTest):
 
         # Construct the problem.
         x = cp.Variable(n)
-        objective = cp.Minimize(sum(cp.square(A*x - b)))
+        objective = cp.Minimize(cp.sum_entries(cp.square(A*x - b)))
         constraints = [0 <= x, x <= 1]
         p = cp.Problem(objective, constraints)
 
@@ -238,7 +238,7 @@ class TestExamples(BaseTest):
         risk = cp.quad_form(x, sigma)
 
         objective = cp.Maximize(expected_return - gamma*risk)
-        p = cp.Problem(objective, [sum(x) == 1])
+        p = cp.Problem(objective, [cp.sum_entries(x) == 1])
         result = p.solve()
 
         # The optimal expected return.
