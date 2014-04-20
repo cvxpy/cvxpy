@@ -85,7 +85,7 @@ def create_param(value, size):
     """
     return lo.LinOp(lo.PARAM, size, [], value)
 
-def create_const(value, size):
+def create_const(value, size, sparse=False):
     """Wraps a constant.
 
     Parameters
@@ -94,6 +94,8 @@ def create_const(value, size):
         The numeric constant to wrap.
     size : tuple
         The (rows, cols) dimensions of the constant.
+    sparse : bool
+        Is the constant a SciPy sparse matrix?
 
     Returns
     -------
@@ -101,10 +103,10 @@ def create_const(value, size):
         A LinOp wrapping the constant.
     """
     # Check if scalar.
-    if intf.is_scalar(value):
+    if size == (1, 1):
         op_type = lo.SCALAR_CONST
     # Check if sparse.
-    elif intf.is_sparse(value):
+    elif sparse:
         op_type = lo.SPARSE_CONST
     else:
         op_type = lo.DENSE_CONST

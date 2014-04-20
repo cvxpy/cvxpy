@@ -30,9 +30,6 @@ PARAM_PREFIX = "param"
 # Used to trick Numpy so cvxpy can overload ==.
 NP_EQUAL_STR = "equal"
 
-# Key for the constant term.
-CONSTANT = "CONSTANT"
-
 # Constraint types
 EQ_CONSTR = "=="
 INEQ_CONSTR = "<="
@@ -79,4 +76,4 @@ EXP_CAPABLE = [CVXOPT, SCS]
 SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
 
 # Map of constraint types.
-EQ,INEQ,SOC,SDP,EXP = range(5)
+EQ, INEQ, SOC, SDP, EXP = range(5)

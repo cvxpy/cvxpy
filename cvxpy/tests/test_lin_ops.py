@@ -68,7 +68,7 @@ class test_lin_ops(BaseTest):
 
         # Sparse matrix constant.
         size = (5, 5)
-        mat = create_const(sp.eye(5), size)
+        mat = create_const(sp.eye(5), size, sparse=True)
         self.assertEqual(mat.size, size)
         self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, SPARSE_CONST)

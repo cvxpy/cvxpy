@@ -31,8 +31,10 @@ class Constant(Leaf):
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
+            self._sparse = True
         else:
             self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
+            self._sparse = False
         # Set DCP attributes.
         self.init_dcp_attr()
 
@@ -55,5 +57,5 @@ class Constant(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_const(self.value, self.size)
+        obj = lu.create_const(self.value, self.size, self._sparse)
         return (obj, [])
