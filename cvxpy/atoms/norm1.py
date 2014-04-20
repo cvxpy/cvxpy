@@ -53,7 +53,7 @@ class norm1(Atom):
         return [u.monotonicity.SIGNED]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -71,6 +71,6 @@ class norm1(Atom):
             (LinOp for objective, list of constraints)
         """
         x = arg_objs[0]
-        obj, abs_constr = abs.graph_implementation([x], x.size, None)
-        obj, sum_constr = sum_entries.graph_implementation([obj], (1, 1), None)
+        obj, abs_constr = abs.graph_implementation([x], x.size)
+        obj, sum_constr = sum_entries.graph_implementation([obj], (1, 1))
         return (obj, abs_constr + sum_constr)

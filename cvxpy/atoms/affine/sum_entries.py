@@ -45,7 +45,7 @@ class sum_entries(AffAtom):
         self._dcp_attr = self.args[0]._dcp_attr.sum_entries()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Sum the linear expression's entries.
 
         Parameters

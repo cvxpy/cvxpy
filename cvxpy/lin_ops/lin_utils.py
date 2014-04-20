@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 import cvxpy.interface as intf
+import numpy as np
 
 # Utility functions for dealing with LinOp.
 
@@ -174,6 +175,24 @@ def mul_expr(lh_op, rh_op, size):
         A linear operator representing the product.
     """
     return lo.LinOp(lo.MUL, size, [lh_op, rh_op], None)
+
+def promote(operator, size):
+    """Promotes a scalar operator to the given size.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to promote.
+    size : tuple
+        The dimensions to promote to.
+
+    Returns
+    -------
+    LinOp
+        The promoted operator.
+    """
+    ones = create_const(np.ones(size), size)
+    return mul_expr(ones, operator, size)
 
 def sum_entries(operator):
     """Sum the entries of an operator.

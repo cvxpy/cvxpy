@@ -56,7 +56,7 @@ class MulExpression(BinaryOperator):
     OP_FUNC = op.mul
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Multiply the linear expressions.
 
         Parameters

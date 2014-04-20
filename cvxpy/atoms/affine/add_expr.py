@@ -56,7 +56,7 @@ class AddExpression(AffAtom):
         return reduce(op.add, values)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Sum the linear expressions.
 
         Parameters

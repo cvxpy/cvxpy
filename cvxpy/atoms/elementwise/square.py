@@ -46,7 +46,7 @@ class square(Elementwise):
         return [u.monotonicity.SIGNED]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -73,8 +73,7 @@ class square(Elementwise):
                 xi = index.get_index(x, constraints, i, j)
                 ti = index.get_index(t, constraints, i, j)
                 obj, qol_constr = quad_over_lin.graph_implementation([xi, one],
-                                                                     (1, 1),
-                                                                     None)
+                                                                     (1, 1))
                 constraints += qol_constr + [lu.create_leq(obj, ti)]
 
         return (t, constraints)

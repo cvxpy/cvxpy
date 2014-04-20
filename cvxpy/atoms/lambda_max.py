@@ -64,7 +64,7 @@ class lambda_max(Atom):
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -85,7 +85,7 @@ class lambda_max(Atom):
         n, _ = A.size
         # Requires that A is symmetric.
         # A == A.T
-        obj, constraints = transpose.graph_implementation([A], (n, n), None)
+        obj, constraints = transpose.graph_implementation([A], (n, n))
         constraints.append(lu.create_eq(A, obj))
         # SDP constraint.
         t = lu.create_var((1, 1))

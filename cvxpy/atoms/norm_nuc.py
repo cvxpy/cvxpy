@@ -52,7 +52,7 @@ class normNuc(Atom):
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -77,7 +77,7 @@ class normNuc(Atom):
         #            [U A; A.T V] is positive semidefinite
         X = lu.create_var((n+m, n+m))
         # Expand A.T.
-        obj, constraints = transpose.graph_implementation([A], (m, n), None)
+        obj, constraints = transpose.graph_implementation([A], (m, n))
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:n,n:n+m] == A
         index.block_eq(X, A, constraints,

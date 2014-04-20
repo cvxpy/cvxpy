@@ -61,7 +61,7 @@ class log_det(Atom):
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Creates the equivalent problem::
@@ -110,7 +110,7 @@ class log_det(Atom):
         # Require that X is symmetric (which implies
         # A is symmetric).
         # X == X.T
-        obj, constraints = transpose.graph_implementation([X], (n, n), None)
+        obj, constraints = transpose.graph_implementation([X], (n, n))
         constraints.append(lu.create_eq(X, obj))
         # Require that X and A are PSD.
         constraints += [SDP(X), SDP(A)]
@@ -142,7 +142,7 @@ class log_det(Atom):
         log_diag = []
         for i in xrange(n):
             Dii = index.get_index(D, constraints, i, i)
-            obj, constr = log.graph_implementation([Dii], (1, 1), None)
+            obj, constr = log.graph_implementation([Dii], (1, 1))
             constraints += constr
             log_diag.append(obj)
         obj = lu.sum_expr(log_diag)

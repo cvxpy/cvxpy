@@ -44,7 +44,7 @@ class NegExpression(UnaryOperator):
     OP_FUNC = op.neg
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Negate the affine objective.
 
         Parameters

@@ -38,7 +38,7 @@ class transpose(AffAtom):
         self._dcp_attr = self.args[0]._dcp_attr.T
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Create a new variable equal to the argument transposed.
 
         Parameters

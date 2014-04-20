@@ -47,7 +47,7 @@ class abs(Elementwise):
         return [u.monotonicity.SIGNED]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -66,7 +66,7 @@ class abs(Elementwise):
         """
         x = arg_objs[0]
         t = lu.create_var(x.size)
-        constraints = [lu.create_leq(lu.neg_expr(t), x),
+        constraints = [lu.create_geq(lu.sum_expr([x, t])),
                        lu.create_leq(x, t),
         ]
         return (t, constraints)

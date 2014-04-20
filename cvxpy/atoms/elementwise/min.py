@@ -52,7 +52,7 @@ class min(max):
         return u.Curvature.CONCAVE
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -74,7 +74,6 @@ class min(max):
         for obj in arg_objs:
             # Promote obj.
             if obj.size != size:
-                ones = lu.create_const(np.ones(size), size)
-                obj = lu.mul_expr(ones, obj, size)
+                obj = lu.promote(obj, size)
             constraints.append(lu.create_leq(t, obj))
         return (t, constraints)

@@ -47,7 +47,7 @@ class inv_pos(Elementwise):
         return [u.monotonicity.DECREASING]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -70,16 +70,12 @@ class inv_pos(Elementwise):
         one = lu.create_const(1, (1, 1))
         constraints = []
         for i in xrange(rows):
-            row_slc = ku.index_to_slice(i)
             for j in xrange(cols):
-                col_slc = ku.index_to_slice(j)
-                key = (row_slc, col_slc)
-                xi, x_idx_constr = index.graph_implementation([x], (1, 1), key)
+                xi = index.get_index(x, constraints, i, j)
+                ti = index.get_index(t, constraints, i, j)
                 obj, qol_constr = quad_over_lin.graph_implementation([one, xi],
-                                                                     (1, 1),
-                                                                     None)
-                ti, t_idx_constr = index.graph_implementation([t], (1, 1), key)
-                constraints += x_idx_constr + qol_constr + t_idx_constr
+                                                                     (1, 1))
+                constraints += qol_constr
                 constraints += [lu.create_leq(obj, ti),
                                 lu.create_leq(lu.neg_expr(xi))]
         return (t, constraints)

@@ -53,7 +53,7 @@ class geo_mean(Atom):
             raise TypeError("The arguments to geo_mean must resolve to scalars." )
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters

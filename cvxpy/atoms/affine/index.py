@@ -50,7 +50,7 @@ class index(AffAtom):
         return self.key
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Index into the expression.
 
         Parameters

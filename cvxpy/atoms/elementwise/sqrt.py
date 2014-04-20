@@ -45,7 +45,7 @@ class sqrt(Elementwise):
         return [u.monotonicity.INCREASING]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -64,5 +64,5 @@ class sqrt(Elementwise):
         """
         x = arg_objs[0]
         t = lu.create_var(size)
-        obj, constraints = square.graph_implementation([t], size, None)
+        obj, constraints = square.graph_implementation([t], size)
         return (t, constraints + [lu.create_leq(obj, x)])

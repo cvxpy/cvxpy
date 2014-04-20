@@ -52,7 +52,7 @@ class norm2(Atom):
         return [u.monotonicity.SIGNED]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters

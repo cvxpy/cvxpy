@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from elementwise.exp import exp
-from affine.sum import sum as sum_
-from .. import utilities as u
-from ..expressions.variables import Variable
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.elementwise.exp import exp
+from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 
 class log_sum_exp(Atom):
@@ -53,8 +54,32 @@ class log_sum_exp(Atom):
     def monotonicity(self):
         return [u.monotonicity.INCREASING]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         x = arg_objs[0]
-        t = Variable()
-        obj, constr = sum_(exp(x - t)).canonical_form
-        return (t, constr + [obj <= 1])
+        t = lu.create_var((1, 1))
+        # sum(exp(x - t))
+        prom_t = lu.promote(t, x.size)
+        expr = lu.sub_expr(x, prom_t)
+        obj, constraints = exp.graph_implementation([expr], x.size)
+        obj, constr = sum_entries.graph_implementation([obj], (1, 1))
+        # obj <= 1
+        one = lu.create_const(1, (1, 1))
+        constraints += constr + [lu.create_leq(obj, one)]
+        return (t, constraints)

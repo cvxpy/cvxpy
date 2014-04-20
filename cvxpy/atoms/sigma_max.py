@@ -52,7 +52,7 @@ class sigma_max(Atom):
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -77,7 +77,7 @@ class sigma_max(Atom):
         I_n = lu.create_const(sp.eye(n), (n, n))
         I_m = lu.create_const(sp.eye(m), (m, m))
         # Expand A.T.
-        obj, constraints = transpose.graph_implementation([A], (m, n), None)
+        obj, constraints = transpose.graph_implementation([A], (m, n))
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:n, 0:n] == I_n*t
         index.block_eq(X, lu.mul_expr(I_n, t, (n, n)), constraints,

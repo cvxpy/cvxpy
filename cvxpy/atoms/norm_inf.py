@@ -52,7 +52,7 @@ class normInf(Atom):
         return [u.monotonicity.SIGNED]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -71,9 +71,7 @@ class normInf(Atom):
         """
         x = arg_objs[0]
         t = lu.create_var((1, 1))
-        ones = lu.create_const(np.ones(x.size), x.size)
-        promoted_t = lu.mul_expr(ones, t, x.size)
-        constraints = [lu.create_leq(lu.neg_expr(promoted_t), x),
-                       lu.create_leq(x, promoted_t),
-        ]
+        promoted_t = lu.promote(t, x.size)
+        constraints = [lu.create_geq(lu.sum_expr([x, promoted_t])),
+                       lu.create_leq(x, promoted_t)]
         return (t, constraints)

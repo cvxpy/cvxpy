@@ -59,7 +59,7 @@ class quad_over_lin(Atom):
             raise TypeError("The second argument to quad_over_lin must be a scalar.")
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data):
+    def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
