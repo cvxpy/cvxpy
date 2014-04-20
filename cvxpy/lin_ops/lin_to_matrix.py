@@ -224,6 +224,40 @@ def mul_coeffs(lin_op):
 
     return new_coeffs
 
+def index_var(lin_op):
+    """Returns the coefficients from indexing a raw variable.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The index linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    key = lin_op.data
+    var_rows, var_cols = lin_op.args[0].size
+    row_selection = range(var_rows)[key[0]]
+    col_selection = range(var_cols)[key[1]]
+    # Construct a coo matrix.
+    val_arr = []
+    row_arr = []
+    col_arr = []
+    counter = 0
+    for col in col_selection:
+        for row in row_selection:
+            val_arr.append(1.0)
+            row_arr.append(counter)
+            col_arr.append(col*var_rows + row)
+            counter += 1
+    block_rows = lin_op.size[0]*lin_op.size[1]
+    block_cols = var_rows*var_cols
+    block = sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                          (block_rows, block_cols)).tocsc()
+    return [(lin_op.args[0].data, lin_op.args[0].size, block)]
+
 def index_coeffs(lin_op):
     """Returns the coefficients for INDEX linear op.
 
@@ -237,6 +271,9 @@ def index_coeffs(lin_op):
     list
         A list of (id, size, coefficient) tuples.
     """
+    # Special case if variable.
+    if lin_op.args[0].type is lo.VARIABLE:
+        return index_var(lin_op)
     key = lin_op.data
     coeffs = get_coefficients(lin_op.args[0])
     new_coeffs = []
@@ -248,44 +285,65 @@ def index_coeffs(lin_op):
         # Split into column blocks, slice column blocks list,
         # then index each column block and merge.
         else:
-            # Number of rows in each column block.
-            # and number of column blocks.
-            rows, cols = lin_op.args[0].size
-            col_selection = range(cols)[key[1]]
-            # Split into column blocks.
-            col_blocks = get_col_blocks(rows, cols, block,
-                                        col_selection)
-            # Select rows from each remaining column block.
-            row_key = (key[0], slice(None, None, None))
-            # Short circuit for single column.
-            if len(col_blocks) == 1:
-                block = intf.index(col_blocks[0], row_key)
-            else:
-                indexed_blocks = []
-                for col_block in col_blocks:
-                    idx_block = intf.index(col_block, row_key)
-                    # Convert to sparse CSC matrix.
-                    sp_intf = intf.DEFAULT_SPARSE_INTERFACE
-                    idx_block = sp_intf.const_to_matrix(idx_block)
-                    indexed_blocks.append(idx_block)
-                block = sp.vstack(indexed_blocks)
+            block = get_index_block(block, lin_op.args[0].size, key)
         new_coeffs.append((id_, size, block))
 
     return new_coeffs
 
-def get_col_blocks(rows, cols, coeff, col_selection):
+def get_index_block(block, idx_size, key):
+    """Transforms a coefficient into an indexed coefficient.
+
+    Parameters
+    ----------
+    block : matrix
+        The coefficient matrix.
+    idx_size : tuple
+        The dimensions of the indexed expression.
+    key : tuple
+        (row slice, column slice)
+
+    Returns
+    -------
+    The indexed/sliced coefficient matrix.
+    """
+    rows, cols = idx_size
+    # Number of rows in each column block.
+    # and number of column blocks.
+    col_selection = range(cols)[key[1]]
+    # Split into column blocks.
+    col_blocks = get_col_blocks(rows, block, col_selection)
+    # Select rows from each remaining column block.
+    row_key = (key[0], slice(None, None, None))
+    # Short circuit for single column.
+    if len(col_blocks) == 1:
+        block = intf.index(col_blocks[0], row_key)
+    else:
+        indexed_blocks = []
+        for col_block in col_blocks:
+            idx_block = intf.index(col_block, row_key)
+            # Convert to sparse CSC matrix.
+            sp_intf = intf.DEFAULT_SPARSE_INTERFACE
+            idx_block = sp_intf.const_to_matrix(idx_block)
+            indexed_blocks.append(idx_block)
+        block = sp.vstack(indexed_blocks)
+    return block
+
+def get_col_blocks(rows, coeff, col_selection):
     """Selects column blocks from a matrix.
 
     Parameters
     ----------
     rows : int
         The number of rows in the expression.
-    cols : int
-        The number of columns in the expression.
     coeff : NumPy matrix or SciPy sparse matrix
         The coefficient matrix to split.
     col_selection : list
         The indices of the columns to select.
+
+    Returns
+    -------
+    list
+        A list of column blocks from the coeff matrix.
     """
     col_blocks = []
     for col in col_selection:

@@ -283,7 +283,7 @@ class test_lin_ops(BaseTest):
         assert len(coeffs) == 1
         id_, var_size, mat = coeffs[0]
         self.assertEqual(mat.shape, (2, 5))
-        self.assertItemsAlmostEqual(mat.todense(), A.data[slice(0,2,None)])
+        self.assertItemsAlmostEqual(mat, A.data[slice(0,2,None)])
         # Blocks
         size = (5, 5)
         key = (slice(0,2,None), slice(0,2,None))

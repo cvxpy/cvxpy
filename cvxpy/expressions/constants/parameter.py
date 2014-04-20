@@ -78,5 +78,5 @@ class Parameter(Constant):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_param(self.value, self.size)
+        obj = lu.create_param(self, self.size)
         return (obj, [])

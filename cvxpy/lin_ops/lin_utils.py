@@ -342,7 +342,7 @@ def create_geq(lh_op, rh_op=None, constr_id=None):
     """
     if rh_op is not None:
         rh_op = neg_expr(rh_op)
-    return create_leq(neg_expr(lh_op), rh_op)
+    return create_leq(neg_expr(lh_op), rh_op, constr_id)
 
 def get_expr_vars(operator):
     """Get a list of the variables in the operator and their sizes.
