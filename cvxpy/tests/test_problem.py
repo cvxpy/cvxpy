@@ -763,3 +763,11 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
         assert self.a.value is not None
+
+    def test_div(self):
+        """Tests a problem with division.
+        """
+        obj = Minimize(normInf(self.A/5))
+        p = Problem(obj, [self.A >= 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)

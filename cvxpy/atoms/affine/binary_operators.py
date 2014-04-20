@@ -97,4 +97,4 @@ class DivExpression(BinaryOperator):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.div_expr(arg_objs[0], arg_objs[1], size), [])
+        return (lu.div_expr(arg_objs[0], arg_objs[1]), [])

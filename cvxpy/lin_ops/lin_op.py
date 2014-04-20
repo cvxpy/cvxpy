@@ -33,6 +33,8 @@ LinOp = namedtuple("LinOp", ["type",
 VARIABLE = "variable"
 # Multiplying an expression by a constant.
 MUL = "mul"
+# Dividing an expression by a scalar constant.
+DIV = "div"
 # Summing expressions.
 SUM = "sum"
 # Negating an expression.

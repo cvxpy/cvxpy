@@ -176,8 +176,10 @@ def mul_expr(lh_op, rh_op, size):
     """
     return lo.LinOp(lo.MUL, size, [lh_op, rh_op], None)
 
-def div_expr(lh_op, rh_op, size):
+def div_expr(lh_op, rh_op):
     """Divide one linear operator by another.
+
+    Assumes rh_op is a scalar constant.
 
     Parameters
     ----------
@@ -193,7 +195,7 @@ def div_expr(lh_op, rh_op, size):
     LinOp
         A linear operator representing the quotient.
     """
-    return lo.LinOp(lo.DIV, size, [lh_op, rh_op], None)
+    return lo.LinOp(lo.DIV, lh_op.size, [lh_op, rh_op], None)
 
 def promote(operator, size):
     """Promotes a scalar operator to the given size.

@@ -142,6 +142,34 @@ def neg_coeffs(lin_op):
         new_coeffs.append((id_, size, -block))
     return new_coeffs
 
+def div_coeffs(lin_op):
+    """Returns the coefficients for DIV linea op.
+
+    Assumes dividing by scalar constants.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The div linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    rh_coeffs = get_coefficients(lin_op.args[1])
+    # Sum all left hand coeffs before dividing.
+    divisor = 0
+    for (_, _, const) in rh_coeffs:
+        divisor += const
+
+    lh_coeffs = get_coefficients(lin_op.args[0])
+    new_coeffs = []
+    # Divide all right-hand constants by left-hand constant.
+    for (id_, lh_size, coeff) in lh_coeffs:
+        new_coeffs.append((id_, lh_size, coeff/divisor))
+    return new_coeffs
+
 def mul_coeffs(lin_op):
     """Returns the coefficients for MUL linear op.
 
