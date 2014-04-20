@@ -203,7 +203,7 @@ class TestExamples(BaseTest):
 
         # Construct the problem.
         x = cp.Variable(m)
-        objective = cp.Minimize(sum(cp.square(A*x - b)) + gamma*cp.norm(x, 1))
+        objective = cp.Minimize(cp.sum_entries(cp.square(A*x - b)) + gamma*cp.norm(x, 1))
         p = cp.Problem(objective)
 
         # Assign a value to gamma and find the optimal x.
