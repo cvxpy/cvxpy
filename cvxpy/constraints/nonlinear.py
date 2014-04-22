@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import utilities as u
+import cvxpy.utilities as u
 
 class NonlinearConstraint(object):
     """
@@ -36,12 +36,12 @@ class NonlinearConstraint(object):
         # The shape of vars_ in f(vars_)
         cols = self.vars_[0].size[1]
         rows = sum(var.size[0] for var in self.vars_)
-        self.x_shape = u.Shape(rows, cols)
+        self.x_size = (rows, cols)
         super(NonlinearConstraint, self).__init__()
 
     @property
     def size(self):
-        return (self.f()[0],1)
+        return (self.f()[0], 1)
 
     # Returns the variables involved in the function
     # in order, i.e. f(vars_) = f(vstack(variables))
@@ -83,7 +83,7 @@ class NonlinearConstraint(object):
 
     # Extract the function variables from the vector x of all variables.
     def extract_variables(self, x, var_offsets, interface):
-        local_x = interface.zeros(*self.x_shape.size)
+        local_x = interface.zeros(*self.x_size)
         offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]

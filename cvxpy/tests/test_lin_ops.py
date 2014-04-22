@@ -21,6 +21,7 @@ from cvxpy.lin_ops.lin_to_matrix import get_coefficients
 from cvxpy.lin_ops.lin_utils import *
 from cvxpy.lin_ops.lin_op import *
 from cvxpy.expressions.constants import Parameter
+import cvxpy.interface as intf
 import numpy as np
 import scipy.sparse as sp
 import unittest
