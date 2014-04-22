@@ -125,6 +125,7 @@ html_theme_options = {
    'github_repo': 'cvxpy',
    'github_banner': True,
    'travis_button': True,
+   'analytics_id': 'UA-50248335-1',
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
