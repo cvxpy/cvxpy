@@ -66,6 +66,30 @@ class TestProblem(BaseTest):
         params = p.parameters()
         self.assertItemsEqual(params, [p1, p2, p3])
 
+    def test_get_problem_data(self):
+        """Test get_problem_data method.
+        """
+        with self.assertRaises(Exception) as cm:
+            Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
+        self.assertEqual(str(cm.exception), "Solver 'ECOS' cannot solve the problem.")
+
+        with self.assertRaises(Exception) as cm:
+            Problem(Maximize(exp(self.a))).get_problem_data(s.CVXOPT)
+        self.assertEqual(str(cm.exception), "Unsupported solver 'CVXOPT'.")
+
+        args = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
+        data, dims = args
+        self.assertEqual(dims['ep'], 1)
+        self.assertEqual(data["c"].shape, (2,))
+        self.assertEqual(data["A"].shape, (3, 2))
+
+        args = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.ECOS)
+        c, G, h, dims, A, b = args
+        self.assertEqual(dims["q"], [3])
+        self.assertEqual(c.shape, (3,))
+        self.assertEqual(A.shape, (0, 3))
+        self.assertEqual(G.shape, (3, 3))
+
     # Test silencing and enabling solver messages.
     def test_verbose(self):
         # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
@@ -75,7 +99,7 @@ class TestProblem(BaseTest):
 
         # ####
         for verbose in [True, False]:
-            for solver in ["ecos", "cvxopt"]:
+            for solver in [s.ECOS, s.CVXOPT]:
                 sys.stdout = StringIO()     # capture output
                 p = Problem(Minimize(self.a), [self.a >= 2])
                 p.solve(verbose=verbose, solver=solver)

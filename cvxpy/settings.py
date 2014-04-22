@@ -41,12 +41,12 @@ UNBOUNDED = "unbounded"
 SOLVER_ERROR = "solver_error"
 
 # Map of solver status to cvxpy status.
-CVXOPT = "cvxopt"
+CVXOPT = "CVXOPT"
 CVXOPT_STATUS = {'optimal': OPTIMAL,
                  'primal infeasible': INFEASIBLE,
                  'dual infeasible': UNBOUNDED,
                  'unknown': SOLVER_ERROR}
-ECOS = "ecos"
+ECOS = "ECOS"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
                2: UNBOUNDED,
@@ -56,7 +56,7 @@ ECOS_STATUS = {0: OPTIMAL,
                -3: SOLVER_ERROR,
                -7: SOLVER_ERROR}
 
-SCS = "scs"
+SCS = "SCS"
 SCS_STATUS = {"Solved": OPTIMAL,
               "Solved/Inaccurate": OPTIMAL,
               "Unbounded": UNBOUNDED,

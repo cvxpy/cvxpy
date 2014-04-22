@@ -260,6 +260,35 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
+    def get_problem_data(self, solver):
+        """Returns the problem data used in the call to the solver.
+
+        Parameters
+        ----------
+        solver : str
+            The solver the problem data is for.
+
+        Returns
+        -------
+        tuple
+            arguments to solver
+        """
+        objective, constr_map, dims, solver_chosen = self.canonicalize(solver)
+        all_ineq = constr_map[s.EQ] + constr_map[s.INEQ]
+        var_offsets, x_length = self._get_var_offsets(objective, all_ineq)
+
+        if solver_chosen != solver:
+            raise Exception("Solver '%s' cannot solve the problem." % solver)
+        if solver == s.ECOS:
+            args, offset = self._ecos_problem_data(objective, constr_map, dims,
+                                                   var_offsets, x_length)
+        elif solver == s.SCS:
+            args, offset = self._scs_problem_data(objective, constr_map, dims,
+                                                  var_offsets, x_length)
+        else:
+            raise Exception("Unsupported solver '%s'." % solver)
+        return args
+
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
                solver_specific_opts=None):
         """Solves a DCP compliant optimization problem.
@@ -328,6 +357,42 @@ class Problem(u.Canonical):
         self._status = status
         return self.value
 
+    def _ecos_problem_data(self, objective, constr_map, dims,
+                           var_offsets, x_length):
+        """Returns the problem data for the call to ECOS.
+
+        Parameters
+        ----------
+            objective: Expression
+                The canonicalized objective.
+            constr_map: dict
+                A dict of the canonicalized constraints.
+            dims: dict
+                A dict with information about the types of constraints.
+            var_offsets: dict
+                A dict mapping variable id to offset in the stacked variable x.
+            x_length: int
+                The height of x.
+        Returns
+        -------
+        tuple
+            ((c, G, h, dims, A, b), offset)
+        """
+        c, obj_offset = self._get_obj(objective, var_offsets, x_length,
+                                      self._DENSE_INTF,
+                                      self._DENSE_INTF)
+        # Convert obj_offset to a scalar.
+        obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
+
+        A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
+                                   self._SPARSE_INTF, self._DENSE_INTF)
+        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
+                                   self._SPARSE_INTF, self._DENSE_INTF)
+        # Convert c,h,b to 1D arrays.
+        c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
+        # Return the arguments that would be passed to ECOS.
+        return ((c, G, h, dims, A, b), obj_offset)
+
     def _ecos_solve(self, objective, constr_map, dims,
                     var_offsets, x_length,
                     verbose, opts):
@@ -341,8 +406,6 @@ class Problem(u.Canonical):
                 A dict of the canonicalized constraints.
             dims: dict
                 A dict with information about the types of constraints.
-            sorted_vars: list
-                An ordered list of the problem variables.
             var_offsets: dict
                 A dict mapping variable id to offset in the stacked variable x.
             x_length: int
@@ -359,19 +422,10 @@ class Problem(u.Canonical):
              optimal inequality constraint dual)
 
         """
-        c, obj_offset = self._get_obj(objective, var_offsets, x_length,
-                                      self._DENSE_INTF,
-                                      self._DENSE_INTF)
-        # Convert obj_offset to a scalar.
-        obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
-
-        A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
-                                   self._SPARSE_INTF, self._DENSE_INTF)
-        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
-                                   self._SPARSE_INTF, self._DENSE_INTF)
-        # Convert c,h,b to 1D arrays.
-        c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
-        results = ecos.solve(c, G, h, dims, A, b, verbose=verbose)
+        prob_data = self._ecos_problem_data(objective, constr_map, dims,
+                                            var_offsets, x_length)
+        obj_offset = prob_data[1]
+        results = ecos.solve(*prob_data[0], verbose=verbose)
         status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
         if status == s.OPTIMAL:
             primal_val = results['info']['pcost']
@@ -470,38 +524,26 @@ class Problem(u.Canonical):
             # TODO: shouldn't we restore cvxopt solver options in this case too?
             return (status, None, None, None, None)
 
-
-    def _scs_solve(self, objective, constr_map, dims,
-                   var_offsets, x_length,
-                   verbose, opts):
-        """Calls the SCS solver and returns the result.
+    def _scs_problem_data(self, objective, constr_map, dims,
+                          var_offsets, x_length):
+        """Returns the problem data for the call to SCS.
 
         Parameters
         ----------
-            objective: LinExpr
+            objective: Expression
                 The canonicalized objective.
             constr_map: dict
                 A dict of the canonicalized constraints.
             dims: dict
                 A dict with information about the types of constraints.
-            sorted_vars: list
-                An ordered list of the problem variables.
             var_offsets: dict
                 A dict mapping variable id to offset in the stacked variable x.
             x_length: int
                 The height of x.
-            verbose: bool
-                Should the solver show output?
-            opts: dict
-                A dict of the solver parameters passed to scs
-
         Returns
         -------
         tuple
-            (status, optimal objective, optimal x,
-             optimal equality constraint dual,
-             optimal inequality constraint dual)
-
+            ((data, dims), offset)
         """
         c, obj_offset = self._get_obj(objective, var_offsets, x_length,
                                       self._DENSE_INTF,
@@ -517,9 +559,43 @@ class Problem(u.Canonical):
         data = {"c": c}
         data["A"] = A
         data["b"] = b
+        return ((data, dims), obj_offset)
+
+    def _scs_solve(self, objective, constr_map, dims,
+                   var_offsets, x_length,
+                   verbose, opts):
+        """Calls the SCS solver and returns the result.
+
+        Parameters
+        ----------
+            objective: LinExpr
+                The canonicalized objective.
+            constr_map: dict
+                A dict of the canonicalized constraints.
+            dims: dict
+                A dict with information about the types of constraints.
+            var_offsets: dict
+                A dict mapping variable id to offset in the stacked variable x.
+            x_length: int
+                The height of x.
+            verbose: bool
+                Should the solver show output?
+            opts: dict
+                A dict of the solver parameters passed to scs
+
+        Returns
+        -------
+        tuple
+            (status, optimal objective, optimal x,
+             optimal equality constraint dual,
+             optimal inequality constraint dual)
+        """
+        prob_data = self._scs_problem_data(objective, constr_map, dims,
+                                           var_offsets, x_length)
+        obj_offset = prob_data[1]
         # Set the options to be VERBOSE plus any user-specific options.
         opts = dict({ "VERBOSE": verbose }.items() + opts.items())
-        results = scs.solve(data, dims, opts, USE_INDIRECT = True)
+        results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT = True)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
             primal_val = results["info"]["pobj"]
