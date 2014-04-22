@@ -199,7 +199,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
 
     # Construct the problem.
     x = Variable(n)
-    objective = Minimize(sum(square(A*x - b)))
+    objective = Minimize(sum_entries(square(A*x - b)))
     constraints = [0 <= x, x <= 1]
     prob = Problem(objective, constraints)
 
@@ -268,7 +268,7 @@ computes a trade-off curve for a LASSO problem.
 
     # Construct the problem.
     x = Variable(m)
-    sum_of_squares = sum(square(A*x - b))
+    sum_of_squares = sum_entries(square(A*x - b))
     obj = Minimize(sum_of_squares + gamma*norm(x, 1))
     prob = Problem(obj)
 
