@@ -17,19 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import settings as s
-from .. import utilities as u
-from .. import interface as intf
+import cvxpy.settings as s
+import cvxpy.utilities as u
+from cvxpy.utilities.ordered_set import OrderedSet
+import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_to_matrix as op2mat
-from ..utilities.ordered_set import OrderedSet
-from ..expressions.expression import Expression
-from ..expressions.constants import Constant
-from ..expressions.variables import Variable
-from ..constraints import EqConstraint, LeqConstraint, SOC, SDP, ExpCone
-from .objective import Minimize, Maximize
-from kktsolver import get_kktsolver
+from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, SDP, ExpCone
+from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.problems.kktsolver import get_kktsolver
 
 from collections import OrderedDict
 import itertools
