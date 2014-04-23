@@ -24,8 +24,8 @@ from cvxopt.misc import scale
 import numpy as np
 import scipy.sparse.linalg as LA
 
-def get_kkt_solver(G_constraints, dims, A_constraints,
-                   var_offsets, var_sizes, x_length):
+def get_kktsolver(G_constraints, dims, A_constraints,
+                  var_offsets, var_sizes, x_length):
     get_linear_op = get_linear_op_factory(G_constraints, dims, A_constraints,
                                           var_offsets, var_sizes, x_length)
     def kkt_solver(W):

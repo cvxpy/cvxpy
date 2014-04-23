@@ -90,6 +90,13 @@ class TestProblem(BaseTest):
         self.assertEqual(A.shape, (0, 3))
         self.assertEqual(G.shape, (3, 3))
 
+        args = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.CVXOPT)
+        c, G, h, dims, A, b = args
+        self.assertEqual(dims["q"], [3])
+        self.assertEqual(c.size, (3, 1))
+        self.assertEqual(A.size, (0, 3))
+        self.assertEqual(G.size, (3, 3))
+
     # Test silencing and enabling solver messages.
     def test_verbose(self):
         # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python

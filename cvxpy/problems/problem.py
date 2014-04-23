@@ -27,6 +27,7 @@ import cvxpy.lin_ops.lin_to_matrix as op2mat
 from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, SDP, ExpCone
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.kktsolver import get_kktsolver
+import cvxpy.problems.iterative as iterative
 
 from collections import OrderedDict
 import itertools
@@ -280,6 +281,9 @@ class Problem(u.Canonical):
         if solver == s.ECOS:
             args, offset = self._ecos_problem_data(objective, constr_map, dims,
                                                    var_offsets, x_length)
+        elif solver == s.CVXOPT and not constr_map[s.EXP]:
+            args, offset = self._cvxopt_problem_data(objective, constr_map, dims,
+                                                     var_offsets, x_length)
         elif solver == s.SCS:
             args, offset = self._scs_problem_data(objective, constr_map, dims,
                                                   var_offsets, x_length)
@@ -288,7 +292,7 @@ class Problem(u.Canonical):
         return args
 
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None, expr_tree=False):
+               solver_specific_opts=None):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -332,7 +336,7 @@ class Problem(u.Canonical):
 
         if solver == s.CVXOPT:
             result = self._cvxopt_solve(objective, constr_map, dims,
-                                        var_offsets, var_sizes, x_length,
+                                        var_offsets, x_length,
                                         verbose, solver_specific_opts)
         elif solver == s.SCS:
             result = self._scs_solve(objective, constr_map, dims,
@@ -435,6 +439,44 @@ class Problem(u.Canonical):
         else:
             return (status, None, None, None, None)
 
+    def _cvxopt_problem_data(self, objective, constr_map, dims,
+                             var_offsets, x_length):
+        """Returns the problem data for the call to CVXOPT.
+
+        Assumes no exponential cone constraints.
+
+        Parameters
+        ----------
+            objective: Expression
+                The canonicalized objective.
+            constr_map: dict
+                A dict of the canonicalized constraints.
+            dims: dict
+                A dict with information about the types of constraints.
+            var_offsets: dict
+                A dict mapping variable id to offset in the stacked variable x.
+            x_length: int
+                The height of x.
+        Returns
+        -------
+        tuple
+            ((c, G, h, dims, A, b), offset)
+        """
+        c, obj_offset = self._get_obj(objective, var_offsets, x_length,
+                                      self._CVXOPT_DENSE_INTF,
+                                      self._CVXOPT_DENSE_INTF)
+        # Convert obj_offset to a scalar.
+        obj_offset = self._CVXOPT_DENSE_INTF.scalar_value(obj_offset)
+
+        A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
+                                   self._CVXOPT_SPARSE_INTF,
+                                   self._CVXOPT_DENSE_INTF)
+        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
+                                   self._CVXOPT_SPARSE_INTF,
+                                   self._CVXOPT_DENSE_INTF)
+        # Return the arguments that would be passed to CVXOPT.
+        return ((c.T, G, h, dims, A, b), obj_offset)
+
 
     def _cvxopt_solve(self, objective, constr_map, dims,
                       var_offsets, x_length,
@@ -469,19 +511,10 @@ class Problem(u.Canonical):
              optimal inequality constraint dual)
 
         """
-        c, obj_offset = self._get_obj(objective, var_offsets, x_length,
-                                      self._CVXOPT_DENSE_INTF,
-                                      self._CVXOPT_DENSE_INTF)
-        # Convert obj_offset to a scalar.
-        obj_offset = self._CVXOPT_DENSE_INTF.scalar_value(obj_offset)
-
-        A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
-                                   self._CVXOPT_SPARSE_INTF,
-                                   self._CVXOPT_DENSE_INTF)
-        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
-                                   self._CVXOPT_SPARSE_INTF,
-                                   self._CVXOPT_DENSE_INTF)
-
+        prob_data = self._cvxopt_problem_data(objective, constr_map, dims,
+                                              var_offsets, x_length)
+        c, G, h, dims, A, b = prob_data[0]
+        obj_offset = prob_data[1]
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options
         # Silence cvxopt if verbose is False.
@@ -500,12 +533,12 @@ class Problem(u.Canonical):
                                    x_length)
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A, F)
-            results = cvxopt.solvers.cpl(c.T, F, G, h, A=A, b=b,
+            results = cvxopt.solvers.cpl(c, F, G, h, A=A, b=b,
                                          dims=dims, kktsolver=kktsolver)
         else:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A)
-            results = cvxopt.solvers.conelp(c.T, G, h, A=A, b=b,
+            results = cvxopt.solvers.conelp(c, G, h, A=A, b=b,
                                             dims=dims, kktsolver=kktsolver)
         status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
         if status == s.OPTIMAL:
