@@ -58,7 +58,7 @@ class TestProblem(unittest.TestCase):
         for n in [10, 20, 30, 40, 50]:
             A = matrix(range(n*n), (n,n))
             x = Variable(n,n)
-            p = Problem(Minimize(sum(x)), [x >= A])
+            p = Problem(Minimize(at.sum_entries(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
             print result - answer
