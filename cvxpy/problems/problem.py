@@ -540,20 +540,20 @@ class Problem(u.Canonical):
             kktsolver = get_kktsolver(G, dims, A)
             results = cvxopt.solvers.conelp(c, G, h, A=A, b=b,
                                             dims=dims, kktsolver=kktsolver)
+        # Restore original cvxopt solver options.
+        cvxopt.solvers.options = old_options
+
         status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
         if status == s.OPTIMAL:
             primal_val = results['primal objective']
             value = self.objective._primal_to_result(
                           primal_val - obj_offset)
-            # Restore original cvxopt solver options.
-            cvxopt.solvers.options = old_options
             if constr_map[s.EXP]:
                 ineq_dual = results['zl']
             else:
                 ineq_dual = results['z']
             return (status, value, results['x'], results['y'], ineq_dual)
         else:
-            # TODO: shouldn't we restore cvxopt solver options in this case too?
             return (status, None, None, None, None)
 
     def _scs_problem_data(self, objective, constr_map, dims,
