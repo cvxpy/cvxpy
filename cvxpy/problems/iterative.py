@@ -20,37 +20,51 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # An iterative KKT solver for CVXOPT.
 
 from cvxpy.lin_ops.tree_mat import mul, tmul, sum_dicts
+import cvxopt
 from cvxopt.misc import scale
 import numpy as np
 import scipy.sparse.linalg as LA
 
-def get_kktsolver(G_constraints, dims, A_constraints,
+# Regularization constant.
+REG_EPS = 1e-9
+
+def get_kktsolver(A_constraints, G_constraints, dims,
                   var_offsets, var_sizes, x_length):
-    get_linear_op = get_linear_op_factory(G_constraints, dims, A_constraints,
+    get_linear_op = get_linear_op_factory(A_constraints, G_constraints, dims,
                                           var_offsets, var_sizes, x_length)
     def kkt_solver(W):
         lin_op = get_linear_op(W)
-        x0 = np.zeros(x_length)
+        x0 = np.zeros(lin_op.shape[0])
         def solve(x, y, z):
+            # Cast x, y, z as 1D arrays.
+            scale(z, W, trans='T', inverse='I')
+            x, y, z = map(lambda mat: np.asarray(mat)[:, 0], [x, y, z])
             b = np.hstack([x, y, z])
-            x0 = LA.minres(lin_op, b, x0)
-            return x0
+            solution, info = LA.gmres(lin_op, b, x0)
+            print info
+            x0[:] = solution[:]
+            x[:] = solution[0:len(x)]
+            y[:] = solution[len(x):len(x)+len(y)]
+            z[:] = solution[len(x)+len(y):]
+        return solve
     return kkt_solver
 
-def get_linear_op_factory(G_constraints, dims, A_constraints,
-                          var_offsets, var_sizes, x_length, W):
-    A_rows = sum(c.size[0] for c in A_constraints)
-    A_size = (A_rows, x_length)
-    kkt_size = A_size[1] + 2*x_length
+def get_linear_op_factory(A_constraints, G_constraints, dims,
+                          var_offsets, var_sizes, x_length):
+    A_rows = dims["f"]
+    A_cols = x_length
+    G_rows = dims["l"] + sum(dims["q"]) + sum(dims["s"])
+    G_cols = x_length
+    kkt_size = A_cols + A_rows + G_rows
 
     def get_linear_op(W):
         def kkt_mul(vector):
             """Multiplies the KKT matrix by a vector.
 
             The KKT matrix:
-                [ H     A'   GG'   ]   [ ux ]   [ bx ]
-                [ A     0    0     ] * [ uy ] = [ by ]
-                [ GG    0   -W'*W  ]   [ uz ]   [ bz ]
+                [ 0          A'   GG'*W^{-1} ]   [ ux   ]   [ bx        ]
+                [ A          0    0          ] * [ uy   [ = [ by        ]
+                [ W^{-T}*GG  0   -I          ]   [ W*uz ]   [ W^{-T}*bz ]
 
             Parameters
             ----------
@@ -62,29 +76,33 @@ def get_linear_op_factory(G_constraints, dims, A_constraints,
             NumPy ndarray
                 The matrix-vector product
             """
-            ux = vector[0:A_size[1]]
-            uy = vector[A_size[1]:A_size[0]]
-            uz = vector[A_size[1]+A_size[0]:]
+            ux = vector[0:A_cols]
+            uy = vector[A_cols:A_cols+A_rows]
+            uz = vector[A_cols+A_rows:]
             # Compute the product.
-            # A'*uy + G'*uz
+            # by = A*ux - eps*I*uy
+            by = constr_mul(A_constraints, ux, A_rows)
+            #by -= uy*REG_EPS
+            # bz = W^{-T}*G*ux - (1+epsilon)*I*uz
+            Gux = constr_mul(G_constraints, ux, G_rows)
+            scale(cvxopt.matrix(Gux), W, trans='T', inverse='I')
+            bz = Gux - uz #(1+REG_EPS)*uz
+            # eps*I*ux + A'*uy + G'W^{-1}*uz
             uy_list = constr_unpack(A_constraints, uy)
-            uz_list = constr_unpack(G_constraints, uz)
             ATuy = constr_tmul(A_constraints, uy_list)
+
+            scale(cvxopt.matrix(uz), W, inverse='I')
+            uz_list = constr_unpack(G_constraints, uz)
             GTuz = constr_tmul(G_constraints, uz_list)
-            bx_dict = sum_dicts([ATux, GTuz])
-            dict_to_vec(bx_dict, var_offsets, var_sizes, bx)
-            # A*ux
-            by_dict = constr_mul(A_constraints, ux)
-            dict_to_vec(by_dict, var_offsets, var_sizes, by)
-            # G*ux - W'*W*uz
-            scaled_uz = scale(scale(uz, W), W, trans='T')
-            Gux_dict = constr_mul(G_constraints, ux)
-            Gux = dict_to_vec(Gux_dict, var_offsets, var_sizes, bz)
-            bz -= scaled_uz
+
+            bx_dict = sum_dicts([ATuy, GTuz])
+            bx = dict_to_vec(bx_dict, var_offsets, var_sizes, x_length)
+            #bx += ux*REG_EPS
 
             return np.hstack([bx, by, bz])
 
-        return LA.LinearOperator((kkt_size, kkt_size), kkt_mul)
+        return LA.LinearOperator((kkt_size, kkt_size), kkt_mul,
+                                 dtype="float64")
 
     return get_linear_op
 
@@ -95,7 +113,7 @@ def constr_unpack(constraints, vector):
     offset = 0
     for constr in constraints:
         rows, cols = constr.size
-        val = np.zeros((rows, cols)
+        val = np.zeros((rows, cols))
         for col in range(cols):
             val[:, col] = vector[offset:offset+rows]
             offset += rows
@@ -130,7 +148,7 @@ def vec_to_dict(vector, var_offsets, var_sizes):
         val_dict[id_] = value
     return val_dict
 
-def dict_to_vec(val_dict, var_offsets, var_sizes, vector):
+def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
     """Converts a map of variable id to value to a vector.
 
     Parameters
@@ -144,14 +162,17 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vector):
     vector : NumPy matrix
         The vector to store the values in.
     """
+    # TODO take in vector.
+    vector = np.zeros(vec_len)
     for id_, value in val_dict.items():
         size = var_sizes[id_]
         offset = var_offsets[id_]
         for col in range(size[1]):
             vector[offset:size[0]+offset] = value[:, col]
             offset += size[0]
+    return vector
 
-def constr_mul(constraints, var_dict):
+def constr_mul(constraints, var_dict, rows):
     """Multiplies a vector by the matrix implied by the constraints.
 
     Parameters
@@ -163,13 +184,22 @@ def constr_mul(constraints, var_dict):
 
     Returns
     -------
-    list
-        The product for each constraint.
+    NumPy 1D array
+        The product for the constraints.
     """
-    products = []
+    product = np.zeros(rows)
+    offset = 0
     for constr in constraints:
-        products.append(mul(constr.expr, var_dict))
-    return products
+        result = mul(constr.expr, var_dict)
+        rows, cols = constr.size
+        for col in range(cols):
+            # Handle scalars separately.
+            if np.isscalar(result):
+                product[offset:offset+rows] = result
+            else:
+                product[offset:offset+rows] = result[:, col]
+            offset += rows
+    return product
 
 def constr_tmul(constraints, values):
     """Multiplies a vector by the transpose of the constraints matrix.

@@ -24,6 +24,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_to_matrix as op2mat
+import cvxpy.lin_ops.tree_mat as tree_mat
 from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, SDP, ExpCone
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.kktsolver import get_kktsolver
@@ -105,7 +106,7 @@ class Problem(u.Canonical):
             A map of type key to an ordered set of constraints.
         """
         constr_map = {s.EQ: [],
-                      s.INEQ: [],
+                      s.LEQ: [],
                       s.SOC: [],
                       s.SDP: [],
                       s.EXP: []}
@@ -113,7 +114,7 @@ class Problem(u.Canonical):
             if isinstance(c, lo.LinEqConstr):
                 constr_map[s.EQ].append(c)
             elif isinstance(c, lo.LinLeqConstr):
-                constr_map[s.INEQ].append(c)
+                constr_map[s.LEQ].append(c)
             elif isinstance(c, SOC):
                 constr_map[s.SOC].append(c)
             elif isinstance(c, SDP):
@@ -147,11 +148,12 @@ class Problem(u.Canonical):
         constr_map = self._filter_constraints(constraints)
         solver = self._choose_solver(constr_map, solver)
         dims = {}
-        dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.INEQ])
+        dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
+        dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
         # Formats SOC and SDP constraints for the solver.
         for constr in constr_map[s.SOC] + constr_map[s.SDP]:
             for ineq_constr in constr.format():
-                constr_map[s.INEQ].append(ineq_constr)
+                constr_map[s.LEQ].append(ineq_constr)
         dims["q"] = [c.size[0] for c in constr_map[s.SOC]]
         dims["s"] = [c.size[0] for c in constr_map[s.SDP]]
 
@@ -161,9 +163,8 @@ class Problem(u.Canonical):
                 constr_map[s.EQ] += constr.format(s.CVXOPT)
         elif solver == s.SCS:
             for constr in constr_map[s.EXP]:
-                constr_map[s.INEQ] += constr.format(s.SCS)
+                constr_map[s.LEQ] += constr.format(s.SCS)
             dims["ep"] = sum(c.size[0] for c in constr_map[s.EXP])
-            dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
 
         return (obj, constr_map, dims, solver)
 
@@ -272,7 +273,7 @@ class Problem(u.Canonical):
             arguments to solver
         """
         objective, constr_map, dims, solver_chosen = self.canonicalize(solver)
-        all_ineq = constr_map[s.EQ] + constr_map[s.INEQ]
+        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
                                                                  all_ineq)
 
@@ -292,7 +293,7 @@ class Problem(u.Canonical):
         return args
 
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None):
+               solver_specific_opts=None, expr_tree=False):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -330,14 +331,20 @@ class Problem(u.Canonical):
                 raise Exception("Problem does not follow DCP rules.")
         objective, constr_map, dims, solver = self.canonicalize(solver)
 
-        all_ineq = constr_map[s.EQ] + constr_map[s.INEQ]
+        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
                                                                  all_ineq)
 
         if solver == s.CVXOPT:
-            result = self._cvxopt_solve(objective, constr_map, dims,
-                                        var_offsets, x_length,
-                                        verbose, solver_specific_opts)
+            if expr_tree and not constr_map[s.EXP]:
+                result = self._cvxopt_expr_tree(objective, constr_map, dims,
+                                                var_offsets, var_sizes,
+                                                x_length, verbose,
+                                                solver_specific_opts)
+            else:
+                result = self._cvxopt_solve(objective, constr_map, dims,
+                                            var_offsets, x_length,
+                                            verbose, solver_specific_opts)
         elif solver == s.SCS:
             result = self._scs_solve(objective, constr_map, dims,
                                      var_offsets, x_length,
@@ -353,7 +360,7 @@ class Problem(u.Canonical):
         if status == s.OPTIMAL:
             self._save_values(x, self.variables(), var_offsets)
             self._save_dual_values(y, constr_map[s.EQ], EqConstraint)
-            self._save_dual_values(z, constr_map[s.INEQ], LeqConstraint)
+            self._save_dual_values(z, constr_map[s.LEQ], LeqConstraint)
             self._value = value
         else:
             self._handle_failure(status)
@@ -389,7 +396,7 @@ class Problem(u.Canonical):
 
         A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
-        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
+        G, h = self._constr_matrix(constr_map[s.LEQ], var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
         # Convert c,h,b to 1D arrays.
         c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
@@ -471,7 +478,7 @@ class Problem(u.Canonical):
         A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                                    self._CVXOPT_SPARSE_INTF,
                                    self._CVXOPT_DENSE_INTF)
-        G, h = self._constr_matrix(constr_map[s.INEQ], var_offsets, x_length,
+        G, h = self._constr_matrix(constr_map[s.LEQ], var_offsets, x_length,
                                    self._CVXOPT_SPARSE_INTF,
                                    self._CVXOPT_DENSE_INTF)
         # Return the arguments that would be passed to CVXOPT.
@@ -533,13 +540,92 @@ class Problem(u.Canonical):
                                    x_length)
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A, F)
-            results = cvxopt.solvers.cpl(c, F, G, h, A=A, b=b,
-                                         dims=dims, kktsolver=kktsolver)
+            results = cvxopt.solvers.cpl(c, F, G, h, dims, A, b,
+                                         kktsolver=kktsolver)
         else:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(G, dims, A)
-            results = cvxopt.solvers.conelp(c, G, h, A=A, b=b,
-                                            dims=dims, kktsolver=kktsolver)
+            results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
+                                            kktsolver=kktsolver)
+        # Restore original cvxopt solver options.
+        cvxopt.solvers.options = old_options
+
+        status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+        if status == s.OPTIMAL:
+            primal_val = results['primal objective']
+            value = self.objective._primal_to_result(
+                          primal_val - obj_offset)
+            if constr_map[s.EXP]:
+                ineq_dual = results['zl']
+            else:
+                ineq_dual = results['z']
+            return (status, value, results['x'], results['y'], ineq_dual)
+        else:
+            return (status, None, None, None, None)
+
+    def _cvxopt_expr_tree(self, objective, constr_map, dims,
+                          var_offsets, var_sizes, x_length,
+                          verbose, opts):
+        """Calls the CVXOPT conelp solver and returns the result.
+
+        Uses an iterative solver that multiplies by the expression tree.
+
+        Parameters
+        ----------
+            objective : Expression
+                The canonicalized objective.
+            constr_map : dict
+                A dict of the canonicalized constraints.
+            dims : dict
+                A dict with information about the types of constraints.
+            sorted_vars : list
+                An ordered list of the problem variables.
+            var_offsets : dict
+                A dict mapping variable id to offset in the stacked variable x.
+            var_size : dict
+                A map of variable id to variable size.
+            x_length : int
+                The height of x.
+            verbose : bool
+                Should the solver show output?
+            opts : dict
+                List of user-specific options for CVXOPT;
+                will be inserted into cvxopt.solvers.options.
+
+        Returns
+        -------
+        tuple
+            (status, optimal objective, optimal x,
+             optimal equality constraint dual,
+             optimal inequality constraint dual)
+
+        """
+        prob_data = self._cvxopt_problem_data(objective, constr_map, dims,
+                                              var_offsets, x_length)
+        c, G, h, dims, A, b = prob_data[0]
+        obj_offset = prob_data[1]
+        A_constraints = tree_mat.prune_constants(constr_map[s.EQ])
+        G_constraints = tree_mat.prune_constants(constr_map[s.LEQ])
+
+        # Save original cvxopt solver options.
+        old_options = cvxopt.solvers.options
+        # Silence cvxopt if verbose is False.
+        cvxopt.solvers.options['show_progress'] = verbose
+        # Always do one step of iterative refinement after solving KKT system.
+        cvxopt.solvers.options['refinement'] = 1
+
+        # Apply any user-specific options
+        for key, value in opts:
+            cvxopt.solvers.options[key] = value
+
+        # Get custom kktsolver.
+        kktsolver = iterative.get_kktsolver(A_constraints,
+                                            G_constraints,
+                                            dims, var_offsets,
+                                            var_sizes, x_length)
+
+        results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
+                                        kktsolver=kktsolver)
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
 
@@ -583,7 +669,7 @@ class Problem(u.Canonical):
         # Convert obj_offset to a scalar.
         obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
 
-        A, b = self._constr_matrix(constr_map[s.EQ] + constr_map[s.INEQ],
+        A, b = self._constr_matrix(constr_map[s.EQ] + constr_map[s.LEQ],
                                    var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
         # Convert c, b to 1D arrays.

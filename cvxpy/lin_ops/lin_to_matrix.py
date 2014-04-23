@@ -173,7 +173,7 @@ def div_coeffs(lin_op):
     list
         A list of (id, size, coefficient) tuples.
     """
-    rh_coeffs = get_coefficients(lin_op.args[1])
+    rh_coeffs = get_coefficients(lin_op.data)
     # Sum all left hand coeffs before dividing.
     divisor = 0
     for (_, _, const) in rh_coeffs:
@@ -199,8 +199,8 @@ def mul_coeffs(lin_op):
     list
         A list of (id, size, coefficient) tuples.
     """
-    lh_coeffs = get_coefficients(lin_op.args[0])
-    rh_coeffs = get_coefficients(lin_op.args[1])
+    lh_coeffs = get_coefficients(lin_op.data)
+    rh_coeffs = get_coefficients(lin_op.args[0])
     new_coeffs = []
     cols = lin_op.size[1]
     # Multiply all left-hand constants by right-hand terms.

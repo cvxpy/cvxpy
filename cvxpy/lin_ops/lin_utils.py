@@ -175,7 +175,7 @@ def mul_expr(lh_op, rh_op, size):
     LinOp
         A linear operator representing the product.
     """
-    return lo.LinOp(lo.MUL, size, [lh_op, rh_op], None)
+    return lo.LinOp(lo.MUL, size, [rh_op], lh_op)
 
 def div_expr(lh_op, rh_op):
     """Divide one linear operator by another.
@@ -196,7 +196,7 @@ def div_expr(lh_op, rh_op):
     LinOp
         A linear operator representing the quotient.
     """
-    return lo.LinOp(lo.DIV, lh_op.size, [lh_op, rh_op], None)
+    return lo.LinOp(lo.DIV, lh_op.size, [lh_op], rh_op)
 
 def promote(operator, size):
     """Promotes a scalar operator to the given size.

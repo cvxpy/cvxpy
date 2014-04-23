@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.lin_ops.lin_op as lo
+import copy
 import numpy as np
 
 # Utility functions for treating an expression tree as a matrix
@@ -45,6 +46,9 @@ def mul(lin_op, val_dict):
         # Defaults to zero if no value given.
         else:
             return np.mat(np.zeros(lin_op.size))
+    # Return all zeros for NO_OP.
+    elif lin_op.type is lo.NO_OP:
+        return np.mat(np.zeros(lin_op.size))
     else:
         eval_args = []
         for arg in lin_op.args:
@@ -69,10 +73,8 @@ def tmul(lin_op, value):
     # Store the value as the variable.
     if lin_op.type is lo.VARIABLE:
         return {lin_op.data: value}
-    # Do nothing for constant leaves.
-    elif lin_op.type in [lo.SCALAR_CONST,
-                        lo.DENSE_CONST,
-                        lo.SPARSE_CONST]:
+    # Do nothing for NO_OP.
+    elif lin_op.type is lo.NO_OP:
         return {}
     else:
         result = op_tmul(lin_op, value)
@@ -123,15 +125,20 @@ def op_mul(lin_op, args):
     # Constants convert directly to their value.
     if lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
         result = lin_op.data
+    # No-op is not evaluated.
+    elif lin_op.type is lo.NO_OP:
+        return None
     # For non-leaves, recurse on args.
     elif lin_op.type is lo.SUM:
         result = sum(args)
     elif lin_op.type is lo.NEG:
         result = -args[0]
     elif lin_op.type is lo.MUL:
-        result = args[0]*args[1]
+        coeff = mul(lin_op.data, {})
+        result = coeff*args[0]
     elif lin_op.type is lo.DIV:
-        result = args[0]/args[1]
+        divisor = mul(lin_op.data, {})
+        result = args[0]/divisor
     elif lin_op.type is lo.SUM_ENTRIES:
         result = np.sum(args[0])
     elif lin_op.type is lo.INDEX:
@@ -163,11 +170,11 @@ def op_tmul(lin_op, value):
     elif lin_op.type is lo.NEG:
         result = -value
     elif lin_op.type is lo.MUL:
-        constant = lin_op.args[0].data
-        result = constant.T*value
+        coeff = mul(lin_op.data, {})
+        result = coeff.T*value
     elif lin_op.type is lo.DIV:
-        constant = lin_op.args[1].data
-        result = value/constant
+        divisor = mul(lin_op.data, {})
+        result = value/divisor
     elif lin_op.type is lo.SUM_ENTRIES:
         result = np.mat(np.ones(lin_op.args[0].size))*value
     elif lin_op.type is lo.INDEX:
@@ -179,3 +186,95 @@ def op_tmul(lin_op, value):
     else:
         raise Exception("Unknown linear operator.")
     return result
+
+def get_constant(lin_op):
+    """Returns the constant term in the expression.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The root linear operator.
+
+    Returns
+    -------
+    NumPy NDArray
+        The constant term as a flattened vector.
+    """
+    constant = mul(lin_op, {})
+    const_size = constant.shape[0]*constant.shape[1]
+    return np.reshape(constant, const_size, 'F')
+
+def get_constr_constant(constraints):
+    """Returns the constant term for the constraints matrix.
+
+    Parameters
+    ----------
+    constraints : list
+        The constraints that form the matrix.
+
+    Returns
+    -------
+    NumPy NDArray
+        The constant term as a flattened vector.
+    """
+    # TODO what if constraints is empty?
+    constants = [get_constant(c.expr) for c in constraints]
+    return np.hstack(constants)
+
+def prune_constants(constraints):
+    """Returns a new list of constraints with constant terms removed.
+
+    Parameters
+    ----------
+    constraints : list
+        The constraints that form the matrix.
+
+    Returns
+    -------
+    list
+        The pruned constraints.
+    """
+    constr_type = type(constraints[0])
+
+    pruned_constraints = []
+    for constr in constraints:
+        expr = copy.deepcopy(constr.expr)
+        is_constant = prune_expr(expr)
+        # Replace a constant root with a NO_OP.
+        if is_constant:
+            expr = lo.LinOp(lo.NO_OP, expr.size, [], None)
+        pruned = constr_type(expr, constr.constr_id, constr.size)
+        pruned_constraints.append(pruned)
+    return pruned_constraints
+
+def prune_expr(lin_op):
+    """Prunes constant branches from the expression.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The root linear operator.
+
+    Returns
+    -------
+    bool
+        Were all the expression's arguments pruned?
+    """
+    if lin_op.type is lo.VARIABLE:
+        return False
+    elif lin_op.type in [lo.SCALAR_CONST,
+                         lo.DENSE_CONST,
+                         lo.SPARSE_CONST,
+                         lo.PARAM]:
+        return True
+
+    pruned_args = []
+    is_constant = True
+    for arg in lin_op.args:
+        arg_constant = prune_expr(arg)
+        if not arg_constant:
+            is_constant = False
+            pruned_args.append(arg)
+    # Overwrite old args with only non-constant args.
+    lin_op.args[:] = pruned_args[:]
+    return is_constant

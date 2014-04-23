@@ -32,8 +32,10 @@ LinOp = namedtuple("LinOp", ["type",
 # Data: var id.
 VARIABLE = "variable"
 # Multiplying an expression by a constant.
+# Data: LinOp evaluating to the left hand multiple.
 MUL = "mul"
 # Dividing an expression by a scalar constant.
+# Data: LinOp evaluating to the divisor.
 DIV = "div"
 # Summing expressions.
 SUM = "sum"
@@ -60,5 +62,8 @@ SPARSE_CONST = "sparse_const"
 # Some function of parameters.
 # Data: CVXPY expression.
 PARAM = "param"
+# An expression with no variables.
+# Data: None
+NO_OP = "no_op"
 # ID in coefficients for constants.
 CONSTANT_ID = "constant_id"

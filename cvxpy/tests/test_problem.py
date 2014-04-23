@@ -163,13 +163,13 @@ class TestProblem(BaseTest):
             obj = Minimize(sum)
             p = Problem(obj, constraints)
             objective, constr_map, dims, solver = p.canonicalize(s.ECOS)
-            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
+            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.LEQ])
             var_offsets, var_sizes, x_length = p._get_var_offsets(objective, all_ineq)
             # Sort by offset.
             vars_ = sorted(var_offsets.items(), key=lambda (var_id, offset): offset)
             vars_ = [var_id for (var_id, offset) in vars_]
             vars_lists.append(vars_)
-            ineqs_lists.append(constr_map[s.INEQ])
+            ineqs_lists.append(constr_map[s.LEQ])
 
         # Verify order of variables is consistent.
         for i in range(num_solves):
@@ -188,7 +188,7 @@ class TestProblem(BaseTest):
         obj = 0
         def test(self):
             objective,constr_map,dims,solver = self.canonicalize(s.ECOS)
-            return (len(constr_map[s.EQ]),len(constr_map[s.INEQ]))
+            return (len(constr_map[s.EQ]),len(constr_map[s.LEQ]))
         Problem.register_solve("test", test)
         p = Problem(Minimize(obj),[eq,eq,le,le])
         result = p.solve(method="test")

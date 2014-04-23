@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.lin_ops.tree_mat import mul, tmul
+from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import numpy as np
 import scipy.sparse as sp
 import unittest
@@ -89,3 +89,30 @@ class test_tree_mat(BaseTest):
         assert (result == A.T).all()
         result_dict = tmul(expr, result)
         assert (result_dict[x.id] == A).all()
+
+    def test_prune_constants(self):
+        """Test pruning constants from constraints.
+        """
+        x = Variable(2)
+        A = np.matrix("1 2; 3 4")
+        constraints = (A*x <= 2).canonical_form[1]
+        pruned = prune_constants(constraints)
+        prod = mul(pruned[0].expr, {})
+        self.assertItemsAlmostEqual(prod, np.zeros(A.shape[0]))
+
+        # Test no-op
+        constraints = (0*A*x <= 2).canonical_form[1]
+        pruned = prune_constants(constraints)
+        prod = mul(pruned[0].expr, {x.id: 1})
+        self.assertItemsAlmostEqual(prod, np.zeros(A.shape[0]))
+
+    def test_kktsolver(self):
+        """Test the iterative expression tree based kkt solver.
+        """
+        x = Variable()
+        y = Variable()
+        obj = Minimize(x + y)
+        constraints = [x + y >= 1, x == 2]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=CVXOPT, expr_tree=True, verbose=True)
+        self.assertEquals(result, 1)
