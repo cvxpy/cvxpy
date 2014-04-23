@@ -336,15 +336,9 @@ class Problem(u.Canonical):
                                                                  all_ineq)
 
         if solver == s.CVXOPT:
-            if expr_tree and not constr_map[s.EXP]:
-                result = self._cvxopt_expr_tree(objective, constr_map, dims,
-                                                var_offsets, var_sizes,
-                                                x_length, verbose,
-                                                solver_specific_opts)
-            else:
-                result = self._cvxopt_solve(objective, constr_map, dims,
-                                            var_offsets, x_length,
-                                            verbose, solver_specific_opts)
+            result = self._cvxopt_solve(objective, constr_map, dims,
+                                        var_offsets, x_length,
+                                        verbose, solver_specific_opts)
         elif solver == s.SCS:
             result = self._scs_solve(objective, constr_map, dims,
                                      var_offsets, x_length,
@@ -547,85 +541,6 @@ class Problem(u.Canonical):
             kktsolver = get_kktsolver(G, dims, A)
             results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
                                             kktsolver=kktsolver)
-        # Restore original cvxopt solver options.
-        cvxopt.solvers.options = old_options
-
-        status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-        if status == s.OPTIMAL:
-            primal_val = results['primal objective']
-            value = self.objective._primal_to_result(
-                          primal_val - obj_offset)
-            if constr_map[s.EXP]:
-                ineq_dual = results['zl']
-            else:
-                ineq_dual = results['z']
-            return (status, value, results['x'], results['y'], ineq_dual)
-        else:
-            return (status, None, None, None, None)
-
-    def _cvxopt_expr_tree(self, objective, constr_map, dims,
-                          var_offsets, var_sizes, x_length,
-                          verbose, opts):
-        """Calls the CVXOPT conelp solver and returns the result.
-
-        Uses an iterative solver that multiplies by the expression tree.
-
-        Parameters
-        ----------
-            objective : Expression
-                The canonicalized objective.
-            constr_map : dict
-                A dict of the canonicalized constraints.
-            dims : dict
-                A dict with information about the types of constraints.
-            sorted_vars : list
-                An ordered list of the problem variables.
-            var_offsets : dict
-                A dict mapping variable id to offset in the stacked variable x.
-            var_size : dict
-                A map of variable id to variable size.
-            x_length : int
-                The height of x.
-            verbose : bool
-                Should the solver show output?
-            opts : dict
-                List of user-specific options for CVXOPT;
-                will be inserted into cvxopt.solvers.options.
-
-        Returns
-        -------
-        tuple
-            (status, optimal objective, optimal x,
-             optimal equality constraint dual,
-             optimal inequality constraint dual)
-
-        """
-        prob_data = self._cvxopt_problem_data(objective, constr_map, dims,
-                                              var_offsets, x_length)
-        c, G, h, dims, A, b = prob_data[0]
-        obj_offset = prob_data[1]
-        A_constraints = tree_mat.prune_constants(constr_map[s.EQ])
-        G_constraints = tree_mat.prune_constants(constr_map[s.LEQ])
-
-        # Save original cvxopt solver options.
-        old_options = cvxopt.solvers.options
-        # Silence cvxopt if verbose is False.
-        cvxopt.solvers.options['show_progress'] = verbose
-        # Always do one step of iterative refinement after solving KKT system.
-        cvxopt.solvers.options['refinement'] = 1
-
-        # Apply any user-specific options
-        for key, value in opts:
-            cvxopt.solvers.options[key] = value
-
-        # Get custom kktsolver.
-        kktsolver = iterative.get_kktsolver(A_constraints,
-                                            G_constraints,
-                                            dims, var_offsets,
-                                            var_sizes, x_length)
-
-        results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
-                                        kktsolver=kktsolver)
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
 
