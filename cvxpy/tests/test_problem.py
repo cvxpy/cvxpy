@@ -157,7 +157,7 @@ class TestProblem(BaseTest):
             p = Problem(obj, constraints)
             objective, constr_map, dims, solver = p.canonicalize(s.ECOS)
             all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.INEQ])
-            var_offsets, x_length = p._get_var_offsets(objective, all_ineq)
+            var_offsets, var_sizes, x_length = p._get_var_offsets(objective, all_ineq)
             # Sort by offset.
             vars_ = sorted(var_offsets.items(), key=lambda (var_id, offset): offset)
             vars_ = [var_id for (var_id, offset) in vars_]

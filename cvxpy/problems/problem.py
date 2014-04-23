@@ -272,7 +272,8 @@ class Problem(u.Canonical):
         """
         objective, constr_map, dims, solver_chosen = self.canonicalize(solver)
         all_ineq = constr_map[s.EQ] + constr_map[s.INEQ]
-        var_offsets, x_length = self._get_var_offsets(objective, all_ineq)
+        var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
+                                                                 all_ineq)
 
         if solver_chosen != solver:
             raise Exception("Solver '%s' cannot solve the problem." % solver)
@@ -287,7 +288,7 @@ class Problem(u.Canonical):
         return args
 
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None):
+               solver_specific_opts=None, expr_tree=False):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -326,11 +327,12 @@ class Problem(u.Canonical):
         objective, constr_map, dims, solver = self.canonicalize(solver)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.INEQ]
-        var_offsets, x_length = self._get_var_offsets(objective, all_ineq)
+        var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
+                                                                 all_ineq)
 
         if solver == s.CVXOPT:
             result = self._cvxopt_solve(objective, constr_map, dims,
-                                        var_offsets, x_length,
+                                        var_offsets, var_sizes, x_length,
                                         verbose, solver_specific_opts)
         elif solver == s.SCS:
             result = self._scs_solve(objective, constr_map, dims,
@@ -637,13 +639,13 @@ class Problem(u.Canonical):
         Returns
         -------
         tuple
-            (ordered list of variables, map of variable to offset,
-             length of variable vector)
+            (map of variable to offset, length of variable vector)
         """
         vars_ = lu.get_expr_vars(objective)
         for constr in constraints:
             vars_ += lu.get_expr_vars(constr.expr)
         var_offsets = OrderedDict()
+        var_sizes = {}
         # Ensure the variables are always in the same
         # order for the same problem.
         var_names = list(set(vars_))
@@ -651,10 +653,11 @@ class Problem(u.Canonical):
         # Map var ids to offsets.
         vert_offset = 0
         for var_id, var_size in var_names:
+            var_sizes[var_id] = var_size
             var_offsets[var_id] = vert_offset
             vert_offset += var_size[0]*var_size[1]
 
-        return (var_offsets, vert_offset)
+        return (var_offsets, var_sizes, vert_offset)
 
     def _save_dual_values(self, result_vec, constraints, constr_type):
         """Saves the values of the dual variables.

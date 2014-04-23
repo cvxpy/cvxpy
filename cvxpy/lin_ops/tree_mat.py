@@ -76,16 +76,34 @@ def tmul(lin_op, value):
         return {}
     else:
         result = op_tmul(lin_op, value)
-        val_dict = {}
+        result_dicts = []
         for arg in lin_op.args:
-            result_dict = tmul(arg, result)
-            # Sum repeated entries.
-            for id_, value in result_dict:
-                if id_ in val_dict:
-                    val_dict[id_] = val_dict[id_] + value
-                else:
-                    val_dict[id_] = value
-        return val_dict
+            result_dicts.append(tmul(arg, result))
+        # Sum repeated ids.
+        return sum_dicts(result_dicts)
+
+def sum_dicts(dicts):
+    """Sums the dictionaries entrywise.
+
+    Parameters
+    ----------
+    dicts : list
+        A list of dictionaries with numeric entries.
+
+    Returns
+    -------
+    dict
+        A dict with the sum.
+    """
+    # Sum repeated entries.
+    sum_dict = {}
+    for val_dict in dicts:
+        for id_, value in val_dict.items():
+            if id_ in sum_dict:
+                sum_dict[id_] = sum_dict[id_] + value
+            else:
+                sum_dict[id_] = value
+    return sum_dict
 
 def op_mul(lin_op, args):
     """Applies the linear operator to the arguments.
@@ -145,9 +163,11 @@ def op_tmul(lin_op, value):
     elif lin_op.type is lo.NEG:
         result = -value
     elif lin_op.type is lo.MUL:
-        result = lin_op.args[0].T*value
+        constant = lin_op.args[0].data
+        result = constant.T*value
     elif lin_op.type is lo.DIV:
-        result = value/lin_op.args[1]
+        constant = lin_op.args[1].data
+        result = value/constant
     elif lin_op.type is lo.SUM_ENTRIES:
         result = np.mat(np.ones(lin_op.args[0].size))*value
     elif lin_op.type is lo.INDEX:
