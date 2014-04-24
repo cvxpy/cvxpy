@@ -18,11 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.utilities as u
-from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from  cvxpy.atoms.quad_over_lin import quad_over_lin
-from  cvxpy.atoms.affine.index import index
+from cvxpy.atoms.elementwise.qol_elemwise import qol_elemwise
 import numpy as np
 
 class inv_pos(Elementwise):
@@ -64,18 +62,8 @@ class inv_pos(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        rows, cols = size
         x = arg_objs[0]
-        t = lu.create_var(size)
-        one = lu.create_const(1, (1, 1))
-        constraints = []
-        for i in xrange(rows):
-            for j in xrange(cols):
-                xi = index.get_index(x, constraints, i, j)
-                ti = index.get_index(t, constraints, i, j)
-                obj, qol_constr = quad_over_lin.graph_implementation([one, xi],
-                                                                     (1, 1))
-                constraints += qol_constr
-                constraints += [lu.create_leq(obj, ti),
-                                lu.create_geq(xi)]
-        return (t, constraints)
+        ones = lu.create_const(np.mat(np.ones(size)), size)
+        obj, constraints = qol_elemwise([ones, x], size)
+
+        return (obj, constraints)
