@@ -130,9 +130,6 @@ All non-scalar Expression objects can be indexed using the syntax `expr[i,j]`. T
 
 Non-scalar Expressions can also be sliced into using the standard Python slicing syntax. Thus `expr[i:j:k,r]` selects every kth element in column r of `expr`, starting at row i and ending at row j-1.
 
-#### Iteration
-Expressions are iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
-
 #### Transpose
 The transpose of any expression can be obtained using the syntax `expr.T`.
 
@@ -156,6 +153,7 @@ CVXPY currently supports the following atoms:
         * Defaults to p = 2 if no value of p is given.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive.
     * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
+    * `sum_entries(x)`, sums the entries of the expression.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`.
