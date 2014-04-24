@@ -552,7 +552,7 @@ class TestProblem(BaseTest):
         p = Problem(Maximize(self.x[0,0]), [self.x[0,0] <= 2, self.x[1,0] == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 2)
-        self.assertItemsAlmostEqual(self.x, [2,3])
+        self.assertItemsAlmostEqual(self.x.value, [2,3])
 
         n = 10
         A = matrix(range(n*n), (n,n))
@@ -563,7 +563,6 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, answer)
 
         # Matrix variables
-        import __builtin__
         p = Problem(Maximize( sum(self.A[i,i] + self.A[i,1-i] for i in range(2)) ),
                              [self.A <= [[1,-2],[-3,4]]])
         result = p.solve()

@@ -165,26 +165,10 @@ class Expression(u.Canonical):
         """Return a slice/index into the expression.
         """
         # Indexing into a scalar returns the scalar.
-        if self.size == (1, 1):
+        if self.is_scalar():
             return self
         else:
             return types.index()(self, key)
-
-    def __iter__(self):
-        """Yields indices into the expression in column major order.
-        """
-        for col in range(self.size[1]):
-            for row in range(self.size[0]):
-                yield self[row, col]
-
-    def __len__(self):
-        """The number of entries in a matrix expression.
-        """
-        length = self.size[0]*self.size[1]
-        if length == 1: # Numpy will iterate over anything with a length.
-            return NotImplemented
-        else:
-            return length
 
     @property
     def T(self):

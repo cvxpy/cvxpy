@@ -162,8 +162,11 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.name(), "vstack(A, C, B)")
         self.assertEquals(atom.size, (7,2))
 
-        gen = (xi for xi in self.x)
-        atom = vstack(*gen)
+        entries = []
+        for i in range(self.x.size[0]):
+            for j in range(self.x.size[1]):
+                entries.append(self.x[i, j])
+        atom = vstack(*entries)
         # self.assertEqual(atom[1,0].name(), "vstack(x[0,0], x[1,0])[1,0]")
 
         with self.assertRaises(Exception) as cm:

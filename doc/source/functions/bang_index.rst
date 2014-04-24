@@ -31,14 +31,6 @@ slicing syntax. For example, ``expr[i:j:k, r]`` selects every kth
 element in column r of ``expr``, starting at row i and ending at row
 j-1.
 
-Iteration
-^^^^^^^^^
-
-Expressions are iterable. Iterating over an expression returns indices
-into the expression in column-major order. If ``expr`` is a 2 by 2
-matrix, ``[elem for elem in expr]`` evaluates to
-``[expr[0, 0], expr[1, 0], expr[0, 1], expr[1, 1]]``.
-
 Transpose
 ^^^^^^^^^
 
