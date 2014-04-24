@@ -9,7 +9,7 @@ CVXPY is a Python-embedded modeling language for optimization problems. CVXPY al
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
 ```
-import cvxpy as cp
+from cvxpy import *
 import cvxopt
 
 # Problem data.
@@ -19,10 +19,10 @@ A = cvxopt.normal(m,n)
 b = cvxopt.normal(m)
 
 # Construct the problem.
-x = cp.Variable(n)
-objective = cp.Minimize(sum(cp.square(A*x - b)))
+x = Variable(n)
+objective = Minimize(sum_entries(square(A*x - b)))
 constraints = [0 <= x, x <= 1]
-p = cp.Problem(objective, constraints)
+p = Problem(objective, constraints)
 
 # The optimal objective is returned by p.solve().
 result = p.solve()
@@ -72,13 +72,13 @@ Basic Usage
 Variables are created using the Variable class.
 ```
 # Scalar variable.
-a = cp.Variable()
+a = Variable()
 
 # Column vector variable of length 5.
-x = cp.Variable(5)
+x = Variable(5)
 
 # Matrix variable with 4 rows and 7 columns.
-A = cp.Variable(4, 7)
+A = Variable(4, 7)
 ```
 
 ### Constants
@@ -100,13 +100,13 @@ Parameters are created using the Parameter class. Parameters are created with fi
 
 ```
 # Positive scalar parameter.
-m = cp.Parameter(sign="positive")
+m = Parameter(sign="positive")
 
 # Column vector parameter with unknown sign (by default).
-c = cp.Parameter(5)
+c = Parameter(5)
 
 # Matrix parameter with negative entries.
-G = cp.Parameter(4, 7, sign="negative")
+G = Parameter(4, 7, sign="negative")
 
 # Assigns a constant value to G.
 G.value = -numpy.ones((4, 7))
@@ -116,13 +116,13 @@ G.value = -numpy.ones((4, 7))
 Mathematical expressions are stored in Expression objects. Variable and Parameter are subclasses of Expression. Expression objects are created from constants and other expressions. These elements are combined with arithmetic operators or passed as arguments to [Atoms](#atoms).
 
 ```
-a = cp.Variable()
-x = cp.Variable(5)
+a = Variable()
+x = Variable(5)
 
 # expr is an Expression object after each assignment.
 expr = 2*x
 expr = expr - a
-expr = sum(expr) + cp.norm(x, 2)
+expr = sum_entries(expr) + norm(x, 2)
 ```
 
 #### Indexing and Slicing
@@ -173,7 +173,7 @@ CVXPY currently supports the following atoms:
 
 ### Disciplined Convex Programming (DCP)
 
-Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dstanford.edu/>.
 
 DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
 
@@ -217,11 +217,11 @@ To check whether an Expression object follows the DCP rules, use the method `exp
 The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. For scalar expressions, the curvature and sign are strings. For example,
 
 ```
-x = cp.Variable()
+x = Variable()
 x.curvature == 'AFFINE'
 x.sign == 'UNKNOWN'
 
-expr = cp.square(x)
+expr = square(x)
 expr.curvature == 'CONVEX'
 expr.sign == 'POSITIVE'
 ```
@@ -229,8 +229,8 @@ expr.sign == 'POSITIVE'
 The curvature and sign of matrix expressions are Numpy 2D arrays of strings, with one string for each entry in the expression. For example,
 
 ```
-x = cp.Variable()
-expr = cp.vstack(x, cp.square(x))
+x = Variable()
+expr = vstack(x, square(x))
 expr.curvature ==  array([['AFFINE'],
                           ['CONVEX']], dtype=object)
 expr.sign ==  array([['UNKNOWN'],
@@ -300,10 +300,10 @@ The value of expressions in the problem can also be read from `expr.value`. For 
 # x is a vector of stock holdings as fractions of total assets.
 
 expected_return = mu*x
-risk = cp.quad_form(x, sigma)
+risk = quad_form(x, sigma)
 
-objective = cp.Maximize(expected_return - gamma*risk)
-p = cp.Problem(objective, [sum(x) == 1])
+objective = Maximize(expected_return - gamma*risk)
+p = Problem(objective, [sum_entries(x) == 1])
 result = p.solve()
 
 # The optimal expected return.
@@ -316,7 +316,7 @@ print risk.value
 The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) is used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
 
 ```
-p = cp.Problem(objective, constraints)
+p = Problem(objective, constraints)
 
 # Solve with ECOS.
 result = p.solve(solver=cvxpy.ECOS)
@@ -343,12 +343,12 @@ n = 10
 m = 5
 A = cvxopt.normal(n,m)
 b = cvxopt.normal(n)
-gamma = cp.Parameter(sign="positive")
+gamma = Parameter(sign="positive")
 
 # Construct the problem.
-x = cp.Variable(m)
-objective = cp.Minimize(sum(cp.square(A*x - b)) + gamma*cp.norm(x, 1))
-p = cp.Problem(objective)
+x = Variable(m)
+objective = Minimize(sum_entries(square(A*x - b)) + gamma*norm(x, 1))
+p = Problem(objective)
 
 # Assign a value to gamma and find the optimal x.
 def get_x(gamma_value):
@@ -376,10 +376,10 @@ Consider the max-flow problem with N nodes and E edges. We can define the proble
 
 ```
 # A is the incidence matrix. c is a vector of edge capacities.
-flows = cp.Variable(E-2)
-source = cp.Variable()
-sink = cp.Variable()
-p = cp.Problem(cp.Maximize(source),
+flows = Variable(E-2)
+source = Variable()
+sink = Variable()
+p = Problem(Maximize(source),
               [A*vstack(flows,source,sink) == 0,
                0 <= flows,
                flows <= c])
@@ -392,7 +392,7 @@ class Edge(object):
     """ An undirected, capacity limited edge. """
     def __init__(self, capacity):
         self.capacity = capacity
-        self.flow = cp.Variable()
+        self.flow = Variable()
 
     # Connects two nodes via the edge.
     def connect(self, in_node, out_node):
@@ -401,7 +401,7 @@ class Edge(object):
 
     # Returns the edge's internal constraints.
     def constraints(self):
-        return [cp.abs(self.flow) <= self.capacity]
+        return [abs(self.flow) <= self.capacity]
 ```
 
 The Edge class exposes the flow into and out of the edge. The capacity constraint is stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
@@ -428,7 +428,7 @@ Suppose `nodes` is a list of all the nodes, `edges` is a list of all the edges, 
 constraints = []
 for obj in nodes + edges:
     constraints += obj.constraints()
-p = cp.Problem(cp.Maximize(sink.accumulation), constraints)
+p = Problem(Maximize(sink.accumulation), constraints)
 ```
 
 Note that the problem has been reframed from maximizing the flow along the source edge to maximizing the accumulation at the sink node. We could easily extend the Edge and Node class to model an electrical grid. Sink nodes would be consumers. Source nodes would be power stations, which generate electricity at a cost. A node could be both a source and a sink, which would represent energy storage facilities or a consumer who contributes to the grid. We could add energy loss along edges to more accurately model transmission lines. The entire grid construct could be embedded in a time series model.
@@ -479,15 +479,15 @@ for i in range(M):
     data += [(-1, cvxopt.normal(n, mean=-1.0, std=2.0))]
 
 # Construct problem.
-gamma = cp.Parameter(sign="positive")
+gamma = Parameter(sign="positive")
 gamma.value = 0.1
 # 'a' is a variable constrained to have at most 6 non-zero entries.
 a = mi.SparseVar(n, nonzeros=6)
-b = cp.Variable()
+b = Variable()
 
-slack = [cp.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
-objective = cp.Minimize(cp.norm(a, 2) + gamma*sum(slack))
-p = cp.Problem(objective)
+slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
+objective = Minimize(norm(a, 2) + gamma*sum(slack))
+p = Problem(objective)
 # Extensions can attach new solve methods to the CVXPY Problem class.
 p.solve(method="admm")
 
