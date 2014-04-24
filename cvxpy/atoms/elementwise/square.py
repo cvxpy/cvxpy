@@ -20,8 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from  cvxpy.atoms.quad_over_lin import quad_over_lin
-from  cvxpy.atoms.affine.index import index
+from cvxpy.atoms.elementwise.qol_elemwise import qol_elemwise
 import numpy as np
 
 class square(Elementwise):
@@ -63,17 +62,8 @@ class square(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        rows, cols = size
         x = arg_objs[0]
-        t = lu.create_var(size)
-        one = lu.create_const(1, (1, 1))
-        constraints = []
-        for i in xrange(rows):
-            for j in xrange(cols):
-                xi = index.get_index(x, constraints, i, j)
-                ti = index.get_index(t, constraints, i, j)
-                obj, qol_constr = quad_over_lin.graph_implementation([xi, one],
-                                                                     (1, 1))
-                constraints += qol_constr + [lu.create_leq(obj, ti)]
+        ones = lu.create_const(np.mat(np.ones(size)), size)
+        obj, constraints = qol_elemwise([x, ones], size)
 
-        return (t, constraints)
+        return (obj, constraints)

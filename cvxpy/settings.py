@@ -76,4 +76,4 @@ EXP_CAPABLE = [CVXOPT, SCS]
 SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
 
 # Map of constraint types.
-EQ, LEQ, SOC, SDP, EXP = range(5)
+EQ, LEQ, SOC, SOC_EW, SDP, EXP = range(6)

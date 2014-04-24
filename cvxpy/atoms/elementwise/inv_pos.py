@@ -77,5 +77,5 @@ class inv_pos(Elementwise):
                                                                      (1, 1))
                 constraints += qol_constr
                 constraints += [lu.create_leq(obj, ti),
-                                lu.create_leq(lu.neg_expr(xi))]
+                                lu.create_geq(xi)]
         return (t, constraints)

@@ -83,5 +83,5 @@ class quad_over_lin(Atom):
         constraints = [SOC(lu.sum_expr([y, v]),
                            [lu.sub_expr(y, v),
                             lu.mul_expr(two, x, x.size)]),
-                       lu.create_leq(lu.neg_expr(y))]
+                       lu.create_geq(y)]
         return (v, constraints)

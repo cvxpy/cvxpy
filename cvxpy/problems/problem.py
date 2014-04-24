@@ -25,7 +25,8 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 import cvxpy.lin_ops.tree_mat as tree_mat
-from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, SDP, ExpCone
+from cvxpy.constraints import (EqConstraint, LeqConstraint,
+SOC, SOC_Elemwise, SDP, ExpCone)
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.kktsolver import get_kktsolver
 import cvxpy.problems.iterative as iterative
@@ -108,6 +109,7 @@ class Problem(u.Canonical):
         constr_map = {s.EQ: [],
                       s.LEQ: [],
                       s.SOC: [],
+                      s.SOC_EW: [],
                       s.SDP: [],
                       s.EXP: []}
         for c in constraints:
@@ -115,6 +117,8 @@ class Problem(u.Canonical):
                 constr_map[s.EQ].append(c)
             elif isinstance(c, lo.LinLeqConstr):
                 constr_map[s.LEQ].append(c)
+            elif isinstance(c, SOC_Elemwise):
+                constr_map[s.SOC_EW].append(c)
             elif isinstance(c, SOC):
                 constr_map[s.SOC].append(c)
             elif isinstance(c, SDP):
@@ -150,11 +154,17 @@ class Problem(u.Canonical):
         dims = {}
         dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
         dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
-        # Formats SOC and SDP constraints for the solver.
-        for constr in constr_map[s.SOC] + constr_map[s.SDP]:
+        # Formats SOC, SOC_EW, and SDP constraints for the solver.
+        nonlin = constr_map[s.SOC] + constr_map[s.SOC_EW] + constr_map[s.SDP]
+        for constr in nonlin:
             for ineq_constr in constr.format():
                 constr_map[s.LEQ].append(ineq_constr)
         dims["q"] = [c.size[0] for c in constr_map[s.SOC]]
+        # Elemwise SOC constraints have an SOC constraint
+        # for each element in their arguments.
+        for constr in constr_map[s.SOC_EW]:
+            for cone_size in constr.size:
+                dims["q"].append(cone_size[0])
         dims["s"] = [c.size[0] for c in constr_map[s.SDP]]
 
         # Format exponential cone constraints.

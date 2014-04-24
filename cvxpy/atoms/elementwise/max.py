@@ -29,13 +29,6 @@ class max(Elementwise):
     def numeric(self, values):
         return reduce(np.maximum, values)
 
-    # Verify that all the shapes are the same
-    # or can be promoted.
-    def validate_arguments(self):
-        shape = self.args[0].shape
-        for arg in self.args[1:]:
-            shape = shape + arg.shape
-
     """
     Reduces the list of argument signs according to the following rules:
         POSITIVE, ANYTHING = POSITIVE

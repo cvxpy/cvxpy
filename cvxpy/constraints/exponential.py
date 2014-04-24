@@ -22,9 +22,9 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 from cvxpy.constraints.nonlinear import NonlinearConstraint
+from cvxpy.constraints.utilities import format_elemwise
 import cvxopt
 import math
-import scipy.sparse as sp
 
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
@@ -77,31 +77,9 @@ class ExpCone(NonlinearConstraint):
             return constraints
         # Converts to an inequality constraint.
         elif solver == s.SCS:
-            # Create matrices A, B, C such that A*x + B*y + B*z gives
-            # the format for the elementwise exponential constraints.
-            size = (3*self.size[0], self.size[1])
-            A = self.create_selection_matrix(0)
-            Ax = lu.mul_expr(A, self.x, size)
-            B = self.create_selection_matrix(1)
-            By = lu.mul_expr(B, self.y, size)
-            C = self.create_selection_matrix(2)
-            Cz = lu.mul_expr(C, self.z, size)
-            return [lu.create_geq(lu.sum_expr([Ax, By, Cz]))]
+            return format_elemwise([self.x, self.y, self.z])
         else:
             raise TypeError("Solver does not support exponential cone.")
-
-    def create_selection_matrix(self, offset):
-        rows = 3*self.size[0]
-        cols = self.size[0]
-        val_arr = []
-        row_arr = []
-        col_arr = []
-        for var_row in range(self.size[0]):
-            val_arr.append(1)
-            row_arr.append(3*var_row + offset)
-            col_arr.append(var_row)
-        mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), (rows, cols))
-        return lu.create_const(mat, (rows, cols), sparse=True)
 
     def _solver_hook(self, vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.
