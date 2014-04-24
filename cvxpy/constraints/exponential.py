@@ -18,14 +18,18 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
+import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 from cvxpy.constraints.nonlinear import NonlinearConstraint
-import math
 import cvxopt
+import math
+import scipy.sparse as sp
 
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
+
+    Operates elementwise on x, y, z.
 
     Original cone:
     K = {(x,y,z) | y > 0, ye^(x/y) <= z}
@@ -36,18 +40,18 @@ class ExpCone(NonlinearConstraint):
 
     Attributes
     ----------
-        x: The scalar variable x in the exponential cone.
-        y: The scalar variable y in the exponential cone.
-        z: The scalar variable z in the exponential cone.
+        x: Variable x in the exponential cone.
+        y: Variable y in the exponential cone.
+        z: Variable z in the exponential cone.
     """
-
-    # The dimensions of the exponential cone.
-    size = (1, 1)
+    CVXOPT_DENSE_INTF = intf.get_matrix_interface(cvxopt.matrix)
+    CVXOPT_SPARSE_INTF = intf.get_matrix_interface(cvxopt.spmatrix)
 
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
+        self.size = self.x.size
         super(ExpCone, self).__init__(self._solver_hook,
                                       [self.x, self.y, self.z])
 
@@ -67,20 +71,39 @@ class ExpCone(NonlinearConstraint):
             constraints = []
             for i, var in enumerate(self.vars_):
                 if not var.type is VARIABLE:
-                    lone_var = lu.create_var((1, 1))
+                    lone_var = lu.create_var(var.size)
                     constraints.append(lu.create_eq(lone_var, var))
                     self.vars_[i] = lone_var
             return constraints
         # Converts to an inequality constraint.
         elif solver == s.SCS:
-            return [lu.create_geq(self.x),
-                    lu.create_geq(self.y),
-                    lu.create_geq(self.z)]
+            # Create matrices A, B, C such that A*x + B*y + B*z gives
+            # the format for the elementwise exponential constraints.
+            size = (3*self.size[0], self.size[1])
+            A = self.create_selection_matrix(0)
+            Ax = lu.mul_expr(A, self.x, size)
+            B = self.create_selection_matrix(1)
+            By = lu.mul_expr(B, self.y, size)
+            C = self.create_selection_matrix(2)
+            Cz = lu.mul_expr(C, self.z, size)
+            return [lu.create_geq(lu.sum_expr([Ax, By, Cz]))]
         else:
             raise TypeError("Solver does not support exponential cone.")
 
-    @staticmethod
-    def _solver_hook(vars_=None, scaling=None):
+    def create_selection_matrix(self, offset):
+        rows = 3*self.size[0]
+        cols = self.size[0]
+        val_arr = []
+        row_arr = []
+        col_arr = []
+        for var_row in range(self.size[0]):
+            val_arr.append(1)
+            row_arr.append(3*var_row + offset)
+            col_arr.append(var_row)
+        mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), (rows, cols))
+        return lu.create_const(mat, (rows, cols), sparse=True)
+
+    def _solver_hook(self, vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.
 
         Based on f(x,y,z) = y * log(y) + x - y * log(z).
@@ -97,26 +120,40 @@ class ExpCone(NonlinearConstraint):
             _solver_hook(x, z) returns the function value, gradient,
             and (z scaled) Hessian at x.
         """
+        entries = self.size[0]*self.size[1]
         if vars_ is None:
-            return ExpCone.size[0], cvxopt.matrix([0.0, 0.5, 1.0])
+            x_init = entries*[0.0]
+            y_init = entries*[0.5]
+            z_init = entries*[1.0]
+            return self.size[0], cvxopt.matrix(x_init + y_init + z_init)
         # Unpack vars_
-        x, y, z = vars_
+        x = vars_[0:entries]
+        y = vars_[entries:2*entries]
+        z = vars_[2*entries:]
         # Out of domain.
         # TODO what if y == 0.0?
-        if y <= 0.0 or z <= 0.0:
+        if min(y) <= 0.0 or min(z) <= 0.0:
             return None
         # Evaluate the function.
-        f = x - y*math.log(z) + y*math.log(y)
+        f = self.CVXOPT_DENSE_INTF.zeros(entries, 1)
+        for i in range(entries):
+            f[i] = x[i] - y[i]*math.log(z[i]) + y[i]*math.log(y[i])
         # Compute the gradient.
-        Df = cvxopt.matrix([1.0,
-                            math.log(y) - math.log(z) + 1.0,
-                            -y/z]).T
+        Df = self.CVXOPT_DENSE_INTF.zeros(entries, 3*entries)
+        for i in range(entries):
+            Df[i, i] = 1.0
+            Df[i, entries+i] = math.log(y[i]) - math.log(z[i]) + 1.0
+            Df[i, 2*entries+i] = -y[i]/z[i]
+
         if scaling is None:
             return f, Df
         # Compute the Hessian.
-        H = cvxopt.matrix([
-                [0.0, 0.0, 0.0],
-                [0.0, 1.0/y, -1.0/z],
-                [0.0, -1.0/z, y/(z**2)],
-            ])
-        return f, Df, scaling*H
+        big_H = self.CVXOPT_SPARSE_INTF.zeros(3*entries, 3*entries)
+        for i in range(entries):
+            H = cvxopt.matrix([
+                    [0.0, 0.0, 0.0],
+                    [0.0, 1.0/y[i], -1.0/z[i]],
+                    [0.0, -1.0/z[i], y[i]/(z[i]**2)],
+                ])
+            big_H[i:3*entries:entries, i:3*entries:entries] = scaling[i]*H
+        return f, Df, big_H

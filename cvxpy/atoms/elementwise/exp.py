@@ -64,15 +64,8 @@ class exp(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        rows, cols = size
         t = lu.create_var(size)
         x = arg_objs[0]
-        one = lu.create_const(1, (1, 1))
-        constraints = []
-        for i in xrange(rows):
-            for j in xrange(cols):
-                xi = index.get_index(x, constraints, i, j)
-                ti = index.get_index(t, constraints, i, j)
-                constraints.append(ExpCone(xi, one, ti))
+        ones = lu.create_const(np.mat(np.ones(size)), size)
 
-        return (t, constraints)
+        return (t, [ExpCone(x, ones, t)])

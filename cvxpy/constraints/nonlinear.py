@@ -36,12 +36,8 @@ class NonlinearConstraint(object):
         # The shape of vars_ in f(vars_)
         cols = self.vars_[0].size[1]
         rows = sum(var.size[0] for var in self.vars_)
-        self.x_size = (rows, cols)
+        self.x_size = (rows*cols, 1)
         super(NonlinearConstraint, self).__init__()
-
-    @property
-    def size(self):
-        return (self.f()[0], 1)
 
     # Returns the variables involved in the function
     # in order, i.e. f(vars_) = f(vstack(variables))
@@ -67,7 +63,7 @@ class NonlinearConstraint(object):
             var_Df = Df[:, horiz_offset:horiz_offset+var_size]
             interface.block_add(big_Df, var_Df,
                                 vert_offset, var_offsets[var.data],
-                                self.size[0], var_size)
+                                self.size[0]*self.size[1], var_size)
             horiz_offset += var_size
 
     # Place H in the Hessian of all functions.

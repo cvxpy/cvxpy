@@ -164,7 +164,7 @@ class Problem(u.Canonical):
         elif solver == s.SCS:
             for constr in constr_map[s.EXP]:
                 constr_map[s.LEQ] += constr.format(s.SCS)
-            dims["ep"] = sum(c.size[0] for c in constr_map[s.EXP])
+            dims["ep"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EXP])
 
         return (obj, constr_map, dims, solver)
 
@@ -850,24 +850,25 @@ class Problem(u.Canonical):
 
             offset = 0
             for constr in nl_constr:
+                constr_entries = constr.size[0]*constr.size[1]
                 local_x = constr.extract_variables(x, var_offsets,
                                                    self._CVXOPT_DENSE_INTF)
                 if z:
                     f, Df, H = constr.f(local_x,
-                                        z[offset:offset + constr.size[0]])
+                                        z[offset:offset + constr_entries])
                 else:
                     result = constr.f(local_x)
                     if result:
                         f, Df = result
                     else:
                         return None
-                big_f[offset:offset + constr.size[0]] = f
+                big_f[offset:offset + constr_entries] = f
                 constr.place_Df(big_Df, Df, var_offsets,
                                 offset, self._CVXOPT_SPARSE_INTF)
                 if z:
                     constr.place_H(big_H, H, var_offsets,
                                    self._CVXOPT_SPARSE_INTF)
-                offset += constr.size[0]
+                offset += constr_entries
 
             if z is None:
                 return big_f, big_Df

@@ -106,13 +106,13 @@ class test_tree_mat(BaseTest):
         prod = mul(pruned[0].expr, {x.id: 1})
         self.assertItemsAlmostEqual(prod, np.zeros(A.shape[0]))
 
-    def test_kktsolver(self):
-        """Test the iterative expression tree based kkt solver.
-        """
-        x = Variable()
-        y = Variable()
-        obj = Minimize(x + y)
-        constraints = [x + y >= 1, x == 2]
-        prob = Problem(obj, constraints)
-        result = prob.solve(solver=CVXOPT, expr_tree=True, verbose=True)
-        self.assertEquals(result, 1)
+    # def test_kktsolver(self):
+    #     """Test the iterative expression tree based kkt solver.
+    #     """
+    #     x = Variable()
+    #     y = Variable()
+    #     obj = Minimize(x + y)
+    #     constraints = [x + y >= 1, x == 2]
+    #     prob = Problem(obj, constraints)
+    #     result = prob.solve(solver=CVXOPT, expr_tree=True, verbose=True)
+    #     self.assertEquals(result, 1)

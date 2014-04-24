@@ -212,8 +212,9 @@ def mul_coeffs(lin_op):
             if intf.is_scalar(constant) or \
                id_ is lo.CONSTANT_ID or cols == 1:
                 product = constant*coeff
-            # For promoted variables, flatten the matrix.
-            elif lh_size != (1, 1) and rh_size == (1, 1):
+            # For promoted variables with scalar coefficients,
+            # flatten the matrix.
+            elif lh_size != (1, 1) and intf.is_scalar(coeff):
                 flattened_const = flatten(constant)
                 product = flattened_const*coeff
             # Otherwise replicate the matrix.
