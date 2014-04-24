@@ -175,7 +175,7 @@ class Expression(u.Canonical):
         """The transpose of an expression.
         """
         # Transpose of a scalar is that scalar.
-        if self.size == (1, 1):
+        if self.is_scalar():
             return self
         else:
             return types.transpose()(self)
