@@ -303,6 +303,33 @@ class TestExamples(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1.9746)
 
+    def test_portfolio_problem(self):
+        """Test portfolio problem that caused dcp_attr errors.
+        """
+        import numpy as np
+        import scipy.sparse as sp
+        np.random.seed(5)
+        n = 100#10000
+        m = 10#100
+        pbar = (np.ones((n, 1)) * .03 +
+                np.matrix(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
+
+        F = sp.rand(m, n, density=0.01)
+        F.data = np.ones(len(F.data))
+        D = sp.eye(n).tocoo()
+        D.data = np.random.randn(len(D.data))**2
+        Z = np.random.randn(m, 1)
+        Z = Z.dot(Z.T)
+
+        x = Variable(n)
+        y = x.__rmul__(F)
+        mu = 1
+        ret = pbar.T * x
+        # DCP attr causes error because not all the curvature
+        # matrices are reduced to constants when an atom
+        # is scalar.
+        risk = square(norm(x.__rmul__(D))) + square(Z*y)
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

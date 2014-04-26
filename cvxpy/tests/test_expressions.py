@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
@@ -200,6 +201,10 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.A + self.C)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
+
+        with self.assertRaises(Exception) as cm:
+            AddExpression([self.A, self.C])
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
         # Test that sum is flattened.

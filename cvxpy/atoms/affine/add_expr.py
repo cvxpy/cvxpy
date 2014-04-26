@@ -30,6 +30,7 @@ class AddExpression(AffAtom):
     """
 
     def __init__(self, terms):
+        # TODO call super class init?
         self._dcp_attr = reduce(op.add, [t._dcp_attr for t in terms])
         self.args = []
         for term in terms:

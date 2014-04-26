@@ -553,7 +553,6 @@ class Problem(u.Canonical):
                                             kktsolver=kktsolver)
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
-
         status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
         if status == s.OPTIMAL:
             primal_val = results['primal objective']

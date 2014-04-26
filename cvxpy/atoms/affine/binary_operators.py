@@ -42,7 +42,7 @@ class BinaryOperator(AffAtom):
     def numeric(self, values):
         return reduce(self.OP_FUNC, values)
 
-    # Returns the sign, curvature, and shape.
+    # Sets the sign, curvature, and shape.
     def init_dcp_attr(self):
         self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
                                       self.args[1]._dcp_attr)
