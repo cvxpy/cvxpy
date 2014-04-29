@@ -26,18 +26,18 @@ from cvxpy.atoms.elementwise.square import square
 def huber(x, M=1):
     """The Huber function
 
-    Huber(x, M) = 2M|x|-M^2 for |x| >= M
-                  |x|^2 for |x| <= M
-    M defaults to 1. M must be positive.
+    Huber(x, M) = 2M|x|-M^2 for |x| >= |M|
+                  |x|^2 for |x| <= |M|
+    M defaults to 1.
 
     Parameters
     ----------
     x : Expression
         A CVXPY expression.
     M : int/float
-        A non-negative number.
     """
-    return square(M)*huber_pos(abs(x)/M)
+    # TODO require that M is positive?
+    return square(M)*huber_pos(abs(x)/abs(M))
 
 class huber_pos(Elementwise):
     """Elementwise Huber function for non-negative expressions and M=1.
