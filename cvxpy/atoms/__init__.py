@@ -38,6 +38,7 @@ from affine.vstack import vstack
 from elementwise.abs import abs
 from elementwise.entr import entr
 from elementwise.exp import exp
+from elementwise.huber import huber
 from elementwise.inv_pos import inv_pos
 from elementwise.log import log
 from elementwise.max import max

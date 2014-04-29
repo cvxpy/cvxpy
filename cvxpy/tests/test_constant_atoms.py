@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # Tests atoms by calling them with a constant value.
 from cvxpy.settings import SCS, ECOS, CVXOPT, OPTIMAL
 from cvxpy.atoms import *
+from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
@@ -44,8 +45,8 @@ atoms = [
     ([
         (abs([[-5,2],[-3,1]]), Constant([[5,2],[3,1]])),
         (exp([[1, 0],[2, -1]]), Constant([[math.e, 1],[math.e**2, 1.0/math.e]])),
-        #(huber(0.5), 0.25),
-        #(huber(-1.5), 2),
+        (huber([[0.5, -1.5],[4, 0]]), Constant([[0.25, 2],[7, 0]])),
+        (huber([[0.5, -1.5],[4, 0]], 2.5), Constant([[0.25, 2.25],[13.75, 0]])),
         (inv_pos([[1,2],[3,4]]), Constant([[1,1.0/2],[1.0/3,1.0/4]])),
         (kl_div(math.e, 1), Constant([1])),
         (kl_div(math.e, math.e), Constant([0])),
@@ -151,9 +152,14 @@ def test_atom():
                         # Atoms with Variable arguments.
                         variables = []
                         constraints = []
-                        for expr in atom.subexpressions:
-                            variables.append( Variable(*expr.size) )
-                            constraints.append( variables[-1] == expr)
+                        for idx, expr in enumerate(atom.subexpressions):
+                            # Special case for MulExpr because
+                            # can't multiply two variables.
+                            if (idx == 0 and isinstance(atom, MulExpression)):
+                                variables.append(expr)
+                            else:
+                                variables.append( Variable(*expr.size) )
+                                constraints.append( variables[-1] == expr)
                         atom_func = atom.__class__
                         objective = objective_type(atom_func(*variables)[row,col])
                         yield (run_atom,
