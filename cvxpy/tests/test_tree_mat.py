@@ -18,7 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
+import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
+import cvxpy.problems.iterative as iterative
 import numpy as np
 import scipy.sparse as sp
 import unittest
@@ -42,8 +44,25 @@ class test_tree_mat(BaseTest):
         result = mul(expr, val_dict)
         assert (result == A*ones).all()
 
-        result = tmul(expr, result)
-        assert (result[x.id] == A.T*A*ones).all()
+        result_dict = tmul(expr, result)
+        assert (result_dict[x.id] == A.T*A*ones).all()
+
+        # Multiplication with promotion.
+        t = Variable()
+        A = np.matrix("1 2; 3 4")
+        expr = (A*t).canonical_form[0]
+
+        val_dict = {t.id: 2}
+
+        result = mul(expr, val_dict)
+        assert (result == A*2).all()
+
+        result_dict = tmul(expr, result)
+        total = 0
+        for i in range(A.shape[0]):
+            for j in range(A.shape[1]):
+                total += A[i, j]*result[i, j]
+        assert (result_dict[t.id] == total)
 
         # Addition
         y = Variable(n, n)
@@ -106,13 +125,40 @@ class test_tree_mat(BaseTest):
         prod = mul(pruned[0].expr, {x.id: 1})
         self.assertItemsAlmostEqual(prod, np.zeros(A.shape[0]))
 
-    # def test_kktsolver(self):
-    #     """Test the iterative expression tree based kkt solver.
-    #     """
-    #     x = Variable()
-    #     y = Variable()
-    #     obj = Minimize(x + y)
-    #     constraints = [x + y >= 1, x == 2]
-    #     prob = Problem(obj, constraints)
-    #     result = prob.solve(solver=CVXOPT, expr_tree=True, verbose=True)
-    #     self.assertEquals(result, 1)
+    def test_mul_funcs(self):
+        """Test functions to multiply by A, A.T
+        """
+        n = 10
+        x = Variable(n)
+        obj = Minimize(norm(x, 1))
+        constraints = [x >= 2]
+        prob = Problem(obj, constraints)
+        data, dims = prob.get_problem_data(solver=SCS)
+        A = data["A"]
+        objective, constr_map, dims, solver = prob.canonicalize(SCS)
+
+        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
+        var_offsets, var_sizes, x_length = prob._get_var_offsets(objective,
+                                                                 all_ineq)
+        opts = {}
+        constraints = constr_map[s.EQ] + constr_map[s.LEQ]
+        constraints = prune_constants(constraints)
+        Amul, ATmul = iterative.get_mul_funcs(constraints, dims,
+                                              var_offsets, var_sizes,
+                                              x_length)
+        vec = np.array(range(x_length))
+        # A*vec
+        result = np.zeros(A.shape[0])
+        Amul(vec, result)
+        self.assertItemsAlmostEqual(A*vec, result)
+        Amul(vec, result)
+        self.assertItemsAlmostEqual(2*A*vec, result)
+        # A.T*vec
+        vec = np.array(range(A.shape[0]))
+        result = np.zeros(A.shape[1])
+        ATmul(vec, result)
+        self.assertItemsAlmostEqual(A.T*vec, result)
+        ATmul(vec, result)
+        self.assertItemsAlmostEqual(2*A.T*vec, result)
+
+

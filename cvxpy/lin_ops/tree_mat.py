@@ -171,7 +171,15 @@ def op_tmul(lin_op, value):
         result = -value
     elif lin_op.type is lo.MUL:
         coeff = mul(lin_op.data, {})
-        result = coeff.T*value
+        # Scalar coefficient, no need to transpose.
+        if np.isscalar(coeff):
+            result = coeff*value
+        # If the right hand side was promoted,
+        # multiplying by the transpose is a dot product.
+        elif lin_op.args[0].size == (1, 1):
+            result = np.multiply(coeff, value).sum()
+        else:
+            result = coeff.T*value
     elif lin_op.type is lo.DIV:
         divisor = mul(lin_op.data, {})
         result = value/divisor

@@ -104,7 +104,11 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
         size = var_sizes[id_]
         offset = var_offsets[id_]
         for col in range(size[1]):
-            vector[offset:size[0]+offset] = value[:, col]
+            # Handle scalars separately.
+            if np.isscalar(value):
+                vector[offset:size[0]+offset] = value
+            else:
+                vector[offset:size[0]+offset] =  np.squeeze(value[:, col])
             offset += size[0]
     return vector
 
@@ -130,7 +134,7 @@ def constr_mul(constraints, var_dict, vec_size):
             if np.isscalar(result):
                 product[offset:offset+rows] = result
             else:
-                product[offset:offset+rows] = result[:, col]
+                product[offset:offset+rows] = np.squeeze(result[:, col])
             offset += rows
 
     return product

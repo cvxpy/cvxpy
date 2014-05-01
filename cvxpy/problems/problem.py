@@ -303,7 +303,7 @@ class Problem(u.Canonical):
         return args
 
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None, expr_tree=False):
+               solver_specific_opts=None, expr_tree=True):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
