@@ -75,6 +75,11 @@ def is_vector(constant):
 def is_scalar(constant):
     return size(constant) == (1, 1)
 
+def from_2D_to_1D(constant):
+    """Convert 2D Numpy matrices or arrays to 1D.
+    """
+    return np.asarray(constant)[:, 0]
+
 # Get the value of the passed constant, interpreted as a scalar.
 def scalar_value(constant):
     assert is_scalar(constant)

@@ -159,7 +159,7 @@ class Expression(u.Canonical):
     def is_matrix(self):
         """Is the expression a matrix?
         """
-        return self.size[1] > 1
+        return self.size[0] > 1 and self.size[1] > 1
 
     def __getitem__(self, key):
         """Return a slice/index into the expression.

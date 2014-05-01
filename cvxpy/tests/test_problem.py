@@ -464,6 +464,14 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [2,3])
         self.assertItemsAlmostEqual(self.z.value, [-1,-4])
 
+        # Row  arguments.
+        p = Problem(Minimize(norm2((self.x - self.z).T) + 5),
+            [self.x >= [2,3], self.z <= [-1,-4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12.61577)
+        self.assertItemsAlmostEqual(self.x.value, [2,3])
+        self.assertItemsAlmostEqual(self.z.value, [-1,-4])
+
     # Test problems with abs
     def test_abs(self):
         p = Problem(Minimize(sum_entries(abs(self.A))), [-2 >= self.A])

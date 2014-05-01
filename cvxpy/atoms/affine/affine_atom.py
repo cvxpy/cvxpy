@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from ..atom import Atom
-from ... import utilities as u
+import cvxpy.utilities as u
+from cvxpy.atoms.atom import Atom
 
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """

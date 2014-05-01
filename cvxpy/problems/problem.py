@@ -303,7 +303,7 @@ class Problem(u.Canonical):
         return args
 
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None, expr_tree=True):
+               solver_specific_opts=None, expr_tree=False):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -408,7 +408,7 @@ class Problem(u.Canonical):
         G, h = self._constr_matrix(constr_map[s.LEQ], var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
         # Convert c,h,b to 1D arrays.
-        c, h, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, h, b])
+        c, h, b = map(intf.from_2D_to_1D, [c.T, h, b])
         # Return the arguments that would be passed to ECOS.
         return ((c, G, h, dims, A, b), obj_offset)
 
@@ -602,7 +602,7 @@ class Problem(u.Canonical):
                                    var_offsets, x_length,
                                    self._SPARSE_INTF, self._DENSE_INTF)
         # Convert c, b to 1D arrays.
-        c, b = map(lambda mat: np.asarray(mat)[:, 0], [c.T, b])
+        c, b = map(intf.from_2D_to_1D, [c.T, b])
         data = {"c": c}
         data["A"] = A
         data["b"] = b
@@ -691,7 +691,7 @@ class Problem(u.Canonical):
         A_rows = dims["f"] + dims["l"] + sum(dims["q"]) + sum(dims["s"]) + 3*dims["ep"]
         b = iterative.constr_mul(all_ineq, {}, A_rows)
         # Convert c, b to 1D arrays.
-        data = {"c": np.asarray(c.T)[:, 0]}
+        data = {"c": intf.from_2D_to_1D(c.T)}
         data["A"] = self._SPARSE_INTF.zeros(A_rows, x_length)
         data["b"] = b
         # Set the options to be VERBOSE plus any user-specific options.

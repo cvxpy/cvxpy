@@ -50,6 +50,9 @@ TRANSPOSE = "transpose"
 # The sum of the entries of an expression.
 # Data: None
 SUM_ENTRIES = "sum_entries"
+# The 1D discrete convolution of two vectors.
+# Data: LinOp evaluating to the left hand term.
+CONV = "conv"
 # A scalar constant.
 # Data: Python float.
 SCALAR_CONST = "scalar_const"

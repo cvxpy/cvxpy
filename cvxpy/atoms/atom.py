@@ -189,6 +189,5 @@ class Atom(Expression):
             interface = intf.DEFAULT_INTERFACE
             values = [interface.const_to_matrix(v, convert_scalars=True)
                       for v in values]
-            result = numeric_func(self, values)
-            return intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(result)
+            return numeric_func(self, values)
         return new_numeric
