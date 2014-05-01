@@ -3,7 +3,7 @@
 from cvxpy import *
 x = Variable()
 obj = Minimize(x)
-constraints = [x >= 1, x == 2]
+constraints = [x == 1]
 prob = Problem(obj, constraints)
-result = prob.solve(solver=SCS, expr_tree=True)
+result = prob.solve(solver=SCS, expr_tree=True, verbose=True)
 print result

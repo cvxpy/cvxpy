@@ -352,7 +352,7 @@ class Problem(u.Canonical):
         elif solver == s.SCS:
             if expr_tree:
                 result = self._scs_expr_tree(objective, constr_map, dims,
-                                             var_offsets, x_length,
+                                             var_offsets, var_sizes, x_length,
                                              verbose, solver_specific_opts)
             else:
                 result = self._scs_solve(objective, constr_map, dims,
@@ -654,7 +654,7 @@ class Problem(u.Canonical):
             return (status, None, None, None, None)
 
     def _scs_expr_tree(self, objective, constr_map, dims,
-                       var_offsets, x_length,
+                       var_offsets, var_sizes, x_length,
                        verbose, opts):
         """Calls the SCS solver and returns the result.
 
@@ -687,17 +687,15 @@ class Problem(u.Canonical):
         obj_offset = prob_data[1]
         # Set the options to be VERBOSE plus any user-specific options.
         opts = dict({ "VERBOSE": verbose }.items() + opts.items())
-        # Testing passing functions.
-        def ATmul(*args):
-            x = args[0]
-            y = args[1]
-            print "x shape:", x.shape
-            print "y shape:", y.shape
-            return x
+        constraints = constr_map[s.EQ] + constr_map[s.LEQ]
+        constraints = tree_mat.prune_constants(constraints)
+        Amul, ATmul = iterative.get_mul_funcs(constraints, dims,
+                                              var_offsets, var_sizes,
+                                              x_length)
         opts["NORMALIZE"] = False
-        opts["Amul"] = ATmul
+        opts["Amul"] = Amul
         opts["ATmul"] = ATmul
-        results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT = True)
+        results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT=True)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
             primal_val = results["info"]["pobj"]
