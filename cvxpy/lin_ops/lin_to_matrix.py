@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_op as lo
 import cvxpy.interface as intf
 import numpy as np
 import scipy.sparse as sp
+import scipy.linalg as sp_la
 
 # Utility functions for converting LinOps into matrices.
 
@@ -73,6 +74,8 @@ def get_coefficients(lin_op):
         coeffs = index_coeffs(lin_op)
     elif lin_op.type is lo.TRANSPOSE:
         coeffs = transpose_coeffs(lin_op)
+    elif lin_op.type is lo.CONV:
+        coeffs = conv_coeffs(lin_op)
     else:
         raise Exception("Unknown linear operator.")
     return coeffs
@@ -158,6 +161,28 @@ def neg_coeffs(lin_op):
         new_coeffs.append((id_, size, -block))
     return new_coeffs
 
+def merge_constants(coeffs):
+    """Sums all the constant coefficients.
+
+    Parameters
+    ----------
+    coeffs : list
+        A list of (id, size, coefficient) tuples.
+
+    Returns
+    -------
+    The constant term.
+    """
+    constant = None
+    for id_, size, block in coeffs:
+        # Sum constants.
+        if id_ is lo.CONSTANT_ID:
+            if constant is None:
+                constant = block
+            else:
+                constant += block
+    return constant
+
 def div_coeffs(lin_op):
     """Returns the coefficients for DIV linea op.
 
@@ -174,10 +199,7 @@ def div_coeffs(lin_op):
         A list of (id, size, coefficient) tuples.
     """
     rh_coeffs = get_coefficients(lin_op.data)
-    # Sum all left hand coeffs before dividing.
-    divisor = 0
-    for (_, _, const) in rh_coeffs:
-        divisor += const
+    divisor = merge_constants(rh_coeffs)
 
     lh_coeffs = get_coefficients(lin_op.args[0])
     new_coeffs = []
@@ -200,28 +222,47 @@ def mul_coeffs(lin_op):
         A list of (id, size, coefficient) tuples.
     """
     lh_coeffs = get_coefficients(lin_op.data)
+    constant = merge_constants(lh_coeffs)
     rh_coeffs = get_coefficients(lin_op.args[0])
+
+    return mul_by_const(constant, rh_coeffs, lin_op.size)
+
+def mul_by_const(constant, rh_coeffs, size):
+    """Multiplies a constant by a list of coefficients.
+
+    Parameters
+    ----------
+    constant : numeric type
+        The constant to multiply by.
+    rh_coeffs : list
+        The coefficients of the right hand side.
+    size : tuple
+        (product rows, product columns)
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
     new_coeffs = []
-    cols = lin_op.size[1]
     # Multiply all left-hand constants by right-hand terms.
-    for (_, lh_size, constant) in lh_coeffs:
-        for (id_, rh_size, coeff) in rh_coeffs:
-            rep_mat = sp.block_diag(cols*[constant]).tocsc()
-            # For scalar right hand, constants
-            # or single column, just multiply.
-            if intf.is_scalar(constant) or \
-               id_ is lo.CONSTANT_ID or cols == 1:
-                product = constant*coeff
-            # For promoted variables with scalar coefficients,
-            # flatten the matrix.
-            elif lh_size != (1, 1) and intf.is_scalar(coeff):
-                flattened_const = flatten(constant)
-                product = flattened_const*coeff
-            # Otherwise replicate the matrix.
-            else:
-                product = rep_mat*coeff
-            new_coeffs.append((id_, rh_size, product))
-        rh_coeffs = new_coeffs
+    for (id_, rh_size, coeff) in rh_coeffs:
+        rep_mat = sp.block_diag(size[1]*[constant]).tocsc()
+        # For scalar right hand constants
+        # or single column, just multiply.
+        if intf.is_scalar(constant) or \
+           id_ is lo.CONSTANT_ID or size[1] == 1:
+            product = constant*coeff
+        # For promoted variables with matrix coefficients,
+        # flatten the matrix.
+        elif size != (1, 1) and intf.is_scalar(coeff):
+            flattened_const = flatten(constant)
+            product = flattened_const*coeff
+        # Otherwise replicate the matrix.
+        else:
+            product = rep_mat*coeff
+        new_coeffs.append((id_, rh_size, product))
+    rh_coeffs = new_coeffs
 
     return new_coeffs
 
@@ -385,3 +426,36 @@ def transpose_coeffs(lin_op):
             new_block[t_row, t_col] = 1.0
 
     return [(id_, size, new_block.tocsc())]
+
+def conv_coeffs(lin_op):
+    """Returns the coefficients for CONV linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The conv linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    lh_coeffs = get_coefficients(lin_op.data)
+    constant = merge_constants(lh_coeffs)
+    # Cast to 1D.
+    constant = intf.from_2D_to_1D(constant)
+    rh_coeffs = get_coefficients(lin_op.args[0])
+
+    # Create a Toeplitz matrix with constant as columns.
+    rows = lin_op.size[0]
+    nonzeros = lin_op.data.size[0]
+    toeplitz_col = np.zeros(rows)
+    toeplitz_col[0:nonzeros] = constant
+
+    cols = lin_op.args[0].size[0]
+    toeplitz_row = np.zeros(cols)
+    toeplitz_row[0] = constant[0]
+    coeff = sp_la.toeplitz(toeplitz_col, toeplitz_row)
+
+    # Multiply the right hand terms by the toeplitz matrix.
+    return mul_by_const(coeff, rh_coeffs, (rows, 1))

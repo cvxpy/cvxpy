@@ -80,6 +80,14 @@ def from_2D_to_1D(constant):
     """
     return np.asarray(constant)[:, 0]
 
+def from_1D_to_2D(constant):
+    """Convert 1D Numpy arrays to matrices.
+    """
+    if constant.ndim == 1:
+        return np.mat(constant).T
+    else:
+        return constant
+
 # Get the value of the passed constant, interpreted as a scalar.
 def scalar_value(constant):
     assert is_scalar(constant)

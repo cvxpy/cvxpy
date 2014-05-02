@@ -23,6 +23,7 @@ from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import cvxpy.problems.iterative as iterative
 import numpy as np
 import scipy.sparse as sp
+import scipy.linalg as LA
 import unittest
 from base_test import BaseTest
 
@@ -109,6 +110,22 @@ class test_tree_mat(BaseTest):
         result_dict = tmul(expr, result)
         assert (result_dict[x.id] == A).all()
 
+        # Convolution
+        x = Variable(3)
+        f = np.array([1, 2, 3])
+        g = np.array([0, 1, 0.5])
+        f_conv_g = np.array([ 0., 1., 2.5,  4., 1.5])
+        expr = conv(f, x).canonical_form[0]
+        val_dict = {x.id: g}
+        result = mul(expr, val_dict)
+        self.assertItemsAlmostEqual(result, f_conv_g)
+        value = np.array(range(5))
+        result_dict = tmul(expr, value)
+        toep = LA.toeplitz(np.array([1,0,0]),
+                           np.array([1, 2, 3, 0, 0]))
+        x_val = toep.dot(value)
+        self.assertItemsAlmostEqual(result_dict[x.id], x_val)
+
     def test_prune_constants(self):
         """Test pruning constants from constraints.
         """
@@ -160,5 +177,3 @@ class test_tree_mat(BaseTest):
         self.assertItemsAlmostEqual(A.T*vec, result)
         ATmul(vec, result)
         self.assertItemsAlmostEqual(2*A.T*vec, result)
-
-

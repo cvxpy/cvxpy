@@ -17,9 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import copy
 import numpy as np
+from numpy.fft import fft, ifft
 
 # Utility functions for treating an expression tree as a matrix
 # and multiplying by it and it's transpose.
@@ -122,6 +124,7 @@ def op_mul(lin_op, args):
     NumPy matrix or SciPy sparse matrix.
         The result of applying the linear operator.
     """
+    #print lin_op.type
     # Constants convert directly to their value.
     if lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
         result = lin_op.data
@@ -146,8 +149,11 @@ def op_mul(lin_op, args):
         result = args[0][row_slc, col_slc]
     elif lin_op.type is lo.TRANSPOSE:
         result = args[0].T
+    elif lin_op.type is lo.CONV:
+        result = conv_mul(lin_op, args[0])
     else:
         raise Exception("Unknown linear operator.")
+    #print result
     return result
 
 def op_tmul(lin_op, value):
@@ -191,9 +197,34 @@ def op_tmul(lin_op, value):
         result[row_slc, col_slc] = value
     elif lin_op.type is lo.TRANSPOSE:
         result = value.T
+    elif lin_op.type is lo.CONV:
+        return conv_mul(lin_op, value, True)
     else:
         raise Exception("Unknown linear operator.")
     return result
+
+def conv_mul(lin_op, rh_val, transpose=False):
+    """Multiply by a convolution operator.
+    """
+    # F^-1{F{left hand}*F(right hand)}
+    length = lin_op.size[0]
+    constant = mul(lin_op.data, {})
+    # Convert to 2D
+    constant, rh_val = map(intf.from_1D_to_2D, [constant, rh_val])
+    lh_term = fft(constant, length, axis=0)
+    rh_term = fft(rh_val, length, axis=0)
+    # Transpose equivalent to taking conjugate
+    # and keeping only first m terms.
+    if transpose:
+        lh_term = np.conjugate(lh_term)
+    product = np.multiply(lh_term, rh_term)
+    result = ifft(product, length, axis=0).real
+
+    if transpose:
+        rh_length = lin_op.args[0].size[0]
+        return result[:rh_length]
+    else:
+        return result
 
 def get_constant(lin_op):
     """Returns the constant term in the expression.
@@ -242,10 +273,9 @@ def prune_constants(constraints):
     list
         The pruned constraints.
     """
-    constr_type = type(constraints[0])
-
     pruned_constraints = []
     for constr in constraints:
+        constr_type = type(constr)
         expr = copy.deepcopy(constr.expr)
         is_constant = prune_expr(expr)
         # Replace a constant root with a NO_OP.
