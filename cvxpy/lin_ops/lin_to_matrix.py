@@ -415,16 +415,19 @@ def transpose_coeffs(lin_op):
     id_, size, _ = coeffs[0]
     rows, cols = size
     # Create a sparse matrix representing the transpose.
-    sp_intf = intf.DEFAULT_SPARSE_INTERFACE
-    new_block = sp_intf.zeros(rows*cols, rows*cols).tolil()
+    val_arr = []
+    row_arr = []
+    col_arr = []
     for row in xrange(rows):
         for col in xrange(cols):
             # Row in transpose coeff.
-            t_row = row*cols + col
+            row_arr.append(row*cols + col)
             # Row in original coeff.
-            t_col = col*rows + row
-            new_block[t_row, t_col] = 1.0
+            col_arr.append(col*rows + row)
+            val_arr.append(1.0)
 
+    new_size = (rows*cols, rows*cols)
+    new_block = sp.coo_matrix((val_arr, (row_arr, col_arr)), new_size)
     return [(id_, size, new_block.tocsc())]
 
 def conv_coeffs(lin_op):
