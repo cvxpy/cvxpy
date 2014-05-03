@@ -11,8 +11,8 @@ plt.imshow(l, cmap=plt.cm.gray)
 
 from PIL import Image, ImageDraw
 
-num_lines = 1
-width = 2
+num_lines = 2
+width = 5
 imshape = l.shape
 
 def drawRandLine(draw,width):
@@ -94,8 +94,8 @@ def formCOO(pair2idx, img):
     m = len(bs[0])
     n = len(pair2idx)
 
-    Gx = sp.coo_matrix((Vs[1], (Is[1], Js[1])),(m,n))
-    Gy = sp.coo_matrix((Vs[0], (Is[0], Js[0])),(m,n))
+    Gx = spmatrix(Vs[1], Is[1], Js[1],(m,n))
+    Gy = spmatrix(Vs[0], Is[0], Js[0],(m,n))
 
     bx = np.array(bs[1])
     by = np.array(bs[0])
@@ -104,15 +104,17 @@ def formCOO(pair2idx, img):
 
 
 Gx, Gy, bx, by = formCOO(pair2idx, r)
-
 import cvxpy as cp
-m, n = Gx.shape
-print Gx.shape
+m, n = Gx.size
 x = cp.Variable(n)
-z = cp.vstack((x.__rmul__(Gx) + bx).T, (x.__rmul__(Gy) + by).T)
 
-objective = cp.Minimize(sum([cp.norm(z[:,i]) for i in range(m)]))
-p = cp.Problem(objective)
+#z = cp.vstack((x.__rmul__(Gx) + bx).T, (x.__rmul__(Gy) + by).T)
+z = cp.Variable(m, 2)
+constraints = [z[:, 0] == x.__rmul__(Gx) + bx,
+               z[:, 1] == x.__rmul__(Gy) + by]
+
+objective = cp.Minimize(sum([cp.norm(z[i,:]) for i in range(m)]))
+p = cp.Problem(objective, constraints)
 import cProfile
 cProfile.run("""
 result = p.solve(solver=cp.ECOS, verbose=True)
