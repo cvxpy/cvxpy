@@ -98,7 +98,6 @@ def quad_form(x, P):
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
         sgn, scale, M = _decomp_quad(P)
-        print sgn, scale, M.shape
         return sgn * scale * square(norm2(Constant(M.T) * x))
     else:
         raise Exception("At least one argument to quad_form must be constant.")

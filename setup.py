@@ -27,5 +27,6 @@ setup(
     description='A domain-specific language for modeling convex optimization problems in Python.',
     install_requires=["cvxopt >= 1.1.6",
                       "ecos >= 1.0.3",
-                      "scs >= 1.0.1"],
+                      "scs >= 1.0.1",
+                      "toolz"],
 )

@@ -11,7 +11,7 @@ plt.imshow(l, cmap=plt.cm.gray)
 
 from PIL import Image, ImageDraw
 
-num_lines = 2
+num_lines = 5
 width = 5
 imshape = l.shape
 
@@ -109,6 +109,7 @@ m, n = Gx.size
 x = cp.Variable(n)
 
 #z = cp.vstack((x.__rmul__(Gx) + bx).T, (x.__rmul__(Gy) + by).T)
+#z = cp.hstack(x.__rmul__(Gx) + bx, x.__rmul__(Gy) + by)
 z = cp.Variable(m, 2)
 constraints = [z[:, 0] == x.__rmul__(Gx) + bx,
                z[:, 1] == x.__rmul__(Gy) + by]

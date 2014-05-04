@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-from cvxpy.utilities.ordered_set import OrderedSet
+from toolz.itertoolz import unique
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
@@ -146,7 +146,8 @@ class Problem(u.Canonical):
         constraints = []
         obj, constr = self.objective.canonical_form
         constraints += constr
-        unique_constraints = list(OrderedSet(self.constraints))
+        unique_constraints = list(unique(self.constraints,
+                                         key=lambda c: c.id))
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
@@ -175,6 +176,12 @@ class Problem(u.Canonical):
             for constr in constr_map[s.EXP]:
                 constr_map[s.LEQ] += constr.format(s.SCS)
             dims["ep"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EXP])
+
+        # Remove redundant constraints.
+        for key in [s.EQ, s.LEQ]:
+            constraints = unique(constr_map[key],
+                                 key=lambda c: c.constr_id)
+            constr_map[key] = list(constraints)
 
         return (obj, constr_map, dims, solver)
 
