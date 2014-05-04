@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
+import abc
 
 class GenericStack(AffAtom):
     """ Concatenation along some dimension. """

@@ -667,6 +667,43 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
+    # Test the hstack atom.
+    def test_hstack(self):
+        c = matrix(1, (1,5))
+        p = Problem(Minimize(c * hstack(self.x.T, self.y.T).T),
+            [self.x == [1,2],
+            self.y == [3,4,5]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 15)
+
+        c = matrix(1, (1,4))
+        p = Problem(Minimize(c * hstack(self.x.T, self.x.T).T),
+            [self.x == [1,2]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 6)
+
+
+        c = matrix(1, (2,2))
+        p = Problem( Minimize( sum_entries(hstack(self.A.T, self.C.T)) ),
+            [self.A >= 2*c,
+            self.C == -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -4)
+
+        c = matrix(1, (1,2))
+        p = Problem( Minimize( sum_entries(hstack(c*self.A, c*self.B)) ),
+            [self.A >= 2,
+            self.B == -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
+        c = matrix([1,-1])
+        p = Problem( Minimize( c.T * hstack(square(self.a).T, sqrt(self.b).T).T),
+            [self.a == 2,
+             self.b == 16])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
     # Test variable transpose.
     def test_transpose(self):
         p = Problem(Minimize(sum_entries(self.x)), [self.x.T >= matrix([1,2]).T])

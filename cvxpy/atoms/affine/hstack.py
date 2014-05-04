@@ -34,7 +34,7 @@ class hstack(GenericStack):
     # The shape is the common height and the sum of the widths.
     def shape_from_args(self):
         cols = sum(arg.size[1] for arg in self.args)
-        rows = self.args[0].size[1]
+        rows = self.args[0].size[0]
         return u.Shape(rows, cols)
 
     # All arguments must have the same height.
