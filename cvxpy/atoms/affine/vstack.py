@@ -20,14 +20,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import bool_mat_utils as bu
-from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.generic_stack import GenericStack
 from cvxpy.atoms.affine.index import index
 import numpy as np
 
-class vstack(AffAtom):
+class vstack(GenericStack):
     """ Vertical concatenation """
     # Returns the vstack of the values.
-    @AffAtom.numpy_numeric
+    @GenericStack.numpy_numeric
     def numeric(self, values):
         return np.vstack(values)
 
@@ -46,29 +46,7 @@ class vstack(AffAtom):
 
     # Vertically concatenates sign and curvature as dense matrices.
     def sign_curv_from_args(self):
-        signs = []
-        curvatures = []
-        # Promote the sign and curvature matrices to the declared size.
-        for arg in self.args:
-            signs.append( arg._dcp_attr.sign.promote(*arg.size) )
-            curvatures.append( arg._dcp_attr.curvature.promote(*arg.size) )
-
-        # Sign.
-        neg_mat = bu.vstack([sign.neg_mat for sign in signs])
-        pos_mat = bu.vstack([sign.pos_mat for sign in signs])
-        # Curvature.
-        cvx_mat = bu.vstack([c.cvx_mat for c in curvatures])
-        conc_mat = bu.vstack([c.conc_mat for c in curvatures])
-        constant = bu.vstack([c.nonconst_mat for c in curvatures])
-
-        return (u.Sign(neg_mat, pos_mat),
-                u.Curvature(cvx_mat, conc_mat, constant))
-
-    # Sets the shape, sign, and curvature.
-    def init_dcp_attr(self):
-        shape = self.shape_from_args()
-        sign,curvature = self.sign_curv_from_args()
-        self._dcp_attr = u.DCPAttr(sign, curvature, shape)
+        return super(vstack, self).sign_curv_from_args(bu.vstack)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

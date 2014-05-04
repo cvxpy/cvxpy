@@ -36,11 +36,34 @@ def sum_entries(value):
     else:
         return value.any()
 
+def hstack(values):
+    """Horizontally concatenates bool matrices.
+
+    Args:
+        values: A list of bool Numpy ndarrays and SparseBoolMats.
+
+    Returns:
+        A Numpy bool ndarray.
+    """
+    return stack(values, np.hstack)
+
 def vstack(values):
     """Vertically concatenates bool matrices.
 
     Args:
         values: A list of bool Numpy ndarrays and SparseBoolMats.
+
+    Returns:
+        A Numpy bool ndarray.
+    """
+    return stack(values, np.vstack)
+
+def stack(values, stack_func):
+    """Concatenates bool matrices.
+
+    Args:
+        values: A list of bool Numpy ndarrays and SparseBoolMats.
+        stack_func: A function to concatenate the bool mats.
 
     Returns:
         A Numpy bool ndarray.
@@ -54,7 +77,7 @@ def vstack(values):
         elif isinstance(value, SparseBoolMat):
             value = value.todense()
         matrices.append(value)
-    return np.vstack(matrices)
+    return stack_func(matrices)
 
 def dot(lh_mat, rh_mat):
     """Multiply two matrices/scalars.
