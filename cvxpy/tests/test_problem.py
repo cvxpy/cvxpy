@@ -194,6 +194,13 @@ class TestProblem(BaseTest):
         result = p.solve(method="test")
         self.assertEqual(result, (1,1))
 
+        # Internal constraints.
+        z = hstack(self.x, self.x)
+        obj = sum_entries(z[:,0] + z[:,1])
+        p = Problem(Minimize(obj))
+        result = p.solve(method="test")
+        self.assertEqual(result, (2,0))
+
     # Test the is_dcp method.
     def test_is_dcp(self):
         p = Problem(Minimize(normInf(self.a)))
