@@ -12,8 +12,8 @@ def gauss(n=11,sigma=1):
 
 np.random.seed(5)
 random.seed(5)
-DENSITY = 0.25
-n = 10000
+DENSITY = 0.008
+n = 1000
 x = Variable(n)
 # Create sparse signal.
 signal = np.zeros(n)
@@ -24,7 +24,7 @@ for i in range(n):
         nnz += 1
 
 # Gaussian kernel.
-m = 1001
+m = 11
 kernel = gauss(m)
 
 # Noisy signal.
@@ -37,10 +37,11 @@ gamma = Parameter(sign="positive")
 fit = norm(conv(kernel, x) - noisy_signal, 2)
 regularization = norm(x, 1)
 constraints = [x >= 0]
-gamma.value = 0.04
+gamma.value = 0.06
 prob = Problem(Minimize(fit + gamma*regularization), constraints)
 solver_options = {"NORMALIZE": True, "MAX_ITERS": 2500}
 result = prob.solve(solver=SCS,
+                    expr_tree=True,
                     verbose=True,
                     solver_specific_opts=solver_options)
 
@@ -60,3 +61,11 @@ print "Incorrectly zero", zero_errors
 print "Incorrectly non-zero", nz_errors
 print "Misclassification rate (zero/non-zero)", 1.0*(zero_errors + nz_errors)/n
 print "Largest value", np.max(x.value)
+# Plot result and fit.
+import matplotlib.pyplot as plt
+plt.plot(range(1000), signal, label="true signal")
+plt.plot(range(1000), np.asarray(noisy_signal.value[:1000, 0]), label="noisy convolution")
+plt.plot(range(1000), np.asarray(x.value[:,0]), label="recovered signal")
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
+plt.show()
