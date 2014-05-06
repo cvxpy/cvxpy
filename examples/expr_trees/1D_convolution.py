@@ -24,7 +24,7 @@ for i in range(n):
         nnz += 1
 
 # Gaussian kernel.
-m = 11
+m = 51
 kernel = gauss(m)
 
 # Noisy signal.
@@ -66,6 +66,5 @@ import matplotlib.pyplot as plt
 plt.plot(range(1000), signal, label="true signal")
 plt.plot(range(1000), np.asarray(noisy_signal.value[:1000, 0]), label="noisy convolution")
 plt.plot(range(1000), np.asarray(x.value[:,0]), label="recovered signal")
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-           ncol=2, mode="expand", borderaxespad=0.)
+plt.legend(loc='upper right')
 plt.show()

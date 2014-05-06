@@ -38,8 +38,10 @@ Prerequisites
 CVXPY requires:
 * Python 2.7
 * [setuptools](https://pypi.python.org/pypi/setuptools) >= 1.4
+* [toolz](http://github.com/pytoolz/toolz/)
 * [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) >= 1.1.6
 * [ECOS](http://github.com/ifa-ethz/ecos) >= 1.0.3
+* [SCS](http://github.com/cvxgrp/scs) >= 1.0.1
 * [NumPy](http://www.numpy.org/) >= 1.7.1
 * [SciPy](http://www.scipy.org/) >= 0.13.2
 
@@ -311,7 +313,7 @@ print expected_return.value
 print risk.value
 ```
 
-The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) is used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
+The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) and [SCS](http://github.com/cvxgrp/scs) are used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
 
 ```
 p = Problem(objective, constraints)
@@ -321,7 +323,12 @@ result = p.solve(solver=cvxpy.ECOS)
 
 # Solve with CVXOPT.
 result = p.solve(solver=cvxpy.CVXOPT)
+
+# Solve with SCS.
+result = p.solve(solver=cvxpy.SCS)
 ```
+
+You can specify solver options for [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) and [SCS](http://github.com/cvxgrp/scs), such as the maximum number of iterations. Create an `opts` dict mapping option keyword to option value and call `p.solve` with the keyword argument `solver_specific_opts=opts`.
 
 Features
 =====================
