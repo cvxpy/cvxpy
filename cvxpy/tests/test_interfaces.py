@@ -69,6 +69,7 @@ class TestInterfaces(unittest.TestCase):
         cmp_mat = interface.const_to_matrix(np.eye(4))
         self.assertEquals(interface.size(mat), interface.size(cmp_mat))
         assert not mat - cmp_mat
+        assert intf.is_sparse(mat)
         # scalar_matrix
         mat = interface.scalar_matrix(2,4,3)
         self.assertEquals(interface.size(mat), (4,3))

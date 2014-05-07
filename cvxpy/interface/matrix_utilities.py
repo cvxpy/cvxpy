@@ -46,7 +46,7 @@ def get_matrix_interface(target_class):
 def is_sparse(constant):
     """Is the constant a sparse matrix?
     """
-    return sp.issparse(constant)
+    return sp.issparse(constant) or isinstance(constant, cvxopt.spmatrix)
 
 # Get the dimensions of the constant.
 def size(constant):
