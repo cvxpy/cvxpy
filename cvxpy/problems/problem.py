@@ -696,7 +696,7 @@ class Problem(u.Canonical):
         obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         A_rows = dims["f"] + dims["l"] + sum(dims["q"]) + sum(dims["s"]) + 3*dims["ep"]
-        b = iterative.constr_mul(all_ineq, {}, A_rows)
+        b = -iterative.constr_mul(all_ineq, {}, A_rows)
         # Convert c, b to 1D arrays.
         data = {"c": intf.from_2D_to_1D(c.T)}
         data["A"] = self._SPARSE_INTF.zeros(A_rows, x_length)
@@ -711,10 +711,8 @@ class Problem(u.Canonical):
         opts["NORMALIZE"] = False
         opts["Amul"] = Amul
         opts["ATmul"] = ATmul
-        prob_data = self._scs_problem_data(objective, constr_map, dims,
-                                           var_offsets, x_length)
 
-        results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT=True)
+        results = scs.solve(data, dims, opts=opts, USE_INDIRECT=True)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
             primal_val = results["info"]["pobj"]

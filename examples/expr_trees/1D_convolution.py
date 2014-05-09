@@ -28,7 +28,6 @@ m = 51
 kernel = gauss(m)
 
 # Noisy signal.
-# WTF? conv(kernel, signal).value doesn't work.
 std = 1
 noise = np.random.normal(scale=std, size=n+m-1)
 noisy_signal = conv(kernel, signal) + noise
@@ -39,28 +38,14 @@ regularization = norm(x, 1)
 constraints = [x >= 0]
 gamma.value = 0.06
 prob = Problem(Minimize(fit + gamma*regularization), constraints)
-solver_options = {"NORMALIZE": True, "MAX_ITERS": 2500}
-result = prob.solve(solver=SCS,
-                    expr_tree=True,
-                    verbose=True,
-                    solver_specific_opts=solver_options)
+solver_options = {"NORMALIZE": False, "MAX_ITERS": 2500}
+# result = prob.solve(solver=SCS,
+#                     expr_tree=True,
+#                     verbose=True,
+#                     solver_specific_opts=solver_options)
+# Get problem matrix.
+data, dims = prob.get_problem_data(solver=SCS)
 
-THRESHOLD = 1
-print "nnz %", nnz*1.0/n
-print "SNR ratio", np.mean(noisy_signal.value)/std
-print "Fit", fit.value
-print "Error rate", np.mean(abs(signal-x).value > THRESHOLD)
-zero_errors = 0
-nz_errors = 0
-for i in range(n):
-    if signal[i] > 0 and x.value[i] < THRESHOLD:
-        zero_errors += 1
-    elif signal[i] == 0 and x.value[i] > THRESHOLD:
-        nz_errors += 1
-print "Incorrectly zero", zero_errors
-print "Incorrectly non-zero", nz_errors
-print "Misclassification rate (zero/non-zero)", 1.0*(zero_errors + nz_errors)/n
-print "Largest value", np.max(x.value)
 # Plot result and fit.
 import matplotlib.pyplot as plt
 plt.plot(range(1000), signal, label="true signal")
