@@ -740,12 +740,12 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -2)
 
         c = matrix([1,-1])
-        p = Problem(Minimize(max(c.T, 2, 2 + c.T)[1]))
+        p = Problem(Minimize(max_elemwise(c.T, 2, 2 + c.T)[1]))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
 
         c = matrix([[1,-1,2],[1,-1,2]])
-        p = Problem(Minimize(sum_entries(max(c, 2, 2 + c).T[:,0])))
+        p = Problem(Minimize(sum_entries(max_elemwise(c, 2, 2 + c).T[:,0])))
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
