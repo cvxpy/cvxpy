@@ -22,14 +22,14 @@ Summary
     quad_form
     quad_over_lin
     sigma_max
-    sum
+    sum_entries
     vstack
     abs
     exp
     inv_pos
     log
-    max
-    min
+    max_elemwise
+    min_elemwise
     sqrt
     square
 
@@ -88,7 +88,7 @@ Summary
 Affine
 ------
 
-.. automethod:: cvxpy.atoms.sum
+.. automethod:: cvxpy.atoms.sum_entries
 
 .. autoclass:: cvxpy.atoms.vstack
     :members:
@@ -113,11 +113,11 @@ Element-wise
     :members:
     :undoc-members:
 
-.. autoclass:: cvxpy.max
+.. autoclass:: cvxpy.max_elemwise
     :members:
     :undoc-members:
 
-.. autoclass:: cvxpy.min
+.. autoclass:: cvxpy.min_elemwise
     :members:
     :undoc-members:
 
