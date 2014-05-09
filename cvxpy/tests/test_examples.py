@@ -330,6 +330,194 @@ class TestExamples(BaseTest):
         # is scalar.
         risk = square(norm(x.__rmul__(D))) + square(Z*y)
 
+    def test_intro(self):
+        """Test examples from cvxpy.org introduction.
+        """
+        import numpy
+
+        # Problem data.
+        m = 30
+        n = 20
+        numpy.random.seed(1)
+        A = numpy.random.randn(m, n)
+        b = numpy.random.randn(m)
+
+        # Construct the problem.
+        x = Variable(n)
+        objective = Minimize(sum_squares(A*x - b))
+        constraints = [0 <= x, x <= 1]
+        prob = Problem(objective, constraints)
+
+        # The optimal objective is returned by p.solve().
+        result = prob.solve()
+        # The optimal value for x is stored in x.value.
+        print x.value
+        # The optimal Lagrange multiplier for a constraint
+        # is stored in constraint.dual_value.
+        print constraints[0].dual_value
+
+        ########################################
+
+        # Create two scalar variables.
+        x = Variable()
+        y = Variable()
+
+        # Create two constraints.
+        constraints = [x + y == 1,
+                       x - y >= 1]
+
+        # Form objective.
+        obj = Minimize(square(x - y))
+
+        # Form and solve problem.
+        prob = Problem(obj, constraints)
+        prob.solve()  # Returns the optimal value.
+        print "status:", prob.status
+        print "optimal value", prob.value
+        print "optimal var", x.value, y.value
+
+        ########################################
+
+        import cvxpy as cvx
+
+        # Create two scalar variables.
+        x = cvx.Variable()
+        y = cvx.Variable()
+
+        # Create two constraints.
+        constraints = [x + y == 1,
+                       x - y >= 1]
+
+        # Form objective.
+        obj = cvx.Minimize(cvx.square(x - y))
+
+        # Form and solve problem.
+        prob = cvx.Problem(obj, constraints)
+        prob.solve()  # Returns the optimal value.
+        print "status:", prob.status
+        print "optimal value", prob.value
+        print "optimal var", x.value, y.value
+
+        self.assertEqual(prob.status, OPTIMAL)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 0)
+
+        ########################################
+
+        # Replace the objective.
+        prob.objective = Maximize(x + y)
+        print "optimal value", prob.solve()
+
+        self.assertAlmostEqual(prob.value, 1.0)
+
+        # Replace the constraint (x + y == 1).
+        prob.constraints[0] = (x + y <= 3)
+        print "optimal value", prob.solve()
+
+        self.assertAlmostEqual(prob.value, 3.0)
+
+        ########################################
+
+        x = Variable()
+
+        # An infeasible problem.
+        prob = Problem(Minimize(x), [x >= 1, x <= 0])
+        prob.solve()
+        print "status:", prob.status
+        print "optimal value", prob.value
+
+        self.assertEquals(prob.status, INFEASIBLE)
+        self.assertAlmostEqual(prob.value, np.inf)
+
+        # An unbounded problem.
+        prob = Problem(Minimize(x))
+        prob.solve()
+        print "status:", prob.status
+        print "optimal value", prob.value
+
+        self.assertEquals(prob.status, UNBOUNDED)
+        self.assertAlmostEqual(prob.value, -np.inf)
+
+        ########################################
+
+        # A scalar variable.
+        a = Variable()
+
+        # Column vector variable of length 5.
+        x = Variable(5)
+
+        # Matrix variable with 4 rows and 7 columns.
+        A = Variable(4, 7)
+
+        ########################################
+        import numpy
+
+        # Problem data.
+        m = 10
+        n = 5
+        numpy.random.seed(1)
+        A = numpy.random.randn(m, n)
+        b = numpy.random.randn(m)
+
+        # Construct the problem.
+        x = Variable(n)
+        objective = Minimize(sum_entries(square(A*x - b)))
+        constraints = [0 <= x, x <= 1]
+        prob = Problem(objective, constraints)
+
+        print "Optimal value", prob.solve()
+        print "Optimal var"
+        print x.value # A numpy matrix.
+
+        self.assertAlmostEqual(prob.value, 4.14133859146)
+
+        ########################################
+        # Positive scalar parameter.
+        m = Parameter(sign="positive")
+
+        # Column vector parameter with unknown sign (by default).
+        c = Parameter(5)
+
+        # Matrix parameter with negative entries.
+        G = Parameter(4, 7, sign="negative")
+
+        # Assigns a constant value to G.
+        G.value = -numpy.ones((4, 7))
+        ########################################
+
+        import numpy
+        import matplotlib.pyplot as plt
+
+        # Problem data.
+        n = 15
+        m = 10
+        numpy.random.seed(1)
+        A = numpy.random.randn(n, m)
+        b = numpy.random.randn(n)
+        # gamma must be positive due to DCP rules.
+        gamma = Parameter(sign="positive")
+
+        # Construct the problem.
+        x = Variable(m)
+        sum_of_squares = sum_entries(square(A*x - b))
+        obj = Minimize(sum_of_squares + gamma*norm(x, 1))
+        prob = Problem(obj)
+
+        # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
+        sq_penalty = []
+        l1_penalty = []
+        x_values = []
+        gamma_vals = numpy.logspace(-4, 6)
+        for val in gamma_vals:
+            gamma.value = val
+            prob.solve()
+            # Use expr.value to get the numerical value of
+            # an expression in the problem.
+            sq_penalty.append(sum_of_squares.value)
+            l1_penalty.append(norm(x, 1).value)
+            x_values.append(x.value)
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

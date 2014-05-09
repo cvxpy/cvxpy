@@ -23,8 +23,8 @@ For example, the following code solves a least-squares problem where the variabl
     b = numpy.random.randn(m)
 
     # Construct the problem.
-    x =Variable(n)
-    objective =M inimize(sum_squares(A*x - b)))
+    x = Variable(n)
+    objective = Minimize(sum_squares(A*x - b))
     constraints = [0 <= x, x <= 1]
     prob = Problem(objective, constraints)
 
