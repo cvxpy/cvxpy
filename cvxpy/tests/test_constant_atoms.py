@@ -82,6 +82,7 @@ atoms = [
         (norm([[2,0],[0,1]], 2), Constant([2])),
         (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
+        (sum_squares([[-1, 2],[3, -4]]), Constant([30])),
     ], Minimize),
     ([
         (entr([[1, math.e],[math.e**2, 1.0/math.e]]),

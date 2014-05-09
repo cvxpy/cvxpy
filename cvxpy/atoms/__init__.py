@@ -31,6 +31,7 @@ from norm_nuc import normNuc
 from quad_form import quad_form
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
+from sum_squares import sum_squares
 
 from affine.conv import conv
 from affine.hstack import hstack
