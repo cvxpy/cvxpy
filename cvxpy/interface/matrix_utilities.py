@@ -104,7 +104,6 @@ def scalar_value(constant):
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
 # Return a matrix of signs based on the constant's values.
-# TODO scipy sparse matrices.
 def sign(constant):
     if isinstance(constant, numbers.Number):
         return Sign(np.bool_(constant < 0), np.bool_(constant > 0))
