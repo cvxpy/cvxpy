@@ -3,9 +3,9 @@ virtualenv:
   system_site_packages: true
 env:
   matrix:
-    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="false"
+    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.7.1" SCIPY_VERSION="0.13.2" CVXOPT_VERSION="1.1.6"
-      COVERAGE="true"
+      COVERAGE="true" ATLAS="/usr/lib/atlas-base/"
 install: source continuous_integration/install.sh
 script: bash continuous_integration/test_script.sh
 after_success:
