@@ -3,7 +3,7 @@ virtualenv:
   system_site_packages: true
 env:
   matrix:
-    - DISTRIB="ubuntu" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       COVERAGE="true"
 install: source continuous_integration/install.sh
 script: bash continuous_integration/test_script.sh
