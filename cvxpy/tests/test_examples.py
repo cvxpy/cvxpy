@@ -487,7 +487,6 @@ class TestExamples(BaseTest):
         ########################################
 
         import numpy
-        import matplotlib.pyplot as plt
 
         # Problem data.
         n = 15
