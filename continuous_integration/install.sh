@@ -26,10 +26,11 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
+    conda create -n testenv --yes python=$PYTHON_VERSION atlas pip nose \
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION cvxopt=$CVXOPT_VERSION
     source activate testenv
-    export ATLAS="/usr/lib/atlas-base/"
+
+    sudo apt-get install gfortran
 
     if [[ "$INSTALL_MKL" == "true" ]]; then
         # Make sure that MKL is used
