@@ -9,7 +9,7 @@ env:
 install:
   - pip install conda
   - conda init
-  - conda install atlas numpy=1.7.1 scipy=0.13.2 cvxopt=1.6.1 nose
+  - conda install atlas numpy=1.7.1 scipy=0.13.2 cvxopt nose
 script: bash continuous_integration/test_script.sh
 after_success:
     - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
