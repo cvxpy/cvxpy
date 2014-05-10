@@ -29,6 +29,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION cvxopt=$CVXOPT_VERSION
     source activate testenv
+    export ATLAS="/usr/lib/atlas-base/"
 
     if [[ "$INSTALL_MKL" == "true" ]]; then
         # Make sure that MKL is used
