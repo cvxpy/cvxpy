@@ -13,10 +13,9 @@ before_install:
   # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
-  - sudo apt-get install gfortran
-  - export PATH=/usr/bin/gfortran:$PATH
 # Install packages
 install:
+  - sudo apt-get install gfortran
   - conda install --yes pip python=$TRAVIS_PYTHON_VERSION atlas numpy=1.7.1 scipy=0.13.2 cvxopt nose
   - pip install python-coveralls --use-mirrors
   - pip install nose-cov --use-mirrors
