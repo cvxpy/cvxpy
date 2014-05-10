@@ -18,8 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from affine_atom import AffAtom
-from ...utilities import coefficient_utils as cu
-from ... import interface as intf
+import cvxpy.interface as intf
 from ...expressions.constants import Constant
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
