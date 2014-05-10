@@ -16,4 +16,4 @@ if [[ "$COVERAGE" == "true" ]]; then
 else
     export WITH_COVERAGE=""
 fi
-nosetests -s -v $WITH_COVERAGE cvxpy
+nosetests -s $WITH_COVERAGE cvxpy
