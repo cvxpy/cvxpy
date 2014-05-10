@@ -12,7 +12,7 @@ gamma = Parameter(sign="positive")
 
 # Construct the problem.
 x = Variable(m)
-objective = Minimize(sum(square(A*x - b)) + gamma*norm1(x))
+objective = Minimize(sum_squares(A*x - b) + gamma*norm(x, 1))
 p = Problem(objective)
 
 # Assign a value to gamma and find the optimal x.

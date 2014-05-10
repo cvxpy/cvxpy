@@ -29,7 +29,7 @@ b = cvxopt.normal(m,1)
 
 # Formulate the problem
 x = Variable(n)
-objective = Minimize( sum(max( abs(A*x -b) - 1 , 0 )) )
+objective = Minimize( sum_entries(max_elemwise( abs(A*x -b) - 1 , 0 )) )
 p = Problem(objective, [])
 
 # Solve it
