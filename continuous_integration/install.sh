@@ -30,8 +30,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION cvxopt=$CVXOPT_VERSION
     source activate testenv
 
-    sudo apt-get install gfortran
-
     if [[ "$INSTALL_MKL" == "true" ]]; then
         # Make sure that MKL is used
         conda install --yes mkl
@@ -43,6 +41,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
     sudo apt-get install -qq python-scipy python-nose python-pip
+    sudo apt-get install gfortran
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
