@@ -546,7 +546,7 @@ class Problem(u.Canonical):
         cvxopt.solvers.options['refinement'] = 1
 
         # Apply any user-specific options
-        for key, value in opts:
+        for key, value in opts.items():
             cvxopt.solvers.options[key] = value
 
         # Target cvxopt clp if nonlinear constraints exist
