@@ -14,6 +14,7 @@ before_install:
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
   - sudo apt-get install gfortran
+  - export PATH=/usr/bin/gfortran:$PATH
 # Install packages
 install:
   - conda install --yes pip python=$TRAVIS_PYTHON_VERSION atlas numpy=1.7.1 scipy=0.13.2 cvxopt nose
