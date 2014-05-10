@@ -16,9 +16,10 @@ before_install:
   - sudo apt-get install gfortran
 # Install packages
 install:
-  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION atlas numpy=1.7.1 scipy=0.13.2 cvxopt scs nose
+  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION atlas numpy=1.7.1 scipy=0.13.2 cvxopt nose
   - pip install python-coveralls --use-mirrors
   - pip install nose-cov --use-mirrors
+  - pip install scs
   - python setup.py install
 
 # Run test
