@@ -649,7 +649,8 @@ class Problem(u.Canonical):
         obj_offset = prob_data[1]
         # Set the options to be VERBOSE plus any user-specific options.
         opts = dict({ "VERBOSE": verbose }.items() + opts.items())
-        results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT = True)
+        use_indirect = opts["USE_INDIRECT"] if "USE_INDIRECT" in opts else True
+        results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT = use_indirect)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
             primal_val = results["info"]["pobj"]
