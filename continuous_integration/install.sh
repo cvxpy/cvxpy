@@ -8,7 +8,9 @@ set -e
 
 sudo apt-get update -qq
 if [[ "$INSTALL_ATLAS" == "true" ]]; then
+    #sudo apt-get install -qq libatlas-base-dev
     sudo apt-get install -qq libatlas-base-dev gfortran
+    export ATLAS="/usr/lib/atlas-base/libatlas.so"
 fi
 
 if [[ "$DISTRIB" == "conda" ]]; then
@@ -27,7 +29,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION cvxopt=$CVXOPT_VERSION
+        numpy>=$NUMPY_VERSION scipy>=$SCIPY_VERSION cvxopt=$CVXOPT_VERSION
     source activate testenv
 
     if [[ "$INSTALL_MKL" == "true" ]]; then
@@ -40,7 +42,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
-    sudo apt-get install -qq python-pip python-numpy python-scipy
+    sudo apt-get install -qq python-pip python-scipy python-numpy
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
