@@ -102,14 +102,34 @@ class TestMatrices(unittest.TestCase):
         D = cvxopt.spdiag( cvxopt.uniform(m) )
         x = Variable(m)
         exp = square(norm2(D*x))
-        print Constant(D).sign
 
     def test_scipy_sparse(self):
         """Test scipy sparse matrices."""
+        # Constants.
         A = numpy.matrix( numpy.arange(8).reshape((4,2)) )
         A = sp.csc_matrix(A)
-        print Constant(A).sign
+        A = sp.eye(2).tocsc()
+        key = (slice(0, 1, None), slice(None, None, None))
+        Aidx = intf.index(A, (slice(0, 2, None), slice(None, None, None)))
+        Aidx = intf.index(Aidx, key)
+        self.assertEquals(Aidx.shape, (1, 2))
+        self.assertEqual(Aidx[0,0], 1)
+        self.assertEqual(Aidx[0,1], 0)
 
+        # Linear ops.
+        var = Variable(4, 2)
+        A = numpy.matrix( numpy.arange(8).reshape((4,2)) )
+        A = sp.csc_matrix(A)
+        B = sp.hstack([A, A])
+        self.assertEquals((var + A).size, (4, 2))
+        self.assertEquals((A + var).size, (4, 2))
+        self.assertEquals((B * var).size, (4, 2))
+        self.assertEquals((var - A).size, (4, 2))
+        self.assertEquals((A - A - var).size, (4, 2))
+        self.assertEquals((var <= A).size, (4, 2))
+        self.assertEquals((A <= var).size, (4, 2))
+        self.assertEquals((var == A).size, (4, 2))
+        self.assertEquals((A == var).size, (4, 2))
 
     # # TODO
     # # Test scipy sparse matrices.

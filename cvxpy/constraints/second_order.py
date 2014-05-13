@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.lin_ops.lin_utils as lu
+
 class SOC(object):
     """A second-order cone constraint, i.e., norm2(x) <= t.
 
@@ -35,9 +37,9 @@ class SOC(object):
     def format(self):
         """Formats SOC constraints as inequalities for the solver.
         """
-        constraints = [0 <= self.t]
+        constraints = [lu.create_geq(self.t)]
         for elem in self.x_elems:
-            constraints.append(0 <= elem)
+            constraints.append(lu.create_geq(elem))
         return constraints
 
     @property

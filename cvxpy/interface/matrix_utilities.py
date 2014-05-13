@@ -24,7 +24,6 @@ import scipy.sparse as sp
 import numbers
 import numpy as np
 from ..utilities.sign import Sign
-from ..utilities.sparse_bool_mat import SparseBoolMat
 
 # A mapping of class to interface.
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
@@ -43,6 +42,11 @@ DEFAULT_SPARSE_INTERFACE = INTERFACES[sp.csc_matrix]
 def get_matrix_interface(target_class):
     return INTERFACES[target_class]
 
+def is_sparse(constant):
+    """Is the constant a sparse matrix?
+    """
+    return sp.issparse(constant) or isinstance(constant, cvxopt.spmatrix)
+
 # Get the dimensions of the constant.
 def size(constant):
     if isinstance(constant, numbers.Number):
@@ -57,7 +61,7 @@ def size(constant):
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].size(constant)
     # Direct all sparse matrices to CSC interface.
-    elif sp.issparse(constant):
+    elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].size(constant)
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
@@ -68,7 +72,20 @@ def is_vector(constant):
 
 # Is the constant a scalar?
 def is_scalar(constant):
-    return size(constant) == (1,1)
+    return size(constant) == (1, 1)
+
+def from_2D_to_1D(constant):
+    """Convert 2D Numpy matrices or arrays to 1D.
+    """
+    return np.asarray(constant)[:, 0]
+
+def from_1D_to_2D(constant):
+    """Convert 1D Numpy arrays to matrices.
+    """
+    if constant.ndim == 1:
+        return np.mat(constant).T
+    else:
+        return constant
 
 # Get the value of the passed constant, interpreted as a scalar.
 def scalar_value(constant):
@@ -80,37 +97,37 @@ def scalar_value(constant):
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].scalar_value(constant)
     # Direct all sparse matrices to CSC interface.
-    elif sp.issparse(constant):
-        return INTERFACES[sp.csc_matrix].size(constant.tocsc())
+    elif is_sparse(constant):
+        return INTERFACES[sp.csc_matrix].scalar_value(constant.tocsc())
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
-# Return a matrix of signs based on the constant's values.
-# TODO scipy sparse matrices.
+# Return the collective sign of the matrix entries.
 def sign(constant):
     if isinstance(constant, numbers.Number):
-        return Sign(np.bool_(constant < 0), np.bool_(constant > 0))
+        return Sign.val_to_sign(constant)
     elif isinstance(constant, cvxopt.spmatrix):
-        # Convert to COO matrix.
-        V = np.array(list(constant.V))
-        I = list(constant.I)
-        J = list(constant.J)
-        # Check if entries > 0 for pos_mat, < 0 for neg_mat.
-        neg_mat = sp.coo_matrix((V < 0,(I,J)), shape=constant.size, dtype='bool')
-        pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
-        return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
+        max_val = max(constant.V)
+        min_val = min(constant.V)
     elif sp.issparse(constant):
-        constant = constant.tocoo()
-        neg_mat = constant < 0
-        pos_mat = constant > 0
-        return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
-    else:
+        max_val = constant.max()
+        min_val = constant.min()
+    else: # Convert to Numpy array.
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
-        return Sign(mat < 0, mat > 0)
+        max_val = mat.max()
+        min_val = mat.min()
+    max_sign = Sign.val_to_sign(max_val)
+    min_sign = Sign.val_to_sign(min_val)
+    return max_sign + min_sign
 
 # Get the value at the given index.
 def index(constant, key):
-    if isinstance(constant, numbers.Number):
+    if is_scalar(constant):
         return constant
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].index(constant, key)
+    # Use CSC interface for all sparse matrices.
+    elif is_sparse(constant):
+        interface = INTERFACES[sp.csc_matrix]
+        constant = interface.const_to_matrix(constant)
+        return interface.index(constant, key)

@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy as cp
+from cvxpy import *
 import cvxpy.interface as intf
 import numpy as np
 from base_test import BaseTest
@@ -51,9 +51,9 @@ class TestExamples(BaseTest):
         b = np.ones([4,1])
 
         # Create and solve the model
-        r = cp.Variable(name='r')
-        x_c = cp.Variable(2,name='x_c')
-        obj = cp.Maximize(r)
+        r = Variable(name='r')
+        x_c = Variable(2,name='x_c')
+        obj = Maximize(r)
         constraints = [ #TODO have atoms compute values for constants.
             a1.T*x_c + np.linalg.norm(a1)*r <= b[0],
             a2.T*x_c + np.linalg.norm(a2)*r <= b[1],
@@ -61,7 +61,7 @@ class TestExamples(BaseTest):
             a4.T*x_c + np.linalg.norm(a4)*r <= b[3],
         ]
 
-        p = cp.Problem(obj, constraints)
+        p = Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 0.4472)
         self.assertAlmostEqual(r.value, result)
@@ -95,18 +95,18 @@ class TestExamples(BaseTest):
         r2 = cvxopt.normal(1, 1)
         r3 = cvxopt.normal(1, 1)
 
-        slack = cp.Variable()
+        slack = Variable()
         # Form the problem
-        x = cp.Variable(n)
-        objective = cp.Minimize( 0.5*cp.quad_form(x,P0) + q0.T*x + r0 + slack)
-        constraints = [0.5*cp.quad_form(x,P1) + q1.T*x + r1 <= slack,
-                       0.5*cp.quad_form(x,P2) + q2.T*x + r2 <= slack,
-                       0.5*cp.quad_form(x,P3) + q3.T*x + r3 <= slack,
+        x = Variable(n)
+        objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 + slack)
+        constraints = [0.5*quad_form(x,P1) + q1.T*x + r1 <= slack,
+                       0.5*quad_form(x,P2) + q2.T*x + r2 <= slack,
+                       0.5*quad_form(x,P3) + q3.T*x + r3 <= slack,
         ]
 
         # We now find the primal result and compare it to the dual result
         # to check if strong duality holds i.e. the duality gap is effectively zero
-        p = cp.Problem(objective, constraints)
+        p = Problem(objective, constraints)
         primal_result = p.solve()
 
         # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
@@ -136,10 +136,10 @@ class TestExamples(BaseTest):
         b = cvxopt.normal(m)
 
         # Construct the problem.
-        x = cp.Variable(n)
-        objective = cp.Minimize(sum(cp.square(A*x - b)))
+        x = Variable(n)
+        objective = Minimize(sum_entries(square(A*x - b)))
         constraints = [0 <= x, x <= 1]
-        p = cp.Problem(objective, constraints)
+        p = Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
         result = p.solve()
@@ -152,24 +152,24 @@ class TestExamples(BaseTest):
         ####################################################
 
         # Scalar variable.
-        a = cp.Variable()
+        a = Variable()
 
         # Column vector variable of length 5.
-        x = cp.Variable(5)
+        x = Variable(5)
 
         # Matrix variable with 4 rows and 7 columns.
-        A = cp.Variable(4, 7)
+        A = Variable(4, 7)
 
         ####################################################
 
         # Positive scalar parameter.
-        m = cp.Parameter(sign="positive")
+        m = Parameter(sign="positive")
 
         # Column vector parameter with unknown sign (by default).
-        c = cp.Parameter(5)
+        c = Parameter(5)
 
         # Matrix parameter with negative entries.
-        G = cp.Parameter(4, 7, sign="negative")
+        G = Parameter(4, 7, sign="negative")
 
         # Assigns a constant value to G.
         G.value = -numpy.ones((4, 7))
@@ -180,13 +180,13 @@ class TestExamples(BaseTest):
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
         ####################################################
-        a = cp.Variable()
-        x = cp.Variable(5)
+        a = Variable()
+        x = Variable(5)
 
         # expr is an Expression object after each assignment.
         expr = 2*x
         expr = expr - a
-        expr = sum(expr) + cp.norm(x, 2)
+        expr = sum_entries(expr) + norm(x, 2)
 
         ####################################################
 
@@ -199,12 +199,12 @@ class TestExamples(BaseTest):
         m = 5
         A = cvxopt.normal(n,m)
         b = cvxopt.normal(n)
-        gamma = cp.Parameter(sign="positive")
+        gamma = Parameter(sign="positive")
 
         # Construct the problem.
-        x = cp.Variable(m)
-        objective = cp.Minimize(sum(cp.square(A*x - b)) + gamma*cp.norm(x, 1))
-        p = cp.Problem(objective)
+        x = Variable(m)
+        objective = Minimize(sum_entries(square(A*x - b)) + gamma*norm(x, 1))
+        p = Problem(objective)
 
         # Assign a value to gamma and find the optimal x.
         def get_x(gamma_value):
@@ -222,9 +222,9 @@ class TestExamples(BaseTest):
         mu = cvxopt.normal(1, n)
         sigma = cvxopt.normal(n,n)
         sigma = sigma.T*sigma
-        gamma = cp.Parameter(sign="positive")
+        gamma = Parameter(sign="positive")
         gamma.value = 1
-        x = cp.Variable(n)
+        x = Variable(n)
 
         # Constants:
         # mu is the vector of expected returns.
@@ -235,10 +235,10 @@ class TestExamples(BaseTest):
         # x is a vector of stock holdings as fractions of total assets.
 
         expected_return = mu*x
-        risk = cp.quad_form(x, sigma)
+        risk = quad_form(x, sigma)
 
-        objective = cp.Maximize(expected_return - gamma*risk)
-        p = cp.Problem(objective, [sum(x) == 1])
+        objective = Maximize(expected_return - gamma*risk)
+        p = Problem(objective, [sum_entries(x) == 1])
         result = p.solve()
 
         # The optimal expected return.
@@ -259,15 +259,15 @@ class TestExamples(BaseTest):
             data += [(-1, cvxopt.normal(n, mean=-1.0, std=2.0))]
 
         # Construct problem.
-        gamma = cp.Parameter(sign="positive")
+        gamma = Parameter(sign="positive")
         gamma.value = 0.1
         # 'a' is a variable constrained to have at most 6 non-zero entries.
-        a = cp.Variable(n)#mi.SparseVar(n, nonzeros=6)
-        b = cp.Variable()
+        a = Variable(n)#mi.SparseVar(n, nonzeros=6)
+        b = Variable()
 
-        slack = [cp.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
-        objective = cp.Minimize(cp.norm(a, 2) + gamma*sum(slack))
-        p = cp.Problem(objective)
+        slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
+        objective = Minimize(norm(a, 2) + gamma*sum(slack))
+        p = Problem(objective)
         # Extensions can attach new solve methods to the CVXPY Problem class.
         #p.solve(method="admm")
         p.solve()
@@ -283,7 +283,6 @@ class TestExamples(BaseTest):
         print b.value
 
     def test_log_det(self):
-        # TODO
         # Generate data
         x = np.matrix("0.55  0.0;"
                       "0.25  0.35;"
@@ -294,15 +293,229 @@ class TestExamples(BaseTest):
         (n, m) = x.shape
 
         # Create and solve the model
-        A = cp.Variable(n, n);
-        b = cp.Variable(n);
-        obj = cp.Maximize( cp.log_det(A) )
+        A = Variable(n, n);
+        b = Variable(n);
+        obj = Maximize( log_det(A) )
         constraints = []
         for i in range(m):
-            constraints.append( cp.norm(A*x[:, i] + b) <= 1 )
-        p = cp.Problem(obj, constraints)
+            constraints.append( norm(A*x[:, i] + b) <= 1 )
+        p = Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 1.9746)
+
+    def test_portfolio_problem(self):
+        """Test portfolio problem that caused dcp_attr errors.
+        """
+        import numpy as np
+        import scipy.sparse as sp
+        np.random.seed(5)
+        n = 100#10000
+        m = 10#100
+        pbar = (np.ones((n, 1)) * .03 +
+                np.matrix(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
+
+        F = sp.rand(m, n, density=0.01)
+        F.data = np.ones(len(F.data))
+        D = sp.eye(n).tocoo()
+        D.data = np.random.randn(len(D.data))**2
+        Z = np.random.randn(m, 1)
+        Z = Z.dot(Z.T)
+
+        x = Variable(n)
+        y = x.__rmul__(F)
+        mu = 1
+        ret = pbar.T * x
+        # DCP attr causes error because not all the curvature
+        # matrices are reduced to constants when an atom
+        # is scalar.
+        risk = square(norm(x.__rmul__(D))) + square(Z*y)
+
+    def test_intro(self):
+        """Test examples from cvxpy.org introduction.
+        """
+        import numpy
+
+        # Problem data.
+        m = 30
+        n = 20
+        numpy.random.seed(1)
+        A = numpy.random.randn(m, n)
+        b = numpy.random.randn(m)
+
+        # Construct the problem.
+        x = Variable(n)
+        objective = Minimize(sum_squares(A*x - b))
+        constraints = [0 <= x, x <= 1]
+        prob = Problem(objective, constraints)
+
+        # The optimal objective is returned by p.solve().
+        result = prob.solve()
+        # The optimal value for x is stored in x.value.
+        print x.value
+        # The optimal Lagrange multiplier for a constraint
+        # is stored in constraint.dual_value.
+        print constraints[0].dual_value
+
+        ########################################
+
+        # Create two scalar variables.
+        x = Variable()
+        y = Variable()
+
+        # Create two constraints.
+        constraints = [x + y == 1,
+                       x - y >= 1]
+
+        # Form objective.
+        obj = Minimize(square(x - y))
+
+        # Form and solve problem.
+        prob = Problem(obj, constraints)
+        prob.solve()  # Returns the optimal value.
+        print "status:", prob.status
+        print "optimal value", prob.value
+        print "optimal var", x.value, y.value
+
+        ########################################
+
+        import cvxpy as cvx
+
+        # Create two scalar variables.
+        x = cvx.Variable()
+        y = cvx.Variable()
+
+        # Create two constraints.
+        constraints = [x + y == 1,
+                       x - y >= 1]
+
+        # Form objective.
+        obj = cvx.Minimize(cvx.square(x - y))
+
+        # Form and solve problem.
+        prob = cvx.Problem(obj, constraints)
+        prob.solve()  # Returns the optimal value.
+        print "status:", prob.status
+        print "optimal value", prob.value
+        print "optimal var", x.value, y.value
+
+        self.assertEqual(prob.status, OPTIMAL)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 0)
+
+        ########################################
+
+        # Replace the objective.
+        prob.objective = Maximize(x + y)
+        print "optimal value", prob.solve()
+
+        self.assertAlmostEqual(prob.value, 1.0)
+
+        # Replace the constraint (x + y == 1).
+        prob.constraints[0] = (x + y <= 3)
+        print "optimal value", prob.solve()
+
+        self.assertAlmostEqual(prob.value, 3.0)
+
+        ########################################
+
+        x = Variable()
+
+        # An infeasible problem.
+        prob = Problem(Minimize(x), [x >= 1, x <= 0])
+        prob.solve()
+        print "status:", prob.status
+        print "optimal value", prob.value
+
+        self.assertEquals(prob.status, INFEASIBLE)
+        self.assertAlmostEqual(prob.value, np.inf)
+
+        # An unbounded problem.
+        prob = Problem(Minimize(x))
+        prob.solve()
+        print "status:", prob.status
+        print "optimal value", prob.value
+
+        self.assertEquals(prob.status, UNBOUNDED)
+        self.assertAlmostEqual(prob.value, -np.inf)
+
+        ########################################
+
+        # A scalar variable.
+        a = Variable()
+
+        # Column vector variable of length 5.
+        x = Variable(5)
+
+        # Matrix variable with 4 rows and 7 columns.
+        A = Variable(4, 7)
+
+        ########################################
+        import numpy
+
+        # Problem data.
+        m = 10
+        n = 5
+        numpy.random.seed(1)
+        A = numpy.random.randn(m, n)
+        b = numpy.random.randn(m)
+
+        # Construct the problem.
+        x = Variable(n)
+        objective = Minimize(sum_entries(square(A*x - b)))
+        constraints = [0 <= x, x <= 1]
+        prob = Problem(objective, constraints)
+
+        print "Optimal value", prob.solve()
+        print "Optimal var"
+        print x.value # A numpy matrix.
+
+        self.assertAlmostEqual(prob.value, 4.14133859146)
+
+        ########################################
+        # Positive scalar parameter.
+        m = Parameter(sign="positive")
+
+        # Column vector parameter with unknown sign (by default).
+        c = Parameter(5)
+
+        # Matrix parameter with negative entries.
+        G = Parameter(4, 7, sign="negative")
+
+        # Assigns a constant value to G.
+        G.value = -numpy.ones((4, 7))
+        ########################################
+
+        import numpy
+
+        # Problem data.
+        n = 15
+        m = 10
+        numpy.random.seed(1)
+        A = numpy.random.randn(n, m)
+        b = numpy.random.randn(n)
+        # gamma must be positive due to DCP rules.
+        gamma = Parameter(sign="positive")
+
+        # Construct the problem.
+        x = Variable(m)
+        sum_of_squares = sum_entries(square(A*x - b))
+        obj = Minimize(sum_of_squares + gamma*norm(x, 1))
+        prob = Problem(obj)
+
+        # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
+        sq_penalty = []
+        l1_penalty = []
+        x_values = []
+        gamma_vals = numpy.logspace(-4, 6)
+        for val in gamma_vals:
+            gamma.value = val
+            prob.solve()
+            # Use expr.value to get the numerical value of
+            # an expression in the problem.
+            sq_penalty.append(sum_of_squares.value)
+            l1_penalty.append(norm(x, 1).value)
+            x_values.append(x.value)
 
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
@@ -326,7 +539,7 @@ class TestExamples(BaseTest):
     #     mu = cp.Parameter(name='mu')
     #     mu.value = 1 # TODO cp.Parameter("positive")
     #     objective = cp.Minimize(-pbar*x + mu*quad_over_lin(Sroot*x,1))
-    #     constraints = [sum(x) == 1, x >= 0]
+    #     constraints = [sum_entries(x) == 1, x >= 0]
     #     p = cp.Problem(objective, constraints)
 
     #     mus = [ 10**(5.0*t/N-1.0) for t in range(N) ]

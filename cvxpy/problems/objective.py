@@ -17,8 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import utilities as u
-from ..expressions.expression import Expression
+import cvxpy.utilities as u
+from cvxpy.expressions.expression import Expression
+import cvxpy.lin_ops.lin_utils as lu
 
 class Minimize(u.Canonical):
     """An optimization objective for minimization.
@@ -30,8 +31,8 @@ class Minimize(u.Canonical):
         self._expr = Expression.cast_to_const(expr)
         # Validate that the objective resolves to a scalar.
         if self._expr.size != (1, 1):
-            raise Exception("The objective '%s' must resolve to a scalar."
-                            % self)
+            raise Exception("The '%s' objective must resolve to a scalar."
+                            % self.NAME)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self._expr))
@@ -81,7 +82,7 @@ class Maximize(Minimize):
         """Negates the target expression's objective.
         """
         obj, constraints = super(Maximize, self).canonicalize()
-        return (-obj, constraints)
+        return (lu.neg_expr(obj), constraints)
 
     def is_dcp(self):
         """The objective must be concave.

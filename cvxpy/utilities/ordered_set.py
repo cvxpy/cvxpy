@@ -2,6 +2,7 @@
 """
 
 import collections
+import itertools
 
 class OrderedSet(collections.MutableSet):
     """A set with ordered keys.
@@ -32,6 +33,17 @@ class OrderedSet(collections.MutableSet):
             end = self.end
             curr = end[1]
             curr[2] = end[1] = self.map[key] = [key, curr, end]
+
+    def concat(self, other):
+        """Concatenates two ordered sets.
+
+        Args:
+            other: An OrderedSet
+
+        Returns:
+            An OrderedSet with self's keys followed by other's keys.
+        """
+        return OrderedSet(itertools.chain(self, other))
 
     def discard(self, key):
         """Removes the key from the set.

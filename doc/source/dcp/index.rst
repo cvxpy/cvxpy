@@ -82,12 +82,9 @@ subexpressions. For example, the sign of the expression expr1\*expr2 is
 The sign given to an expression is always correct. But DCP sign analysis
 may flag an expression as unknown sign when the sign could be figured
 out through more complex analysis. For instance, ``x*x`` is positive but
-has unknown sign by the rules above.
+has unknown sign by the rules above. Vector and matrix constants are always marked as unknown sign.
 
-The sign of an expression is stored as ``expr.sign``. A vector or matrix
-expression may have entries with different signs, in which case
-``expr.sign`` is a Numpy 2D array containing the signs of all the
-entries.
+The sign of an expression is stored as ``expr.sign``:
 
 .. code:: python
 
@@ -97,18 +94,15 @@ entries.
 
     print "sign of x:", x.sign
     print "sign of a:", a.sign
-    print "sign of square(x)", square(x).sign
-    print "sign of c*a"
-    print (c*a).sign
+    print "sign of square(x):", square(x).sign
+    print "sign of c*a:", (c*a).sign
 
 .. parsed-literal::
 
     sign of x: UNKNOWN
     sign of a: NEGATIVE
-    sign of square(x) POSITIVE
-    sign of c*a
-    [['NEGATIVE']
-     ['POSITIVE']]
+    sign of square(x): POSITIVE
+    sign of c*a: UNKNOWN
 
 
 Curvature
@@ -167,10 +161,7 @@ Whether a function is increasing or decreasing in an argument may depend
 on the sign of the argument. For instance, ``square`` is increasing for
 positive arguments and decreasing for negative arguments.
 
-The curvature of an expression is stored as ``expr.curvature``. A vector
-or matrix expression may have entries with different curvatures, in
-which case ``expr.curvature`` is a Numpy 2D array containing the
-curvatures of all the entries.
+The curvature of an expression is stored as ``expr.curvature``:
 
 .. code:: python
 
@@ -180,18 +171,15 @@ curvatures of all the entries.
 
     print "curvature of x:", x.curvature
     print "curvature of a:", a.curvature
-    print "curvature of square(x)", square(x).curvature
-    print "curvature of c*square(x)"
-    print (c*square(x)).curvature
+    print "curvature of square(x):", square(x).curvature
+    print "curvature of sqrt(x):", sqrt(x).curvature
 
 .. parsed-literal::
 
     curvature of x: AFFINE
     curvature of a: CONSTANT
-    curvature of square(x) CONVEX
-    curvature of c*square(x)
-    [['CONVEX']
-     ['CONCAVE']]
+    curvature of square(x): CONVEX
+    curvature of sqrt(x): CONCAVE
 
 
 Infix operators

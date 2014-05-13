@@ -17,24 +17,24 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ... import utilities as u
-from ...utilities import coefficient_utils as cu
-from ... import interface as intf
-from ... import settings as s
-from ..leaf import Leaf
-import numpy as np
-import scipy.sparse as sp
+import cvxpy.utilities as u
+import cvxpy.interface as intf
+import cvxpy.settings as s
+from cvxpy.expressions.leaf import Leaf
+import cvxpy.lin_ops.lin_utils as lu
 
 class Constant(Leaf):
     """
     A constant, either matrix or scalar.
     """
     def __init__(self, value):
-        # TODO keep sparse matrices sparse.
-        if sp.issparse(value):
+        # Keep sparse matrices sparse.
+        if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
+            self._sparse = True
         else:
             self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
+            self._sparse = False
         # Set DCP attributes.
         self.init_dcp_attr()
 
@@ -48,16 +48,18 @@ class Constant(Leaf):
     # Return the DCP attributes of the constant.
     def init_dcp_attr(self):
         shape = u.Shape(*intf.size(self.value))
-        sign = intf.sign(self.value)
+        # If scalar, check sign. Else unknown sign.
+        if shape.size == (1, 1):
+            sign = u.Sign.val_to_sign(self.value)
+        else:
+            sign = u.Sign.UNKNOWN
         self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
-    # Returns a coefficient dict with s.CONSTANT as the key
-    # and the constant value split into columns as the value.
-    def _tree_to_coeffs(self):
-        rows, cols = self.size
-        blocks = []
-        for i in range(cols):
-            val = intf.index(self.value, (slice(None,None,None), i))
-            blocks.append( intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(val) )
-        coeffs = {s.CONSTANT: np.array(blocks, dtype="object", ndmin=1)}
-        return cu.format_coeffs(coeffs)
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        obj = lu.create_const(self.value, self.size, self._sparse)
+        return (obj, [])

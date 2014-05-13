@@ -103,14 +103,37 @@ class Atom(Expression):
                 obj, constr = arg.canonical_form
                 arg_objs.append(obj)
                 constraints += constr
-            graph_obj,graph_constr = self.graph_implementation(arg_objs)
+            # Special info required by the graph implementation.
+            data = self.get_data()
+            graph_obj, graph_constr = self.graph_implementation(arg_objs,
+                                                                self.size,
+                                                                data)
             return (graph_obj, constraints + graph_constr)
 
-    # Returns an affine expression and list of
-    # constraints equivalent to the atom.
-    # arg_objs - the canonical objectives of the arguments.
+
+    def get_data(self):
+        """Returns special info required for graph implementation.
+        """
+        return None
+
     @abc.abstractmethod
-    def graph_implementation(self, arg_objs):
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         return NotImplemented
 
     def variables(self):
@@ -162,5 +185,5 @@ class Atom(Expression):
             values = [interface.const_to_matrix(v, convert_scalars=True)
                       for v in values]
             result = numeric_func(self, values)
-            return intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(result)
+            return intf.DEFAULT_INTERFACE.const_to_matrix(result)
         return new_numeric

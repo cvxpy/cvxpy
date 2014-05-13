@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.lin_ops.lin_utils as lu
+
 class SDP(object):
     """
     A semi-definite cone constraint:
@@ -36,7 +38,8 @@ class SDP(object):
     def format(self):
         """Formats SDP constraints as inequalities for the solver.
         """
-        return [-self.A <= 0]
+        # 0 <= A
+        return [lu.create_geq(self.A)]
 
     @property
     def size(self):

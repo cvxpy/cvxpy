@@ -83,7 +83,7 @@ class Expression(u.Canonical):
     def curvature(self):
         """ Returns the curvature of the expression.
         """
-        return self._dcp_attr.curvature.get_readable_repr(*self.size)
+        return str(self._dcp_attr.curvature)
 
     def is_constant(self):
         """Is the expression constant?
@@ -116,7 +116,7 @@ class Expression(u.Canonical):
     def sign(self):
         """ Returns the sign of the expression.
         """
-        return self._dcp_attr.sign.get_readable_repr(*self.size)
+        return str(self._dcp_attr.sign)
 
     def is_zero(self):
         """Is the expression all zero?
@@ -159,39 +159,23 @@ class Expression(u.Canonical):
     def is_matrix(self):
         """Is the expression a matrix?
         """
-        return self.size[1] > 1
+        return self.size[0] > 1 and self.size[1] > 1
 
     def __getitem__(self, key):
         """Return a slice/index into the expression.
         """
         # Indexing into a scalar returns the scalar.
-        if self.size == (1, 1):
+        if self.is_scalar():
             return self
         else:
             return types.index()(self, key)
-
-    def __iter__(self):
-        """Yields indices into the expression in column major order.
-        """
-        for col in range(self.size[1]):
-            for row in range(self.size[0]):
-                yield self[row, col]
-
-    def __len__(self):
-        """The number of entries in a matrix expression.
-        """
-        length = self.size[0]*self.size[1]
-        if length == 1: # Numpy will iterate over anything with a length.
-            return NotImplemented
-        else:
-            return length
 
     @property
     def T(self):
         """The transpose of an expression.
         """
         # Transpose of a scalar is that scalar.
-        if self.size == (1, 1):
+        if self.is_scalar():
             return self
         else:
             return types.transpose()(self)
@@ -237,7 +221,11 @@ class Expression(u.Canonical):
             raise TypeError("Cannot multiply two non-constants.")
         # The constant term must always be on the left.
         elif not self.is_constant():
-            return (other.T * self.T).T
+            # If other is a scalar, simply move it left.
+            if other.is_scalar():
+                return types.mul_expr()(other, self)
+            else:
+                return (other.T * self.T).T
         else:
             return types.mul_expr()(self, other)
 

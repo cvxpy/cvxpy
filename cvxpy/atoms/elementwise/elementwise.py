@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from ..atom import Atom
+from cvxpy.atoms.atom import Atom
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
@@ -26,3 +26,12 @@ class Elementwise(Atom):
     # The shape is the same as the argument's shape.
     def shape_from_args(self):
         return self.args[0].shape
+
+    def validate_arguments(self):
+        """
+        Verify that all the shapes are the same
+        or can be promoted.
+        """
+        shape = self.args[0].shape
+        for arg in self.args[1:]:
+            shape = shape + arg.shape

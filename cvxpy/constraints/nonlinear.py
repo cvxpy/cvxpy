@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import utilities as u
+import cvxpy.utilities as u
 
 class NonlinearConstraint(object):
     """
@@ -29,24 +29,20 @@ class NonlinearConstraint(object):
     one of many (of course).
     """
     # f - a nonlinear function
-    # x - the variables involved in the function
-    def __init__(self, f, x):
+    # vars_ - the variables involved in the function
+    def __init__(self, f, vars_):
         self.f = f
-        self.x = x
-        # The shape of x in f(x)
-        cols = self.x[0].size[1]
-        rows = sum(var.size[0] for var in self.x)
-        self.x_shape = u.Shape(rows, cols)
+        self.vars_ = vars_
+        # The shape of vars_ in f(vars_)
+        cols = self.vars_[0].size[1]
+        rows = sum(var.size[0] for var in self.vars_)
+        self.x_size = (rows*cols, 1)
         super(NonlinearConstraint, self).__init__()
 
-    @property
-    def size(self):
-        return (self.f()[0],1)
-
     # Returns the variables involved in the function
-    # in order, i.e. f(x) = f(vstack(variables))
+    # in order, i.e. f(vars_) = f(vstack(variables))
     def variables(self):
-        return self.x
+        return self.vars_
 
     # Place x0 = f() in the vector of all variables.
     def place_x0(self, big_x, var_offsets, interface):
@@ -55,7 +51,7 @@ class NonlinearConstraint(object):
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
             var_x0 = x0[offset:offset+var_size]
-            interface.block_add(big_x, var_x0, var_offsets[var.id],
+            interface.block_add(big_x, var_x0, var_offsets[var.data],
                                 0, var_size, 1)
             offset += var_size
 
@@ -66,8 +62,8 @@ class NonlinearConstraint(object):
             var_size = var.size[0]*var.size[1]
             var_Df = Df[:, horiz_offset:horiz_offset+var_size]
             interface.block_add(big_Df, var_Df,
-                                vert_offset, var_offsets[var.id],
-                                self.size[0], var_size)
+                                vert_offset, var_offsets[var.data],
+                                self.size[0]*self.size[1], var_size)
             horiz_offset += var_size
 
     # Place H in the Hessian of all functions.
@@ -77,17 +73,17 @@ class NonlinearConstraint(object):
             var_size = var.size[0]*var.size[1]
             var_H = H[offset:offset+var_size, offset:offset+var_size]
             interface.block_add(big_H, var_H,
-                                var_offsets[var.id], var_offsets[var.id],
+                                var_offsets[var.data], var_offsets[var.data],
                                 var_size, var_size)
             offset += var_size
 
     # Extract the function variables from the vector x of all variables.
     def extract_variables(self, x, var_offsets, interface):
-        local_x = interface.zeros(*self.x_shape.size)
+        local_x = interface.zeros(*self.x_size)
         offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
-            value = x[var_offsets[var.id]:var_offsets[var.id]+var_size]
+            value = x[var_offsets[var.data]:var_offsets[var.data]+var_size]
             interface.block_add(local_x, value, offset, 0, var_size, 1)
             offset += var_size
         return local_x

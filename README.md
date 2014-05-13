@@ -9,7 +9,7 @@ CVXPY is a Python-embedded modeling language for optimization problems. CVXPY al
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
 ```
-import cvxpy as cp
+from cvxpy import *
 import cvxopt
 
 # Problem data.
@@ -19,10 +19,10 @@ A = cvxopt.normal(m,n)
 b = cvxopt.normal(m)
 
 # Construct the problem.
-x = cp.Variable(n)
-objective = cp.Minimize(sum(cp.square(A*x - b)))
+x = Variable(n)
+objective = Minimize(sum_entries(square(A*x - b)))
 constraints = [0 <= x, x <= 1]
-p = cp.Problem(objective, constraints)
+p = Problem(objective, constraints)
 
 # The optimal objective is returned by p.solve().
 result = p.solve()
@@ -38,8 +38,10 @@ Prerequisites
 CVXPY requires:
 * Python 2.7
 * [setuptools](https://pypi.python.org/pypi/setuptools) >= 1.4
+* [toolz](http://github.com/pytoolz/toolz/)
 * [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) >= 1.1.6
 * [ECOS](http://github.com/ifa-ethz/ecos) >= 1.0.3
+* [SCS](http://github.com/cvxgrp/scs) >= 1.0.1
 * [NumPy](http://www.numpy.org/) >= 1.7.1
 * [SciPy](http://www.scipy.org/) >= 0.13.2
 
@@ -72,13 +74,13 @@ Basic Usage
 Variables are created using the Variable class.
 ```
 # Scalar variable.
-a = cp.Variable()
+a = Variable()
 
 # Column vector variable of length 5.
-x = cp.Variable(5)
+x = Variable(5)
 
 # Matrix variable with 4 rows and 7 columns.
-A = cp.Variable(4, 7)
+A = Variable(4, 7)
 ```
 
 ### Constants
@@ -100,13 +102,13 @@ Parameters are created using the Parameter class. Parameters are created with fi
 
 ```
 # Positive scalar parameter.
-m = cp.Parameter(sign="positive")
+m = Parameter(sign="positive")
 
 # Column vector parameter with unknown sign (by default).
-c = cp.Parameter(5)
+c = Parameter(5)
 
 # Matrix parameter with negative entries.
-G = cp.Parameter(4, 7, sign="negative")
+G = Parameter(4, 7, sign="negative")
 
 # Assigns a constant value to G.
 G.value = -numpy.ones((4, 7))
@@ -116,22 +118,19 @@ G.value = -numpy.ones((4, 7))
 Mathematical expressions are stored in Expression objects. Variable and Parameter are subclasses of Expression. Expression objects are created from constants and other expressions. These elements are combined with arithmetic operators or passed as arguments to [Atoms](#atoms).
 
 ```
-a = cp.Variable()
-x = cp.Variable(5)
+a = Variable()
+x = Variable(5)
 
 # expr is an Expression object after each assignment.
 expr = 2*x
 expr = expr - a
-expr = sum(expr) + cp.norm(x, 2)
+expr = sum_entries(expr) + norm(x, 2)
 ```
 
 #### Indexing and Slicing
 All non-scalar Expression objects can be indexed using the syntax `expr[i,j]`. The syntax `expr[i]` can be used as a shorthand for `expr[i,0]` when `expr` is a column vector. Similarly, `expr[i]` is shorthand for `expr[0,i]` when `expr` is a row vector.
 
 Non-scalar Expressions can also be sliced into using the standard Python slicing syntax. Thus `expr[i:j:k,r]` selects every kth element in column r of `expr`, starting at row i and ending at row j-1.
-
-#### Iteration
-Expressions are iterable. Iterating over an expression returns indices into the expression in column-major order. Thus if `expr` is a 2 by 2 matrix, `[elem for elem in expr]` evaluates to `[expr[0,0], expr[1,0], expr[0,1], expr[1,1]]`. The built-in Python `sum` can be used on expressions because of the support for iteration.
 
 #### Transpose
 The transpose of any expression can be obtained using the syntax `expr.T`.
@@ -156,6 +155,7 @@ CVXPY currently supports the following atoms:
         * Defaults to p = 2 if no value of p is given.
     * `quad_form(x, P)`, gives `x.T*P*x`. If `x` is non-constant, the real parts of the eigenvalues of `P` must be all non-negative or all non-positive.
     * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
+    * `sum_entries(x)`, sums the entries of the expression.
 * Matrix to matrix atoms
     * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[1,3]`.
     * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`.
@@ -173,11 +173,11 @@ CVXPY currently supports the following atoms:
 
 ### Disciplined Convex Programming (DCP)
 
-Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
+Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dstanford.edu/>.
 
-DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
+DCP assigns a curvature and sign to every expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
 
-The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. For matrix constants, a sign is determined for each entry. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
+The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. Matrix constants always have unknown sign. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
 
 #### The DCP Rules
 
@@ -214,30 +214,17 @@ The rules for other functions are equally straightforward.
 
 To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. [Constraints](#constraints), [Objectives](#objectives), and [Problems](#problems) also have an `is_dcp` method.
 
-The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. For scalar expressions, the curvature and sign are strings. For example,
+The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. For example,
 
 ```
-x = cp.Variable()
+x = Variable(2)
 x.curvature == 'AFFINE'
 x.sign == 'UNKNOWN'
 
-expr = cp.square(x)
+expr = square(x)
 expr.curvature == 'CONVEX'
 expr.sign == 'POSITIVE'
 ```
-
-The curvature and sign of matrix expressions are Numpy 2D arrays of strings, with one string for each entry in the expression. For example,
-
-```
-x = cp.Variable()
-expr = cp.vstack(x, cp.square(x))
-expr.curvature ==  array([['AFFINE'],
-                          ['CONVEX']], dtype=object)
-expr.sign ==  array([['UNKNOWN'],
-                     ['POSITIVE']], dtype=object)
-```
-
-If all entries in the matrix expression have the same curvature (or sign), the expression curvature (or sign) is a single string instead of a matrix.
 
 You can also examine the curvature and sign of an expression using the following methods:
 
@@ -250,9 +237,7 @@ You can also examine the curvature and sign of an expression using the following
     * expr.is_positive()
     * expr.is_negative()
 
-For scalar expressions, these methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
-
-For matrix expressions, these methods return true only if the method returns true for every entry.
+These methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
 
 ### Constraints
 Constraint objects are constructed using `==`, `<=`, and `>=` with Expression objects or constants on the left-hand and right-hand sides.
@@ -300,10 +285,10 @@ The value of expressions in the problem can also be read from `expr.value`. For 
 # x is a vector of stock holdings as fractions of total assets.
 
 expected_return = mu*x
-risk = cp.quad_form(x, sigma)
+risk = quad_form(x, sigma)
 
-objective = cp.Maximize(expected_return - gamma*risk)
-p = cp.Problem(objective, [sum(x) == 1])
+objective = Maximize(expected_return - gamma*risk)
+p = Problem(objective, [sum_entries(x) == 1])
 result = p.solve()
 
 # The optimal expected return.
@@ -313,17 +298,28 @@ print expected_return.value
 print risk.value
 ```
 
-The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) is used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
+The default solver is [ECOS](http://github.com/ifa-ethz/ecos), though [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) and [SCS](http://github.com/cvxgrp/scs) are used for problems that [ECOS](http://github.com/ifa-ethz/ecos) cannot solve. You can force CVXPY to use a particular solver:
 
 ```
-p = cp.Problem(objective, constraints)
+p = Problem(objective, constraints)
 
 # Solve with ECOS.
 result = p.solve(solver=cvxpy.ECOS)
 
 # Solve with CVXOPT.
 result = p.solve(solver=cvxpy.CVXOPT)
+
+# Solve with SCS.
+result = p.solve(solver=cvxpy.SCS)
 ```
+
+To see the full output from the solver, use the `verbose` keyword. The solver output will be printed to the console.
+
+```
+p.solve(verbose=True)
+```
+
+You can specify solver options for [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) and [SCS](http://github.com/cvxgrp/scs), such as the maximum number of iterations. Create an `opts` dict mapping option keyword to option value and call `p.solve` with the keyword argument `solver_specific_opts=opts`.
 
 Features
 =====================
@@ -343,12 +339,12 @@ n = 10
 m = 5
 A = cvxopt.normal(n,m)
 b = cvxopt.normal(n)
-gamma = cp.Parameter(sign="positive")
+gamma = Parameter(sign="positive")
 
 # Construct the problem.
-x = cp.Variable(m)
-objective = cp.Minimize(sum(cp.square(A*x - b)) + gamma*cp.norm(x, 1))
-p = cp.Problem(objective)
+x = Variable(m)
+objective = Minimize(sum_entries(square(A*x - b)) + gamma*norm(x, 1))
+p = Problem(objective)
 
 # Assign a value to gamma and find the optimal x.
 def get_x(gamma_value):
@@ -376,10 +372,10 @@ Consider the max-flow problem with N nodes and E edges. We can define the proble
 
 ```
 # A is the incidence matrix. c is a vector of edge capacities.
-flows = cp.Variable(E-2)
-source = cp.Variable()
-sink = cp.Variable()
-p = cp.Problem(cp.Maximize(source),
+flows = Variable(E-2)
+source = Variable()
+sink = Variable()
+p = Problem(Maximize(source),
               [A*vstack(flows,source,sink) == 0,
                0 <= flows,
                flows <= c])
@@ -392,7 +388,7 @@ class Edge(object):
     """ An undirected, capacity limited edge. """
     def __init__(self, capacity):
         self.capacity = capacity
-        self.flow = cp.Variable()
+        self.flow = Variable()
 
     # Connects two nodes via the edge.
     def connect(self, in_node, out_node):
@@ -401,7 +397,7 @@ class Edge(object):
 
     # Returns the edge's internal constraints.
     def constraints(self):
-        return [cp.abs(self.flow) <= self.capacity]
+        return [abs(self.flow) <= self.capacity]
 ```
 
 The Edge class exposes the flow into and out of the edge. The capacity constraint is stored locally in the Edge object. The graph structure is also stored locally, by calling `edge.connect(node1, node2)` for each edge.
@@ -428,7 +424,7 @@ Suppose `nodes` is a list of all the nodes, `edges` is a list of all the edges, 
 constraints = []
 for obj in nodes + edges:
     constraints += obj.constraints()
-p = cp.Problem(cp.Maximize(sink.accumulation), constraints)
+p = Problem(Maximize(sink.accumulation), constraints)
 ```
 
 Note that the problem has been reframed from maximizing the flow along the source edge to maximizing the accumulation at the sink node. We could easily extend the Edge and Node class to model an electrical grid. Sink nodes would be consumers. Source nodes would be power stations, which generate electricity at a cost. A node could be both a source and a sink, which would represent energy storage facilities or a consumer who contributes to the grid. We could add energy loss along edges to more accurately model transmission lines. The entire grid construct could be embedded in a time series model.
@@ -479,15 +475,15 @@ for i in range(M):
     data += [(-1, cvxopt.normal(n, mean=-1.0, std=2.0))]
 
 # Construct problem.
-gamma = cp.Parameter(sign="positive")
+gamma = Parameter(sign="positive")
 gamma.value = 0.1
 # 'a' is a variable constrained to have at most 6 non-zero entries.
 a = mi.SparseVar(n, nonzeros=6)
-b = cp.Variable()
+b = Variable()
 
-slack = [cp.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
-objective = cp.Minimize(cp.norm(a, 2) + gamma*sum(slack))
-p = cp.Problem(objective)
+slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
+objective = Minimize(norm(a, 2) + gamma*sum(slack))
+p = Problem(objective)
 # Extensions can attach new solve methods to the CVXPY Problem class.
 p.solve(method="admm")
 

@@ -109,7 +109,7 @@ import alabaster
 table_styling_embed_css = False
 
 html_theme_path = [alabaster.get_path()]
-extensions += ['alabaster']# TODO get tables working, 'cloud_sptheme.ext.table_styling']
+extensions += ['alabaster']
 html_theme = 'alabaster'
 html_sidebars = {
    '**': [

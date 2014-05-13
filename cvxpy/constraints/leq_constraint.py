@@ -17,16 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import utilities as u
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
 
-class LeqConstraint(u.Affine, u.Canonical):
+class LeqConstraint(u.Canonical):
     OP_NAME = "<="
     TOLERANCE = 1e-4
-    def __init__(self, lh_exp, rh_exp, parent=None):
+    def __init__(self, lh_exp, rh_exp):
+        self.id = lu.get_id()
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp
         self._expr = self.lh_exp - self.rh_exp
-        self.parent = parent
         self._dual_value = None
 
     def name(self):
@@ -55,7 +56,7 @@ class LeqConstraint(u.Affine, u.Canonical):
             A tuple of (affine expression, [constraints]).
         """
         obj, constraints = self._expr.canonical_form
-        dual_holder = self.__class__(obj, 0, parent=self)
+        dual_holder = lu.create_leq(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
 
     def variables(self):
@@ -67,9 +68,6 @@ class LeqConstraint(u.Affine, u.Canonical):
         """Returns the parameters in the compared expressions.
         """
         return self._expr.parameters()
-
-    def _tree_to_coeffs(self):
-        return self._expr.coefficients()
 
     @property
     def value(self):
@@ -95,7 +93,4 @@ class LeqConstraint(u.Affine, u.Canonical):
         Args:
             value: The value of the dual variable.
         """
-        if self.parent is None:
-            self._dual_value = value
-        else:
-            self.parent._dual_value = value
+        self._dual_value = value

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
@@ -58,24 +59,24 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(x.canonical_form[0].size, (2,1))
         self.assertEqual(x.canonical_form[1], [])
 
-        # Scalar variable
-        coeff = self.a.coefficients()
-        self.assertEqual(coeff[self.a.id], [1])
+        # # Scalar variable
+        # coeff = self.a.coefficients()
+        # self.assertEqual(coeff[self.a.id], [1])
 
-        # Vector variable.
-        coeffs = x.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [x.id])
-        vec = coeffs[x.id][0]
-        self.assertEqual(vec.shape, (2,2))
-        self.assertEqual(vec[0,0], 1)
+        # # Vector variable.
+        # coeffs = x.coefficients()
+        # self.assertItemsEqual(coeffs.keys(), [x.id])
+        # vec = coeffs[x.id][0]
+        # self.assertEqual(vec.shape, (2,2))
+        # self.assertEqual(vec[0,0], 1)
 
-        # Matrix variable.
-        coeffs = self.A.coefficients()
-        self.assertItemsEqual(coeffs.keys(), [self.A.id])
-        self.assertEqual(len(coeffs[self.A.id]), 2)
-        mat = coeffs[self.A.id][1]
-        self.assertEqual(mat.shape, (2,4))
-        self.assertEqual(mat[0,2], 1)
+        # # Matrix variable.
+        # coeffs = self.A.coefficients()
+        # self.assertItemsEqual(coeffs.keys(), [self.A.id])
+        # self.assertEqual(len(coeffs[self.A.id]), 2)
+        # mat = coeffs[self.A.id][1]
+        # self.assertEqual(mat.shape, (2,4))
+        # self.assertEqual(mat[0,2], 1)
 
     # Test tranposing variables.
     def test_transpose_variable(self):
@@ -104,7 +105,7 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(mat[1,3], 1)
 
         index = var[1,0]
-        self.assertEquals(index.name(), "C.T[1,0]")
+        self.assertEquals(index.name(), "C.T[1, 0]")
         self.assertEquals(index.size, (1,1))
 
         var = self.x.T.T
@@ -126,25 +127,25 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(c.canonical_form[0].size, (1,1))
         self.assertEqual(c.canonical_form[1], [])
 
-        coeffs = c.coefficients()
-        self.assertEqual(coeffs.keys(), [s.CONSTANT])
-        self.assertEqual(coeffs[s.CONSTANT], [2])
+        # coeffs = c.coefficients()
+        # self.assertEqual(coeffs.keys(), [s.CONSTANT])
+        # self.assertEqual(coeffs[s.CONSTANT], [2])
 
         # Test the sign.
-        c = Constant([[2],[2]])
-        self.assertEqual(c.size, (1,2))
-        self.assertEqual(c._dcp_attr.sign.neg_mat.shape, (1,2))
+        c = Constant([[2], [2]])
+        self.assertEqual(c.size, (1, 2))
+        self.assertEqual(c.sign, u.Sign.UNKNOWN_KEY)
 
         # Test sign of a complex expression.
         c = Constant([1, 2])
         A = Constant([[1,1],[1,1]])
         exp = c.T*A*c
-        self.assertEqual(exp.sign, u.Sign.POSITIVE_KEY)
-        self.assertEqual((c.T*c).sign, u.Sign.POSITIVE_KEY)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual((c.T*c).sign, u.Sign.UNKNOWN_KEY)
         exp = c.T.T
-        self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (2,1))
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
         exp = c.T*self.A
-        self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (1,2))
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
 
     # Test the Parameter class.
     def test_parameters(self):
@@ -202,6 +203,13 @@ class TestExpressions(unittest.TestCase):
             (self.A + self.C)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
+        with self.assertRaises(Exception) as cm:
+            AddExpression([self.A, self.C])
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
+
+        # Test that sum is flattened.
+        exp = self.x + c + self.x
+        self.assertEqual(len(exp.args), 3)
 
     # Test the SubExpresion class.
     def test_sub_expression(self):
@@ -245,7 +253,6 @@ class TestExpressions(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             ([2,2,3]*self.x)
-        print cm.exception
         self.assertEqual(str(cm.exception), "Incompatible dimensions (3, 1) (2, 1)")
 
         # Matrices
@@ -264,9 +271,14 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.size, (3,2))
 
         # Expression that would break sign multiplication without promotion.
-        c = Constant([[2],[2],[-2]])
-        exp = [[1],[2]] + c*self.C
-        self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (1,2))
+        c = Constant([[2], [2], [-2]])
+        exp = [[1], [2]] + c*self.C
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+
+        # Scalar constants on the right should be moved left
+        # instead of taking the transpose.
+        expr = self.C*2
+        self.assertEqual(expr.args[0].value, 2)
 
     # Test the DivExpresion class.
     def test_div_expression(self):
@@ -380,14 +392,11 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(exp.size, (3,1))
 
         c = Constant([[1,-2],[0,4]])
-        exp = c[1,1]
+        exp = c[1, 1]
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT_KEY)
-        self.assertEqual(exp.sign, u.Sign.POSITIVE_KEY)
-        assert exp.is_positive()
-        self.assertEqual(c[0,1].sign, u.Sign.ZERO_KEY)
-        assert c[0, 1].is_zero()
-        self.assertEqual(c[1,0].sign, u.Sign.NEGATIVE_KEY)
-        assert c[1,0].is_negative()
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(c[0,1].sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(c[1,0].sign, u.Sign.UNKNOWN_KEY)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
 

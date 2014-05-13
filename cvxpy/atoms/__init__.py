@@ -31,17 +31,21 @@ from norm_nuc import normNuc
 from quad_form import quad_form
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
+from sum_squares import sum_squares
 
-from affine.sum import sum
+from affine.conv import conv
+from affine.hstack import hstack
+from affine.sum_entries import sum_entries
 from affine.vstack import vstack
 
 from elementwise.abs import abs
 from elementwise.entr import entr
 from elementwise.exp import exp
+from elementwise.huber import huber
 from elementwise.inv_pos import inv_pos
 from elementwise.log import log
-from elementwise.max import max
-from elementwise.min import min
+from elementwise.max_elemwise import max_elemwise
+from elementwise.min_elemwise import min_elemwise
 from elementwise.neg import neg
 from elementwise.pos import pos
 from elementwise.sqrt import sqrt

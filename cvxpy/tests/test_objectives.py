@@ -42,7 +42,7 @@ class TestObjectives(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             Minimize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
-            "The objective 'minimize y' must resolve to a scalar.")
+            "The 'minimize' objective must resolve to a scalar.")
 
     # Test the Maximize class.
     def test_maximize(self):
@@ -57,7 +57,7 @@ class TestObjectives(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             Maximize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
-            "The objective 'maximize y' must resolve to a scalar.")
+            "The 'maximize' objective must resolve to a scalar.")
 
     # Test is_dcp for Minimize and Maximize
     def test_is_dcp(self):

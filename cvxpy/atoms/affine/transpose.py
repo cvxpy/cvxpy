@@ -17,13 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine_atom import AffAtom
-from ... import utilities as u
-from ... import interface as intf
-from ...utilities import bool_mat_utils as bu
-from ...utilities import coefficient_utils as cu
-from ...expressions.variables import Variable
-import numpy as np
+from cvxpy.atoms.affine.affine_atom import AffAtom
+import cvxpy.utilities as u
+import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_utils as lu
 
 class transpose(AffAtom):
     """ Matrix transpose. """
@@ -36,45 +33,28 @@ class transpose(AffAtom):
     def numeric(self, values):
         return values[0].T
 
-    # Transposes shape, sign, and curvature.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.args[0]._dcp_attr.T
+    def shape_from_args(self):
+        """Returns the shape of the transpose expression.
+        """
+        rows, cols = self.args[0].size
+        return u.Shape(cols, rows)
 
-    # Create a new variable equal to the argument transposed.
-    def graph_implementation(self, arg_objs):
-        # If arg_objs[0] is a Variable, no need to create a new variable.
-        if isinstance(arg_objs[0], Variable):
-            return super(transpose, self).graph_implementation(arg_objs)
-        else:
-            X = Variable(*arg_objs[0].size)
-            constraints = [X == arg_objs[0]]
-            return (X.T, constraints)
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Create a new variable equal to the argument transposed.
 
-    def _tree_to_coeffs(self):
-        """Create a coefficients dict for the transposed variable.
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
 
         Returns
         -------
-        dict
-            A dict of Variable to NumPy ndarray coefficient.
+        tuple
+            (LinOp for objective, list of constraints)
         """
-        X = self.args[0]
-        # The dimensions of the coefficients.
-        cols = X.size[0]*X.size[1]
-        rows = self.size[0]
-        num_blocks = self.size[1]
-        # Create cvxopt spmatrices to select the correct entries
-        # from the vectorized X for each entry in the column.
-        interface = intf.DEFAULT_SPARSE_INTERFACE
-        blocks = []
-        for k in xrange(num_blocks):
-            # Convert to lil while constructing the matrix.
-            coeff = interface.zeros(rows, cols).tolil()
-            for i in xrange(rows):
-                # Get the ith entry in row k of X.
-                j = i*X.size[0] + k
-                coeff[i, j] = 1
-            blocks.append(coeff.tocsc())
-
-        new_coeffs = {X.id: np.array(blocks, dtype="object", ndmin=1)}
-        return cu.format_coeffs(new_coeffs)
+        return lu.transpose(arg_objs[0])

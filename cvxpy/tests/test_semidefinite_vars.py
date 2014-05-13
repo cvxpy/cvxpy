@@ -49,7 +49,7 @@ class TestSemidefiniteVariable(BaseTest):
 
     def test_sdp_problem(self):
         # SDP in objective.
-        obj = Minimize(sum(square(self.X - self.F)))
+        obj = Minimize(sum_entries(square(self.X - self.F)))
         p = Problem(obj,[])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
@@ -61,7 +61,7 @@ class TestSemidefiniteVariable(BaseTest):
 
         # SDP in constraint.
         # ECHU: note to self, apparently this is a source of redundancy
-        obj = Minimize(sum(square(self.Y - self.F)))
+        obj = Minimize(sum_entries(square(self.Y - self.F)))
         p = Problem(obj, [self.Y == semidefinite(2)])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
@@ -83,5 +83,5 @@ class TestSemidefiniteVariable(BaseTest):
 
         self.assertAlmostEqual(self.X.value[0,0], 1, places=4)
         self.assertAlmostEqual(self.X.value[0,1], 3, places=4)
-        self.assertAlmostEqual(self.X.value[1,0], 2, places=4)
+        self.assertAlmostEqual(self.X.value[1,0], 2, places=3)
         self.assertAlmostEqual(self.X.value[1,1], 4, places=4)

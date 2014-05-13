@@ -17,18 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions import types
-from ..expressions.variables import Variable
-from ..constraints.second_order import SOC
-from affine.vstack import vstack
+from cvxpy.atoms.atom import Atom
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.constraints.second_order import SOC
 import numpy as np
 
 class quad_over_lin(Atom):
     """ :math:`x^Tx/y`
-    
+
     """
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
@@ -61,9 +58,30 @@ class quad_over_lin(Atom):
         elif not self.args[1].is_scalar():
             raise TypeError("The second argument to quad_over_lin must be a scalar.")
 
-    def graph_implementation(self, arg_objs):
-        v = Variable()
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         x = arg_objs[0]
-        y = arg_objs[1]
-        constraints = [SOC(y + v, [y - v, 2*x]), 0 <= y]
+        y = arg_objs[1] # Known to be a scalar.
+        v = lu.create_var((1, 1))
+        two = lu.create_const(2, (1, 1))
+        constraints = [SOC(lu.sum_expr([y, v]),
+                           [lu.sub_expr(y, v),
+                            lu.mul_expr(two, x, x.size)]),
+                       lu.create_geq(y)]
         return (v, constraints)

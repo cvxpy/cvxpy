@@ -21,6 +21,7 @@ from ... import settings as s
 from ... import utilities as u
 from ... import interface as intf
 from constant import Constant
+import cvxpy.lin_ops.lin_utils as lu
 
 class Parameter(Constant):
     """
@@ -28,7 +29,7 @@ class Parameter(Constant):
     """
     PARAM_COUNT = 0
     def __init__(self, rows=1, cols=1, name=None, sign="unknown"):
-        self.set_id()
+        self.id = lu.get_id()
         self._rows = rows
         self._cols = cols
         self.sign_str = sign
@@ -41,10 +42,9 @@ class Parameter(Constant):
     def name(self):
         return self._name
 
-    # Returns the
     def init_dcp_attr(self):
         shape = u.Shape(self._rows, self._cols)
-        sign = u.Sign.name_to_sign(self.sign_str)
+        sign = u.Sign(self.sign_str)
         self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     # Getter and setter for parameter value.
@@ -71,3 +71,12 @@ class Parameter(Constant):
         """Returns itself as a parameter.
         """
         return [self]
+
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        obj = lu.create_param(self, self.size)
+        return (obj, [])

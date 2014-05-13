@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine_atom import AffAtom
-from ...utilities import coefficient_utils as cu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 
 class UnaryOperator(AffAtom):
@@ -39,15 +39,26 @@ class UnaryOperator(AffAtom):
     def init_dcp_attr(self):
         self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr)
 
-    # Apply the unary operator to the argument.
-    def graph_implementation(self, arg_objs):
-        return (self.OP_FUNC(arg_objs[0]), [])
-
 class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
 
-    def _tree_to_coeffs(self):
-        """Return the dict of Variable to coefficient for the negation.
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Negate the affine objective.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
         """
-        return cu.neg(self.args[0].coefficients())
+        return (lu.neg_expr(arg_objs[0]), [])

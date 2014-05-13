@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from ..constraints import ExpCone
-from .. import utilities as u
-from ..expressions.variables import Variable
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
@@ -58,12 +58,29 @@ class kl_div(Atom):
         if not self.args[0].is_scalar() or not self.args[1].is_scalar():
             raise TypeError("The arguments to kl_div must resolve to scalars." )
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         x = arg_objs[0]
         y = arg_objs[1]
-        t = Variable()
-        # Duplicate variables for x, y.
-        xc, yc = Variable(), Variable()
-        constraints = [ExpCone(t, xc, yc), y >= 0,
-                       xc == x, yc == y]
-        return (-t - x + y, constraints)
+        t = lu.create_var((1, 1))
+        constraints = [ExpCone(t, x, y),
+                       lu.create_geq(y)] # 0 <= y
+        # -t - x + y
+        obj = lu.sub_expr(y, lu.sum_expr([x, t]))
+        return (obj, constraints)

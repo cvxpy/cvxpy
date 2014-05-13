@@ -18,33 +18,43 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
+from cvxpy.settings import SCS, ECOS, CVXOPT, OPTIMAL
 from cvxpy.atoms import *
+from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.utilities.ordered_set import OrderedSet
 import cvxopt
 import math
 from nose.tools import assert_raises
 
-TOL = 1e-3
+SOLVER_TO_TOL = {SCS: 1e-1,
+                 ECOS: 1e-4,
+                 CVXOPT: 1e-4}
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
+
+# Atom, solver pairs known to fail.
+KNOWN_SOLVER_ERRORS = [(lambda_min, SCS),
+                       (lambda_max, SCS),
+]
 
 atoms = [
     ([
         (abs([[-5,2],[-3,1]]), Constant([[5,2],[3,1]])),
         (exp([[1, 0],[2, -1]]), Constant([[math.e, 1],[math.e**2, 1.0/math.e]])),
-        #(huber(0.5), 0.25),
-        #(huber(-1.5), 2),
+        (huber([[0.5, -1.5],[4, 0]]), Constant([[0.25, 2],[7, 0]])),
+        (huber([[0.5, -1.5],[4, 0]], 2.5), Constant([[0.25, 2.25],[13.75, 0]])),
         (inv_pos([[1,2],[3,4]]), Constant([[1,1.0/2],[1.0/3,1.0/4]])),
         (kl_div(math.e, 1), Constant([1])),
         (kl_div(math.e, math.e), Constant([0])),
         (lambda_max([[2,0],[0,1]]), Constant([2])),
         (lambda_max([[5,7],[7,-3]]), Constant([9.06225775])),
         (log_sum_exp([[5, 7], [0, -3]]), Constant([7.1277708268])),
-        (max([-5,2],[-3,1],0,[-1,2]), Constant([0,2])),
-        (max([[-5,2],[-3,1]],0,[[5,4],[-1,2]]), Constant([[5,4],[0,2]])),
+        (max_elemwise([-5,2],[-3,1],0,[-1,2]), Constant([0,2])),
+        (max_elemwise([[-5,2],[-3,1]],0,[[5,4],[-1,2]]), Constant([[5,4],[0,2]])),
         #(norm(v), 3),
         (norm(v,2), Constant([3])),
         (norm([[-1, 2],[3, -4]], "fro"), Constant([5.47722557])),
@@ -72,6 +82,7 @@ atoms = [
         (norm([[2,0],[0,1]], 2), Constant([2])),
         (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
+        (sum_squares([[-1, 2],[3, -4]]), Constant([30])),
     ], Minimize),
     ([
         (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
@@ -86,8 +97,8 @@ atoms = [
         (lambda_min([[2,0],[0,1]]), Constant([1])),
         (lambda_min([[5,7],[7,-3]]), Constant([-7.06225775])),
         (log([[1, math.e],[math.e**2, 1.0/math.e]]), Constant([[0, 1],[2, -1]])),
-        (min([-5,2],[-3,1],0,[1,2]), Constant([-5,0])),
-        (min([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), Constant([[-5,0],[-3,-1]])),
+        (min_elemwise([-5,2],[-3,1],0,[1,2]), Constant([-5,0])),
+        (min_elemwise([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), Constant([[-5,0],[-3,-1]])),
         #(pow_rat(4,1,2), 2),
         #(pow_rat(8,1,3), 2),
         #(pow_rat(16,1,4),2),
@@ -98,36 +109,73 @@ atoms = [
     ], Maximize),
 ]
 
+def get_solver(prob, solver):
+    """Gets the solver that will be used by CVXPY.
+    """
+    constraints = []
+    obj, constr = prob.objective.canonical_form
+    constraints += constr
+    unique_constraints = list(OrderedSet(prob.constraints))
+    for constr in unique_constraints:
+        constraints += constr.canonical_form[1]
+    constr_map = prob._filter_constraints(constraints)
+    solver = prob._choose_solver(constr_map, solver)
+    return solver
+
 # Tests numeric version of atoms.
-def run_atom(problem, obj_val):
+def run_atom(atom, problem, obj_val, solver):
     assert problem.is_dcp()
     print problem.objective
     print problem.constraints
-    result = problem.solve()
-    print result
-    print obj_val
-    assert( -TOL <= result - obj_val <= TOL )
+    solver = get_solver(problem, solver)
+    print "solver", solver
+    tolerance = SOLVER_TO_TOL[solver]
+    result = problem.solve(solver=solver)
+    if problem.status is OPTIMAL:
+        print result
+        print obj_val
+        assert( -tolerance <= result - obj_val <= tolerance )
+    else:
+        assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
 
 def test_atom():
     for atom_list, objective_type in atoms:
         for atom, obj_val in atom_list:
             for row in xrange(atom.size[0]):
                 for col in xrange(atom.size[1]):
-                    # Atoms with Constant arguments.
-                    yield run_atom, Problem(objective_type(atom[row,col])), obj_val[row,col].value
-                    # Atoms with Variable arguments.
-                    variables = []
-                    constraints = []
-                    for expr in atom.subexpressions:
-                        variables.append( Variable(*expr.size) )
-                        constraints.append( variables[-1] == expr)
-                    atom_func = atom.__class__
-                    objective = objective_type(atom_func(*variables)[row,col])
-                    yield run_atom, Problem(objective, constraints), obj_val[row,col].value
-                    # Atoms with Parameter arguments.
-                    parameters = []
-                    for expr in atom.subexpressions:
-                        parameters.append( Parameter(*expr.size) )
-                        parameters[-1].value = expr.value
-                    objective = objective_type(atom_func(*parameters)[row,col])
-                    yield run_atom, Problem(objective), obj_val[row,col].value
+                    for solver in [ECOS, SCS, CVXOPT]:
+                        # Atoms with Constant arguments.
+                        yield (run_atom,
+                               atom,
+                               Problem(objective_type(atom[row,col])),
+                               obj_val[row,col].value,
+                               solver)
+                        # Atoms with Variable arguments.
+                        variables = []
+                        constraints = []
+                        for idx, expr in enumerate(atom.subexpressions):
+                            # Special case for MulExpr because
+                            # can't multiply two variables.
+                            if (idx == 0 and isinstance(atom, MulExpression)):
+                                variables.append(expr)
+                            else:
+                                variables.append( Variable(*expr.size) )
+                                constraints.append( variables[-1] == expr)
+                        atom_func = atom.__class__
+                        objective = objective_type(atom_func(*variables)[row,col])
+                        yield (run_atom,
+                               atom,
+                               Problem(objective, constraints),
+                               obj_val[row,col].value,
+                               solver)
+                        # Atoms with Parameter arguments.
+                        parameters = []
+                        for expr in atom.subexpressions:
+                            parameters.append( Parameter(*expr.size) )
+                            parameters[-1].value = expr.value
+                        objective = objective_type(atom_func(*parameters)[row,col])
+                        yield (run_atom,
+                               atom,
+                               Problem(objective),
+                               obj_val[row,col].value,
+                               solver)

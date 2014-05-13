@@ -19,21 +19,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from ... import settings as s
 from ... import utilities as u
-from ...utilities import coefficient_utils as cu
-from ... import interface as intf
-from ..constants import Constant
 from ..leaf import Leaf
-import scipy.sparse as sp
-import numpy as np
+import cvxpy.lin_ops.lin_utils as lu
 
 class Variable(Leaf):
     """ The base variable class """
-    VAR_COUNT = 0
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
-        self.set_id()
+        self.id = lu.get_id()
         if name is None:
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         else:
@@ -59,18 +54,11 @@ class Variable(Leaf):
         """
         return [self]
 
-    # Returns a coefficients dict with the variable as the key
-    # and a list of offset identity matrices as the coefficients.
-    def _tree_to_coeffs(self):
-        rows, cols = self.size
-        V = rows*[1.0]
-        I = [i for i in range(rows)]
-        # Create the blocks.
-        blocks = []
-        for col in range(cols):
-            shape = (rows, rows*cols)
-            selection = [i for i in range(col*rows, (col+1)*rows)]
-            mat = sp.coo_matrix((V, (I, selection)), shape)
-            blocks.append(mat.tocsc())
-        coeffs = {self.id: np.array(blocks, dtype="object", ndmin=1)}
-        return cu.format_coeffs(coeffs)
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        obj = lu.create_var(self.size, self.id)
+        return (obj, [])

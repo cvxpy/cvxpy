@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from leq_constraint import LeqConstraint
+import cvxpy.lin_ops.lin_utils as lu
 
 class EqConstraint(LeqConstraint):
     OP_NAME = "=="
@@ -37,3 +38,16 @@ class EqConstraint(LeqConstraint):
             return None
         else:
             return abs(self._expr.value) <= self.TOLERANCE
+
+    def canonicalize(self):
+        """Returns the graph implementation of the object.
+
+        Marks the top level constraint as the dual_holder,
+        so the dual value will be saved to the EqConstraint.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        obj, constraints = self._expr.canonical_form
+        dual_holder = lu.create_eq(obj, constr_id=self.id)
+        return (None, constraints + [dual_holder])

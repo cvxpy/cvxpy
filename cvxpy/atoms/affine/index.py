@@ -17,15 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine_atom import AffAtom
-from ... import utilities as u
-from ...utilities import bool_mat_utils as bu
-from ...utilities import coefficient_utils as cu
-from ...utilities import key_utils as ku
-from ...expressions.variables import Variable
+from cvxpy.atoms.affine.affine_atom import AffAtom
+import cvxpy.utilities as u
+from cvxpy.utilities import key_utils as ku
+import cvxpy.lin_ops.lin_utils as lu
 
 class index(AffAtom):
-    TOTAL = 0
     """ Indexing/slicing into a matrix. """
     # expr - the expression indexed/sliced into.
     # key - the index/slicing key (i.e. expr[key[0],key[1]]).
@@ -36,21 +33,97 @@ class index(AffAtom):
 
     # The string representation of the atom.
     def name(self):
-        return self.args[0].name() + "[%s,%s]" % ku.to_str(self.key)
+        return self.args[0].name() + "[%s, %s]" % ku.to_str(self.key)
 
     # Returns the index/slice into the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):
         return values[0][self.key]
 
-    # The shape, sign, and curvature of the index/slice.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.args[0]._dcp_attr[self.key]
+    def shape_from_args(self):
+        """Returns the shape of the index expression.
+        """
+        return u.Shape(*ku.size(self.key, self.args[0].shape))
 
-    def graph_implementation(self, arg_objs):
-        # By default, canonicalization applies the atom to the arg_objs.
-        return (index(arg_objs[0], self.key), [])
+    def get_data(self):
+        """Returns the (row slice, column slice).
+        """
+        return self.key
 
-    # Indexes/slices into the coefficients of the argument.
-    def _tree_to_coeffs(self):
-        return cu.index(self.args[0].coefficients(), self.key)
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Index into the expression.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data : tuple
+            A tuple of slices.
+
+        Returns
+        -------
+        tuple
+            (LinOp, [constraints])
+        """
+        obj = lu.index(arg_objs[0], size, data)
+        return (obj, [])
+
+    @staticmethod
+    def get_index(matrix, constraints, row, col):
+        """Returns a canonicalized index into a matrix.
+
+        Parameters
+        ----------
+        matrix : LinOp
+            The matrix to be indexed.
+        constraints : list
+            A list of constraints to append to.
+        row : int
+            The row index.
+        col : int
+            The column index.
+        """
+        key = (ku.index_to_slice(row),
+               ku.index_to_slice(col))
+        idx, idx_constr = index.graph_implementation([matrix],
+                                                     (1, 1),
+                                                     key)
+        constraints += idx_constr
+        return idx
+
+    @staticmethod
+    def block_eq(matrix, block, constraints,
+                 row_start, row_end, col_start, col_end):
+        """Adds an equality setting a section of the matrix equal to block.
+
+        Assumes block does not need to be promoted.
+
+        Parameters
+        ----------
+        matrix : LinOp
+            The matrix in the block equality.
+        block : LinOp
+            The block in the block equality.
+        constraints : list
+            A list of constraints to append to.
+        row_start : int
+            The first row of the matrix section.
+        row_end : int
+            The last row + 1 of the matrix section.
+        col_start : int
+            The first column of the matrix section.
+        col_end : int
+            The last column + 1 of the matrix section.
+        """
+        key = (slice(row_start, row_end, None),
+               slice(col_start, col_end, None))
+        rows = row_end - row_start
+        cols = col_end - col_start
+        assert block.size == (rows, cols)
+        slc, idx_constr = index.graph_implementation([matrix],
+                                                     (rows, cols),
+                                                     key)
+        constraints += [lu.create_eq(slc, block)] + idx_constr

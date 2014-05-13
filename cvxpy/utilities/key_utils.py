@@ -68,6 +68,19 @@ def format_slice(key_val):
     else:
         return slice(key_val, key_val+1, 1)
 
+def index_to_slice(idx):
+    """Converts an index to a slice.
+
+    Args:
+        idx: int
+            The index.
+
+    Returns:
+    slice
+        A slice equivalent to the index.
+    """
+    return slice(idx, idx+1, None)
+
 def slice_to_str(slice_):
     """Converts a slice into a string.
     """

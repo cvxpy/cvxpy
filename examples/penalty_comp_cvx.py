@@ -44,11 +44,11 @@ p2 = Problem(objective2, [])
 # minimize sum(deadzone(Ax+b,0.5))
 # deadzone(y,z) = max(abs(y)-z,0)
 def deadzone(y,z):
-	return max(abs(y)-z,0)
+	return pos(abs(y)-z)
 
 dz = 0.5
 xdz = Variable(n)
-objective3 = Minimize( sum( deadzone(A*xdz+b, dz) ) )
+objective3 = Minimize( sum_entries( deadzone(A*xdz+b, dz) ) )
 p3 = Problem(objective3, [])
 
 # Solve the problems

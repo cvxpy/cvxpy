@@ -30,9 +30,6 @@ PARAM_PREFIX = "param"
 # Used to trick Numpy so cvxpy can overload ==.
 NP_EQUAL_STR = "equal"
 
-# Key for the constant term.
-CONSTANT = "CONSTANT"
-
 # Constraint types
 EQ_CONSTR = "=="
 INEQ_CONSTR = "<="
@@ -44,12 +41,12 @@ UNBOUNDED = "unbounded"
 SOLVER_ERROR = "solver_error"
 
 # Map of solver status to cvxpy status.
-CVXOPT = "cvxopt"
+CVXOPT = "CVXOPT"
 CVXOPT_STATUS = {'optimal': OPTIMAL,
                  'primal infeasible': INFEASIBLE,
                  'dual infeasible': UNBOUNDED,
                  'unknown': SOLVER_ERROR}
-ECOS = "ecos"
+ECOS = "ECOS"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
                2: UNBOUNDED,
@@ -59,8 +56,25 @@ ECOS_STATUS = {0: OPTIMAL,
                -2: SOLVER_ERROR,
                -3: SOLVER_ERROR,
                -7: SOLVER_ERROR}
+
+SCS = "SCS"
+SCS_STATUS = {"Solved": OPTIMAL,
+              "Solved/Inaccurate": OPTIMAL,
+              "Unbounded": UNBOUNDED,
+              "Unbounded/Inaccurate": SOLVER_ERROR,
+              "Infeasible": INFEASIBLE,
+              "Infeasible/Inaccurate": SOLVER_ERROR,
+              "Failure": SOLVER_ERROR,
+              "Indeterminate": SOLVER_ERROR}
+
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
-                 ECOS: ECOS_STATUS}
+                 ECOS: ECOS_STATUS,
+                 SCS: SCS_STATUS}
+
+# Solver capabilities.
+SDP_CAPABLE = [CVXOPT, SCS]
+EXP_CAPABLE = [CVXOPT, SCS]
+SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
 
 # Map of constraint types.
-EQ,INEQ,SOC,SDP,EXP = range(5)
+EQ, LEQ, SOC, SOC_EW, SDP, EXP = range(6)

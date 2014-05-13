@@ -17,15 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from .. import utilities as u
-from ..expressions.variables import Variable
+from cvxpy.atoms.atom import Atom
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from numpy import linalg as LA
 
 class normInf(Atom):
     """Infinity norm; :math:`\max_i\{|x_i|, \dots, |x_n|\}`.
-    
+
     """
     def __init__(self, x):
         super(normInf, self).__init__(x)
@@ -51,7 +51,27 @@ class normInf(Atom):
     def monotonicity(self):
         return [u.monotonicity.SIGNED]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         x = arg_objs[0]
-        t = Variable()
-        return (t, [-t <= x, x <= t])
+        t = lu.create_var((1, 1))
+        promoted_t = lu.promote(t, x.size)
+        constraints = [lu.create_geq(lu.sum_expr([x, promoted_t])),
+                       lu.create_leq(x, promoted_t)]
+        return (t, constraints)

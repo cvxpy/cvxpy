@@ -17,14 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import Atom
-from affine.transpose import transpose
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions.constants import Constant
-from ..expressions.variables import Variable
-from ..constraints.semi_definite import SDP
-import numpy as np
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.affine.index import index
+from cvxpy.atoms.affine.transpose import transpose
+from cvxpy.constraints.semi_definite import SDP
 from numpy import linalg as LA
 
 class normNuc(Atom):
@@ -53,18 +51,42 @@ class normNuc(Atom):
     def monotonicity(self):
         return [u.monotonicity.NONMONOTONIC]
 
-    def graph_implementation(self, arg_objs):
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
         A = arg_objs[0] # m by n matrix.
-        n,m = A.size
+        n, m = A.size
         # Create the equivalent problem:
         #   minimize (trace(U) + trace(V))/2
         #   subject to:
         #            [U A; A.T V] is positive semidefinite
-        X = Variable(n+m, n+m)
+        X = lu.create_var((n+m, n+m))
         # Expand A.T.
-        obj, constr = A.T.canonical_form
+        obj, constraints = transpose.graph_implementation([A], (m, n))
         # Fix X using the fact that A must be affine by the DCP rules.
-        constr += [X[0:n,n:n+m] == A, X[n:n+m,0:n] == obj]
-        trace = 0.5*sum([X[i,i] for i in range(n+m)])
+        # X[0:n,n:n+m] == A
+        index.block_eq(X, A, constraints,
+                       0, n, n, n+m)
+        # X[n:n+m,0:n] == obj
+        index.block_eq(X, obj, constraints,
+                       n, n+m, 0, n)
+        diag = [index.get_index(X, constraints, i, i) for i in range(n+m)]
+        half = lu.create_const(0.5, (1, 1))
+        trace = lu.mul_expr(half, lu.sum_expr(diag), (1, 1))
         # Add SDP constraint.
-        return (trace, [SDP(X)] + constr)
+        return (trace, [SDP(X)] + constraints)

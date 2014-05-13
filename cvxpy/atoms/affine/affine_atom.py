@@ -18,20 +18,23 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from ..atom import Atom
-from ... import utilities as u
+import cvxpy.utilities as u
+from cvxpy.atoms.atom import Atom
+import operator as op
 
-class AffAtom(Atom, u.Affine):
+class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta
     # The curvature of the atom if all arguments conformed to DCP.
     def func_curvature(self):
         return u.Curvature.AFFINE
 
+    def sign_from_args(self):
+        """By default, the sign is the most general of all the argument signs.
+        """
+        arg_signs = [arg._dcp_attr.sign for arg in self.args]
+        return reduce(op.add, arg_signs)
+
     # Doesn't matter for affine atoms.
     def monotonicity(self):
         return len(self.args)*[u.monotonicity.INCREASING]
-
-    def graph_implementation(self, arg_objs):
-        # By default, canonicalization applies the atom to the arg_objs.
-        return (self.__class__(*arg_objs), [])

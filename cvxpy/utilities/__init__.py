@@ -17,11 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine import Affine
 from canonical import Canonical
 from curvature import Curvature
 from dcp_attr import DCPAttr
 import monotonicity
 from sign import Sign
-from sparse_bool_mat import SparseBoolMat
 from shape import Shape

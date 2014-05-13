@@ -52,6 +52,8 @@ result = p.solve()
 # The optimal value
 print radius.value
 print center.value
+# Convert to 1D array.
+center_val = np.asarray(center.value[:,0])
 
 
 # Now let's plot it
@@ -66,8 +68,8 @@ plot( x, -x*a4[0]/a4[1] + b[0]/a4[1])
 
 
 # plot the solution
-plot( center.value[0] + radius.value*cos(theta), center.value[1] + radius.value*sin(theta) )
-plot( center.value[0], center.value[1], 'x', markersize=10 )
+plot( center_val[0] + radius.value*cos(theta), center_val[1] + radius.value*sin(theta) )
+plot( center_val[0], center_val[1], 'x', markersize=10 )
 
 # label
 title('Chebyshev Centering')
