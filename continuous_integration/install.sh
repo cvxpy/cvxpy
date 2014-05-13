@@ -8,7 +8,8 @@ set -e
 
 sudo apt-get update -qq
 if [[ "$INSTALL_ATLAS" == "true" ]]; then
-    sudo apt-get install -qq libatlas3gf-base libatlas-dev
+    sudo apt-get install -qq libatlas-base-dev
+    sudo apt-get install libatlas-base-dev gfortran
 fi
 
 if [[ "$DISTRIB" == "conda" ]]; then
@@ -40,8 +41,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
-    sudo apt-get install -qq python-scipy python-nose python-pip
-    sudo apt-get install gfortran
+    sudo apt-get install -qq python-pip
+    sudo pip install numpy scipy
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
