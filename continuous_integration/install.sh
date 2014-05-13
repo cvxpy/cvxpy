@@ -41,6 +41,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
+    sudo apt-get update -qq
     # Use standard ubuntu packages in their default version
     sudo apt-get install -qq python-pip python-scipy python-numpy
 fi
