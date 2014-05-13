@@ -175,9 +175,9 @@ CVXPY currently supports the following atoms:
 
 Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dstanford.edu/>.
 
-DCP assigns a curvature and sign to every scalar expression and every element of a matrix expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
+DCP assigns a curvature and sign to every expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
 
-The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. For matrix constants, a sign is determined for each entry. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
+The curvature and sign of Variables, constants, and Parameters are easy to determine. Variables are always affine with unknown sign. Constants and Parameters have constant curvature. The sign of a scalar constant is simply the sign of the constant's numeric value. Matrix constants always have unknown sign. The sign of a Parameter is specified when the Parameter is created (see [Parameters](#parameters)).
 
 #### The DCP Rules
 
@@ -214,10 +214,10 @@ The rules for other functions are equally straightforward.
 
 To check whether an Expression object follows the DCP rules, use the method `expr.is_dcp()`. [Constraints](#constraints), [Objectives](#objectives), and [Problems](#problems) also have an `is_dcp` method.
 
-The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. For scalar expressions, the curvature and sign are strings. For example,
+The curvature of any Expression object is accessible as `expr.curvature`. Similarly, the sign is accessible as `expr.sign`. For example,
 
 ```
-x = Variable()
+x = Variable(2)
 x.curvature == 'AFFINE'
 x.sign == 'UNKNOWN'
 
@@ -225,19 +225,6 @@ expr = square(x)
 expr.curvature == 'CONVEX'
 expr.sign == 'POSITIVE'
 ```
-
-The curvature and sign of matrix expressions are Numpy 2D arrays of strings, with one string for each entry in the expression. For example,
-
-```
-x = Variable()
-expr = vstack(x, square(x))
-expr.curvature ==  array([['AFFINE'],
-                          ['CONVEX']], dtype=object)
-expr.sign ==  array([['UNKNOWN'],
-                     ['POSITIVE']], dtype=object)
-```
-
-If all entries in the matrix expression have the same curvature (or sign), the expression curvature (or sign) is a single string instead of a matrix.
 
 You can also examine the curvature and sign of an expression using the following methods:
 
@@ -250,9 +237,7 @@ You can also examine the curvature and sign of an expression using the following
     * expr.is_positive()
     * expr.is_negative()
 
-For scalar expressions, these methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
-
-For matrix expressions, these methods return true only if the method returns true for every entry.
+These methods return whether the expression has the curvature or sign in question. Constant expressions are also considered affine, and affine expressions are considered both convex and concave.
 
 ### Constraints
 Constraint objects are constructed using `==`, `<=`, and `>=` with Expression objects or constants on the left-hand and right-hand sides.
