@@ -313,6 +313,12 @@ result = p.solve(solver=cvxpy.CVXOPT)
 result = p.solve(solver=cvxpy.SCS)
 ```
 
+To see the full output from the solver, use the `verbose` keyword. The solver output will be printed to the console.
+
+```
+p.solve(verbose=True)
+```
+
 You can specify solver options for [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) and [SCS](http://github.com/cvxgrp/scs), such as the maximum number of iterations. Create an `opts` dict mapping option keyword to option value and call `p.solve` with the keyword argument `solver_specific_opts=opts`.
 
 Features
