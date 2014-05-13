@@ -24,7 +24,6 @@ import scipy.sparse as sp
 import numbers
 import numpy as np
 from ..utilities.sign import Sign
-from ..utilities.sparse_bool_mat import SparseBoolMat
 
 # A mapping of class to interface.
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),

@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import bool_mat_utils as bu
 from curvature import Curvature
 import key_utils as ku
 from shape import Shape
