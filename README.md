@@ -126,15 +126,17 @@ CVXPY currently supports the following atoms:
     * `quad_over_lin(x,y)`, `x.T*x/y`, where y is a positive scalar.
     * `sum_entries(x)`, sums the entries of the expression.
 * Matrix to matrix atoms
-    * `max(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[1,3]`.
-    * `min(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`.
+    * `hstack(*args)`, the horizontal concatenation of the arguments into a block matrix.
     * `vstack(*args)`, the vertical concatenation of the arguments into a block matrix.
 * Elementwise atoms
     * `abs(x)`, the absolute value of each element of `x`.
     *  `entr(x)`, `element*log(element)` for each element of `x`.
     * `exp(x)`, e^element for each element of `x`.
+    * `huber(x, M=1)`, the huber function applied to each element of `x`.
     * `inv_pos(x)`, 1/element for each element of `x`.
     * `log(x)`, the natural log of each element of `x`.
+    * `max_elemwise(*args)`, the maximum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[1,3]`.
+    * `min_elemwise(*args)`, the minimum for scalar arguments. Vector and matrix arguments are considered elementwise, i.e., `max([1,2],[-1,3])` returns `[-1,2]`.
     * `neg(x)`, `max(-element,0)` for each element of `x`.
     * `pos(x)`, `max(element,0)` for each element of `x`.
     * `sqrt(x)`, the square root of each element of `x`.

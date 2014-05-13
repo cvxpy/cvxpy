@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
 # TODO factor this out.
-__version__ = "0.1"
+__version__ = "0.2"
 
 # -- General configuration -----------------------------------------------------
 
