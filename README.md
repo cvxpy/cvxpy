@@ -33,40 +33,9 @@ print x.value
 print constraints[0].dual_value
 ```
 
-Prerequisites
----------------------
-CVXPY requires:
-* Python 2.7
-* [setuptools](https://pypi.python.org/pypi/setuptools) >= 1.4
-* [toolz](http://github.com/pytoolz/toolz/)
-* [CVXOPT](http://abel.ee.ucla.edu/cvxopt/) >= 1.1.6
-* [ECOS](http://github.com/ifa-ethz/ecos) >= 1.0.3
-* [SCS](http://github.com/cvxgrp/scs) >= 1.0.1
-* [NumPy](http://www.numpy.org/) >= 1.7.1
-* [SciPy](http://www.scipy.org/) >= 0.13.2
-
-To run the unit tests, you additionally need
-[Nose](http://nose.readthedocs.org).
-
-To build the documentation, you need [Sphinx][sphinx].
-
-
 Installation
 ---------------------
-To install CVXPY, navigate to the top-level directory and call
-```
-python setup.py install
-```
-If you have [Nose](http://nose.readthedocs.org) installed, you can verify the CVXPY installation by running
-```
-nosetests cvxpy/tests/
-```
-
-If you have [Sphinx][sphinx] installed, you can build the documentation by running
-```
-cd doc
-make html
-```
+See the installation instructions [here](https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions).
 
 Basic Usage
 ---------------------
