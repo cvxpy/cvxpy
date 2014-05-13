@@ -310,7 +310,7 @@ class Problem(u.Canonical):
         return args
 
     def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None, expr_tree=False):
+               solver_specific_opts=None):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -357,14 +357,9 @@ class Problem(u.Canonical):
                                         var_offsets, x_length,
                                         verbose, solver_specific_opts)
         elif solver == s.SCS:
-            if expr_tree:
-                result = self._scs_expr_tree(objective, constr_map, dims,
-                                             var_offsets, var_sizes, x_length,
-                                             verbose, solver_specific_opts)
-            else:
-                result = self._scs_solve(objective, constr_map, dims,
-                                         var_offsets, x_length,
-                                         verbose, solver_specific_opts)
+            result = self._scs_solve(objective, constr_map, dims,
+                                     var_offsets, x_length,
+                                     verbose, solver_specific_opts)
         elif solver == s.ECOS:
             result = self._ecos_solve(objective, constr_map, dims,
                                       var_offsets, x_length,
@@ -651,69 +646,6 @@ class Problem(u.Canonical):
         opts = dict({ "VERBOSE": verbose }.items() + opts.items())
         use_indirect = opts["USE_INDIRECT"] if "USE_INDIRECT" in opts else True
         results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT = use_indirect)
-        status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
-        if status == s.OPTIMAL:
-            primal_val = results["info"]["pobj"]
-            value = self.objective._primal_to_result(primal_val - obj_offset)
-            eq_dual = results["y"][0:dims["f"]]
-            ineq_dual = results["y"][dims["f"]:]
-            return (status, value, results["x"], eq_dual, ineq_dual)
-        else:
-            return (status, None, None, None, None)
-
-    def _scs_expr_tree(self, objective, constr_map, dims,
-                       var_offsets, var_sizes, x_length,
-                       verbose, opts):
-        """Calls the SCS solver and returns the result.
-
-        Parameters
-        ----------
-            objective: LinExpr
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-            verbose: bool
-                Should the solver show output?
-            opts: dict
-                A dict of the solver parameters passed to scs
-
-        Returns
-        -------
-        tuple
-            (status, optimal objective, optimal x,
-             optimal equality constraint dual,
-             optimal inequality constraint dual)
-        """
-        c, obj_offset = self._get_obj(objective, var_offsets, x_length,
-                                      self._DENSE_INTF,
-                                      self._DENSE_INTF)
-        # Convert obj_offset to a scalar.
-        obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
-        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-        A_rows = dims["f"] + dims["l"] + sum(dims["q"]) + sum(dims["s"]) + 3*dims["ep"]
-        b = -iterative.constr_mul(all_ineq, {}, A_rows)
-        # Convert c, b to 1D arrays.
-        data = {"c": intf.from_2D_to_1D(c.T)}
-        data["A"] = self._SPARSE_INTF.zeros(A_rows, x_length)
-        data["b"] = b
-        # Set the options to be VERBOSE plus any user-specific options.
-        opts = dict({ "VERBOSE": verbose }.items() + opts.items())
-        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-        all_ineq = tree_mat.prune_constants(all_ineq)
-        Amul, ATmul = iterative.get_mul_funcs(all_ineq, dims,
-                                              var_offsets, var_sizes,
-                                              x_length)
-        opts["NORMALIZE"] = False
-        opts["Amul"] = Amul
-        opts["ATmul"] = ATmul
-
-        results = scs.solve(data, dims, opts=opts, USE_INDIRECT=True)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
         if status == s.OPTIMAL:
             primal_val = results["info"]["pobj"]
