@@ -22,5 +22,4 @@ from curvature import Curvature
 from dcp_attr import DCPAttr
 import monotonicity
 from sign import Sign
-from sparse_bool_mat import SparseBoolMat
 from shape import Shape

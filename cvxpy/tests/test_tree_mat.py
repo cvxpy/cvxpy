@@ -137,7 +137,7 @@ class test_tree_mat(BaseTest):
         self.assertItemsAlmostEqual(prod, np.zeros(A.shape[0]))
 
         # Test no-op
-        constraints = (0*A*x <= 2).canonical_form[1]
+        constraints = (0*x <= 2).canonical_form[1]
         pruned = prune_constants(constraints)
         prod = mul(pruned[0].expr, {x.id: 1})
         self.assertItemsAlmostEqual(prod, np.zeros(A.shape[0]))

@@ -54,11 +54,6 @@ class Atom(Expression):
         curvature = Atom.dcp_curvature(self.func_curvature(),
                                        self.args,
                                        self.monotonicity())
-        # If the atom is scalar, reduce sign and curvature
-        # to scalars.
-        if shape.size == (1, 1):
-            sign = sign.sum_entries()
-            curvature = curvature.sum_entries()
         self._dcp_attr = u.DCPAttr(sign, curvature, shape)
 
     # Returns argument curvatures as a list.

@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.utilities.error import Error
+
 class Curvature(object):
     """Curvature for a convex optimization expression.
 
@@ -48,8 +50,8 @@ class Curvature(object):
         if curvature_str in Curvature.CURVATURE_STRINGS:
             self.curvature_str = curvature_str
         else:
-            raise Exception("'%s' is not a valid curvature name." %
-                            str(curvature_str))
+            raise Error("'%s' is not a valid curvature name." %
+                        str(curvature_str))
 
     def __repr__(self):
         return "Curvature('%s')" % self.curvature_str

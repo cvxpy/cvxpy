@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ... import utilities as u
-from ... import interface as intf
-from ... import settings as s
-from ..leaf import Leaf
+import cvxpy.utilities as u
+import cvxpy.interface as intf
+import cvxpy.settings as s
+from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 
 class Constant(Leaf):
@@ -48,7 +48,11 @@ class Constant(Leaf):
     # Return the DCP attributes of the constant.
     def init_dcp_attr(self):
         shape = u.Shape(*intf.size(self.value))
-        sign = intf.sign(self.value)
+        # If scalar, check sign. Else unknown sign.
+        if shape.size == (1, 1):
+            sign = u.Sign.val_to_sign(self.value)
+        else:
+            sign = u.Sign.UNKNOWN
         self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     def canonicalize(self):

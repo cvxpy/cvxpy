@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.interface as intf
+from cvxpy.utilities import Sign
 import numpy as np
 import scipy.sparse as sp
 import cvxopt
@@ -28,6 +29,16 @@ class TestInterfaces(unittest.TestCase):
     """ Unit tests for matrix interfaces. """
     def setUp(self):
         pass
+
+    def sign_for_intf(self, interface):
+        """Test sign for a given interface.
+        """
+        mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
+        self.assertEquals(intf.sign(mat), Sign.POSITIVE)
+        self.assertEquals(intf.sign(-mat), Sign.NEGATIVE)
+        self.assertEquals(intf.sign(0*mat), Sign.ZERO)
+        mat = interface.const_to_matrix([[-1,2,3,4],[3,4,5,6]])
+        self.assertEquals(intf.sign(mat), Sign.UNKNOWN)
 
     # Test cvxopt dense interface.
     def test_cvxopt_dense(self):
@@ -57,6 +68,8 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         self.assertEquals(list(mat), [2,4,4,6])
+        # Sign
+        self.sign_for_intf(interface)
 
     # Test cvxopt sparse interface.
     def test_cvxopt_sparse(self):
@@ -88,6 +101,8 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         self.assertEquals(list(mat), [2,4,4,6])
+        # Sign
+        self.sign_for_intf(interface)
 
     # Test numpy ndarray interface.
     def test_ndarray(self):
@@ -125,6 +140,8 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([1,2,3])
         assert (scalar*mat == interface.const_to_matrix([2,4,6])).all()
         assert (scalar - mat == interface.const_to_matrix([1,0,-1])).all()
+        # Sign
+        self.sign_for_intf(interface)
 
     # Test numpy matrix interface.
     def test_numpy_matrix(self):
@@ -153,7 +170,8 @@ class TestInterfaces(unittest.TestCase):
         self.assertEquals( interface.index(mat, (0,1)), 3)
         mat = interface.index(mat, (slice(1,4,2), slice(0,2,None)))
         assert not (mat - np.matrix("2 4; 4 6")).any()
-
+        # Sign
+        self.sign_for_intf(interface)
 
     # Test cvxopt sparse interface.
     def test_scipy_sparse(self):
@@ -190,3 +208,5 @@ class TestInterfaces(unittest.TestCase):
         # scalar value
         mat = sp.eye(1)
         self.assertEqual(intf.scalar_value(mat), 1.0)
+        # Sign
+        self.sign_for_intf(interface)

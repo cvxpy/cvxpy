@@ -17,11 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine_atom import AffAtom
-from ...expressions.expression import Expression
-from ...expressions.constants import Constant
-from ... import expressions as exp
-from ... import interface as intf
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.constants import Constant
+import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 

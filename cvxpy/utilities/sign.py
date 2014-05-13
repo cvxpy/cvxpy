@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.utilities.error import Error
+
 class Sign(object):
     """Sign of convex optimization expressions.
 
@@ -36,7 +38,7 @@ class Sign(object):
         if sign_str in Sign.SIGN_STRINGS:
             self.sign_str = sign_str
         else:
-            raise Exception("'%s' is not a valid sign name." % str(sign_str))
+            raise Error("'%s' is not a valid sign name." % str(sign_str))
 
     @staticmethod
     def val_to_sign(val):

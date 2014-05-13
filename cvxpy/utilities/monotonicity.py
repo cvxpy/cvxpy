@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.utilities.curvature import Curvature
-import numpy as np
 
 INCREASING = 'INCREASING'
 DECREASING = 'DECREASING'
@@ -51,16 +50,22 @@ def dcp_curvature(monotonicity, func_curvature, arg_sign, arg_curvature):
         The Curvature of the composition of function and arguments.
     """
     if arg_curvature.is_constant():
-        return Curvature.CONSTANT
+        result_curv = Curvature.CONSTANT
+    elif arg_curvature.is_affine():
+        result_curv = func_curvature
     elif monotonicity == INCREASING:
-        return func_curvature + arg_curvature
+        result_curv = func_curvature + arg_curvature
     elif monotonicity == DECREASING:
-        return func_curvature - arg_curvature
+        result_curv = func_curvature - arg_curvature
     # Absolute value style monotonicity.
     elif monotonicity == SIGNED and \
          func_curvature.is_convex():
-        conc_mat = arg_sign.neg_mat & arg_curvature.cvx_mat | \
-                   arg_sign.pos_mat & arg_curvature.conc_mat
-        return Curvature(np.bool_(True), conc_mat, np.bool_(True))
+        if (arg_curvature.is_convex() and arg_sign.is_positive()) or \
+           (arg_curvature.is_concave() and arg_sign.is_negative()):
+            result_curv = func_curvature
+        else:
+            result_curv = Curvature.UNKNOWN
     else: # non-monotonic
-        return func_curvature + arg_curvature - arg_curvature
+        result_curv = func_curvature + arg_curvature - arg_curvature
+
+    return result_curv

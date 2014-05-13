@@ -671,8 +671,9 @@ class TestProblem(BaseTest):
         p = Problem( Minimize( c.T * vstack(square(self.a), sqrt(self.b))),
             [self.a == 2,
              self.b == 16])
-        result = p.solve()
-        self.assertAlmostEqual(result, 0)
+        with self.assertRaises(Exception) as cm:
+            p.solve()
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     # Test the hstack atom.
     def test_hstack(self):
@@ -708,8 +709,9 @@ class TestProblem(BaseTest):
         p = Problem( Minimize( c.T * hstack(square(self.a).T, sqrt(self.b).T).T),
             [self.a == 2,
              self.b == 16])
-        result = p.solve()
-        self.assertAlmostEqual(result, 0)
+        with self.assertRaises(Exception) as cm:
+            p.solve()
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     # Test variable transpose.
     def test_transpose(self):

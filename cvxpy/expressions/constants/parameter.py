@@ -44,7 +44,7 @@ class Parameter(Constant):
 
     def init_dcp_attr(self):
         shape = u.Shape(self._rows, self._cols)
-        sign = u.Sign.name_to_sign(self.sign_str)
+        sign = u.Sign(self.sign_str)
         self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     # Getter and setter for parameter value.

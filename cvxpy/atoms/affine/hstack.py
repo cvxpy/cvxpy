@@ -19,15 +19,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.utilities import bool_mat_utils as bu
-from cvxpy.atoms.affine.generic_stack import GenericStack
+from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.index import index
 import numpy as np
 
-class hstack(GenericStack):
+class hstack(AffAtom):
     """ Horizontal concatenation """
     # Returns the hstack of the values.
-    @GenericStack.numpy_numeric
+    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.hstack(values)
 
@@ -43,10 +42,6 @@ class hstack(GenericStack):
         if max(arg_cols) != min(arg_cols):
             raise TypeError( ("All arguments to hstack must have "
                               "the same number of rows.") )
-
-    # Vertically concatenates sign and curvature as dense matrices.
-    def sign_curv_from_args(self):
-        return super(hstack, self).sign_curv_from_args(bu.hstack)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

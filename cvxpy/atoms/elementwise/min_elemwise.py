@@ -40,12 +40,20 @@ class min_elemwise(max_elemwise):
         POSITIVE, POSITIVE = POSITIVE
     """
     def sign_from_args(self):
-        neg_mat = self.args[0]._dcp_attr.sign.neg_mat
-        pos_mat = self.args[0]._dcp_attr.sign.pos_mat
-        for arg in self.args[1:]:
-            neg_mat = neg_mat | arg._dcp_attr.sign.neg_mat
-            pos_mat = pos_mat & arg._dcp_attr.sign.pos_mat
-        return u.Sign(neg_mat, pos_mat)
+        arg_signs = [arg._dcp_attr.sign for arg in self.args]
+        if u.Sign.NEGATIVE in arg_signs:
+            min_sign = u.Sign.NEGATIVE
+        elif u.Sign.ZERO in arg_signs:
+            if u.Sign.UNKNOWN in arg_signs:
+                min_sign = u.Sign.NEGATIVE
+            else:
+                min_sign = u.Sign.ZERO
+        elif u.Sign.UNKNOWN in arg_signs:
+            min_sign = u.Sign.UNKNOWN
+        else:
+            min_sign = u.Sign.POSITIVE
+
+        return min_sign
 
     # Default curvature.
     def func_curvature(self):

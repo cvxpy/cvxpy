@@ -37,48 +37,6 @@ class DCPAttr(object):
         self.curvature = curvature
         self.shape = shape
 
-    def __getitem__(self, key):
-        """Determines the DCP attributes of an index/slice.
-
-        Args:
-            key: A (slice, slice) tuple.
-
-        Returns:
-            The DCPAttr of the index/slice into the matrix expression.
-        """
-        shape = Shape(*ku.size(key, self.shape))
-
-        # Reduce 1x1 matrices to scalars.
-        neg_mat = bu.to_scalar(bu.index(self.sign.neg_mat, key))
-        pos_mat = bu.to_scalar(bu.index(self.sign.pos_mat, key))
-        cvx_mat = bu.to_scalar(bu.index(self.curvature.cvx_mat, key))
-        conc_mat = bu.to_scalar(bu.index(self.curvature.conc_mat, key))
-        nonconst_mat = bu.to_scalar(bu.index(self.curvature.nonconst_mat, key))
-
-        return DCPAttr(Sign(neg_mat, pos_mat),
-                       Curvature(cvx_mat, conc_mat, nonconst_mat),
-                       shape)
-
-    @property
-    def T(self):
-        """Determines the DCP attributes of a transpose.
-
-        Returns:
-            The DCPAttr of the transpose of the matrix expression.
-        """
-        rows, cols = self.shape.size
-        shape = Shape(cols, rows)
-
-        neg_mat = self.sign.neg_mat.T
-        pos_mat = self.sign.pos_mat.T
-        cvx_mat = self.curvature.cvx_mat.T
-        conc_mat = self.curvature.conc_mat.T
-        nonconst_mat = self.curvature.nonconst_mat.T
-
-        return DCPAttr(Sign(neg_mat, pos_mat),
-                       Curvature(cvx_mat, conc_mat, nonconst_mat),
-                       shape)
-
     def __add__(self, other):
         """Determines the DCP attributes of two expressions added together.
 
@@ -122,11 +80,8 @@ class DCPAttr(object):
             The DCPAttr of the product.
         """
         shape = self.shape * other.shape
-        lh_sign = self.sign.promote(*self.shape.size)
-        rh_sign = other.sign.promote(*other.shape.size)
-        sign = lh_sign * rh_sign
-        rh_curvature = other.curvature.promote(*other.shape.size)
-        curvature = Curvature.sign_mul(lh_sign, rh_curvature)
+        sign = self.sign * other.sign
+        curvature = Curvature.sign_mul(self.sign, other.curvature)
         return DCPAttr(sign, curvature, shape)
 
     def __div__(self, other):
@@ -147,14 +102,3 @@ class DCPAttr(object):
         """Determines the DCP attributes of a negated expression.
         """
         return DCPAttr(-self.sign, -self.curvature, self.shape)
-
-    def sum_entries(self):
-        """Determines the DCP attributes of the sum of an expression's entries.
-
-        Returns:
-            The DCPAttr of the sum.
-        """
-        shape = Shape(1, 1)
-        sign = self.sign.sum_entries()
-        curvature = self.curvature.sum_entries()
-        return DCPAttr(sign, curvature, shape)

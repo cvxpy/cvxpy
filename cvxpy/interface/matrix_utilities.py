@@ -103,27 +103,23 @@ def scalar_value(constant):
     else:
         raise Exception("%s is not a valid type for a Constant value." % type(constant))
 
-# Return a matrix of signs based on the constant's values.
+# Return the collective sign of the matrix entries.
 def sign(constant):
     if isinstance(constant, numbers.Number):
-        return Sign(np.bool_(constant < 0), np.bool_(constant > 0))
+        return Sign.val_to_sign(constant)
     elif isinstance(constant, cvxopt.spmatrix):
-        # Convert to COO matrix.
-        V = np.array(list(constant.V))
-        I = list(constant.I)
-        J = list(constant.J)
-        # Check if entries > 0 for pos_mat, < 0 for neg_mat.
-        neg_mat = sp.coo_matrix((V < 0,(I,J)), shape=constant.size, dtype='bool')
-        pos_mat = sp.coo_matrix((V > 0,(I,J)), shape=constant.size, dtype='bool')
-        return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
+        max_val = max(constant.V)
+        min_val = min(constant.V)
     elif sp.issparse(constant):
-        constant = constant.tocoo()
-        neg_mat = constant < 0
-        pos_mat = constant > 0
-        return Sign(SparseBoolMat(neg_mat), SparseBoolMat(pos_mat))
-    else:
+        max_val = constant.max()
+        min_val = constant.min()
+    else: # Convert to Numpy array.
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
-        return Sign(mat < 0, mat > 0)
+        max_val = mat.max()
+        min_val = mat.min()
+    max_sign = Sign.val_to_sign(max_val)
+    min_sign = Sign.val_to_sign(min_val)
+    return max_sign + min_sign
 
 # Get the value at the given index.
 def index(constant, key):

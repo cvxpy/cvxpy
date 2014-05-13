@@ -40,9 +40,10 @@ class index(AffAtom):
     def numeric(self, values):
         return values[0][self.key]
 
-    # The shape, sign, and curvature of the index/slice.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.args[0]._dcp_attr[self.key]
+    def shape_from_args(self):
+        """Returns the shape of the index expression.
+        """
+        return u.Shape(*ku.size(self.key, self.args[0].shape))
 
     def get_data(self):
         """Returns the (row slice, column slice).

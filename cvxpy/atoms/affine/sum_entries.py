@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
@@ -39,10 +40,10 @@ class sum_entries(AffAtom):
         """
         return np.sum(values[0])
 
-    def init_dcp_attr(self):
-        """The sign, curvature, and shape of the sum.
+    def shape_from_args(self):
+        """Always scalar.
         """
-        self._dcp_attr = self.args[0]._dcp_attr.sum_entries()
+        return u.Shape(1, 1)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

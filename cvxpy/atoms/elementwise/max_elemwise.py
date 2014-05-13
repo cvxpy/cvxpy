@@ -39,12 +39,20 @@ class max_elemwise(Elementwise):
         NEGATIVE, NEGATIVE = NEGATIVE
     """
     def sign_from_args(self):
-        neg_mat = self.args[0]._dcp_attr.sign.neg_mat
-        pos_mat = self.args[0]._dcp_attr.sign.pos_mat
-        for arg in self.args[1:]:
-            neg_mat = neg_mat & arg._dcp_attr.sign.neg_mat
-            pos_mat = pos_mat | arg._dcp_attr.sign.pos_mat
-        return u.Sign(neg_mat, pos_mat)
+        arg_signs = [arg._dcp_attr.sign for arg in self.args]
+        if u.Sign.POSITIVE in arg_signs:
+            max_sign = u.Sign.POSITIVE
+        elif u.Sign.ZERO in arg_signs:
+            if u.Sign.UNKNOWN in arg_signs:
+                max_sign = u.Sign.POSITIVE
+            else:
+                max_sign = u.Sign.ZERO
+        elif u.Sign.UNKNOWN in arg_signs:
+            max_sign = u.Sign.UNKNOWN
+        else:
+            max_sign = u.Sign.NEGATIVE
+
+        return max_sign
 
     # Default curvature.
     def func_curvature(self):

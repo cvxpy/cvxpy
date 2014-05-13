@@ -83,7 +83,7 @@ class Expression(u.Canonical):
     def curvature(self):
         """ Returns the curvature of the expression.
         """
-        return self._dcp_attr.curvature.get_readable_repr(*self.size)
+        return str(self._dcp_attr.curvature)
 
     def is_constant(self):
         """Is the expression constant?
@@ -116,7 +116,7 @@ class Expression(u.Canonical):
     def sign(self):
         """ Returns the sign of the expression.
         """
-        return self._dcp_attr.sign.get_readable_repr(*self.size)
+        return str(self._dcp_attr.sign)
 
     def is_zero(self):
         """Is the expression all zero?

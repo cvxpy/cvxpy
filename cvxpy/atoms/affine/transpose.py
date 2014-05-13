@@ -33,9 +33,11 @@ class transpose(AffAtom):
     def numeric(self, values):
         return values[0].T
 
-    # Transposes shape, sign, and curvature.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.args[0]._dcp_attr.T
+    def shape_from_args(self):
+        """Returns the shape of the transpose expression.
+        """
+        rows, cols = self.args[0].size
+        return u.Shape(cols, rows)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

@@ -132,20 +132,20 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(coeffs[s.CONSTANT], [2])
 
         # Test the sign.
-        c = Constant([[2],[2]])
-        self.assertEqual(c.size, (1,2))
-        self.assertEqual(c._dcp_attr.sign.neg_mat.shape, (1,2))
+        c = Constant([[2], [2]])
+        self.assertEqual(c.size, (1, 2))
+        self.assertEqual(c.sign, u.Sign.UNKNOWN_KEY)
 
         # Test sign of a complex expression.
         c = Constant([1, 2])
         A = Constant([[1,1],[1,1]])
         exp = c.T*A*c
-        self.assertEqual(exp.sign, u.Sign.POSITIVE_KEY)
-        self.assertEqual((c.T*c).sign, u.Sign.POSITIVE_KEY)
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual((c.T*c).sign, u.Sign.UNKNOWN_KEY)
         exp = c.T.T
-        self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (2,1))
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
         exp = c.T*self.A
-        self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (1,2))
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
 
     # Test the Parameter class.
     def test_parameters(self):
@@ -271,9 +271,9 @@ class TestExpressions(unittest.TestCase):
         self.assertEqual(exp.size, (3,2))
 
         # Expression that would break sign multiplication without promotion.
-        c = Constant([[2],[2],[-2]])
-        exp = [[1],[2]] + c*self.C
-        self.assertEqual(exp._dcp_attr.sign.pos_mat.shape, (1,2))
+        c = Constant([[2], [2], [-2]])
+        exp = [[1], [2]] + c*self.C
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
 
         # Scalar constants on the right should be moved left
         # instead of taking the transpose.
@@ -392,14 +392,11 @@ class TestExpressions(unittest.TestCase):
         self.assertEquals(exp.size, (3,1))
 
         c = Constant([[1,-2],[0,4]])
-        exp = c[1,1]
+        exp = c[1, 1]
         self.assertEqual(exp.curvature, u.Curvature.CONSTANT_KEY)
-        self.assertEqual(exp.sign, u.Sign.POSITIVE_KEY)
-        assert exp.is_positive()
-        self.assertEqual(c[0,1].sign, u.Sign.ZERO_KEY)
-        assert c[0, 1].is_zero()
-        self.assertEqual(c[1,0].sign, u.Sign.NEGATIVE_KEY)
-        assert c[1,0].is_negative()
+        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(c[0,1].sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(c[1,0].sign, u.Sign.UNKNOWN_KEY)
         self.assertEquals(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
 
