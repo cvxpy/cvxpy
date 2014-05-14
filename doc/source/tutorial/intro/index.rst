@@ -4,7 +4,7 @@ What is CVXPY?
 ==============
 
 CVXPY is a Python-embedded modeling language for convex optimization
-problems. CVXPY allows you to express your problem in a natural way. It
+problems. It
 automatically transforms the problem into standard form, calls a solver,
 and unpacks the results.
 

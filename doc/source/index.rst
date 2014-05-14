@@ -6,7 +6,7 @@
 Welcome to CVXPY
 ========================
 
-CVXPY is a Python-embedded modeling language for convex optimization problems.
+CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
@@ -28,7 +28,7 @@ For example, the following code solves a least-squares problem where the variabl
     constraints = [0 <= x, x <= 1]
     prob = Problem(objective, constraints)
 
-    # The optimal objective is returned by p.solve().
+    # The optimal objective is returned by prob.solve().
     result = prob.solve()
     # The optimal value for x is stored in x.value.
     print x.value
@@ -36,12 +36,17 @@ For example, the following code solves a least-squares problem where the variabl
     # is stored in constraint.dual_value.
     print constraints[0].dual_value
 
-Tutorial
---------
+This short script is a basic example of what CVXPY can do. CVXPY also supports simple ways to solve problems in parallel, higher level abstractions such as object oriented convex optimization, and extensions for non-convex optimization.
+
+Get Started
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   install/index
 
 .. toctree::
     :maxdepth: 2
 
-    intro/index
-    dcp/index
-    functions/index
+    tutorial/index
