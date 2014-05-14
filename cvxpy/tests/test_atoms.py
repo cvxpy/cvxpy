@@ -85,14 +85,39 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.curvature, u.Curvature.UNKNOWN_KEY)
         assert not atom.is_dcp()
 
+    def test_elemwise_arg_count(self):
+        """Test arg count for max and min variants.
+        """
+        with self.assertRaises(Exception) as cm:
+            max_elemwise(1)
+        self.assertEqual(str(cm.exception),
+            "__init__() takes at least 3 arguments (2 given)")
+
+        with self.assertRaises(Exception) as cm:
+            min_elemwise(1)
+        self.assertEqual(str(cm.exception),
+            "__init__() takes at least 3 arguments (2 given)")
+
+    def test_max_entries_sign(self):
+        """Test sign for max_entries.
+        """
+        # One arg.
+        self.assertEquals(max_entries(1).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max_entries(-2).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(max_entries(Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(max_entries(0).sign, u.Sign.ZERO_KEY)
+
+    def test_min_entries_sign(self):
+        """Test sign for min_entries.
+        """
+        # One arg.
+        self.assertEquals(min_entries(1).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(min_entries(-2).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min_entries(Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(min_entries(0).sign, u.Sign.ZERO_KEY)
+
     # Test sign logic for max_elemwise.
     def test_max_elemwise_sign(self):
-        # One arg.
-        self.assertEquals(max_elemwise(1).sign, u.Sign.POSITIVE_KEY)
-        self.assertEquals(max_elemwise(-2).sign, u.Sign.NEGATIVE_KEY)
-        self.assertEquals(max_elemwise(Variable()).sign, u.Sign.UNKNOWN_KEY)
-        self.assertEquals(max_elemwise(0).sign, u.Sign.ZERO_KEY)
-
         # Two args.
         self.assertEquals(max_elemwise(1, 2).sign, u.Sign.POSITIVE_KEY)
         self.assertEquals(max_elemwise(1, Variable()).sign, u.Sign.POSITIVE_KEY)
@@ -114,12 +139,6 @@ class TestAtoms(unittest.TestCase):
 
     # Test sign logic for min_elemwise.
     def test_min_elemwise_sign(self):
-        # One arg.
-        self.assertEquals(min_elemwise(1).sign, u.Sign.POSITIVE_KEY)
-        self.assertEquals(min_elemwise(-2).sign, u.Sign.NEGATIVE_KEY)
-        self.assertEquals(min_elemwise(Variable()).sign, u.Sign.UNKNOWN_KEY)
-        self.assertEquals(min_elemwise(0).sign, u.Sign.ZERO_KEY)
-
         # Two args.
         self.assertEquals(min_elemwise(1, 2).sign, u.Sign.POSITIVE_KEY)
         self.assertEquals(min_elemwise(1, Variable()).sign, u.Sign.UNKNOWN_KEY)

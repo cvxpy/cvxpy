@@ -24,6 +24,12 @@ import numpy as np
 
 class max_elemwise(Elementwise):
     """ Elementwise maximum. """
+
+    def __init__(self, arg1, arg2, *args):
+        """Requires at least 2 arguments.
+        """
+        super(max_elemwise, self).__init__(arg1, arg2, *args)
+
     # Returns the elementwise maximum.
     @Elementwise.numpy_numeric
     def numeric(self, values):

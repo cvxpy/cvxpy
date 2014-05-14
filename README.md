@@ -115,6 +115,8 @@ CVXPY currently supports the following atoms:
     Constrains `x` to be symmetric.
     * `log_det`, the function `log(det(x))` for a positive semidefinite matrix x.
     * `log_sum_exp(x)`, the function `log(sum(exp(x)))`.
+    * `max_entries(x)`, largest entry of `x`.
+    * `min_entries(x)`, smallest entry of `x`.
     * `norm(x, [p = 2])`
         * For p = 1, the L1 norm of `x`.
         * For p = 2, the L2 norm of `x` for vector `x` and the spectral norm for matrix `x`.
