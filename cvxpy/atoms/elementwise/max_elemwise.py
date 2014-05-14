@@ -30,21 +30,28 @@ class max_elemwise(Elementwise):
         """
         super(max_elemwise, self).__init__(arg1, arg2, *args)
 
-    # Returns the elementwise maximum.
     @Elementwise.numpy_numeric
     def numeric(self, values):
+        """Returns the elementwise maximum.
+        """
         return reduce(np.maximum, values)
 
-    """
-    Reduces the list of argument signs according to the following rules:
-        POSITIVE, ANYTHING = POSITIVE
-        ZERO, UNKNOWN = POSITIVE
-        ZERO, ZERO = ZERO
-        ZERO, NEGATIVE = ZERO
-        UNKNOWN, NEGATIVE = UNKNOWN
-        NEGATIVE, NEGATIVE = NEGATIVE
-    """
     def sign_from_args(self):
+        """Determins the sign of max_elemwise from the arguments' signs.
+
+        Reduces the list of argument signs according to the following rules:
+            POSITIVE, ANYTHING = POSITIVE
+            ZERO, UNKNOWN = POSITIVE
+            ZERO, ZERO = ZERO
+            ZERO, NEGATIVE = ZERO
+            UNKNOWN, NEGATIVE = UNKNOWN
+            NEGATIVE, NEGATIVE = NEGATIVE
+
+        Returns
+        -------
+        Sign
+            The Sign of the expression.
+        """
         arg_signs = [arg._dcp_attr.sign for arg in self.args]
         if u.Sign.POSITIVE in arg_signs:
             max_sign = u.Sign.POSITIVE
@@ -60,11 +67,14 @@ class max_elemwise(Elementwise):
 
         return max_sign
 
-    # Default curvature.
     def func_curvature(self):
+        """The function's default curvature is convex.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """The function is increasing in each argument.
+        """
         return len(self.args)*[u.monotonicity.INCREASING]
 
     @staticmethod

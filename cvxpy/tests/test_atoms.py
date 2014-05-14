@@ -107,6 +107,25 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(max_entries(Variable()).sign, u.Sign.UNKNOWN_KEY)
         self.assertEquals(max_entries(0).sign, u.Sign.ZERO_KEY)
 
+        # Two args.
+        self.assertEquals(max_entries(1, 2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max_entries(1, Variable()).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max_entries(1, -2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max_entries(1, 0).sign, u.Sign.POSITIVE_KEY)
+
+        self.assertEquals(max_entries(Variable(), 0).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(max_entries(Variable(), Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(max_entries(Variable(), -2).sign, u.Sign.UNKNOWN_KEY)
+
+        self.assertEquals(max_entries(0, 0).sign, u.Sign.ZERO_KEY)
+        self.assertEquals(max_entries(0, -2).sign, u.Sign.ZERO_KEY)
+
+        self.assertEquals(max_entries(-3, -2).sign, u.Sign.NEGATIVE_KEY)
+
+        # Many args.
+        self.assertEquals(max_entries(-2, Variable(), 0, -1, Variable(), 1).sign,
+                          u.Sign.POSITIVE_KEY)
+
     def test_min_entries_sign(self):
         """Test sign for min_entries.
         """
@@ -115,6 +134,25 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(min_entries(-2).sign, u.Sign.NEGATIVE_KEY)
         self.assertEquals(min_entries(Variable()).sign, u.Sign.UNKNOWN_KEY)
         self.assertEquals(min_entries(0).sign, u.Sign.ZERO_KEY)
+
+        # Two args.
+        self.assertEquals(min_entries(1, 2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(min_entries(1, Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(min_entries(1, -2).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min_entries(1, 0).sign, u.Sign.ZERO_KEY)
+
+        self.assertEquals(min_entries(Variable(), 0).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min_entries(Variable(), Variable()).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(min_entries(Variable(), -2).sign, u.Sign.NEGATIVE_KEY)
+
+        self.assertEquals(min_entries(0, 0).sign, u.Sign.ZERO_KEY)
+        self.assertEquals(min_entries(0, -2).sign, u.Sign.NEGATIVE_KEY)
+
+        self.assertEquals(min_entries(-3, -2).sign, u.Sign.NEGATIVE_KEY)
+
+        # Many args.
+        self.assertEquals(min_entries(-2, Variable(), 0, -1, Variable(), 1).sign,
+                          u.Sign.NEGATIVE_KEY)
 
     # Test sign logic for max_elemwise.
     def test_max_elemwise_sign(self):

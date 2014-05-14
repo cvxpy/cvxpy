@@ -30,16 +30,16 @@ class min_elemwise(max_elemwise):
     def numeric(self, values):
         return reduce(np.minimum, values)
 
-    """
-    Reduces the list of argument signs according to the following rules:
-        NEGATIVE, ANYTHING = NEGATIVE
-        ZERO, UNKNOWN = NEGATIVE
-        ZERO, ZERO = ZERO
-        ZERO, POSITIVE = ZERO
-        UNKNOWN, POSITIVE = UNKNOWN
-        POSITIVE, POSITIVE = POSITIVE
-    """
     def sign_from_args(self):
+        """
+        Reduces the list of argument signs according to the following rules:
+            NEGATIVE, ANYTHING = NEGATIVE
+            ZERO, UNKNOWN = NEGATIVE
+            ZERO, ZERO = ZERO
+            ZERO, POSITIVE = ZERO
+            UNKNOWN, POSITIVE = UNKNOWN
+            POSITIVE, POSITIVE = POSITIVE
+        """
         arg_signs = [arg._dcp_attr.sign for arg in self.args]
         if u.Sign.NEGATIVE in arg_signs:
             min_sign = u.Sign.NEGATIVE

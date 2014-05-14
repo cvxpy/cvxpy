@@ -108,9 +108,9 @@ import alabaster
 
 table_styling_embed_css = False
 
-html_theme_path = [alabaster.get_path()]
+html_theme_path = [alabaster.get_path(), "../themes"]
 extensions += ['alabaster']
-html_theme = 'alabaster'
+html_theme = 'cvxpy_alabaster'
 html_sidebars = {
    '**': [
        'about.html', 'navigation.html', 'searchbox.html',

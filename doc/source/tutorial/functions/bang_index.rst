@@ -68,6 +68,14 @@ and returns a scalar.
 |                     | \sum_{i,j}               | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | e^{X_{i,j}}`             |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
+| max_entries(X)      | :math:`\max_{i,j}        | :math:`X \in                 | same as X           | !convex! convex   | !incr! incr.              |
+|                     | \{ X_{i,j} \}`           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+|                     |                          |                              |                     |                   |                           |
++---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
+| min_entries(X)      | :math:`\min_{i,j}        | :math:`X \in                 | same as X           | !concave! concave | !incr! incr.              |
+|                     | \{ X_{i,j} \}`           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+|                     |                          |                              |                     |                   |                           |
++---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | norm(x)             | :math:`\sqrt{            | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
 |                     | \sum_{i}                 | \mathbf{R}^{n}`              |                     |                   | :math:`x_{i} \geq 0`      |
 | norm(x, 2)          | x_{i}^2 }`               |                              |                     |                   |                           |
@@ -88,9 +96,9 @@ and returns a scalar.
 |                     |                          |                              |                     |                   | !decr! for                |
 |                     |                          |                              |                     |                   | :math:`X_{i,j} \leq 0`    |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(X, "inf")      | :math:`\max_{i,j}        | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
-|                     | \lvert X_{i,j} \rvert`   | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{i,j} \geq 0`    |
-|                     |                          |                              |                     |                   |                           |
+| norm(X, "inf")      | :math:`\max_{i,j} \{     | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
+|                     | \lvert X_{i,j} \rvert    | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{i,j} \geq 0`    |
+|                     | \}`                      |                              |                     |                   |                           |
 |                     |                          |                              |                     |                   | !decr! for                |
 |                     |                          |                              |                     |                   | :math:`X_{i,j} \leq 0`    |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
@@ -127,11 +135,13 @@ and returns a scalar.
 |                     |                          |                              |                     |                   |                           |
 |                     |                          |                              |                     |                   | !decr! decr. in :math:`y` |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| sum_entries(X)      | :math:`\sum_{i,j}        | :math:`X \in                 | depends on X        | !affine! affine   | !incr! incr.              |
+| sum_entries(X)      | :math:`\sum_{i,j}        | :math:`X \in                 | same as X           | !affine! affine   | !incr! incr.              |
 |                     | X_{i,j}`                 | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 
-Add min_entries, max_entries. Compare with max_elemwise, min_elemwise. Discuss norm(x,2) vector vs norm(X,2) matrix. Define Sn, Sn+, Sn-.
+The function ``max_entries`` gives the largest entry in a vector or matrix expression. Similarly, ``min_entries`` gives the smallest entry in an expression. Use ``max_elemwise`` or ``min_elemwise`` to get the max or min of multiple scalar expressions. To get the largest (smallest) entry in multiple vector or matrix expressions
+
+Compare with max_elemwise, min_elemwise. Discuss norm(x,2) vector vs norm(X,2) matrix. Define Sn, Sn+, Sn-.
 Add huber. Talk about sum_entries vs. built-in sum.
 
 Elementwise functions
@@ -183,23 +193,25 @@ scalars, which are promoted.
 |                           |                         |                            |                     |                   | :math:`x \leq 0` |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 
-Change name of abs so doesn't conflict with built-in?
-
 Vector/Matrix functions
 -----------------------
 
 A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.
 
-+---------------------+-----------------------------+--------------------------+------------------------+-----------------+--------------+
-|       Function      |           Meaning           |          Domain          |          Sign          |    Curvature    | Monotonicity |
-+=====================+=============================+==========================+========================+=================+==============+
-| vstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | depends on :math:`x_i` | !affine! affine | !incr! incr. |
-|                     | x_1  \\                     | \mathbf{R}^{n \times m}` |                        |                 |              |
-|                     | \vdots  \\                  |                          |                        |                 |              |
-|                     | x_k                         |                          |                        |                 |              |
-|                     | \end{matrix}\right]`        |                          |                        |                 |              |
-+---------------------+-----------------------------+--------------------------+------------------------+-----------------+--------------+
++---------------------+-----------------------------+--------------------------+----------------------------+-----------------+--------------+
+|       Function      |           Meaning           |          Domain          |            Sign            |    Curvature    | Monotonicity |
++=====================+=============================+==========================+============================+=================+==============+
+| hstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | !affine! affine | !incr! incr. |
+|                     | x_1  \hdots    x_k          | \mathbf{R}^{n \times m}` |                            |                 |              |
+|                     | \end{matrix}\right]`        |                          |                            |                 |              |
++---------------------+-----------------------------+--------------------------+----------------------------+-----------------+--------------+
+| vstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | !affine! affine | !incr! incr. |
+|                     | x_1  \\                     | \mathbf{R}^{n \times m}` |                            |                 |              |
+|                     | \vdots  \\                  |                          |                            |                 |              |
+|                     | x_k                         |                          |                            |                 |              |
+|                     | \end{matrix}\right]`        |                          |                            |                 |              |
++---------------------+-----------------------------+--------------------------+----------------------------+-----------------+--------------+
 
 .. |positive| image:: functions_files/positive.svg
 			  :width: 15px
