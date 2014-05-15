@@ -46,101 +46,113 @@ and returns a scalar.
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 |       Function      |         Meaning          |            Domain            |         Sign        |     Curvature     |        Monotonicity       |
 +=====================+==========================+==============================+=====================+===================+===========================+
-| entr(X)             | :math:`\sum_{i,j}        | :math:`X_{i,j} > 0`          | !unknown! unknown   | !concave! concave | None                      |
+| entr(X)             | :math:`\sum_{i,j}        | :math:`X_{i,j} > 0`          | |unknown| unknown   | |concave| concave | None                      |
 |                     | -X_{i,j} \log (X_{i,j})` |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| kl_div(X, Y)        | :math:`\sum_{i,j}        | :math:`X_{i,j} > 0`          | !positive! positive | !convex! convex   | None                      |
+| kl_div(X, Y)        | :math:`\sum_{i,j}        | :math:`X_{i,j} > 0`          | |positive| positive | |convex| convex   | None                      |
 |                     | X_{i,j} \log(X_{i,j}     |                              |                     |                   |                           |
 |                     | /Y_{i,j})`               | :math:`Y_{i,j} > 0`          |                     |                   |                           |
 |                     |                          |                              |                     |                   |                           |
 |                     | :math:`-X_{i,j}+Y_{i,j}` |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| lamdba_max(X)       | :math:`\lambda_{         | :math:`X \in \mathbf{S}^n`   | !unknown! unknown   | !convex! convex   | None                      |
+| lamdba_max(X)       | :math:`\lambda_{         | :math:`X \in \mathbf{S}^n`   | |unknown| unknown   | |convex| convex   | None                      |
 |                     | \max}(X)`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| lambda_min(X)       | :math:`\lambda_{         | :math:`X \in \mathbf{S}^n`   | !unknown! unknown   | !concave! concave | None                      |
+| lambda_min(X)       | :math:`\lambda_{         | :math:`X \in \mathbf{S}^n`   | |unknown| unknown   | |concave| concave | None                      |
 |                     | \min}(X)`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| log_det(X)          | :math:`\log \left(       | :math:`X \in \mathbf{S}^n_+` | !unknown! unknown   | !concave! concave | None                      |
+| log_det(X)          | :math:`\log \left(       | :math:`X \in \mathbf{S}^n_+` | |unknown| unknown   | |concave| concave | None                      |
 |                     | \det (X)\right)`         |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| log_sum_exp(X)      | :math:`\log              | :math:`X \in                 | !unknown! unknown   | !convex! convex   | !incr! incr.              |
+| log_sum_exp(X)      | :math:`\log              | :math:`X \in                 | |unknown| unknown   | |convex| convex   | |incr| incr.              |
 |                     | \sum_{i,j}               | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | e^{X_{i,j}}`             |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| max_entries(X)      | :math:`\max_{i,j}        | :math:`X \in                 | same as X           | !convex! convex   | !incr! incr.              |
-|                     | \{ X_{i,j} \}`           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
-|                     |                          |                              |                     |                   |                           |
+| max_entries(X1,     | :math:`\max_{i,j,k}      | :math:`X^{(k)} \in           | max(sign(Xk))       | |convex| convex   | |incr| incr.              |
+| ..., Xr)            | \left\{ X^{(k)}_{i,j}    | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+|                     | \right\}`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| min_entries(X)      | :math:`\min_{i,j}        | :math:`X \in                 | same as X           | !concave! concave | !incr! incr.              |
-|                     | \{ X_{i,j} \}`           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
-|                     |                          |                              |                     |                   |                           |
+| min_entries(X1,     | :math:`\min_{i,j,k}      | :math:`X^{(k)} \in           | min(sign(Xk))       | |concave| concave | |incr| incr.              |
+| ..., Xr)            | \left\{ X^{(k)}_{i,j}    | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+|                     | \right\}`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(x)             | :math:`\sqrt{            | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
+| norm(x)             | :math:`\sqrt{            | :math:`X \in                 | |positive| positive | |convex| convex   | |incr| for                |
 |                     | \sum_{i}                 | \mathbf{R}^{n}`              |                     |                   | :math:`x_{i} \geq 0`      |
 | norm(x, 2)          | x_{i}^2 }`               |                              |                     |                   |                           |
 |                     |                          |                              |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! for                |
+|                     |                          |                              |                     |                   | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`x_{i} \leq 0`      |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(X, "fro")      | :math:`\sqrt{            | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
+| norm(X, "fro")      | :math:`\sqrt{            | :math:`X \in                 | |positive| positive | |convex| convex   | |incr| for                |
 |                     | \sum_{i,j}               | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{i,j} \geq 0`    |
 |                     | X_{i,j}^2 }`             |                              |                     |                   |                           |
 |                     |                          |                              |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! for                |
+|                     |                          |                              |                     |                   | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`X_{i,j} \leq 0`    |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(X, 1)          | :math:`\sum_{i,j}        | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
+| norm(X, 1)          | :math:`\sum_{i,j}        | :math:`X \in                 | |positive| positive | |convex| convex   | |incr| for                |
 |                     | \lvert X_{i,j} \rvert`   | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{i,j} \geq 0`    |
 |                     |                          |                              |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! for                |
+|                     |                          |                              |                     |                   | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`X_{i,j} \leq 0`    |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(X, "inf")      | :math:`\max_{i,j} \{     | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
+| norm(X, "inf")      | :math:`\max_{i,j} \{     | :math:`X \in                 | |positive| positive | |convex| convex   | |incr| for                |
 |                     | \lvert X_{i,j} \rvert    | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{i,j} \geq 0`    |
 |                     | \}`                      |                              |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! for                |
+|                     |                          |                              |                     |                   | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`X_{i,j} \leq 0`    |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(X, "nuc")      | :math:`\mathrm{tr}       | :math:`X \in                 | !positive! positive | !convex! convex   | None                      |
+| norm(X, "nuc")      | :math:`\mathrm{tr}       | :math:`X \in                 | |positive| positive | |convex| convex   | None                      |
 |                     | \left(\left(X^T X        | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | \right)^{1/2}\right)`    |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm(X)             | :math:`\sqrt{            | :math:`X \in                 | !positive! positive | !convex! convex   | None                      |
+| norm(X)             | :math:`\sqrt{            | :math:`X \in                 | |positive| positive | |convex| convex   | None                      |
 |                     | \lambda_{\max}           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 | norm(X, 2)          | \left(X^T X\right)}`     |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| quad_form(x, P)     | :math:`x^T P x`          | :math:`x \in \mathbf{R}^n`   | !positive! positive | !convex! convex   | !incr! for                |
+| quad_form(x, P)     | :math:`x^T P x`          | :math:`x \in \mathbf{R}^n`   | |positive| positive | |convex| convex   | |incr| for                |
 |                     |                          |                              |                     |                   | :math:`x_i \geq 0`        |
 | P constant          |                          | :math:`P \in \mathbf{S}^n_+` |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! for                |
+|                     |                          |                              |                     |                   | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`x_i \leq 0`        |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| quad_form(x, P)     | :math:`x^T P x`          | :math:`x \in \mathbf{R}^n`   | !negative! negative | !concave! concave | !decr! for                |
+| quad_form(x, P)     | :math:`x^T P x`          | :math:`x \in \mathbf{R}^n`   | |negative| negative | |concave| concave | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`x_i \geq 0`        |
 | P constant          |                          | :math:`P \in \mathbf{S}^n_-` |                     |                   |                           |
-|                     |                          |                              |                     |                   | !incr! for                |
+|                     |                          |                              |                     |                   | |incr| for                |
 |                     |                          |                              |                     |                   | :math:`x_i \leq 0`        |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| quad_form(c, X)     | :math:`c^T X c`          | :math:`c \in \mathbf{R}^n`   | depends on c, X     | !affine! affine   | depends on c              |
+| quad_form(c, X)     | :math:`c^T X c`          | :math:`c \in \mathbf{R}^n`   | depends on c, X     | |affine| affine   | depends on c              |
 |                     |                          |                              |                     |                   |                           |
 | c constant          |                          | :math:`X \in                 |                     |                   |                           |
 |                     |                          | \mathbf{R}^{n \times n}`     |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| quad_over_lin(X, y) | :math:`\sum_{i,j}        | :math:`x \in \mathbf{R}^n`   | !positive! positive | !convex! convex   | !incr! for                |
+| quad_over_lin(X, y) | :math:`\sum_{i,j}        | :math:`x \in \mathbf{R}^n`   | |positive| positive | |convex| convex   | |incr| for                |
 |                     | X_{i,j}^2/y`             |                              |                     |                   | :math:`X_{i,j} \geq 0`    |
 |                     |                          | :math:`y > 0`                |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! for                |
+|                     |                          |                              |                     |                   | |decr| for                |
 |                     |                          |                              |                     |                   | :math:`X_{i,j} \leq 0`    |
 |                     |                          |                              |                     |                   |                           |
-|                     |                          |                              |                     |                   | !decr! decr. in :math:`y` |
+|                     |                          |                              |                     |                   | |decr| decr. in :math:`y` |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| sum_entries(X)      | :math:`\sum_{i,j}        | :math:`X \in                 | same as X           | !affine! affine   | !incr! incr.              |
+| sum_entries(X)      | :math:`\sum_{i,j}        | :math:`X \in                 | same as X           | |affine| affine   | |incr| incr.              |
 |                     | X_{i,j}`                 | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 
-The function ``max_entries`` gives the largest entry in a single expression. Similarly, ``min_entries`` gives the smallest Compare with max_elemwise, min_elemwise. Discuss norm(x,2) vector vs norm(X,2) matrix. Define Sn, Sn+, Sn-.
-Add huber. Talk about sum_entries vs. built-in sum.
+Clarifications
+^^^^^^^^^^^^^^
+
+The domain :math:`S^n` refers to the set of symmetric matrices. The domains :math:`S^n_+` and :math:`S^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively.
+
+For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
+
+The function ``max_entries`` gives the largest entry in any of its arguments. The arguments to ``max_entries`` can have any dimensions. The function ``min_entries`` behaves similarly. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`).
+
+The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions.
+TODO should sum_entries take multiple args? Should max_entries and min_entries take multiple args?
+
+
+.. _elementwise:
 
 Elementwise functions
 ---------------------
@@ -156,38 +168,46 @@ scalars, which are promoted.
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 |          Function         |         Meaning         |           Domain           |         Sign        |     Curvature     |   Monotonicity   |
 +===========================+=========================+============================+=====================+===================+==================+
-| abs(x)                    | :math:`\lvert x \rvert` | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! for       |
+| abs(x)                    | :math:`\lvert x \rvert` | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| for       |
 |                           |                         |                            |                     |                   | :math:`x \geq 0` |
 |                           |                         |                            |                     |                   |                  |
-|                           |                         |                            |                     |                   | !decr! for       |
+|                           |                         |                            |                     |                   | |decr| for       |
 |                           |                         |                            |                     |                   | :math:`x \leq 0` |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| exp(x)                    | :math:`e^x`             | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! incr.     |
+| exp(x)                    | :math:`e^x`             | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| incr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| inv_pos(x)                | :math:`1/x`             | :math:`x > 0`              | !positive! positive | !convex! convex   | !decr! decr.     |
+| huber(x, M=1)             | :math:`\begin{cases}    | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| for       |
+|                           | x^2 &x \geq             |                            |                     |                   | :math:`x \geq 0` |
+|                           | M  \\                   | :math:`M \geq 0`           |                     |                   |                  |
+|                           | 2Mx - M^2               |                            |                     |                   | |decr| for       |
+|                           | &x \leq                 |                            |                     |                   | :math:`x \leq 0` |
+|                           | M                       |                            |                     |                   |                  |
+|                           | \end{cases}`            |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| log(x)                    | :math:`\log(x)`         | :math:`x > 0`              | !unknown! unknown   | !concave! concave | !incr! incr.     |
+| inv_pos(x)                | :math:`1/x`             | :math:`x > 0`              | |positive| positive | |convex| convex   | |decr| decr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| max_elemwise(x1, ..., xk) | :math:`\max \left\{     | :math:`x_i \in \mathbf{R}` | max(sign(xi))       | !convex! convex   | !incr! incr.     |
+| log(x)                    | :math:`\log(x)`         | :math:`x > 0`              | |unknown| unknown   | |concave| concave | |incr| incr.     |
++---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
+| max_elemwise(x1, ..., xk) | :math:`\max \left\{     | :math:`x_i \in \mathbf{R}` | max(sign(xi))       | |convex| convex   | |incr| incr.     |
 |                           | x_1, \ldots , x_k       |                            |                     |                   |                  |
 |                           | \right\}`               |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| min_elemwise(x1, ..., xk) | :math:`\min \left\{     | :math:`x_i \in \mathbf{R}` | min(sign(xi))       | !concave! concave | !incr! incr.     |
+| min_elemwise(x1, ..., xk) | :math:`\min \left\{     | :math:`x_i \in \mathbf{R}` | min(sign(xi))       | |concave| concave | |incr| incr.     |
 |                           | x_1, \ldots , x_k       |                            |                     |                   |                  |
 |                           | \right\}`               |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| neg(x)                    | :math:`\max \left\{     | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !decr! decr.     |
+| neg(x)                    | :math:`\max \left\{     | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |decr| decr.     |
 |                           | -x, 0 \right\}`         |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| pos(x)                    | :math:`\max \left\{     | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! incr.     |
+| pos(x)                    | :math:`\max \left\{     | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| incr.     |
 |                           | x, 0 \right\}`          |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| sqrt(x)                   | :math:`\sqrt x`         | :math:`x \geq 0`           | !positive! positive | !concave! concave | !incr! incr.     |
+| sqrt(x)                   | :math:`\sqrt x`         | :math:`x \geq 0`           | |positive| positive | |concave| concave | |incr| incr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
-| square(x)                 | :math:`x^2`             | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! for       |
+| square(x)                 | :math:`x^2`             | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| for       |
 |                           |                         |                            |                     |                   | :math:`x \geq 0` |
 |                           |                         |                            |                     |                   |                  |
-|                           |                         |                            |                     |                   | !decr! for       |
+|                           |                         |                            |                     |                   | |decr| for       |
 |                           |                         |                            |                     |                   | :math:`x \leq 0` |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 
@@ -200,11 +220,11 @@ and returns a vector or matrix.
 +---------------------+-----------------------------+--------------------------+----------------------------+-----------------+--------------+
 |       Function      |           Meaning           |          Domain          |            Sign            |    Curvature    | Monotonicity |
 +=====================+=============================+==========================+============================+=================+==============+
-| hstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | !affine! affine | !incr! incr. |
-|                     | x_1  \hdots    x_k          | \mathbf{R}^{n \times m}` |                            |                 |              |
+| hstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | |affine| affine | |incr| incr. |
+|                     | x_1  \cdots    x_k          | \mathbf{R}^{n \times m}` |                            |                 |              |
 |                     | \end{matrix}\right]`        |                          |                            |                 |              |
 +---------------------+-----------------------------+--------------------------+----------------------------+-----------------+--------------+
-| vstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | !affine! affine | !incr! incr. |
+| vstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | |affine| affine | |incr| incr. |
 |                     | x_1  \\                     | \mathbf{R}^{n \times m}` |                            |                 |              |
 |                     | \vdots  \\                  |                          |                            |                 |              |
 |                     | x_k                         |                          |                            |                 |              |

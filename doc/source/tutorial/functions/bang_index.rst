@@ -68,13 +68,13 @@ and returns a scalar.
 |                     | \sum_{i,j}               | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | e^{X_{i,j}}`             |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| max_entries(X)      | :math:`\max_{i,j}        | :math:`X \in                 | same as X           | !convex! convex   | !incr! incr.              |
-|                     | \{ X_{i,j} \}`           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
-|                     |                          |                              |                     |                   |                           |
+| max_entries(X1,     | :math:`\max_{i,j,k}      | :math:`X^{(k)} \in           | max(sign(Xk))       | !convex! convex   | !incr! incr.              |
+| ..., Xr)            | \left\{ X^{(k)}_{i,j}    | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+|                     | \right\}`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| min_entries(X)      | :math:`\min_{i,j}        | :math:`X \in                 | same as X           | !concave! concave | !incr! incr.              |
-|                     | \{ X_{i,j} \}`           | \mathbf{R}^{n \times m}`     |                     |                   |                           |
-|                     |                          |                              |                     |                   |                           |
+| min_entries(X1,     | :math:`\min_{i,j,k}      | :math:`X^{(k)} \in           | min(sign(Xk))       | !concave! concave | !incr! incr.              |
+| ..., Xr)            | \left\{ X^{(k)}_{i,j}    | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+|                     | \right\}`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | norm(x)             | :math:`\sqrt{            | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
 |                     | \sum_{i}                 | \mathbf{R}^{n}`              |                     |                   | :math:`x_{i} \geq 0`      |
@@ -139,10 +139,20 @@ and returns a scalar.
 |                     | X_{i,j}`                 | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 
-The function ``max_entries`` gives the largest entry in a vector or matrix expression. Similarly, ``min_entries`` gives the smallest entry in an expression. Use ``max_elemwise`` or ``min_elemwise`` to get the max or min of multiple scalar expressions. To get the largest (smallest) entry in multiple vector or matrix expressions
+Clarifications
+^^^^^^^^^^^^^^
 
-Compare with max_elemwise, min_elemwise. Discuss norm(x,2) vector vs norm(X,2) matrix. Define Sn, Sn+, Sn-.
-Add huber. Talk about sum_entries vs. built-in sum.
+The domain :math:`S^n` refers to the set of symmetric matrices. The domains :math:`S^n_+` and :math:`S^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively.
+
+For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
+
+The function ``max_entries`` gives the largest entry in any of its arguments. The arguments to ``max_entries`` can have any dimensions. The function ``min_entries`` behaves similarly. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`).
+
+The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions.
+TODO should sum_entries take multiple args? Should max_entries and min_entries take multiple args?
+
+
+.. _elementwise:
 
 Elementwise functions
 ---------------------
@@ -165,6 +175,14 @@ scalars, which are promoted.
 |                           |                         |                            |                     |                   | :math:`x \leq 0` |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | exp(x)                    | :math:`e^x`             | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! incr.     |
++---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
+| huber(x, M=1)             | :math:`\begin{cases}    | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! for       |
+|                           | x^2 &x \geq             |                            |                     |                   | :math:`x \geq 0` |
+|                           | M  \\                   | :math:`M \geq 0`           |                     |                   |                  |
+|                           | 2Mx - M^2               |                            |                     |                   | !decr! for       |
+|                           | &x \leq                 |                            |                     |                   | :math:`x \leq 0` |
+|                           | M                       |                            |                     |                   |                  |
+|                           | \end{cases}`            |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | inv_pos(x)                | :math:`1/x`             | :math:`x > 0`              | !positive! positive | !convex! convex   | !decr! decr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
@@ -203,7 +221,7 @@ and returns a vector or matrix.
 |       Function      |           Meaning           |          Domain          |            Sign            |    Curvature    | Monotonicity |
 +=====================+=============================+==========================+============================+=================+==============+
 | hstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | !affine! affine | !incr! incr. |
-|                     | x_1  \hdots    x_k          | \mathbf{R}^{n \times m}` |                            |                 |              |
+|                     | x_1  \cdots    x_k          | \mathbf{R}^{n \times m}` |                            |                 |              |
 |                     | \end{matrix}\right]`        |                          |                            |                 |              |
 +---------------------+-----------------------------+--------------------------+----------------------------+-----------------+--------------+
 | vstack(x1, ..., xk) | :math:`\left[\begin{matrix} | :math:`x_i \in           | same as sum([x1, ..., xk]) | !affine! affine | !incr! incr. |
