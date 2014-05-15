@@ -68,12 +68,12 @@ and returns a scalar.
 |                     | \sum_{i,j}               | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | e^{X_{i,j}}`             |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| max_entries(X1,     | :math:`\max_{i,j,k}      | :math:`X^{(k)} \in           | max(sign(Xk))       | !convex! convex   | !incr! incr.              |
-| ..., Xr)            | \left\{ X^{(k)}_{i,j}    | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+| max_entries(X)      | :math:`\max_{i,j}        | :math:`X \in                 | same as X           | !convex! convex   | !incr! incr.              |
+|                     | \left\{ X_{i,j}          | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | \right\}`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| min_entries(X1,     | :math:`\min_{i,j,k}      | :math:`X^{(k)} \in           | min(sign(Xk))       | !concave! concave | !incr! incr.              |
-| ..., Xr)            | \left\{ X^{(k)}_{i,j}    | \mathbf{R}^{n \times m}`     |                     |                   |                           |
+| min_entries(X)      | :math:`\min_{i,j}        | :math:`X \in                 | same as X           | !concave! concave | !incr! incr.              |
+|                     | \left\{ X_{i,j}          | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | \right\}`                |                              |                     |                   |                           |
 +---------------------+--------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | norm(x)             | :math:`\sqrt{            | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
@@ -146,9 +146,10 @@ The domain :math:`S^n` refers to the set of symmetric matrices. The domains :mat
 
 For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
 
-The function ``max_entries`` gives the largest entry in any of its arguments. The arguments to ``max_entries`` can have any dimensions. The function ``min_entries`` behaves similarly. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`).
+The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
 
 The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions.
+
 TODO should sum_entries take multiple args? Should max_entries and min_entries take multiple args?
 
 

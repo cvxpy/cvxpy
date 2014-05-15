@@ -17,29 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.max_entries import MaxExpr
-from cvxpy.atoms.elementwise.min_elemwise import min_elemwise
+from cvxpy.atoms.max_entries import max_entries
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 
-def min_entries(*args):
-    """The smallest entry in all the expressions.
-    """
-    if len(args) == 1:
-        return MinExpr(args[0])
-    else:
-        min_exprs = []
-        for arg in args:
-            min_exprs.append(MinExpr(arg))
-        return min_elemwise(*min_exprs)
-
-class MinExpr(MaxExpr):
+class min_entries(max_entries):
     """:math:`\min_{i,j}\{X_{i,j}\}`.
     """
     def __init__(self, x):
-        super(MinExpr, self).__init__(x)
+        super(min_entries, self).__init__(x)
 
-    @MaxExpr.numpy_numeric
+    @max_entries.numpy_numeric
     def numeric(self, values):
         """Returns the smallest entry in x.
         """

@@ -18,26 +18,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 
-def max_entries(*args):
-    """The largest entry in all the expressions.
-    """
-    if len(args) == 1:
-        return MaxExpr(args[0])
-    else:
-        max_exprs = []
-        for arg in args:
-            max_exprs.append(MaxExpr(arg))
-        return max_elemwise(*max_exprs)
-
-class MaxExpr(Atom):
+class max_entries(Atom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
     def __init__(self, x):
-        super(MaxExpr, self).__init__(x)
+        super(max_entries, self).__init__(x)
 
     @Atom.numpy_numeric
     def numeric(self, values):

@@ -2,6 +2,8 @@ CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](ht
 =====================
 **Although this project is similar to and named the same as [CVXPY](https://code.google.com/p/cvxpy/), this version is a total rewrite and is incompatible with the old one.**
 
+**The CVXPY documentation is moving to [cvxpy.org](https://cvxpy.org/).**
+
 What is CVXPY?
 ---------------------
 CVXPY is a Python-embedded modeling language for optimization problems. CVXPY allows you to express your problem in a natural way. It automatically transforms the problem into standard form, calls a solver, and unpacks the results.
