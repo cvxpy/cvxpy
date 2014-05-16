@@ -22,18 +22,6 @@ def constant():
     import constants
     return constants.Constant
 
-def variable():
-    import variables
-    return variables.Variable
-
-def parameter():
-    import constants
-    return constants.Parameter
-
-def expression():
-    import expression
-    return expression.Expression
-
 def add_expr():
     from ..atoms.affine import add_expr
     return add_expr.AddExpression

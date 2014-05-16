@@ -16,7 +16,7 @@ Expressions
 Expressions in CVXPY are formed from variables, parameters, numerical
 constants such as Python floats and Numpy matrices, the standard
 arithmetic operators ``+, -, *, /``, and a library of
-`functions </functions>`__. Here are some examples of CVXPY expressions:
+`functions <../functions/index.html>`__. Here are some examples of CVXPY expressions:
 
 .. code:: python
 
@@ -47,7 +47,7 @@ dimensions, for example adding matrices of different size.
 
     # Use expr.size to get the dimensions.
     print "dimensions of X:", X.size
-    print "dimensions of sum(X):", sum(X).size
+    print "dimensions of sum_entries(X):", sum_entries(X).size
     print "dimensions of A*X:", (A*X).size
 
     # ValueError raised for invalid dimensions.
@@ -59,7 +59,7 @@ dimensions, for example adding matrices of different size.
 .. parsed-literal::
 
     dimensions of X: (5, 4)
-    dimensions of sum(X): (1, 1)
+    dimensions of sum_entries(X): (1, 1)
     dimensions of A*X: (3, 4)
     Incompatible dimensions (3, 5) (5, 4)
 
@@ -136,8 +136,8 @@ convex analysis to each (sub)expression.
 is a convex function and for each :math:`expr_{i}` one of the following
 conditions holds:
 
--  :math:`f` is increasing in argument i and :math:`expr_{i}` is convex.
--  :math:`f` is decreasing in argument i and :math:`expr_{i}` is
+-  :math:`f` is increasing in argument :math:`i` and :math:`expr_{i}` is convex.
+-  :math:`f` is decreasing in argument :math:`i` and :math:`expr_{i}` is
    concave.
 -  :math:`expr_{i}` is affine or constant.
 
@@ -145,13 +145,13 @@ conditions holds:
 is a concave function and for each :math:`expr_{i}` one of the following
 conditions holds:
 
--  :math:`f` is increasing in argument i and :math:`expr_{i}` is
+-  :math:`f` is increasing in argument :math:`i` and :math:`expr_{i}` is
    concave.
--  :math:`f` is decreasing in argument i and :math:`expr_{i}` is convex.
+-  :math:`f` is decreasing in argument :math:`i` and :math:`expr_{i}` is convex.
 -  :math:`expr_{i}` is affine or constant.
 
 :math:`f(expr_1, expr_2, ..., expr_n)` is affine if :math:`\text{ } f`
-is an affine function function and each :math:`expr_{i}` is affine.
+is an affine function and each :math:`expr_{i}` is affine.
 
 If none of the three rules apply, the expression
 :math:`f(expr_1, expr_2, ..., expr_n)` is marked as having unknown
@@ -167,7 +167,6 @@ The curvature of an expression is stored as ``expr.curvature``:
 
     x = Variable()
     a = Parameter(sign="positive")
-    c = numpy.array([1, -1])
 
     print "curvature of x:", x.curvature
     print "curvature of a:", a.curvature
@@ -238,13 +237,15 @@ certified as convex using the DCP rules.
 
 .. code:: python
 
-    print "curvature of sqrt(1 + square(x))", sqrt(1 + square(x)).curvature
-    print "curvature of norm(vstack(1, x), 2)", norm(vstack(1, x), 2).curvature
+    print "sqrt(1 + square(x)) curvature:",
+    print sqrt(1 + square(x)).curvature
+    print "norm(vstack(1, x), 2) curvature:",
+    print norm(vstack(1, x), 2).curvature
 
 .. parsed-literal::
 
-    curvature of sqrt(1 + square(x)) UNKNOWN
-    curvature of norm(vstack(1, x), 2) CONVEX
+    sqrt(1 + square(x)) curvature: UNKNOWN
+    norm(vstack(1, x), 2) curvature: CONVEX
 
 DCP problems
 ------------
@@ -282,12 +283,15 @@ non-DCP problems:
     print "prob2 is DCP:", prob2.is_dcp()
 
     # Non-DCP problems.
-    prob3 = Problem(Maximize(square(x))) # Non-DCP objective.
+
+    # A non-DCP objective.
+    prob3 = Problem(Maximize(square(x)))
 
     print "prob3 is DCP:", prob3.is_dcp()
     print "Maximize(square(x)) is DCP:", Maximize(square(x)).is_dcp()
 
-    prob4 = Problem(Minimize(square(x)), [sqrt(x) <= 2]) # Non-DCP constraint.
+    # A non-DCP constraint.
+    prob4 = Problem(Minimize(square(x)), [sqrt(x) <= 2])
 
     print "prob4 is DCP:", prob4.is_dcp()
     print "sqrt(x) <= 2 is DCP:", (sqrt(x) <= 2).is_dcp()
@@ -307,7 +311,7 @@ non-DCP problem.
 
 .. code:: python
 
-    # ValueError raised for invalid dimensions.
+    # A non-DCP problem.
     prob = Problem(Minimize(sqrt(x)))
 
     try:

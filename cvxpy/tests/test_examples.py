@@ -517,6 +517,23 @@ class TestExamples(BaseTest):
             l1_penalty.append(norm(x, 1).value)
             x_values.append(x.value)
 
+        ########################################
+        import numpy
+
+        X = Variable(5, 4)
+        A = numpy.ones((3, 5))
+
+        # Use expr.size to get the dimensions.
+        print "dimensions of X:", X.size
+        print "dimensions of sum_entries(X):", sum_entries(X).size
+        print "dimensions of A*X:", (A*X).size
+
+        # ValueError raised for invalid dimensions.
+        try:
+            A + X
+        except ValueError, e:
+            print e
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

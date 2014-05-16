@@ -6,21 +6,28 @@ Install Guide
 Mac OS X
 --------
 
-1. Install the Command Line Tools for Xcode
+1. Install the Command Line Tools for Xcode.
 
    Download from the `Apple developer site <http://developer.apple.com/downloads>`_.
 
-2. Install `Anaconda`_
+2. Install `Anaconda`_.
 
    Follow the instructions on the `website`_.
 
-3. Install ``numpy`` and ``scipy`` using conda from the command-line
+3. Make sure `Anaconda`_ has the latest version of Python 2.
+
+   ::
+
+       conda update python
+
+
+4. Install ``numpy`` and ``scipy`` using conda from the command-line.
 
    ::
 
        conda install numpy scipy
 
-4. Install ``cvxpy`` with ``pip`` from the command-line
+5. Install ``cvxpy`` with ``pip`` from the command-line.
 
    ::
 
@@ -29,25 +36,25 @@ Mac OS X
 Ubuntu
 ------
 
-1. Install ``ATLAS`` and ``gfortran`` (needed for ``scs``)
+1. Install ``ATLAS`` and ``gfortran`` (needed for ``scs``).
 
    ::
 
        sudo apt-get install libatlas-base-dev gfortran
 
-2. Install ``pip``
+2. Install ``pip``.
 
    ::
 
        sudo apt-get install python-pip
 
-3. Install Python packages ``numpy`` and ``scipy``
+3. Install ``numpy`` and ``scipy``.
 
    ::
 
        sudo apt-get install python-numpy python-scipy
 
-4. Install ``cvxpy``
+4. Install ``cvxpy``.
 
    ::
 

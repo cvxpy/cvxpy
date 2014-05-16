@@ -14,7 +14,7 @@ The code below solves a simple optimization problem in CVXPY:
 
     from cvxpy import *
 
-    # Create two scalar variables.
+    # Create two scalar optimization variables.
     x = Variable()
     y = Variable()
 
@@ -63,7 +63,7 @@ CVXPY imported as a namespace.
 
     import cvxpy as cvx
 
-    # Create two scalar variables.
+    # Create two scalar optimization variables.
     x = cvx.Variable()
     y = cvx.Variable()
 
@@ -84,7 +84,7 @@ CVXPY imported as a namespace.
 Nonetheless we have constructed CVXPY so that using ``from cvxpy import *``
 is generally safe for short scripts. The biggest catch is that the built-in
 ``max`` and ``min`` cannot be used on CVXPY expressions. Instead use the
-CVXPY [functions](/functions) ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
+CVXPY `functions <../functions/index.html>`__ ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
 
 Changing the problem
 --------------------
@@ -147,10 +147,16 @@ opposite is true.
 
 If the solver called by CVXPY fails to solve the problem, the problem
 status is set to "solver\_error" and the optimal value is ``None``. See
-the discussion of `Solvers <#solvers>`__ for details.
+the discussion of :ref:`solvers` for details.
 
 CVXPY provides the constants ``OPTIMAL``, ``INFEASIBLE``, ``UNBOUNDED``,
 and ``SOLVER_ERROR`` as aliases for the different status strings.
+
+For example, to test if a problem was solved successfully, you would use
+
+.. code:: python
+
+    prob.status == OPTIMAL
 
 Vectors and matrices
 --------------------
@@ -177,7 +183,6 @@ Currently the following types may be used as constants:
 
 -  Numpy ndarrays
 -  Numpy matrices
--  SciPy sparse matrices
 -  CVXOPT dense matrices
 -  CVXOPT sparse matrices
 
@@ -228,8 +233,7 @@ problem.
 Parameters can be vectors or matrices, just like variables. When you
 create a parameter you have the option of specifying the sign of the
 parameter's entries (positive, negative, or unknown). The sign is
-unknown by default. The sign is used in `DCP convexity
-analysis <#disciplined-convex-programming-dcp>`__. Parameters can be
+unknown by default. The sign is used in :ref:`dcp`. Parameters can be
 assigned a constant value any time after they are created. The constant
 value must have the same dimensions and sign as those specified when the
 parameter was created.
