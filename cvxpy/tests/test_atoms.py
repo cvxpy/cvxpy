@@ -75,8 +75,8 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX_KEY)
 
-    # Test quad_over_lin DCP.
     def test_quad_over_lin(self):
+        # Test quad_over_lin DCP.
         atom = quad_over_lin(square(self.x), self.a)
         self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         atom = quad_over_lin(-square(self.x), self.a)
@@ -84,6 +84,12 @@ class TestAtoms(unittest.TestCase):
         atom = quad_over_lin(sqrt(self.x), self.a)
         self.assertEquals(atom.curvature, u.Curvature.UNKNOWN_KEY)
         assert not atom.is_dcp()
+
+        # Test quad_over_lin size validation.
+        with self.assertRaises(Exception) as cm:
+            quad_over_lin(self.x, self.x)
+        self.assertEqual(str(cm.exception),
+            "The second argument to quad_over_lin must be a scalar")
 
     def test_elemwise_arg_count(self):
         """Test arg count for max and min variants.

@@ -24,16 +24,17 @@ from cvxpy.constraints.second_order import SOC
 import numpy as np
 
 class quad_over_lin(Atom):
-    """ :math:`x^Tx/y`
+    """ :math:`(sum_{ij}X^2_{ij})/y`
 
     """
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
 
-    # Returns the dot product of x divided by y.
     @Atom.numpy_numeric
     def numeric(self, values):
-        return np.dot(values[0].T, values[0])/values[1]
+        """Returns the sum of the entries of x squared over y.
+        """
+        return np.square(values[0]).sum()/values[1]
 
     # Resolves to a scalar.
     def shape_from_args(self):
@@ -51,12 +52,11 @@ class quad_over_lin(Atom):
     def monotonicity(self):
         return [u.monotonicity.SIGNED, u.monotonicity.DECREASING]
 
-    # Any argument size is valid.
     def validate_arguments(self):
-        if not self.args[0].is_vector():
-            raise TypeError("The first argument to quad_over_lin must be a vector.")
-        elif not self.args[1].is_scalar():
-            raise TypeError("The second argument to quad_over_lin must be a scalar.")
+        """Check dimensions of arguments.
+        """
+        if not self.args[1].is_scalar():
+            raise ValueError("The second argument to quad_over_lin must be a scalar")
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

@@ -79,6 +79,7 @@ atoms = [
         #(pow_rat(4,4,2), 16),
         #(pow_rat(8,4,3), 16),
         #(pow_rat(8,4,4), 8),
+        (quad_over_lin([[-1,2,-2], [-1,2,-2]], 2), Constant([2*4.5])),
         (quad_over_lin(v, 2), Constant([4.5])),
         #(square_over_lin(2,4), 1),
         (norm([[2,0],[0,1]], 2), Constant([2])),
