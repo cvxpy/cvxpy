@@ -242,7 +242,7 @@ class Problem(u.Canonical):
         method : function
             The solve method to use.
         solver : str, optional
-            The solver to use. Defaults to ECOS.
+            The solver to use.
         verbose : bool, optional
             Overrides the default of hiding solver output.
         solver_specific_opts : dict, optional

@@ -44,7 +44,7 @@ CVXPY was inspired by the MATLAB package `CVX <http://cvxr.com/cvx/>`_. See the 
 
 CVXPY relies on the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_.
 
-.. _CVXOPT: http://abel.ee.ucla.edu/cvxopt/
+.. _CVXOPT: http://cvxopt.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 

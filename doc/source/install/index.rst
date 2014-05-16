@@ -91,7 +91,7 @@ installed `NumPy`_ and `SciPy`_, installing CVXPY from source is simple:
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _toolz: http://github.com/pytoolz/toolz/
-.. _CVXOPT: http://abel.ee.ucla.edu/cvxopt/
+.. _CVXOPT: http://cvxopt.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 .. _NumPy: http://www.numpy.org/
