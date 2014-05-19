@@ -5,7 +5,7 @@ Advanced Features
 
 This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend `Convex Optimization <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.
 
-Dual Variables
+Dual variables
 --------------
 
 You can use CVXPY to find the optimal dual variables for a problem. When you call ``prob.solve()`` each dual variable in the solution is stored in the ``dual_value`` field of the constraint it corresponds to.
@@ -44,7 +44,7 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
-Solve Method Options
+Solve method options
 --------------------
 
 The ``solve`` method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the ``solve`` method:
@@ -63,7 +63,7 @@ The ``solve`` method takes optional arguments that let you change how CVXPY solv
 
 We will discuss the optional arguments in detail below.
 
-Choosing a Solver
+Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY uses the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_. The table below shows the types of problems the solvers can handle.
@@ -114,7 +114,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CVXOPT: 6.82842708994
     optimal value with SCS: 6.82837896978
 
-Viewing Solver Output
+Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
 
 All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from the solvers, set ``verbose=True`` in the solve method.
@@ -142,7 +142,7 @@ All the solvers can print out information about their progress while solving the
 
     optimal value with ECOS: 6.82842708233
 
-Setting Solver Options
+Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The `CVXOPT`_ and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY using the ``solver_specific_opts`` keyword argument. The value of ``solver_specific_opts`` should be a dict of option keywords to option values.
@@ -191,7 +191,7 @@ For example, here we tell SCS to use a direct method for solving linear equation
     ============================================================================
     optimal value with SCS: 6.82837896975
 
-Getting the Standard Form
+Getting the standard form
 -------------------------
 
 If you are interested in getting the standard form that CVXPY produces for a problem, you can use the ``get_problem_data`` method. Calling ``get_problem_data(solver)`` on a problem object returns the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.
