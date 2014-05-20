@@ -38,11 +38,10 @@ regularization = norm(x, 1)
 constraints = [x >= 0]
 gamma.value = 0.06
 prob = Problem(Minimize(fit + gamma*regularization), constraints)
-solver_options = {"NORMALIZE": False, "MAX_ITERS": 2500}
-# result = prob.solve(solver=SCS,
-#                     expr_tree=True,
-#                     verbose=True,
-#                     solver_specific_opts=solver_options)
+solver_options = {"NORMALIZE": True, "MAX_ITERS": 2500}
+result = prob.solve(solver=SCS,
+                    verbose=True,
+                    solver_specific_opts=solver_options)
 # Get problem matrix.
 data, dims = prob.get_problem_data(solver=SCS)
 
