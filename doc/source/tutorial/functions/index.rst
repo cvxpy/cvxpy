@@ -138,6 +138,12 @@ and returns a scalar.
 | sum_entries(X)      | :math:`\sum_{ij}       | :math:`X \in                 | same as X           | |affine| affine   | |incr| incr.              |
 |                     | X_{ij}`                | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 +---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
+| sum_squares(X)      | :math:`\sum_{ij}       | :math:`X \in                 | |positive| positive | |convex| convex   | |incr| for                |
+|                     | X_{ij}^2`              | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{ij} \geq 0`     |
+|                     |                        |                              |                     |                   |                           |
+|                     |                        |                              |                     |                   | |decr| for                |
+|                     |                        |                              |                     |                   | :math:`X_{ij} \leq 0`     |
++---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
 
 Clarifications
 ^^^^^^^^^^^^^^
