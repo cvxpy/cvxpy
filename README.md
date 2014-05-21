@@ -148,7 +148,7 @@ CVXPY currently supports the following atoms:
 
 ### Disciplined Convex Programming (DCP)
 
-Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dstanford.edu/>.
+Expressions must follow the rules of Disciplined Convex Programming (DCP). Following the rules of DCP ensures that any problem you construct is convex. An interactive tutorial on DCP is available at <http://dcp.stanford.edu/>.
 
 DCP assigns a curvature and sign to every expression. The possible curvatures are constant, affine, convex, concave, and unknown. These curvatures have a natural heirarchy. Constant expressions are a kind of affine expression, and affine expressions are both convex and concave. The possible signs are positive (i.e., non-negative), negative (i.e., non-positive), and unknown.
 
