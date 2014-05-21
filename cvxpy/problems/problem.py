@@ -447,7 +447,7 @@ class Problem(u.Canonical):
                                             var_offsets, x_length)
         obj_offset = prob_data[1]
         opts = dict({"VERBOSE": verbose}.items() + opts.items())
-        results = ecos.solve(*prob_data[0], opts=opts)
+        results = ecos.solve(*prob_data[0], **opts)
         status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
         if status == s.OPTIMAL:
             primal_val = results['info']['pcost']
