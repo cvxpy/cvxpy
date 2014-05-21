@@ -63,6 +63,8 @@ The ``solve`` method takes optional arguments that let you change how CVXPY solv
 
 We will discuss the optional arguments in detail below.
 
+.. _solvers:
+
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 

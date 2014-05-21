@@ -58,3 +58,8 @@ CVXPY relies on the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_.
     :hidden:
 
     tutorial/index
+
+.. toctree::
+   :hidden:
+
+   citing/index
