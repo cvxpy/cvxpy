@@ -5,7 +5,7 @@ Citing CVXPY
 
 If you use CVXPY for published work, we encourage you to cite the software.
 
-Use the following BiBTeX citation:
+Use the following BibTeX citation:
 
 .. raw:: html
 
