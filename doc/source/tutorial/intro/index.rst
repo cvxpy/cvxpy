@@ -81,10 +81,12 @@ CVXPY imported as a namespace.
     print "optimal value", prob.value
     print "optimal var", x.value, y.value
 
-Nonetheless we have constructed CVXPY so that using ``from cvxpy import *``
+Nonetheless we have designed CVXPY so that using ``from cvxpy import *``
 is generally safe for short scripts. The biggest catch is that the built-in
 ``max`` and ``min`` cannot be used on CVXPY expressions. Instead use the
 CVXPY `functions <../functions/index.html>`__ ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
+
+The built-in ``sum`` can be used on lists of CVXPY expressions to add all the list elements together. Use the CVXPY `function <../functions/index.html>`__ ``sum_entries`` to sum the entries of a single CVXPY matrix or vector expression.
 
 Changing the problem
 --------------------

@@ -64,5 +64,7 @@ class sqrt(Elementwise):
         """
         x = arg_objs[0]
         t = lu.create_var(size)
+        # x >= 0 implied by x >= t^2.
+        # t >= 0 implied because t is only pushed to increase.
         obj, constraints = square.graph_implementation([t], size)
         return (t, constraints + [lu.create_leq(obj, x)])

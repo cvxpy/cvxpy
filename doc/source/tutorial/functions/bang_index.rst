@@ -154,8 +154,12 @@ For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean
 
 The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
 
-The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions.
+The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums the columns of a matrix variable:
 
+.. code:: python
+
+    X = Variable(100, 100)
+    col_sum = sum([X[:, i] for i in range(X.size[1])])
 
 .. _elementwise:
 
