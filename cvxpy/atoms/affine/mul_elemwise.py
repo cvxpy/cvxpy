@@ -41,12 +41,8 @@ class mul_elemwise(AffAtom):
         """Checks that the arguments are valid.
 
            Left-hand argument must be constant.
-           Both arguments must have the same dimensions.
         """
-        if self.args[0].size != self.args[1].size:
-            raise ValueError( ("Both arguments to mul_elemwise must "
-                               "have the same dimensions.") )
-        elif not self.args[0].is_constant():
+        if not self.args[0].is_constant():
             raise ValueError( ("The first argument to mul_elemwise must "
                                "be constant.") )
 
@@ -57,13 +53,6 @@ class mul_elemwise(AffAtom):
             self.args[0]._dcp_attr,
             self.args[1]._dcp_attr,
         )
-
-    def sign_from_args(self):
-        """The same as standard multiplication.
-        """
-        lh_sign = self.args[0]._dcp_attr.sign
-        rh_sign = self.args[1]._dcp_attr.sign
-        return lh_sign*rh_sign
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -83,4 +72,9 @@ class mul_elemwise(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        # Promote arguments if necessary.
+        for i, arg in enumerate(arg_objs):
+            if arg.size != size:
+                arg_objs[i] = lu.promote(arg, size)
+
         return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])

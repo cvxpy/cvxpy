@@ -889,3 +889,12 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, 10])
+
+        # Test promotion.
+        c = [[1, -1], [2, -2]]
+        expr = mul_elemwise(c, self.a)
+        obj = Minimize(normInf(expr))
+        p = Problem(obj, [self.a == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])

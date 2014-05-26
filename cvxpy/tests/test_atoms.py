@@ -193,10 +193,9 @@ class TestAtoms(unittest.TestCase):
 
         self.assertEquals(mul_elemwise(neg_param, square(self.x)).curvature, u.Curvature.CONCAVE_KEY)
 
-        with self.assertRaises(Exception) as cm:
-            mul_elemwise(self.C, 1)
-        self.assertEqual(str(cm.exception),
-            "Both arguments to mul_elemwise must have the same dimensions.")
+        # Test promotion.
+        self.assertEquals(mul_elemwise([1, -1], 1).size, (2, 1))
+        self.assertEquals(mul_elemwise(1, self.C).size, self.C.size)
 
         with self.assertRaises(Exception) as cm:
             mul_elemwise(self.x, [1, -1])
