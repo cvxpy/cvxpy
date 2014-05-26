@@ -44,6 +44,40 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
+
+.. _semidefinite:
+
+Semi-definite matrices
+----------------------
+
+Many convex optimization problems involve constraining matrices to be positive or negative semi-definite (e.g., SDPs). You can do this in CVXPY using the ``semidefinite`` constructor. ``semidefinite(n)`` constructs an ``n`` by ``n`` variable constrained to be positive semi-definite. For example,
+
+.. code:: python
+
+    # Creates a 100 by 100 positive semi-definite variable.
+    X = semidefinite(100)
+
+    # You can use X anywhere you would use
+    # a normal CVXPY variable.
+    obj = Minimize(norm(X) + sum_entries(X))
+
+The following code shows how to use ``semidefinite`` to constrain matrix expressions to be positive or negative semi-definite:
+
+.. code:: python
+
+    # expr1 must be positive semi-definite.
+    constr1 = (expr1 == semidefinite(n))
+
+    # expr2 must be negative semi-definite.
+    constr2 = (expr2 == -semidefinite(n))
+
+To constrain a matrix expression to be symmetric (but not necessarily positive or negative semi-definite), simply write
+
+.. code:: python
+
+    # expr must be symmetric.
+    constr = (expr == expr.T)
+
 Solve method options
 --------------------
 

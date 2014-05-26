@@ -404,7 +404,7 @@ p = Problem(Maximize(sink.accumulation), constraints)
 
 Note that the problem has been reframed from maximizing the flow along the source edge to maximizing the accumulation at the sink node. We could easily extend the Edge and Node class to model an electrical grid. Sink nodes would be consumers. Source nodes would be power stations, which generate electricity at a cost. A node could be both a source and a sink, which would represent energy storage facilities or a consumer who contributes to the grid. We could add energy loss along edges to more accurately model transmission lines. The entire grid construct could be embedded in a time series model.
 
-To see the object-oriented approach applied to more complex flow problems, look in the examples/flows/ directory.
+To see the object-oriented approach applied to more complex flow problems, look in the cvxpy/examples/flows/ directory.
 
 Non-Convex Extensions
 ---------------------
