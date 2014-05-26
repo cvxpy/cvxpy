@@ -19,48 +19,52 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.utilities as u
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
-class conv(AffAtom):
-    """ 1D discrete convolution of two vectors.
+class mul_elemwise(AffAtom):
+    """ Multiplies two expressions elementwise.
+
+    The first expression must be constant.
     """
-    # TODO work with right hand constant.
-    def __init__(self, lh_expr, rh_expr):
-        super(conv, self).__init__(lh_expr, rh_expr)
+
+    def __init__(self, lh_const, rh_expr):
+        super(mul_elemwise, self).__init__(lh_const, rh_expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Convolve the two values.
+        """Multiplies the values elementwise.
         """
-        # Convert values to 1D.
-        values = map(intf.from_2D_to_1D, values)
-        return np.convolve(values[0], values[1])
+        return np.multiply(values[0], values[1])
 
     def validate_arguments(self):
-        """Checks that both arguments are vectors, and the first is constant.
+        """Checks that the arguments are valid.
+
+           Left-hand argument must be constant.
+           Both arguments must have the same dimensions.
         """
-        if not self.args[0].is_vector() or not self.args[1].is_vector():
-            raise TypeError("The arguments to conv must resolve to vectors." )
-        if not self.args[0].is_constant():
-            raise TypeError("The first argument to conv must be constant.")
+        if self.args[0].size != self.args[1].size:
+            raise ValueError( ("Both arguments to mul_elemwise must "
+                               "have the same dimensions.") )
+        elif not self.args[0].is_constant():
+            raise ValueError( ("The first argument to mul_elemwise must "
+                               "be constant.") )
 
     def shape_from_args(self):
-        """The sum of the argument dimensions - 1.
+        """The same as the arguments' shape.
         """
-        lh_length = self.args[0].size[0]
-        rh_length = self.args[1].size[0]
-        return u.Shape(lh_length + rh_length - 1, 1)
+        return u.Shape(*self.args[0].size)
 
     def sign_from_args(self):
-        """Always unknown.
+        """The same as standard multiplication.
         """
-        return u.Sign.UNKNOWN
+        lh_sign = self.args[0]._dcp_attr.sign
+        rh_sign = self.args[1]._dcp_attr.sign
+        return lh_sign*rh_sign
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
-        """Convolve two vectors.
+        """Multiply the expressions elementwise.
 
         Parameters
         ----------
@@ -76,4 +80,4 @@ class conv(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.conv(arg_objs[0], arg_objs[1], size), [])
+        return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])

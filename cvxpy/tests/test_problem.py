@@ -736,7 +736,6 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 0)
 
         exp = (-self.x).T
-        print exp.size
         p = Problem(Minimize(sum_entries(self.x)), [(-self.x).T <= 1])
         result = p.solve()
         self.assertAlmostEqual(result, -2)
@@ -868,3 +867,25 @@ class TestProblem(BaseTest):
         p = Problem(obj, [self.A >= 5])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
+
+    def test_mul_elemwise(self):
+        """Tests problems with mul_elemwise.
+        """
+        c = [[1, -1], [2, -2]]
+        expr = mul_elemwise(c, self.A)
+        obj = Minimize(normInf(expr))
+        p = Problem(obj, [self.A == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
+
+        # Test with a sparse matrix.
+        import cvxopt
+        interface = intf.get_matrix_interface(cvxopt.spmatrix)
+        c = interface.const_to_matrix([1,2])
+        expr = mul_elemwise(c, self.x)
+        obj = Minimize(normInf(expr))
+        p = Problem(obj, [self.x == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, 10])

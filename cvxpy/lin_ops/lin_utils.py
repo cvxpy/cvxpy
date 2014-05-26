@@ -177,6 +177,23 @@ def mul_expr(lh_op, rh_op, size):
     """
     return lo.LinOp(lo.MUL, size, [rh_op], lh_op)
 
+def mul_elemwise(lh_op, rh_op):
+    """Multiply two linear operators elementwise.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the product.
+    rh_op : LinOp
+        The right-hand operator in the product.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the product.
+    """
+    return lo.LinOp(lo.MUL_ELEM, lh_op.size, [rh_op], lh_op)
+
 def div_expr(lh_op, rh_op):
     """Divide one linear operator by another.
 

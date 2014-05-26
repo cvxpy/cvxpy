@@ -66,6 +66,8 @@ def get_coefficients(lin_op):
         coeffs = neg_coeffs(lin_op)
     elif lin_op.type is lo.MUL:
         coeffs = mul_coeffs(lin_op)
+    elif lin_op.type is lo.MUL_ELEM:
+        coeffs = mul_elemwise_coeffs(lin_op)
     elif lin_op.type is lo.DIV:
         coeffs = div_coeffs(lin_op)
     elif lin_op.type is lo.SUM_ENTRIES:
@@ -208,6 +210,33 @@ def div_coeffs(lin_op):
         new_coeffs.append((id_, lh_size, coeff/divisor))
     return new_coeffs
 
+def mul_elemwise_coeffs(lin_op):
+    """Returns the coefficients for MUL_ELEM linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The mul_elem linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    lh_coeffs = get_coefficients(lin_op.data)
+    constant = merge_constants(lh_coeffs)
+    # Convert the constant to a giant diagonal matrix.
+    vectorized = intf.from_2D_to_1D(flatten(constant))
+    constant = sp.diags(vectorized, 0)
+    rh_coeffs = get_coefficients(lin_op.args[0])
+
+    new_coeffs = []
+    # Multiply left-hand constant by right-hand terms.
+    for (id_, rh_size, coeff) in rh_coeffs:
+        new_coeffs.append((id_, rh_size, constant*coeff))
+
+    return new_coeffs
+
 def mul_coeffs(lin_op):
     """Returns the coefficients for MUL linear op.
 
@@ -245,9 +274,9 @@ def mul_by_const(constant, rh_coeffs, size):
         A list of (id, size, coefficient) tuples.
     """
     new_coeffs = []
+    rep_mat = sp.block_diag(size[1]*[constant]).tocsc()
     # Multiply all left-hand constants by right-hand terms.
     for (id_, rh_size, coeff) in rh_coeffs:
-        rep_mat = sp.block_diag(size[1]*[constant]).tocsc()
         # For scalar right hand constants
         # or single column, just multiply.
         if intf.is_scalar(constant) or \

@@ -34,6 +34,9 @@ VARIABLE = "variable"
 # Multiplying an expression by a constant.
 # Data: LinOp evaluating to the left hand multiple.
 MUL = "mul"
+# Multiplying an expression elementwise by a constant.
+# Data: LinOp evaluating to the left hand multiple.
+MUL_ELEM = "mul_elem"
 # Dividing an expression by a scalar constant.
 # Data: LinOp evaluating to the divisor.
 DIV = "div"

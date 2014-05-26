@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import numpy as np
@@ -177,6 +178,29 @@ class TestAtoms(unittest.TestCase):
         mat = np.mat("1 -1")
         self.assertEquals(sum_entries(mat*square(Variable(2))).curvature, u.Curvature.UNKNOWN_KEY)
 
+
+    def test_mul_elemwise(self):
+        """Test the mul_elemwise atom.
+        """
+        self.assertEquals(mul_elemwise([1, -1], self.x).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(mul_elemwise([1, -1], self.x).curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(mul_elemwise([1, -1], self.x).size, (2, 1))
+        pos_param = Parameter(2, sign="positive")
+        neg_param = Parameter(2, sign="negative")
+        self.assertEquals(mul_elemwise(pos_param, pos_param).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(mul_elemwise(pos_param, neg_param).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEquals(mul_elemwise(neg_param, neg_param).sign, u.Sign.POSITIVE_KEY)
+
+        with self.assertRaises(Exception) as cm:
+            mul_elemwise(self.C, 1)
+        self.assertEqual(str(cm.exception),
+            "Both arguments to mul_elemwise must have the same dimensions.")
+
+        with self.assertRaises(Exception) as cm:
+            mul_elemwise(self.x, [1, -1])
+        self.assertEqual(str(cm.exception),
+            "The first argument to mul_elemwise must be constant.")
+
     # Test the vstack class.
     def test_vstack(self):
         atom = vstack(self.x, self.y, self.x)
@@ -202,5 +226,5 @@ class TestAtoms(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             vstack()
         self.assertEqual(str(cm.exception),
-            "No arguments given to 'vstack'.")
+            "No arguments given to vstack.")
 
