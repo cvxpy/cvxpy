@@ -83,6 +83,25 @@ class DCPAttr(object):
         curvature = Curvature.sign_mul(self.sign, other.curvature)
         return DCPAttr(sign, curvature, shape)
 
+    @staticmethod
+    def mul_elemwise(lh_expr, rh_expr):
+        """Determines the DCP attributes of expressions multiplied elementwise.
+
+        Assumes the left-hand argument has constant curvature and both
+        arguments have the same shape.
+
+        Args:
+            lh_expr: The DCPAttr of the left-hand expression.
+            rh_expr: The DCPAttr of the right-hand expression.
+
+        Returns:
+            The DCPAttr of the product.
+        """
+        shape = lh_expr.shape + rh_expr.shape
+        sign = lh_expr.sign * rh_expr.sign
+        curvature = Curvature.sign_mul(lh_expr.sign, rh_expr.curvature)
+        return DCPAttr(sign, curvature, shape)
+
     def __div__(self, other):
         """Determines the DCP attributes of one expression divided by another.
 

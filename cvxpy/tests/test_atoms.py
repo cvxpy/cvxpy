@@ -191,6 +191,8 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(mul_elemwise(pos_param, neg_param).sign, u.Sign.NEGATIVE_KEY)
         self.assertEquals(mul_elemwise(neg_param, neg_param).sign, u.Sign.POSITIVE_KEY)
 
+        self.assertEquals(mul_elemwise(neg_param, square(self.x)).curvature, u.Curvature.CONCAVE_KEY)
+
         with self.assertRaises(Exception) as cm:
             mul_elemwise(self.C, 1)
         self.assertEqual(str(cm.exception),

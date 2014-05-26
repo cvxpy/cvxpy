@@ -50,10 +50,13 @@ class mul_elemwise(AffAtom):
             raise ValueError( ("The first argument to mul_elemwise must "
                                "be constant.") )
 
-    def shape_from_args(self):
-        """The same as the arguments' shape.
+    def init_dcp_attr(self):
+        """Sets the sign, curvature, and shape.
         """
-        return u.Shape(*self.args[0].size)
+        self._dcp_attr = u.DCPAttr.mul_elemwise(
+            self.args[0]._dcp_attr,
+            self.args[1]._dcp_attr,
+        )
 
     def sign_from_args(self):
         """The same as standard multiplication.
