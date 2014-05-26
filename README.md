@@ -4,28 +4,29 @@ CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](ht
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
 
-CVXPY is a Python-embedded modeling language for optimization problems. CVXPY allows you to express your problem in a natural way. It automatically transforms the problem into standard form, calls a solver, and unpacks the results.
+CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
 ```
 from cvxpy import *
-import cvxopt
+import numpy
 
 # Problem data.
 m = 30
 n = 20
-A = cvxopt.normal(m,n)
-b = cvxopt.normal(m)
+numpy.random.seed(1)
+A = numpy.random.randn(m, n)
+b = numpy.random.randn(m)
 
 # Construct the problem.
 x = Variable(n)
-objective = Minimize(sum_entries(square(A*x - b)))
+objective = Minimize(sum_squares(A*x - b))
 constraints = [0 <= x, x <= 1]
-p = Problem(objective, constraints)
+prob = Problem(objective, constraints)
 
-# The optimal objective is returned by p.solve().
-result = p.solve()
+# The optimal objective is returned by prob.solve().
+result = prob.solve()
 # The optimal value for x is stored in x.value.
 print x.value
 # The optimal Lagrange multiplier for a constraint
