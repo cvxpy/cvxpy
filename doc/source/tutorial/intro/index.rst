@@ -224,7 +224,10 @@ Here's an example of a CVXPY problem with vectors and matrices:
      [  1.24978611e-01]
      [ -3.67846924e-11]]
 
-The constraints ``0 <= x`` and ``x <=  1`` are elementwise. Together they mean that every entry of ``x`` is between 0 and 1. Constraints are always elementwise, whether they involve scalars, vectors, or matrices. The section :ref:`semidefinite` explains how to express a semi-definite cone inequality.
+Vector and matrix constraints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The constraints ``0 <= x`` and ``x <= 1`` are elementwise. Together they mean that every entry of ``x`` is between 0 and 1. Constraints are always elementwise, whether they involve scalars, vectors, or matrices. The section :ref:`semidefinite` explains how to express a semi-definite cone inequality.
 
 Parameters
 ----------
