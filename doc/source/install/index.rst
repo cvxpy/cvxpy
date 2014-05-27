@@ -36,25 +36,31 @@ Mac OS X
 Ubuntu
 ------
 
-1. Install ``ATLAS`` and ``gfortran`` (needed for ``scs``).
+1. Make sure ``apt-get`` is up-to-date.
+
+  ::
+
+      sudo apt-get update
+
+2. Install ``ATLAS`` and ``gfortran`` (needed for ``scs``).
 
    ::
 
        sudo apt-get install libatlas-base-dev gfortran
 
-2. Install ``pip``.
+3. Install ``pip``.
 
    ::
 
        sudo apt-get install python-pip
 
-3. Install ``numpy`` and ``scipy``.
+4. Install ``numpy`` and ``scipy``.
 
    ::
 
        sudo apt-get install python-numpy python-scipy
 
-4. Install ``cvxpy``.
+5. Install ``cvxpy``.
 
    ::
 

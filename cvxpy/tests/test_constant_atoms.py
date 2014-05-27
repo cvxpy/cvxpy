@@ -114,34 +114,31 @@ atoms = [
     ], Maximize),
 ]
 
-def get_solver(prob, solver):
-    """Gets the solver that will be used by CVXPY.
+def check_solver(prob, solver):
+    """Can the solver solve the problem?
     """
-    constraints = []
-    obj, constr = prob.objective.canonical_form
-    constraints += constr
-    unique_constraints = list(OrderedSet(prob.constraints))
-    for constr in unique_constraints:
-        constraints += constr.canonical_form[1]
-    constr_map = prob._filter_constraints(constraints)
-    solver = prob._choose_solver(constr_map, solver)
-    return solver
+    objective, constr_map = prob.canonicalize()
+    try:
+        prob._validate_solver(constr_map, solver)
+        return True
+    except Exception, e:
+        return False
 
 # Tests numeric version of atoms.
 def run_atom(atom, problem, obj_val, solver):
     assert problem.is_dcp()
     print problem.objective
     print problem.constraints
-    solver = get_solver(problem, solver)
-    print "solver", solver
-    tolerance = SOLVER_TO_TOL[solver]
-    result = problem.solve(solver=solver)
-    if problem.status is OPTIMAL:
-        print result
-        print obj_val
-        assert( -tolerance <= result - obj_val <= tolerance )
-    else:
-        assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
+    if check_solver(problem, solver):
+        print "solver", solver
+        tolerance = SOLVER_TO_TOL[solver]
+        result = problem.solve(solver=solver)
+        if problem.status is OPTIMAL:
+            print result
+            print obj_val
+            assert( -tolerance <= result - obj_val <= tolerance )
+        else:
+            assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
 
 def test_atom():
     for atom_list, objective_type in atoms:
