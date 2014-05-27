@@ -20,9 +20,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # A custom KKT solver for CVXOPT that can handle redundant constraints.
 # Uses regularization and iterative refinement.
 
-from cvxopt import blas, lapack
-from cvxopt.base import matrix
+from cvxopt import blas, lapack, cholmod
+from cvxopt.base import matrix, spmatrix
 from cvxopt.misc import scale, pack, unpack
+import math
 
 # Regularization constant.
 REG_EPS = 1e-9
@@ -66,26 +67,31 @@ def kkt_ldl(G, dims, A, mnl = 0):
     p, n = A.size
     ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
         for k in dims['s'] ])
-    K = matrix(0.0, (ldK, ldK))
     ipiv = matrix(0, (ldK, 1))
     u = matrix(0.0, (ldK, 1))
     g = matrix(0.0, (mnl + G.size[0], 1))
 
     def factor(W, H = None, Df = None):
-        blas.scal(0.0, K)
+        K = spmatrix(0.0, [], [], size=(ldK, ldK))
         if H is not None: K[:n, :n] = H
         K[n:n+p, :n] = A
         for k in range(n):
             if mnl: g[:mnl] = Df[:,k]
             g[mnl:] = G[:,k]
             scale(g, W, trans = 'T', inverse = 'I')
-            pack(g, K, dims, mnl, offsety = k*ldK + n + p)
+            sparse_pack(g, K, dims, mnl, offsety = k*ldK + n + p)
         K[(ldK+1)*(p+n) :: ldK+1]  = -1.0
         # Add positive regularization in 1x1 block and negative in 2x2 block.
-        K[0 : (ldK+1)*n : ldK+1]  += REG_EPS
-        K[(ldK+1)*n :: ldK+1]  += -REG_EPS
-        lapack.sytrf(K, ipiv)
-
+        for i in range(0, (ldK+1)*n, ldK+1):
+            K[i] += REG_EPS
+        for i in range((ldK+1)*n, ldK*ldK, ldK+1):
+            K[i] -= REG_EPS
+        print K.size
+        # Factor K as LDL'.
+        cholmod.options['supernodal'] = 0
+        ipiv = cholmod.symbolic(K, uplo = 'L')
+        cholmod.numeric(K, ipiv)
+        print "hello2"
         def solve(x, y, z):
 
             # Solve
@@ -102,7 +108,8 @@ def kkt_ldl(G, dims, A, mnl = 0):
             blas.copy(y, u, offsety = n)
             scale(z, W, trans = 'T', inverse = 'I')
             pack(z, u, dims, mnl, offsety = n + p)
-            lapack.sytrs(K, ipiv, u)
+            # Backsolves using LDL' factorization of K.
+            cholmod.solve(ipiv, u)
             blas.copy(u, x, n = n)
             blas.copy(u, y, offsetx = n, n = p)
             unpack(u, z, dims, mnl, offsetx = n + p)
@@ -110,3 +117,33 @@ def kkt_ldl(G, dims, A, mnl = 0):
         return solve
 
     return factor
+
+def sparse_pack(x, y, dims, mnl = 0, offsetx = 0, offsety = 0):
+    """
+    Copy x to y using packed storage.
+
+    The vector x is an element of S, with the 's' components stored in
+    unpacked storage.  On return, x is copied to y with the 's' components
+    stored in packed storage and the off-diagonal entries scaled by
+    sqrt(2).
+    """
+
+    nlq = mnl + dims['l'] + sum(dims['q'])
+    # Copies elements from x to y, starting from offsetx in x
+    # and offsety in y.
+    y[offsety:offsety+nlq] = x[offsetx:offsetx+nlq]
+    #blas.copy(x, y, n = nlq, offsetx = offsetx, offsety = offsety)
+    iu, ip = offsetx + nlq, offsety + nlq
+    for n in dims['s']:
+       for k in range(n):
+           startx = iu + k*(n+1)
+           starty = ip
+           y[starty:starty + n-k] = x[startx:startx + n-k]
+           #blas.copy(x, y, n = n-k, offsetx = iu + k*(n+1), offsety = ip)
+           y[ip] /= math.sqrt(2)
+           ip += n-k
+       iu += n**2
+    np = sum([ int(n*(n+1)/2) for n in dims['s'] ])
+    offset = offsety+nlq
+    y[offset:offset+np] *= math.sqrt(2.0)
+    #blas.scal(math.sqrt(2.0), y, n = np, offset = offsety+nlq)
