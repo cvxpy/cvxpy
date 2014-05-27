@@ -24,6 +24,7 @@ from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
 from cvxopt import matrix
+import scipy.sparse as sp
 import unittest
 
 class TestProblem(unittest.TestCase):
@@ -74,3 +75,13 @@ class TestProblem(unittest.TestCase):
                 [x >= A])
             result = p.solve()
             self.assertAlmostEqual(result, 0)
+
+    def test_sdp(self):
+        """Test a problem with semidefinite cones.
+        """
+        a = sp.rand(100,100,.1, random_state=1)
+        a = a.todense()
+        X = Variable(100,100)
+        obj = at.norm(X, "nuc") + at.norm(X-a,'fro')
+        p = Problem(Minimize(obj))
+        p.solve(solver="SCS")

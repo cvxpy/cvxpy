@@ -67,12 +67,14 @@ def kkt_ldl(G, dims, A, mnl = 0):
     p, n = A.size
     ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
         for k in dims['s'] ])
+    K = matrix(0.0, (ldK, ldK))
     ipiv = matrix(0, (ldK, 1))
     u = matrix(0.0, (ldK, 1))
     g = matrix(0.0, (mnl + G.size[0], 1))
 
     def factor(W, H = None, Df = None):
-        K = spmatrix(0.0, [], [], size=(ldK, ldK))
+        blas.scal(0.0, K)
+        # K = spmatrix(0.0, [], [], size=(ldK, ldK))
         if H is not None: K[:n, :n] = H
         K[n:n+p, :n] = A
         for k in range(n):
@@ -86,12 +88,19 @@ def kkt_ldl(G, dims, A, mnl = 0):
             K[i] += REG_EPS
         for i in range((ldK+1)*n, ldK*ldK, ldK+1):
             K[i] -= REG_EPS
-        print K.size
+        lapack.sytrf(K, ipiv)
         # Factor K as LDL'.
-        cholmod.options['supernodal'] = 0
-        ipiv = cholmod.symbolic(K, uplo = 'L')
-        cholmod.numeric(K, ipiv)
-        print "hello2"
+        # cholmod.options['supernodal'] = 1
+        # ipiv = cholmod.symbolic(K, uplo = 'L')
+        # try:
+        #     cholmod.numeric(K, ipiv)
+        # except ArithmeticError, e:
+        #     flag = True
+        #     K = matrix(K)
+        #     ipiv = matrix(0, (ldK, 1))
+        #     lapack.sytrf(K, ipiv)
+        #     print "hello"
+
         def solve(x, y, z):
 
             # Solve
@@ -109,7 +118,8 @@ def kkt_ldl(G, dims, A, mnl = 0):
             scale(z, W, trans = 'T', inverse = 'I')
             pack(z, u, dims, mnl, offsety = n + p)
             # Backsolves using LDL' factorization of K.
-            cholmod.solve(ipiv, u)
+            lapack.sytrs(K, ipiv, u)
+            #cholmod.solve(ipiv, u)
             blas.copy(u, x, n = n)
             blas.copy(u, y, offsetx = n, n = p)
             unpack(u, z, dims, mnl, offsetx = n + p)
