@@ -229,3 +229,23 @@ class TestAtoms(unittest.TestCase):
         self.assertEqual(str(cm.exception),
             "No arguments given to vstack.")
 
+    def test_reshape(self):
+        """Test the reshape class.
+        """
+        expr = reshape(self.A, 4, 1)
+        self.assertEquals(expr.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(expr.size, (4, 1))
+
+        expr = reshape(expr, 2, 2)
+        self.assertEquals(expr.size, (2, 2))
+
+        expr = reshape(square(self.x), 1, 2)
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(expr.size, (1, 2))
+
+        with self.assertRaises(Exception) as cm:
+            reshape(self.C, 5, 4)
+        self.assertEqual(str(cm.exception),
+            "Invalid reshape dimensions (5, 4).")

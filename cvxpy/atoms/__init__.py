@@ -38,6 +38,7 @@ from sum_squares import sum_squares
 from affine.conv import conv
 from affine.hstack import hstack
 from affine.mul_elemwise import mul_elemwise
+from affine.reshape import reshape
 from affine.sum_entries import sum_entries
 from affine.vstack import vstack
 

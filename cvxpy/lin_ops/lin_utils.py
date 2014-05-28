@@ -310,6 +310,23 @@ def transpose(operator):
         constraints = [create_eq(new_var, operator)]
         return (new_op, constraints)
 
+def reshape(operator, size):
+    """Reshapes an operator.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to reshape.
+    size : tuple
+        The (rows, cols) of the reshaped operator.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the reshaped expression.
+    """
+    return lo.LinOp(lo.RESHAPE, size, [operator], None)
+
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.
     """
