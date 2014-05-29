@@ -224,10 +224,14 @@ Here's an example of a CVXPY problem with vectors and matrices:
      [  1.24978611e-01]
      [ -3.67846924e-11]]
 
-Vector and matrix constraints
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Constraints
+-----------
 
-The constraints ``0 <= x`` and ``x <= 1`` are elementwise. Together they mean that every entry of ``x`` is between 0 and 1. Constraints are always elementwise, whether they involve scalars, vectors, or matrices. The section :ref:`semidefinite` explains how to express a semi-definite cone inequality.
+As shown in the example code, you can use ``==``, ``<=``, and ``>=`` to construct constraints in CVXPY. Equality and inequality constraints are elementwise, whether they involve scalars, vectors, or matrices. For example, together the constraints ``0 <= x`` and ``x <= 1`` mean that every entry of ``x`` is between 0 and 1.
+
+If you want matrix inequalities that represent semi-definite cone constraints, see :ref:`semidefinite`. The section explains how to express a semi-definite cone inequality.
+
+You cannot construct inequalities with ``<`` and ``>``. Strict inequalities don't make sense in a real world setting. Also, you cannot chain constraints together, e.g., ``0 <= x <= 1`` or ``x == y == 2``. The Python interpreter treats chained constraints in such a way that CVXPY cannot capture them. CVXPY will raise an exception if you write a chained constraint.
 
 Parameters
 ----------
