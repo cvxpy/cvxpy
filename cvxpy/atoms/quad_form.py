@@ -17,17 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import interface as intf
-from ..expressions.expression import Expression
-from ..expressions.constants import Constant
-from norm2 import norm2
+import cvxpy.interface as intf
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.constants import Constant
+from norm import norm
 from elementwise.square import square
 from scipy import linalg as LA
 import numpy as np
 
 class CvxPyDomainError(Exception):
     pass
-
 
 def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
@@ -98,6 +97,6 @@ def quad_form(x, P):
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
         sgn, scale, M = _decomp_quad(P)
-        return sgn * scale * square(norm2(Constant(M.T) * x))
+        return sgn * scale * square(norm(Constant(M.T) * x))
     else:
         raise Exception("At least one argument to quad_form must be constant.")

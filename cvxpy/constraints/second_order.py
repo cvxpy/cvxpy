@@ -49,4 +49,4 @@ class SOC(object):
         rows = 1
         for elem in self.x_elems:
             rows += elem.size[0]*elem.size[1]
-        return (rows, 1)
+        return [(rows, 1)]

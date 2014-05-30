@@ -52,7 +52,7 @@ class index(AffAtom):
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
-        """Index into the expression.
+        """Index/slice into the expression.
 
         Parameters
         ----------

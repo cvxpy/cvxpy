@@ -117,8 +117,6 @@ class Problem(u.Canonical):
                 constr_map[s.EQ].append(c)
             elif isinstance(c, lo.LinLeqConstr):
                 constr_map[s.LEQ].append(c)
-            elif isinstance(c, SOC_Elemwise):
-                constr_map[s.SOC_EW].append(c)
             elif isinstance(c, SOC):
                 constr_map[s.SOC].append(c)
             elif isinstance(c, SDP):
@@ -166,14 +164,14 @@ class Problem(u.Canonical):
         dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
         dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
         # Formats SOC, SOC_EW, and SDP constraints for the solver.
-        nonlin = constr_map[s.SOC] + constr_map[s.SOC_EW] + constr_map[s.SDP]
+        nonlin = constr_map[s.SOC] + constr_map[s.SDP]
         for constr in nonlin:
             for ineq_constr in constr.format():
                 constr_map[s.LEQ].append(ineq_constr)
-        dims["q"] = [c.size[0] for c in constr_map[s.SOC]]
         # Elemwise SOC constraints have an SOC constraint
         # for each element in their arguments.
-        for constr in constr_map[s.SOC_EW]:
+        dims["q"] = []
+        for constr in constr_map[s.SOC]:
             for cone_size in constr.size:
                 dims["q"].append(cone_size[0])
         dims["s"] = [c.size[0] for c in constr_map[s.SDP]]
