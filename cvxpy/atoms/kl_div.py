@@ -38,25 +38,31 @@ class kl_div(Atom):
         #TODO return inf outside the domain
         return xlogy(x, x/y) - x + y
 
-    # Resolves to a scalar.
     def shape_from_args(self):
+        """Resolves to a scalar.
+        """
         return u.Shape(1, 1)
 
-    # Always positive.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature is convex.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Neither increasing nor decreasing.
+        """
         return len(self.args)*[u.monotonicity.NONMONOTONIC]
 
-    # Only scalar arguments are valid.
     def validate_arguments(self):
+        """Check dimensions of arguments.
+        """
         if not self.args[0].is_scalar() or not self.args[1].is_scalar():
-            raise TypeError("The arguments to kl_div must resolve to scalars." )
+            raise ValueError("The arguments to kl_div must resolve to scalars.")
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

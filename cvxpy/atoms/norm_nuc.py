@@ -30,25 +30,31 @@ class normNuc(Atom):
     def __init__(self, A):
         super(normNuc, self).__init__(A)
 
-    # Returns the nuclear norm (i.e. the sum of the singular values) of A.
     @Atom.numpy_numeric
     def numeric(self, values):
+        """Returns the nuclear norm (i.e. the sum of the singular values) of A.
+        """
         U,s,V = LA.svd(values[0])
         return sum(s)
 
-    # Resolves to a scalar.
     def shape_from_args(self):
-        return u.Shape(1,1)
+        """Resolves to a scalar.
+        """
+        return u.Shape(1, 1)
 
-    # Always positive.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Neither increasing nor decreasing.
+        """
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod
@@ -69,23 +75,23 @@ class normNuc(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # m by n matrix.
-        n, m = A.size
+        A = arg_objs[0]
+        rows, cols = A.size
         # Create the equivalent problem:
         #   minimize (trace(U) + trace(V))/2
         #   subject to:
         #            [U A; A.T V] is positive semidefinite
-        X = lu.create_var((n+m, n+m))
+        X = lu.create_var((rows+cols, rows+cols))
         # Expand A.T.
-        obj, constraints = transpose.graph_implementation([A], (m, n))
+        obj, constraints = transpose.graph_implementation([A], (cols, rows))
         # Fix X using the fact that A must be affine by the DCP rules.
-        # X[0:n,n:n+m] == A
+        # X[0:rows,rows:rows+cols] == A
         index.block_eq(X, A, constraints,
-                       0, n, n, n+m)
-        # X[n:n+m,0:n] == obj
+                       0, rows, rows, rows+cols)
+        # X[rows:rows+cols,0:rows] == A.T
         index.block_eq(X, obj, constraints,
-                       n, n+m, 0, n)
-        diag = [index.get_index(X, constraints, i, i) for i in range(n+m)]
+                       rows, rows+cols, 0, rows)
+        diag = [index.get_index(X, constraints, i, i) for i in range(rows+cols)]
         half = lu.create_const(0.5, (1, 1))
         trace = lu.mul_expr(half, lu.sum_expr(diag), (1, 1))
         # Add SDP constraint.

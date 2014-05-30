@@ -19,13 +19,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 from cvxpy.atoms.atom import Atom
+import operator as op
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
-    # The shape is the same as the argument's shape.
+
     def shape_from_args(self):
-        return self.args[0].shape
+        """Shape is the same as the sum of the arguments.
+        """
+        return reduce(op.add, [arg.shape for arg in self.args])
 
     def validate_arguments(self):
         """

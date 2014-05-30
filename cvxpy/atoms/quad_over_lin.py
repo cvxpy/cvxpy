@@ -36,20 +36,24 @@ class quad_over_lin(Atom):
         """
         return np.square(values[0]).sum()/values[1]
 
-    # Resolves to a scalar.
     def shape_from_args(self):
+        """Resolves to a scalar.
+        """
         return u.Shape(1,1)
 
-    # Always positive.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature is convex.
+        """
         return u.Curvature.CONVEX
 
-    # Increasing for positive entry of x, decreasing for negative.
     def monotonicity(self):
+        """Increasing for positive x and decreasing for negative.
+        """
         return [u.monotonicity.SIGNED, u.monotonicity.DECREASING]
 
     def validate_arguments(self):

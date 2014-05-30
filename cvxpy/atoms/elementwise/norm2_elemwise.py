@@ -17,31 +17,26 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints import SOC_Elemwise
+import numpy as np
 from numpy import linalg as LA
 
-class norm1(Atom):
-    """L1 norm; :math:`\sum_i|x_i|`.
-
+class norm2_elemwise(Elementwise):
+    """Groups corresponding elements and takes the L2 norm.
     """
-    def __init__(self, x):
-        super(norm1, self).__init__(x)
 
-    @Atom.numpy_numeric
+    @Elementwise.numpy_numeric
     def numeric(self, values):
-        """Returns the L1 norm of x.
+        """Stack the values and take the L2 norms of the columns.
         """
-        cols = values[0].shape[1]
-        return sum([LA.norm(values[0][:, i], 1) for i in range(cols)])
-
-    def shape_from_args(self):
-        """Resolves to a scalar.
-        """
-        return u.Shape(1, 1)
+        rows, cols = self.size
+        mat_3D = np.zeros((rows, cols, len(values)))
+        for i in range(len(values)):
+            mat_3D[:, :, i] = values[i]
+        return LA.norm(mat_3D, axis=2)
 
     def sign_from_args(self):
         """Always positive.
@@ -56,7 +51,7 @@ class norm1(Atom):
     def monotonicity(self):
         """Increasing for positive arguments and decreasing for negative.
         """
-        return [u.monotonicity.SIGNED]
+        return len(self.args)*[u.monotonicity.SIGNED]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -76,7 +71,10 @@ class norm1(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = arg_objs[0]
-        obj, abs_constr = abs.graph_implementation([x], x.size)
-        obj, sum_constr = sum_entries.graph_implementation([obj], (1, 1))
-        return (obj, abs_constr + sum_constr)
+        t = lu.create_var(size)
+        for i, obj in enumerate(arg_objs):
+            # Promote obj.
+            if obj.size != size:
+                arg_objs[i] = lu.promote(obj, size)
+
+        return (t, SOC_Elemwise(t, arg_objs))

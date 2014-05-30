@@ -765,6 +765,7 @@ class Problem(u.Canonical):
             offset += constr.size[0]*constr.size[1]
         active_constraints = []
         for constr in self.constraints:
+            # Ignore constraints of the wrong type.
             if type(constr) == constr_type:
                 active_constraints.append(constr)
         self._save_values(result_vec, active_constraints, constr_offsets)

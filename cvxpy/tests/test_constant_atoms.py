@@ -66,6 +66,7 @@ atoms = [
         (norm([[-1, 2], [3, -4]],"inf"), Constant([4])),
         (norm([[2,0],[0,1]],"nuc"), Constant([3])),
         (norm([[3,4,5],[6,7,8],[9,10,11]],"nuc"), Constant([23.1733])),
+        (norm([[3,4,5],[6,7,8]],"nuc"), Constant([14.61838])),
         (pos(8), Constant([8])),
         (pos([-3,2]), Constant([0,2])),
         (neg([-3,3]), Constant([3,0])),
@@ -86,6 +87,10 @@ atoms = [
         (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
         (sum_squares([[-1, 2],[3, -4]]), Constant([30])),
+        (tv([1,-1,2]), Constant([5])),
+        (tv([[1],[-1],[2]]), Constant([5])),
+        (tv([[-5,2],[-3,1]]), Constant([math.sqrt(53)])),
+        (tv([[3,4,5],[6,7,8],[9,10,11]]), Constant([4*math.sqrt(10)])),
     ], Minimize),
     ([
         (entr([[1, math.e],[math.e**2, 1.0/math.e]]),

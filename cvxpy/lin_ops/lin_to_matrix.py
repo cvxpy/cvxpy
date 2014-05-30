@@ -264,6 +264,7 @@ def mul_by_const(constant, rh_coeffs, size):
         # For scalar left hand constants,
         # if right hand term is constant,
         # or single column, just multiply.
+        # Keeps scalars and dense constants as original type.
         if intf.is_scalar(constant) or \
            id_ is lo.CONSTANT_ID or size[1] == 1:
             product = constant*coeff

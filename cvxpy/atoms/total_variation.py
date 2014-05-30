@@ -19,8 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
+from cvxpy.atoms.elementwise.norm2_elemwise import norm2_elemwise
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.affine.sum_entries import sum_entries
 
 def tv(value):
     """Total variation of a vector or matrix.
@@ -49,7 +50,4 @@ def tv(value):
     else:
         row_diff = value[0:rows-1, 1:cols] - value[0:rows-1, 0:cols-1]
         col_diff = value[1:rows, 0:cols-1] - value[0:rows-1, 0:cols-1]
-        row_diff_vec = reshape(row_diff, 1, rows*cols)
-        col_diff_vec = reshape(col_diff, 1, rows*cols)
-        diffs = vstack(row_diff_vec, col_diff_vec)
-        return col_norm2(diffs)
+        return sum_entries(norm2_elemwise(row_diff, col_diff))

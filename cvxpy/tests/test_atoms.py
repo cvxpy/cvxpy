@@ -144,6 +144,12 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(max_elemwise(-2, Variable(), 0, -1, Variable(), 1).sign,
                           u.Sign.POSITIVE_KEY)
 
+        # Promotion.
+        self.assertEquals(max_elemwise(1, Variable(2)).sign,
+                          u.Sign.POSITIVE_KEY)
+        self.assertEquals(max_elemwise(1, Variable(2)).size,
+                          (2, 1))
+
     # Test sign logic for min_elemwise.
     def test_min_elemwise_sign(self):
         # Two args.
@@ -164,6 +170,12 @@ class TestAtoms(unittest.TestCase):
         # Many args.
         self.assertEquals(min_elemwise(-2, Variable(), 0, -1, Variable(), 1).sign,
                           u.Sign.NEGATIVE_KEY)
+
+        # Promotion.
+        self.assertEquals(min_elemwise(-1, Variable(2)).sign,
+                          u.Sign.NEGATIVE_KEY)
+        self.assertEquals(min_elemwise(-1, Variable(2)).size,
+                          (2, 1))
 
     def test_sum_entries(self):
         """Test the sum_entries atom.
