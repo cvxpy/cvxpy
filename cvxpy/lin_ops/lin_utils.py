@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
-import numpy as np
 
 # Utility functions for dealing with LinOp.
 
@@ -228,10 +227,9 @@ def promote(operator, size):
     Returns
     -------
     LinOp
-        The promoted operator.
+        A linear operator representing the promotion.
     """
-    ones = create_const(np.ones(size), size)
-    return mul_expr(ones, operator, size)
+    return lo.LinOp(lo.PROMOTE, size, [operator], None)
 
 def sum_entries(operator):
     """Sum the entries of an operator.
@@ -296,19 +294,11 @@ def transpose(operator):
 
     Returns
     -------
-    tuple
-       (LinOp representing the transpose, [constraints])
+    LinOp
+       A linear operator representing the transpose.
     """
     size = (operator.size[1], operator.size[0])
-    # If operator is a Variable, no need to create a new variable.
-    if operator.type is lo.VARIABLE:
-        return (lo.LinOp(lo.TRANSPOSE, size, [operator], None), [])
-    # Operator is not a variable, create a constraint and new variable.
-    else:
-        new_var = create_var(operator.size)
-        new_op = lo.LinOp(lo.TRANSPOSE, size, [new_var], None)
-        constraints = [create_eq(new_var, operator)]
-        return (new_op, constraints)
+    return lo.LinOp(lo.TRANSPOSE, size, [operator], None)
 
 def reshape(operator, size):
     """Reshapes an operator.
@@ -326,6 +316,22 @@ def reshape(operator, size):
        LinOp representing the reshaped expression.
     """
     return lo.LinOp(lo.RESHAPE, size, [operator], None)
+
+def diag_vec(operator):
+    """Converts a vector to a diagonal matrix.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to diagonalize.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the diagonalized expression.
+    """
+    size = (operator.size[0], operator.size[0])
+    return lo.LinOp(lo.DIAG_VEC, size, [operator], None)
 
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.

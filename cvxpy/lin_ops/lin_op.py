@@ -31,6 +31,9 @@ LinOp = namedtuple("LinOp", ["type",
 # A variable.
 # Data: var id.
 VARIABLE = "variable"
+# Promoting a scalar expression.
+# Data: None
+PROMOTE = "promote"
 # Multiplying an expression by a constant.
 # Data: LinOp evaluating to the left hand multiple.
 MUL = "mul"
@@ -56,6 +59,12 @@ SUM_ENTRIES = "sum_entries"
 # An expression cast into a different shape.
 # Data: None
 RESHAPE = "reshape"
+# Converts a vector to a diagonal matrix.
+# Data: None
+DIAG_VEC = "diag_vec"
+# Converts the diagonal of a matrix to a vector.
+# Data: None
+DIAG_MAT = "diag_mat"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.
 CONV = "conv"

@@ -56,7 +56,7 @@ class huber_pos(Elementwise):
                 else:
                     x[row, col] = x[row, col]**2
 
-        return values[0]
+        return x
 
     # Always positive.
     def sign_from_args(self):

@@ -89,7 +89,7 @@ class lambda_min(Atom):
         constraints.append(lu.create_eq(A, obj))
         # SDP constraint.
         t = lu.create_var((1, 1))
-        I = lu.create_const(sp.eye(n, n), (n, n))
+        prom_t = lu.promote(t, (n, 1))
         # I*t - A
-        expr = lu.sub_expr(A, lu.mul_expr(I, t, (n, n)))
+        expr = lu.sub_expr(A, lu.diag_vec(prom_t))
         return (t, [SDP(expr)] + constraints)

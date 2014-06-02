@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints import SOC_Elemwise
+import scipy.sparse as sp
 
 def qol_elemwise(arg_objs, size, data=None):
     """Reduces the atom to an affine expression and list of constraints.

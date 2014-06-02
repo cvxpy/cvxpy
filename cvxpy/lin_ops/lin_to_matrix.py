@@ -49,19 +49,23 @@ def get_coefficients(lin_op):
     Returns
     -------
     list
-        A list of (id, size, coefficient) tuples.
+        A list of (id, coefficient) tuples.
     """
     # VARIABLE converts to a giant identity matrix.
     if lin_op.type is lo.VARIABLE:
         coeffs = var_coeffs(lin_op)
     # Constants convert directly to their value.
-    elif lin_op.type is lo.PARAM:
-        coeffs = [(lo.CONSTANT_ID, lin_op.size, lin_op.data.value)]
-    elif lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
-        coeffs = [(lo.CONSTANT_ID, lin_op.size, lin_op.data)]
-    # For non-leaves, recurse on args.
+    elif lin_op.type in CONSTANT_TYPES:
+        mat = const_mat(lin_op)
+        coeffs = [(lo.CONSTANT_ID, flatten(mat))]
+    # Sum concatenates coefficients.
+    elif lin_op.type is lo.SUM:
+        coeffs = sum_coeffs(lin_op)
+    # All other types operate via a coefficient matrix.
     elif lin_op.type in TYPE_TO_FUNC:
-        coeffs = TYPE_TO_FUNC[lin_op.type](lin_op)
+        coeff_mat = TYPE_TO_FUNC[lin_op.type](lin_op)
+        rh_coeffs = get_coefficients(lin_op.args[0])
+        coeffs = mul_by_const(coeff_mat, rh_coeffs)
     else:
         raise Exception("Unknown linear operator.")
     return coeffs
@@ -80,9 +84,48 @@ def var_coeffs(lin_op):
        A list of (id, size, coefficient) tuples.
     """
     id_ = lin_op.data
-    size = lin_op.size
     coeff = sp.eye(lin_op.size[0]*lin_op.size[1]).tocsc()
-    return [(id_, size, coeff)]
+    return [(id_, coeff)]
+
+def const_mat(lin_op):
+    """Returns the matrix for a constant type.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The linear op.
+
+    Returns
+    -------
+    A numerical constant.
+    """
+    if lin_op.type is lo.PARAM:
+        coeff = lin_op.data.value
+    elif lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
+        coeff = lin_op.data
+    return coeff
+
+def mul_by_const(constant, rh_coeffs):
+    """Multiplies a constant by a list of coefficients.
+
+    Parameters
+    ----------
+    constant : numeric type
+        The constant to multiply by.
+    rh_coeffs : list
+        The coefficients of the right hand side.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    new_coeffs = []
+    # Multiply all right-hand terms by the left-hand constant.
+    for (id_, coeff) in rh_coeffs:
+        new_coeffs.append((id_, constant*coeff))
+
+    return new_coeffs
 
 def sum_coeffs(lin_op):
     """Returns the coefficients for SUM linear op.
@@ -102,8 +145,8 @@ def sum_coeffs(lin_op):
         coeffs += get_coefficients(arg)
     return coeffs
 
-def sum_entries_coeffs(lin_op):
-    """Returns the coefficients for SUM_ENTRIES linear op.
+def sum_entries_mat(lin_op):
+    """Returns the coefficient matrix for SUM_ENTRIES linear op.
 
     Parameters
     ----------
@@ -112,24 +155,14 @@ def sum_entries_coeffs(lin_op):
 
     Returns
     -------
-    list
-       A list of (id, size, coefficient) tuples.
+    NumPy array
+        The matrix representing the sum_entries operation.
     """
-    coeffs = get_coefficients(lin_op.args[0])
-    new_coeffs = []
-    for id_, size, block in coeffs:
-        # Sum all elements if constant.
-        if id_ is lo.CONSTANT_ID:
-            size = (1, 1)
-            block = np.sum(block)
-        # Sum columns if variable.
-        else:
-            block = block.sum(axis=0)
-        new_coeffs.append((id_, size, block))
-    return new_coeffs
+    rows, cols = lin_op.args[0].size
+    return np.ones((1, rows*cols))
 
-def neg_coeffs(lin_op):
-    """Returns the coefficients for NEG linear op.
+def neg_mat(lin_op):
+    """Returns the coefficient matrix for NEG linear op.
 
     Parameters
     ----------
@@ -138,39 +171,14 @@ def neg_coeffs(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix representing the neg operation.
     """
-    coeffs = get_coefficients(lin_op.args[0])
-    new_coeffs = []
-    for id_, size, block in coeffs:
-        new_coeffs.append((id_, size, -block))
-    return new_coeffs
+    mat = -sp.eye(lin_op.size[0]*lin_op.size[1])
+    return mat.tocsc()
 
-def merge_constants(coeffs):
-    """Sums all the constant coefficients.
-
-    Parameters
-    ----------
-    coeffs : list
-        A list of (id, size, coefficient) tuples.
-
-    Returns
-    -------
-    The constant term.
-    """
-    constant = None
-    for id_, size, block in coeffs:
-        # Sum constants.
-        if id_ is lo.CONSTANT_ID:
-            if constant is None:
-                constant = block
-            else:
-                constant += block
-    return constant
-
-def div_coeffs(lin_op):
-    """Returns the coefficients for DIV linea op.
+def div_mat(lin_op):
+    """Returns the coefficient matrix for DIV linear op.
 
     Assumes dividing by scalar constants.
 
@@ -181,21 +189,15 @@ def div_coeffs(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix representing the div operation.
     """
-    rh_coeffs = get_coefficients(lin_op.data)
-    divisor = merge_constants(rh_coeffs)
+    divisor = const_mat(lin_op.data)
+    mat = sp.eye(lin_op.size[0]*lin_op.size[1])/divisor
+    return mat.tocsc()
 
-    lh_coeffs = get_coefficients(lin_op.args[0])
-    new_coeffs = []
-    # Divide all right-hand constants by left-hand constant.
-    for (id_, lh_size, coeff) in lh_coeffs:
-        new_coeffs.append((id_, lh_size, coeff/divisor))
-    return new_coeffs
-
-def mul_elemwise_coeffs(lin_op):
-    """Returns the coefficients for MUL_ELEM linear op.
+def mul_elemwise_mat(lin_op):
+    """Returns the coefficient matrix for MUL_ELEM linear op.
 
     Parameters
     ----------
@@ -204,25 +206,32 @@ def mul_elemwise_coeffs(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix representing the mul_elemwise operation.
     """
-    lh_coeffs = get_coefficients(lin_op.data)
-    constant = merge_constants(lh_coeffs)
+    constant = const_mat(lin_op.data)
     # Convert the constant to a giant diagonal matrix.
     vectorized = intf.from_2D_to_1D(flatten(constant))
-    constant = sp.diags(vectorized, 0)
-    rh_coeffs = get_coefficients(lin_op.args[0])
+    return sp.diags(vectorized, 0).tocsc()
 
-    new_coeffs = []
-    # Multiply left-hand constant by right-hand terms.
-    for (id_, rh_size, coeff) in rh_coeffs:
-        new_coeffs.append((id_, rh_size, constant*coeff))
+def promote_mat(lin_op):
+    """Returns the coefficient matrix for PROMOTE linear op.
 
-    return new_coeffs
+    Parameters
+    ----------
+    lin_op : LinOp
+        The promote linear op.
 
-def mul_coeffs(lin_op):
-    """Returns the coefficients for MUL linear op.
+    Returns
+    -------
+    NumPy ND array
+        The matrix for scalar promotion.
+    """
+    num_entries = lin_op.size[0]*lin_op.size[1]
+    return np.ones((num_entries, 1))
+
+def mul_mat(lin_op):
+    """Returns the coefficient matrix for MUL linear op.
 
     Parameters
     ----------
@@ -231,58 +240,17 @@ def mul_coeffs(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix or scalar.
+        The matrix for the multiplication on the left operator.
     """
-    lh_coeffs = get_coefficients(lin_op.data)
-    constant = merge_constants(lh_coeffs)
-    rh_coeffs = get_coefficients(lin_op.args[0])
+    constant = const_mat(lin_op.data)
+    # Scalars don't need to be replicated.
+    if not intf.is_scalar(constant):
+        constant = sp.block_diag(lin_op.size[1]*[constant]).tocsc()
+    return constant
 
-    return mul_by_const(constant, rh_coeffs, lin_op.size)
-
-def mul_by_const(constant, rh_coeffs, size):
-    """Multiplies a constant by a list of coefficients.
-
-    Parameters
-    ----------
-    constant : numeric type
-        The constant to multiply by.
-    rh_coeffs : list
-        The coefficients of the right hand side.
-    size : tuple
-        (product rows, product columns)
-
-    Returns
-    -------
-    list
-        A list of (id, size, coefficient) tuples.
-    """
-    new_coeffs = []
-    rep_mat = sp.block_diag(size[1]*[constant]).tocsc()
-    # Multiply all left-hand constants by right-hand terms.
-    for (id_, rh_size, coeff) in rh_coeffs:
-        # For scalar left hand constants,
-        # if right hand term is constant,
-        # or single column, just multiply.
-        # Keeps scalars and dense constants as original type.
-        if intf.is_scalar(constant) or \
-           id_ is lo.CONSTANT_ID or size[1] == 1:
-            product = constant*coeff
-        # For promoted variables with matrix coefficients,
-        # flatten the matrix.
-        elif size != (1, 1) and intf.is_scalar(coeff):
-            flattened_const = flatten(constant)
-            product = flattened_const*coeff
-        # Otherwise replicate the matrix.
-        else:
-            product = rep_mat*coeff
-        new_coeffs.append((id_, rh_size, product))
-    rh_coeffs = new_coeffs
-
-    return new_coeffs
-
-def index_var(lin_op):
-    """Returns the coefficients from indexing a raw variable.
+def index_mat(lin_op):
+    """Returns the coefficient matrix for indexing.
 
     Parameters
     ----------
@@ -291,13 +259,13 @@ def index_var(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix for the index/slice operation.
     """
     key = lin_op.data
-    var_rows, var_cols = lin_op.args[0].size
-    row_selection = range(var_rows)[key[0]]
-    col_selection = range(var_cols)[key[1]]
+    rows, cols = lin_op.args[0].size
+    row_selection = range(rows)[key[0]]
+    col_selection = range(cols)[key[1]]
     # Construct a coo matrix.
     val_arr = []
     row_arr = []
@@ -307,113 +275,15 @@ def index_var(lin_op):
         for row in row_selection:
             val_arr.append(1.0)
             row_arr.append(counter)
-            col_arr.append(col*var_rows + row)
+            col_arr.append(col*rows + row)
             counter += 1
     block_rows = lin_op.size[0]*lin_op.size[1]
-    block_cols = var_rows*var_cols
-    block = sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                          (block_rows, block_cols)).tocsc()
-    return [(lin_op.args[0].data, lin_op.args[0].size, block)]
+    block_cols = rows*cols
+    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                         (block_rows, block_cols)).tocsc()
 
-def index_coeffs(lin_op):
-    """Returns the coefficients for INDEX linear op.
-
-    Parameters
-    ----------
-    lin_op : LinOp
-        The index linear op.
-
-    Returns
-    -------
-    list
-        A list of (id, size, coefficient) tuples.
-    """
-    # Special case if variable.
-    if lin_op.args[0].type is lo.VARIABLE:
-        return index_var(lin_op)
-    key = lin_op.data
-    coeffs = get_coefficients(lin_op.args[0])
-    new_coeffs = []
-    for id_, size, block in coeffs:
-        # Index/slice constants normally.
-        if id_ is lo.CONSTANT_ID:
-            size = lin_op.size
-            block = intf.index(block, key)
-        # Split into column blocks, slice column blocks list,
-        # then index each column block and merge.
-        else:
-            block = get_index_block(block, lin_op.args[0].size, key)
-        new_coeffs.append((id_, size, block))
-
-    return new_coeffs
-
-def get_index_block(block, idx_size, key):
-    """Transforms a coefficient into an indexed coefficient.
-
-    Parameters
-    ----------
-    block : matrix
-        The coefficient matrix.
-    idx_size : tuple
-        The dimensions of the indexed expression.
-    key : tuple
-        (row slice, column slice)
-
-    Returns
-    -------
-    The indexed/sliced coefficient matrix.
-    """
-    rows, cols = idx_size
-    # Number of rows in each column block.
-    # and number of column blocks.
-    col_selection = range(cols)[key[1]]
-    # Split into column blocks.
-    col_blocks = get_col_blocks(rows, block, col_selection)
-    # Select rows from each remaining column block.
-    row_key = (key[0], slice(None, None, None))
-    # Short circuit for single column.
-    if len(col_blocks) == 1:
-        block = intf.index(col_blocks[0], row_key)
-    else:
-        indexed_blocks = []
-        for col_block in col_blocks:
-            idx_block = intf.index(col_block, row_key)
-            # Convert to sparse CSC matrix.
-            sp_intf = intf.DEFAULT_SPARSE_INTERFACE
-            idx_block = sp_intf.const_to_matrix(idx_block)
-            indexed_blocks.append(idx_block)
-        block = sp.vstack(indexed_blocks)
-    return block
-
-def get_col_blocks(rows, coeff, col_selection):
-    """Selects column blocks from a matrix.
-
-    Parameters
-    ----------
-    rows : int
-        The number of rows in the expression.
-    coeff : NumPy matrix or SciPy sparse matrix
-        The coefficient matrix to split.
-    col_selection : list
-        The indices of the columns to select.
-
-    Returns
-    -------
-    list
-        A list of column blocks from the coeff matrix.
-    """
-    col_blocks = []
-    for col in col_selection:
-        key = (slice(col*rows, (col+1)*rows, 1),
-               slice(None, None, None))
-        block = intf.index(coeff, key)
-        col_blocks.append(block)
-    return col_blocks
-
-def transpose_coeffs(lin_op):
-    """Returns the coefficients for TRANSPOSE linear op.
-
-    Assumes lin_op's arg is a single variable.
+def transpose_mat(lin_op):
+    """Returns the coefficient matrix for TRANSPOSE linear op.
 
     Parameters
     ----------
@@ -422,54 +292,56 @@ def transpose_coeffs(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix for the transpose operation.
     """
-    coeffs = get_coefficients(lin_op.args[0])
-    assert len(coeffs) == 1
-    id_, size, _ = coeffs[0]
-    rows, cols = size
+    rows, cols = lin_op.size
     # Create a sparse matrix representing the transpose.
     val_arr = []
     row_arr = []
     col_arr = []
-    for row in xrange(rows):
-        for col in xrange(cols):
-            # Row in transpose coeff.
-            row_arr.append(row*cols + col)
-            # Row in original coeff.
-            col_arr.append(col*rows + row)
+    for col in xrange(cols):
+        for row in xrange(rows):
+            # Index in transposed coeff.
+            row_arr.append(col*rows + row)
+            # Index in original coeff.
+            col_arr.append(row*cols + col)
             val_arr.append(1.0)
 
-    new_size = (rows*cols, rows*cols)
-    new_block = sp.coo_matrix((val_arr, (row_arr, col_arr)), new_size)
-    return [(id_, size, new_block.tocsc())]
+    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                         (rows*cols, rows*cols)).tocsc()
 
-def reshape_coeffs(lin_op):
-    """Returns the coefficients for RESHAPE linear op.
-
-    Just changes the size tuple stored with the coefficient.
-    Everything else is taken care of automatically.
+def diag_vec_mat(lin_op):
+    """Returns the coefficient matrix for DIAG_VEC linear op.
 
     Parameters
     ----------
     lin_op : LinOp
-        The reshape linear op.
+        The diag vec linear op.
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix representing placing a vector on a diagonal.
     """
-    new_coeffs = []
-    coeffs = get_coefficients(lin_op.args[0])
-    for id_, size, block in coeffs:
-        new_coeffs.append((id_, lin_op.size, block))
+    rows, _ = lin_op.size
 
-    return new_coeffs
+    val_arr = []
+    row_arr = []
+    col_arr = []
+    for i in xrange(rows):
+        # Index in the diagonal matrix.
+        row_arr.append(i*rows + i)
+        # Index in the original vector.
+        col_arr.append(i)
+        val_arr.append(1.0)
 
-def conv_coeffs(lin_op):
-    """Returns the coefficients for CONV linear op.
+    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                         (rows**2, rows)).tocsc()
+
+
+def conv_mat(lin_op):
+    """Returns the coefficient matrix for CONV linear op.
 
     Parameters
     ----------
@@ -478,14 +350,12 @@ def conv_coeffs(lin_op):
 
     Returns
     -------
-    list
-        A list of (id, size, coefficient) tuples.
+    SciPy CSC matrix
+        The matrix representing the convolution operation.
     """
-    lh_coeffs = get_coefficients(lin_op.data)
-    constant = merge_constants(lh_coeffs)
+    constant = const_mat(lin_op.data)
     # Cast to 1D.
     constant = intf.from_2D_to_1D(constant)
-    rh_coeffs = get_coefficients(lin_op.args[0])
 
     # Create a Toeplitz matrix with constant as columns.
     rows = lin_op.size[0]
@@ -498,21 +368,23 @@ def conv_coeffs(lin_op):
     toeplitz_row[0] = constant[0]
     coeff = sp_la.toeplitz(toeplitz_col, toeplitz_row)
 
-    # Multiply the right hand terms by the toeplitz matrix.
-    return mul_by_const(coeff, rh_coeffs, (rows, 1))
+    return coeff
 
 
-# A map of LinOp type to the function to the coefficients function.
+# A list of all the linear operator types for constants.
+CONSTANT_TYPES = [lo.PARAM, lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]
+
+# A map of LinOp type to the coefficient matrix function.
 TYPE_TO_FUNC = {
-    lo.SUM: sum_coeffs,
-    lo.NEG: neg_coeffs,
-    lo.MUL: mul_coeffs,
-    lo.MUL_ELEM: mul_elemwise_coeffs,
-    lo.DIV: div_coeffs,
-    lo.SUM_ENTRIES: sum_entries_coeffs,
-    lo.INDEX: index_coeffs,
-    lo.TRANSPOSE: transpose_coeffs,
-    lo.RESHAPE: reshape_coeffs,
-    lo.CONV: conv_coeffs,
+    lo.PROMOTE: promote_mat,
+    lo.NEG: neg_mat,
+    lo.MUL: mul_mat,
+    lo.MUL_ELEM: mul_elemwise_mat,
+    lo.DIV: div_mat,
+    lo.SUM_ENTRIES: sum_entries_mat,
+    lo.INDEX: index_mat,
+    lo.TRANSPOSE: transpose_mat,
+    lo.RESHAPE: lambda x: 1,
+    lo.DIAG_VEC: diag_vec_mat,
+    lo.CONV: conv_mat,
 }
-

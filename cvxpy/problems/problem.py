@@ -845,7 +845,7 @@ class Problem(u.Canonical):
         vert_offset = 0
         for constr in constraints:
             coeffs = op2mat.get_coefficients(constr.expr)
-            for id_, size, block in coeffs:
+            for id_, block in coeffs:
                 vert_start = vert_offset
                 vert_end = vert_start + constr.size[0]*constr.size[1]
                 if id_ is lo.CONSTANT_ID:

@@ -31,8 +31,6 @@ class AddExpression(AffAtom):
     def __init__(self, terms):
         # TODO call super class init?
         self._dcp_attr = reduce(op.add, [t._dcp_attr for t in terms])
-        # Promote args to the correct size.
-        terms = [self._promote(t) for t in terms]
         self.args = []
         for term in terms:
             self.args += self.expand_args(term)
@@ -73,28 +71,7 @@ class AddExpression(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        for i, arg in enumerate(arg_objs):
+            if arg.size != size:
+                arg_objs[i] = lu.promote(arg, size)
         return (lu.sum_expr(arg_objs), [])
-
-    def _promote(self, expr):
-        """Promote a scalar expression to a matrix.
-
-        Parameters
-        ----------
-        expr : Expression
-            The expression to promote.
-        rows : int
-            The number of rows in the promoted matrix.
-        cols : int
-            The number of columns in the promoted matrix.
-
-        Returns
-        -------
-        Expression
-            An expression with size (rows, cols).
-
-        """
-        if expr.size == (1, 1) and expr.size != self.size:
-            ones = Constant(intf.DEFAULT_INTERFACE.ones(*self.size))
-            return ones*expr
-        else:
-            return expr
