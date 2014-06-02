@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to CVXPY
-========================
+================
 
 CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
@@ -58,6 +58,11 @@ CVXPY relies on the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_.
     :hidden:
 
     tutorial/index
+
+.. toctree::
+   :hidden:
+
+   examples/index
 
 .. toctree::
    :hidden:

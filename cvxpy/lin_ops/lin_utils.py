@@ -177,6 +177,23 @@ def mul_expr(lh_op, rh_op, size):
     """
     return lo.LinOp(lo.MUL, size, [rh_op], lh_op)
 
+def mul_elemwise(lh_op, rh_op):
+    """Multiply two linear operators elementwise.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the product.
+    rh_op : LinOp
+        The right-hand operator in the product.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the product.
+    """
+    return lo.LinOp(lo.MUL_ELEM, lh_op.size, [rh_op], lh_op)
+
 def div_expr(lh_op, rh_op):
     """Divide one linear operator by another.
 
@@ -292,6 +309,23 @@ def transpose(operator):
         new_op = lo.LinOp(lo.TRANSPOSE, size, [new_var], None)
         constraints = [create_eq(new_var, operator)]
         return (new_op, constraints)
+
+def reshape(operator, size):
+    """Reshapes an operator.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to reshape.
+    size : tuple
+        The (rows, cols) of the reshaped operator.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the reshaped expression.
+    """
+    return lo.LinOp(lo.RESHAPE, size, [operator], None)
 
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.

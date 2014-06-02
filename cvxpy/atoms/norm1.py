@@ -31,25 +31,31 @@ class norm1(Atom):
     def __init__(self, x):
         super(norm1, self).__init__(x)
 
-    # Returns the L1 norm of x.
     @Atom.numpy_numeric
     def numeric(self, values):
+        """Returns the L1 norm of x.
+        """
         cols = values[0].shape[1]
         return sum([LA.norm(values[0][:, i], 1) for i in range(cols)])
 
-    # Resolves to a scalar.
     def shape_from_args(self):
-        return u.Shape(1,1)
+        """Resolves to a scalar.
+        """
+        return u.Shape(1, 1)
 
-    # Always positive.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature is convex.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Increasing for positive arguments and decreasing for negative.
+        """
         return [u.monotonicity.SIGNED]
 
     @staticmethod

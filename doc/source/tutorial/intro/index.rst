@@ -81,10 +81,12 @@ CVXPY imported as a namespace.
     print "optimal value", prob.value
     print "optimal var", x.value, y.value
 
-Nonetheless we have constructed CVXPY so that using ``from cvxpy import *``
+Nonetheless we have designed CVXPY so that using ``from cvxpy import *``
 is generally safe for short scripts. The biggest catch is that the built-in
 ``max`` and ``min`` cannot be used on CVXPY expressions. Instead use the
 CVXPY `functions <../functions/index.html>`__ ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
+
+The built-in ``sum`` can be used on lists of CVXPY expressions to add all the list elements together. Use the CVXPY `function <../functions/index.html>`__ ``sum_entries`` to sum the entries of a single CVXPY matrix or vector expression.
 
 Changing the problem
 --------------------
@@ -222,6 +224,14 @@ Here's an example of a CVXPY problem with vectors and matrices:
      [  1.24978611e-01]
      [ -3.67846924e-11]]
 
+Constraints
+-----------
+
+As shown in the example code, you can use ``==``, ``<=``, and ``>=`` to construct constraints in CVXPY. Equality and inequality constraints are elementwise, whether they involve scalars, vectors, or matrices. For example, together the constraints ``0 <= x`` and ``x <= 1`` mean that every entry of ``x`` is between 0 and 1.
+
+If you want matrix inequalities that represent semi-definite cone constraints, see :ref:`semidefinite`. The section explains how to express a semi-definite cone inequality.
+
+You cannot construct inequalities with ``<`` and ``>``. Strict inequalities don't make sense in a real world setting. Also, you cannot chain constraints together, e.g., ``0 <= x <= 1`` or ``x == y == 2``. The Python interpreter treats chained constraints in such a way that CVXPY cannot capture them. CVXPY will raise an exception if you write a chained constraint.
 
 Parameters
 ----------

@@ -117,8 +117,6 @@ class Problem(u.Canonical):
                 constr_map[s.EQ].append(c)
             elif isinstance(c, lo.LinLeqConstr):
                 constr_map[s.LEQ].append(c)
-            elif isinstance(c, SOC_Elemwise):
-                constr_map[s.SOC_EW].append(c)
             elif isinstance(c, SOC):
                 constr_map[s.SOC].append(c)
             elif isinstance(c, SDP):
@@ -127,21 +125,14 @@ class Problem(u.Canonical):
                 constr_map[s.EXP].append(c)
         return constr_map
 
-    def canonicalize(self, solver):
+    def canonicalize(self):
         """Computes the graph implementation of the problem.
-
-        Parameters
-        ----------
-        solver: str
-            The solver being targetted.
 
         Returns
         -------
         tuple
             (affine objective,
-             constraints list,
-             cone dimensions,
-             solver chosen)
+             constraints dict)
         """
         constraints = []
         obj, constr = self.objective.canonical_form
@@ -151,19 +142,36 @@ class Problem(u.Canonical):
         for constr in unique_constraints:
             constraints += constr.canonical_form[1]
         constr_map = self._filter_constraints(constraints)
-        solver = self._choose_solver(constr_map, solver)
+
+        return (obj, constr_map)
+
+    def _format_for_solver(self, constr_map, solver):
+        """Formats the problem for the solver.
+
+        Parameters
+        ----------
+        constr_map : dict
+            A map of constraint type to a list of constraints.
+        solver: str
+            The solver being targetted.
+
+        Returns
+        -------
+        dict
+            The dimensions of the cones.
+        """
         dims = {}
         dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
         dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
         # Formats SOC, SOC_EW, and SDP constraints for the solver.
-        nonlin = constr_map[s.SOC] + constr_map[s.SOC_EW] + constr_map[s.SDP]
+        nonlin = constr_map[s.SOC] + constr_map[s.SDP]
         for constr in nonlin:
             for ineq_constr in constr.format():
                 constr_map[s.LEQ].append(ineq_constr)
-        dims["q"] = [c.size[0] for c in constr_map[s.SOC]]
         # Elemwise SOC constraints have an SOC constraint
         # for each element in their arguments.
-        for constr in constr_map[s.SOC_EW]:
+        dims["q"] = []
+        for constr in constr_map[s.SOC]:
             for cone_size in constr.size:
                 dims["q"].append(cone_size[0])
         dims["s"] = [c.size[0] for c in constr_map[s.SDP]]
@@ -183,17 +191,21 @@ class Problem(u.Canonical):
                                  key=lambda c: c.constr_id)
             constr_map[key] = list(constraints)
 
-        return (obj, constr_map, dims, solver)
+        return dims
 
-    def _choose_solver(self, constr_map, solver):
+    @staticmethod
+    def _constraints_count(constr_map):
+        """Returns the number of internal constraints.
+        """
+        return sum([len(cset) for cset in constr_map.values()])
+
+    def _choose_solver(self, constr_map):
         """Determines the appropriate solver.
 
         Parameters
         ----------
         constr_map: dict
             A dict of the canonicalized constraints.
-        solver: str
-            The solver being targetted.
 
         Returns
         -------
@@ -201,20 +213,34 @@ class Problem(u.Canonical):
             The solver that will be used.
         """
         # If no constraints, use ECOS.
-        constraints_present = False
-        for constr_set in constr_map.values():
-            if len(constr_set) > 0:
-                constraints_present = True
-        if not constraints_present:
+        if self._constraints_count(constr_map) == 0:
             return s.ECOS
         # If SDP, defaults to CVXOPT.
-        if constr_map[s.SDP] and not solver in s.SDP_CAPABLE:
+        elif constr_map[s.SDP]:
             return s.CVXOPT
         # If EXP cone without SDP, defaults to SCS.
-        elif constr_map[s.EXP] and not solver in s.EXP_CAPABLE:
+        elif constr_map[s.EXP]:
             return s.SCS
+        # Otherwise use ECOS.
         else:
-            return solver
+            return s.ECOS
+
+    def _validate_solver(self, constr_map, solver):
+        """Raises an exception if the solver cannot solve the problem.
+
+        Parameters
+        ----------
+        constr_map: dict
+            A dict of the canonicalized constraints.
+        solver : str
+            The solver to be used.
+        """
+        if (constr_map[s.SDP] and not solver in s.SDP_CAPABLE) or \
+           (constr_map[s.EXP] and not solver in s.EXP_CAPABLE) or \
+           (self._constraints_count(constr_map) == 0 and solver == s.SCS):
+            raise Exception(
+                "The solver %s cannot solve the problem." % solver
+            )
 
     def variables(self):
         """Returns a list of the variables in the problem.
@@ -289,14 +315,15 @@ class Problem(u.Canonical):
         tuple
             arguments to solver
         """
-        objective, constr_map, dims, solver_chosen = self.canonicalize(solver)
+        objective, constr_map = self.canonicalize()
+        # Raise an error if the solver cannot handle the problem.
+        self._validate_solver(constr_map, solver)
+        dims = self._format_for_solver(constr_map, solver)
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
                                                                  all_ineq)
 
-        if solver_chosen != solver:
-            raise Exception("Solver '%s' cannot solve the problem." % solver)
-        if solver == s.ECOS:
+        if solver == s.ECOS and not (constr_map[s.SDP] or constr_map[s.EXP]):
             args, offset = self._ecos_problem_data(objective, constr_map, dims,
                                                    var_offsets, x_length)
         elif solver == s.CVXOPT and not constr_map[s.EXP]:
@@ -306,10 +333,10 @@ class Problem(u.Canonical):
             args, offset = self._scs_problem_data(objective, constr_map, dims,
                                                   var_offsets, x_length)
         else:
-            raise Exception("Unsupported solver '%s'." % solver)
+            raise Exception("Cannot return problem data for the solver %s." % solver)
         return args
 
-    def _solve(self, solver=s.ECOS, ignore_dcp=False, verbose=False,
+    def _solve(self, solver=None, ignore_dcp=False, verbose=False,
                solver_specific_opts=None):
         """Solves a DCP compliant optimization problem.
 
@@ -346,7 +373,16 @@ class Problem(u.Canonical):
                        "Solving a convex relaxation.")
             else:
                 raise Exception("Problem does not follow DCP rules.")
-        objective, constr_map, dims, solver = self.canonicalize(solver)
+
+        objective, constr_map = self.canonicalize()
+        # Choose a default solver if none specified.
+        if solver is None:
+            solver = self._choose_solver(constr_map)
+        else:
+            # Raise an error if the solver cannot handle the problem.
+            self._validate_solver(constr_map, solver)
+
+        dims = self._format_for_solver(constr_map, solver)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
@@ -729,6 +765,7 @@ class Problem(u.Canonical):
             offset += constr.size[0]*constr.size[1]
         active_constraints = []
         for constr in self.constraints:
+            # Ignore constraints of the wrong type.
             if type(constr) == constr_type:
                 active_constraints.append(constr)
         self._save_values(result_vec, active_constraints, constr_offsets)

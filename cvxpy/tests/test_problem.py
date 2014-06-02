@@ -71,11 +71,11 @@ class TestProblem(BaseTest):
         """
         with self.assertRaises(Exception) as cm:
             Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
-        self.assertEqual(str(cm.exception), "Solver 'ECOS' cannot solve the problem.")
+        self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
 
         with self.assertRaises(Exception) as cm:
             Problem(Maximize(exp(self.a))).get_problem_data(s.CVXOPT)
-        self.assertEqual(str(cm.exception), "Unsupported solver 'CVXOPT'.")
+        self.assertEqual(str(cm.exception), "Cannot return problem data for the solver CVXOPT.")
 
         args = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
         data, dims = args
@@ -106,12 +106,13 @@ class TestProblem(BaseTest):
 
         # ####
         for verbose in [True, False]:
-            for solver in [s.ECOS, s.CVXOPT]:
+            for solver in [s.ECOS, s.CVXOPT, s.SCS]:
                 sys.stdout = StringIO()     # capture output
                 p = Problem(Minimize(self.a), [self.a >= 2])
                 p.solve(verbose=verbose, solver=solver)
-                p = Problem(Minimize(self.a), [log(self.a) >= 2])
-                p.solve(verbose=verbose, solver=solver)
+                if solver != s.ECOS:
+                    p = Problem(Minimize(self.a), [log(self.a) >= 2])
+                    p.solve(verbose=verbose, solver=solver)
                 out = sys.stdout.getvalue() # release output
                 outputs[verbose].append(out.upper())
         # ####
@@ -162,7 +163,7 @@ class TestProblem(BaseTest):
             var_ids_order_created.append(var_ids)
             obj = Minimize(sum)
             p = Problem(obj, constraints)
-            objective, constr_map, dims, solver = p.canonicalize(s.ECOS)
+            objective, constr_map = p.canonicalize()
             all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.LEQ])
             var_offsets, var_sizes, x_length = p._get_var_offsets(objective, all_ineq)
             # Sort by offset.
@@ -187,7 +188,8 @@ class TestProblem(BaseTest):
         le = (self.x <= 2)
         obj = 0
         def test(self):
-            objective,constr_map,dims,solver = self.canonicalize(s.ECOS)
+            objective, constr_map  = self.canonicalize()
+            dims = self._format_for_solver(constr_map, s.ECOS)
             return (len(constr_map[s.EQ]),len(constr_map[s.LEQ]))
         Problem.register_solve("test", test)
         p = Problem(Minimize(obj),[eq,eq,le,le])
@@ -736,7 +738,6 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 0)
 
         exp = (-self.x).T
-        print exp.size
         p = Problem(Minimize(sum_entries(self.x)), [(-self.x).T <= 1])
         result = p.solve()
         self.assertAlmostEqual(result, -2)
@@ -868,3 +869,107 @@ class TestProblem(BaseTest):
         p = Problem(obj, [self.A >= 5])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
+
+    def test_mul_elemwise(self):
+        """Tests problems with mul_elemwise.
+        """
+        c = [[1, -1], [2, -2]]
+        expr = mul_elemwise(c, self.A)
+        obj = Minimize(normInf(expr))
+        p = Problem(obj, [self.A == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
+
+        # Test with a sparse matrix.
+        import cvxopt
+        interface = intf.get_matrix_interface(cvxopt.spmatrix)
+        c = interface.const_to_matrix([1,2])
+        expr = mul_elemwise(c, self.x)
+        obj = Minimize(normInf(expr))
+        p = Problem(obj, [self.x == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, 10])
+
+        # Test promotion.
+        c = [[1, -1], [2, -2]]
+        expr = mul_elemwise(c, self.a)
+        obj = Minimize(normInf(expr))
+        p = Problem(obj, [self.a == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
+
+    def test_invalid_solvers(self):
+        """Tests that errors occur when you use an invalid solver.
+        """
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(-log(self.a))).solve(solver=s.ECOS)
+        self.assertEqual(str(cm.exception),
+            "The solver ECOS cannot solve the problem.")
+
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(lambda_max(self.a))).solve(solver=s.ECOS)
+        self.assertEqual(str(cm.exception),
+            "The solver ECOS cannot solve the problem.")
+
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(self.a)).solve(solver=s.SCS)
+        self.assertEqual(str(cm.exception),
+            "The solver SCS cannot solve the problem.")
+
+    def test_reshape(self):
+        """Tests problems with reshape.
+        """
+        # Test on scalars.
+        self.assertEqual(reshape(1, 1, 1).value, 1)
+
+        # Test vector to matrix.
+        x = Variable(4)
+        mat = matrix([[1,-1], [2, -2]])
+        vec = matrix([1, 2, 3, 4])
+        vec_mat = matrix([[1, 2], [3, 4]])
+        expr = reshape(x, 2, 2)
+        obj = Minimize(sum_entries(mat*expr))
+        prob = Problem(obj, [x == vec])
+        result = prob.solve()
+        self.assertAlmostEqual(result, sum(mat*vec_mat))
+
+        # Test on matrix to vector.
+        c = [1, 2, 3, 4]
+        expr = reshape(self.A, 4, 1)
+        obj = Minimize(expr.T*c)
+        constraints = [self.A == [[-1, -2], [3, 4]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 20)
+        self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
+        self.assertItemsAlmostEqual(reshape(expr, 2, 2).value, [-1, -2, 3, 4])
+
+        # Test matrix to matrix.
+        expr = reshape(self.C, 2, 3)
+        mat = numpy.matrix([[1,-1], [2, -2]])
+        C_mat = numpy.matrix([[1, 4], [2, 5], [3, 6]])
+        obj = Minimize(sum_entries(mat*expr))
+        prob = Problem(obj, [self.C == C_mat])
+        result = prob.solve()
+        reshaped = numpy.reshape(C_mat, (2, 3), 'F')
+        self.assertAlmostEqual(result, (mat.dot(reshaped)).sum())
+        self.assertItemsAlmostEqual(expr.value, C_mat)
+
+        # Test promoted expressions.
+        c = matrix([[1,-1], [2, -2]])
+        expr = reshape(c*self.a, 1, 4)
+        obj = Minimize(expr*[1, 2, 3, 4])
+        prob = Problem(obj, [self.a == 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -6)
+        self.assertItemsAlmostEqual(expr.value, 2*c)
+
+        expr = reshape(c*self.a, 4, 1)
+        obj = Minimize(expr.T*[1, 2, 3, 4])
+        prob = Problem(obj, [self.a == 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -6)
+        self.assertItemsAlmostEqual(expr.value, 2*c)

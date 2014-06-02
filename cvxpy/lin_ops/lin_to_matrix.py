@@ -60,22 +60,8 @@ def get_coefficients(lin_op):
     elif lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
         coeffs = [(lo.CONSTANT_ID, lin_op.size, lin_op.data)]
     # For non-leaves, recurse on args.
-    elif lin_op.type is lo.SUM:
-        coeffs = sum_coeffs(lin_op)
-    elif lin_op.type is lo.NEG:
-        coeffs = neg_coeffs(lin_op)
-    elif lin_op.type is lo.MUL:
-        coeffs = mul_coeffs(lin_op)
-    elif lin_op.type is lo.DIV:
-        coeffs = div_coeffs(lin_op)
-    elif lin_op.type is lo.SUM_ENTRIES:
-        coeffs = sum_entries_coeffs(lin_op)
-    elif lin_op.type is lo.INDEX:
-        coeffs = index_coeffs(lin_op)
-    elif lin_op.type is lo.TRANSPOSE:
-        coeffs = transpose_coeffs(lin_op)
-    elif lin_op.type is lo.CONV:
-        coeffs = conv_coeffs(lin_op)
+    elif lin_op.type in TYPE_TO_FUNC:
+        coeffs = TYPE_TO_FUNC[lin_op.type](lin_op)
     else:
         raise Exception("Unknown linear operator.")
     return coeffs
@@ -208,6 +194,33 @@ def div_coeffs(lin_op):
         new_coeffs.append((id_, lh_size, coeff/divisor))
     return new_coeffs
 
+def mul_elemwise_coeffs(lin_op):
+    """Returns the coefficients for MUL_ELEM linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The mul_elem linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    lh_coeffs = get_coefficients(lin_op.data)
+    constant = merge_constants(lh_coeffs)
+    # Convert the constant to a giant diagonal matrix.
+    vectorized = intf.from_2D_to_1D(flatten(constant))
+    constant = sp.diags(vectorized, 0)
+    rh_coeffs = get_coefficients(lin_op.args[0])
+
+    new_coeffs = []
+    # Multiply left-hand constant by right-hand terms.
+    for (id_, rh_size, coeff) in rh_coeffs:
+        new_coeffs.append((id_, rh_size, constant*coeff))
+
+    return new_coeffs
+
 def mul_coeffs(lin_op):
     """Returns the coefficients for MUL linear op.
 
@@ -245,11 +258,13 @@ def mul_by_const(constant, rh_coeffs, size):
         A list of (id, size, coefficient) tuples.
     """
     new_coeffs = []
+    rep_mat = sp.block_diag(size[1]*[constant]).tocsc()
     # Multiply all left-hand constants by right-hand terms.
     for (id_, rh_size, coeff) in rh_coeffs:
-        rep_mat = sp.block_diag(size[1]*[constant]).tocsc()
-        # For scalar right hand constants
+        # For scalar left hand constants,
+        # if right hand term is constant,
         # or single column, just multiply.
+        # Keeps scalars and dense constants as original type.
         if intf.is_scalar(constant) or \
            id_ is lo.CONSTANT_ID or size[1] == 1:
             product = constant*coeff
@@ -430,6 +445,29 @@ def transpose_coeffs(lin_op):
     new_block = sp.coo_matrix((val_arr, (row_arr, col_arr)), new_size)
     return [(id_, size, new_block.tocsc())]
 
+def reshape_coeffs(lin_op):
+    """Returns the coefficients for RESHAPE linear op.
+
+    Just changes the size tuple stored with the coefficient.
+    Everything else is taken care of automatically.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The reshape linear op.
+
+    Returns
+    -------
+    list
+        A list of (id, size, coefficient) tuples.
+    """
+    new_coeffs = []
+    coeffs = get_coefficients(lin_op.args[0])
+    for id_, size, block in coeffs:
+        new_coeffs.append((id_, lin_op.size, block))
+
+    return new_coeffs
+
 def conv_coeffs(lin_op):
     """Returns the coefficients for CONV linear op.
 
@@ -462,3 +500,19 @@ def conv_coeffs(lin_op):
 
     # Multiply the right hand terms by the toeplitz matrix.
     return mul_by_const(coeff, rh_coeffs, (rows, 1))
+
+
+# A map of LinOp type to the function to the coefficients function.
+TYPE_TO_FUNC = {
+    lo.SUM: sum_coeffs,
+    lo.NEG: neg_coeffs,
+    lo.MUL: mul_coeffs,
+    lo.MUL_ELEM: mul_elemwise_coeffs,
+    lo.DIV: div_coeffs,
+    lo.SUM_ENTRIES: sum_entries_coeffs,
+    lo.INDEX: index_coeffs,
+    lo.TRANSPOSE: transpose_coeffs,
+    lo.RESHAPE: reshape_coeffs,
+    lo.CONV: conv_coeffs,
+}
+

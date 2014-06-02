@@ -33,7 +33,7 @@ class Atom(Expression):
         # Throws error if args is empty.
         if len(args) == 0:
             raise TypeError(
-                "No arguments given to '%s'." % self.__class__.__name__
+                "No arguments given to %s." % self.__class__.__name__
             )
         # Convert raw values to Constants.
         self.args = [Atom.cast_to_const(arg) for arg in args]

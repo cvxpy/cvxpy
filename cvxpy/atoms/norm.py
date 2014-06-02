@@ -17,15 +17,28 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from norm1 import norm1
-from norm2 import norm2
-from norm_inf import normInf
-from norm_nuc import normNuc
-from sigma_max import sigma_max
-from ..expressions.expression import Expression
+from cvxpy.expressions.expression import Expression
+from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm2 import norm2
+from cvxpy.atoms.norm_inf import normInf
+from cvxpy.atoms.norm_nuc import normNuc
+from cvxpy.atoms.sigma_max import sigma_max
 
-# Wrapper on the different norm atoms.
 def norm(x, p=2):
+    """Wrapper on the different norm atoms.
+
+    Parameters
+    ----------
+    x : Expression or numeric constant
+        The value to take the norm of.
+    p : int or str, optional
+        The type of norm.
+
+    Returns
+    -------
+    Expression
+        An Expression representing the norm.
+    """
     x = Expression.cast_to_const(x)
     if p == 1:
         return norm1(x)

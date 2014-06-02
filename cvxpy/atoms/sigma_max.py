@@ -31,24 +31,30 @@ class sigma_max(Atom):
     def __init__(self, A):
         super(sigma_max, self).__init__(A)
 
-    # Returns the largest singular value of A.
     @Atom.numpy_numeric
     def numeric(self, values):
+        """Returns the largest singular value of A.
+        """
         return LA.norm(values[0], 2)
 
-    # Resolves to a scalar.
     def shape_from_args(self):
-        return u.Shape(1,1)
+        """Resolves to a scalar.
+        """
+        return u.Shape(1, 1)
 
-    # Always unknown.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Neither increasing nor decreasing.
+        """
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod

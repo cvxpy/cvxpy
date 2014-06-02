@@ -152,9 +152,9 @@ class Expression(u.Canonical):
         return self.size == (1, 1)
 
     def is_vector(self):
-        """Is the expression a column vector?
+        """Is the expression a column or row vector?
         """
-        return self.size[1] == 1
+        return min(self.size) == 1
 
     def is_matrix(self):
         """Is the expression a matrix?

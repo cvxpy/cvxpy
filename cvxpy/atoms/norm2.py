@@ -30,25 +30,30 @@ class norm2(Atom):
     def __init__(self, x):
         super(norm2, self).__init__(x)
 
-    # Returns the L2 norm of x for vector x
-    # and the Frobenius norm for matrix x.
     @Atom.numpy_numeric
     def numeric(self, values):
+        """Returns the L2 norm of x for vector x, Frobenius norm for matrix x.
+        """
         return LA.norm(values[0])
 
-    # Resolves to a scalar.
     def shape_from_args(self):
-        return u.Shape(1,1)
+        """Resolves to a scalar.
+        """
+        return u.Shape(1, 1)
 
-    # Always positive.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature is convex.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Increasing for positive arguments and decreasing for negative.
+        """
         return [u.monotonicity.SIGNED]
 
     @staticmethod

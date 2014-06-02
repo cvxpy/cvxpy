@@ -34,9 +34,12 @@ from quad_form import quad_form
 from quad_over_lin import quad_over_lin
 from sigma_max import sigma_max
 from sum_squares import sum_squares
+from total_variation import tv
 
 from affine.conv import conv
 from affine.hstack import hstack
+from affine.mul_elemwise import mul_elemwise
+from affine.reshape import reshape
 from affine.sum_entries import sum_entries
 from affine.vstack import vstack
 

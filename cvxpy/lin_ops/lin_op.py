@@ -34,6 +34,9 @@ VARIABLE = "variable"
 # Multiplying an expression by a constant.
 # Data: LinOp evaluating to the left hand multiple.
 MUL = "mul"
+# Multiplying an expression elementwise by a constant.
+# Data: LinOp evaluating to the left hand multiple.
+MUL_ELEM = "mul_elem"
 # Dividing an expression by a scalar constant.
 # Data: LinOp evaluating to the divisor.
 DIV = "div"
@@ -50,6 +53,9 @@ TRANSPOSE = "transpose"
 # The sum of the entries of an expression.
 # Data: None
 SUM_ENTRIES = "sum_entries"
+# An expression cast into a different shape.
+# Data: None
+RESHAPE = "reshape"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.
 CONV = "conv"

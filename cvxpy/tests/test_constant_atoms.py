@@ -66,6 +66,7 @@ atoms = [
         (norm([[-1, 2], [3, -4]],"inf"), Constant([4])),
         (norm([[2,0],[0,1]],"nuc"), Constant([3])),
         (norm([[3,4,5],[6,7,8],[9,10,11]],"nuc"), Constant([23.1733])),
+        (norm([[3,4,5],[6,7,8]],"nuc"), Constant([14.61838])),
         (pos(8), Constant([8])),
         (pos([-3,2]), Constant([0,2])),
         (neg([-3,3]), Constant([3,0])),
@@ -86,6 +87,10 @@ atoms = [
         (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
         (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
         (sum_squares([[-1, 2],[3, -4]]), Constant([30])),
+        (tv([1,-1,2]), Constant([5])),
+        (tv([[1],[-1],[2]]), Constant([5])),
+        (tv([[-5,2],[-3,1]]), Constant([math.sqrt(53)])),
+        (tv([[3,4,5],[6,7,8],[9,10,11]]), Constant([4*math.sqrt(10)])),
     ], Minimize),
     ([
         (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
@@ -114,34 +119,31 @@ atoms = [
     ], Maximize),
 ]
 
-def get_solver(prob, solver):
-    """Gets the solver that will be used by CVXPY.
+def check_solver(prob, solver):
+    """Can the solver solve the problem?
     """
-    constraints = []
-    obj, constr = prob.objective.canonical_form
-    constraints += constr
-    unique_constraints = list(OrderedSet(prob.constraints))
-    for constr in unique_constraints:
-        constraints += constr.canonical_form[1]
-    constr_map = prob._filter_constraints(constraints)
-    solver = prob._choose_solver(constr_map, solver)
-    return solver
+    objective, constr_map = prob.canonicalize()
+    try:
+        prob._validate_solver(constr_map, solver)
+        return True
+    except Exception, e:
+        return False
 
 # Tests numeric version of atoms.
 def run_atom(atom, problem, obj_val, solver):
     assert problem.is_dcp()
     print problem.objective
     print problem.constraints
-    solver = get_solver(problem, solver)
-    print "solver", solver
-    tolerance = SOLVER_TO_TOL[solver]
-    result = problem.solve(solver=solver)
-    if problem.status is OPTIMAL:
-        print result
-        print obj_val
-        assert( -tolerance <= result - obj_val <= tolerance )
-    else:
-        assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
+    if check_solver(problem, solver):
+        print "solver", solver
+        tolerance = SOLVER_TO_TOL[solver]
+        result = problem.solve(solver=solver)
+        if problem.status is OPTIMAL:
+            print result
+            print obj_val
+            assert( -tolerance <= result - obj_val <= tolerance )
+        else:
+            assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
 
 def test_atom():
     for atom_list, objective_type in atoms:

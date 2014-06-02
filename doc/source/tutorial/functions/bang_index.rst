@@ -154,8 +154,12 @@ For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean
 
 The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
 
-The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions.
+The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums the columns of a matrix variable:
 
+.. code:: python
+
+    X = Variable(100, 100)
+    col_sum = sum([X[:, i] for i in range(X.size[1])])
 
 .. _elementwise:
 
@@ -165,7 +169,7 @@ Elementwise functions
 These functions operate on each element of their arguments. For example, if ``X`` is a 5 by 4 matrix variable,
 then ``abs(X)`` is a 5 by 4 matrix expression. ``abs(X)[1, 2]`` is equivalent to ``abs(X[1, 2])``.
 
-Elementwise functions that take multiple arguments, such as ``max_elemwise``, operate on the corresponding elements of each argument.
+Elementwise functions that take multiple arguments, such as ``max_elemwise`` and ``mul_elemwise``, operate on the corresponding elements of each argument.
 For example, if ``X`` and ``Y`` are both 3 by 3 matrix variables, then ``max_elemwise(X, Y)`` is a 3 by 3 matrix expression.
 ``max_elemwise(X, Y)[2, 0]`` is equivalent to ``max_elemwise(X[2, 0], Y[2, 0])``. This means all arguments must have the same dimensions or be
 scalars, which are promoted.
@@ -200,6 +204,10 @@ scalars, which are promoted.
 | min_elemwise(x1, ..., xk) | :math:`\min \left\{     | :math:`x_i \in \mathbf{R}` | min(sign(xi))       | !concave! concave | !incr! incr.     |
 |                           | x_1, \ldots , x_k       |                            |                     |                   |                  |
 |                           | \right\}`               |                            |                     |                   |                  |
++---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
+| mul_elemwise(c, x)        | c*x                     | :math:`c,x \in             | sign(c*x)           | !affine! affine   | depends on c     |
+|                           |                         | \mathbf{R}`                |                     |                   |                  |
+| c constant                |                         |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | neg(x)                    | :math:`\max \left\{     | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !decr! decr.     |
 |                           | -x, 0 \right\}`         |                            |                     |                   |                  |
