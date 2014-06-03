@@ -23,8 +23,8 @@ from cvxpy.atoms.elementwise.norm2_elemwise import norm2_elemwise
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum_entries import sum_entries
 
-def tv(value):
-    """Total variation of a vector or matrix.
+def tv(value, *args):
+    """Total variation of a vector, matrix, or list of matrices.
 
     Uses L1 norm of discrete gradients for vectors and
     L2 norm of discrete gradients for matrices.
@@ -33,6 +33,8 @@ def tv(value):
     ----------
     value : Expression or numeric constant
         The value to take the total variation of.
+    args : Matrix constants/expressions
+        Additional matrices extending the third dimension of value.
 
     Returns
     -------
@@ -48,6 +50,12 @@ def tv(value):
         return norm(value[1:] - value[0:max(rows, cols)-1], 1)
     # L2 norm for matrices.
     else:
-        row_diff = value[0:rows-1, 1:cols] - value[0:rows-1, 0:cols-1]
-        col_diff = value[1:rows, 0:cols-1] - value[0:rows-1, 0:cols-1]
-        return sum_entries(norm2_elemwise(row_diff, col_diff))
+        args = map(Expression.cast_to_const, args)
+        values = [value] + list(args)
+        diffs = []
+        for mat in values:
+            diffs += [
+                mat[0:rows-1, 1:cols] - mat[0:rows-1, 0:cols-1],
+                mat[1:rows, 0:cols-1] - mat[0:rows-1, 0:cols-1],
+            ]
+        return sum_entries(norm2_elemwise(*diffs))

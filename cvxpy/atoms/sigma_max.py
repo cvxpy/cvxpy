@@ -75,7 +75,7 @@ class sigma_max(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # m by n matrix.
+        A = arg_objs[0] # n by m matrix.
         n, m = A.size
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = lu.create_var((n+m, n+m))
