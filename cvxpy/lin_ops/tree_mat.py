@@ -151,6 +151,11 @@ def op_mul(lin_op, args):
         result = args[0].T
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, args[0])
+    elif lin_op.type is lo.PROMOTE:
+        result = np.ones(lin_op.size)*args[0]
+    elif lin_op.type is lo.DIAG_VEC:
+        val = intf.from_2D_to_1D(args[0])
+        result = np.diag(val)
     else:
         raise Exception("Unknown linear operator.")
     #print result
@@ -180,10 +185,6 @@ def op_tmul(lin_op, value):
         # Scalar coefficient, no need to transpose.
         if np.isscalar(coeff):
             result = coeff*value
-        # If the right hand side was promoted,
-        # multiplying by the transpose is a dot product.
-        elif lin_op.args[0].size == (1, 1):
-            result = np.multiply(coeff, value).sum()
         else:
             result = coeff.T*value
     elif lin_op.type is lo.DIV:
@@ -197,6 +198,10 @@ def op_tmul(lin_op, value):
         result[row_slc, col_slc] = value
     elif lin_op.type is lo.TRANSPOSE:
         result = value.T
+    elif lin_op.type is lo.PROMOTE:
+        result = np.ones(lin_op.size[0]).dot(value)
+    elif lin_op.type is lo.DIAG_VEC:
+        result = np.diag(value)
     elif lin_op.type is lo.CONV:
         return conv_mul(lin_op, value, True)
     else:
