@@ -77,4 +77,4 @@ class norm2_elemwise(Elementwise):
             if obj.size != size:
                 arg_objs[i] = lu.promote(obj, size)
 
-        return (t, SOC_Elemwise(t, arg_objs))
+        return (t, [SOC_Elemwise(t, arg_objs)])

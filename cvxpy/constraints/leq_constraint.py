@@ -38,6 +38,14 @@ class LeqConstraint(u.Canonical):
     def __repr__(self):
         return self.name()
 
+    def __nonzero__(self):
+        """Raises an exception when called.
+
+        Called when evaluating the truth value of the constraint.
+        Raising an error here prevents writing chained constraints.
+        """
+        raise Exception("Cannot evaluate the truth value of a constraint.")
+
     @property
     def size(self):
         return self._expr.size
