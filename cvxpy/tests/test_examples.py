@@ -537,7 +537,6 @@ class TestExamples(BaseTest):
     def test_inpainting(self):
         """Test image in-painting.
         """
-        from PIL import Image, ImageDraw
         import numpy as np
         np.random.seed(1)
         rows, cols = 100, 100
