@@ -28,14 +28,10 @@ install:
     - python C:\get-pip.py
     - C:\Python34\Scripts\pip.exe install conda
     - C:\Python34\Scripts\conda.exe init
-    - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose
+    - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% cvxopt numpy scipy nose
 
 build_script:
-    - cd python
     - C:\Python34\envs\testenv\python.exe setup.py install
-    - cd ..
 
 test_script:
-    - cd python
-    - C:\Python34\envs\testenv\Scripts\nosetests.exe test_interface.py
-    - cd ..
+    - C:\Python34\envs\testenv\Scripts\nosetests.exe cvxpy/tests
