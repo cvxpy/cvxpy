@@ -57,4 +57,4 @@ class transpose(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return lu.transpose(arg_objs[0])
+        return (lu.transpose(arg_objs[0]), [])

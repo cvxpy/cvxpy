@@ -144,23 +144,21 @@ class test_lin_ops(BaseTest):
         x = create_var(size)
         coeffs = get_coefficients(x)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(id_, x.data)
-        self.assertEqual(var_size, size)
         self.assertItemsAlmostEqual(mat.todense(), sp.eye(20).todense())
         # Eye with scalar mult.
         x = create_var(size)
         A = create_const(5, (1, 1))
         coeffs = get_coefficients(mul_expr(A, x, size))
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertItemsAlmostEqual(mat.todense(), 5*sp.eye(20).todense())
         # Promoted
         x = create_var((1, 1))
-        A = create_const(np.ones(size), size)
-        coeffs = get_coefficients(mul_expr(A, x, size))
+        coeffs = get_coefficients(promote(x, size))
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (20, 1))
         self.assertItemsAlmostEqual(mat, np.ones((20, 1)))
         # Normal
@@ -169,16 +167,16 @@ class test_lin_ops(BaseTest):
         A = create_const(np.ones(size), size)
         coeffs = get_coefficients(mul_expr(A, x, (5, 1)))
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (5, 5))
-        self.assertItemsAlmostEqual(mat, A.data)
+        self.assertItemsAlmostEqual(mat.todense(), A.data)
         # Blocks
         size = (5, 5)
         x = create_var(size)
         A = create_const(np.ones(size), size)
         coeffs = get_coefficients(mul_expr(A, x, size))
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (25, 25))
         self.assertItemsAlmostEqual(mat.todense(),
          sp.block_diag(5*[np.ones(size)]).todense())
@@ -187,7 +185,7 @@ class test_lin_ops(BaseTest):
         A = create_const(5, size)
         coeffs = get_coefficients(A)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(intf.size(mat), (1, 1))
         self.assertEqual(mat, 5)
         # Dense constant
@@ -195,17 +193,17 @@ class test_lin_ops(BaseTest):
         A = create_const(np.ones(size), size)
         coeffs = get_coefficients(A)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
-        self.assertEqual(mat.shape, size)
+        id_, mat = coeffs[0]
+        self.assertEqual(mat.shape, (size[0]*size[1], 1))
         self.assertItemsAlmostEqual(mat, np.ones(size))
         # Sparse constant
         size = (5, 5)
         A = create_const(sp.eye(5), size)
         coeffs = get_coefficients(A)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
-        self.assertEqual(mat.shape, size)
-        self.assertItemsAlmostEqual(mat.todense(), sp.eye(5).todense())
+        id_, mat = coeffs[0]
+        self.assertEqual(mat.shape, (size[0]*size[1], 1))
+        self.assertItemsAlmostEqual(mat, sp.eye(5).todense())
         # Parameter
         size = (5, 4)
         param = Parameter(*size)
@@ -213,8 +211,8 @@ class test_lin_ops(BaseTest):
         A = create_param(param, size)
         coeffs = get_coefficients(A)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
-        self.assertEqual(mat.shape, size)
+        id_, mat = coeffs[0]
+        self.assertEqual(mat.shape, (size[0]*size[1], 1))
         self.assertItemsAlmostEqual(mat, param.value)
 
     def test_transpose(self):
@@ -222,12 +220,11 @@ class test_lin_ops(BaseTest):
         """
         size = (5, 4)
         x = create_var(size)
-        expr, constr = transpose(x)
-        assert len(constr) == 0
+        expr = transpose(x)
         self.assertEqual(expr.size, (4, 5))
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         test_mat = np.mat(range(20)).T
         self.assertItemsAlmostEqual((mat*test_mat).reshape((4, 5), order='F'),
             test_mat.reshape(size, order='F').T)
@@ -242,9 +239,8 @@ class test_lin_ops(BaseTest):
         expr = index(x, (2, 2), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(id_, x.data)
-        self.assertEqual(var_size, size)
         self.assertEqual(mat.shape, (4, 20))
         test_mat = np.mat(range(20)).T
         self.assertItemsAlmostEqual((mat*test_mat).reshape((2, 2), order='F'),
@@ -257,7 +253,7 @@ class test_lin_ops(BaseTest):
         expr = index(expr, (2, 2), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         test_mat = np.mat(range(20)).T
         self.assertItemsAlmostEqual((mat*test_mat).reshape((2, 2), order='F'),
             5*test_mat.reshape(size, order='F')[key])
@@ -266,13 +262,14 @@ class test_lin_ops(BaseTest):
         x = create_var((1, 1))
         value = np.array(range(20)).reshape(size)
         A = create_const(value, size)
-        expr = mul_expr(A, x, size)
+        prom_x = promote(x, (size[1], 1))
+        expr = mul_expr(A, diag_vec(prom_x), size)
         expr = index(expr, (2, 2), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (4, 1))
-        self.assertItemsAlmostEqual(mat.todense(), value[key])
+        self.assertItemsAlmostEqual(mat, value[key])
         # Normal
         size = (5, 5)
         key = (slice(0,2,None), slice(0,1,None))
@@ -282,9 +279,9 @@ class test_lin_ops(BaseTest):
         expr = index(expr, (2, 1), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (2, 5))
-        self.assertItemsAlmostEqual(mat, A.data[slice(0,2,None)])
+        self.assertItemsAlmostEqual(mat.todense(), A.data[slice(0,2,None)])
         # Blocks
         size = (5, 5)
         key = (slice(0,2,None), slice(0,2,None))
@@ -295,7 +292,7 @@ class test_lin_ops(BaseTest):
         expr = index(expr, (2, 2), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (4, 25))
         test_mat = np.mat(range(25)).T
         self.assertItemsAlmostEqual((mat*test_mat).reshape((2, 2), order='F'),
@@ -307,7 +304,7 @@ class test_lin_ops(BaseTest):
         expr = index(A, (1, 1), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(intf.size(mat), (1, 1))
         self.assertEqual(mat, 5)
         # Dense constant
@@ -318,7 +315,7 @@ class test_lin_ops(BaseTest):
         expr = index(A, (2, 1), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (2, 1))
         self.assertItemsAlmostEqual(mat, value[key])
         # Sparse constant
@@ -328,9 +325,9 @@ class test_lin_ops(BaseTest):
         expr = index(A, (2, 1), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (2, 1))
-        self.assertItemsAlmostEqual(mat.todense(), sp.eye(5).todense()[key])
+        self.assertItemsAlmostEqual(mat, sp.eye(5).todense()[key])
         # Parameter
         size = (5, 4)
         key = (slice(0,2,None), slice(0,1,None))
@@ -341,7 +338,7 @@ class test_lin_ops(BaseTest):
         expr = index(A, (2, 1), key)
         coeffs = get_coefficients(expr)
         assert len(coeffs) == 1
-        id_, var_size, mat = coeffs[0]
+        id_, mat = coeffs[0]
         self.assertEqual(mat.shape, (2, 1))
         self.assertItemsAlmostEqual(mat, param.value[key])
 

@@ -534,6 +534,32 @@ class TestExamples(BaseTest):
         except ValueError, e:
             print e
 
+    def test_inpainting(self):
+        """Test image in-painting.
+        """
+        import numpy as np
+        np.random.seed(1)
+        rows, cols = 100, 100
+        # Load the images.
+        # Convert to arrays.
+        Uorig = np.random.randint(0, 255, size=(rows, cols))
+
+        rows, cols = Uorig.shape
+        # Known is 1 if the pixel is known,
+        # 0 if the pixel was corrupted.
+        Known = np.zeros((rows, cols))
+        for i in xrange(rows):
+            for j in xrange(cols):
+                if np.random.random() > 0.7:
+                    Known[i, j] = 1
+        Ucorr = Known*Uorig
+        # Recover the original image using total variation in-painting.
+        U = Variable(rows, cols)
+        obj = Minimize(tv(U))
+        constraints = [mul_elemwise(Known, U) == mul_elemwise(Known, Ucorr)]
+        prob = Problem(obj, constraints)
+        prob.solve(solver=SCS)
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt

@@ -80,3 +80,14 @@ class TestConstraints(unittest.TestCase):
         constr = SOC(scalar_exp, [exp])
         self.assertEqual(constr.size[0], (3,1))
         self.assertEqual(len(constr.format()), 2)
+
+    def test_chained_constraints(self):
+        """Tests that chaining constraints raises an error.
+        """
+        with self.assertRaises(Exception) as cm:
+            (self.z <= self.x <= 1)
+        self.assertEqual(str(cm.exception), "Cannot evaluate the truth value of a constraint.")
+
+        with self.assertRaises(Exception) as cm:
+            (self.x == self.z == 1)
+        self.assertEqual(str(cm.exception), "Cannot evaluate the truth value of a constraint.")

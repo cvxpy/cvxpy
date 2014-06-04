@@ -26,7 +26,9 @@ from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.utilities.ordered_set import OrderedSet
+import cvxpy.interface as intf
 import cvxopt
+import numpy.linalg as LA
 import math
 from nose.tools import assert_raises
 
@@ -43,79 +45,93 @@ KNOWN_SOLVER_ERRORS = [(lambda_min, SCS),
 
 atoms = [
     ([
-        (abs([[-5,2],[-3,1]]), Constant([[5,2],[3,1]])),
-        (exp([[1, 0],[2, -1]]), Constant([[math.e, 1],[math.e**2, 1.0/math.e]])),
-        (huber([[0.5, -1.5],[4, 0]]), Constant([[0.25, 2],[7, 0]])),
-        (huber([[0.5, -1.5],[4, 0]], 2.5), Constant([[0.25, 2.25],[13.75, 0]])),
-        (inv_pos([[1,2],[3,4]]), Constant([[1,1.0/2],[1.0/3,1.0/4]])),
-        (kl_div(math.e, 1), Constant([1])),
-        (kl_div(math.e, math.e), Constant([0])),
-        (lambda_max([[2,0],[0,1]]), Constant([2])),
-        (lambda_max([[5,7],[7,-3]]), Constant([9.06225775])),
-        (log_sum_exp([[5, 7], [0, -3]]), Constant([7.1277708268])),
-        (max_elemwise([-5,2],[-3,1],0,[-1,2]), Constant([0,2])),
-        (max_elemwise([[-5,2],[-3,1]],0,[[5,4],[-1,2]]), Constant([[5,4],[0,2]])),
-        (max_entries([[-5,2],[-3,1]]), Constant([2])),
-        (max_entries([-5,-10]), Constant([-5])),
-        #(norm(v), 3),
-        (norm(v, 2), Constant([3])),
-        (norm([[-1, 2],[3, -4]], "fro"), Constant([5.47722557])),
-        (norm(v,1), Constant([5])),
-        (norm([[-1, 2], [3, -4]],1), Constant([10])),
-        (norm(v,"inf"), Constant([2])),
-        (norm([[-1, 2], [3, -4]],"inf"), Constant([4])),
-        (norm([[2,0],[0,1]],"nuc"), Constant([3])),
-        (norm([[3,4,5],[6,7,8],[9,10,11]],"nuc"), Constant([23.1733])),
-        (norm([[3,4,5],[6,7,8]],"nuc"), Constant([14.61838])),
-        (pos(8), Constant([8])),
-        (pos([-3,2]), Constant([0,2])),
-        (neg([-3,3]), Constant([3,0])),
-        #(pow_rat(4,1,1), 4),
-        #(pow_rat(2,2,1), 4),
-        #(pow_rat(4,2,2), 4),
-        #(pow_rat(2,3,1), 8),
-        #(pow_rat(4,3,2), 8),
-        #(pow_rat(4,3,3), 4),
-        #(pow_rat(2,4,1), 16),
-        #(pow_rat(4,4,2), 16),
-        #(pow_rat(8,4,3), 16),
-        #(pow_rat(8,4,4), 8),
-        (quad_over_lin([[-1,2,-2], [-1,2,-2]], 2), Constant([2*4.5])),
-        (quad_over_lin(v, 2), Constant([4.5])),
-        #(square_over_lin(2,4), 1),
-        (norm([[2,0],[0,1]], 2), Constant([2])),
-        (norm([[3,4,5],[6,7,8],[9,10,11]], 2), Constant([22.3686])),
-        (square([[-5,2],[-3,1]]), Constant([[25,4],[9,1]])),
-        (sum_squares([[-1, 2],[3, -4]]), Constant([30])),
-        (tv([1,-1,2]), Constant([5])),
-        (tv([[1],[-1],[2]]), Constant([5])),
-        (tv([[-5,2],[-3,1]]), Constant([math.sqrt(53)])),
-        (tv([[3,4,5],[6,7,8],[9,10,11]]), Constant([4*math.sqrt(10)])),
+        (abs, (2, 2), [ [[-5,2],[-3,1]] ],
+            Constant([[5,2],[3,1]])),
+        (exp, (2, 2), [ [[1, 0],[2, -1]] ],
+            Constant([[math.e, 1],[math.e**2, 1.0/math.e]])),
+        (huber, (2, 2), [ [[0.5, -1.5],[4, 0]] ],
+            Constant([[0.25, 2],[7, 0]])),
+        (lambda x: huber(x, 2.5), (2, 2), [ [[0.5, -1.5],[4, 0]] ],
+            Constant([[0.25, 2.25],[13.75, 0]])),
+        (inv_pos, (2, 2), [ [[1,2],[3,4]] ],
+            Constant([[1,1.0/2],[1.0/3,1.0/4]])),
+        (kl_div, (1, 1), [math.e, 1], Constant([1])),
+        (kl_div, (1, 1), [math.e, math.e], Constant([0])),
+        (lambda_max, (1, 1), [ [[2,0],[0,1]] ], Constant([2])),
+        (lambda_max, (1, 1), [ [[5,7],[7,-3]] ], Constant([9.06225775])),
+        (log_sum_exp, (1, 1), [ [[5, 7], [0, -3]] ], Constant([7.1277708268])),
+        (max_elemwise, (2, 1), [ [-5,2],[-3,1],0,[-1,2] ], Constant([0,2])),
+        (max_elemwise, (2, 2), [ [[-5,2],[-3,1]],0,[[5,4],[-1,2]] ],
+            Constant([[5,4],[0,2]])),
+        (max_entries, (1, 1), [ [[-5,2],[-3,1]] ], Constant([2])),
+        (max_entries, (1, 1), [ [-5,-10] ], Constant([-5])),
+        # #(norm(v), 3),
+        (lambda x: norm(x, 2), (1, 1), [v], Constant([3])),
+        (lambda x: norm(x, "fro"), (1, 1), [ [[-1, 2],[3, -4]] ],
+            Constant([5.47722557])),
+        (lambda x: norm(x,1), (1, 1), [v], Constant([5])),
+        (lambda x: norm(x,1), (1, 1), [ [[-1, 2], [3, -4]] ],
+            Constant([10])),
+        (lambda x: norm(x,"inf"), (1, 1), [v], Constant([2])),
+        (lambda x: norm(x,"inf"), (1, 1), [ [[-1, 2], [3, -4]] ],
+            Constant([4])),
+        (lambda x: norm(x,"nuc"), (1, 1), [ [[2,0],[0,1]] ], Constant([3])),
+        (lambda x: norm(x,"nuc"), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ],
+            Constant([23.1733])),
+        (lambda x: norm(x,"nuc"), (1, 1), [ [[3,4,5],[6,7,8]] ],
+            Constant([14.61838])),
+        (pos, (1, 1), [8], Constant([8])),
+        (pos, (2, 1), [ [-3,2] ], Constant([0,2])),
+        (neg, (2, 1), [ [-3,3] ], Constant([3,0])),
+        # #(pow_rat(4,1,1), 4),
+        # #(pow_rat(2,2,1), 4),
+        # #(pow_rat(4,2,2), 4),
+        # #(pow_rat(2,3,1), 8),
+        # #(pow_rat(4,3,2), 8),
+        # #(pow_rat(4,3,3), 4),
+        # #(pow_rat(2,4,1), 16),
+        # #(pow_rat(4,4,2), 16),
+        # #(pow_rat(8,4,3), 16),
+        # #(pow_rat(8,4,4), 8),
+        (quad_over_lin, (1, 1), [ [[-1,2,-2], [-1,2,-2]], 2], Constant([2*4.5])),
+        (quad_over_lin, (1, 1), [v, 2], Constant([4.5])),
+        # #(square_over_lin(2,4), 1),
+        (lambda x: norm(x, 2), (1, 1), [ [[2,0],[0,1]] ], Constant([2])),
+        (lambda x: norm(x, 2), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([22.3686])),
+        (square, (2, 2), [ [[-5,2],[-3,1]] ], Constant([[25,4],[9,1]])),
+        (sum_squares, (1, 1), [ [[-1, 2],[3, -4]] ], Constant([30])),
+        (tv, (1, 1), [ [1,-1,2] ], Constant([5])),
+        (tv, (1, 1), [ [[1],[-1],[2]] ], Constant([5])),
+        (tv, (1, 1), [ [[-5,2],[-3,1]] ], Constant([math.sqrt(53)])),
+        (tv, (1, 1), [ [[-5,2],[-3,1]], [[6,5],[-4,3]], [[8,0],[15,9]] ],
+            Constant([LA.norm([7, -1, -8, 2, -10, 7])])),
+        (tv, (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([4*math.sqrt(10)])),
     ], Minimize),
     ([
-        (entr([[1, math.e],[math.e**2, 1.0/math.e]]),
+        (entr, (2, 2), [ [[1, math.e],[math.e**2, 1.0/math.e]] ],
          Constant([[0, -math.e], [-2*math.e**2, 1.0/math.e]])),
-        #(entr(0), Constant([0])),
-        (log_det([[20, 8, 5, 2],
+        # #(entr(0), Constant([0])),
+        (log_det, (1, 1),
+               [ [[20, 8, 5, 2],
                   [8, 16, 2, 4],
                   [5, 2, 5, 2],
-                  [2, 4, 2, 4]]), Constant([7.7424])),
-        (geo_mean(4,1), Constant([2])),
-        (geo_mean(2,2), Constant([2])),
-        (lambda_min([[2,0],[0,1]]), Constant([1])),
-        (lambda_min([[5,7],[7,-3]]), Constant([-7.06225775])),
-        (log([[1, math.e],[math.e**2, 1.0/math.e]]), Constant([[0, 1],[2, -1]])),
-        (min_elemwise([-5,2],[-3,1],0,[1,2]), Constant([-5,0])),
-        (min_elemwise([[-5,2],[-3,-1]],0,[[5,4],[-1,2]]), Constant([[-5,0],[-3,-1]])),
-        (min_entries([[-5,2],[-3,1]]), Constant([-5])),
-        (min_entries([-5,-10]), Constant([-10])),
-        #(pow_rat(4,1,2), 2),
-        #(pow_rat(8,1,3), 2),
-        #(pow_rat(16,1,4),2),
-        #(pow_rat(8,2,3), 4),
-        #(pow_rat(4,2,4), 2),
-        #(pow_rat(16,3,4),8),
-        (sqrt([[2,4],[16,1]]), Constant([[1.414213562373095,2],[4,1]])),
+                  [2, 4, 2, 4]] ], Constant([7.7424])),
+        (geo_mean, (1, 1), [4,1], Constant([2])),
+        (geo_mean, (1,1), [2,2], Constant([2])),
+        (lambda_min, (1, 1), [ [[2,0],[0,1]] ], Constant([1])),
+        (lambda_min, (1, 1), [ [[5,7],[7,-3]] ], Constant([-7.06225775])),
+        (log, (2, 2), [ [[1, math.e],[math.e**2, 1.0/math.e]] ], Constant([[0, 1],[2, -1]])),
+        (min_elemwise, (2, 1), [ [-5,2],[-3,1],0,[1,2] ], Constant([-5,0])),
+        (min_elemwise, (2, 2), [ [[-5,2],[-3,-1]],0,[[5,4],[-1,2]] ], Constant([[-5,0],[-3,-1]])),
+        (min_entries, (1, 1), [ [[-5,2],[-3,1]] ], Constant([-5])),
+        (min_entries, (1, 1), [ [-5,-10] ], Constant([-10])),
+        # #(pow_rat(4,1,2), 2),
+        # #(pow_rat(8,1,3), 2),
+        # #(pow_rat(16,1,4),2),
+        # #(pow_rat(8,2,3), 4),
+        # #(pow_rat(4,2,4), 2),
+        # #(pow_rat(16,3,4),8),
+        (sqrt, (2, 2), [ [[2,4],[16,1]] ], Constant([[1.414213562373095,2],[4,1]])),
     ], Maximize),
 ]
 
@@ -143,33 +159,27 @@ def run_atom(atom, problem, obj_val, solver):
             print obj_val
             assert( -tolerance <= result - obj_val <= tolerance )
         else:
-            assert (type(atom), solver) in KNOWN_SOLVER_ERRORS
+            assert (atom, solver) in KNOWN_SOLVER_ERRORS
 
 def test_atom():
     for atom_list, objective_type in atoms:
-        for atom, obj_val in atom_list:
-            for row in xrange(atom.size[0]):
-                for col in xrange(atom.size[1]):
+        for atom, size, args, obj_val in atom_list:
+            for row in xrange(size[0]):
+                for col in xrange(size[1]):
                     for solver in [ECOS, SCS, CVXOPT]:
                         # Atoms with Constant arguments.
                         yield (run_atom,
                                atom,
-                               Problem(objective_type(atom[row,col])),
+                               Problem(objective_type(atom(*args)[row,col])),
                                obj_val[row,col].value,
                                solver)
                         # Atoms with Variable arguments.
                         variables = []
                         constraints = []
-                        for idx, expr in enumerate(atom.subexpressions):
-                            # Special case for MulExpr because
-                            # can't multiply two variables.
-                            if (idx == 0 and isinstance(atom, MulExpression)):
-                                variables.append(expr)
-                            else:
-                                variables.append( Variable(*expr.size) )
-                                constraints.append( variables[-1] == expr)
-                        atom_func = atom.__class__
-                        objective = objective_type(atom_func(*variables)[row,col])
+                        for idx, expr in enumerate(args):
+                            variables.append( Variable(*intf.size(expr) ))
+                            constraints.append( variables[-1] == expr)
+                        objective = objective_type(atom(*variables)[row,col])
                         yield (run_atom,
                                atom,
                                Problem(objective, constraints),
@@ -177,10 +187,10 @@ def test_atom():
                                solver)
                         # Atoms with Parameter arguments.
                         parameters = []
-                        for expr in atom.subexpressions:
-                            parameters.append( Parameter(*expr.size) )
-                            parameters[-1].value = expr.value
-                        objective = objective_type(atom_func(*parameters)[row,col])
+                        for expr in args:
+                            parameters.append( Parameter(*intf.size(expr)) )
+                            parameters[-1].value = intf.DEFAULT_INTERFACE.const_to_matrix(expr)
+                        objective = objective_type(atom(*parameters)[row,col])
                         yield (run_atom,
                                atom,
                                Problem(objective),

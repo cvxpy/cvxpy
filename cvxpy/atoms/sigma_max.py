@@ -75,18 +75,17 @@ class sigma_max(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # m by n matrix.
+        A = arg_objs[0] # n by m matrix.
         n, m = A.size
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = lu.create_var((n+m, n+m))
         t = lu.create_var((1, 1))
-        I_n = lu.create_const(sp.eye(n), (n, n))
-        I_m = lu.create_const(sp.eye(m), (m, m))
         # Expand A.T.
         obj, constraints = transpose.graph_implementation([A], (m, n))
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:n, 0:n] == I_n*t
-        index.block_eq(X, lu.mul_expr(I_n, t, (n, n)), constraints,
+        prom_t = lu.promote(t, (n, 1))
+        index.block_eq(X, lu.diag_vec(prom_t), constraints,
                        0, n, 0, n)
         # X[0:n, n:n+m] == A
         index.block_eq(X, A, constraints,
@@ -95,7 +94,8 @@ class sigma_max(Atom):
         index.block_eq(X, obj, constraints,
                        n, n+m, 0, n)
         # X[n:n+m, n:n+m] == I_m*t
-        index.block_eq(X, lu.mul_expr(I_m, t, (m, m)), constraints,
+        prom_t = lu.promote(t, (m, 1))
+        index.block_eq(X, lu.diag_vec(prom_t), constraints,
                        n, n+m, n, n+m)
         # Add SDP constraint.
         return (t, constraints + [SDP(X)])
