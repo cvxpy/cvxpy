@@ -29,9 +29,9 @@ install:
     - C:\Python27\Scripts\pip.exe install conda
     - C:\Python27\Scripts\conda.exe init
     - C:\Python27\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose pip
-    - C:\Python27\Scripts\conda.exe install cvxopt
-    - C:\Python27\Scripts\conda.exe install ecos
-    - C:\Python27\Scripts\conda.exe install scs
+    - C:\Python27\envs\testenv\Scripts\pip.exe install cvxopt
+    - C:\Python27\envs\testenv\Scripts\pip.exe install ecos
+    - C:\Python27\envs\testenv\Scripts\pip.exe install scs
 
 build_script:
     - C:\Python27\envs\testenv\python.exe setup.py install
