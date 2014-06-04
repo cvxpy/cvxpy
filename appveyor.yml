@@ -1,7 +1,7 @@
 # Attempts to install ECOS in Python 2.7 and Python 3.3 on both 64- and
 # 32-bit Windows.
 environment:
-    PYVER: 3.3
+    PYVER: 2.7
     #matrix:
         # - platform: x64
         #   PYVER: 2.7
@@ -26,15 +26,15 @@ install:
     #- ps: msiexec /i C:\msvc2008.exe /quiet /qn /norestart /log install.log
     - ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:\get-pip.py')
     - python C:\get-pip.py
-    - C:\Python34\Scripts\pip.exe install conda
-    - C:\Python34\Scripts\conda.exe init
-    - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose
-    - C:\Python34\Scripts\pip.exe install cvxopt
-    - C:\Python34\Scripts\pip.exe install ecos
-    - C:\Python34\Scripts\pip.exe install scs
+    - C:\Python27\Scripts\pip.exe install conda
+    - C:\Python27\Scripts\conda.exe init
+    - C:\Python27\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose pip
+    - C:\Python27\Scripts\conda.exe install cvxopt
+    - C:\Python27\Scripts\conda.exe install ecos
+    - C:\Python27\Scripts\conda.exe install scs
 
 build_script:
-    - C:\Python34\envs\testenv\python.exe setup.py install
+    - C:\Python27\envs\testenv\python.exe setup.py install
 
 test_script:
-    - C:\Python34\envs\testenv\Scripts\nosetests.exe cvxpy/tests
+    - C:\Python27\envs\testenv\Scripts\nosetests.exe cvxpy/tests
