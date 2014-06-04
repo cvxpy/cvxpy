@@ -1,0 +1,41 @@
+# Attempts to install ECOS in Python 2.7 and Python 3.3 on both 64- and
+# 32-bit Windows.
+environment:
+    PYVER: 3.3
+    #matrix:
+        # - platform: x64
+        #   PYVER: 2.7
+        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86_64.exe
+        # - platform: x64
+        #   PYVER: 3.3
+        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86_64.exe
+        # - platform: x86
+        #   PYVER: 2.7
+        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
+        # - platform: x86
+        #   PYVER: 3.3
+        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
+
+platform:
+    - x86
+    - x64
+
+install:
+    #- ps: (new-object net.webclient).DownloadFile($env:CONDA_URL, 'C:\miniconda.exe')
+    #- C:\msvc2008.exe /passive /norestart /Log "C:\install.log"
+    #- ps: msiexec /i C:\msvc2008.exe /quiet /qn /norestart /log install.log
+    - ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:\get-pip.py')
+    - python C:\get-pip.py
+    - C:\Python34\Scripts\pip.exe install conda
+    - C:\Python34\Scripts\conda.exe init
+    - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose
+
+build_script:
+    - cd python
+    - C:\Python34\envs\testenv\python.exe setup.py install
+    - cd ..
+
+test_script:
+    - cd python
+    - C:\Python34\envs\testenv\Scripts\nosetests.exe test_interface.py
+    - cd ..
