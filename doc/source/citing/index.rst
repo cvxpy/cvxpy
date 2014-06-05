@@ -12,7 +12,7 @@ Use the following BibTeX citation:
     <pre style="word-wrap: break-word; white-space: pre-wrap;">
     @misc{cvxpy,
       author       = {Steven Diamond and Eric Chu and Stephen Boyd},
-      title        = {{CVXPY}: A Python-Embedded Modeling Language for Convex Optimization, version 0.2},
+      title        = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization, version 0.2},
       howpublished = {\url{http://cvxpy.org/}},
       month        = may,
       year         = 2014

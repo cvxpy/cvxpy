@@ -17,7 +17,6 @@ environment:
         #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
 
 platform:
-    - x86
     - x64
 
 install:
