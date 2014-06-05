@@ -28,9 +28,9 @@ install:
     - C:\Python34\Scripts\pip.exe install conda
     - C:\Python34\Scripts\conda.exe init
     - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose pip
-    - C:\Python34\envs\testenv\Scripts\pip.exe install ecos
-    - C:\Python34\envs\testenv\Scripts\pip.exe install ecos
-    - C:\Python34\envs\testenv\Scripts\pip.exe install scs
+    - C:\Python34\Scripts\pip.exe install ecos
+    # - C:\Python34\envs\testenv\Scripts\pip.exe install ecos
+    # - C:\Python34\envs\testenv\Scripts\pip.exe install scs
 
 build_script:
     - C:\Python34\envs\testenv\python.exe setup.py install
