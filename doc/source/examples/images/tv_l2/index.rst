@@ -3,6 +3,9 @@
 Total Variation In-Painting
 ===========================
 
+Grayscale Images
+----------------
+
 A grayscale image is represented as an :math:`m \times n` matrix of
 intensities :math:`U^\mathrm{orig}` (typically between the values
 :math:`0` and :math:`255`). We are given the values
@@ -169,8 +172,8 @@ difference is magnified by a factor of 10 so it is more visible.
 .. image:: TV_In-Painting_files/TV_In-Painting_7_2.png
 
 
-Total Variation Color In-Painting
----------------------------------
+Color Images
+------------
 
 For color images, the in-painting problem is similar to the grayscale
 case. A color image is represented as an :math:`m \times n \times 3`
