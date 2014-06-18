@@ -327,7 +327,7 @@ non-DCP problem.
 
     try:
         prob.solve()
-    except Exception, e:
+    except Exception as e:
         print e
 
 .. parsed-literal::
