@@ -18,8 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.constraints.constraint import Constraint
 
-class SDP(object):
+class SDP(Constraint):
     """
     A semi-definite cone constraint:
         { symmetric A | x.T*A*x >= 0 for all x }
@@ -31,6 +32,7 @@ class SDP(object):
     """
     def __init__(self, A):
         self.A = A
+        super(SDP, self).__init__()
 
     def __str__(self):
         return "SDP(%s)" % self.A

@@ -19,16 +19,23 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.constraints.constraint import Constraint
 
-class LeqConstraint(u.Canonical):
+class LeqConstraint(u.Canonical, Constraint):
     OP_NAME = "<="
     TOLERANCE = 1e-4
     def __init__(self, lh_exp, rh_exp):
-        self.id = lu.get_id()
         self.lh_exp = lh_exp
         self.rh_exp = rh_exp
         self._expr = self.lh_exp - self.rh_exp
         self._dual_value = None
+        super(LeqConstraint, self).__init__()
+
+    @property
+    def id(self):
+        """Wrapper for compatibility with variables.
+        """
+        return self.constr_id
 
     def name(self):
         return ' '.join([str(self.lh_exp),

@@ -18,8 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.constraints.constraint import Constraint
 
-class SOC(object):
+class SOC(Constraint):
     """A second-order cone constraint, i.e., norm2(x) <= t.
 
     Attributes:

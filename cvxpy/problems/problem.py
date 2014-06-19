@@ -134,14 +134,16 @@ class Problem(u.Canonical):
             (affine objective,
              constraints dict)
         """
-        constraints = []
+        canon_constr = []
         obj, constr = self.objective.canonical_form
-        constraints += constr
-        unique_constraints = list(unique(self.constraints,
-                                         key=lambda c: c.id))
-        for constr in unique_constraints:
-            constraints += constr.canonical_form[1]
-        constr_map = self._filter_constraints(constraints)
+        canon_constr += constr
+
+        for constr in self.constraints:
+            canon_constr += constr.canonical_form[1]
+        # Remove redundant constraints.
+        canon_constr = unique(canon_constr,
+                              key=lambda c: c.constr_id)
+        constr_map = self._filter_constraints(canon_constr)
 
         return (obj, constr_map)
 
@@ -185,11 +187,11 @@ class Problem(u.Canonical):
                 constr_map[s.LEQ] += constr.format(s.SCS)
             dims["ep"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EXP])
 
-        # Remove redundant constraints.
-        for key in [s.EQ, s.LEQ]:
-            constraints = unique(constr_map[key],
-                                 key=lambda c: c.constr_id)
-            constr_map[key] = list(constraints)
+        # # Remove redundant constraints.
+        # for key in [s.EQ, s.LEQ]:
+        #     constraints = unique(constr_map[key],
+        #                          key=lambda c: c.constr_id)
+        #     constr_map[key] = list(constraints)
 
         return dims
 
@@ -525,6 +527,7 @@ class Problem(u.Canonical):
         A, b = self._constr_matrix(constr_map[s.EQ], var_offsets, x_length,
                                    self._CVXOPT_SPARSE_INTF,
                                    self._CVXOPT_DENSE_INTF)
+
         G, h = self._constr_matrix(constr_map[s.LEQ], var_offsets, x_length,
                                    self._CVXOPT_SPARSE_INTF,
                                    self._CVXOPT_DENSE_INTF)

@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import interface as intf
-from .. import utilities as u
-from .. import settings as s
-from ..utilities import performance_utils as pu
-from ..constraints import EqConstraint, LeqConstraint
+import cvxpy.interface as intf
+import cvxpy.utilities as u
+import cvxpy.settings as s
+from cvxpy.utilities import performance_utils as pu
+from cvxpy.constraints import EqConstraint, LeqConstraint
 import types
 import abc
 import numpy as np
