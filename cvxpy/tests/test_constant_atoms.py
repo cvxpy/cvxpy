@@ -142,7 +142,7 @@ def check_solver(prob, solver):
     try:
         prob._validate_solver(constr_map, solver)
         return True
-    except Exception, e:
+    except Exception as e:
         return False
 
 # Tests numeric version of atoms.
