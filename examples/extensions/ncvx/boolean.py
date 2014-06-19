@@ -1,6 +1,5 @@
-from cvxpy.expressions.variables import Variable, IndexVariable
+from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Parameter
-import cvxpy.constraints.affine as aff
 import cvxopt
 
 class Boolean(Variable):
@@ -11,10 +10,6 @@ class Boolean(Variable):
         self._UB.value = cvxopt.matrix(1,(rows, cols), tc='d')
         self._fix_values = cvxopt.matrix(False,(rows, cols))
         super(Boolean, self).__init__(rows, cols, *args, **kwargs)
-
-    # return a scalar view into a matrix of boolean variables
-    def index_object(self, key):
-        return IndexBoolean(self, key)
 
     def round(self):
         self.LB = cvxopt.matrix(self._rounded, self.size)
@@ -65,38 +60,3 @@ class Boolean(Variable):
     @fix_values.setter
     def fix_values(self, value):
         self._fix_values = value
-
-class IndexBoolean(IndexVariable, Boolean):
-    def __init__(self, parent, key):
-        super(IndexBoolean, self).__init__(parent, key)
-        self._LB = self.parent._LB[self.key]
-        self._UB = self.parent._UB[self.key]
-
-    def relax(self):
-        if not self.fix_values:
-            self.LB = 0
-            self.UB = 1
-
-    @property
-    def LB(self):
-        return self.parent._LB.value[self.key]
-
-    @LB.setter
-    def LB(self, value):
-        self.parent._LB.value[self.key] = value
-
-    @property
-    def UB(self):
-        return self.parent._UB.value[self.key]
-
-    @UB.setter
-    def UB(self, value):
-        self.parent._UB.value[self.key] = value
-
-    @property
-    def fix_values(self):
-        return self.parent._fix_values[self.key]
-
-    @fix_values.setter
-    def fix_values(self, value):
-        self.parent._fix_values[self.key] = value

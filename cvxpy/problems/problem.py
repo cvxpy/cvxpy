@@ -187,12 +187,6 @@ class Problem(u.Canonical):
                 constr_map[s.LEQ] += constr.format(s.SCS)
             dims["ep"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EXP])
 
-        # # Remove redundant constraints.
-        # for key in [s.EQ, s.LEQ]:
-        #     constraints = unique(constr_map[key],
-        #                          key=lambda c: c.constr_id)
-        #     constr_map[key] = list(constraints)
-
         return dims
 
     @staticmethod

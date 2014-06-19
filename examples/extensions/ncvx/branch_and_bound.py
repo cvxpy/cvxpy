@@ -90,12 +90,11 @@ def solve_wrapper(prob, i, booleans, depth, epsilon):
     return solution
 
 def branch_and_bound(self, depth=5, epsilon=1e-3):
-    objective,constr_map, dims = self.canonicalize()
+    objective, constr_map = self.canonicalize()
+    dims = self._format_for_solver(constr_map, s.ECOS)
 
-    variables = objective.variables()
-    for constr in constr_map[s.EQ]:
-        variables += constr.variables()
-    for constr in constr_map[s.INEQ]:
+    variables = self.objective.variables()
+    for constr in self.constraints:
         variables += constr.variables()
 
     booleans = [v for v in variables if isinstance(v, Boolean)]
@@ -111,7 +110,7 @@ def branch_and_bound(self, depth=5, epsilon=1e-3):
     result = solve_wrapper(self, 0, booleans, depth, epsilon)
 
     # set the boolean values to the solution
-    for b, value in zip(booleans,result['sol']):
+    for b, value in zip(booleans, result['sol']):
         b.save_value(value)
         b.fix_values = cvxopt.matrix(True, b.size)
 

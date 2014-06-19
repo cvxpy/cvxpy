@@ -189,19 +189,26 @@ class TestProblem(BaseTest):
         obj = 0
         def test(self):
             objective, constr_map  = self.canonicalize()
+            print len(constr_map[s.SOC])
             dims = self._format_for_solver(constr_map, s.ECOS)
             return (len(constr_map[s.EQ]),len(constr_map[s.LEQ]))
         Problem.register_solve("test", test)
         p = Problem(Minimize(obj),[eq,eq,le,le])
         result = p.solve(method="test")
-        self.assertEqual(result, (1,1))
+        self.assertEqual(result, (1, 1))
 
         # Internal constraints.
         z = hstack(self.x, self.x)
         obj = sum_entries(z[:,0] + z[:,1])
         p = Problem(Minimize(obj))
         result = p.solve(method="test")
-        self.assertEqual(result, (2,0))
+        self.assertEqual(result, (2, 0))
+
+        # Duplicates from non-linear constraints.
+        exp = norm(self.x, 2)
+        prob = Problem(Minimize(0), [exp <= 1, exp <= 2])
+        result = prob.solve(method="test")
+        self.assertEqual(result, (0, 4))
 
     # Test the is_dcp method.
     def test_is_dcp(self):
