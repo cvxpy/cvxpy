@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy import *
 from mixed_integer import *
 import cvxopt
+import numpy as np
 import unittest
 
 class TestVars(unittest.TestCase):
@@ -40,59 +41,63 @@ class TestVars(unittest.TestCase):
     # Test boolean variable.
     def test_boolean(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum(1-x) + sum(x)), [x == BoolVar(5,4)])
-        result = p.solve(method="admm", solver="cvxopt")
+        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)), [x == BoolVar(5,4)])
+        result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
-        for v in x.value:
-            self.assertAlmostEqual(v*(1-v), 0)
+        for i in xrange(x.size[0]):
+            for j in xrange(x.size[1]):
+                v = x.value[i, j]
+                self.assertAlmostEqual(v*(1-v), 0)
 
         x = Variable()
-        p = Problem(Minimize(sum(1-x) + sum(x)), [x == BoolVar(5,4)[0,0]])
-        result = p.solve(method="admm", solver="cvxopt")
+        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)), [x == BoolVar(5,4)[0,0]])
+        result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 1)
         self.assertAlmostEqual(x.value*(1-x.value), 0)
 
     # Test choose variable.
     def test_choose(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum(1-x) + sum(x)), 
+        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)),
                     [x == SparseBoolVar(5,4,nonzeros=4)])
-        result = p.solve(method="admm", solver="cvxopt")
+        result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
-        for v in x.value:
-            self.assertAlmostEqual(v*(1-v), 0)
-        self.assertAlmostEqual(sum(x.value), 4)
+        for i in xrange(x.size[0]):
+            for j in xrange(x.size[1]):
+                v = x.value[i, j]
+                self.assertAlmostEqual(v*(1-v), 0)
+        self.assertAlmostEqual(x.value.sum(), 4)
 
     # Test card variable.
     def test_card(self):
         x = SparseVar(5,nonzeros=3)
-        p = Problem(Maximize(sum(x)),
+        p = Problem(Maximize(sum_entries(x)),
             [x <= 1, x >= 0])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 3)
-        for v in x.value:
+        for v in np.nditer(x.value):
             self.assertAlmostEqual(v*(1-v), 0)
-        self.assertAlmostEqual(sum(x.value), 3)
+        self.assertAlmostEqual(x.value.sum(), 3)
 
         #should be equivalent to x == choose
-        x = Variable(5,4)
-        c = SparseVar(5,4,nonzeros=4)
-        b = BoolVar(5,4)
-        p = Problem(Minimize(sum(1-x) + sum(x)), 
-            [x == c, x == b])
-        result = p.solve(method="admm")
+        x = Variable(5, 4)
+        c = SparseVar(5, 4, nonzeros=4)
+        b = BoolVar(5, 4)
+        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)),
+                    [x == c, x == b])
+        result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
-        for v in x.value:
-            self.assertAlmostEqual(v*(1-v), 0)
+        for i in xrange(x.size[0]):
+            for j in xrange(x.size[1]):
+                v = x.value[i, j]
+                self.assertAlmostEqual(v*(1-v), 0)
 
     # Test permutation variable.
     def test_permutation(self):
         x = Variable(1,5)
         c = cvxopt.matrix([1,2,3,4,5]).T
         perm = permutation(5)
-        p = Problem(Minimize(sum(x)), [x == c*perm])
+        p = Problem(Minimize(sum_entries(x)), [x == c*perm])
         result = p.solve(method="admm")
-        print perm.value
-        print x.value
         self.assertAlmostEqual(result, 15)
-        self.assertAlmostEqual(sorted(x.value), c)
+        self.assertAlmostEqual(sorted(np.nditer(x.value)), c)

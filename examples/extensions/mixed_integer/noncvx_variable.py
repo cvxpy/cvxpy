@@ -61,3 +61,4 @@ class NonCvxVariable(cvxpy.Variable):
     @abc.abstractmethod
     def _fix(self, matrix):
         return NotImplemented
+        

@@ -18,26 +18,27 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from noncvx_variable import NonCvxVariable
-from cvxpy.constraints.affine import AffLeqConstraint
-import cvxopt
+import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
 class BoolVar(NonCvxVariable):
     """ A boolean variable. """
     # Sets the initial z value to a matrix of 0.5's.
     def init_z(self):
-        self.z.value = cvxopt.matrix(0.5, self.size, tc='d')
+        self.z.value = np.zeros(self.size) + 0.5
 
     # All values set rounded to zero or 1.
     def _round(self, matrix):
-        for i,v in enumerate(matrix):
-            matrix[i] = 0 if v < 0.5 else 1
-        return matrix
+        return np.around(matrix)
 
     # Constrain all entries to be the value in the matrix.
     def _fix(self, matrix):
         return [self == matrix]
 
     # In the relaxation, we have 0 <= var <= 1.
-    def _constraints(self):
-        return [AffLeqConstraint(0, self._objective()),
-                AffLeqConstraint(self._objective(), 1)]
+    def canonicalize(self):
+        obj, constraints = super(BoolVar, self).canonicalize()
+        one = lu.create_const(1, (1, 1))
+        constraints += [lu.create_geq(obj),
+                        lu.create_leq(obj, one)]
+        return (obj, constraints)

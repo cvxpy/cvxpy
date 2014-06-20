@@ -58,7 +58,7 @@ class MatrixInterface(NDArrayInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
-        mat = np.zeros((rows,cols), dtype='float64') + value
+        mat = np.zeros((rows, cols), dtype='float64') + value
         return np.asmatrix(mat)
 
     def reshape(self, matrix, size):

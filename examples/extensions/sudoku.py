@@ -3,6 +3,7 @@ from ncvx.boolean import Boolean
 import ncvx.branch_and_bound
 import cvxopt
 import cProfile, pstats
+import numpy as np
 
 n = 9
 # 9x9 sudoku grid
@@ -73,8 +74,8 @@ pr.disable()
 ps = pstats.Stats(pr)
 ps.sort_stats('tottime').print_stats(.5)
 
-A = cvxopt.matrix(0,(n,n))
+A = np.zeros((n, n))
 for i, num in enumerate(numbers):
-    A += i * cvxopt.matrix(map(lambda x: int(round(x)),num.value), (9,9),tc='i')
+    A += i * num.value
 
-print sum(A - solution)
+print np.sum(A - solution)

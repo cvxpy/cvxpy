@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from noncvx_variable import NonCvxVariable
-from cvxpy.constraints.affine import AffLeqConstraint, AffEqConstraint
+import cvxpy.lin_ops.lin_utils as lu
 from itertools import product
 
 class permutation(NonCvxVariable):
@@ -30,7 +30,7 @@ class permutation(NonCvxVariable):
     # rest of that value's row and column.
     def _round(self, matrix):
         dims = range(self.size[0])
-        ind_val = [(i,j,matrix[i,j]) for (i,j) in product(dims, dims)]
+        ind_val = [(i, j, matrix[i, j]) for (i, j) in product(dims, dims)]
         chosen = self.get_largest(ind_val, [])
         matrix *= 0 # Zero out the matrix.
         for i,j,v in chosen:
@@ -55,11 +55,13 @@ class permutation(NonCvxVariable):
 
     # In the relaxation, 0 <= var <= 1 and sum(var) == k.
     def constraints(self):
-        constraints = [AffLeqConstraint(0, self._objective()),
-                       AffLeqConstraint(self._objective(), 1)]
+        obj, constraints = super(BoolVar, self).canonicalize()
+        one = lu.create_const(1, (1, 1))
+        constraints += [lu.create_geq(obj),
+                        lu.create_leq(obj, one)]
         for i in range(self.size[0]):
-            row_sum = sum(self[i,j] for j in range(self.size[0]))
-            col_sum = sum(self[j,i] for j in range(self.size[0]))
-            constraints += [AffEqConstraint(row_sum, 1),
-                            AffEqConstraint(col_sum, 1)]
+            row_sum = lu.sum_expr([self[i, j] for j in range(self.size[0])])
+            col_sum = lu.sum_expr([self[j, i] for j in range(self.size[0])])
+            constraints += [lu.create_eq(row_sum, one),
+                            lu.create_eq(col_sum, one)]
         return constraints

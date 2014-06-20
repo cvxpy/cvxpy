@@ -19,8 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to handle indexing/slicing into an expression.
 
-from error import Error
-
 def validate_key(key, shape):
     """Check if the key is a valid index.
 
@@ -42,14 +40,13 @@ def validate_key(key, shape):
         elif cols == 1:
             key = (key, slice(0, 1, None))
         else:
-            raise Error("Invalid index/slice.")
+            raise IndexError("Invalid index/slice.")
     # Change numbers into slices and ensure all slices have a start and step.
     key = tuple(format_slice(slice_) for slice_ in key)
     # Check that index is in bounds.
     if not (0 <= key[0].start and key[0].start < rows and \
             0 <= key[1].start and key[1].start < cols):
-
-        raise Error("Index/slice out of bounds.")
+        raise IndexError("Index/slice out of bounds.")
     return key
 
 def format_slice(key_val):

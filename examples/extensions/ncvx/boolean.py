@@ -1,6 +1,7 @@
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Parameter
 import cvxopt
+import numpy as np
 
 class Boolean(Variable):
     def __init__(self, rows=1, cols=1, *args, **kwargs):
@@ -17,10 +18,11 @@ class Boolean(Variable):
 
     def relax(self):
         # if fix_value is true, do not change LB and UB
-        for i, fixed in enumerate(self.fix_values):
-            if not fixed:
-                self.LB[i] = 0
-                self.UB[i] = 1
+        for i in range(self.size[0]):
+            for j in range(self.size[1]):
+                if not self.fix_values[i, j]:
+                    self.LB[i, j] = 0
+                    self.UB[i, j] = 1
 
     def set(self, value):
         if not isinstance(value, bool): raise "Must set to boolean value"
@@ -34,8 +36,10 @@ class Boolean(Variable):
     @property
     def _rounded(self):
         # WARNING: attempts to access self.value
-        if self.size == (1,1): return round(self.value)
-        else: return [round(v) for v in self.value]
+        if self.size == (1, 1): 
+            return round(self.value)
+        else: 
+            return np.around(self.value)
 
     @property
     def LB(self):

@@ -18,8 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from boolean import BoolVar
-from cvxpy.constraints.affine import AffLeqConstraint, AffEqConstraint
 import cvxopt
+import numpy as np
+from itertools import product
 
 class SparseBoolVar(BoolVar):
     """ A variable with k 1's and all other entries 0. """
@@ -34,9 +35,10 @@ class SparseBoolVar(BoolVar):
 
     # The k-largest values are set to 1. The remainder are set to 0.
     def _round(self, matrix):
-        v_ind = sorted(enumerate(matrix), key=lambda v: -v[1])
-        for v in v_ind[0:self.k]:
-            matrix[v[0]] = 1
-        for v in v_ind[self.k:]:
-            matrix[v[0]] = 0
+        indices = product(xrange(self.size[0]), xrange(self.size[1]))
+        v_ind = sorted(indices, key=lambda ind: -matrix[ind])
+        for ind in v_ind[0:self.k]:
+            matrix[ind] = 1
+        for ind in v_ind[self.k:]:
+            matrix[ind] = 0
         return matrix

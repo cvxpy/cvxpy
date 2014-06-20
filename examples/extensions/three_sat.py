@@ -1,6 +1,6 @@
 from cvxpy import *
 from mixed_integer import *
-import random 
+import random
 
 # 3-SAT problem solved with non-convex ADMM
 # TODO initialize z's at 0.5
@@ -34,7 +34,7 @@ vars = [BoolVar() for i in range(VARIABLES)]
 
 # The 3-SAT constraints.
 constraints = []
-for clause_vars,negated in clauses:
+for clause_vars, negated in clauses:
     terms = []
     for index,negation in zip(clause_vars,negated):
         if negation:
@@ -49,8 +49,8 @@ best_rho = 0
 for i in range(MAX_ITER):
     p = Problem(Minimize(0), constraints)
     rho = random.random()
-    result = p.solve(method="admm", rho=rho, 
-                     iterations=2, solver="cvxopt")
+    result = p.solve(method="admm", rho=rho,
+                     iterations=2, solver=ECOS)
 
     # Store the result.
     values = [vars[i].value for i in range(VARIABLES)]
@@ -59,7 +59,7 @@ for i in range(MAX_ITER):
     satisfied = []
     for clause_vars,negated in clauses:
         result = False
-        for index,negation in zip(clause_vars,negated):
+        for index, negation in zip(clause_vars,negated):
             if negation:
                 result |= vars[index].value <= EPSILON
             else:
