@@ -594,7 +594,7 @@ class Problem(u.Canonical):
                                                 kktsolver=kktsolver)
             status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
         # Catch exceptions in CVXOPT and convert them to solver errors.
-        except ValueError, e:
+        except ValueError as e:
             status = s.SOLVER_ERROR
 
         # Restore original cvxopt solver options.
