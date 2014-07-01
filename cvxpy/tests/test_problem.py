@@ -980,3 +980,12 @@ class TestProblem(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
+
+    def test_cvxopt_errors(self):
+        """Tests that cvxopt errors are caught as solver_error.
+        """
+        # For some reason CVXOPT can't handle this problem.
+        expr = 500*self.a + square(self.a)
+        prob = Problem(Minimize(expr))
+        prob.solve(solver=s.CVXOPT)
+        self.assertEqual(prob.status, s.SOLVER_ERROR)

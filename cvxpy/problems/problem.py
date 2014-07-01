@@ -577,23 +577,28 @@ class Problem(u.Canonical):
         for key, value in opts.items():
             cvxopt.solvers.options[key] = value
 
-        # Target cvxopt clp if nonlinear constraints exist
-        if constr_map[s.EXP]:
-            # Get the nonlinear constraints.
-            F = self._merge_nonlin(constr_map[s.EXP], var_offsets,
-                                   x_length)
-            # Get custom kktsolver.
-            kktsolver = get_kktsolver(G, dims, A, F)
-            results = cvxopt.solvers.cpl(c, F, G, h, dims, A, b,
-                                         kktsolver=kktsolver)
-        else:
-            # Get custom kktsolver.
-            kktsolver = get_kktsolver(G, dims, A)
-            results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
-                                            kktsolver=kktsolver)
+        try:
+            # Target cvxopt clp if nonlinear constraints exist
+            if constr_map[s.EXP]:
+                # Get the nonlinear constraints.
+                F = self._merge_nonlin(constr_map[s.EXP], var_offsets,
+                                       x_length)
+                # Get custom kktsolver.
+                kktsolver = get_kktsolver(G, dims, A, F)
+                results = cvxopt.solvers.cpl(c, F, G, h, dims, A, b,
+                                             kktsolver=kktsolver)
+            else:
+                # Get custom kktsolver.
+                kktsolver = get_kktsolver(G, dims, A)
+                results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
+                                                kktsolver=kktsolver)
+            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+        # Catch exceptions in CVXOPT and convert them to solver errors.
+        except ValueError, e:
+            status = s.SOLVER_ERROR
+
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
-        status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
         if status == s.OPTIMAL:
             primal_val = results['primal objective']
             value = self.objective._primal_to_result(
