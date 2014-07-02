@@ -33,7 +33,7 @@ import math
 from nose.tools import assert_raises
 
 SOLVER_TO_TOL = {SCS: 1e-1,
-                 ECOS: 1e-4,
+                 ECOS: 1e-5,
                  CVXOPT: 1e-4}
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
@@ -79,9 +79,9 @@ atoms = [
             Constant([4])),
         (lambda x: norm(x,"nuc"), (1, 1), [ [[2,0],[0,1]] ], Constant([3])),
         (lambda x: norm(x,"nuc"), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ],
-            Constant([23.1733])),
+            Constant([23.173260452512931])),
         (lambda x: norm(x,"nuc"), (1, 1), [ [[3,4,5],[6,7,8]] ],
-            Constant([14.61838])),
+            Constant([14.618376738088918])),
         (pos, (1, 1), [8], Constant([8])),
         (pos, (2, 1), [ [-3,2] ], Constant([0,2])),
         (neg, (2, 1), [ [-3,3] ], Constant([3,0])),
@@ -99,7 +99,7 @@ atoms = [
         (quad_over_lin, (1, 1), [v, 2], Constant([4.5])),
         # #(square_over_lin(2,4), 1),
         (lambda x: norm(x, 2), (1, 1), [ [[2,0],[0,1]] ], Constant([2])),
-        (lambda x: norm(x, 2), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([22.3686])),
+        (lambda x: norm(x, 2), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([22.368559552680377])),
         (square, (2, 2), [ [[-5,2],[-3,1]] ], Constant([[25,4],[9,1]])),
         (sum_squares, (1, 1), [ [[-1, 2],[3, -4]] ], Constant([30])),
         (tv, (1, 1), [ [1,-1,2] ], Constant([5])),
