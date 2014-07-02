@@ -72,16 +72,16 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.Y.value[1,1], 0)
 
         # Index into semidef.
-        obj = obj = Minimize(square(self.X[0,0] - 1) +
-                             square(self.X[1,0] - 2) +
-                             square(self.X[0,1] - 3) +
-                             square(self.X[1,1] - 4))
+        obj = Minimize(square(self.X[0,0] - 1) +
+                       square(self.X[1,0] - 2) +
+                       #square(self.X[0,1] - 3) +
+                       square(self.X[1,1] - 4))
         p = Problem(obj,[])
         result = p.solve()
         print self.X.value
         self.assertAlmostEqual(result, 0)
 
-        self.assertAlmostEqual(self.X.value[0,0], 1, places=4)
-        self.assertAlmostEqual(self.X.value[0,1], 3, places=4)
-        self.assertAlmostEqual(self.X.value[1,0], 2, places=3)
+        self.assertAlmostEqual(self.X.value[0,0], 1, places=3)
+        self.assertAlmostEqual(self.X.value[0,1], 2, places=4)
+        self.assertAlmostEqual(self.X.value[1,0], 2, places=4)
         self.assertAlmostEqual(self.X.value[1,1], 4, places=4)
