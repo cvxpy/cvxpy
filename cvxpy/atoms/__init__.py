@@ -37,6 +37,7 @@ from sum_squares import sum_squares
 from total_variation import tv
 
 from affine.conv import conv
+from affine.diag import diag
 from affine.hstack import hstack
 from affine.mul_elemwise import mul_elemwise
 from affine.reshape import reshape

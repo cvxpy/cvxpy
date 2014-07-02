@@ -261,3 +261,21 @@ class TestAtoms(unittest.TestCase):
             reshape(self.C, 5, 4)
         self.assertEqual(str(cm.exception),
             "Invalid reshape dimensions (5, 4).")
+
+    def test_diag(self):
+        """Test the diag atom.
+        """
+        expr = diag(self.x)
+        self.assertEquals(expr.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(expr.size, (2, 2))
+
+        expr = diag(self.A)
+        self.assertEquals(expr.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(expr.size, (2, 1))
+
+        with self.assertRaises(Exception) as cm:
+            diag(self.C)
+        self.assertEqual(str(cm.exception),
+            "Argument to diag must be a vector or square matrix.")

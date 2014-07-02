@@ -339,6 +339,33 @@ def diag_vec_mat(lin_op):
     return sp.coo_matrix((val_arr, (row_arr, col_arr)),
                          (rows**2, rows)).tocsc()
 
+def diag_mat_mat(lin_op):
+    """Returns the coefficients matrix for DIAG_MAT linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The diag mat linear op.
+
+    Returns
+    -------
+    SciPy CSC matrix
+        The matrix to extract the diagonal from a matrix.
+    """
+    rows, _ = lin_op.size
+
+    val_arr = []
+    row_arr = []
+    col_arr = []
+    for i in xrange(rows):
+        # Index in the original matrix.
+        col_arr.append(i*rows + i)
+        # Index in the extracted vector.
+        row_arr.append(i)
+        val_arr.append(1.0)
+
+    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                         (rows, rows**2)).tocsc()
 
 def conv_mat(lin_op):
     """Returns the coefficient matrix for CONV linear op.
@@ -386,5 +413,6 @@ TYPE_TO_FUNC = {
     lo.TRANSPOSE: transpose_mat,
     lo.RESHAPE: lambda x: 1,
     lo.DIAG_VEC: diag_vec_mat,
+    lo.DIAG_MAT: diag_mat_mat,
     lo.CONV: conv_mat,
 }

@@ -323,15 +323,31 @@ def diag_vec(operator):
     Parameters
     ----------
     operator : LinOp
-        The operator to diagonalize.
+        The operator to convert to a diagonal matrix.
 
     Returns
     -------
     LinOp
-       LinOp representing the diagonalized expression.
+       LinOp representing the diagonal matrix.
     """
     size = (operator.size[0], operator.size[0])
     return lo.LinOp(lo.DIAG_VEC, size, [operator], None)
+
+def diag_mat(operator):
+    """Converts the diagonal of a matrix to a vector.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to convert to a vector.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the matrix diagonal.
+    """
+    size = (operator.size[0], 1)
+    return lo.LinOp(lo.DIAG_MAT, size, [operator], None)
 
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.

@@ -23,40 +23,51 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
-class diag(AffAtom):
-    """Extracts the diagonal from a matrix or makes a vector a matrix diagonal.
+def diag(expr):
+    """Extracts the diagonal from a matrix or makes a vector a diagonal matrix.
+
+    Parameters
+    ----------
+    expr : Expression or numeric constant
+        A vector or square matrix.
+
+    Returns
+    -------
+    Expression
+        An Expression representing the diagonal vector/matrix.
+    """
+    expr = AffAtom.cast_to_const(expr)
+    if expr.is_vector():
+        if expr.size[1] == 1:
+            return diag_vec(expr)
+        # Convert a row vector to a column vector.
+        else:
+            expr = reshape(expr, expr.size[1], 1)
+            return diag_vec(expr)
+    elif expr.size[0] == expr.size[1]:
+        return diag_mat(expr)
+    else:
+        raise ValueError("Argument to diag must be a vector or square matrix.")
+
+class diag_vec(AffAtom):
+    """Converts a vector into a diagonal matrix.
     """
     def __init__(self, expr):
-        super(diag, self).__init__(expr)
+        super(diag_vec, self).__init__(expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Convolve the two values.
+        """Convert the vector constant into a diagonal matrix.
         """
         # Convert values to 1D.
         values = map(intf.from_2D_to_1D, values)
         return np.diag(values[0])
 
-    def validate_arguments(self):
-        """Checks that matrix arguments are square.
-        """
-        rows, cols = self.args[0].size
-        if self.args[0].is_matrix() and rows != cols:
-            raise ValueError("Argument to diag a vector or square matrix.")
-
     def shape_from_args(self):
-        """The sum of the argument dimensions - 1.
+        """A square matrix.
         """
-        rows, cols = self.args[0].size
-        if self.args[0].is_matrix():
-            return u.Shape(rows, 1)
-        else:
-            return u.Shape()
-
-    def sign_from_args(self):
-        """Always unknown.
-        """
-        return u.Sign.UNKNOWN
+        rows, _ = self.args[0].size
+        return u.Shape(rows, rows)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -76,4 +87,42 @@ class diag(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.conv(arg_objs[0], arg_objs[1], size), [])
+        return (lu.diag_vec(arg_objs[0]), [])
+
+class diag_mat(AffAtom):
+    """Extracts the diagonal from a square matrix.
+    """
+    def __init__(self, expr):
+        super(diag_mat, self).__init__(expr)
+
+    @AffAtom.numpy_numeric
+    def numeric(self, values):
+        """Extract the diagonal from a square matrix constant.
+        """
+        return np.diag(values[0])
+
+    def shape_from_args(self):
+        """A column vector.
+        """
+        rows, _ = self.args[0].size
+        return u.Shape(rows, 1)
+
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Extracts the diagonal of a matrix.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        return (lu.diag_mat(arg_objs[0]), [])
