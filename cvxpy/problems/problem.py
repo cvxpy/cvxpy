@@ -211,12 +211,9 @@ class Problem(u.Canonical):
         # If no constraints, use ECOS.
         if self._constraints_count(constr_map) == 0:
             return s.ECOS
-        # If SDP, defaults to CVXOPT.
-        elif constr_map[s.SDP]:
+        # If SDP or EXP, defaults to CVXOPT.
+        elif constr_map[s.SDP] or constr_map[s.EXP]:
             return s.CVXOPT
-        # If EXP cone without SDP, defaults to SCS.
-        elif constr_map[s.EXP]:
-            return s.SCS
         # Otherwise use ECOS.
         else:
             return s.ECOS
