@@ -4,7 +4,7 @@ import numpy as np
 
 class BaseTest(unittest.TestCase):
     # AssertAlmostEqual for lists.
-    def assertItemsAlmostEqual(self, a, b, places=4):
+    def assertItemsAlmostEqual(self, a, b, places=5):
         a = self.mat_to_list(a)
         b = self.mat_to_list(b)
         for i in range(len(a)):
