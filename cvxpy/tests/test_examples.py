@@ -27,16 +27,6 @@ import numbers
 class TestExamples(BaseTest):
     """ Unit tests using example problems. """
 
-    # Overriden method to handle lists and lower accuracy.
-    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
-        try:
-            a = list(a)
-            b = list(b)
-            for i in range(len(a)):
-                self.assertAlmostEqual(a[i], b[i])
-        except Exception:
-            super(TestExamples, self).assertAlmostEqual(a,b,places=4)
-
     # Find the largest Euclidean ball in the polyhedron.
     def test_chebyshev_center(self):
         # The goal is to find the largest Euclidean ball (i.e. its center and
@@ -63,7 +53,7 @@ class TestExamples(BaseTest):
 
         p = Problem(obj, constraints)
         result = p.solve()
-        self.assertAlmostEqual(result, 0.4472)
+        self.assertAlmostEqual(result, 0.447214)
         self.assertAlmostEqual(r.value, result)
         self.assertItemsAlmostEqual(x_c.value, [0,0])
 
@@ -301,7 +291,7 @@ class TestExamples(BaseTest):
             constraints.append( norm(A*x[:, i] + b) <= 1 )
         p = Problem(obj, constraints)
         result = p.solve()
-        self.assertAlmostEqual(result, 1.9746)
+        self.assertAlmostEqual(result, 1.9746, places=4)
 
     def test_portfolio_problem(self):
         """Test portfolio problem that caused dcp_attr errors.

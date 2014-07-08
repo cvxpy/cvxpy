@@ -90,6 +90,6 @@ class lambda_min(Atom):
         # SDP constraint.
         t = lu.create_var((1, 1))
         prom_t = lu.promote(t, (n, 1))
-        # I*t - A
+        # A - I*t
         expr = lu.sub_expr(A, lu.diag_vec(prom_t))
         return (t, [SDP(expr)] + constraints)
