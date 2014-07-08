@@ -279,3 +279,16 @@ class TestAtoms(unittest.TestCase):
             diag(self.C)
         self.assertEqual(str(cm.exception),
             "Argument to diag must be a vector or square matrix.")
+
+    def test_trace(self):
+        """Test the trace atom.
+        """
+        expr = trace(self.A)
+        self.assertEquals(expr.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(expr.size, (1, 1))
+
+        with self.assertRaises(Exception) as cm:
+            trace(self.C)
+        self.assertEqual(str(cm.exception),
+            "Argument to trace must be a square matrix.")

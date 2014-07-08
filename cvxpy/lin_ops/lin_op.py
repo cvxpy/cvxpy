@@ -56,6 +56,9 @@ TRANSPOSE = "transpose"
 # The sum of the entries of an expression.
 # Data: None
 SUM_ENTRIES = "sum_entries"
+# The sum of the diagonal entries of an expression.
+# Data: None
+TRACE = "trace"
 # An expression cast into a different shape.
 # Data: None
 RESHAPE = "reshape"

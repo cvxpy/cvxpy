@@ -161,6 +161,25 @@ def sum_entries_mat(lin_op):
     rows, cols = lin_op.args[0].size
     return np.ones((1, rows*cols))
 
+def trace_mat(lin_op):
+    """Returns the coefficient matrix for TRACE linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The trace linear op.
+
+    Returns
+    -------
+    NumPy array
+        The matrix representing the trace operation.
+    """
+    rows, _ = lin_op.args[0].size
+    mat = np.zeros((1, rows**2))
+    for i in xrange(rows):
+        mat[0, i*rows + i] = 1
+    return mat
+
 def neg_mat(lin_op):
     """Returns the coefficient matrix for NEG linear op.
 
@@ -409,6 +428,7 @@ TYPE_TO_FUNC = {
     lo.MUL_ELEM: mul_elemwise_mat,
     lo.DIV: div_mat,
     lo.SUM_ENTRIES: sum_entries_mat,
+    lo.TRACE: trace_mat,
     lo.INDEX: index_mat,
     lo.TRANSPOSE: transpose_mat,
     lo.RESHAPE: lambda x: 1,

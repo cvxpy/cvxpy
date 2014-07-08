@@ -246,6 +246,21 @@ def sum_entries(operator):
     """
     return lo.LinOp(lo.SUM_ENTRIES, (1, 1), [operator], None)
 
+def trace(operator):
+    """Sum the diagonal entries of an operator.
+
+    Parameters
+    ----------
+    expr : LinOp
+        The operator to sum the diagonal entries of.
+
+    Returns
+    -------
+    LinOp
+        An operator representing the sum of the diagonal entries.
+    """
+    return lo.LinOp(lo.TRACE, (1, 1), [operator], None)
+
 def index(operator, size, keys):
     """Indexes/slices an operator.
 
