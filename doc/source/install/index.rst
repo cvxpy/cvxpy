@@ -33,8 +33,8 @@ Mac OS X
 
        pip install cvxpy
 
-Ubuntu
-------
+Ubuntu 14.04
+------------
 
 1. Make sure ``apt-get`` is up-to-date.
 
@@ -65,6 +65,11 @@ Ubuntu
    ::
 
        sudo pip install cvxpy
+
+Other Platforms
+---------------
+
+The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions>`_ for instructions for your platform.
 
 Install from source
 -------------------
