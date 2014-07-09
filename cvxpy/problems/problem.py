@@ -230,7 +230,7 @@ class Problem(u.Canonical):
         """
         if (constr_map[s.SDP] and not solver in s.SDP_CAPABLE) or \
            (constr_map[s.EXP] and not solver in s.EXP_CAPABLE) or \
-           (self._constraints_count(constr_map) == 0 and solver != s.ECOS):
+           (self._constraints_count(constr_map) == 0 and solver == s.SCS):
             raise Exception(
                 "The solver %s cannot solve the problem." % solver
             )
