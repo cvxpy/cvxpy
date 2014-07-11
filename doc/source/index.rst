@@ -68,3 +68,8 @@ CVXPY relies on the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_.
    :hidden:
 
    citing/index
+
+In addition to this html documentation, we also offer a collection of
+`IPython Notebook tutorials and examples`_.
+
+.. _IPython Notebook tutorials and examples: http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/Index.ipynb
