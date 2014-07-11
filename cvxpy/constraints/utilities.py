@@ -22,47 +22,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
-def get_upper_to_sym_mat(size):
-    """LinOp to convert the upper triangular part to a symmetric matrix.
-
-    Creates a sparse matrix that when multiplied by a vectorized symmetric
-    matrix recreates the symmetric matrix using only the upper triangular
-    entries.
-
-    Parameters
-    ----------
-    size : tuple
-        (rows in matrix, columns in matrix)
-
-    Returns
-    -------
-    LinOp
-        A sparse matrix constant LinOp.
-    """
-    rows, cols = size
-    val_arr = []
-    row_arr = []
-    col_arr = []
-    # Selects from each column.
-    for col in xrange(cols):
-        for row in xrange(rows):
-            rh_index = col*rows + row
-            # Replicate the entry from the upper triangle.
-            if col >= row:
-                val_arr.append(1.0)
-                row_arr.append(col*rows + row)
-                col_arr.append(rh_index)
-            # For off diagonal elements, duplicate it in the entry
-            # across the diagonal (i.e. (i,j)->(j,i)).
-            if col > row:
-                val_arr.append(1.0)
-                row_arr.append(row*rows + col)
-                col_arr.append(rh_index)
-
-    dims = (rows*cols, rows*cols)
-    mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), dims).tocsc()
-    return lu.create_const(mat, dims, sparse=True)
-
 def format_elemwise(vars_):
     """Formats all the elementwise cones for the solver.
 
@@ -84,11 +43,11 @@ def format_elemwise(vars_):
     mat_size = (spacing*vars_[0].size[0], vars_[0].size[0])
     terms = []
     for i, var in enumerate(vars_):
-        mat = get_spacing_mat(mat_size, spacing, i)
+        mat = get_spacing_matrix(mat_size, spacing, i)
         terms.append(lu.mul_expr(mat, var, prod_size))
     return [lu.create_geq(lu.sum_expr(terms))]
 
-def get_spacing_mat(size, spacing, offset):
+def get_spacing_matrix(size, spacing, offset):
     """Returns a sparse matrix LinOp that spaces out an expression.
 
     Parameters

@@ -181,10 +181,10 @@ class Problem(u.Canonical):
         # Format exponential cone constraints.
         if solver == s.CVXOPT:
             for constr in constr_map[s.EXP]:
-                constr_map[s.EQ] += constr.format(solver)
+                constr_map[s.EQ] += constr.format(s.CVXOPT)
         elif solver == s.SCS:
             for constr in constr_map[s.EXP]:
-                constr_map[s.LEQ] += constr.format(solver)
+                constr_map[s.LEQ] += constr.format(s.SCS)
             dims["ep"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EXP])
 
         return dims
