@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.utilities import get_upper_to_sym_mat
 
 class SDP(Constraint):
     """
@@ -40,8 +41,14 @@ class SDP(Constraint):
     def format(self):
         """Formats SDP constraints as inequalities for the solver.
         """
-        # 0 <= A
-        return [lu.create_geq(self.A)]
+        # 0 <= M*vec(A)
+        # where M recreates A using only the upper triangular
+        # components.
+        mat = get_upper_to_sym_mat(self.size)
+        vectorized_size = (self.size[0]*self.size[1], 1)
+        vectorized = lu.reshape(self.A, vectorized_size)
+        expr = lu.mul_expr(mat, vectorized, vectorized_size)
+        return [lu.create_geq(expr)]
 
     @property
     def size(self):
