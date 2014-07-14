@@ -87,7 +87,7 @@ class ExpCone(NonlinearConstraint):
         else:
             raise ValueError("Solver does not support exponential cone.")
         # Update dims.
-        dims["ep"] += self.size[0]*self.size[1]
+        dims[s.EXP_DIM] += self.size[0]*self.size[1]
 
     def _solver_hook(self, vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.

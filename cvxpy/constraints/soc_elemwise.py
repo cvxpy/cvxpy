@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.utilities import format_elemwise
@@ -52,7 +53,7 @@ class SOC_Elemwise(SOC):
         leq_constr += format_elemwise([self.t] + self.x_elems)
         # Update dims.
         for cone_size in self.size:
-            dims["q"].append(cone_size[0])
+            dims[s.SOC_DIM].append(cone_size[0])
 
     def num_cones(self):
         """The number of elementwise cones.

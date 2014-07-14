@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.constraint import Constraint
 
@@ -53,7 +54,7 @@ class SOC(Constraint):
         for elem in self.x_elems:
             leq_constr.append(lu.create_geq(elem))
         # Update dims.
-        dims["q"].append(self.size[0])
+        dims[s.SOC_DIM].append(self.size[0])
 
     @property
     def size(self):

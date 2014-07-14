@@ -78,3 +78,10 @@ SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
 
 # Map of constraint types.
 EQ, LEQ, SOC, SOC_EW, SDP, EXP = range(6)
+
+# Keys in the dictionary of cone dimensions.
+EQ_DIM = "f"
+LEQ_DIM = "l"
+SOC_DIM = "q"
+SDP_DIM = "s"
+EXP_DIM = "ep"

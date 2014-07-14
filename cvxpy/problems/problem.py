@@ -164,11 +164,11 @@ class Problem(u.Canonical):
         """
         # Initialize dimensions.
         dims = {}
-        dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
-        dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
-        dims["q"] = []
-        dims["s"] = []
-        dims["ep"] = 0
+        dims[s.EQ_DIM] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
+        dims[s.LEQ_DIM] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
+        dims[s.SOC_DIM] = []
+        dims[s.SDP_DIM] = []
+        dims[s.EXP_DIM] = 0
         # Formats SOC, SOC_EW, SDP, and EXP constraints for the solver.
         nonlin = constr_map[s.SOC] + constr_map[s.SDP] + constr_map[s.EXP]
         for constr in nonlin:
