@@ -29,6 +29,4 @@ class semidefinite(Variable):
         """Variable must be semidefinite and symmetric.
         """
         obj, constr = super(semidefinite, self).canonicalize()
-        obj_transpose = lu.transpose(obj)
-        return (obj, constr + [lu.create_eq(obj, obj_transpose),
-                               SDP(obj)])
+        return (obj, constr + [SDP(obj)])

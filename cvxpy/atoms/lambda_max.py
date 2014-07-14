@@ -83,13 +83,9 @@ class lambda_max(Atom):
         """
         A = arg_objs[0]
         n, _ = A.size
-        # Requires that A is symmetric.
-        # A == A.T
-        obj, constraints = transpose.graph_implementation([A], (n, n))
-        constraints.append(lu.create_eq(A, obj))
         # SDP constraint.
         t = lu.create_var((1, 1))
         prom_t = lu.promote(t, (n, 1))
         # I*t - A
         expr = lu.sub_expr(lu.diag_vec(prom_t), A)
-        return (t, [SDP(expr)] + constraints)
+        return (t, [SDP(expr)])

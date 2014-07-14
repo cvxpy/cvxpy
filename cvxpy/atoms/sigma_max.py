@@ -80,8 +80,7 @@ class sigma_max(Atom):
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = lu.create_var((n+m, n+m))
         t = lu.create_var((1, 1))
-        # Expand A.T.
-        obj, constraints = transpose.graph_implementation([A], (m, n))
+        constraints = []
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:n, 0:n] == I_n*t
         prom_t = lu.promote(t, (n, 1))
@@ -90,9 +89,6 @@ class sigma_max(Atom):
         # X[0:n, n:n+m] == A
         index.block_eq(X, A, constraints,
                        0, n, n, n+m)
-        # X[n:n+m, 0:n] == obj
-        index.block_eq(X, obj, constraints,
-                       n, n+m, 0, n)
         # X[n:n+m, n:n+m] == I_m*t
         prom_t = lu.promote(t, (m, 1))
         index.block_eq(X, lu.diag_vec(prom_t), constraints,

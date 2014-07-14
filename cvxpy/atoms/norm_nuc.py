@@ -82,17 +82,12 @@ class normNuc(Atom):
         #   subject to:
         #            [U A; A.T V] is positive semidefinite
         X = lu.create_var((rows+cols, rows+cols))
-        # Expand A.T.
-        obj, constraints = transpose.graph_implementation([A], (cols, rows))
+        constraints = []
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:rows,rows:rows+cols] == A
         index.block_eq(X, A, constraints,
                        0, rows, rows, rows+cols)
-        # X[rows:rows+cols,0:rows] == A.T
-        index.block_eq(X, obj, constraints,
-                       rows, rows+cols, 0, rows)
-        diag = [index.get_index(X, constraints, i, i) for i in range(rows+cols)]
         half = lu.create_const(0.5, (1, 1))
-        trace = lu.mul_expr(half, lu.sum_expr(diag), (1, 1))
+        trace = lu.mul_expr(half, lu.trace(X), (1, 1))
         # Add SDP constraint.
         return (trace, [SDP(X)] + constraints)

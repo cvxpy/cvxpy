@@ -52,7 +52,8 @@ class SDP(Constraint):
             The solver being called.
         """
         # A == A.T
-        #eq_constr.append(lu.create)
+        eq_constr.append(lu.create_eq(self.A, lu.transpose(self.A)))
+        dims["f"] += self.size[0]*self.size[1]
         # 0 <= A
         leq_constr.append(lu.create_geq(self.A))
         # Update dims.

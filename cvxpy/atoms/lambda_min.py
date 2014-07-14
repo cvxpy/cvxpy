@@ -83,13 +83,9 @@ class lambda_min(Atom):
         """
         A = arg_objs[0]
         n, _ = A.size
-        # Requires that A is symmetric.
-        obj, constraints = transpose.graph_implementation([A], (n, n))
-        # A == A.T
-        constraints.append(lu.create_eq(A, obj))
         # SDP constraint.
         t = lu.create_var((1, 1))
         prom_t = lu.promote(t, (n, 1))
         # A - I*t
         expr = lu.sub_expr(A, lu.diag_vec(prom_t))
-        return (t, [SDP(expr)] + constraints)
+        return (t, [SDP(expr)])

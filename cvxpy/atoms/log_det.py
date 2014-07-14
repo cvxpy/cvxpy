@@ -107,13 +107,8 @@ class log_det(Atom):
         X = lu.create_var((2*n, 2*n))
         Z = lu.create_var((n, n))
         D = lu.create_var((n, n))
-        # Require that X is symmetric (which implies
-        # A is symmetric).
-        # X == X.T
-        obj, constraints = transpose.graph_implementation([X], (n, n))
-        constraints.append(lu.create_eq(X, obj))
         # Require that X and A are PSD.
-        constraints += [SDP(X), SDP(A)]
+        constraints = [SDP(X), SDP(A)]
         # Fix Z as upper triangular, D as diagonal,
         # and diag(D) as diag(Z).
         for i in xrange(n):
