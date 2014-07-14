@@ -37,11 +37,26 @@ class SDP(Constraint):
     def __str__(self):
         return "SDP(%s)" % self.A
 
-    def format(self):
+    def format(self, eq_constr, leq_constr, dims, solver):
         """Formats SDP constraints as inequalities for the solver.
+
+        Parameters
+        ----------
+        eq_constr : list
+            A list of the equality constraints in the canonical problem.
+        leq_constr : list
+            A list of the inequality constraints in the canonical problem.
+        dims : dict
+            A dict with the dimensions of the conic constraints.
+        solver : str
+            The solver being called.
         """
+        # A == A.T
+        #eq_constr.append(lu.create)
         # 0 <= A
-        return [lu.create_geq(self.A)]
+        leq_constr.append(lu.create_geq(self.A))
+        # Update dims.
+        dims["s"].append(self.size[0])
 
     @property
     def size(self):

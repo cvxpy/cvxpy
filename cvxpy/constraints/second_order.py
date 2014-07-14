@@ -35,13 +35,25 @@ class SOC(Constraint):
     def __str__(self):
         return "SOC(%s, %s)" % (self.t, self.x_elems)
 
-    def format(self):
+    def format(self, eq_constr, leq_constr, dims, solver):
         """Formats SOC constraints as inequalities for the solver.
+
+        Parameters
+        ----------
+        eq_constr : list
+            A list of the equality constraints in the canonical problem.
+        leq_constr : list
+            A list of the inequality constraints in the canonical problem.
+        dims : dict
+            A dict with the dimensions of the conic constraints.
+        solver : str
+            The solver being called.
         """
-        constraints = [lu.create_geq(self.t)]
+        leq_constr.append(lu.create_geq(self.t))
         for elem in self.x_elems:
-            constraints.append(lu.create_geq(elem))
-        return constraints
+            leq_constr.append(lu.create_geq(elem))
+        # Update dims.
+        dims["q"].append(self.size[0])
 
     @property
     def size(self):
@@ -50,4 +62,4 @@ class SOC(Constraint):
         rows = 1
         for elem in self.x_elems:
             rows += elem.size[0]*elem.size[1]
-        return [(rows, 1)]
+        return (rows, 1)

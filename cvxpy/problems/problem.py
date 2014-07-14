@@ -162,31 +162,17 @@ class Problem(u.Canonical):
         dict
             The dimensions of the cones.
         """
+        # Initialize dimensions.
         dims = {}
         dims["f"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
         dims["l"] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
-        # Formats SOC, SOC_EW, and SDP constraints for the solver.
-        nonlin = constr_map[s.SOC] + constr_map[s.SDP]
-        for constr in nonlin:
-            for ineq_constr in constr.format():
-                constr_map[s.LEQ].append(ineq_constr)
-        # Elemwise SOC constraints have an SOC constraint
-        # for each element in their arguments.
         dims["q"] = []
-        for constr in constr_map[s.SOC]:
-            for cone_size in constr.size:
-                dims["q"].append(cone_size[0])
-        dims["s"] = [c.size[0] for c in constr_map[s.SDP]]
-
-        # Format exponential cone constraints.
-        if solver == s.CVXOPT:
-            constr_type = s.EQ
-        elif solver == s.SCS:
-            constr_type = s.LEQ
-
-        for constr in constr_map[s.EXP]:
-            constr_map[constr_type] += constr.format(solver)
-        dims["ep"] = sum(c.size[0]*c.size[1] for c in constr_map[s.EXP])
+        dims["s"] = []
+        dims["ep"] = 0
+        # Formats SOC, SOC_EW, SDP, and EXP constraints for the solver.
+        nonlin = constr_map[s.SOC] + constr_map[s.SDP] + constr_map[s.EXP]
+        for constr in nonlin:
+            constr.format(constr_map[s.EQ], constr_map[s.LEQ], dims, solver)
 
         return dims
 

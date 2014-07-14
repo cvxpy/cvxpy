@@ -78,8 +78,7 @@ class TestConstraints(unittest.TestCase):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
         constr = SOC(scalar_exp, [exp])
-        self.assertEqual(constr.size[0], (3,1))
-        self.assertEqual(len(constr.format()), 2)
+        self.assertEqual(constr.size, (3,1))
 
     def test_chained_constraints(self):
         """Tests that chaining constraints raises an error.

@@ -58,13 +58,19 @@ class ExpCone(NonlinearConstraint):
     def __str__(self):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
-    def format(self, solver):
+    def format(self, eq_constr, leq_constr, dims, solver):
         """Formats EXP constraints for the solver.
 
         Parameters
         ----------
-            solver : str
-                The solver targetted.
+        eq_constr : list
+            A list of the equality constraints in the canonical problem.
+        leq_constr : list
+            A list of the inequality constraints in the canonical problem.
+        dims : dict
+            A dict with the dimensions of the conic constraints.
+        solver : str
+            The solver being called.
         """
         # Need x, y, z to be lone Variables.
         if solver == s.CVXOPT:
@@ -74,12 +80,14 @@ class ExpCone(NonlinearConstraint):
                     lone_var = lu.create_var(var.size)
                     constraints.append(lu.create_eq(lone_var, var))
                     self.vars_[i] = lone_var
-            return constraints
+            eq_constr += constraints
         # Converts to an inequality constraint.
         elif solver == s.SCS:
-            return format_elemwise([self.x, self.y, self.z])
+            leq_constr += format_elemwise([self.x, self.y, self.z])
         else:
-            raise TypeError("Solver does not support exponential cone.")
+            raise ValueError("Solver does not support exponential cone.")
+        # Update dims.
+        dims["ep"] += self.size[0]*self.size[1]
 
     def _solver_hook(self, vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.

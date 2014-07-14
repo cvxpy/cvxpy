@@ -67,7 +67,9 @@ class LeqConstraint(u.Canonical, Constraint):
         Marks the top level constraint as the dual_holder,
         so the dual value will be saved to the LeqConstraint.
 
-        Returns:
+        Returns
+        -------
+        tuple
             A tuple of (affine expression, [constraints]).
         """
         obj, constraints = self._expr.canonical_form

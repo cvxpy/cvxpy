@@ -118,11 +118,6 @@ class log_det(Atom):
         # and diag(D) as diag(Z).
         for i in xrange(n):
             for j in xrange(n):
-                if i == j:
-                    # D[i, j] == Z[i, j]
-                    Dij = index.get_index(D, constraints, i, j)
-                    Zij = index.get_index(Z, constraints, i, j)
-                    constraints.append(lu.create_eq(Dij, Zij))
                 if i != j:
                     # D[i, j] == 0
                     Dij = index.get_index(D, constraints, i, j)
@@ -131,6 +126,8 @@ class log_det(Atom):
                     # Z[i, j] == 0
                     Zij = index.get_index(Z, constraints, i, j)
                     constraints.append(lu.create_eq(Zij))
+        # D[i, i] = Z[i, i]
+        constraints.append(lu.create_eq(lu.diag_mat(D), lu.diag_mat(Z)))
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:n, 0:n] == D
         index.block_eq(X, D, constraints, 0, n, 0, n)

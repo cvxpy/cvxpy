@@ -35,10 +35,24 @@ class SOC_Elemwise(SOC):
     def __str__(self):
         return "SOC_Elemwise(%s, %s)" % (self.t, self.x_elems)
 
-    def format(self):
+    def format(self, eq_constr, leq_constr, dims, solver):
         """Formats SOC constraints as inequalities for the solver.
+
+        Parameters
+        ----------
+        eq_constr : list
+            A list of the equality constraints in the canonical problem.
+        leq_constr : list
+            A list of the inequality constraints in the canonical problem.
+        dims : dict
+            A dict with the dimensions of the conic constraints.
+        solver : str
+            The solver being called.
         """
-        return format_elemwise([self.t] + self.x_elems)
+        leq_constr += format_elemwise([self.t] + self.x_elems)
+        # Update dims.
+        for cone_size in self.size:
+            dims["q"].append(cone_size[0])
 
     def num_cones(self):
         """The number of elementwise cones.
