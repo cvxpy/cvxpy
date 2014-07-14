@@ -262,6 +262,17 @@ parameter was created.
     # Assigns a constant value to G.
     G.value = -numpy.ones((4, 7))
 
+You can initialize a parameter with a value. The following code segments are equivalent:
+
+.. code:: python
+
+    # Create parameter, then assign value.
+    rho = Parameter(sign="positive")
+    rho.value = 2
+
+    # Initialize parameter with a value.
+    rho = Parameter(sign="positive", value=2)
+
 Computing trade-off curves is a common use of parameters. The example below
 computes a trade-off curve for a LASSO problem.
 

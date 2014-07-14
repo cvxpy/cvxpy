@@ -28,7 +28,7 @@ class Parameter(Constant):
     A parameter, either matrix or scalar.
     """
     PARAM_COUNT = 0
-    def __init__(self, rows=1, cols=1, name=None, sign="unknown"):
+    def __init__(self, rows=1, cols=1, name=None, sign="unknown", value=None):
         self.id = lu.get_id()
         self._rows = rows
         self._cols = cols
@@ -38,6 +38,9 @@ class Parameter(Constant):
         else:
             self._name = name
         self.init_dcp_attr()
+        # Initialize with value if provided.
+        if value is not None:
+            self.value = value
 
     def name(self):
         return self._name
@@ -58,7 +61,9 @@ class Parameter(Constant):
         val = intf.DEFAULT_INTERFACE.const_to_matrix(val)
         size = intf.size(val)
         if size != self.size:
-            raise Exception("Invalid dimensions (%s,%s) for Parameter value." % size)
+            raise Exception(
+                ("Invalid dimensions (%s, %s) for Parameter value." % size)
+            )
         # All signs are valid if sign is unknown.
         # Otherwise value sign must match declared sign.
         sign = intf.sign(val)

@@ -156,7 +156,7 @@ class TestExpressions(unittest.TestCase):
         p = Parameter(4, 3, sign="positive")
         with self.assertRaises(Exception) as cm:
             p.value = 1
-        self.assertEqual(str(cm.exception), "Invalid dimensions (1,1) for Parameter value.")
+        self.assertEqual(str(cm.exception), "Invalid dimensions (1, 1) for Parameter value.")
 
         val = -np.ones((4,3))
         val[0,0] = 2
@@ -174,6 +174,19 @@ class TestExpressions(unittest.TestCase):
         # No error for unknown sign.
         p = Parameter(4, 3)
         p.value = val
+
+        # Initialize a parameter with a value.
+        p = Parameter(value=10)
+        self.assertEqual(p.value, 10)
+
+        with self.assertRaises(Exception) as cm:
+            p = Parameter(2, 1, sign="negative", value=[2,1])
+        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+
+        with self.assertRaises(Exception) as cm:
+            p = Parameter(4, 3, sign="positive", value=[1,2])
+        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Parameter value.")
+
 
     # Test the AddExpresion class.
     def test_add_expression(self):

@@ -24,6 +24,22 @@
 # class TestNonOptimal(BaseTest):
 #     """ Unit tests for infeasible and unbounded problems. """
 
+#     def test_scalar_lp(self):
+#         """Test scalar LP problems.
+#         """
+#         x1 = Variable()
+#         x2 = Variable()
+#         obj = Minimize(-x1-x2)
+#         constraints = [2*x1 + x2 >= 1, x1 + 3*x2 >= 1, x1>= 0, x2>=0]
+#         p_unb = Problem(obj, constraints)
+#         p_inf = Problem(Minimize(x1), [0 <= x1, x1 <= -1])
+#         for solver in [ECOS, CVXOPT, SCS]:
+#             print solver
+#             p_unb.solve(solver=solver)
+#             self.assertEqual(p_unb.status, UNBOUNDED)
+#             p_inf.solve(solver=solver)
+#             self.assertEqual(p_inf.status, INFEASIBLE)
+
 #     def test_vector_lp(self):
 #         """Test vector LP problems.
 #         """
@@ -40,36 +56,36 @@
 #             p_unb.solve(solver=solver)
 #             self.assertEqual(p_unb.status, UNBOUNDED)
 
-#     def test_socp(self):
-#         """Test SOCP problems.
-#         """
-#         # Infeasible and unbounded problems.
-#         x = Variable(5)
-#         obj = Maximize(sum_entries(sqrt(x)))
-#         p_inf = Problem(obj,
-#                         [x >= 1,
-#                          x <= 0])
-#         p_unb = Problem(obj, [x >= 1])
-#         for solver in [ECOS, CVXOPT, SCS]:
-#             print solver
-#             p_inf.solve(solver=solver)
-#             self.assertEqual(p_inf.status, INFEASIBLE)
-#             p_unb.solve(solver=solver)
-#             self.assertEqual(p_unb.status, UNBOUNDED)
+#     # def test_socp(self):
+#     #     """Test SOCP problems.
+#     #     """
+#     #     # Infeasible and unbounded problems.
+#     #     x = Variable(5)
+#     #     obj = Maximize(sum_entries(sqrt(x)))
+#     #     p_inf = Problem(obj,
+#     #                     [x >= 1,
+#     #                      x <= 0])
+#     #     p_unb = Problem(obj, [x >= 1])
+#     #     for solver in [ECOS, CVXOPT, SCS]:
+#     #         print solver
+#     #         p_inf.solve(solver=solver)
+#     #         self.assertEqual(p_inf.status, INFEASIBLE)
+#     #         p_unb.solve(solver=solver)
+#     #         self.assertEqual(p_unb.status, UNBOUNDED)
 
-#     def test_scp(self):
-#         """Test SDP problems.
-#         """
-#         # Infeasible and unbounded problems.
-#         X = Variable(5, 5)
-#         obj = Maximize(lambda_min(X))
-#         p_inf = Problem(obj,
-#                         [X >= 1,
-#                          X <= 0])
-#         p_unb = Problem(obj)
-#         for solver in [CVXOPT, SCS]:
-#             print solver
-#             p_inf.solve(solver=solver)
-#             self.assertEqual(p_inf.status, INFEASIBLE)
-#             p_unb.solve(solver=solver)
-#             self.assertEqual(p_unb.status, UNBOUNDED)
+#     # def test_scp(self):
+#     #     """Test SDP problems.
+#     #     """
+#     #     # Infeasible and unbounded problems.
+#     #     X = Variable(5, 5)
+#     #     obj = Maximize(lambda_min(X))
+#     #     p_inf = Problem(obj,
+#     #                     [X >= 1,
+#     #                      X <= 0])
+#     #     p_unb = Problem(obj)
+#     #     for solver in [CVXOPT, SCS]:
+#     #         print solver
+#     #         p_inf.solve(solver=solver)
+#     #         self.assertEqual(p_inf.status, INFEASIBLE)
+#     #         p_unb.solve(solver=solver)
+#     #         self.assertEqual(p_unb.status, UNBOUNDED)

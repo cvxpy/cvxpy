@@ -476,6 +476,15 @@ class TestExamples(BaseTest):
         G.value = -numpy.ones((4, 7))
         ########################################
 
+        # Create parameter, then assign value.
+        rho = Parameter(sign="positive")
+        rho.value = 2
+
+        # Initialize parameter with a value.
+        rho = Parameter(sign="positive", value=2)
+
+        ########################################
+
         import numpy
 
         # Problem data.
