@@ -90,7 +90,7 @@ class TestAtoms(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             quad_over_lin(self.x, self.x)
         self.assertEqual(str(cm.exception),
-            "The second argument to quad_over_lin must be a scalar")
+            "The second argument to quad_over_lin must be a scalar.")
 
     def test_elemwise_arg_count(self):
         """Test arg count for max and min variants.
@@ -104,6 +104,28 @@ class TestAtoms(unittest.TestCase):
             min_elemwise(1)
         self.assertEqual(str(cm.exception),
             "__init__() takes at least 3 arguments (2 given)")
+
+    def test_matrix_frac(self):
+        """Test for the matrix_frac atom.
+        """
+        atom = matrix_frac(self.x, self.A)
+        self.assertEquals(atom.size, (1,1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        # Test matrix_frac size validation.
+        with self.assertRaises(Exception) as cm:
+            matrix_frac(self.x, self.C)
+        self.assertEqual(str(cm.exception),
+            "The second argument to matrix_frac must be a square matrix.")
+
+        with self.assertRaises(Exception) as cm:
+            matrix_frac(self.A, self.A)
+        self.assertEqual(str(cm.exception),
+            "The first argument to matrix_frac must be a column vector.")
+
+        with self.assertRaises(Exception) as cm:
+            matrix_frac(Variable(3), self.A)
+        self.assertEqual(str(cm.exception),
+            "The arguments to matrix_frac have incompatible dimensions.")
 
     def test_max_entries_sign(self):
         """Test sign for max_entries.

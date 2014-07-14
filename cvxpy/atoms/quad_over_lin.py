@@ -61,7 +61,7 @@ class quad_over_lin(Atom):
         """Check dimensions of arguments.
         """
         if not self.args[1].is_scalar():
-            raise ValueError("The second argument to quad_over_lin must be a scalar")
+            raise ValueError("The second argument to quad_over_lin must be a scalar.")
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

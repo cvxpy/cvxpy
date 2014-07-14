@@ -23,6 +23,7 @@ from lambda_max import lambda_max
 from lambda_min import lambda_min
 from log_det import log_det
 from log_sum_exp import log_sum_exp
+from matrix_frac import matrix_frac
 from max_entries import max_entries
 from min_entries import min_entries
 from norm import norm

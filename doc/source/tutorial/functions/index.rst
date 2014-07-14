@@ -68,6 +68,11 @@ and returns a scalar.
 |                     | \sum_{ij}              | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | e^{X_{ij}}\right)`     |                              |                     |                   |                           |
 +---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
+| matrix_frac(x, P)   | :math:`x^T P^{-1} x`   | :math:`x \in \mathbf{R}^n`   | |positive| positive | |convex| convex   | None                      |
+|                     |                        |                              |                     |                   |                           |
+|                     |                        | :math:`P \in                 |                     |                   |                           |
+|                     |                        | \mathbf{S}^n_{++}`           |                     |                   |                           |
++---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | max_entries(X)      | :math:`\max_{ij}       | :math:`X \in                 | same as X           | |convex| convex   | |incr| incr.              |
 |                     | \left\{ X_{ij}         | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | \right\}`              |                              |                     |                   |                           |
@@ -151,7 +156,7 @@ and returns a scalar.
 Clarifications
 ^^^^^^^^^^^^^^
 
-The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively.
+The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, :math:`\mathbf{S}^n_{++}` and :math:`\mathbf{S}^n_{--}` refer to the set of positive definite and negative definite matrices, respectively.
 
 For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
 
