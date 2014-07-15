@@ -48,19 +48,25 @@ Ubuntu 14.04
 
        sudo apt-get install libatlas-base-dev gfortran
 
-3. Install ``pip``.
+3. Install ``python-dev``.
+
+   ::
+
+       sudo apt-get install python-dev
+
+4. Install ``pip``.
 
    ::
 
        sudo apt-get install python-pip
 
-4. Install ``numpy`` and ``scipy``.
+5. Install ``numpy`` and ``scipy``.
 
    ::
 
        sudo apt-get install python-numpy python-scipy
 
-5. Install ``cvxpy``.
+6. Install ``cvxpy``.
 
    ::
 
