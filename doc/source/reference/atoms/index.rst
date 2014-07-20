@@ -19,6 +19,7 @@ Summary
     norm2
     normInf
     normNuc
+    norm_mixed
     quad_form
     quad_over_lin
     sigma_max
@@ -71,6 +72,10 @@ Summary
     :undoc-members:
 
 .. autoclass:: cvxpy.normNuc
+    :members:
+    :undoc-members:
+
+.. autoclass:: cvxpy.norm_mixed
     :members:
     :undoc-members:
 
