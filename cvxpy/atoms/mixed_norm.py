@@ -18,15 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.norm1 import norm1
-from cvxpy.atoms.norm2 import norm2
-from cvxpy.atoms.norm_inf import normInf
-from cvxpy.atoms.norm_nuc import normNuc
+from cvxpy.atoms.norm import norm
 from cvxpy.expressions.variables import Variable
 from cvxpy.atoms.affine.hstack import hstack
 
-def norm_mixed(X, p=2, q=1):
-    """L2,1 norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert )^q/p)^{1/q}`.
+def mixed_norm(X, p=2, q=1):
+    """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert )^q/p)^{1/q}`.
 
     Parameters
     ----------
@@ -43,22 +40,10 @@ def norm_mixed(X, p=2, q=1):
         An Expression representing the mixed norm.
     """
     X = Expression.cast_to_const(X)
-    def norm_selector(order):
-        if order == 1:
-            return norm1
-        elif order == 2:
-            return norm2
-        elif order == "inf":
-            return normInf
-        elif order == "nuc":
-            return normNuc
-        else:
-            raise Exception("Invalid value %s for p." % p)
-
-    pnorm = norm_selector(p)
-    qnorm = norm_selector(q)
     
-    vecnorms = [ pnorm(X[i, :]) for i in range(X.shape.cols) ]
+    # inner norms
+    vecnorms = [ norm(X[i, :], p) for i in range(X.shape.rows) ]
 
-    return qnorm(hstack(*vecnorms))
+    # outer norm
+    return norm(hstack(*vecnorms), q)
 
