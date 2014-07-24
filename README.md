@@ -1,6 +1,6 @@
 CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy)
 =====================
-**Although this project is similar to and named the same as [CVXPY](https://code.google.com/p/cvxpy/), this version is a total rewrite and is incompatible with the old one.**
+**Join the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy) for the best CVXPY support!**
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
 
