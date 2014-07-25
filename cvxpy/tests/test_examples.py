@@ -498,8 +498,8 @@ class TestExamples(BaseTest):
 
         # Construct the problem.
         x = Variable(m)
-        sum_of_squares = sum_entries(square(A*x - b))
-        obj = Minimize(sum_of_squares + gamma*norm(x, 1))
+        error = sum_squares(A*x - b)
+        obj = Minimize(error + gamma*norm(x, 1))
         prob = Problem(obj)
 
         # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
@@ -512,7 +512,7 @@ class TestExamples(BaseTest):
             prob.solve()
             # Use expr.value to get the numerical value of
             # an expression in the problem.
-            sq_penalty.append(sum_of_squares.value)
+            sq_penalty.append(error.value)
             l1_penalty.append(norm(x, 1).value)
             x_values.append(x.value)
 
