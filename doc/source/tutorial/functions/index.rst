@@ -241,6 +241,10 @@ and returns a vector or matrix.
 +---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
 |       Function      |           Meaning           |           Domain           |           Sign           |    Curvature    | Monotonicity |
 +=====================+=============================+============================+==========================+=================+==============+
+| conv(c, x)          | :math:`c*x`                 | :math:`c\in\mathbf{R}^m    | depends on c, x          | |affine| affine | depends on c |
+|                     |                             | x\in \mathbf{R}^n`         |                          |                 |              |
+| c constant          |                             |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
 | diag(x)             | :math:`\left[\begin{matrix} | :math:`x \in               | same as x                | |affine| affine | |incr| incr. |
 |                     | x_1  & &  \\                | \mathbf{R}^{n}`            |                          |                 |              |
 |                     | & \ddots & \\               |                            |                          |                 |              |
@@ -263,10 +267,14 @@ and returns a vector or matrix.
 |                     | X_k                         |                            |                          |                 |              |
 |                     | \end{matrix}\right]`        |                            |                          |                 |              |
 +---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
-| conv(c, x)          | :math:`c*x`                 | :math:`c\in\mathbf{R}^m    | depends on c, X          | |affine| affine | depends on c |
-|                     |                             | x\in \mathbf{R}^n`         |                          |                 |              |
-| c constant          |                             |                            |                          |                 |              |
-+---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+
+Clarifications
+^^^^^^^^^^^^^^
+The output of :math:`y` of ``conv`` has size :math:`n+m-1` and is defined as
+:math: `y[k]=\sum_{j=0}^k c[j]x[k-j]`.
+
+
+
 
 .. |positive| image:: functions_files/positive.svg
               :width: 15px
