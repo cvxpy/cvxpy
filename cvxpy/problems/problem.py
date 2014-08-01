@@ -37,9 +37,14 @@ import numbers
 import cvxopt
 import cvxopt.solvers
 import ecos
-import scs
 import numpy as np
 import scipy.sparse as sp
+
+# Attempt to import SCS.
+try:
+    import scs
+except ImportError:
+    warning("The solver SCS could not be imported.")
 
 class Problem(u.Canonical):
     """A convex optimization problem.
