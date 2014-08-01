@@ -134,16 +134,20 @@ class TestExpressions(unittest.TestCase):
         # Test the sign.
         c = Constant([[2], [2]])
         self.assertEqual(c.size, (1, 2))
+        self.assertEqual(c.sign, u.Sign.POSITIVE_KEY)
+        self.assertEqual((-c).sign, u.Sign.NEGATIVE_KEY)
+        self.assertEqual((0*c).sign, u.Sign.ZERO_KEY)
+        c = Constant([[2], [-2]])
         self.assertEqual(c.sign, u.Sign.UNKNOWN_KEY)
 
         # Test sign of a complex expression.
         c = Constant([1, 2])
         A = Constant([[1,1],[1,1]])
         exp = c.T*A*c
-        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
-        self.assertEqual((c.T*c).sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(exp.sign, u.Sign.POSITIVE_KEY)
+        self.assertEqual((c.T*c).sign, u.Sign.POSITIVE_KEY)
         exp = c.T.T
-        self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEqual(exp.sign, u.Sign.POSITIVE_KEY)
         exp = c.T*self.A
         self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
 
