@@ -155,11 +155,12 @@ def sum_entries_mat(lin_op):
 
     Returns
     -------
-    NumPy array
+    NumPy matrix
         The matrix representing the sum_entries operation.
     """
     rows, cols = lin_op.args[0].size
-    return np.ones((1, rows*cols))
+    coeff = np.ones((1, rows*cols))
+    return np.matrix(coeff)
 
 def trace_mat(lin_op):
     """Returns the coefficient matrix for TRACE linear op.
@@ -171,14 +172,14 @@ def trace_mat(lin_op):
 
     Returns
     -------
-    NumPy array
+    NumPy matrix
         The matrix representing the trace operation.
     """
     rows, _ = lin_op.args[0].size
     mat = np.zeros((1, rows**2))
     for i in xrange(rows):
         mat[0, i*rows + i] = 1
-    return mat
+    return np.matrix(mat)
 
 def neg_mat(lin_op):
     """Returns the coefficient matrix for NEG linear op.
@@ -243,11 +244,12 @@ def promote_mat(lin_op):
 
     Returns
     -------
-    NumPy ND array
+    NumPy matrix
         The matrix for scalar promotion.
     """
     num_entries = lin_op.size[0]*lin_op.size[1]
-    return np.ones((num_entries, 1))
+    coeff = np.ones((num_entries, 1))
+    return np.matrix(coeff)
 
 def mul_mat(lin_op):
     """Returns the coefficient matrix for MUL linear op.
@@ -396,7 +398,7 @@ def conv_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    NumPy matrix
         The matrix representing the convolution operation.
     """
     constant = const_mat(lin_op.data)
@@ -414,7 +416,7 @@ def conv_mat(lin_op):
     toeplitz_row[0] = constant[0]
     coeff = sp_la.toeplitz(toeplitz_col, toeplitz_row)
 
-    return coeff
+    return np.matrix(coeff)
 
 
 # A list of all the linear operator types for constants.

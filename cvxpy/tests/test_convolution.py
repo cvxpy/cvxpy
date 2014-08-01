@@ -103,3 +103,16 @@ class TestConvolution(BaseTest):
             result *= 0
 
         return matrix
+
+    def test_conv_prob(self):
+        """Test a problem with convolution.
+        """
+        import cvxpy as cvx
+        import numpy as np
+        N = 5
+        y = np.asmatrix(np.random.randn(N, 1))
+        h = np.asmatrix(np.random.randn(2, 1))
+        x = cvx.Variable(N)
+        v = cvx.conv(h, x)
+        obj = cvx.Minimize(cvx.sum_entries(cvx.mul_elemwise(y,v[0:N])))
+        print cvx.Problem(obj, []).solve()
