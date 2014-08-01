@@ -32,4 +32,5 @@ Advanced Examples
 .. toctree::
     :maxdepth: 1
 
+    nonneg_matrix_fact/index
     sparse_heuristics/index
