@@ -1,6 +1,6 @@
 .. _nonneg_matrix_fact:
 
-Nonnegative matrix factorization
+Nonnegative Matrix Factorization
 ================================
 
 | A derivative work by Judson Wilson, 6/2/2014.
