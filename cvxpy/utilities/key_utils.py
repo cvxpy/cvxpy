@@ -42,18 +42,20 @@ def validate_key(key, shape):
         else:
             raise IndexError("Invalid index/slice.")
     # Change numbers into slices and ensure all slices have a start and step.
-    key = tuple(format_slice(slice_) for slice_ in key)
+    key = tuple(format_slice(slc, dim) for slc, dim in zip(key, shape.size))
+    print key
     # Check that index is in bounds.
     if not (0 <= key[0].start and key[0].start < rows and \
             0 <= key[1].start and key[1].start < cols):
         raise IndexError("Index/slice out of bounds.")
     return key
 
-def format_slice(key_val):
+def format_slice(key_val, dim):
     """Converts part of a key into a slice with a start and step.
 
     Args:
         key_val: The value to convert into a slice.
+        dim: The length of the dimension being sliced.
 
     Returns:
         A slice with a start and step.
@@ -61,9 +63,23 @@ def format_slice(key_val):
     if isinstance(key_val, slice):
         start = key_val.start if key_val.start is not None else 0
         step = key_val.step if key_val.step is not None else 1
-        return slice(start, key_val.stop, step)
+        return slice(wrap_neg_index(start, dim),
+                     wrap_neg_index(key_val.stop, dim),
+                     step)
     else:
+        key_val = wrap_neg_index(key_val, dim)
         return slice(key_val, key_val+1, 1)
+
+def wrap_neg_index(index, dim):
+    """Converts a negative index into a positive index.
+
+    Args:
+        index: The index to convert. Can be None.
+        dim: The length of the dimension being indexed.
+    """
+    if index is not None and index < 0:
+        index %= dim
+    return index
 
 def index_to_slice(idx):
     """Converts an index to a slice.
