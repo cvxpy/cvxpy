@@ -48,11 +48,7 @@ class Constant(Leaf):
     # Return the DCP attributes of the constant.
     def init_dcp_attr(self):
         shape = u.Shape(*intf.size(self.value))
-        # If scalar, check sign. Else unknown sign.
-        if shape.size == (1, 1):
-            sign = u.Sign.val_to_sign(self.value)
-        else:
-            sign = u.Sign.UNKNOWN
+        sign = intf.sign(self.value)
         self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     def canonicalize(self):

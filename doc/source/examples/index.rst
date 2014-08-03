@@ -32,4 +32,10 @@ Advanced Examples
 .. toctree::
     :maxdepth: 1
 
+    antenna/index
     sparse_heuristics/index
+    circuit_design/index
+    max_entropy/index
+    filter_design/index
+    l1_trend_filter/index
+    nonneg_matrix_fact/index

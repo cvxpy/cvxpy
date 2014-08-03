@@ -84,16 +84,7 @@ may flag an expression as unknown sign when the sign could be figured
 out through more complex analysis. For instance, ``x*x`` is positive but
 has unknown sign by the rules above.
 
-Vector and matrix constants are always marked as unknown sign. Use parameters to create vectors and matrices with a known sign. For example,
-
-.. code:: python
-
-    # Vector/matrix constants are always unknown.
-    pos_vec = numpy.array([1, 1])
-
-    # Use parameters if you need a known sign.
-    pos_vec_param = Parameter(2, sign="positive")
-    pos_vec_param.value = pos_vec
+CVXPY determines the sign of constants by looking at their value. For scalar constants, this is straightforward. Vector and matrix constants with all positive (negative) entries are marked as positive (negative). Vector and matrix constants with both positive and negative entries are marked as unknown sign.
 
 The sign of an expression is stored as ``expr.sign``:
 

@@ -9,3 +9,4 @@ These examples show heuristic methods for finding sparse or low-rank solutions t
     :maxdepth: 1
 
     sparse_lin_ineq/index
+    sparse_covariance_est/index
