@@ -72,6 +72,7 @@ Helper functions
         for k in range(1, N):
             X[:, k] = Ad * X[:, k-1] + Bd;
         return X
+
 Generate problem data
 ---------------------
 
@@ -148,6 +149,7 @@ Generate problem data
     xnpts   = len(xdelays)
     areas   = np.zeros(npts)
     xareas  = dict()
+
 Solve problem and display results
 ---------------------------------
 
