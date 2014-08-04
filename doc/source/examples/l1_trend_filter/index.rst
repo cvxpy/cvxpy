@@ -39,7 +39,7 @@ For large problems, use l1\_tf (http://www.stanford.edu/~boyd/l1\_tf/).
 Formulate and solve problem
 ---------------------------
 
-Data file available at: `snp500.txt <./snp500.txt>`__. Alternative link:
+Data file available at: :download:`snp500.txt <l1_trend_filter_snp500_files/snp500.txt>`. Alternative link:
 http://web.cvxr.com/cvx/examples/time\_series\_analysis/l1\_trend\_filter\_snp500.m
 
 .. code:: python

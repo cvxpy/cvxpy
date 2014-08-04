@@ -67,6 +67,7 @@ Generate problem data
 
     # Calculate the sample covariance matrix.
     Y = np.cov(y_sample)
+
 Solve for several :math:`\alpha` values
 ---------------------------------------
 

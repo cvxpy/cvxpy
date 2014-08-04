@@ -90,6 +90,7 @@ Choose either:
     ARRAY_GEOMETRY = '2D_RANDOM'
     #ARRAY_GEOMETRY = '1D_UNIFORM_LINE'
     #ARRAY_GEOMETRY = '2D_UNIFORM_LATTICE'
+
 Data generation
 ~~~~~~~~~~~~~~~
 
@@ -158,6 +159,7 @@ Data generation
     # Target constraint matrix.
     ind_closest = np.argmin(np.abs(theta - theta_tar))
     Atar = A[ind_closest,:]
+
 Solve using bisection algorithm
 -------------------------------
 

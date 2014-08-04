@@ -45,6 +45,7 @@ Generate problem data
     b = A*tmp
     F = np.mat(np.random.randn(p, n))
     g = F*tmp + np.mat(np.random.rand(p, 1))
+
 Formulate and solve problem
 ---------------------------
 
