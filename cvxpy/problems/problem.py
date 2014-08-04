@@ -467,7 +467,8 @@ class Problem(u.Canonical):
         prob_data = self._ecos_problem_data(objective, constr_map, dims,
                                             var_offsets, x_length)
         obj_offset = prob_data[1]
-        results = ecos.solve(*prob_data[0], verbose=verbose)
+        opts = dict({"VERBOSE": verbose}.items() + opts.items())
+        results = ecos.solve(*prob_data[0], **opts)
         status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
         if status == s.OPTIMAL:
             primal_val = results['info']['pcost']
