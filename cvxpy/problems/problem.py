@@ -32,6 +32,7 @@ from cvxpy.problems.kktsolver import get_kktsolver
 import cvxpy.problems.iterative as iterative
 
 from collections import OrderedDict
+import warnings
 import itertools
 import numbers
 import cvxopt
@@ -44,7 +45,7 @@ import scipy.sparse as sp
 try:
     import scs
 except ImportError:
-    warning("The solver SCS could not be imported.")
+    warnings.warn("The solver SCS could not be imported.")
 
 class Problem(u.Canonical):
     """A convex optimization problem.
