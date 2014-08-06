@@ -36,8 +36,11 @@ INEQ_CONSTR = "<="
 
 # Solver Constants
 OPTIMAL = "optimal"
+OPTIMAL_INACCURATE = "optimal_inaccurate"
 INFEASIBLE = "infeasible"
+INFEASIBLE_INACCURATE = "infeasible_inaccurate"
 UNBOUNDED = "unbounded"
+UNBOUNDED_INACCURATE = "unbounded_inaccurate"
 SOLVER_ERROR = "solver_error"
 
 # Map of solver status to cvxpy status.
@@ -50,8 +53,9 @@ ECOS = "ECOS"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
                2: UNBOUNDED,
-               3: SOLVER_ERROR,
-               10: OPTIMAL,
+               10: OPTIMAL_INACCURATE,
+               11: INFEASIBLE_INACCURATE,
+               12: UNBOUNDED_INACCURATE,
                -1: SOLVER_ERROR,
                -2: SOLVER_ERROR,
                -3: SOLVER_ERROR,
@@ -59,11 +63,11 @@ ECOS_STATUS = {0: OPTIMAL,
 
 SCS = "SCS"
 SCS_STATUS = {"Solved": OPTIMAL,
-              "Solved/Inaccurate": OPTIMAL,
+              "Solved/Inaccurate": OPTIMAL_INACCURATE,
               "Unbounded": UNBOUNDED,
-              "Unbounded/Inaccurate": SOLVER_ERROR,
+              "Unbounded/Inaccurate": UNBOUNDED_INACCURATE,
               "Infeasible": INFEASIBLE,
-              "Infeasible/Inaccurate": SOLVER_ERROR,
+              "Infeasible/Inaccurate": INFEASIBLE_INACCURATE,
               "Failure": SOLVER_ERROR,
               "Indeterminate": SOLVER_ERROR}
 
