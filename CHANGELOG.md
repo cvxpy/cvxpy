@@ -1,3 +1,7 @@
+Version 2.8
+------------
+* Removed a stray println.
+
 Version 2.7
 ------------------------------
 * CVXPY import can succeed even if SCS import fails.
