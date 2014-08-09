@@ -34,3 +34,4 @@ test:
 about:
   home: http://www.cvxpy.org/en/latest/
   license: https://github.com/cvxgrp/cvxpy
+  summary: A Python-embedded modeling language for convex optimization.

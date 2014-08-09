@@ -43,7 +43,6 @@ def validate_key(key, shape):
             raise IndexError("Invalid index/slice.")
     # Change numbers into slices and ensure all slices have a start and step.
     key = tuple(format_slice(slc, dim) for slc, dim in zip(key, shape.size))
-    print key
     # Check that index is in bounds.
     if not (0 <= key[0].start and key[0].start < rows and \
             0 <= key[1].start and key[1].start < cols):
