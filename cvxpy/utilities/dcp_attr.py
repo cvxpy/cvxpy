@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from curvature import Curvature
-import key_utils as ku
 from shape import Shape
 from sign import Sign
 

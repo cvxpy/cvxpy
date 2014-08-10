@@ -1,0 +1,37 @@
+package:
+  name: cvxpy
+  version: 0.2.8
+
+build:
+  number: 0
+
+source:
+  git_url: https://github.com/cvxgrp/cvxpy
+
+requirements:
+  build:
+    - python
+    - numpy
+    - scipy
+    - toolz
+    - scs
+    - ecos
+    - cvxopt
+    - setuptools
+  run:
+    - python
+    - numpy
+    - scipy
+    - cvxopt
+    - toolz
+    - ecos
+    - scs
+test:
+  requires:
+    - setuptools
+  imports:
+    - cvxpy
+about:
+  home: http://www.cvxpy.org/en/latest/
+  license: https://github.com/cvxgrp/cvxpy
+  summary: A Python-embedded modeling language for convex optimization.

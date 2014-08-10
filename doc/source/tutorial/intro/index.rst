@@ -147,12 +147,33 @@ Notice that for a minimization problem the optimal value is ``inf`` if
 infeasible and ``-inf`` if unbounded. For maximization problems the
 opposite is true.
 
-If the solver called by CVXPY fails to solve the problem, the problem
+Other problem statuses
+----------------------
+
+If the solver called by CVXPY solves the problem but to a lower accuracy than desired, the
+problem status indicates the lower accuracy achieved. The
+statuses indicating lower accuracy are
+
+* "optimal\_inaccurate"
+* "unbounded\_inaccurate"
+* "infeasible\_inaccurate"
+
+The problem variables are updated as usual for the type of solution
+found (i.e., optimal, unbounded, or infeasible).
+
+If the solver completely fails to solve the problem, the problem
 status is set to "solver\_error" and the optimal value is ``None``. See
 the discussion of :ref:`solvers` for details.
 
-CVXPY provides the constants ``OPTIMAL``, ``INFEASIBLE``, ``UNBOUNDED``,
-and ``SOLVER_ERROR`` as aliases for the different status strings.
+CVXPY provides the following constants as aliases for the different status strings:
+
+* ``OPTIMAL``
+* ``INFEASIBLE``
+* ``UNBOUNDED``
+*  ``OPTIMAL_INACCURATE``
+* ``INFEASIBLE_INACCURATE``
+* ``UNBOUNDED_INACCURATE``
+* ``SOLVER_ERROR``
 
 For example, to test if a problem was solved successfully, you would use
 

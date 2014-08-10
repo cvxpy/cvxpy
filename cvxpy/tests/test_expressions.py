@@ -27,10 +27,11 @@ import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
 import unittest
+from base_test import BaseTest
 from cvxopt import matrix
 import numpy as np
 
-class TestExpressions(unittest.TestCase):
+class TestExpressions(BaseTest):
     """ Unit tests for the expression/expression module. """
     def setUp(self):
         self.a = Variable(name='a')
@@ -474,3 +475,23 @@ class TestExpressions(unittest.TestCase):
         # self.assertEqual(exp.name(), "2 * a")
         self.assertEqual(exp.curvature, u.Curvature.AFFINE_KEY)
         self.assertEquals(exp.size, (1,1))
+
+    def test_neg_indices(self):
+        """Test negative indices.
+        """
+        c = Constant([[1,2],[3,4]])
+        exp = c[-1, -1]
+        self.assertEquals(exp.value, 4)
+        self.assertEquals(exp.size, (1, 1))
+        self.assertEquals(exp.curvature, u.Curvature.CONSTANT_KEY)
+
+        c = Constant([1,2,3,4])
+        exp = c[1:-1]
+        self.assertItemsAlmostEqual(exp.value, [2, 3])
+        self.assertEquals(exp.size, (2, 1))
+        self.assertEquals(exp.curvature, u.Curvature.CONSTANT_KEY)
+
+    def test_logical_indices(self):
+        """Test indexing with logical arrays.
+        """
+        pass

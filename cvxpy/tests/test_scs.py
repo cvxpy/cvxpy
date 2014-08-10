@@ -180,7 +180,7 @@ class TestSCS(BaseTest):
         objective = reduce(lambda x,y: x+y, lin_parts + g_parts)
         problem = cvxpy.Problem(cvxpy.Maximize(objective))
         problem.solve(verbose=True, solver=cvxpy.SCS)
-        assert problem.status == cvxpy.OPTIMAL, problem.status
+        assert problem.status == cvxpy.OPTIMAL_INACCURATE, problem.status
         return [eta1.value, eta2.value, eta3.value]
 
     # def test_kl_div(self):

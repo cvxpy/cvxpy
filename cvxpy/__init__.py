@@ -25,5 +25,6 @@ from problems.problem import Problem
 from problems.objective import Maximize, Minimize
 import interface.numpy_wrapper
 from settings import (CVXOPT, ECOS, SCS,
-OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR)
+OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,
+OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 
