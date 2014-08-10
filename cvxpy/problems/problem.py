@@ -69,6 +69,9 @@ class Problem(u.Canonical):
     def __init__(self, objective, constraints=None):
         if constraints is None:
             constraints = []
+        # Check that objective is Minimize or Maximize.
+        if not isinstance(objective, (Minimize, Maximize)):
+            raise TypeError("Problem objective must be Minimize or Maximize.")
         self.objective = objective
         self.constraints = constraints
         self._value = None
@@ -371,8 +374,13 @@ class Problem(u.Canonical):
         dims = self._format_for_solver(constr_map, solver)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
+        # CVXOPT can have variables that only live in NonLinearConstraints.
+        nonlinear = []
+        if solver == s.CVXOPT:
+            nonlinear = constr_map[s.EXP]
         var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
-                                                                 all_ineq)
+                                                                 all_ineq,
+                                                                 nonlinear)
 
         if solver == s.CVXOPT:
             result = self._cvxopt_solve(objective, constr_map, dims,
@@ -705,7 +713,7 @@ class Problem(u.Canonical):
         else: # Solver error
             self._value = None
 
-    def _get_var_offsets(self, objective, constraints):
+    def _get_var_offsets(self, objective, constraints, nonlinear=None):
         """Maps each variable to a horizontal offset.
 
         Parameters
@@ -714,6 +722,8 @@ class Problem(u.Canonical):
             The canonicalized objective.
         constraints : list
             The canonicalized constraints.
+        nonlinear : list, optional
+            Non-linear constraints for CVXOPT.
 
         Returns
         -------
@@ -723,6 +733,14 @@ class Problem(u.Canonical):
         vars_ = lu.get_expr_vars(objective)
         for constr in constraints:
             vars_ += lu.get_expr_vars(constr.expr)
+
+        # If CVXOPT is the solver, some of the variables are
+        # in NonLinearConstraints.
+        if nonlinear is not None:
+            for constr in nonlinear:
+                for nonlin_var in constr.variables():
+                    vars_ += lu.get_expr_vars(nonlin_var)
+
         var_offsets = OrderedDict()
         var_sizes = {}
         # Ensure the variables are always in the same

@@ -88,6 +88,13 @@ class TestNonlinearAtoms(BaseTest):
         result = p.solve(solver=CVXOPT)
         self.assertAlmostEqual(result, 1)
 
+        # Scalar log.
+        obj = Maximize(log(self.x[1]))
+        constr = [self.x <= [1, math.e]]
+        p = Problem(obj,constr)
+        result = p.solve(solver=CVXOPT)
+        self.assertAlmostEqual(result, 1)
+
     def test_entr(self):
         """Test the entr atom.
         """
@@ -162,6 +169,41 @@ class TestNonlinearAtoms(BaseTest):
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
+
+    def test_key_error(self):
+        """Test examples that caused key error.
+        """
+        import cvxpy as cvx
+        x = cvx.Variable()
+        u = -cvx.exp(x)
+        prob = cvx.Problem(cvx.Maximize(u))
+        prob.solve(verbose=True, solver=cvx.CVXOPT)
+        prob.solve(verbose=True, solver=cvx.CVXOPT)
+
+        # ###########################################
+
+        # import numpy as np
+        # import cvxopt
+        # import cvxpy as cp
+
+        # kD=2
+        # Sk=cp.semidefinite(kD)
+        # Rsk=cp.Parameter(kD,kD)
+        # mk=cp.Variable(kD,1)
+        # musk=cp.Parameter(kD,1)
+
+        # logpart=-0.5*cp.log_det(Sk)+0.5*cp.matrix_frac(mk,Sk)+(kD/2.)*np.log(2*np.pi)
+        # linpart=mk.T*musk-0.5*cp.trace(Sk*Rsk)
+        # obj=logpart-linpart
+        # prob=cp.Problem(cp.Minimize(obj))
+        # musk.value=np.ones((2,1))
+        # covsk=np.diag([0.3,0.5])
+        # Rsk.value=covsk+(musk.value*musk.value.T)
+        # prob.solve(verbose=True,solver=cp.CVXOPT)
+
+        # covsk=np.diag([0.4,0.6])
+        # Rsk.value=covsk+(musk.value*musk.value.T)
+        # prob.solve(verbose=True, solver=cp.CVXOPT)
 
     # def test_kl_div(self):
     #     """Test the kl_div atom.

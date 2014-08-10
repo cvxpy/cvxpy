@@ -722,6 +722,13 @@ class TestProblem(BaseTest):
             p.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
+    def test_bad_objective(self):
+        """Test using a cvxpy expression as an objective.
+        """
+        with self.assertRaises(Exception) as cm:
+            Problem(self.x+2)
+        self.assertEqual(str(cm.exception), "Problem objective must be Minimize or Maximize.")
+
     # Test variable transpose.
     def test_transpose(self):
         p = Problem(Minimize(sum_entries(self.x)), [self.x.T >= matrix([1,2]).T])
