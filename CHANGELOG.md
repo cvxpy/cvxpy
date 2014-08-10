@@ -1,6 +1,8 @@
 Version 2.9
 -----------
 * Fixed bug with sign multiplication.
+* Added check that objective is Minimize/Maximize.
+* Fixed bug with key error when solving exponential cone problem with CVXOPT.
 
 Version 2.8
 ------------
