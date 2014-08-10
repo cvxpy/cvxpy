@@ -191,7 +191,6 @@ class TestExpressions(unittest.TestCase):
             p = Parameter(4, 3, sign="positive", value=[1,2])
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Parameter value.")
 
-
     # Test the AddExpresion class.
     def test_add_expression(self):
         # Vectors
@@ -325,6 +324,15 @@ class TestExpressions(unittest.TestCase):
         exp = 2/p
         p.value = 2
         self.assertEquals(exp.value, 1)
+
+        rho = Parameter(sign="positive")
+        rho.value = 1
+
+        self.assertEquals(rho.sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(Constant(2).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals((Constant(2)/Constant(2)).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals((Constant(2)*rho).sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals((rho/2).sign, u.Sign.POSITIVE_KEY)
 
     # Test the NegExpression class.
     def test_neg_expression(self):

@@ -105,7 +105,7 @@ class DCPAttr(object):
     def __div__(self, other):
         """Determines the DCP attributes of one expression divided by another.
 
-        Assumes one of the arguments has constant curvature.
+        Assumes the right-hand argument has constant curvature.
 
         Args:
             self: The DCPAttr of the left-hand expression.
