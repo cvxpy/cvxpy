@@ -140,6 +140,11 @@ class Sign(object):
         """
         return self.sign_str == other.sign_str
 
+    def __ne__(self, other):
+        """Checks equality of arguments' attributes.
+        """
+        return not (self.sign_str == other.sign_str)
+
     # To string methods.
     def __repr__(self):
         return "Sign('%s')" % self.sign_str

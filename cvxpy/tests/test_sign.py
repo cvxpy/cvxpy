@@ -42,6 +42,7 @@ class TestSign(object):
       assert_equals(Sign.UNKNOWN * Sign.POSITIVE, Sign.UNKNOWN)
       assert_equals(Sign.POSITIVE * Sign.NEGATIVE, Sign.NEGATIVE)
       assert_equals(Sign.POSITIVE * Sign.POSITIVE, Sign.POSITIVE)
+      assert_equals(Sign.POSITIVE * Sign("positive"), Sign.POSITIVE)
       assert_equals(Sign.NEGATIVE * Sign.NEGATIVE, Sign.POSITIVE)
       assert_equals(Sign.ZERO * Sign.UNKNOWN, Sign.ZERO)
 

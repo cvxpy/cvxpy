@@ -108,7 +108,7 @@ class TestProblem(BaseTest):
         for verbose in [True, False]:
             for solver in [s.ECOS, s.CVXOPT, s.SCS]:
                 sys.stdout = StringIO()     # capture output
-                p = Problem(Minimize(self.a + self.x[0]), [self.a + self.x[0] >= 2])
+                p = Problem(Minimize(self.a + self.x[0]), [self.a >= 2, self.x >= 2])
                 p.solve(verbose=verbose, solver=solver)
                 if solver != s.ECOS:
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])

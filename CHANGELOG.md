@@ -1,3 +1,7 @@
+Version 2.9
+-----------
+* Fixed bug with sign multiplication.
+
 Version 2.8
 ------------
 * Removed a stray println.
