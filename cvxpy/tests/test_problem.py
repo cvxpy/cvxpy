@@ -988,14 +988,22 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
-    def test_cvxopt_errors(self):
-        """Tests that cvxopt errors are caught as solver_error.
+    def test_solver_errors(self):
+        """Tests that solver errors throw an exception.
         """
         # For some reason CVXOPT can't handle this problem.
         expr = 500*self.a + square(self.a)
         prob = Problem(Minimize(expr))
-        prob.solve(solver=s.CVXOPT)
-        self.assertEqual(prob.status, s.SOLVER_ERROR)
+
+        with self.assertRaises(Exception) as cm:
+            prob.solve(solver=s.CVXOPT)
+        self.assertEqual(str(cm.exception),
+            "Solver 'CVXOPT' failed. Try another solver.")
+
+        with self.assertRaises(Exception) as cm:
+            Problem(Maximize(sqrt(self.a))).solve(solver=s.ECOS)
+        self.assertEqual(str(cm.exception),
+            "Solver 'ECOS' failed. Try another solver.")
 
     def test_diag_prob(self):
         """Test a problem with diag.

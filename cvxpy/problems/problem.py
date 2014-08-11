@@ -30,6 +30,7 @@ SOC, SOC_Elemwise, SDP, ExpCone)
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.kktsolver import get_kktsolver
 import cvxpy.problems.iterative as iterative
+from cvxpy.problems.solver_error import SolverError
 
 from collections import OrderedDict
 import warnings
@@ -403,8 +404,12 @@ class Problem(u.Canonical):
             self._save_dual_values(y, constr_map[s.EQ], EqConstraint)
             self._save_dual_values(z, constr_map[s.LEQ], LeqConstraint)
             self._value = value
-        else:
-            self._handle_failure(status)
+        elif status == s.SOLVER_ERROR:
+            raise SolverError(
+                "Solver '%s' failed. Try another solver." % solver
+            )
+        else: # Infeasible or unbounded.
+            self._handle_no_solution(status)
         self._status = status
         return self.value
 
@@ -692,8 +697,8 @@ class Problem(u.Canonical):
         else:
             return (status, None, None, None, None)
 
-    def _handle_failure(self, status):
-        """Updates value fields based on the cause of solver failure.
+    def _handle_no_solution(self, status):
+        """Updates value fields when the problem is infeasible or unbounded.
 
         Parameters
         ----------
@@ -710,8 +715,6 @@ class Problem(u.Canonical):
             self._value = self.objective._primal_to_result(np.inf)
         elif status == s.UNBOUNDED:
             self._value = self.objective._primal_to_result(-np.inf)
-        else: # Solver error
-            self._value = None
 
     def _get_var_offsets(self, objective, constraints, nonlinear=None):
         """Maps each variable to a horizontal offset.

@@ -1,61 +1,57 @@
-# Consensus ADMM
-# See ADMM paper section 7
+import numpy as np
+from cvxpy import *
 
-# xi = argmin [f(xi) + (rho/2)norm(xi - xbar + ui)]
-# ui = ui + xi - xbar
+m = 10
+n = 5
+np.random.seed(1)
+A = np.random.randn(m, n)
+b = np.random.randn(m)
+# # Precondition A and b.
+# for row in range(m):
+#     A[row, :] /= norm(A[row, :]).value
+# for col in range(n):
+#     A[:, col] /= norm(A[:, col]).value
+
+# b /= norm(b).value
 
 from cvxpy import *
 from multiprocessing import Pool
-import operator as op
-import numpy as np
-from numpy.random import randn
-import dill
 
-# Initialize the problem.
-n = 1000
-m = 500
-rho = 1.0
-xbar = 0
+def prox(args):
+    f, v = args
+    f += (rho/2)*sum_squares(x - v)
+    p = Problem(Minimize(f))
+    p.solve(verbose=True, solver=ECOS)
+    print p.status
+    return x.value
 
-# No! Distribute problem objects.
-# Use MPI.
-# Create function to perform local update from penalty f.
-def create_update(f):
-    x = Variable(n)
-    u = Parameter(n)
-    def local_update(xbar):
-        # Update u.
-        if x.value is None:
-            u.value = np.zeros(n)
-        else:
-            u.value += x.value - xbar
-        # Update x.
-        obj = f(x) + (rho/2)*sum_squares(x - xbar + u)
-        Problem(Minimize(obj)).solve()
-        return x.value
+x = Variable(n)
+prox_arg = Parameter(n)
+gamma = Parameter(sign="positive")
+gamma.value = 1
+rho = Parameter(sign="positive")
+rho.value = 10
 
-    return local_update
+# Initialize x, z, u.
+funcs = [sum_squares(A*x - b),
+         gamma*norm(x, 1)]
+ui = [np.zeros((n, 1)) for func in funcs]
+z = np.zeros((n, 1))
+pool = Pool(2)
+for i in range(50):
+    # x update.
+    prox_args = [-z + u for u in ui]
+    xi = map(prox, zip(funcs, prox_args))
+    # z update.
+    ui_xi = [x_ + u for x_, u in zip(xi, ui)]
+    z = sum(ui_xi)/len(ui_xi)
+    # u update.
+    ui = [u_x - z for u_x in ui_xi]
 
-# Penalty functions.
-functions = map(dill.dumps,
-    map(create_update, [
-        lambda x: norm(randn(m, n)*x + randn(m), 2),
-        lambda x: norm(randn(m, n)*x + randn(m), 2),
-        lambda x: norm(randn(m, n)*x + randn(m), 2),
-        lambda x: norm(randn(m, n)*x + randn(m), 2),
-        lambda x: norm(x, 1),
-    ])
-)
-
-# Do ADMM iterations in parallel.
-def apply_f(args):
-    f = dill.loads(args[0])
-    return f(args[1])
-
-pool = Pool(processes = len(functions))
-for i in range(10):
-    total = reduce(op.add,
-        pool.map(apply_f, zip(functions, len(functions)*[xbar]))
-    )
-    xbar = total/len(functions)
-    print i
+obj = sum_squares(A*x - b) + gamma*norm(x, 1)
+prob = Problem(Minimize(obj))
+prob.solve()
+print x.value
+print z
+print norm(x - z).value
+# Boolean least squares with prox.

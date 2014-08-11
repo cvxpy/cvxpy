@@ -176,7 +176,7 @@ class TestNonlinearAtoms(BaseTest):
         import cvxpy as cvx
         x = cvx.Variable()
         u = -cvx.exp(x)
-        prob = cvx.Problem(cvx.Maximize(u))
+        prob = cvx.Problem(cvx.Maximize(u), [x == 1])
         prob.solve(verbose=True, solver=cvx.CVXOPT)
         prob.solve(verbose=True, solver=cvx.CVXOPT)
 

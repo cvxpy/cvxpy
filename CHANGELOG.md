@@ -1,3 +1,7 @@
+Version 2.10 TODO
+-----------------
+* CVXPY throws an error when a solver error is encountered.
+
 Version 2.9
 -----------
 * Fixed bug with sign multiplication.
