@@ -23,6 +23,7 @@ from expressions.constants import Parameter
 from expressions.constants import Constant
 from problems.problem import Problem
 from problems.objective import Maximize, Minimize
+from problems.solver_error import SolverError
 import interface.numpy_wrapper
 from settings import (CVXOPT, ECOS, SCS,
 OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,

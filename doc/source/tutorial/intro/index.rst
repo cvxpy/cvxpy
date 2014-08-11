@@ -161,7 +161,7 @@ statuses indicating lower accuracy are
 The problem variables are updated as usual for the type of solution
 found (i.e., optimal, unbounded, or infeasible).
 
-If the solver completely fails to solve the problem, CVXPY throws an exception.
+If the solver completely fails to solve the problem, CVXPY throws a ``SolverError`` exception.
 If this happens you should try using other solvers. See
 the discussion of :ref:`solvers` for details.
 
