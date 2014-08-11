@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-from toolz.itertoolz import unique, filter
+from toolz.itertoolz import unique
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
@@ -30,7 +30,7 @@ SOC, SOC_Elemwise, SDP, ExpCone)
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.kktsolver import get_kktsolver
 import cvxpy.problems.iterative as iterative
-from cvxpy.problems.solver_error import SolverError
+from cvxpy.problems.error import SolverError
 
 from collections import OrderedDict
 import warnings
@@ -371,8 +371,7 @@ class Problem(u.Canonical):
             raise SolverError("Cannot return problem data for the solver %s." % solver)
         return args
 
-    def _solve(self, solver=None, ignore_dcp=False, verbose=False,
-               solver_specific_opts=None):
+    def _solve(self, solver=None, ignore_dcp=False, verbose=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -387,7 +386,7 @@ class Problem(u.Canonical):
             DCP.
         verbose : bool, optional
             Overrides the default of hiding solver output.
-        solver_specific_opts : dict, optional
+        kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
             imposed by cvxpy.
@@ -398,10 +397,6 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-        # Safely set default as empty dict.
-        if solver_specific_opts is None:
-            solver_specific_opts = {}
-
         if not self.is_dcp():
             if ignore_dcp:
                 print ("Problem does not follow DCP rules. "
@@ -434,15 +429,15 @@ class Problem(u.Canonical):
             if solver == s.CVXOPT:
                 result = self._cvxopt_solve(objective, constr_map, dims,
                                             var_offsets, x_length,
-                                            verbose, solver_specific_opts)
+                                            verbose, kwargs)
             elif solver == s.SCS:
                 result = self._scs_solve(objective, constr_map, dims,
                                          var_offsets, x_length,
-                                         verbose, solver_specific_opts)
+                                         verbose, kwargs)
             elif solver == s.ECOS:
                 result = self._ecos_solve(objective, constr_map, dims,
                                           var_offsets, x_length,
-                                          verbose, solver_specific_opts)
+                                          verbose, kwargs)
             else:
                 raise SolverError("Unknown solver.")
 
@@ -530,7 +525,7 @@ class Problem(u.Canonical):
         prob_data = self._ecos_problem_data(objective, constr_map, dims,
                                             var_offsets, x_length)
         obj_offset = prob_data[1]
-        results = ecos.solve(*prob_data[0], verbose=verbose)
+        results = ecos.solve(*prob_data[0], verbose=verbose, **opts)
         status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
         if status in s.SOLUTION_PRESENT:
             primal_val = results['info']['pcost']

@@ -1,6 +1,7 @@
 Version 2.10 TODO
 -----------------
 * CVXPY throws an error when a solver error is encountered.
+* Presolver removes constraints with no variables.
 
 Version 2.9
 -----------
