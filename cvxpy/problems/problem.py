@@ -398,7 +398,7 @@ class Problem(u.Canonical):
             raise Exception("Unknown solver.")
 
         status, value, x, y, z = result
-        if status == s.OPTIMAL:
+        if status in s.SOLUTION_PRESENT:
             self._save_values(x, self.variables(), var_offsets)
             self._save_dual_values(y, constr_map[s.EQ], EqConstraint)
             self._save_dual_values(z, constr_map[s.LEQ], LeqConstraint)
@@ -478,7 +478,7 @@ class Problem(u.Canonical):
         obj_offset = prob_data[1]
         results = ecos.solve(*prob_data[0], verbose=verbose)
         status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
-        if status == s.OPTIMAL:
+        if status in s.SOLUTION_PRESENT:
             primal_val = results['info']['pcost']
             value = self.objective._primal_to_result(
                           primal_val - obj_offset)
@@ -597,7 +597,7 @@ class Problem(u.Canonical):
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
-        if status == s.OPTIMAL:
+        if status in s.SOLUTION_PRESENT:
             primal_val = results['primal objective']
             value = self.objective._primal_to_result(
                           primal_val - obj_offset)
@@ -683,7 +683,7 @@ class Problem(u.Canonical):
         use_indirect = opts["USE_INDIRECT"] if "USE_INDIRECT" in opts else False
         results = scs.solve(*prob_data[0], opts=opts, USE_INDIRECT = use_indirect)
         status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
-        if status == s.OPTIMAL:
+        if status in s.SOLUTION_PRESENT:
             primal_val = results["info"]["pobj"]
             value = self.objective._primal_to_result(primal_val - obj_offset)
             eq_dual = results["y"][0:dims["f"]]
