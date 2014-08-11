@@ -189,6 +189,7 @@ class TestProblem(BaseTest):
         obj = 0
         def test(self):
             objective, constr_map  = self.canonicalize()
+            self._presolve(objective, constr_map)
             print len(constr_map[s.SOC])
             dims = self._format_for_solver(constr_map, s.ECOS)
             return (len(constr_map[s.EQ]),len(constr_map[s.LEQ]))
@@ -1017,3 +1018,15 @@ class TestProblem(BaseTest):
         prob = Problem(obj, constraints)
         result = prob.solve()
         self.assertAlmostEqual(result, 0.583151)
+
+    def test_presolve_constant_constraints(self):
+        """Test that the presolver removes constraints with no variables.
+        """
+        x = Variable()
+        obj = Maximize(sqrt(x))
+        prob = Problem(obj)
+        c, G, h, dims, A, b = prob.get_problem_data(s.ECOS)
+        for row in range(A.shape[0]):
+            assert A[row, :].nnz > 0
+        for row in range(G.shape[0]):
+            assert G[row, :].nnz > 0

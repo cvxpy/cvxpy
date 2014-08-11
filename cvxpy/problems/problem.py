@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-from toolz.itertoolz import unique
+from toolz.itertoolz import unique, filter
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
@@ -150,12 +150,56 @@ class Problem(u.Canonical):
 
         for constr in self.constraints:
             canon_constr += constr.canonical_form[1]
-        # Remove redundant constraints.
-        canon_constr = unique(canon_constr,
-                              key=lambda c: c.constr_id)
+
         constr_map = self._filter_constraints(canon_constr)
 
         return (obj, constr_map)
+
+    def _presolve(self, objective, constr_map):
+        """Eliminates unnecessary constraints and short circuits the solver
+        if possible.
+
+        Parameters
+        ----------
+        constr_map : dict
+            A map of constraint type to a list of constraints.
+
+        Returns
+        -------
+        bool
+            Is the problem infeasible?
+        """
+        # Remove redundant constraints.
+        for key, constraints in constr_map.items():
+            uniq_constr = unique(constraints,
+                                 key=lambda c: c.constr_id)
+            constr_map[key] = list(uniq_constr)
+
+        # If there are no constraints, the problem is unbounded
+        # if any of the coefficients are non-zero.
+        # If all the coefficients are zero then return the constant term
+        # and set all variables to 0.
+        if not any(constr_map.values()):
+            pass # TODO
+
+        # Remove constraints with no variables.
+        for key in [s.EQ, s.LEQ]:
+            new_constraints = []
+            for constr in constr_map[key]:
+                vars_ = lu.get_expr_vars(constr.expr)
+                if len(vars_) == 0:
+                    coeff = op2mat.get_constant_coeff(constr.expr)
+                    sign = intf.sign(coeff)
+                    # For equality constraint, coeff must be zero.
+                    # For inequality (i.e. <= 0) constraint, coeff must be negative.
+                    if key is s.EQ and not sign.is_zero() or \
+                       key is s.LEQ and not sign.is_negative():
+                       return s.INFEASIBLE
+                else:
+                    new_constraints.append(constr)
+            constr_map[key] = new_constraints
+
+        return None
 
     def _format_for_solver(self, constr_map, solver):
         """Formats the problem for the solver.
@@ -228,7 +272,7 @@ class Problem(u.Canonical):
         if (constr_map[s.SDP] and not solver in s.SDP_CAPABLE) or \
            (constr_map[s.EXP] and not solver in s.EXP_CAPABLE) or \
            (self._constraints_count(constr_map) == 0 and solver == s.SCS):
-            raise Exception(
+            raise SolverError(
                 "The solver %s cannot solve the problem." % solver
             )
 
@@ -306,6 +350,7 @@ class Problem(u.Canonical):
             arguments to solver
         """
         objective, constr_map = self.canonicalize()
+        self._presolve(objective, constr_map)
         # Raise an error if the solver cannot handle the problem.
         self._validate_solver(constr_map, solver)
         dims = self._format_for_solver(constr_map, solver)
@@ -323,7 +368,7 @@ class Problem(u.Canonical):
             args, offset = self._scs_problem_data(objective, constr_map, dims,
                                                   var_offsets, x_length)
         else:
-            raise Exception("Cannot return problem data for the solver %s." % solver)
+            raise SolverError("Cannot return problem data for the solver %s." % solver)
         return args
 
     def _solve(self, solver=None, ignore_dcp=False, verbose=False,
@@ -365,50 +410,54 @@ class Problem(u.Canonical):
                 raise Exception("Problem does not follow DCP rules.")
 
         objective, constr_map = self.canonicalize()
-        # Choose a default solver if none specified.
-        if solver is None:
-            solver = self._choose_solver(constr_map)
-        else:
-            # Raise an error if the solver cannot handle the problem.
-            self._validate_solver(constr_map, solver)
+        status = self._presolve(objective, constr_map)
+        # The presolver cannot determine the status.
+        if status is None:
+            # Choose a default solver if none specified.
+            if solver is None:
+                solver = self._choose_solver(constr_map)
+            else:
+                # Raise an error if the solver cannot handle the problem.
+                self._validate_solver(constr_map, solver)
 
-        dims = self._format_for_solver(constr_map, solver)
+            dims = self._format_for_solver(constr_map, solver)
 
-        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-        # CVXOPT can have variables that only live in NonLinearConstraints.
-        nonlinear = []
-        if solver == s.CVXOPT:
-            nonlinear = constr_map[s.EXP]
-        var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
-                                                                 all_ineq,
-                                                                 nonlinear)
+            all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
+            # CVXOPT can have variables that only live in NonLinearConstraints.
+            nonlinear = []
+            if solver == s.CVXOPT:
+                nonlinear = constr_map[s.EXP]
+            var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
+                                                                     all_ineq,
+                                                                     nonlinear)
 
-        if solver == s.CVXOPT:
-            result = self._cvxopt_solve(objective, constr_map, dims,
-                                        var_offsets, x_length,
-                                        verbose, solver_specific_opts)
-        elif solver == s.SCS:
-            result = self._scs_solve(objective, constr_map, dims,
-                                     var_offsets, x_length,
-                                     verbose, solver_specific_opts)
-        elif solver == s.ECOS:
-            result = self._ecos_solve(objective, constr_map, dims,
-                                      var_offsets, x_length,
-                                      verbose, solver_specific_opts)
-        else:
-            raise Exception("Unknown solver.")
+            if solver == s.CVXOPT:
+                result = self._cvxopt_solve(objective, constr_map, dims,
+                                            var_offsets, x_length,
+                                            verbose, solver_specific_opts)
+            elif solver == s.SCS:
+                result = self._scs_solve(objective, constr_map, dims,
+                                         var_offsets, x_length,
+                                         verbose, solver_specific_opts)
+            elif solver == s.ECOS:
+                result = self._ecos_solve(objective, constr_map, dims,
+                                          var_offsets, x_length,
+                                          verbose, solver_specific_opts)
+            else:
+                raise SolverError("Unknown solver.")
 
-        status, value, x, y, z = result
-        if status in s.SOLUTION_PRESENT:
-            self._save_values(x, self.variables(), var_offsets)
-            self._save_dual_values(y, constr_map[s.EQ], EqConstraint)
-            self._save_dual_values(z, constr_map[s.LEQ], LeqConstraint)
-            self._value = value
-        elif status == s.SOLVER_ERROR:
-            raise SolverError(
-                "Solver '%s' failed. Try another solver." % solver
-            )
-        else: # Infeasible or unbounded.
+            status, value, x, y, z = result
+            if status in s.SOLUTION_PRESENT:
+                self._save_values(x, self.variables(), var_offsets)
+                self._save_dual_values(y, constr_map[s.EQ], EqConstraint)
+                self._save_dual_values(z, constr_map[s.LEQ], LeqConstraint)
+                self._value = value
+            elif status == s.SOLVER_ERROR:
+                raise SolverError(
+                    "Solver '%s' failed. Try another solver." % solver
+                )
+        # Infeasible or unbounded.
+        if status in s.INF_OR_UNB:
             self._handle_no_solution(status)
         self._status = status
         return self.value

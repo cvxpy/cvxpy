@@ -44,6 +44,9 @@ UNBOUNDED_INACCURATE = "unbounded_inaccurate"
 SOLVER_ERROR = "solver_error"
 # Statuses that indicate a solution was found.
 SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE]
+# Statuses that indicate the problem is infeasible or unbounded.
+INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
+              UNBOUNDED, UNBOUNDED_INACCURATE]
 
 # Map of solver status to cvxpy status.
 CVXOPT = "CVXOPT"

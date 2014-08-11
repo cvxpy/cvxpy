@@ -70,6 +70,24 @@ def get_coefficients(lin_op):
         raise Exception("Unknown linear operator.")
     return coeffs
 
+def get_constant_coeff(lin_op):
+    """Converts a linear op into coefficients and returns the constant term.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The linear op to convert.
+
+    Returns
+    -------
+    The constant coefficient or None if none present.
+    """
+    coeffs = get_coefficients(lin_op)
+    for id_, coeff in coeffs:
+        if id_ is lo.CONSTANT_ID:
+            return coeff
+    return None
+
 def var_coeffs(lin_op):
     """Returns the coefficients for a VARIABLE.
 
