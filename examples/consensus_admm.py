@@ -1,11 +1,11 @@
 import numpy as np
 from cvxpy import *
 
-m = 4
-n = 2
+m = 100
+n = 75
 np.random.seed(1)
 A = np.random.randn(m, n)
-b = np.random.randn(m)
+b = np.random.randn(m, 1)
 # # Precondition A and b.
 # for row in range(m):
 #     A[row, :] /= norm(A[row, :]).value
@@ -19,56 +19,39 @@ from multiprocessing import Pool
 
 def prox(args):
     f, v = args
-    f += (rho/2)*sum_squares(x - 1000)
-    #Problem(Minimize(f)).solve()
-    p = Problem(Minimize(f))
-    p.solve()
-    if p.status is not OPTIMAL:
-        print f
-        print v
-        p.solve(verbose=True)
+    f += (rho/2)*sum_squares(x - v)
+    Problem(Minimize(f)).solve()
     return x.value
 
 x = Variable(n)
-prox_arg = Parameter(n)
 gamma = 1.0
 rho = 1.0
 
-# Initialize x, z, u.
+# Initialize x, xbar, u.
 funcs = [sum_squares(A*x - b),
          gamma*norm(x, 1)]
 ui = [np.zeros((n, 1)) for func in funcs]
-z = np.zeros((n, 1))
-pool = Pool(2)
-for i in range(200):
+xbar = np.zeros((n, 1))
+pool = Pool(NUM_PROCS)
+for i in range(50):
+    xbar_prev = xbar
     # x update.
-    prox_args = [-z + u for u in ui]
-    xi = map(prox, zip(funcs, prox_args))
-    # z update.
-    xi_ui = [x_ + u for x_, u in zip(xi, ui)]
-    z = sum(xi_ui)/len(xi_ui)
+    prox_args = [xbar - u for u in ui]
+    xi = pool.map(prox, zip(funcs, prox_args))
+    xbar = sum(xi)/len(xi)
     # u update.
-    ui = [u + x_ - z for x_, u in zip(xi, ui)]
+    ui = [u + x_ - xbar for x_, u in zip(xi, ui)]
+    # # Residuals
+    # # Primal
+    # ADMM_mat = np.vstack(2*[np.eye(n)])
+    # print "primal", norm(np.vstack(xi) - ADMM_mat*xbar).value
+    # # Dual
+    # print "dual", norm(xbar - xbar_prev).value
 
-obj = sum_squares(A*x - b) + gamma*norm(x, 1)
+
+obj = sum(funcs)
 prob = Problem(Minimize(obj))
 result = prob.solve()
-# print x.value
-# print z
-print "ADMM best", (sum_squares(A*z - b) + gamma*norm(z, 1)).value
-print "ECOS best", obj.value
+print "ADMM best", (sum_squares(np.dot(A, xbar) - b) + gamma*norm(xbar, 1)).value
+print "ECOS best", result
 # Boolean least squares with prox.
-
-import numpy as np
-from cvxpy import *
-m = 4
-n = 2
-np.random.seed(1)
-A = np.random.randn(m, n)
-b = np.random.randn(m)
-x = Variable(n)
-obj = sum_squares(A*x - b) + sum_squares(x - 1000)
-prob = Problem(Minimize(obj))
-prob.solve(verbose=True)
-print prob.status
-c, G, h, dims, A, b = prob.get_problem_data(ECOS)
