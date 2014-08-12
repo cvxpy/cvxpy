@@ -29,13 +29,6 @@ for i in range(50):
     xi = pool.map(prox, zip(funcs, prox_args))
     xbar = sum(xi)/len(xi)
     ui = [u + x_ - xbar for x_, u in zip(xi, ui)]
-    # # Residuals
-    # # Primal
-    # ADMM_mat = np.vstack(2*[np.eye(n)])
-    # print "primal", norm(np.vstack(xi) - ADMM_mat*xbar).value
-    # # Dual
-    # print "dual", norm(xbar - xbar_prev).value
-    # xbar_prev = xbar
 
 # Compare ADMM with standard solver.
 prob = Problem(Minimize(sum(funcs)))
