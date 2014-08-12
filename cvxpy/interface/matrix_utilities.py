@@ -23,7 +23,7 @@ import cvxopt
 import scipy.sparse as sp
 import numbers
 import numpy as np
-from ..utilities.sign import Sign
+from cvxpy.utilities.sign import Sign
 
 # A mapping of class to interface.
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
