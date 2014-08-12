@@ -11,11 +11,11 @@ from cvxopt import matrix
 from Queue import PriorityQueue
 
 # Problem data.
-m = 30
+m = 50
 n = 25
 np.random.seed(1)
 A = np.matrix(np.random.randn(m, n))
-b = np.matrix(np.random.randn(m, 1))
+b = A*np.random.uniform(0, 1, size=(n, 1))
 
 # Construct the problem.
 x = Variable(n)
@@ -27,12 +27,13 @@ prob = Problem(Minimize(f(x)),
 
 visited = 0
 best_upper = best_lower = np.inf
-leaves = PriorityQueue()
-leaves.put((np.inf, 0, np.zeros(n), np.ones(n), 0))
-while not leaves.empty():
+best_x = 0
+nodes = PriorityQueue()
+nodes.put((np.inf, 0, np.zeros(n), np.ones(n), 0))
+while not nodes.empty():
     visited += 1
-    # Evaluate the leaf with the lowest lower bound.
-    _, _, L_val, U_val, next_split = leaves.get()
+    # Evaluate the node with the lowest lower bound.
+    _, _, L_val, U_val, next_split = nodes.get()
     L.value = L_val
     U.value = U_val
     new_lower = prob.solve()
@@ -40,7 +41,9 @@ while not leaves.empty():
     # Update the best upper and lower bound.
     best_lower = min(best_lower, new_lower)
     best_upper = min(best_upper, new_upper)
-    # Add new leaves if there are still indices to split
+    if new_upper == best_upper:
+        best_x = np.round(x.value)
+    # Add new nodes if there are still indices to split
     # and the branch cannot be pruned.
     if next_split < n and new_lower < best_upper:
         for i in [0, 1]:
@@ -48,7 +51,8 @@ while not leaves.empty():
             next_U = U_val.copy()
             next_L[next_split] = next_U[next_split] = i
             entry = (new_lower, i, next_L, next_U, next_split + 1)
-            leaves.put(entry)
+            nodes.put(entry)
 
-print "Leaves visited: %s out of %s" % (visited, 2**(n+1)-1)
-print "Optimal solution:", best_upper
+print("Nodes visited: %s out of %s" % (visited, 2**(n+1)-1))
+print("Optimal solution:", best_upper)
+print("Total non-zeros:", best_x.sum())
