@@ -4,15 +4,14 @@ import numpy as np
 from multiprocessing import Pool, Process, Value, Array, Semaphore
 import time
 
-# Divide the data into NUM_SPLITS segments,
+# Divide the data into NUM_PROCS segments,
 # using NUM_PROCS processes.
-NUM_PROCS = 8
-NUM_SPLITS = 200
-SPLIT_SIZE = 100
+NUM_PROCS = 40
+SPLIT_SIZE = 10000
 
 # Problem data.
 np.random.seed(1)
-N = NUM_SPLITS*SPLIT_SIZE
+N = NUM_PROCS*SPLIT_SIZE
 n = 10
 data = []
 for i in xrange(N/2):
@@ -34,27 +33,27 @@ gamma = 0.1
 rho = 1.0
 w = Variable(n + 1)
 
-# Best solution.
-start = time.time()
-slack = [pos(1 - b*(a.T*w[:-1] - w[-1])) for (b, a) in data]
-obj = norm(w, 2) + gamma*sum(slack)
-Problem(Minimize(obj)).solve()
-print "Time elapsed =", time.time() - start
+# # Best solution.
+# start = time.time()
+# slack = [pos(1 - b*(a.T*w[:-1] - w[-1])) for (b, a) in data]
+# obj = norm(w, 2) + gamma*sum(slack)
+# Problem(Minimize(obj)).solve()
+# print "Time elapsed =", time.time() - start
 
-print "Standard solution:", get_error(w.value)
+# print "Standard solution:", get_error(w.value)
 
 def prox(args):
     data_split, w_avg = args
     slack = [pos(1 - b*(a.T*w[:-1] - w[-1])) for (b, a) in data_split]
     obj = norm(w, 2) + gamma*sum(slack)
     obj += (rho/2)*sum_squares(w - w_avg)
-    Problem(Minimize(obj)).solve()
+    Problem(Minimize(obj)).solve(solver=SCS)
     return w.value
 
 # ADMM algorithm.
 pool = Pool(NUM_PROCS)
 w_avg = np.random.randn(n+1, 1)
-u_vals = NUM_SPLITS*[np.zeros((n+1, 1))]
+u_vals = NUM_PROCS*[np.zeros((n+1, 1))]
 start = time.time()
 for i in range(5):
     print get_error(w_avg)

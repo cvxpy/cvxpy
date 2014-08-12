@@ -4,15 +4,14 @@ import numpy as np
 from multiprocessing import Pool
 import time
 
-# Divide the data into NUM_SPLITS segments,
+# Divide the data into NUM_PROCS segments,
 # using NUM_PROCS processes.
 NUM_PROCS = 4
-NUM_SPLITS = 20
 SPLIT_SIZE = 1000
 
 # Problem data.
 np.random.seed(1)
-N = NUM_SPLITS*SPLIT_SIZE
+N = NUM_PROCS*SPLIT_SIZE
 n = 10
 data = []
 for i in xrange(N/2):
@@ -30,14 +29,13 @@ def get_error(w):
     return "%d misclassifications out of %d samples" % (error, N)
 
 # Construct problem.
-gamma = 0.1
 rho = 1.0
 w = Variable(n + 1)
 
 def prox(args):
     data_split, w_avg = args
     slack = [pos(1 - b*(a.T*w[:-1] - w[-1])) for (b, a) in data_split]
-    obj = norm(w, 2) + gamma*sum(slack)
+    obj = norm(w, 2) + sum(slack)
     obj += (rho/2)*sum_squares(w - w_avg)
     Problem(Minimize(obj)).solve()
     return w.value
