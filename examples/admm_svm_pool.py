@@ -33,8 +33,8 @@ rho = 1.0
 w = Variable(n + 1)
 
 def prox(args):
-    data_split, w_avg = args
-    slack = [pos(1 - l*(a.T*w[:-1] - w[-1])) for (l, a) in data_split]
+    data, w_avg = args
+    slack = [pos(1 - l*(a.T*w[:-1] - w[-1])) for (l, a) in data]
     obj = norm(w, 2) + sum(slack)
     obj += (rho/2)*sum_squares(w - w_avg)
     Problem(Minimize(obj)).solve()
@@ -43,7 +43,7 @@ def prox(args):
 # ADMM algorithm.
 pool = Pool(NUM_PROCS)
 w_avg = np.random.randn(n+1, 1)
-u_vals = NUM_SPLITS*[np.zeros((n+1, 1))]
+u_vals = NUM_PROCS*[np.zeros((n+1, 1))]
 for i in range(5):
     print get_error(w_avg)
     prox_args = [w_avg - ui for ui in u_vals]
