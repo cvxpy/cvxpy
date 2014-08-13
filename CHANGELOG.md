@@ -1,7 +1,8 @@
-Version 2.10 TODO
------------------
+Version 2.10
+------------
 * CVXPY throws an error when a solver error is encountered.
 * Presolver removes constraints with no variables.
+* Conversion from non-linear constraints to linear constraints is cached. This fixes issue #122.
 
 Version 2.9
 -----------

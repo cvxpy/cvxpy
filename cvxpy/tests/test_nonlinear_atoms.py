@@ -188,10 +188,20 @@ class TestNonlinearAtoms(BaseTest):
 
         kD=2
         Sk=cp.semidefinite(kD)
-        logpart=-0.5*cp.log_det(Sk)
-        prob=cp.Problem(cp.Minimize(logpart))
-        prob.solve(verbose=True, solver=cp.CVXOPT)
-        prob.solve(verbose=True, solver=cp.CVXOPT)
+        Rsk=cp.Parameter(kD,kD)
+        mk=cp.Variable(kD,1)
+        musk=cp.Parameter(kD,1)
+
+        logpart=-0.5*cp.log_det(Sk)+0.5*cp.matrix_frac(mk,Sk)+(kD/2.)*np.log(2*np.pi)
+        linpart=mk.T*musk-0.5*cp.trace(Sk*Rsk)
+        obj=logpart-linpart
+        prob=cp.Problem(cp.Minimize(obj))
+        musk.value=np.ones((2,1))
+        covsk=np.diag([0.3,0.5])
+        Rsk.value=covsk+(musk.value*musk.value.T)
+        prob.solve(verbose=True,solver=cp.CVXOPT)
+        print "second solve"
+        prob.solve(verbose=False, solver=cp.CVXOPT)
 
     # def test_kl_div(self):
     #     """Test the kl_div atom.
