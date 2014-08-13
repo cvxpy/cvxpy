@@ -19,10 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.interface as intf
+from cvxpy.problems.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
+from toolz import memoize
 import cvxopt
 import math
 
@@ -72,6 +74,22 @@ class ExpCone(NonlinearConstraint):
         solver : str
             The solver being called.
         """
+        eq_constr += self.__format(solver)[0]
+        leq_constr += self.__format(solver)[1]
+        # Update dims.
+        dims[s.EXP_DIM] += self.size[0]*self.size[1]
+
+    @memoize
+    def __format(self, solver):
+        """Internal version of format with cached results.
+
+        Returns
+        -------
+        tuple
+            (equality constraints, inequality constraints)
+        """
+        eq_constr = []
+        leq_constr = []
         # Need x, y, z to be lone Variables.
         if solver == s.CVXOPT:
             constraints = []
@@ -85,9 +103,8 @@ class ExpCone(NonlinearConstraint):
         elif solver == s.SCS:
             leq_constr += format_elemwise([self.x, self.y, self.z])
         else:
-            raise ValueError("Solver does not support exponential cone.")
-        # Update dims.
-        dims[s.EXP_DIM] += self.size[0]*self.size[1]
+            raise SolverError("Solver does not support exponential cone.")
+        return (eq_constr, leq_constr)
 
     def _solver_hook(self, vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.

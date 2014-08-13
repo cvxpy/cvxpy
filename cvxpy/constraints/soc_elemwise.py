@@ -21,6 +21,7 @@ import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.utilities import format_elemwise
+from toolz import memoize
 
 class SOC_Elemwise(SOC):
     """A second-order cone constraint for each element of the input.
@@ -50,10 +51,21 @@ class SOC_Elemwise(SOC):
         solver : str
             The solver being called.
         """
-        leq_constr += format_elemwise([self.t] + self.x_elems)
+        leq_constr += self.__format()[1]
         # Update dims.
         for cone_size in self.size:
             dims[s.SOC_DIM].append(cone_size[0])
+
+    @memoize
+    def __format(self):
+        """Internal version of format with cached results.
+
+        Returns
+        -------
+        tuple
+            (equality constraints, inequality constraints)
+        """
+        return ([], format_elemwise([self.t] + self.x_elems))
 
     def num_cones(self):
         """The number of elementwise cones.

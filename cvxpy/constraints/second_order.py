@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.constraint import Constraint
+from toolz import memoize
 
 class SOC(Constraint):
     """A second-order cone constraint, i.e., norm2(x) <= t.
@@ -50,11 +51,23 @@ class SOC(Constraint):
         solver : str
             The solver being called.
         """
-        leq_constr.append(lu.create_geq(self.t))
-        for elem in self.x_elems:
-            leq_constr.append(lu.create_geq(elem))
+        leq_constr += self.__format()[1]
         # Update dims.
         dims[s.SOC_DIM].append(self.size[0])
+
+    @memoize
+    def __format(self):
+        """Internal version of format with cached results.
+
+        Returns
+        -------
+        tuple
+            (equality constraints, inequality constraints)
+        """
+        leq_constr = [lu.create_geq(self.t)]
+        for elem in self.x_elems:
+            leq_constr.append(lu.create_geq(elem))
+        return ([], leq_constr)
 
     @property
     def size(self):
