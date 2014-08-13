@@ -11,8 +11,8 @@ from cvxopt import matrix
 from Queue import PriorityQueue
 
 # Problem data.
-m = 50
-n = 25
+m = 100
+n = 50
 np.random.seed(1)
 A = np.matrix(np.random.randn(m, n))
 b = A*np.random.uniform(0, 1, size=(n, 1))
@@ -43,8 +43,7 @@ while not nodes.empty():
     best_upper = min(best_upper, new_upper)
     if new_upper == best_upper:
         best_x = np.round(x.value)
-    # Add new nodes if there are still indices to split
-    # and the branch cannot be pruned.
+    # Add new nodes if not at a leaf and the branch cannot be pruned.
     if next_split < n and new_lower < best_upper:
         for i in [0, 1]:
             next_L = L_val.copy()

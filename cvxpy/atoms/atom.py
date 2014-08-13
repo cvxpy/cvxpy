@@ -84,7 +84,7 @@ class Atom(Expression):
             raise Exception('The number of args be'
                             ' equal to the number of monotonicities.')
         arg_curvatures = []
-        for arg, monotonicity in zip(args,monotonicities):
+        for arg, monotonicity in zip(args, monotonicities):
             arg_curv = u.monotonicity.dcp_curvature(monotonicity, curvature,
                                                     arg._dcp_attr.sign,
                                                     arg._dcp_attr.curvature)
