@@ -21,6 +21,7 @@ import cvxpy.settings as s
 import cvxpy.utilities as u
 from toolz.itertoolz import unique
 import cvxpy.interface as intf
+from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_to_matrix as op2mat
@@ -30,7 +31,6 @@ SOC, SOC_Elemwise, SDP, ExpCone)
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.kktsolver import get_kktsolver
 import cvxpy.problems.iterative as iterative
-from cvxpy.problems.error import SolverError
 
 from collections import OrderedDict
 import warnings

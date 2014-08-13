@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.interface as intf
-from cvxpy.problems.error import SolverError
+from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 from cvxpy.constraints.nonlinear import NonlinearConstraint
