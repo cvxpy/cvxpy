@@ -7,12 +7,11 @@ subject to x in {0, 1}^n
 
 from cvxpy import *
 import numpy as np
-from cvxopt import matrix
 from Queue import PriorityQueue
 
 # Problem data.
-m = 100
-n = 50
+m = 40
+n = 20
 np.random.seed(1)
 A = np.matrix(np.random.randn(m, n))
 b = A*np.random.uniform(0, 1, size=(n, 1))
@@ -49,8 +48,7 @@ while not nodes.empty():
             next_L = L_val.copy()
             next_U = U_val.copy()
             next_L[next_split] = next_U[next_split] = i
-            entry = (new_lower, i, next_L, next_U, next_split + 1)
-            nodes.put(entry)
+            nodes.put((new_lower, i, next_L, next_U, next_split + 1))
 
 print("Nodes visited: %s out of %s" % (visited, 2**(n+1)-1))
 print("Optimal solution:", best_upper)
