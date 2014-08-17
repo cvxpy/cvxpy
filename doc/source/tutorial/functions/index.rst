@@ -115,6 +115,13 @@ and returns a scalar.
 |                     | \lambda_{\max}         | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 | norm(X, 2)          | \left(X^T X\right)}`   |                              |                     |                   |                           |
 +---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
+| mixed_norm(X, p, q) | :math:`\left(\sum_k \left(\sum_l   | :math:`X \in               | |positive| positive      | |convex| convex | None         |
+|                     | \lvert x_{k,l} \rvert              | \mathbf{R}^{m,n}`          |                          |                 |              |
+|                     | \right)^{q/p}\right)^{1/q}`        |                            |                          |                 |              |
+|                     |                                    |                            |                          |                 |              |
+|                     |                                    |                            |                          |                 |              |
+|                     |                                    |                            |                          |                 |              |
++---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
 | quad_form(x, P)     | :math:`x^T P x`        | :math:`x \in \mathbf{R}^n`   | |positive| positive | |convex| convex   | |incr| for                |
 |                     |                        |                              |                     |                   | :math:`x_i \geq 0`        |
 | P constant          |                        | :math:`P \in \mathbf{S}^n_+` |                     |                   |                           |
@@ -260,19 +267,11 @@ and returns a vector or matrix.
 |                     | X_1  \cdots    X_k                 | \mathbf{R}^{n \times m_i}` |                          |                 |              |
 |                     | \end{matrix}\right]`               |                            |                          |                 |              |
 +---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
-| mixed_norm(x, p, q) | :math:`\left(\sum_k \left(\sum_l   | :math:`X \in               | |positive| positive      | |convex| convex | None         |
-|                     | \lvert x_{k,l} \rvert              | \mathbf{R}^{m,n}`          |                          |                 |              | 
-|                     | \right)^{q/p}\right)^{1/q}`        |                            |                          |                 |              |
-|                     |                                    |                            |                          |                 |              |
-|                     |                                    |                            |                          |                 |              |
-|                     |                                    |                            |                          |                 |              |
-+---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
 | vstack(X1, ..., Xk) | :math:`\left[\begin{matrix}        | :math:`X_i \in             | sign(sum([x1, ..., xk])) | |affine| affine | |incr| incr. |
 |                     | X_1  \\                            | \mathbf{R}^{n_i \times m}` |                          |                 |              |
 |                     | \vdots  \\                         |                            |                          |                 |              |
 |                     | X_k                                |                            |                          |                 |              |
 |                     | \end{matrix}\right]`               |                            |                          |                 |              |
-
 +---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
 
 .. |positive| image:: functions_files/positive.svg
