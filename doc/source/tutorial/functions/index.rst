@@ -248,31 +248,43 @@ Vector/Matrix functions
 A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.
 
-+---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
-|       Function      |           Meaning                  |           Domain           |           Sign           |    Curvature    | Monotonicity |
-+=====================+====================================+============================+==========================+=================+==============+
-| diag(x)             | :math:`\left[\begin{matrix}        | :math:`x \in               | same as x                | |affine| affine | |incr| incr. |
-|                     | x_1  & &  \\                       | \mathbf{R}^{n}`            |                          |                 |              |
-|                     | & \ddots & \\                      |                            |                          |                 |              |
-|                     | & & x_n                            |                            |                          |                 |              |
-|                     | \end{matrix}\right]`               |                            |                          |                 |              |
-+---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
-| diag(X)             | :math:`\left[\begin{matrix}        | :math:`X \in               | same as X                | |affine| affine | |incr| incr. |
-|                     | X_{11}  \\                         | \mathbf{R}^{n \times n}`   |                          |                 |              |
-|                     | \vdots \\                          |                            |                          |                 |              |
-|                     | X_{nn}                             |                            |                          |                 |              |
-|                     | \end{matrix}\right]`               |                            |                          |                 |              |
-+---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
-| hstack(X1, ..., Xk) | :math:`\left[\begin{matrix}        | :math:`X_i \in             | sign(sum([x1, ..., xk])) | |affine| affine | |incr| incr. |
-|                     | X_1  \cdots    X_k                 | \mathbf{R}^{n \times m_i}` |                          |                 |              |
-|                     | \end{matrix}\right]`               |                            |                          |                 |              |
-+---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
-| vstack(X1, ..., Xk) | :math:`\left[\begin{matrix}        | :math:`X_i \in             | sign(sum([x1, ..., xk])) | |affine| affine | |incr| incr. |
-|                     | X_1  \\                            | \mathbf{R}^{n_i \times m}` |                          |                 |              |
-|                     | \vdots  \\                         |                            |                          |                 |              |
-|                     | X_k                                |                            |                          |                 |              |
-|                     | \end{matrix}\right]`               |                            |                          |                 |              |
-+---------------------+------------------------------------+----------------------------+--------------------------+-----------------+--------------+
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+|       Function      |           Meaning           |           Domain           |           Sign           |    Curvature    | Monotonicity |
++=====================+=============================+============================+==========================+=================+==============+
+| conv(c, x)          | :math:`c*x`                 | :math:`c\in\mathbf{R}^m    | depends on c, x          | |affine| affine | depends on c |
+|                     |                             | x\in \mathbf{R}^n`         |                          |                 |              |
+| c constant          |                             |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+| diag(x)             | :math:`\left[\begin{matrix} | :math:`x \in               | same as x                | |affine| affine | |incr| incr. |
+|                     | x_1  & &  \\                | \mathbf{R}^{n}`            |                          |                 |              |
+|                     | & \ddots & \\               |                            |                          |                 |              |
+|                     | & & x_n                     |                            |                          |                 |              |
+|                     | \end{matrix}\right]`        |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+| diag(X)             | :math:`\left[\begin{matrix} | :math:`X \in               | same as X                | |affine| affine | |incr| incr. |
+|                     | X_{11}  \\                  | \mathbf{R}^{n \times n}`   |                          |                 |              |
+|                     | \vdots \\                   |                            |                          |                 |              |
+|                     | X_{nn}                      |                            |                          |                 |              |
+|                     | \end{matrix}\right]`        |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+| hstack(X1, ..., Xk) | :math:`\left[\begin{matrix} | :math:`X_i \in             | sign(sum([x1, ..., xk])) | |affine| affine | |incr| incr. |
+|                     | X_1  \cdots    X_k          | \mathbf{R}^{n \times m_i}` |                          |                 |              |
+|                     | \end{matrix}\right]`        |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+| vstack(X1, ..., Xk) | :math:`\left[\begin{matrix} | :math:`X_i \in             | sign(sum([x1, ..., xk])) | |affine| affine | |incr| incr. |
+|                     | X_1  \\                     | \mathbf{R}^{n_i \times m}` |                          |                 |              |
+|                     | \vdots  \\                  |                            |                          |                 |              |
+|                     | X_k                         |                            |                          |                 |              |
+|                     | \end{matrix}\right]`        |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+
+Clarifications
+^^^^^^^^^^^^^^
+The output of :math:`y` of ``conv`` has size :math:`n+m-1` and is defined as
+:math: `y[k]=\sum_{j=0}^k c[j]x[k-j]`.
+
+
+
 
 .. |positive| image:: functions_files/positive.svg
               :width: 15px
