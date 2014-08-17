@@ -29,8 +29,8 @@ arithmetic operators ``+, -, *, /``, and a library of
     # Examples of CVXPY expressions.
     3.69 + b/3
     x - 4*a
-    sqrt(x) - min(y, x - a)
-    max(2.66 - sqrt(y), square(x + 2*y))
+    sqrt(x) - min_elemwise(y, x - a)
+    max_elemwise(2.66 - sqrt(y), square(x + 2*y))
 
 
 
