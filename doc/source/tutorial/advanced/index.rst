@@ -55,21 +55,21 @@ Many convex optimization problems involve constraining matrices to be positive o
 .. code:: python
 
     # Creates a 100 by 100 positive semidefinite variable.
-    X = semidefinite(100)
+    X = Semidefinite(100)
 
     # You can use X anywhere you would use
     # a normal CVXPY variable.
     obj = Minimize(norm(X) + sum_entries(X))
 
-The following code shows how to use ``semidefinite`` to constrain matrix expressions to be positive or negative semidefinite:
+The following code shows how to use ``Semidefinite`` to constrain matrix expressions to be positive or negative semidefinite:
 
 .. code:: python
 
     # expr1 must be positive semidefinite.
-    constr1 = (expr1 == semidefinite(n))
+    constr1 = (expr1 == Semidefinite(n))
 
     # expr2 must be negative semidefinite.
-    constr2 = (expr2 == -semidefinite(n))
+    constr2 = (expr2 == -Semidefinite(n))
 
 To constrain a matrix expression to be symmetric (but not necessarily positive or negative semidefinite), simply write
 

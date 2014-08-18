@@ -18,7 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import semidefinite
+from cvxpy.expressions.variables import Semidefinite
+from cvxpy.expressions.variables.semidefinite import Semidefinite as semidefinite
 from cvxopt import matrix
 import numpy as np
 from base_test import BaseTest
@@ -43,7 +44,7 @@ def trace(X):
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
-        self.X = semidefinite(2)
+        self.X = Semidefinite(2)
         self.Y = Variable(2,2)
         self.F = matrix([[1,0],[0,-1]], tc='d')
 
@@ -62,7 +63,7 @@ class TestSemidefiniteVariable(BaseTest):
         # SDP in constraint.
         # ECHU: note to self, apparently this is a source of redundancy
         obj = Minimize(sum_entries(square(self.Y - self.F)))
-        p = Problem(obj, [self.Y == semidefinite(2)])
+        p = Problem(obj, [self.Y == Semidefinite(2)])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
@@ -85,3 +86,12 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.X.value[0,1], 2, places=3)
         self.assertAlmostEqual(self.X.value[1,0], 2, places=3)
         self.assertAlmostEqual(self.X.value[1,1], 4, places=4)
+
+    def test_legacy(self):
+        """Test that the legacy name semidefinite works.
+        """
+        X = semidefinite(2)
+        obj = Minimize(sum_entries(square(X - self.F)))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)

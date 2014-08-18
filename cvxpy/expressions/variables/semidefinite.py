@@ -20,13 +20,13 @@ from cvxpy.expressions.variables.variable import Variable
 from cvxpy.constraints.semi_definite import SDP
 import cvxpy.lin_ops.lin_utils as lu
 
-class semidefinite(Variable):
+class Semidefinite(Variable):
     """ A semidefinite variable. """
     def __init__(self, n, name=None):
-        super(semidefinite, self).__init__(n,n,name)
+        super(Semidefinite, self).__init__(n,n,name)
 
     def canonicalize(self):
         """Variable must be semidefinite and symmetric.
         """
-        obj, constr = super(semidefinite, self).canonicalize()
+        obj, constr = super(Semidefinite, self).canonicalize()
         return (obj, constr + [SDP(obj)])
