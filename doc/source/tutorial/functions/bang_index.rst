@@ -81,6 +81,12 @@ and returns a scalar.
 |                     | \left\{ X_{ij}         | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                     | \right\}`              |                              |                     |                   |                           |
 +---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
+| mixed_norm(X, p, q) | :math:`\left(\sum_k    | :math:`X \in                 | !positive! positive | !convex! convex   | None                      |
+|                     | \left(\sum_l           | \mathbf{R}^{m,n}`            |                     |                   |                           |
+|                     | \lvert x_{k,l}\rvert^p |                              |                     |                   |                           |
+|                     | \right)^{q/p}          |                              |                     |                   |                           |
+|                     | \right)^{1/q}`         |                              |                     |                   |                           |
++---------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | norm(x)             | :math:`\sqrt{          | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
 |                     | \sum_{i}               | \mathbf{R}^{n}`              |                     |                   | :math:`x_{i} \geq 0`      |
 | norm(x, 2)          | x_{i}^2 }`             |                              |                     |                   |                           |
@@ -159,6 +165,9 @@ Clarifications
 The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, :math:`\mathbf{S}^n_{++}` and :math:`\mathbf{S}^n_{--}` refer to the set of positive definite and negative definite matrices, respectively.
 
 For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
+
+The function ``norm(X, "fro")`` is called the `Frobenius norm <http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
+and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
 
 The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
 
@@ -241,6 +250,10 @@ and returns a vector or matrix.
 +---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
 |       Function      |           Meaning           |           Domain           |           Sign           |    Curvature    | Monotonicity |
 +=====================+=============================+============================+==========================+=================+==============+
+| conv(c, x)          | :math:`c*x`                 | :math:`c\in\mathbf{R}^m`   | depends on c, x          | !affine! affine | depends on c |
+|                     |                             |                            |                          |                 |              |
+| c constant          |                             | :math:`x\in \mathbf{R}^n`  |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
 | diag(x)             | :math:`\left[\begin{matrix} | :math:`x \in               | same as x                | !affine! affine | !incr! incr. |
 |                     | x_1  & &  \\                | \mathbf{R}^{n}`            |                          |                 |              |
 |                     | & \ddots & \\               |                            |                          |                 |              |
@@ -263,6 +276,11 @@ and returns a vector or matrix.
 |                     | X_k                         |                            |                          |                 |              |
 |                     | \end{matrix}\right]`        |                            |                          |                 |              |
 +---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+
+Clarifications
+^^^^^^^^^^^^^^
+The output of :math:`y` of ``conv`` has size :math:`n+m-1` and is defined as
+:math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
 
 .. |positive| image:: functions_files/positive.svg
 			  :width: 15px

@@ -47,31 +47,31 @@ The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that 
 
 .. _semidefinite:
 
-Semi-definite matrices
+Semidefinite matrices
 ----------------------
 
-Many convex optimization problems involve constraining matrices to be positive or negative semi-definite (e.g., SDPs). You can do this in CVXPY using the ``semidefinite`` constructor. ``semidefinite(n)`` constructs an ``n`` by ``n`` variable constrained to be positive semi-definite. For example,
+Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs). You can do this in CVXPY using the ``semidefinite`` constructor. ``semidefinite(n)`` constructs an ``n`` by ``n`` variable constrained to be positive semidefinite. For example,
 
 .. code:: python
 
-    # Creates a 100 by 100 positive semi-definite variable.
+    # Creates a 100 by 100 positive semidefinite variable.
     X = semidefinite(100)
 
     # You can use X anywhere you would use
     # a normal CVXPY variable.
     obj = Minimize(norm(X) + sum_entries(X))
 
-The following code shows how to use ``semidefinite`` to constrain matrix expressions to be positive or negative semi-definite:
+The following code shows how to use ``semidefinite`` to constrain matrix expressions to be positive or negative semidefinite:
 
 .. code:: python
 
-    # expr1 must be positive semi-definite.
+    # expr1 must be positive semidefinite.
     constr1 = (expr1 == semidefinite(n))
 
-    # expr2 must be negative semi-definite.
+    # expr2 must be negative semidefinite.
     constr2 = (expr2 == -semidefinite(n))
 
-To constrain a matrix expression to be symmetric (but not necessarily positive or negative semi-definite), simply write
+To constrain a matrix expression to be symmetric (but not necessarily positive or negative semidefinite), simply write
 
 .. code:: python
 
