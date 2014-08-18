@@ -1,3 +1,8 @@
+Version 2.11 (next release)
+---------------------------
+* Renamed semidefinite to Semidefinite.
+* Switched solver_specific_opts to **kwargs.
+
 Version 2.10
 ------------
 * CVXPY throws an error when a solver error is encountered.

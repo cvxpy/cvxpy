@@ -181,41 +181,38 @@ All the solvers can print out information about their progress while solving the
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `CVXOPT`_ and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY using the ``solver_specific_opts`` keyword argument. The value of ``solver_specific_opts`` should be a dict of option keywords to option values.
+The `ECOS`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
-For example, here we tell SCS to use a direct method for solving linear equations rather than an indirect method.
+For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
 .. code:: python
 
-    # Solve with SCS, use sparse-direct method.
-    opts = {"USE_INDIRECT": False}
-    prob.solve(solver=SCS, verbose=True, solver_specific_opts=opts)
+    # Solve with SCS, use sparse-indirect method.
+    prob.solve(solver=SCS, verbose=True, use_indirect=True)
     print "optimal value with SCS:", prob.value
 
 .. parsed-literal::
 
     ----------------------------------------------------------------------------
-        scs v1.0 - Splitting Conic Solver
+        SCS v1.0.5 - Splitting Conic Solver
         (c) Brendan O'Donoghue, Stanford University, 2012
     ----------------------------------------------------------------------------
-    Method: sparse-direct, nnz in A = 13
-    EPS = 1.00e-03, ALPHA = 1.80, MAX_ITERS = 2500, NORMALIZE = 1, SCALE = 5.0
+    Lin-sys: sparse-indirect, nnz in A = 13, CG tol ~ 1/iter^(2.00)
+    EPS = 1.00e-03, ALPHA = 1.80, MAX_ITERS = 2500, NORMALIZE = 1, SCALE = 5.00
     Variables n = 5, constraints m = 9
-    Cones:  primal zero / dual free vars: 0
-        linear vars: 6
+    Cones:  linear vars: 6
         soc vars: 3, soc blks: 1
-        sd vars: 0, sd blks: 0
-        exp vars: 0, dual exp vars: 0
+    Setup time: 2.78e-04s
     ----------------------------------------------------------------------------
-     Iter | pri res | dua res | rel gap | pri obj | dua obj |  kappa  | time (s)
-    ============================================================================
-         0| 4.60e+00  5.78e-01       nan      -inf       inf  8.32e+00  1.54e-03
-        60| 3.92e-05  1.12e-04  6.64e-06  6.83e+00  6.83e+00  9.31e-18  1.62e-03
+     Iter | pri res | dua res | rel gap | pri obj | dua obj | kap/tau | time (s)
+    ----------------------------------------------------------------------------
+         0| 4.60e+00  5.78e-01       nan      -inf       inf       inf  3.86e-05
+        60| 3.92e-05  1.12e-04  6.64e-06  6.83e+00  6.83e+00  1.41e-17  9.51e-05
     ----------------------------------------------------------------------------
     Status: Solved
-    Timing: Solve time: 1.63e-03s, setup time: 1.70e-04s
-        Lin-sys: nnz in L factor: 29, avg solve time: 1.38e-07s
-        Cones: avg projection time: 5.05e-08s
+    Timing: Total solve time: 9.76e-05s
+        Lin-sys: avg # CG iterations: 1.00, avg solve time: 2.24e-07s
+        Cones: avg projection time: 4.90e-08s
     ----------------------------------------------------------------------------
     Error metrics:
     |Ax + s - b|_2 / (1 + |b|_2) = 3.9223e-05
@@ -226,6 +223,62 @@ For example, here we tell SCS to use a direct method for solving linear equation
     c'x = 6.8284, -b'y = 6.8285
     ============================================================================
     optimal value with SCS: 6.82837896975
+
+Here's the complete list of solver options.
+
+`ECOS`_ options:
+
+``'max_iters'``
+    maximum number of iterations (default: 100).
+
+``'abstol'``
+    absolute accuracy (default: 1e-7).
+
+``'reltol'``
+    relative accuracy (default: 1e-6).
+
+``'feastol'``
+    tolerance for feasibility conditions (default: 1e-7).
+
+``'abstol_inacc'``
+    absolute accuracy for inaccurate solution (default: 5e-5).
+
+``'reltol_inacc'``
+    relative accuracy for inaccurate solution (default: 5e-5).
+
+``'feastol_inacc'``
+    tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+
+`CVXOPT`_ options:
+
+``'max_iters'``
+    maximum number of iterations (default: 100).
+
+``'abstol'``
+    absolute accuracy (default: 1e-7).
+
+``'reltol'``
+    relative accuracy (default: 1e-6).
+
+``'feastol'``
+    tolerance for feasibility conditions (default: 1e-7).
+
+`SCS`_ options:
+
+``'max_iters'``
+    maximum number of iterations (default: 2500).
+
+``'eps'``
+    convergence tolerance (default: 1e-3).
+
+``'alpha'``
+    relaxation parameter (default: 1.8).
+
+``'normalize'``
+    whether to precondition data matrices (default: True).
+
+``'use_indirect'``
+    whether to use indirect solver for KKT sytem (instead of direct) (default: False).
 
 Getting the standard form
 -------------------------
