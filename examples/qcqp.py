@@ -10,7 +10,7 @@ import math
 from cvxpy import *
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
-# Example: Finding the fastest mixing Markov chain on a graph
+# Derived from Example: Finding the fastest mixing Markov chain on a graph
 # Ported from cvx matlab to cvxpy by Misrab Faizullah-Khan
 # Original comments below
 
