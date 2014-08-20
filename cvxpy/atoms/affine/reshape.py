@@ -27,7 +27,7 @@ class reshape(AffAtom):
     """ Reshapes the expression.
 
     Vectorizes the expression then unvectorizes it into the new shape.
-    The entries are stored in column-wise order.
+    The entries are stored in column-major order.
     """
     def __init__(self, expr, rows, cols):
         self.rows = rows

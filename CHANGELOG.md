@@ -2,6 +2,7 @@ Version 2.11 (next release)
 ---------------------------
 * Renamed semidefinite to Semidefinite.
 * Switched solver_specific_opts to **kwargs.
+* Added vec and documentation for reshape and vec.
 
 Version 2.10
 ------------

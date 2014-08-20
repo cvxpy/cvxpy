@@ -270,6 +270,15 @@ and returns a vector or matrix.
 |                     | X_1  \cdots    X_k          | \mathbf{R}^{n \times m_i}` |                          |                 |              |
 |                     | \end{matrix}\right]`        |                            |                          |                 |              |
 +---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+| reshape(X, n', m')  | :math:`X' \in               | :math:`X \in               | same as X                | !affine! affine | !incr! incr. |
+|                     | \mathbf{R}^{n' \times m'}`  | \mathbf{R}^{n \times m}`   |                          |                 |              |
+|                     |                             |                            |                          |                 |              |
+|                     |                             | :math:`n'm' = nm`          |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
+| vec(X)              | :math:`x' \in               | :math:`X \in               | same as X                | !affine! affine | !incr! incr. |
+|                     | \mathbf{R}^{nm}`            | \mathbf{R}^{n \times m}`   |                          |                 |              |
+|                     |                             |                            |                          |                 |              |
++---------------------+-----------------------------+----------------------------+--------------------------+-----------------+--------------+
 | vstack(X1, ..., Xk) | :math:`\left[\begin{matrix} | :math:`X_i \in             | sign(sum([x1, ..., xk])) | !affine! affine | !incr! incr. |
 |                     | X_1  \\                     | \mathbf{R}^{n_i \times m}` |                          |                 |              |
 |                     | \vdots  \\                  |                            |                          |                 |              |
@@ -279,8 +288,15 @@ and returns a vector or matrix.
 
 Clarifications
 ^^^^^^^^^^^^^^
-The output of :math:`y` of ``conv`` has size :math:`n+m-1` and is defined as
+The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
 :math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
+
+The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
+Formally, :math:`x'_i = X_{i \bmod{n}, \left \lfloor{i/n}\right \rfloor }`.
+
+The output :math:`X'` of ``reshape(X, n', m')`` is the matrix :math:`X` cast into an :math:`n' \times m'` matrix.
+The entries are taken from :math:`X` in column-major order and stored in :math:`X'` in column-major order.
+Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{n'j + i}`.
 
 .. |positive| image:: functions_files/positive.svg
 			  :width: 15px

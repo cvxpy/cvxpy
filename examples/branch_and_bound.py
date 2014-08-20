@@ -10,8 +10,8 @@ import numpy
 from Queue import PriorityQueue
 
 # Problem data.
-m = 50
-n = 40
+m = 25
+n = 20
 numpy.random.seed(1)
 A = numpy.matrix(numpy.random.randn(m, n))
 b = numpy.matrix(numpy.random.randn(m, 1))
@@ -49,3 +49,4 @@ while not nodes.empty():
 
 print("Nodes visited: %s out of %s" % (visited, 2**(n+1)-1))
 print("Optimal solution:", best_solution)
+print(best_x)

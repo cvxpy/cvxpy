@@ -284,6 +284,22 @@ class TestAtoms(unittest.TestCase):
         self.assertEqual(str(cm.exception),
             "Invalid reshape dimensions (5, 4).")
 
+    def test_vec(self):
+        """Test the vec atom.
+        """
+        expr = vec(self.C)
+        self.assertEquals(expr.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(expr.size, (6, 1))
+
+        expr = vec(self.x)
+        self.assertEquals(expr.size, (2, 1))
+
+        expr = vec(square(self.a))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(expr.size, (1, 1))
+
     def test_diag(self):
         """Test the diag atom.
         """

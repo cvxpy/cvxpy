@@ -989,6 +989,18 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
+    def test_vec(self):
+        """Tests problems with vec.
+        """
+        c = [1, 2, 3, 4]
+        expr = vec(self.A)
+        obj = Minimize(expr.T*c)
+        constraints = [self.A == [[-1, -2], [3, 4]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 20)
+        self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
+
     def test_diag_prob(self):
         """Test a problem with diag.
         """

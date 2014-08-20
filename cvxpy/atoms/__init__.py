@@ -45,6 +45,7 @@ from affine.mul_elemwise import mul_elemwise
 from affine.reshape import reshape
 from affine.sum_entries import sum_entries
 from affine.trace import trace
+from affine.vec import vec
 from affine.vstack import vstack
 
 from elementwise.abs import abs
