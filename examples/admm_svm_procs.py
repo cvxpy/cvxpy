@@ -42,7 +42,7 @@ for split in data_splits:
 
 # Process:
 # Send xi, wait for xbar
-def ADMM(f, pipe):
+def run_process(f, pipe):
     xbar = Parameter(n, value=np.zeros(n))
     u = Parameter(n, value=np.zeros(n))
     f += (rho/2)*sum_squares(x - xbar + u)
@@ -52,7 +52,7 @@ def ADMM(f, pipe):
         prox.solve()
         pipe.send(x.value)
         xbar.value = pipe.recv()
-        u.value = u.value + x.value - xbar.value
+        u.value += x.value - xbar.value
 
 # Setup.
 pipes = []
@@ -60,7 +60,7 @@ procs = []
 for i in range(NUM_PROCS):
     local, remote = Pipe()
     pipes += [local]
-    procs += [Process(target=ADMM, args=(f[i], remote))]
+    procs += [Process(target=run_process, args=(f[i], remote))]
     procs[-1].start()
 
 # ADMM loop.

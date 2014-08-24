@@ -759,9 +759,9 @@ class Problem(u.Canonical):
         for constr in self.constraints:
             constr.save_value(None)
         # Set the problem value.
-        if status == s.INFEASIBLE:
+        if status in [s.INFEASIBLE, s.INFEASIBLE_INACCURATE]:
             self._value = self.objective._primal_to_result(np.inf)
-        elif status == s.UNBOUNDED:
+        elif status in [s.UNBOUNDED, s.UNBOUNDED_INACCURATE]:
             self._value = self.objective._primal_to_result(-np.inf)
 
     def _get_var_offsets(self, objective, constraints, nonlinear=None):

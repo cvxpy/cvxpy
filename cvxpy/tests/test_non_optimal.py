@@ -56,6 +56,17 @@ class TestNonOptimal(BaseTest):
             p_unb.solve(solver=solver)
             self.assertEqual(p_unb.status, UNBOUNDED)
 
+    def test_inaccurate(self):
+        """Test the inaccurate status.
+        """
+        x = Variable(5)
+        prob = Problem(Maximize(sum_entries(sqrt(x))) [x <= 0])
+        result = prob.solve(solver=SCS)
+        print prob.status
+        print result
+        assert result is not None
+        assert False
+
     # def test_socp(self):
     #     """Test SOCP problems.
     #     """
