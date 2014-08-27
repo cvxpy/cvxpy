@@ -38,7 +38,7 @@ class TestExamples(BaseTest):
         a2 = np.matrix(" 2; -1")
         a3 = np.matrix("-1;  2")
         a4 = np.matrix("-1; -2")
-        b = np.ones([4,1])
+        b = np.ones(4)
 
         # Create and solve the model
         r = Variable(name='r')
@@ -330,7 +330,7 @@ class TestExamples(BaseTest):
         n = 20
         numpy.random.seed(1)
         A = numpy.random.randn(m, n)
-        b = numpy.random.randn(m)
+        b = numpy.random.randn(m, 1)
 
         # Construct the problem.
         x = Variable(n)
@@ -448,7 +448,7 @@ class TestExamples(BaseTest):
         n = 5
         numpy.random.seed(1)
         A = numpy.random.randn(m, n)
-        b = numpy.random.randn(m)
+        b = numpy.random.randn(m, 1)
 
         # Construct the problem.
         x = Variable(n)
@@ -492,7 +492,7 @@ class TestExamples(BaseTest):
         m = 10
         numpy.random.seed(1)
         A = numpy.random.randn(n, m)
-        b = numpy.random.randn(n)
+        b = numpy.random.randn(n, 1)
         # gamma must be positive due to DCP rules.
         gamma = Parameter(sign="positive")
 

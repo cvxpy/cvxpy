@@ -23,10 +23,15 @@ import cvxpy.lin_ops.lin_utils as lu
 class Semidef(Variable):
     """ A semidefinite variable. """
     def __init__(self, n, name=None):
-        super(Semidef, self).__init__(n,n,name)
+        super(Semidef, self).__init__(n, n, name)
 
     def canonicalize(self):
         """Variable must be semidefinite and symmetric.
         """
         obj, constr = super(Semidef, self).canonicalize()
         return (obj, constr + [SDP(obj)])
+
+    def __repr__(self):
+        """String to recreate the object.
+        """
+        return "Semidef(%d)" % self.size[0]

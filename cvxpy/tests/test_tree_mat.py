@@ -112,7 +112,7 @@ class test_tree_mat(BaseTest):
 
         # Convolution
         x = Variable(3)
-        f = np.array([1, 2, 3])
+        f = np.matrix(np.array([1, 2, 3])).T
         g = np.array([0, 1, 0.5])
         f_conv_g = np.array([ 0., 1., 2.5,  4., 1.5])
         expr = conv(f, x).canonical_form[0]

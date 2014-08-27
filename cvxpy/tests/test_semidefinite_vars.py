@@ -48,6 +48,11 @@ class TestSemidefiniteVariable(BaseTest):
         self.Y = Variable(2,2)
         self.F = matrix([[1,0],[0,-1]], tc='d')
 
+    def test_sdp_print(self):
+        """Test to string methods for SDP vars.
+        """
+        self.assertEqual(repr(self.X), "Semidef(2)")
+
     def test_sdp_problem(self):
         # SDP in objective.
         obj = Minimize(sum_entries(square(self.X - self.F)))

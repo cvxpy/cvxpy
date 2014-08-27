@@ -43,12 +43,11 @@ class MatrixInterface(NDArrayInterface):
         if isinstance(value, cvxopt.spmatrix):
             value = cvxopt.matrix(value)
         # Lists and 1D arrays become column vectors.
-        if isinstance(value, list) or \
-           isinstance(value, np.ndarray) and value.ndim == 1:
-            mat = np.asmatrix(value, dtype='float64')
-            return mat.T
+        elif isinstance(value, list) or \
+             isinstance(value, np.ndarray) and value.ndim == 1:
+            value = np.asmatrix(value, dtype='float64').T
         # First convert sparse to dense.
-        if sp.issparse(value):
+        elif sp.issparse(value):
             value = value.todense()
         return np.asmatrix(value, dtype='float64')
 

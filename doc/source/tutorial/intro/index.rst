@@ -222,7 +222,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
     n = 5
     numpy.random.seed(1)
     A = numpy.random.randn(m, n)
-    b = numpy.random.randn(m)
+    b = numpy.random.randn(m, 1)
 
     # Construct the problem.
     x = Variable(n)
@@ -307,7 +307,7 @@ computes a trade-off curve for a LASSO problem.
     m = 10
     numpy.random.seed(1)
     A = numpy.random.randn(n, m)
-    b = numpy.random.randn(n)
+    b = numpy.random.randn(n, 1)
     # gamma must be positive due to DCP rules.
     gamma = Parameter(sign="positive")
 

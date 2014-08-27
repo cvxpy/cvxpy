@@ -58,10 +58,11 @@ class Parameter(Constant):
     @value.setter
     def value(self, val):
         # Convert val to the proper matrix type.
+        intf.warn_1D_array(val)
         val = intf.DEFAULT_INTERFACE.const_to_matrix(val)
         size = intf.size(val)
         if size != self.size:
-            raise Exception(
+            raise ValueError(
                 ("Invalid dimensions (%s, %s) for Parameter value." % size)
             )
         # All signs are valid if sign is unknown.
@@ -69,7 +70,7 @@ class Parameter(Constant):
         sign = intf.sign(val)
         if self.is_positive() and not sign.is_positive() or \
            self.is_negative() and not sign.is_negative():
-            raise Exception("Invalid sign for Parameter value.")
+            raise ValueError("Invalid sign for Parameter value.")
         self._value = val
 
     def parameters(self):
@@ -85,3 +86,10 @@ class Parameter(Constant):
         """
         obj = lu.create_param(self, self.size)
         return (obj, [])
+
+    def __repr__(self):
+        """String to recreate the object.
+        """
+        return 'Parameter(%d, %d, sign="%s")' % (self._rows,
+                                                 self._cols,
+                                                 self.sign)

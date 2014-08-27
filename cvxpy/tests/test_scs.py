@@ -112,7 +112,7 @@ class TestSCS(BaseTest):
 
         prng=np.random.RandomState(kSeed)
         #Generate a random reference distribution
-        npSPriors=prng.uniform(0.0,1.0,kK)
+        npSPriors=prng.uniform(0.0,1.0,(kK,1))
         npSPriors=npSPriors/sum(npSPriors)
 
         #Reference distribution

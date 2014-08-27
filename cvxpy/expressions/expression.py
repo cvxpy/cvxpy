@@ -66,10 +66,17 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
-    def __repr__(self):
-        """TODO priority
+    def __str__(self):
+        """Returns a string showing the mathematical expression.
         """
         return self.name()
+
+    def __repr__(self):
+        """Returns a string with information about the expression.
+        """
+        return "Expression(%s, %s, %s)" % (self.curvature,
+                                           self.sign,
+                                           self.size)
 
     @abc.abstractmethod
     def name(self):
@@ -269,8 +276,18 @@ class Expression(u.Canonical):
         """
         return LeqConstraint(self, other)
 
+    def __lt__(self, other):
+        """Returns an inequality constraint.
+        """
+        return self <= other
+
     @_cast_other
     def __ge__(self, other):
         """Returns an inequality constraint.
         """
         return other.__le__(self)
+
+    def __gt__(self, other):
+        """Returns an inequality constraint.
+        """
+        return self >= other

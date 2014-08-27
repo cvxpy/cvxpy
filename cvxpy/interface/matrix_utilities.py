@@ -23,6 +23,7 @@ import cvxopt
 import scipy.sparse as sp
 import numbers
 import numpy as np
+import warnings
 from cvxpy.utilities.sign import Sign
 
 # A mapping of class to interface.
@@ -46,6 +47,12 @@ def is_sparse(constant):
     """Is the constant a sparse matrix?
     """
     return sp.issparse(constant) or isinstance(constant, cvxopt.spmatrix)
+
+def warn_1D_array(constant):
+    """Raises a warning for NumPy 1D arrays.
+    """
+    if isinstance(constant, np.ndarray) and constant.ndim == 1:
+        warnings.warn("NumPy 1D arrays are treated as column vectors.")
 
 # Get the dimensions of the constant.
 def size(constant):

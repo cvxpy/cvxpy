@@ -33,6 +33,7 @@ class Constant(Leaf):
             self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
             self._sparse = True
         else:
+            intf.warn_1D_array(value)
             self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
@@ -59,3 +60,10 @@ class Constant(Leaf):
         """
         obj = lu.create_const(self.value, self.size, self._sparse)
         return (obj, [])
+
+    def __repr__(self):
+        """Returns a string with information about the expression.
+        """
+        return "Constant(%s, %s, %s)" % (self.curvature,
+                                         self.sign,
+                                         self.size)

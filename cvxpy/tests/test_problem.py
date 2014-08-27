@@ -49,6 +49,21 @@ class TestProblem(BaseTest):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
+    def test_to_str(self):
+        """Test string representations.
+        """
+        obj = Minimize(self.a)
+        prob = Problem(obj)
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr([])))
+        constraints = [self.x*2 == self.x, self.x == 0]
+        prob = Problem(obj, constraints)
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(constraints)))
+
+        # Test str.
+        result = "minimize %(name)s\nsubject to %(name)s == 0\n           0 <= %(name)s" % {"name": self.a.name()}
+        prob = Problem(Minimize(self.a), [self.a == 0, self.a >= 0])
+        self.assertEqual(str(prob), result)
+
     def test_variables(self):
         """Test the variables method.
         """
@@ -390,7 +405,7 @@ class TestProblem(BaseTest):
         p3 = Parameter(4, 4, sign="positive")
         p = Problem(Maximize(p1*self.a), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         p1.value = 2
-        p2.value = -numpy.ones(3)
+        p2.value = -numpy.ones((3,1))
         p3.value = numpy.ones((4, 4))
         result = p.solve()
         self.assertAlmostEqual(result, -6)

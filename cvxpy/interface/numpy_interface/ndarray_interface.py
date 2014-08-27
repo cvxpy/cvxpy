@@ -41,11 +41,11 @@ class NDArrayInterface(base.BaseMatrixInterface):
         # Convert cvxopt sparse to dense.
         if isinstance(value, cvxopt.spmatrix):
             value = cvxopt.matrix(value)
-        mat = numpy.array(value, dtype='float64')
-        if isinstance(value, list):
-            mat = numpy.atleast_2d(mat)
-            return mat.T
-        return numpy.atleast_2d(mat)
+            value = numpy.array(value, dtype='float64')
+        elif isinstance(value, list):
+            value = numpy.atleast_2d(value)
+            value = value.T
+        return numpy.atleast_2d(value)
 
     # Return an identity matrix.
     def identity(self, size):
