@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.expressions.variables import Variable, Semidefinite
+from cvxpy.expressions.variables import Variable, Semidef
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface as intf
@@ -1009,7 +1009,7 @@ class TestProblem(BaseTest):
         constraints = [diag(C) == 1,
                        C[0, 1] == 0.6,
                        C[1, 2] == -0.3,
-                       C == Semidefinite(3)]
+                       C == Semidef(3)]
         prob = Problem(obj, constraints)
         result = prob.solve()
         self.assertAlmostEqual(result, 0.583151)

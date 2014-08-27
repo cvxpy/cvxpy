@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import Semidefinite
-from cvxpy.expressions.variables.semidefinite import Semidefinite as semidefinite
+from cvxpy.expressions.variables import Semidef
+from cvxpy.expressions.variables.semidefinite import Semidef as semidefinite
 from cvxopt import matrix
 import numpy as np
 from base_test import BaseTest
@@ -44,7 +44,7 @@ def trace(X):
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
-        self.X = Semidefinite(2)
+        self.X = Semidef(2)
         self.Y = Variable(2,2)
         self.F = matrix([[1,0],[0,-1]], tc='d')
 
@@ -63,7 +63,7 @@ class TestSemidefiniteVariable(BaseTest):
         # SDP in constraint.
         # ECHU: note to self, apparently this is a source of redundancy
         obj = Minimize(sum_entries(square(self.Y - self.F)))
-        p = Problem(obj, [self.Y == Semidefinite(2)])
+        p = Problem(obj, [self.Y == Semidef(2)])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
