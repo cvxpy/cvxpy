@@ -50,7 +50,7 @@ def branch_and_bound(n, A, B, c):
             best_z = z_star
         # Add new nodes if not at a leaf and the branch cannot be pruned.
         if idx < n and lower_bound < f_best:
-            for i in [-1, 1]:
+            for i in [0, 1]:
                 L_val[idx] = U_val[idx] = i
                 nodes.put((lower_bound, i, L_val.copy(), U_val.copy(), idx + 1))
 
