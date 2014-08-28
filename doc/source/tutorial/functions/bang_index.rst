@@ -203,10 +203,10 @@ scalars, which are promoted.
 | exp(x)                    | :math:`e^x`             | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! incr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | huber(x, M=1)             | :math:`\begin{cases}    | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! for       |
-|                           | x^2 &x \leq             |                            |                     |                   | :math:`x \geq 0` |
+|                           | x^2 &!x! \leq           |                            |                     |                   | :math:`x \geq 0` |
 |                           | M  \\                   | :math:`M \geq 0`           |                     |                   |                  |
-|                           | 2Mx - M^2               |                            |                     |                   | !decr! for       |
-|                           | &x >                    |                            |                     |                   | :math:`x \leq 0` |
+|                           | 2M!x! - M^2             |                            |                     |                   | !decr! for       |
+|                           | &!x! >                  |                            |                     |                   | :math:`x \leq 0` |
 |                           | M                       |                            |                     |                   |                  |
 |                           | \end{cases}`            |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+

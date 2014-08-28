@@ -203,10 +203,10 @@ scalars, which are promoted.
 | exp(x)                    | :math:`e^x`             | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| incr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | huber(x, M=1)             | :math:`\begin{cases}    | :math:`x \in \mathbf{R}`   | |positive| positive | |convex| convex   | |incr| for       |
-|                           | x^2 &x \leq             |                            |                     |                   | :math:`x \geq 0` |
+|                           | x^2 &|x| \leq           |                            |                     |                   | :math:`x \geq 0` |
 |                           | M  \\                   | :math:`M \geq 0`           |                     |                   |                  |
-|                           | 2Mx - M^2               |                            |                     |                   | |decr| for       |
-|                           | &x >                    |                            |                     |                   | :math:`x \leq 0` |
+|                           | 2M|x| - M^2             |                            |                     |                   | |decr| for       |
+|                           | &|x| >                  |                            |                     |                   | :math:`x \leq 0` |
 |                           | M                       |                            |                     |                   |                  |
 |                           | \end{cases}`            |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
@@ -294,7 +294,7 @@ The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
 The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
 Formally, :math:`x'_i = X_{i \bmod{n}, \left \lfloor{i/n}\right \rfloor }`.
 
-The output :math:`X'` of ``reshape(X, n', m')`` is the matrix :math:`X` cast into an :math:`n'` by :math:`m'` matrix.
+The output :math:`X'` of ``reshape(X, n', m')`` is the matrix :math:`X` cast into an :math:`n' \times m'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`X'` in column-major order.
 Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{n'j + i}`.
 
