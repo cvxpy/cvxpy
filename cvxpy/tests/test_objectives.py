@@ -29,6 +29,19 @@ class TestObjectives(unittest.TestCase):
         self.y = Variable(3, name='y')
         self.z = Variable(name='z')
 
+    def test_str(self):
+        """Test string representations.
+        """
+        obj = Minimize(self.x)
+        self.assertEqual(repr(obj), "Minimize(%s)" % repr(self.x))
+        obj = Minimize(2*self.x)
+        self.assertEqual(repr(obj), "Minimize(%s)" % repr(2*self.x))
+
+        obj = Maximize(self.x)
+        self.assertEqual(repr(obj), "Maximize(%s)" % repr(self.x))
+        obj = Maximize(2*self.x)
+        self.assertEqual(repr(obj), "Maximize(%s)" % repr(2*self.x))
+
     # Test the Minimize class.
     def test_minimize(self):
         exp = self.x + self.z

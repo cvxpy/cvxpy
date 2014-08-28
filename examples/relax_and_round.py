@@ -9,7 +9,7 @@ import numpy
 def cvx_relax(prob):
     new_constr = []
     for var in prob.variables():
-        if var.boolean:
+        if getattr(var, 'boolean', False):
             new_constr += [0 <= var, var <= 1]
     return Problem(prob.objective,
                    prob.constraints + new_constr)
@@ -18,7 +18,7 @@ def round_and_fix(prob):
     prob.solve()
     new_constr = []
     for var in prob.variables():
-        if var.boolean:
+        if getattr(var, 'boolean', False):
             new_constr += [var == numpy.round(var.value)]
     return Problem(prob.objective,
                    prob.constraints + new_constr)
@@ -88,7 +88,7 @@ def example(n, get_vals=False):
     c = A.dot(sltn[0]) + B.dot(sltn[1]) + noise
 
     x = Variable(n)
-    x.boolean = False
+    #x.boolean = False
     z = Variable(n)
     z.boolean = True
 
@@ -113,8 +113,9 @@ vals = range(1, n+1)
 relaxed, rounded, truth = map(numpy.asarray, example(n, True))
 plt.figure(figsize=(6,4))
 plt.plot(vals, relaxed, 'ro')
+plt.axhline(y=0.5,color='k',ls='dashed')
 plt.xlabel(r'$i$')
-plt.ylabel(r'$z^\star_i$')
+plt.ylabel(r'$z^\mathrm{rel}_i$')
 plt.show()
 
 # Plot optimal values.
@@ -131,10 +132,10 @@ for n in vals:
     truth.append(results[2])
 
 plt.figure(figsize=(6,4))
-plt.plot(vals, relaxed, vals, rounded, vals, truth)
+plt.plot(vals, rounded, vals, truth, vals, relaxed)
 plt.xlabel("n")
-plt.ylabel("Optimal value")
-plt.legend(["Convex relaxation", "Relax and round", "Boolean convex program"], loc=2)
+plt.ylabel("Objective value")
+plt.legend(["Relax and round value", "Global optimum", "Lower bound"], loc=2)
 plt.show()
 
 # m = 10

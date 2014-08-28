@@ -42,8 +42,17 @@ class LeqConstraint(u.Canonical, Constraint):
                          self.OP_NAME,
                          str(self.rh_exp)])
 
-    def __repr__(self):
+    def __str__(self):
+        """Returns a string showing the mathematical constraint.
+        """
         return self.name()
+
+    def __repr__(self):
+        """Returns a string with information about the constraint.
+        """
+        return "%s(%s, %s)" % (self.__class__.__name__,
+                               repr(self.lh_exp),
+                               repr(self.rh_exp))
 
     def __nonzero__(self):
         """Raises an exception when called.

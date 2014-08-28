@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from atoms import *
-from expressions.variables import Variable, Semidefinite
+from expressions.variables import Variable, Semidef
 from expressions.constants import Parameter
 from expressions.constants import Constant
 from problems.problem import Problem
@@ -30,4 +30,4 @@ OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,
 OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 
 # Legacy names.
-from expressions.variables.semidefinite import Semidefinite as semidefinite
+from expressions.variables.semidefinite import Semidef as semidefinite

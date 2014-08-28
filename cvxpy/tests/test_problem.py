@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.expressions.variables import Variable, Semidefinite
+from cvxpy.expressions.variables import Variable, Semidef
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface as intf
@@ -48,6 +48,21 @@ class TestProblem(BaseTest):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
+
+    def test_to_str(self):
+        """Test string representations.
+        """
+        obj = Minimize(self.a)
+        prob = Problem(obj)
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr([])))
+        constraints = [self.x*2 == self.x, self.x == 0]
+        prob = Problem(obj, constraints)
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(constraints)))
+
+        # Test str.
+        result = "minimize %(name)s\nsubject to %(name)s == 0\n           0 <= %(name)s" % {"name": self.a.name()}
+        prob = Problem(Minimize(self.a), [self.a == 0, self.a >= 0])
+        self.assertEqual(str(prob), result)
 
     def test_variables(self):
         """Test the variables method.
@@ -390,7 +405,7 @@ class TestProblem(BaseTest):
         p3 = Parameter(4, 4, sign="positive")
         p = Problem(Maximize(p1*self.a), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         p1.value = 2
-        p2.value = -numpy.ones(3)
+        p2.value = -numpy.ones((3,1))
         p3.value = numpy.ones((4, 4))
         result = p.solve()
         self.assertAlmostEqual(result, -6)
@@ -1009,7 +1024,7 @@ class TestProblem(BaseTest):
         constraints = [diag(C) == 1,
                        C[0, 1] == 0.6,
                        C[1, 2] == -0.3,
-                       C == Semidefinite(3)]
+                       C == Semidef(3)]
         prob = Problem(obj, constraints)
         result = prob.solve()
         self.assertAlmostEqual(result, 0.583151)

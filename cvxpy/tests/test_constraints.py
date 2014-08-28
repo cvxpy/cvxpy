@@ -35,6 +35,16 @@ class TestConstraints(unittest.TestCase):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
+    def test_constr_str(self):
+        """Test string representations of the constraints.
+        """
+        constr = self.x <= self.x
+        self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(self.x)))
+        constr = self.x <= 2*self.x
+        self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(2*self.x)))
+        constr = 2*self.x >= self.x
+        self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(2*self.x)))
+
     # Test the EqConstraint class.
     def test_eq_constraint(self):
         constr = self.x == self.z
@@ -58,7 +68,7 @@ class TestConstraints(unittest.TestCase):
     def test_leq_constraint(self):
         constr = self.x <= self.z
         self.assertEqual(constr.name(), "x <= z")
-        self.assertEqual(constr.size, (2,1))
+        self.assertEqual(constr.size, (2, 1))
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
@@ -71,6 +81,39 @@ class TestConstraints(unittest.TestCase):
 
         with self.assertRaises(Exception) as cm:
             (self.x <= self.y)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+
+    def test_lt(self):
+        """Test the < operator.
+        """
+        constr = self.x < self.z
+        self.assertEqual(constr.name(), "x <= z")
+        self.assertEqual(constr.size, (2, 1))
+
+        with self.assertRaises(Exception) as cm:
+            (self.x < self.y)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+
+    def test_geq(self):
+        """Test the >= operator.
+        """
+        constr = self.z >= self.x
+        self.assertEqual(constr.name(), "x <= z")
+        self.assertEqual(constr.size, (2, 1))
+
+        with self.assertRaises(Exception) as cm:
+            (self.y >= self.x)
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+
+    def test_gt(self):
+        """Test the > operator.
+        """
+        constr = self.z > self.x
+        self.assertEqual(constr.name(), "x <= z")
+        self.assertEqual(constr.size, (2, 1))
+
+        with self.assertRaises(Exception) as cm:
+            (self.y > self.x)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
     # Test the SOC class.

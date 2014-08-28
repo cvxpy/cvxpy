@@ -18,4 +18,4 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from variable import Variable
-from semidefinite import Semidefinite
+from semidefinite import Semidef

@@ -1,12 +1,15 @@
 Version 2.12 (next release)
 ---------------------------
 
-
 Version 2.11
 ------------
-* Renamed semidefinite to Semidefinite.
+* Renamed semidefinite to Semidef.
 * Switched solver_specific_opts to **kwargs.
 * Added vec and documentation for reshape and vec.
+* Changed repr to print names in line with class names.
+* Changed str for Problem.
+* Made < and > map to <= and >=.
+* Added warning for NumPy 1D arrays.
 
 Version 2.10
 ------------

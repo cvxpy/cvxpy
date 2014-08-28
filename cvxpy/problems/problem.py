@@ -991,7 +991,15 @@ class Problem(u.Canonical):
         return F
 
     def __str__(self):
-        return repr(self)
+        if len(self.constraints) == 0:
+            return str(self.objective)
+        else:
+            subject_to = "subject to "
+            lines = [str(self.objective),
+                     subject_to + str(self.constraints[0])]
+            for constr in self.constraints[1:]:
+                lines += [len(subject_to)*" " + str(constr)]
+            return '\n'.join(lines)
 
     def __repr__(self):
         return "Problem(%s, %s)" % (repr(self.objective),

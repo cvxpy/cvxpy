@@ -30,6 +30,7 @@ import unittest
 from base_test import BaseTest
 from cvxopt import matrix
 import numpy as np
+import warnings
 
 class TestExpressions(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -59,6 +60,9 @@ class TestExpressions(BaseTest):
         self.assertEqual(x.curvature, u.Curvature.AFFINE_KEY)
         self.assertEqual(x.canonical_form[0].size, (2,1))
         self.assertEqual(x.canonical_form[1], [])
+
+        self.assertEquals(repr(self.x), "Variable(2, 1)")
+        self.assertEquals(repr(self.A), "Variable(2, 2)")
 
         # # Scalar variable
         # coeff = self.a.coefficients()
@@ -152,6 +156,27 @@ class TestExpressions(BaseTest):
         exp = c.T*self.A
         self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
 
+        # Test repr.
+        self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2, 1))")
+
+    def test_1D_array(self):
+        """Test NumPy 1D arrays as constants.
+        """
+        c = np.array([1,2])
+        p = Parameter(2)
+
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            # Trigger a warning.
+            Constant(c)
+            self.x + c
+            p.value = c
+            # Verify some things
+            self.assertEqual(len(w), 3)
+            for warning in w:
+                self.assertEqual(str(warning.message), "NumPy 1D arrays are treated as column vectors.")
+
     # Test the Parameter class.
     def test_parameters(self):
         p = Parameter(name='p')
@@ -192,6 +217,10 @@ class TestExpressions(BaseTest):
             p = Parameter(4, 3, sign="positive", value=[1,2])
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Parameter value.")
 
+        # Test repr.
+        p = Parameter(4, 3, sign="negative")
+        self.assertEqual(repr(p), 'Parameter(4, 3, sign="NEGATIVE")')
+
     # Test the AddExpresion class.
     def test_add_expression(self):
         # Vectors
@@ -228,6 +257,9 @@ class TestExpressions(BaseTest):
         exp = self.x + c + self.x
         self.assertEqual(len(exp.args), 3)
 
+        # Test repr.
+        self.assertEqual(repr(exp), "Expression(AFFINE, UNKNOWN, (2, 1))")
+
     # Test the SubExpresion class.
     def test_sub_expression(self):
         # Vectors
@@ -255,6 +287,9 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.A - self.C)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
+
+        # Test repr.
+        self.assertEqual(repr(self.x - c), "Expression(AFFINE, UNKNOWN, (2, 1))")
 
     # Test the MulExpresion class.
     def test_mul_expression(self):

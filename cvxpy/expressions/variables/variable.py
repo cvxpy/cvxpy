@@ -62,3 +62,8 @@ class Variable(Leaf):
         """
         obj = lu.create_var(self.size, self.id)
         return (obj, [])
+
+    def __repr__(self):
+        """String to recreate the object.
+        """
+        return "Variable(%d, %d)" % self.size
