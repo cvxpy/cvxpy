@@ -33,6 +33,18 @@ Mac OS X
 
        pip install cvxpy
 
+6. Install ``nose`` using conda from the command-line.
+
+  ::
+
+       conda install nose
+
+7. Test the installation with ``nose``.
+
+  ::
+
+       nosetests cvxpy
+
 Ubuntu 14.04
 ------------
 
@@ -71,6 +83,18 @@ Ubuntu 14.04
    ::
 
        sudo pip install cvxpy
+
+6. Install ``nose``.
+
+  ::
+
+       sudo apt-get install python-nose
+
+7. Test the installation with ``nose``.
+
+  ::
+
+       nosetests cvxpy
 
 Windows
 -------
