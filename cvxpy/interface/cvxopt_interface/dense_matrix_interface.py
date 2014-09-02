@@ -17,18 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ..base_matrix_interface import BaseMatrixInterface
+#from cvxpy.interface.base_matrix_interface import BaseMatrixInterface
+from cvxpy.interface import base_matrix_interface
 import cvxopt
 import scipy.sparse as sp
 import numbers
 
-class DenseMatrixInterface(BaseMatrixInterface):
+class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     """
     An interface to convert constant values to the cvxopt dense matrix class.
     """
     TARGET_MATRIX = cvxopt.matrix
 
-    @BaseMatrixInterface.scalar_const
+    @base_matrix_interface.BaseMatrixInterface.scalar_const
     def const_to_matrix(self, value, convert_scalars=False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 

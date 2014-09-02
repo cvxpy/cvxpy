@@ -17,12 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .. import settings as s
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions.constants import Constant, ConstantAtom
-from ..expressions.variables import Variable
-from ..expressions.expression import Expression
+import cvxpy.settings as s
+import cvxpy.utilities as u
+import cvxpy.interface as intf
+from cvxpy.expressions.constants import Constant, ConstantAtom
+from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.expression import Expression
 import abc
 
 class Atom(Expression):
@@ -117,7 +117,7 @@ class Atom(Expression):
         return None
 
     @abc.abstractmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(self,arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters

@@ -29,4 +29,5 @@ setup(
                       "ecos >= 1.0.3",
                       "scs >= 1.0.1",
                       "toolz"],
+    use_2to3=True,
 )
