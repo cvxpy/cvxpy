@@ -238,7 +238,7 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __truediv__(self,other):
-        self.div(other)
+        self.__div__(other)
     
     @_cast_other
     def __div__(self, other):
