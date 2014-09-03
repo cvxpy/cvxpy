@@ -83,7 +83,7 @@ Solve method options
 
 The ``solve`` method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the ``solve`` method:
 
-.. function:: solve(solver=None, verbose=False, solver_specific_opts=None)
+.. function:: solve(solver=None, verbose=False, **kwargs)
 
    Solves a DCP compliant optimization problem.
 
@@ -91,8 +91,7 @@ The ``solve`` method takes optional arguments that let you change how CVXPY solv
    :type solver: str, optional
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
-   :param solver_specific_opts: A dict of options that will be passed to the specific solver.
-   :type solver_specific_opts: dict, optional
+   :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.
 
 We will discuss the optional arguments in detail below.
