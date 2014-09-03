@@ -267,6 +267,10 @@ class Expression(u.Canonical):
         """
         return types.neg_expr()(self)
 
+    #needed for python3:
+    def __hash__(self):
+        return id(self)
+
     # Comparison operators.
     @_cast_other
     def __eq__(self, other):
