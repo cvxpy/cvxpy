@@ -50,7 +50,7 @@ class TestSolvers(BaseTest):
         # USE_INDIRECT = True
         EPS = 1e-4
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        prob.solve(solver=SCS, max_iters=50, eps=EPS, alpha=EPS, undet_tol=EPS,
+        prob.solve(solver=SCS, max_iters=50, eps=EPS, alpha=EPS,
                    verbose=True, normalize=True, use_indirect=False)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 

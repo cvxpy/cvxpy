@@ -1,5 +1,6 @@
-Version 2.12 (next release)
----------------------------
+Version 2.12
+------------
+* Changed cvxpy to use new SCS interface.
 
 Version 2.11
 ------------
