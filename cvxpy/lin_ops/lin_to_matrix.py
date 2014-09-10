@@ -440,8 +440,15 @@ def stack_mats(lin_op, vertical):
         val_arr = []
         row_arr = []
         col_arr = []
-        # Columns set off in vstack.
-        col_offset = lin_op.size[0] if vertical else arg.size[0]
+        # In hstack, the arguments are laid out in order.
+        # In vstack, the arguments' columns are interleaved.
+        if vertical:
+            col_offset = lin_op.size[0]
+            offset_incr = arg.size[0]
+        else:
+            col_offset = arg.size[0]
+            offset_incr = arg.size[0]*arg.size[1]
+
         for i in xrange(arg.size[0]):
             for j in xrange(arg.size[1]):
                 row_arr.append(i + j*col_offset + offset)
@@ -452,7 +459,7 @@ def stack_mats(lin_op, vertical):
                  arg.size[0]*arg.size[1])
         coeff = sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsc()
         coeffs.append(coeff)
-        offset += arg.size[0]
+        offset += offset_incr
     return coeffs
 
 # A list of all the linear operator types for constants.

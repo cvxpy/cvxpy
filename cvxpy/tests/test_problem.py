@@ -723,12 +723,13 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
-        c = matrix(1, (1,2))
-        p = Problem( Minimize( sum_entries(hstack(c*self.A, c*self.B)) ),
-            [self.A >= 2,
-            self.B == -2])
+        D = Variable(3, 3)
+        expr = hstack(self.C, D)
+        p = Problem( Minimize( expr[0,1] + sum_entries(hstack(expr, expr)) ),
+            [self.C >= 0,
+             D >= 0, D[0,0] == 2, self.C[0,1] == 3])
         result = p.solve()
-        self.assertAlmostEqual(result, 0)
+        self.assertAlmostEqual(result, 13)
 
         c = matrix([1,-1])
         p = Problem( Minimize( c.T * hstack(square(self.a).T, sqrt(self.b).T).T),
