@@ -364,6 +364,40 @@ def diag_mat(operator):
     size = (operator.size[0], 1)
     return lo.LinOp(lo.DIAG_MAT, size, [operator], None)
 
+def hstack(operators, size):
+    """Concatenates operators horizontally.
+
+    Parameters
+    ----------
+    operator : list
+        The operators to stack.
+    size : tuple
+        The (rows, cols) of the stacked operators.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the stacked expression.
+    """
+    return lo.LinOp(lo.HSTACK, size, operators, None)
+
+def vstack(operators, size):
+    """Concatenates operators vertically.
+
+    Parameters
+    ----------
+    operator : list
+        The operators to stack.
+    size : tuple
+        The (rows, cols) of the stacked operators.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the stacked expression.
+    """
+    return lo.LinOp(lo.VSTACK, size, operators, None)
+
 def get_constr_expr(lh_op, rh_op):
     """Returns the operator in the constraint.
     """

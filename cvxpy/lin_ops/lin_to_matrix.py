@@ -58,14 +58,13 @@ def get_coefficients(lin_op):
     elif lin_op.type in CONSTANT_TYPES:
         mat = const_mat(lin_op)
         coeffs = [(lo.CONSTANT_ID, flatten(mat))]
-    # Sum concatenates coefficients.
-    elif lin_op.type is lo.SUM:
-        coeffs = sum_coeffs(lin_op)
-    # All other types operate via a coefficient matrix.
     elif lin_op.type in TYPE_TO_FUNC:
-        coeff_mat = TYPE_TO_FUNC[lin_op.type](lin_op)
-        rh_coeffs = get_coefficients(lin_op.args[0])
-        coeffs = mul_by_const(coeff_mat, rh_coeffs)
+        # A coefficient matrix for each argument.
+        coeff_mats = TYPE_TO_FUNC[lin_op.type](lin_op)
+        coeffs = []
+        for coeff_mat, arg in zip(coeff_mats, lin_op.args):
+            rh_coeffs = get_coefficients(arg)
+            coeffs += mul_by_const(coeff_mat, rh_coeffs)
     else:
         raise Exception("Unknown linear operator.")
     return coeffs
@@ -145,24 +144,6 @@ def mul_by_const(constant, rh_coeffs):
 
     return new_coeffs
 
-def sum_coeffs(lin_op):
-    """Returns the coefficients for SUM linear op.
-
-    Parameters
-    ----------
-    lin_op : LinOp
-        The sum linear op.
-
-    Returns
-    -------
-    list
-       A list of (id, size, coefficient) tuples.
-    """
-    coeffs = []
-    for arg in lin_op.args:
-        coeffs += get_coefficients(arg)
-    return coeffs
-
 def sum_entries_mat(lin_op):
     """Returns the coefficient matrix for SUM_ENTRIES linear op.
 
@@ -173,12 +154,12 @@ def sum_entries_mat(lin_op):
 
     Returns
     -------
-    NumPy matrix
+    list of NumPy matrix
         The matrix representing the sum_entries operation.
     """
     rows, cols = lin_op.args[0].size
     coeff = np.ones((1, rows*cols))
-    return np.matrix(coeff)
+    return [np.matrix(coeff)]
 
 def trace_mat(lin_op):
     """Returns the coefficient matrix for TRACE linear op.
@@ -190,14 +171,14 @@ def trace_mat(lin_op):
 
     Returns
     -------
-    NumPy matrix
+    list of NumPy matrix
         The matrix representing the trace operation.
     """
     rows, _ = lin_op.args[0].size
     mat = np.zeros((1, rows**2))
     for i in xrange(rows):
         mat[0, i*rows + i] = 1
-    return np.matrix(mat)
+    return [np.matrix(mat)]
 
 def neg_mat(lin_op):
     """Returns the coefficient matrix for NEG linear op.
@@ -209,11 +190,11 @@ def neg_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    list of SciPy CSC matrix
         The matrix representing the neg operation.
     """
     mat = -sp.eye(lin_op.size[0]*lin_op.size[1])
-    return mat.tocsc()
+    return [mat.tocsc()]
 
 def div_mat(lin_op):
     """Returns the coefficient matrix for DIV linear op.
@@ -227,12 +208,12 @@ def div_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    list of SciPy CSC matrix
         The matrix representing the div operation.
     """
     divisor = const_mat(lin_op.data)
     mat = sp.eye(lin_op.size[0]*lin_op.size[1])/divisor
-    return mat.tocsc()
+    return [mat.tocsc()]
 
 def mul_elemwise_mat(lin_op):
     """Returns the coefficient matrix for MUL_ELEM linear op.
@@ -244,13 +225,13 @@ def mul_elemwise_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    list of SciPy CSC matrix
         The matrix representing the mul_elemwise operation.
     """
     constant = const_mat(lin_op.data)
     # Convert the constant to a giant diagonal matrix.
     vectorized = intf.from_2D_to_1D(flatten(constant))
-    return sp.diags(vectorized, 0).tocsc()
+    return [sp.diags(vectorized, 0).tocsc()]
 
 def promote_mat(lin_op):
     """Returns the coefficient matrix for PROMOTE linear op.
@@ -262,12 +243,12 @@ def promote_mat(lin_op):
 
     Returns
     -------
-    NumPy matrix
+    list of NumPy matrix
         The matrix for scalar promotion.
     """
     num_entries = lin_op.size[0]*lin_op.size[1]
     coeff = np.ones((num_entries, 1))
-    return np.matrix(coeff)
+    return [np.matrix(coeff)]
 
 def mul_mat(lin_op):
     """Returns the coefficient matrix for MUL linear op.
@@ -279,14 +260,14 @@ def mul_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix or scalar.
+    list of SciPy CSC matrix or scalar.
         The matrix for the multiplication on the left operator.
     """
     constant = const_mat(lin_op.data)
     # Scalars don't need to be replicated.
     if not intf.is_scalar(constant):
         constant = sp.block_diag(lin_op.size[1]*[constant]).tocsc()
-    return constant
+    return [constant]
 
 def index_mat(lin_op):
     """Returns the coefficient matrix for indexing.
@@ -298,7 +279,7 @@ def index_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    list of SciPy CSC matrix
         The matrix for the index/slice operation.
     """
     key = lin_op.data
@@ -318,8 +299,8 @@ def index_mat(lin_op):
             counter += 1
     block_rows = lin_op.size[0]*lin_op.size[1]
     block_cols = rows*cols
-    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                         (block_rows, block_cols)).tocsc()
+    return [sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                          (block_rows, block_cols)).tocsc()]
 
 def transpose_mat(lin_op):
     """Returns the coefficient matrix for TRANSPOSE linear op.
@@ -331,7 +312,7 @@ def transpose_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    list of SciPy CSC matrix
         The matrix for the transpose operation.
     """
     rows, cols = lin_op.size
@@ -347,8 +328,8 @@ def transpose_mat(lin_op):
             col_arr.append(row*cols + col)
             val_arr.append(1.0)
 
-    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                         (rows*cols, rows*cols)).tocsc()
+    return [sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                          (rows*cols, rows*cols)).tocsc()]
 
 def diag_vec_mat(lin_op):
     """Returns the coefficient matrix for DIAG_VEC linear op.
@@ -375,8 +356,8 @@ def diag_vec_mat(lin_op):
         col_arr.append(i)
         val_arr.append(1.0)
 
-    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                         (rows**2, rows)).tocsc()
+    return [sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                          (rows**2, rows)).tocsc()]
 
 def diag_mat_mat(lin_op):
     """Returns the coefficients matrix for DIAG_MAT linear op.
@@ -403,8 +384,8 @@ def diag_mat_mat(lin_op):
         row_arr.append(i)
         val_arr.append(1.0)
 
-    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                         (rows, rows**2)).tocsc()
+    return [sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                          (rows, rows**2)).tocsc()]
 
 def conv_mat(lin_op):
     """Returns the coefficient matrix for CONV linear op.
@@ -416,7 +397,7 @@ def conv_mat(lin_op):
 
     Returns
     -------
-    NumPy matrix
+    list of NumPy matrix
         The matrix representing the convolution operation.
     """
     constant = const_mat(lin_op.data)
@@ -434,8 +415,45 @@ def conv_mat(lin_op):
     toeplitz_row[0] = constant[0]
     coeff = sp_la.toeplitz(toeplitz_col, toeplitz_row)
 
-    return np.matrix(coeff)
+    return [np.matrix(coeff)]
 
+def stack_mats(lin_op, vertical):
+    """Returns the coefficient matrices for VSTACK or HSTACK linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The stacked linear op.
+    vertical : bool
+        Is the stacking vertical?
+
+    Returns
+    -------
+    list of SciPy CSC matrix
+        The matrices representing the stacking operation.
+    """
+    offset = 0
+    coeffs = []
+    # Make a coefficient for each argument:
+    # an identity with an offset.
+    for arg in lin_op.args:
+        val_arr = []
+        row_arr = []
+        col_arr = []
+        # Columns set off in vstack.
+        col_offset = lin_op.size[0] if vertical else arg.size[0]
+        for i in xrange(arg.size[0]):
+            for j in xrange(arg.size[1]):
+                row_arr.append(i + j*col_offset + offset)
+                col_arr.append(i + j*arg.size[0])
+                val_arr.append(1)
+
+        shape = (lin_op.size[0]*lin_op.size[1],
+                 arg.size[0]*arg.size[1])
+        coeff = sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsc()
+        coeffs.append(coeff)
+        offset += arg.size[0]
+    return coeffs
 
 # A list of all the linear operator types for constants.
 CONSTANT_TYPES = [lo.PARAM, lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]
@@ -451,8 +469,11 @@ TYPE_TO_FUNC = {
     lo.TRACE: trace_mat,
     lo.INDEX: index_mat,
     lo.TRANSPOSE: transpose_mat,
-    lo.RESHAPE: lambda x: 1,
+    lo.RESHAPE: lambda lin_op: [1],
+    lo.SUM: lambda lin_op: [1]*len(lin_op.args),
     lo.DIAG_VEC: diag_vec_mat,
     lo.DIAG_MAT: diag_mat_mat,
     lo.CONV: conv_mat,
+    lo.HSTACK: lambda lin_op: stack_mats(lin_op, False),
+    lo.VSTACK: lambda lin_op: stack_mats(lin_op, True),
 }

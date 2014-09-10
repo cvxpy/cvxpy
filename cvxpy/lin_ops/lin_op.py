@@ -71,6 +71,12 @@ DIAG_MAT = "diag_mat"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.
 CONV = "conv"
+# Horizontally concatenating operators.
+# Data: None
+HSTACK = "hstack"
+# Vertically concatenating operators.
+# Data: None
+VSTACK = "vstack"
 # A scalar constant.
 # Data: Python float.
 SCALAR_CONST = "scalar_const"

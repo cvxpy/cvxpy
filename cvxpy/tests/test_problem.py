@@ -214,11 +214,11 @@ class TestProblem(BaseTest):
         self.assertEqual(result, (1, 1))
 
         # Internal constraints.
-        z = hstack(self.x, self.x)
-        obj = sum_entries(z[:,0] + z[:,1])
+        X = Semidef(2)
+        obj = sum_entries(X + X)
         p = Problem(Minimize(obj))
         result = p.solve(method="test")
-        self.assertEqual(result, (2, 0))
+        self.assertEqual(result, (1, 1))
 
         # Duplicates from non-linear constraints.
         exp = norm(self.x, 2)

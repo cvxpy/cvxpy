@@ -61,13 +61,14 @@ class hstack(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        X = lu.create_var(size)
-        constraints = []
-        # Create an equality constraint for each arg.
-        offset = 0
-        for arg in arg_objs:
-            index.block_eq(X, arg, constraints,
-                           0, size[0],
-                           offset, arg.size[1] + offset)
-            offset += arg.size[1]
-        return (X, constraints)
+        return (lu.hstack(arg_objs, size), [])
+        # X = lu.create_var(size)
+        # constraints = []
+        # # Create an equality constraint for each arg.
+        # offset = 0
+        # for arg in arg_objs:
+        #     index.block_eq(X, arg, constraints,
+        #                    0, size[0],
+        #                    offset, arg.size[1] + offset)
+        #     offset += arg.size[1]
+        # return (X, constraints)

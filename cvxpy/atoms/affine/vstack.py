@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.index import index
 import numpy as np
 
 class vstack(AffAtom):
@@ -61,13 +60,4 @@ class vstack(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        X = lu.create_var(size)
-        constraints = []
-        # Create an equality constraint for each arg.
-        offset = 0
-        for arg in arg_objs:
-            index.block_eq(X, arg, constraints,
-                           offset, arg.size[0] + offset,
-                           0, size[1])
-            offset += arg.size[0]
-        return (X, constraints)
+        return (lu.vstack(arg_objs, size), [])

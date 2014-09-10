@@ -1,3 +1,7 @@
+Version 2.13 (next release)
+---------------------------
+* TODO get rid of NumPy 1D array warning.
+
 Version 2.12
 ------------
 * Changed cvxpy to use new SCS interface.

@@ -131,11 +131,6 @@ class log_det(Atom):
         # X[n:2*n, n:2*n] == A
         index.block_eq(X, A, constraints, n, 2*n, n, 2*n)
         # Add the objective sum(log(D[i, i])
-        log_diag = []
-        for i in xrange(n):
-            Dii = index.get_index(D, constraints, i, i)
-            obj, constr = log.graph_implementation([Dii], (1, 1))
-            constraints += constr
-            log_diag.append(obj)
-        obj = lu.sum_expr(log_diag)
-        return (obj, constraints)
+        diag = lu.diag_mat(D)
+        obj, constr = log.graph_implementation([diag], (n, 1))
+        return (lu.sum_entries(obj), constraints + constr)
