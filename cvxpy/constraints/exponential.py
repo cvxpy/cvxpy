@@ -22,9 +22,9 @@ import cvxpy.interface as intf
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
+import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
-from toolz import memoize
 import cvxopt
 import math
 
@@ -74,37 +74,28 @@ class ExpCone(NonlinearConstraint):
         solver : str
             The solver being called.
         """
-        eq_constr += self.__format(solver)[0]
-        leq_constr += self.__format(solver)[1]
+        if solver == s.CVXOPT:
+            eq_constr += self.__CVXOPT_format[0]
+        elif solver == s.SCS:
+            leq_constr += self.__SCS_format[1]
+        else:
+            raise SolverError("Solver does not support exponential cone.")
         # Update dims.
         dims[s.EXP_DIM] += self.size[0]*self.size[1]
 
-    @memoize
-    def __format(self, solver):
-        """Internal version of format with cached results.
+    @pu.lazyprop
+    def __SCS_format(self):
+        return ([], format_elemwise([self.x, self.y, self.z]))
 
-        Returns
-        -------
-        tuple
-            (equality constraints, inequality constraints)
-        """
-        eq_constr = []
-        leq_constr = []
-        # Need x, y, z to be lone Variables.
-        if solver == s.CVXOPT:
-            constraints = []
-            for i, var in enumerate(self.vars_):
-                if not var.type is VARIABLE:
-                    lone_var = lu.create_var(var.size)
-                    constraints.append(lu.create_eq(lone_var, var))
-                    self.vars_[i] = lone_var
-            eq_constr += constraints
-        # Converts to an inequality constraint.
-        elif solver == s.SCS:
-            leq_constr += format_elemwise([self.x, self.y, self.z])
-        else:
-            raise SolverError("Solver does not support exponential cone.")
-        return (eq_constr, leq_constr)
+    @pu.lazyprop
+    def __CVXOPT_format(self):
+        constraints = []
+        for i, var in enumerate(self.vars_):
+            if not var.type is VARIABLE:
+                lone_var = lu.create_var(var.size)
+                constraints.append(lu.create_eq(lone_var, var))
+                self.vars_[i] = lone_var
+        return (constraints, [])
 
     def _solver_hook(self, vars_=None, scaling=None):
         """A function used by CVXOPT's nonlinear solver.

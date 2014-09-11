@@ -19,9 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.utilities import format_elemwise
-from toolz import memoize
 
 class SOC_Elemwise(SOC):
     """A second-order cone constraint for each element of the input.
@@ -51,12 +51,12 @@ class SOC_Elemwise(SOC):
         solver : str
             The solver being called.
         """
-        leq_constr += self.__format()[1]
+        leq_constr += self.__format[1]
         # Update dims.
         for cone_size in self.size:
             dims[s.SOC_DIM].append(cone_size[0])
 
-    @memoize
+    @pu.lazyprop
     def __format(self):
         """Internal version of format with cached results.
 
