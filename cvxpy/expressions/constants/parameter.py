@@ -58,7 +58,6 @@ class Parameter(Constant):
     @value.setter
     def value(self, val):
         # Convert val to the proper matrix type.
-        intf.warn_1D_array(val)
         val = intf.DEFAULT_INTERFACE.const_to_matrix(val)
         size = intf.size(val)
         if size != self.size:

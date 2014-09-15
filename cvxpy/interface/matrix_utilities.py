@@ -38,6 +38,9 @@ DEFAULT_NP_INTERFACE = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTERFACE = INTERFACES[np.matrix]
 DEFAULT_SPARSE_INTERFACE = INTERFACES[sp.csc_matrix]
+# CVXOPT interfaces.
+CVXOPT_DENSE_INTF = INTERFACES[cvxopt.matrix]
+CVXOPT_SPARSE_INTF = INTERFACES[cvxopt.spmatrix]
 
 # Returns the interface for interacting with the target matrix class.
 def get_matrix_interface(target_class):
@@ -47,12 +50,6 @@ def is_sparse(constant):
     """Is the constant a sparse matrix?
     """
     return sp.issparse(constant) or isinstance(constant, cvxopt.spmatrix)
-
-def warn_1D_array(constant):
-    """Raises a warning for NumPy 1D arrays.
-    """
-    if isinstance(constant, np.ndarray) and constant.ndim == 1:
-        warnings.warn("NumPy 1D arrays are treated as column vectors.")
 
 # Get the dimensions of the constant.
 def size(constant):
