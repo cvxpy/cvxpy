@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.interface as intf
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
+import scipy.sparse as sp
 
-class ProblemData(object):
-    """The data for a convex optimization problem.
+class MatrixData(object):
+    """The matrices for the conic form convex optimization problem.
 
     Attributes
     ----------
@@ -43,6 +45,7 @@ class ProblemData(object):
     vec_intf : interface
         The matrix interface to use for creating the constant vector.
     """
+
     def __init__(self, var_offsets, x_length, objective,
                  eq_constr, ineq_constr, nonlin_constr,
                  matrix_intf, vec_intf):
@@ -57,13 +60,9 @@ class ProblemData(object):
         self.nonlin_constr = nonlin_constr
         self.matrix_intf = matrix_intf
         self.vec_intf = vec_intf
-        # Cache everything possible.
-        self._cache_all()
 
-    def _cache_all(self):
-        """Caches all the data possible.
-        """
-        self.c_COO, self.offset =  self._init_matrix_cache(self._dummy_constr)
+        # Cache everything possible.
+        self.c_COO, self.offset = self._init_matrix_cache(self._dummy_constr)
         self._lin_matrix(self._dummy_constr, self.c_COO,
                          self.offset, caching=True)
         # Equaliy constraints.
@@ -80,7 +79,7 @@ class ProblemData(object):
         """
         c, offset = self._cache_to_matrix(self._dummy_constr, self.c_COO,
                                           self.offset)
-        offset = intf.matrix_intf.scalar_value(offset)
+        offset = self.matrix_intf.scalar_value(offset)
         return c.T, offset
 
     def get_eq_constr(self):
@@ -93,6 +92,10 @@ class ProblemData(object):
         """
         return self._cache_to_matrix(self.eq_constr, self.G_COO, self.h)
 
+    def get_nonlin_constr(self):
+        """Returns the oracle function for the nonlinear constraints.
+        """
+        return self.F
 
     def _constr_matrix_size(self, constraints):
         """Returns the dimensions of the constraint matrix.
@@ -120,12 +123,12 @@ class ProblemData(object):
         -------
         ((V, I, J), array)
         """
-        rows = _constr_matrix_size(constraints)[0]
+        rows = self._constr_matrix_size(constraints)[0]
         COO = ([], [], [])
         const_vec = self.vec_intf.zeros(rows, 1)
         return (COO, const_vec)
 
-    def _lin_matrix(self, constraints, COO, const_vec, caching=False):
+    def _lin_matrix(self, constraints, coo_tup, const_vec, caching=False):
         """Computes a matrix and vector representing a list of constraints.
 
         In the matrix, each constraint is given a block of rows.
@@ -137,7 +140,7 @@ class ProblemData(object):
         ----------
         constraints : list
             A list of constraints in the matrix.
-        COO : tuple
+        coo_tup : tuple
             A (V, I, J) triplet.
         const_vec : array
             The constant term.
@@ -149,23 +152,22 @@ class ProblemData(object):
         tuple
             A (matrix, vector) tuple.
         """
-        V, I, J = COO
         vert_offset = 0
         for constr in constraints:
             # Process the constraint if it has a parameter and not caching
             # or it doesn't have a parameter and caching.
             if lu.get_expr_params(constr.expr) != caching:
-                self._process_constr(constr, V, I, J, const_vec, vert_offset)
+                self._process_constr(constr, coo_tup, const_vec, vert_offset)
             vert_offset += constr.size[0]*constr.size[1]
 
-    def _cache_to_matrix(self, constraints, COO, const_vec):
+    def _cache_to_matrix(self, constraints, coo_tup, const_vec):
         """Converts the cached representation of the constraints matrix.
 
         Parameters
         ----------
         constraints : list
             A list of constraints in the matrix.
-        COO : tuple
+        coo_tup : tuple
             A (V, I, J) triplet.
         const_vec : array
             The constant term.
@@ -176,36 +178,34 @@ class ProblemData(object):
         """
         rows, cols = self._constr_matrix_size(constraints)
         # Create the constraints matrix.
-        V, I, J = COO
+        V, I, J = coo_tup
         if len(V) > 0:
             matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
             # Convert the constraints matrix to the correct type.
-            matrix = matrix_intf.const_to_matrix(matrix, convert_scalars=True)
+            matrix = self.matrix_intf.const_to_matrix(matrix,
+                                                      convert_scalars=True)
         else: # Empty matrix.
-            matrix = matrix_intf.zeros(rows, cols)
+            matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
         if self.vec_intf is intf.DEFAULT_INTERFACE:
             const_vec = intf.from_2D_to_1D(const_vec)
         return (matrix, -const_vec)
 
-    def _process_constr(self, constr, V, I, J, const_vec, vert_offset):
+    def _process_constr(self, constr, coo_tup, const_vec, vert_offset):
         """Extract the coefficients from a constraint.
 
         Parameters
         ----------
         constr : LinConstr
             The linear constraint to process.
-        V : list
-            A list of values in the COO sparse matrix.
-        I : list
-            A list of rows in the COO sparse matrix.
-        J : list
-            A list of columns in the COO sparse matrix.
+        coo_tup : tuple
+            A (V, I, J) triplet.
         const_vec : array
             The constant vector.
         vert_offset : int
             The row offset of the constraint.
         """
+        V, I, J = coo_tup
         coeffs = op2mat.get_coefficients(constr.expr)
         for id_, block in coeffs:
             vert_start = vert_offset
@@ -255,6 +255,8 @@ class ProblemData(object):
             constr.place_x0(big_x, self.var_offsets, self.vec_intf)
 
         def F(x=None, z=None):
+            """Oracle for function value, gradient, and Hessian.
+            """
             if x is None:
                 return rows, big_x
             big_f = self.vec_intf.zeros(rows, 1)

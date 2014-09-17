@@ -489,3 +489,24 @@ def get_expr_vars(operator):
         for arg in operator.args:
             vars_ += get_expr_vars(arg)
         return vars_
+
+def get_expr_params(operator):
+    """Get a list of the parameters in the operator.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to extract the parameters from.
+
+    Returns
+    -------
+    list
+        A list of parameter objects.
+    """
+    if operator.type is lo.PARAM:
+        return [operator.data.parameters()]
+    else:
+        vars_ = []
+        for arg in operator.args:
+            vars_ += get_expr_params(arg)
+        return vars_
