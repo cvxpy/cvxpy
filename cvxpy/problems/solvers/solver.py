@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from cvxpy.error import SolverError
 import cvxpy.settings as s
-from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.problems.problem_data.matrix_data import MatrixData
 from cvxpy.problems.problem_data.sym_data import SymData
 
@@ -151,6 +150,7 @@ class Solver(object):
         SymData
             The symbolic data for the problem.
         """
+        self.validate_cache(objective, constraints, cached_data)
         prob_data = cached_data[self.name()]
         if prob_data.sym_data is None:
             prob_data.sym_data = SymData(objective, constraints, self)
@@ -200,7 +200,6 @@ class Solver(object):
         tuple
             (solver args tuple, offset)
         """
-        self.validate_cache(objective, constraints, cached_data)
         sym_data = self.get_sym_data(objective, constraints, cached_data)
         matrix_data = self.get_matrix_data(objective, constraints,
                                            cached_data)
