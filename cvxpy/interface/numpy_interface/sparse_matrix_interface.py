@@ -79,7 +79,7 @@ class SparseMatrixInterface(NDArrayInterface):
         """
         matrix = matrix.todense()
         matrix = super(SparseMatrixInterface, self).reshape(matrix, size)
-        return self.const_to_matrix(matrix)
+        return self.const_to_matrix(matrix, convert_scalars=True)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
                   vert_step=1, horiz_step=1):

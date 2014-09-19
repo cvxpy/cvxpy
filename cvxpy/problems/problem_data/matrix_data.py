@@ -23,112 +23,115 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
 
+class MatrixCache(object):
+    """A cached version of the matrix and vector pair in an affine constraint.
+
+    Attributes
+    ----------
+    coo_tup : tuple
+            A (V, I, J) triplet for the matrix.
+    const_vec : array
+        The vector offset.
+    constraints : list
+        A list of constraints in the matrix.
+    size : tuple
+        The (rows, cols) dimensions of the matrix.
+    """
+    def __init__(self, coo_tup, const_vec, constraints, x_length):
+        self.coo_tup = coo_tup
+        self.const_vec = const_vec
+        self.constraints = constraints
+        rows = sum([c.size[0] * c.size[1] for c in constraints])
+        cols = x_length
+        self.size = (rows, cols)
+
+
 class MatrixData(object):
     """The matrices for the conic form convex optimization problem.
 
     Attributes
     ----------
-    var_offsets : dict
-        A dict of variable id to horizontal offset.
-    x_length : int
-        The length of the x vector.
-    objective : LinOp
-        The linear operator representing the objective.
-    eq_constr : list
-        The linear equality constraints.
-    ineq_constr : list
-        The linear inequality constraints.
-    nonlin_constr : list
-        The nonlinear inequality constraints.
+    sym_data : SymData object
+        The symbolic data for the conic form problem.
     matrix_intf : interface
         The matrix interface to use for creating the constraints matrix.
     vec_intf : interface
         The matrix interface to use for creating the constant vector.
     """
 
-    def __init__(self, var_offsets, x_length, objective,
-                 eq_constr, ineq_constr, nonlin_constr,
-                 matrix_intf, vec_intf):
-        self.var_offsets = var_offsets
-        self.x_length = x_length
-        # Objective and a dummy constraint.
-        self.objective = objective
-        self._dummy_constr = [lu.create_eq(self.objective)]
-
-        self.eq_constr = eq_constr
-        self.ineq_constr = ineq_constr
-        self.nonlin_constr = nonlin_constr
+    def __init__(self, sym_data, matrix_intf, vec_intf, solver):
+        self.sym_data = sym_data
+        # A dummy constraint for the objective.
         self.matrix_intf = matrix_intf
         self.vec_intf = vec_intf
 
         # Cache everything possible.
-        self.c_COO, self.offset = self._init_matrix_cache(self._dummy_constr)
-        self._lin_matrix(self._dummy_constr, self.c_COO,
-                         self.offset, caching=True)
+        self.obj_cache = self._init_matrix_cache(self._dummy_constr(),
+                                                 self.sym_data.x_length)
+        self._lin_matrix(self.obj_cache, caching=True)
+        # Separate constraints based on the solver being used.
+        constr_types = solver.split_constr(self.sym_data.constr_map)
+        eq_constr, ineq_constr, nonlin_constr = constr_types
         # Equaliy constraints.
-        self.A_COO, self.b = self._init_matrix_cache(self.eq_constr)
-        self._lin_matrix(self.eq_constr, self.A_COO, self.b, caching=True)
+        self.eq_cache = self._init_matrix_cache(eq_constr,
+                                                self.sym_data.x_length)
+        self._lin_matrix(self.eq_cache, caching=True)
         # Inequality constraints.
-        self.G_COO, self.h = self._init_matrix_cache(self.ineq_constr)
-        self._lin_matrix(self.ineq_constr, self.G_COO, self.h, caching=True)
+        self.ineq_cache = self._init_matrix_cache(ineq_constr,
+                                                  self.sym_data.x_length)
+        self._lin_matrix(self.ineq_cache, caching=True)
         # Nonlinear constraints.
-        self.F = self._nonlin_matrix()
+        self.F = self._nonlin_matrix(nonlin_constr)
+
+    def _dummy_constr(self):
+        """Returns a dummy constraint for the objective.
+        """
+        return [lu.create_eq(self.sym_data.objective)]
 
     def get_objective(self):
         """Returns the linear objective and a scalar offset.
         """
-        c, offset = self._cache_to_matrix(self._dummy_constr, self.c_COO,
-                                          self.offset)
-        offset = self.matrix_intf.scalar_value(offset)
-        return c.T, offset
+        c, offset = self._cache_to_matrix(self.obj_cache)
+        c = self.vec_intf.const_to_matrix(c.T, convert_scalars=True)
+        c = intf.from_2D_to_1D(c)
+        offset = self.vec_intf.scalar_value(offset)
+        # Negate offset because was negated before.
+        return c, -offset
 
     def get_eq_constr(self):
         """Returns the matrix and vector for the equality constraint.
         """
-        return self._cache_to_matrix(self.eq_constr, self.A_COO, self.b)
+        return self._cache_to_matrix(self.eq_cache)
 
     def get_ineq_constr(self):
         """Returns the matrix and vector for the inequality constraint.
         """
-        return self._cache_to_matrix(self.eq_constr, self.G_COO, self.h)
+        return self._cache_to_matrix(self.ineq_cache)
 
     def get_nonlin_constr(self):
         """Returns the oracle function for the nonlinear constraints.
         """
         return self.F
 
-    def _constr_matrix_size(self, constraints):
-        """Returns the dimensions of the constraint matrix.
-
-        Parameters
-        ----------
-        constraints : list
-            A list of constraints in the matrix.
-        Returns
-        -------
-        (rows, cols)
-        """
-        rows = sum([c.size[0] * c.size[1] for c in constraints])
-        cols = self.x_length
-        return (rows, cols)
-
-    def _init_matrix_cache(self, constraints):
+    def _init_matrix_cache(self, constraints, x_length):
         """Initializes the data structures for the cached matrix.
 
         Parameters
         ----------
         constraints : list
             A list of constraints in the matrix.
+        x_length : int
+            The number of columns in the matrix.
         Returns
         -------
         ((V, I, J), array)
         """
-        rows = self._constr_matrix_size(constraints)[0]
+        rows = sum([c.size[0] * c.size[1] for c in constraints])
         COO = ([], [], [])
         const_vec = self.vec_intf.zeros(rows, 1)
-        return (COO, const_vec)
+        return MatrixCache(COO, const_vec, constraints, x_length)
 
-    def _lin_matrix(self, constraints, coo_tup, const_vec, caching=False):
+    def _lin_matrix(self, mat_cache, caching=False):
         """Computes a matrix and vector representing a list of constraints.
 
         In the matrix, each constraint is given a block of rows.
@@ -138,12 +141,8 @@ class MatrixData(object):
 
         Parameters
         ----------
-        constraints : list
-            A list of constraints in the matrix.
-        coo_tup : tuple
-            A (V, I, J) triplet.
-        const_vec : array
-            The constant term.
+        mat_cache : MatrixCache
+            The cached version of the matrix-vector pair.
         caching : bool
             Is the data being cached?
 
@@ -153,32 +152,28 @@ class MatrixData(object):
             A (matrix, vector) tuple.
         """
         vert_offset = 0
-        for constr in constraints:
+        for constr in mat_cache.constraints:
             # Process the constraint if it has a parameter and not caching
             # or it doesn't have a parameter and caching.
             if lu.get_expr_params(constr.expr) != caching:
-                self._process_constr(constr, coo_tup, const_vec, vert_offset)
+                self._process_constr(constr, mat_cache, vert_offset)
             vert_offset += constr.size[0]*constr.size[1]
 
-    def _cache_to_matrix(self, constraints, coo_tup, const_vec):
+    def _cache_to_matrix(self, mat_cache):
         """Converts the cached representation of the constraints matrix.
 
         Parameters
         ----------
-        constraints : list
-            A list of constraints in the matrix.
-        coo_tup : tuple
-            A (V, I, J) triplet.
-        const_vec : array
-            The constant term.
+        mat_cache : MatrixCache
+            The cached version of the matrix-vector pair.
 
         Returns
         -------
         A (matrix, vector) tuple.
         """
-        rows, cols = self._constr_matrix_size(constraints)
+        rows, cols = mat_cache.size
         # Create the constraints matrix.
-        V, I, J = coo_tup
+        V, I, J = mat_cache.coo_tup
         if len(V) > 0:
             matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
             # Convert the constraints matrix to the correct type.
@@ -187,25 +182,22 @@ class MatrixData(object):
         else: # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
-        if self.vec_intf is intf.DEFAULT_INTERFACE:
-            const_vec = intf.from_2D_to_1D(const_vec)
+        const_vec = intf.from_2D_to_1D(mat_cache.const_vec)
         return (matrix, -const_vec)
 
-    def _process_constr(self, constr, coo_tup, const_vec, vert_offset):
+    def _process_constr(self, constr, mat_cache, vert_offset):
         """Extract the coefficients from a constraint.
 
         Parameters
         ----------
         constr : LinConstr
             The linear constraint to process.
-        coo_tup : tuple
-            A (V, I, J) triplet.
-        const_vec : array
-            The constant vector.
+        mat_cache : MatrixCache
+            The cached version of the matrix-vector pair.
         vert_offset : int
             The row offset of the constraint.
         """
-        V, I, J = coo_tup
+        V, I, J = mat_cache.coo_tup
         coeffs = op2mat.get_coefficients(constr.expr)
         for id_, block in coeffs:
             vert_start = vert_offset
@@ -218,9 +210,9 @@ class MatrixData(object):
                     block,
                     (block_size[0]*block_size[1], 1)
                 )
-                const_vec[vert_start:vert_end, :] += block
+                mat_cache.const_vec[vert_start:vert_end, :] += block
             else:
-                horiz_offset = self.var_offsets[id_]
+                horiz_offset = self.sym_data.var_offsets[id_]
                 if intf.is_scalar(block):
                     block = intf.scalar_value(block)
                     V.append(block)
@@ -230,7 +222,7 @@ class MatrixData(object):
                     # Block is a numpy matrix or
                     # scipy CSC sparse matrix.
                     if not intf.is_sparse(block):
-                        block = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
+                        block = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(
                                     block
                                 )
                     block = block.tocoo()
@@ -238,21 +230,27 @@ class MatrixData(object):
                     I.extend(block.row + vert_start)
                     J.extend(block.col + horiz_offset)
 
-    def _nonlin_matrix(self):
+    def _nonlin_matrix(self, nonlin_constr):
         """Returns an oracle for the nonlinear constraints.
 
         The oracle computes the combined function value, gradient, and Hessian.
+
+        Parameters
+        ----------
+        nonlin_constr : list
+            A list of nonlinear constraints represented as oracle functions.
 
         Returns
         -------
         Oracle function.
         """
-        rows = sum([c.size[0] * c.size[1] for c in self.nl_constr])
-        cols = self.x_length
+        rows = sum([c.size[0] * c.size[1] for c in nonlin_constr])
+        cols = self.sym_data.x_length
+        var_offsets = self.sym_data.var_offsets
 
         big_x = self.vec_intf.zeros(cols, 1)
-        for constr in self.nl_constr:
-            constr.place_x0(big_x, self.var_offsets, self.vec_intf)
+        for constr in nonlin_constr:
+            constr.place_x0(big_x, var_offsets, self.vec_intf)
 
         def F(x=None, z=None):
             """Oracle for function value, gradient, and Hessian.
@@ -265,9 +263,9 @@ class MatrixData(object):
                 big_H = self.matrix_intf.zeros(cols, cols)
 
             offset = 0
-            for constr in self.nl_constr:
+            for constr in nonlin_constr:
                 constr_entries = constr.size[0]*constr.size[1]
-                local_x = constr.extract_variables(x, self.var_offsets,
+                local_x = constr.extract_variables(x, var_offsets,
                                                    self.vec_intf)
                 if z:
                     f, Df, H = constr.f(local_x,
@@ -279,10 +277,10 @@ class MatrixData(object):
                     else:
                         return None
                 big_f[offset:offset + constr_entries] = f
-                constr.place_Df(big_Df, Df, self.var_offsets,
+                constr.place_Df(big_Df, Df, var_offsets,
                                 offset, self.matrix_intf)
                 if z:
-                    constr.place_H(big_H, H, self.var_offsets,
+                    constr.place_H(big_H, H, var_offsets,
                                    self.matrix_intf)
                 offset += constr_entries
 

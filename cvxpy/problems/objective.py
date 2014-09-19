@@ -90,7 +90,7 @@ class Maximize(Minimize):
         return self._expr.is_concave()
 
     @staticmethod
-    def _primal_to_result(result):
+    def primal_to_result(result):
         """The value of the objective given the solver primal value.
         """
         return -result

@@ -21,6 +21,7 @@ from dense_matrix_interface import DenseMatrixInterface
 import scipy.sparse as sp
 import cvxopt
 import numpy
+import numbers
 
 class SparseMatrixInterface(DenseMatrixInterface):
     """
@@ -39,7 +40,7 @@ class SparseMatrixInterface(DenseMatrixInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        if isinstance(value, numpy.ndarray):
+        if isinstance(value, (numpy.ndarray, numbers.Number)):
             return cvxopt.sparse(cvxopt.matrix(value), tc='d')
         # Convert scipy sparse matrices to coo form first.
         if sp.issparse(value):

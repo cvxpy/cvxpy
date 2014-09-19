@@ -23,6 +23,8 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variables import Variable, Semidef
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
+from cvxpy.problems.solvers.utilities import SOLVERS
+from cvxpy.problems.problem_data.sym_data import SymData
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from base_test import BaseTest
@@ -54,8 +56,8 @@ class TestProblem(BaseTest):
         """
         obj = Minimize(self.a)
         prob = Problem(obj)
-        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr([])))
-        constraints = [self.x*2 == self.x, self.x == 0]
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(())))
+        constraints = (self.x*2 == self.x, self.x == 0)
         prob = Problem(obj, constraints)
         self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(constraints)))
 
@@ -87,10 +89,6 @@ class TestProblem(BaseTest):
         with self.assertRaises(Exception) as cm:
             Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
         self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
-
-        with self.assertRaises(Exception) as cm:
-            Problem(Maximize(exp(self.a))).get_problem_data(s.CVXOPT)
-        self.assertEqual(str(cm.exception), "Cannot return problem data for the solver CVXOPT.")
 
         args = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
         data, dims = args
@@ -178,14 +176,14 @@ class TestProblem(BaseTest):
             var_ids_order_created.append(var_ids)
             obj = Minimize(sum)
             p = Problem(obj, constraints)
-            objective, constr_map = p.canonicalize()
-            all_ineq = itertools.chain(constr_map[s.EQ], constr_map[s.LEQ])
-            var_offsets, var_sizes, x_length = p._get_var_offsets(objective, all_ineq)
+            objective, constraints = p.canonicalize()
+            sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
             # Sort by offset.
-            vars_ = sorted(var_offsets.items(), key=lambda (var_id, offset): offset)
+            vars_ = sorted(sym_data.var_offsets.items(),
+                key=lambda (var_id, offset): offset)
             vars_ = [var_id for (var_id, offset) in vars_]
             vars_lists.append(vars_)
-            ineqs_lists.append(constr_map[s.LEQ])
+            ineqs_lists.append(sym_data.constr_map[s.LEQ])
 
         # Verify order of variables is consistent.
         for i in range(num_solves):
@@ -203,11 +201,10 @@ class TestProblem(BaseTest):
         le = (self.x <= 2)
         obj = 0
         def test(self):
-            objective, constr_map  = self.canonicalize()
-            self._presolve(objective, constr_map)
-            print len(constr_map[s.SOC])
-            dims = self._format_for_solver(constr_map, s.ECOS)
-            return (len(constr_map[s.EQ]),len(constr_map[s.LEQ]))
+            objective, constraints = self.canonicalize()
+            sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
+            return (len(sym_data.constr_map[s.EQ]),
+                    len(sym_data.constr_map[s.LEQ]))
         Problem.register_solve("test", test)
         p = Problem(Minimize(obj),[eq,eq,le,le])
         result = p.solve(method="test")
@@ -367,7 +364,7 @@ class TestProblem(BaseTest):
         assert (self.A.value >= T*self.C.value).all()
 
         # Test variables are dense.
-        self.assertEqual(type(self.A.value), p._DENSE_INTF.TARGET_MATRIX)
+        self.assertEqual(type(self.A.value), intf.DEFAULT_INTERFACE.TARGET_MATRIX)
 
     # Test variable promotion.
     def test_variable_promotion(self):

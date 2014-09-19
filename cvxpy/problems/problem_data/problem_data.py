@@ -17,3 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+class ProblemData(object):
+    """A wrapper for the symbolic and numerical data for a problem.
+
+    Attributes
+    ----------
+    sym_data : SymData
+        The symbolic data for the problem.
+    matrix_data : MatrixData
+        The numerical data for the problem.
+    """
+    def __init__(self):
+        self.sym_data = None
+        self.matrix_data = None

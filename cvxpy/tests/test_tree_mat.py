@@ -152,7 +152,7 @@ class test_tree_mat(BaseTest):
         prob = Problem(obj, constraints)
         data, dims = prob.get_problem_data(solver=SCS)
         A = data["A"]
-        objective, constr_map = prob.canonicalize()
+        objective, constraints = prob.canonicalize()
         dims = prob._format_for_solver(constr_map, SCS)
 
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]

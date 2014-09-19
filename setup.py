@@ -18,6 +18,8 @@ setup(
               'cvxpy.interface.cvxopt_interface',
               'cvxpy.lin_ops',
               'cvxpy.problems',
+              'cvxpy.problems.problem_data',
+              'cvxpy.problems.solvers',
               'cvxpy.tests',
               'cvxpy.utilities'],
     package_dir={'cvxpy': 'cvxpy'},

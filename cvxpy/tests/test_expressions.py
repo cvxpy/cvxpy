@@ -159,23 +159,23 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2, 1))")
 
-    def test_1D_array(self):
-        """Test NumPy 1D arrays as constants.
-        """
-        c = np.array([1,2])
-        p = Parameter(2)
+    # def test_1D_array(self):
+    #     """Test NumPy 1D arrays as constants.
+    #     """
+    #     c = np.array([1,2])
+    #     p = Parameter(2)
 
-        with warnings.catch_warnings(record=True) as w:
-            # Cause all warnings to always be triggered.
-            warnings.simplefilter("always")
-            # Trigger a warning.
-            Constant(c)
-            self.x + c
-            p.value = c
-            # Verify some things
-            self.assertEqual(len(w), 3)
-            for warning in w:
-                self.assertEqual(str(warning.message), "NumPy 1D arrays are treated as column vectors.")
+    #     with warnings.catch_warnings(record=True) as w:
+    #         # Cause all warnings to always be triggered.
+    #         warnings.simplefilter("always")
+    #         # Trigger a warning.
+    #         Constant(c)
+    #         self.x + c
+    #         p.value = c
+    #         # Verify some things
+    #         self.assertEqual(len(w), 3)
+    #         for warning in w:
+    #             self.assertEqual(str(warning.message), "NumPy 1D arrays are treated as column vectors.")
 
     # Test the Parameter class.
     def test_parameters(self):

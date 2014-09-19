@@ -81,12 +81,15 @@ def is_scalar(constant):
 def from_2D_to_1D(constant):
     """Convert 2D Numpy matrices or arrays to 1D.
     """
-    return np.asarray(constant)[:, 0]
+    if isinstance(constant, np.ndarray):
+        return np.asarray(constant)[:, 0]
+    else:
+        return constant
 
 def from_1D_to_2D(constant):
     """Convert 1D Numpy arrays to matrices.
     """
-    if constant.ndim == 1:
+    if isinstance(constant, np.ndarray) and constant.ndim == 1:
         return np.mat(constant).T
     else:
         return constant

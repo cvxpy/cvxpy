@@ -19,30 +19,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-from toolz.itertoolz import unique
 import cvxpy.interface as intf
 from cvxpy.error import SolverError
-import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.lin_ops as lo
-import cvxpy.lin_ops.lin_to_matrix as op2mat
-from cvxpy.constraints import (EqConstraint, LeqConstraint,
-SOC, SDP, ExpCone)
+from cvxpy.constraints import EqConstraint, LeqConstraint
 from cvxpy.problems.objective import Minimize, Maximize
-from cvxpy.problems.kktsolver import get_kktsolver
-from cvxpy.problems.problem_data import ProblemData
+from cvxpy.problems.solvers.solver import Solver
+from cvxpy.problems.solvers.utilities import SOLVERS
+from cvxpy.problems.problem_data.problem_data import ProblemData
 
-from collections import OrderedDict
 import warnings
-import cvxopt
-import cvxopt.solvers
-import ecos
 import numpy as np
-
-# Attempt to import SCS.
-try:
-    import scs
-except ImportError:
-    warnings.warn("The solver SCS could not be imported.")
 
 class Problem(u.Canonical):
     """A convex optimization problem.
@@ -57,11 +43,6 @@ class Problem(u.Canonical):
 
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
-    # Interfaces for interacting with matrices.
-    _SPARSE_INTF = intf.DEFAULT_SPARSE_INTERFACE
-    _DENSE_INTF = intf.DEFAULT_INTERFACE
-    _CVXOPT_DENSE_INTF = intf.get_matrix_interface(cvxopt.matrix)
-    _CVXOPT_SPARSE_INTF = intf.get_matrix_interface(cvxopt.spmatrix)
 
     def __init__(self, objective, constraints=None):
         if constraints is None:
@@ -74,7 +55,10 @@ class Problem(u.Canonical):
         self._constraints = tuple(constraints)
         self._value = None
         self._status = None
+        # Cached processed data for each solver.
         self._cached_data = {}
+        for solver_name in SOLVERS.keys():
+            self._cached_data[solver_name] = ProblemData()
 
     @property
     def objective(self):
@@ -111,40 +95,7 @@ class Problem(u.Canonical):
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
-        return all(exp.is_dcp() for exp in self.constraints + [self.objective])
-
-    @staticmethod
-    def _filter_constraints(constraints):
-        """Separate the constraints by type.
-
-        Parameters
-        ----------
-        constraints : list
-            A list of constraints.
-
-        Returns
-        -------
-        dict
-            A map of type key to an ordered set of constraints.
-        """
-        constr_map = {s.EQ: [],
-                      s.LEQ: [],
-                      s.SOC: [],
-                      s.SOC_EW: [],
-                      s.SDP: [],
-                      s.EXP: []}
-        for c in constraints:
-            if isinstance(c, lo.LinEqConstr):
-                constr_map[s.EQ].append(c)
-            elif isinstance(c, lo.LinLeqConstr):
-                constr_map[s.LEQ].append(c)
-            elif isinstance(c, SOC):
-                constr_map[s.SOC].append(c)
-            elif isinstance(c, SDP):
-                constr_map[s.SDP].append(c)
-            elif isinstance(c, ExpCone):
-                constr_map[s.EXP].append(c)
-        return constr_map
+        return all(exp.is_dcp() for exp in self.constraints + (self.objective,))
 
     def canonicalize(self):
         """Computes the graph implementation of the problem.
@@ -162,132 +113,7 @@ class Problem(u.Canonical):
         for constr in self.constraints:
             canon_constr += constr.canonical_form[1]
 
-        constr_map = self._filter_constraints(canon_constr)
-
-        return (obj, constr_map)
-
-    @staticmethod
-    def _presolve(objective, constr_map):
-        """Eliminates unnecessary constraints and short circuits the solver
-        if possible.
-
-        Parameters
-        ----------
-        constr_map : dict
-            A map of constraint type to a list of constraints.
-
-        Returns
-        -------
-        bool
-            Is the problem infeasible?
-        """
-        # Remove redundant constraints.
-        for key, constraints in constr_map.items():
-            uniq_constr = unique(constraints,
-                                 key=lambda c: c.constr_id)
-            constr_map[key] = list(uniq_constr)
-
-        # If there are no constraints, the problem is unbounded
-        # if any of the coefficients are non-zero.
-        # If all the coefficients are zero then return the constant term
-        # and set all variables to 0.
-        if not any(constr_map.values()):
-            pass # TODO
-
-        # Remove constraints with no variables.
-        for key in [s.EQ, s.LEQ]:
-            new_constraints = []
-            for constr in constr_map[key]:
-                vars_ = lu.get_expr_vars(constr.expr)
-                if len(vars_) == 0:
-                    coeff = op2mat.get_constant_coeff(constr.expr)
-                    sign = intf.sign(coeff)
-                    # For equality constraint, coeff must be zero.
-                    # For inequality (i.e. <= 0) constraint,
-                    # coeff must be negative.
-                    if key is s.EQ and not sign.is_zero() or \
-                        key is s.LEQ and not sign.is_negative():
-                        return s.INFEASIBLE
-                else:
-                    new_constraints.append(constr)
-            constr_map[key] = new_constraints
-
-        return None
-
-    def _format_for_solver(self, constr_map, solver):
-        """Formats the problem for the solver.
-
-        Parameters
-        ----------
-        constr_map : dict
-            A map of constraint type to a list of constraints.
-        solver: str
-            The solver being targetted.
-
-        Returns
-        -------
-        dict
-            The dimensions of the cones.
-        """
-        # Initialize dimensions.
-        dims = {}
-        dims[s.EQ_DIM] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
-        dims[s.LEQ_DIM] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
-        dims[s.SOC_DIM] = []
-        dims[s.SDP_DIM] = []
-        dims[s.EXP_DIM] = 0
-        # Formats SOC, SOC_EW, SDP, and EXP constraints for the solver.
-        nonlin = constr_map[s.SOC] + constr_map[s.SDP] + constr_map[s.EXP]
-        for constr in nonlin:
-            constr.format(constr_map[s.EQ], constr_map[s.LEQ], dims, solver)
-
-        return dims
-
-    @staticmethod
-    def _constraints_count(constr_map):
-        """Returns the number of internal constraints.
-        """
-        return sum([len(cset) for cset in constr_map.values()])
-
-    def _choose_solver(self, constr_map):
-        """Determines the appropriate solver.
-
-        Parameters
-        ----------
-        constr_map: dict
-            A dict of the canonicalized constraints.
-
-        Returns
-        -------
-        str
-            The solver that will be used.
-        """
-        # If no constraints, use ECOS.
-        if self._constraints_count(constr_map) == 0:
-            return s.ECOS
-        # If SDP or EXP, defaults to CVXOPT.
-        elif constr_map[s.SDP] or constr_map[s.EXP]:
-            return s.CVXOPT
-        # Otherwise use ECOS.
-        else:
-            return s.ECOS
-
-    def _validate_solver(self, constr_map, solver):
-        """Raises an exception if the solver cannot solve the problem.
-
-        Parameters
-        ----------
-        constr_map: dict
-            A dict of the canonicalized constraints.
-        solver : str
-            The solver to be used.
-        """
-        if (constr_map[s.SDP] and not solver in s.SDP_CAPABLE) or \
-           (constr_map[s.EXP] and not solver in s.EXP_CAPABLE) or \
-           (self._constraints_count(constr_map) == 0 and solver == s.SCS):
-            raise SolverError(
-                "The solver %s cannot solve the problem." % solver
-            )
+        return (obj, canon_constr)
 
     def variables(self):
         """Returns a list of the variables in the problem.
@@ -362,21 +188,11 @@ class Problem(u.Canonical):
         tuple
             arguments to solver
         """
-        objective, constr_map = self.canonicalize()
-        self._presolve(objective, constr_map)
+        objective, constraints = self.canonicalize()
         # Raise an error if the solver cannot handle the problem.
-        self._validate_solver(constr_map, solver)
-        dims = self._format_for_solver(constr_map, solver)
-        # TODO factor out.
-        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-        # CVXOPT can have variables that only live in NonLinearConstraints.
-        nonlinear = constr_map[s.EXP] if solver == s.CVXOPT else []
-        var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
-                                                                 all_ineq,
-                                                                 nonlinear)
-        return SOLVERS[solver].get_problem_data(self._cached_data, objective,
-                                                constr_map, dims,
-                                                var_offsets, x_length)
+        SOLVERS[solver].validate_solver(constraints)
+        return SOLVERS[solver].get_problem_data(objective, constraints,
+                                                self._cached_data)[0]
 
     def _solve(self, solver=None, ignore_dcp=False, verbose=False, **kwargs):
         """Solves a DCP compliant optimization problem.
@@ -411,332 +227,46 @@ class Problem(u.Canonical):
             else:
                 raise Exception("Problem does not follow DCP rules.")
 
-        objective, constr_map = self.canonicalize()
-        status = self._presolve(objective, constr_map)
-        # The presolver cannot determine the status.
-        if status is None:
-            # Choose a default solver if none specified.
-            if solver is None:
-                solver = self._choose_solver(constr_map)
-            else:
-                # Raise an error if the solver cannot handle the problem.
-                self._validate_solver(constr_map, solver)
+        objective, constraints = self.canonicalize()
+        # Choose a solver/check the chosen solver.
+        if solver is None:
+            solver_name = Solver.choose_solver(constraints)
+            solver = SOLVERS[solver_name]
+        elif solver in SOLVERS:
+            solver = SOLVERS[solver]
+            solver.validate_solver(constraints)
+        else:
+            raise SolverError("Unknown solver.")
 
-            dims = self._format_for_solver(constr_map, solver)
+        sym_data = solver.get_sym_data(objective, constraints,
+                                       self._cached_data)
+        # Presolve couldn't solve the problem.
+        if sym_data.presolve_status is None:
+            status, value, x, y, z = solver.solve(objective, constraints,
+                                                  self._cached_data,
+                                                  verbose, kwargs)
+        # Presolve determined problem was unbounded or infeasible.
+        else:
+            status = sym_data.presolve_status
 
-            all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-            # CVXOPT can have variables that only live in NonLinearConstraints.
-            nonlinear = constr_map[s.EXP] if solver == s.CVXOPT else []
-            var_offsets, var_sizes, x_length = self._get_var_offsets(objective,
-                                                                     all_ineq,
-                                                                     nonlinear)
-            if solver in s.SOLVERS:
-                result = SOLVERS[solver].solve(self._cached_data, objective,
-                                               constr_map, dims,
-                                               var_offsets, x_length,
-                                               verbose, kwargs)
-            else:
-                raise SolverError("Unknown solver.")
-
-            status, value, x, y, z = result
-            if status in s.SOLUTION_PRESENT:
-                self._save_values(x, self.variables(), var_offsets)
-                self._save_dual_values(y, constr_map[s.EQ], EqConstraint)
-                self._save_dual_values(z, constr_map[s.LEQ], LeqConstraint)
-                self._value = value
-            elif status == s.SOLVER_ERROR:
-                raise SolverError(
-                    "Solver '%s' failed. Try another solver." % solver
-                )
+        if status in s.SOLUTION_PRESENT:
+            self._save_values(x, self.variables(), sym_data.var_offsets)
+            self._save_dual_values(y, sym_data.constr_map[s.EQ],
+                                   EqConstraint)
+            self._save_dual_values(z, sym_data.constr_map[s.LEQ],
+                                   LeqConstraint)
+            # Correct optimal value if the objective was Maximize.
+            self._value = self.objective.primal_to_result(value)
         # Infeasible or unbounded.
-        if status in s.INF_OR_UNB:
+        elif status in s.INF_OR_UNB:
             self._handle_no_solution(status)
+        # Solver failed to solve.
+        else:
+            raise SolverError(
+                "Solver '%s' failed. Try another solver." % solver.name()
+            )
         self._status = status
         return self.value
-
-    def _ecos_problem_data(self, objective, constr_map, dims,
-                           var_offsets, x_length):
-        """Returns the problem data for the call to ECOS.
-
-        Parameters
-        ----------
-            objective: LinOp
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-        Returns
-        -------
-        tuple
-            ((c, G, h, dims, A, b), offset)
-        """
-        # If this is the first time solving with ECOS, cache the problem.
-        if not s.ECOS in self._cached_data:
-            self._cached_data[s.ECOS] = ProblemData(var_offsets,
-                                                    x_length,
-                                                    objective,
-                                                    constr_map[s.EQ],
-                                                    constr_map[s.INEQ],
-                                                    [],
-                                                    self._SPARSE_INTF,
-                                                    self._DENSE_INTF)
-        c, obj_offset = self._cached_data[s.ECOS].get_objective()
-        A, b = self._cached_data[s.ECOS].get_eq_constr()
-        G, h = self._cached_data[s.ECOS].get_ineq_constr()
-        # Return the arguments that would be passed to ECOS.
-        return ((c, G, h, dims, A, b), obj_offset)
-
-    def _ecos_solve(self, objective, constr_map, dims,
-                    var_offsets, x_length,
-                    verbose, opts):
-        """Calls the ECOS solver and returns the result.
-
-        Parameters
-        ----------
-            objective: Expression
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-            verbose: bool
-                Should the solver show output?
-            opts: dict
-                List of user-specific options for ECOS
-        Returns
-        -------
-        tuple
-            (status, optimal objective, optimal x,
-             optimal equality constraint dual,
-             optimal inequality constraint dual)
-
-        """
-        prob_data = self._ecos_problem_data(objective, constr_map, dims,
-                                            var_offsets, x_length)
-        obj_offset = prob_data[1]
-        results = ecos.solve(*prob_data[0], verbose=verbose, **opts)
-        status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
-        if status in s.SOLUTION_PRESENT:
-            primal_val = results['info']['pcost']
-            value = self.objective.primal_to_result(
-                          primal_val - obj_offset)
-            return (status, value,
-                    results['x'], results['y'], results['z'])
-        else:
-            return (status, None, None, None, None)
-
-    def _cvxopt_problem_data(self, objective, constr_map, dims,
-                             var_offsets, x_length):
-        """Returns the problem data for the call to CVXOPT.
-
-        Assumes no exponential cone constraints.
-
-        Parameters
-        ----------
-            objective: Expression
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-        Returns
-        -------
-        tuple
-            ((c, G, h, dims, A, b), offset)
-        """
-        # If this is the first time solving with CVXOPT, cache the problem.
-        if not s.CVXOPT in self._cached_data:
-            self._cached_data[s.CVXOPT] = ProblemData(var_offsets,
-                                                      x_length,
-                                                      objective,
-                                                      constr_map[s.EQ],
-                                                      constr_map[s.INEQ],
-                                                      constr_map[s.EXP],
-                                                      self._CVXOPT_SPARSE_INTF,
-                                                      self._CVXOPT_DENSE_INTF)
-        c, obj_offset = self._cached_data[s.CVXOPT].get_objective()
-        A, b = self._cached_data[s.CVXOPT].get_eq_constr()
-        G, h = self._cached_data[s.CVXOPT].get_ineq_constr()
-        # Return the arguments that would be passed to CVXOPT.
-        return ((c, G, h, dims, A, b), obj_offset)
-
-
-    def _cvxopt_solve(self, objective, constr_map, dims,
-                      var_offsets, x_length,
-                      verbose, opts):
-        """Calls the CVXOPT conelp or cpl solver and returns the result.
-
-        Parameters
-        ----------
-            objective: Expression
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            sorted_vars: list
-                An ordered list of the problem variables.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-            verbose: bool
-                Should the solver show output?
-            opts: dict
-                List of user-specific options for CVXOPT;
-                will be inserted into cvxopt.solvers.options.
-
-        Returns
-        -------
-        tuple
-            (status, optimal objective, optimal x,
-             optimal equality constraint dual,
-             optimal inequality constraint dual)
-
-        """
-        prob_data = self._cvxopt_problem_data(objective, constr_map, dims,
-                                              var_offsets, x_length)
-        c, G, h, dims, A, b = prob_data[0]
-        obj_offset = prob_data[1]
-        # Save original cvxopt solver options.
-        old_options = cvxopt.solvers.options
-        # Silence cvxopt if verbose is False.
-        cvxopt.solvers.options['show_progress'] = verbose
-        # Always do one step of iterative refinement after solving KKT system.
-        cvxopt.solvers.options['refinement'] = 1
-
-        # Apply any user-specific options.
-        # Rename max_iters to maxiters.
-        if "max_iters" in opts:
-            opts["maxiters"] = opts["max_iters"]
-        for key, value in opts.items():
-            cvxopt.solvers.options[key] = value
-
-        try:
-            # Target cvxopt clp if nonlinear constraints exist
-            if constr_map[s.EXP]:
-                # Get custom kktsolver.
-                kktsolver = get_kktsolver(G, dims, A, F)
-                results = cvxopt.solvers.cpl(c, F, G, h, dims, A, b,
-                                             kktsolver=kktsolver)
-            else:
-                # Get custom kktsolver.
-                kktsolver = get_kktsolver(G, dims, A)
-                results = cvxopt.solvers.conelp(c, G, h, dims, A, b,
-                                                kktsolver=kktsolver)
-            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
-        # Catch exceptions in CVXOPT and convert them to solver errors.
-        except ValueError:
-            status = s.SOLVER_ERROR
-
-        # Restore original cvxopt solver options.
-        cvxopt.solvers.options = old_options
-        if status in s.SOLUTION_PRESENT:
-            primal_val = results['primal objective']
-            value = self.objective.primal_to_result(
-                          primal_val - obj_offset)
-            if constr_map[s.EXP]:
-                ineq_dual = results['zl']
-            else:
-                ineq_dual = results['z']
-            return (status, value, results['x'], results['y'], ineq_dual)
-        else:
-            return (status, None, None, None, None)
-
-    def _scs_problem_data(self, objective, constr_map, dims,
-                          var_offsets, x_length):
-        """Returns the problem data for the call to SCS.
-
-        Parameters
-        ----------
-            objective: Expression
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-        Returns
-        -------
-        tuple
-            ((data, dims), offset)
-        """
-        c, obj_offset = self._get_obj(objective, var_offsets, x_length,
-                                      self._DENSE_INTF,
-                                      self._DENSE_INTF)
-        # Convert obj_offset to a scalar.
-        obj_offset = self._DENSE_INTF.scalar_value(obj_offset)
-
-        A, b = self._constr_matrix(constr_map[s.EQ] + constr_map[s.LEQ],
-                                   var_offsets, x_length,
-                                   self._SPARSE_INTF, self._DENSE_INTF)
-        # Convert c, b to 1D arrays.
-        c, b = map(intf.from_2D_to_1D, [c.T, b])
-        data = {"c": c}
-        data["A"] = A
-        data["b"] = b
-        return ((data, dims), obj_offset)
-
-    def _scs_solve(self, objective, constr_map, dims,
-                   var_offsets, x_length,
-                   verbose, opts):
-        """Calls the SCS solver and returns the result.
-
-        Parameters
-        ----------
-            objective: LinExpr
-                The canonicalized objective.
-            constr_map: dict
-                A dict of the canonicalized constraints.
-            dims: dict
-                A dict with information about the types of constraints.
-            var_offsets: dict
-                A dict mapping variable id to offset in the stacked variable x.
-            x_length: int
-                The height of x.
-            verbose: bool
-                Should the solver show output?
-            opts: dict
-                A dict of the solver parameters passed to scs
-
-        Returns
-        -------
-        tuple
-            (status, optimal objective, optimal x,
-             optimal equality constraint dual,
-             optimal inequality constraint dual)
-        """
-        prob_data = self._scs_problem_data(objective, constr_map, dims,
-                                           var_offsets, x_length)
-        obj_offset = prob_data[1]
-        # Set the options to be VERBOSE plus any user-specific options.
-        opts["verbose"] = verbose
-        results = scs.solve(*prob_data[0], **opts)
-        status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
-        if status in s.SOLUTION_PRESENT:
-            primal_val = results["info"]["pobj"]
-            value = self.objective._primal_to_result(primal_val - obj_offset)
-            eq_dual = results["y"][0:dims["f"]]
-            ineq_dual = results["y"][dims["f"]:]
-            return (status, value, results["x"], eq_dual, ineq_dual)
-        else:
-            return (status, None, None, None, None)
 
     def _handle_no_solution(self, status):
         """Updates value fields when the problem is infeasible or unbounded.
@@ -756,50 +286,6 @@ class Problem(u.Canonical):
             self._value = self.objective.primal_to_result(np.inf)
         elif status in [s.UNBOUNDED, s.UNBOUNDED_INACCURATE]:
             self._value = self.objective.primal_to_result(-np.inf)
-
-    @staticmethod
-    def _get_var_offsets(objective, constraints, nonlinear=None):
-        """Maps each variable to a horizontal offset.
-
-        Parameters
-        ----------
-        objective : Expression
-            The canonicalized objective.
-        constraints : list
-            The canonicalized constraints.
-        nonlinear : list, optional
-            Non-linear constraints for CVXOPT.
-
-        Returns
-        -------
-        tuple
-            (map of variable to offset, length of variable vector)
-        """
-        vars_ = lu.get_expr_vars(objective)
-        for constr in constraints:
-            vars_ += lu.get_expr_vars(constr.expr)
-
-        # If CVXOPT is the solver, some of the variables are
-        # in NonLinearConstraints.
-        if nonlinear is not None:
-            for constr in nonlinear:
-                for nonlin_var in constr.variables():
-                    vars_ += lu.get_expr_vars(nonlin_var)
-
-        var_offsets = OrderedDict()
-        var_sizes = {}
-        # Ensure the variables are always in the same
-        # order for the same problem.
-        var_names = list(set(vars_))
-        var_names.sort(key=lambda (var_id, var_size): var_id)
-        # Map var ids to offsets.
-        vert_offset = 0
-        for var_id, var_size in var_names:
-            var_sizes[var_id] = var_size
-            var_offsets[var_id] = vert_offset
-            vert_offset += var_size[0]*var_size[1]
-
-        return (var_offsets, var_sizes, vert_offset)
 
     def _save_dual_values(self, result_vec, constraints, constr_type):
         """Saves the values of the dual variables.
@@ -839,7 +325,7 @@ class Problem(u.Canonical):
         """
         if len(result_vec) > 0:
             # Cast to desired matrix type.
-            result_vec = self._DENSE_INTF.const_to_matrix(result_vec)
+            result_vec = intf.DEFAULT_INTERFACE.const_to_matrix(result_vec)
         for obj in objects:
             rows, cols = obj.size
             if obj.id in offset_map:
@@ -848,13 +334,13 @@ class Problem(u.Canonical):
                 if (rows, cols) == (1, 1):
                     value = intf.index(result_vec, (offset, 0))
                 else:
-                    value = self._DENSE_INTF.zeros(rows, cols)
-                    self._DENSE_INTF.block_add(value,
+                    value = intf.DEFAULT_INTERFACE.zeros(rows, cols)
+                    intf.DEFAULT_INTERFACE.block_add(value,
                         result_vec[offset:offset + rows*cols],
                         0, 0, rows, cols)
                 offset += rows*cols
             else: # The variable was multiplied by zero.
-                value = self._DENSE_INTF.zeros(rows, cols)
+                value = intf.DEFAULT_INTERFACE.zeros(rows, cols)
             obj.save_value(value)
 
     def __str__(self):

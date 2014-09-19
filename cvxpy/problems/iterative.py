@@ -108,7 +108,7 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
             if np.isscalar(value):
                 vector[offset:size[0]+offset] = value
             else:
-                vector[offset:size[0]+offset] =  np.squeeze(value[:, col])
+                vector[offset:size[0]+offset] = np.squeeze(value[:, col])
             offset += size[0]
     return vector
 

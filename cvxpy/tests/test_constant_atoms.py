@@ -23,6 +23,7 @@ from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
+from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.utilities.ordered_set import OrderedSet
@@ -155,14 +156,15 @@ atoms = [
     ], Maximize),
 ]
 
-def check_solver(prob, solver):
+def check_solver(prob, solver_name):
     """Can the solver solve the problem?
     """
-    objective, constr_map = prob.canonicalize()
+    objective, constraints = prob.canonicalize()
+    solver = SOLVERS[solver_name]
     try:
-        prob._validate_solver(constr_map, solver)
+        solver.validate_solver(constraints)
         return True
-    except Exception as e:
+    except Exception, e:
         return False
 
 # Tests numeric version of atoms.

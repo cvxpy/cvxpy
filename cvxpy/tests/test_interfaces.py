@@ -63,6 +63,8 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        mat = interface.const_to_matrix(1, convert_scalars=True)
+        self.assertEquals(type(interface.reshape(mat, (1,1))), type(mat))
         # index
         mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
         self.assertEquals( interface.index(mat, (0,1)), 3)
@@ -91,6 +93,8 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        mat = interface.const_to_matrix(1, convert_scalars=True)
+        self.assertEquals(type(interface.reshape(mat, (1,1))), type(mat))
         # Test scalars.
         scalar = interface.scalar_matrix(1, 1, 1)
         self.assertEquals(type(scalar), cvxopt.spmatrix)
@@ -130,6 +134,8 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        mat = interface.const_to_matrix(1, convert_scalars=True)
+        self.assertEquals(type(interface.reshape(mat, (1,1))), type(mat))
         # index
         mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
         self.assertEquals( interface.index(mat, (0,1)), 3)
@@ -165,6 +171,8 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        mat = interface.const_to_matrix(1, convert_scalars=True)
+        self.assertEquals(type(interface.reshape(mat, (1,1))), type(mat))
         # index
         mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
         self.assertEquals( interface.index(mat, (0,1)), 3)
@@ -195,6 +203,8 @@ class TestInterfaces(unittest.TestCase):
         mat = interface.const_to_matrix([[1,2,3],[3,4,5]])
         mat = interface.reshape(mat, (6,1))
         self.assertEquals(interface.index(mat, (4,0)), 4)
+        mat = interface.const_to_matrix(1, convert_scalars=True)
+        self.assertEquals(type(interface.reshape(mat, (1,1))), type(mat))
         # Test scalars.
         scalar = interface.scalar_matrix(1, 1, 1)
         self.assertEquals(type(scalar), np.ndarray)
