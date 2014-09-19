@@ -21,6 +21,8 @@ from cvxpy import *
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import cvxpy.problems.iterative as iterative
+from cvxpy.problems.solvers.utilities import SOLVERS
+from cvxpy.problems.problem_data.sym_data import SymData
 import numpy as np
 import scipy.sparse as sp
 import scipy.linalg as LA
@@ -153,18 +155,10 @@ class test_tree_mat(BaseTest):
         data, dims = prob.get_problem_data(solver=SCS)
         A = data["A"]
         objective, constraints = prob.canonicalize()
-        dims = prob._format_for_solver(constr_map, SCS)
-
-        all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
-        var_offsets, var_sizes, x_length = prob._get_var_offsets(objective,
-                                                                 all_ineq)
-        opts = {}
-        constraints = constr_map[s.EQ] + constr_map[s.LEQ]
-        constraints = prune_constants(constraints)
-        Amul, ATmul = iterative.get_mul_funcs(constraints, dims,
-                                              var_offsets, var_sizes,
-                                              x_length)
-        vec = np.array(range(x_length))
+        sym_data = SymData(objective, constraints, SOLVERS[SCS])
+        sym_data.constraints = prune_constants(sym_data.constraints)
+        Amul, ATmul = iterative.get_mul_funcs(sym_data)
+        vec = np.array(range(sym_data.x_length))
         # A*vec
         result = np.zeros(A.shape[0])
         Amul(vec, result)

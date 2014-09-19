@@ -24,21 +24,21 @@ import numpy as np
 import scipy.sparse.linalg as LA
 
 
-def get_mul_funcs(constraints, dims,
-                  var_offsets, var_sizes, var_length):
+def get_mul_funcs(sym_data):
 
     def accAmul(x, y):
         # y += A*x
         rows = y.shape[0]
-        var_dict = vec_to_dict(x, var_offsets, var_sizes)
-        y += constr_mul(constraints, var_dict, rows)
+        var_dict = vec_to_dict(x, sym_data.var_offsets,
+                               sym_data.var_sizes)
+        y += constr_mul(sym_data.constraints, var_dict, rows)
 
     def accATmul(x, y):
         # y += A.T*x
-        terms = constr_unpack(constraints, x)
-        val_dict = constr_tmul(constraints, terms)
-        y += dict_to_vec(val_dict, var_offsets,
-                         var_sizes, var_length)
+        terms = constr_unpack(sym_data.constraints, x)
+        val_dict = constr_tmul(sym_data.constraints, terms)
+        y += dict_to_vec(val_dict, sym_data.var_offsets,
+                         sym_data.var_sizes, sym_data.x_length)
 
     return (accAmul, accATmul)
 
