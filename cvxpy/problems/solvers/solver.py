@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from cvxpy.error import SolverError
 import cvxpy.settings as s
+from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.problems.problem_data.matrix_data import MatrixData
 from cvxpy.problems.problem_data.sym_data import SymData
 
@@ -114,6 +115,25 @@ class Solver(object):
                 "The solver %s cannot solve the problem." % self.name()
             )
 
+    def validate_cache(self, objective, constraints, cached_data):
+        """Clears the cache if the objective or constraints changed.
+
+        Parameters
+        ----------
+        objective : LinOp
+            The canonicalized objective.
+        constraints : list
+            The list of canonicalized cosntraints.
+        cached_data : dict
+            A map of solver name to cached problem data.
+        """
+        prob_data = cached_data[self.name()]
+        if prob_data.sym_data is not None and \
+           (objective != prob_data.sym_data.objective or \
+            constraints != prob_data.sym_data.constraints):
+           prob_data.sym_data = None
+           prob_data.matrix_data = None
+
     def get_sym_data(self, objective, constraints, cached_data):
         """Returns the symbolic data for the problem.
 
@@ -135,6 +155,7 @@ class Solver(object):
         if prob_data.sym_data is None:
             prob_data.sym_data = SymData(objective, constraints, self)
         return prob_data.sym_data
+
 
     def get_matrix_data(self, objective, constraints, cached_data):
         """Returns the numeric data for the problem.
@@ -179,6 +200,7 @@ class Solver(object):
         tuple
             (solver args tuple, offset)
         """
+        self.validate_cache(objective, constraints, cached_data)
         sym_data = self.get_sym_data(objective, constraints, cached_data)
         matrix_data = self.get_matrix_data(objective, constraints,
                                            cached_data)

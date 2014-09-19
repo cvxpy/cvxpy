@@ -46,31 +46,24 @@ class Problem(u.Canonical):
 
     def __init__(self, objective, constraints=None):
         if constraints is None:
-            constraints = ()
+            constraints = []
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
             raise TypeError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
-        self._objective = objective
-        self._constraints = tuple(constraints)
+        self.objective = objective
+        self.constraints = constraints
         self._value = None
         self._status = None
         # Cached processed data for each solver.
         self._cached_data = {}
+        self._reset_cache()
+
+    def _reset_cache(self):
+        """Resets the cached data.
+        """
         for solver_name in SOLVERS.keys():
             self._cached_data[solver_name] = ProblemData()
-
-    @property
-    def objective(self):
-        """Getter for objective.
-        """
-        return self._objective
-
-    @property
-    def constraints(self):
-        """Getter for constraints tuple.
-        """
-        return self._constraints
 
     @property
     def value(self):
@@ -95,7 +88,7 @@ class Problem(u.Canonical):
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
-        return all(exp.is_dcp() for exp in self.constraints + (self.objective,))
+        return all(exp.is_dcp() for exp in self.constraints + [self.objective])
 
     def canonicalize(self):
         """Computes the graph implementation of the problem.

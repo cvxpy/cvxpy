@@ -91,18 +91,17 @@ The built-in ``sum`` can be used on lists of CVXPY expressions to add all the li
 Changing the problem
 --------------------
 
-Problem objects are immutable. You cannot change them after they are created. To modify the problem objective
-or constraints, create a new problem.
+After you create a problem object, you can still modify the objective
+and constraints.
 
 .. code:: python
 
     # Replace the objective.
-    prob = Problem(Maximize(x + y), prob.constraints)
+    prob.objective = Maximize(x + y)
     print "optimal value", prob.solve()
 
     # Replace the constraint (x + y == 1).
-    constraints[0] = (x + y <= 3)
-    prob = Problem(prob.objective, constraints)
+    prob.constraints[0] = (x + y <= 3)
     print "optimal value", prob.solve()
 
 .. parsed-literal::

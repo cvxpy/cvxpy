@@ -56,8 +56,8 @@ class TestProblem(BaseTest):
         """
         obj = Minimize(self.a)
         prob = Problem(obj)
-        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(())))
-        constraints = (self.x*2 == self.x, self.x == 0)
+        self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr([])))
+        constraints = [self.x*2 == self.x, self.x == 0]
         prob = Problem(obj, constraints)
         self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(constraints)))
 

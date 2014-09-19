@@ -18,6 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
+import time
+import cvxpy as cvx
 
 class TestParamCache(unittest.TestCase):
 
@@ -25,4 +27,22 @@ class TestParamCache(unittest.TestCase):
         """Test that it is faster to solve a parameterized
         problem after the first solve.
         """
-        pass
+        N = 1000
+        x = cvx.Variable(N)
+        total = 0
+        constraints = []
+        for i in range(N):
+            total += x[i]
+            constraints += [x[i] == i]
+
+        prob = cvx.Problem(cvx.Minimize(total), constraints)
+        time0 = time.time()
+        result = prob.solve()
+        time1 = time.time() - time0
+        self.assertAlmostEqual(result, N*(N-1)/2.0, places=4)
+
+        time0 = time.time()
+        result = prob.solve()
+        time2 = time.time() - time0
+        self.assertAlmostEqual(result, N*(N-1)/2.0, places=4)
+        assert time2 < time1

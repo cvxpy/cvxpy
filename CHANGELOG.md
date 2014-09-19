@@ -3,6 +3,7 @@ Version 2.13 (next release)
 * Got rid of NumPy 1D array warning.
 * Made vstack and hstack not create new variables.
 * Replaced memoize with lazyprop in constraints.
+* Refactored code for caching problem parsing.
 
 Version 2.12
 ------------
