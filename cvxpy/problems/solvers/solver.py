@@ -141,7 +141,7 @@ class Solver(object):
         objective : LinOp
             The canonicalized objective.
         constraints : list
-            The list of canonicalized cosntraints.
+            The list of canonicalized constraints.
         cached_data : dict
             A map of solver name to cached problem data.
 
