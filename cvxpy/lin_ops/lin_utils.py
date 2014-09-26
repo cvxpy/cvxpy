@@ -504,7 +504,7 @@ def get_expr_params(operator):
         A list of parameter objects.
     """
     if operator.type is lo.PARAM:
-        return [operator.data.parameters()]
+        return operator.data.parameters()
     else:
         vars_ = []
         for arg in operator.args:

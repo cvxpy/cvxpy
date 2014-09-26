@@ -1038,3 +1038,19 @@ class TestProblem(BaseTest):
             assert A[row, :].nnz > 0
         for row in range(G.shape[0]):
             assert G[row, :].nnz > 0
+
+    def test_presolve_parameters(self):
+        """Test presolve with parameters.
+        """
+        # Test with parameters.
+        gamma = Parameter(sign="positive")
+        x = Variable()
+        obj = Minimize(x)
+        prob = Problem(obj, [gamma == 1, x >= 0])
+        gamma.value = 0
+        prob.solve(solver=s.SCS)
+        self.assertEqual(prob.status, s.INFEASIBLE)
+
+        gamma.value = 1
+        prob.solve(solver=s.CVXOPT)
+        self.assertEqual(prob.status, s.OPTIMAL)

@@ -46,7 +46,7 @@ class SymData(object):
     x_length : int
         The length of the x vector.
     presolve_status : str or None
-        The status of the problem as determined by the presolver.
+        The status returned by the presolver.
     """
 
     def __init__(self, objective, constraints, solver):
@@ -95,16 +95,19 @@ class SymData(object):
                 constr_map[s.EXP].append(c)
         return constr_map
 
-
     @staticmethod
-    def presolve(objective, constr_map):
+    def presolve(objective, constr_map, check_params=False):
         """Eliminates unnecessary constraints and short circuits the solver
         if possible.
 
         Parameters
         ----------
+        objective : LinOp
+            The canonicalized objective.
         constr_map : dict
             A map of constraint type to a list of constraints.
+        check_params : bool, optional
+            Should constraints with parameters be evaluated?
 
         Returns
         -------
@@ -124,12 +127,12 @@ class SymData(object):
         if not any(constr_map.values()):
             str(objective) # TODO
 
-        # Remove constraints with no variables.
+        # Remove constraints with no variables or parameters.
         for key in [s.EQ, s.LEQ]:
             new_constraints = []
             for constr in constr_map[key]:
                 vars_ = lu.get_expr_vars(constr.expr)
-                if len(vars_) == 0:
+                if len(vars_) == 0 and not lu.get_expr_params(constr.expr):
                     coeff = op2mat.get_constant_coeff(constr.expr)
                     sign = intf.sign(coeff)
                     # For equality constraint, coeff must be zero.
@@ -180,7 +183,7 @@ class SymData(object):
 
         Parameters
         ----------
-        objective : Expression
+        objective : LinOp
             The canonicalized objective.
         constraints : list
             The canonicalized constraints.
