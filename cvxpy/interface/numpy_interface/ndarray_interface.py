@@ -21,6 +21,7 @@ from .. import base_matrix_interface as base
 import numpy
 import cvxopt
 import numbers
+import scipy.sparse
 
 class NDArrayInterface(base.BaseMatrixInterface):
     """
@@ -45,6 +46,8 @@ class NDArrayInterface(base.BaseMatrixInterface):
         elif isinstance(value, list):
             value = numpy.atleast_2d(value)
             value = value.T
+        elif scipy.sparse.issparse(value):
+            value = value.A
         return numpy.atleast_2d(value)
 
     # Return an identity matrix.
