@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
-from ..expressions.constants import Constant, ConstantAtom
+from ..expressions.constants import Constant, CallbackParam
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
@@ -95,7 +95,14 @@ class Atom(Expression):
     def canonicalize(self):
         # Constant atoms are treated as a leaf.
         if self.is_constant():
-            return ConstantAtom(self).canonical_form
+            # Parameterized expressions are evaluated later.
+            if self.parameters():
+                rows, cols = self.size
+                param = CallbackParam(lambda: self.value, rows, cols)
+                return param.canonical_form
+            # Non-parameterized expressions are evaluated immediately.
+            else:
+                return Constant(self.value).canonical_form
         else:
             arg_objs = []
             constraints = []
