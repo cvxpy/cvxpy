@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from ..base_matrix_interface import BaseMatrixInterface
 import cvxopt
+import numpy as np
 import scipy.sparse as sp
 import numbers
 
@@ -47,7 +48,7 @@ class DenseMatrixInterface(BaseMatrixInterface):
     def identity(self, size):
         matrix = self.zeros(size, size)
         for i in range(size):
-            matrix[i,i] = 1
+            matrix[i, i] = 1
         return matrix
 
     # Return the dimensions of the matrix.

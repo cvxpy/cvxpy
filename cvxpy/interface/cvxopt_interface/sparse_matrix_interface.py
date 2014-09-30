@@ -48,7 +48,7 @@ class SparseMatrixInterface(DenseMatrixInterface):
             V = value.data
             I = value.row
             J = value.col
-            return cvxopt.spmatrix(V, I, J, value.shape)
+            return cvxopt.spmatrix(V, I, J, value.shape, tc='d')
         return cvxopt.sparse(value, tc='d')
 
     # Return an identity matrix.

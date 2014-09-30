@@ -51,8 +51,8 @@ class SparseMatrixInterface(NDArrayInterface):
             m, n = value.size
             return sp.csc_matrix((Vx, Vi, Vp), shape=(m, n))
         if isinstance(value, list):
-            return sp.csc_matrix(value).T
-        return sp.csc_matrix(value)
+            return sp.csc_matrix(value, dtype=np.double).T
+        return sp.csc_matrix(value, dtype=np.double)
 
     def identity(self, size):
         """Return an identity matrix.
