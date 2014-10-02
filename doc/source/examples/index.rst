@@ -10,16 +10,14 @@ These examples show many different ways to use CVXPY. The :ref:`basic` section s
 Basic Examples
 --------------
 
-
+- `Total Variation In-Painting <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
 .. _advanced-python:
 
 Advanced Python
 ---------------
 
-.. toctree::
-
-    ooco/index
+- `Object Oriented Convex Optimization <
 
 .. _applications:
 
