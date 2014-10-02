@@ -1,5 +1,9 @@
-Version 2.13 (next release)
+Version 2.14 (next release)
 ---------------------------
+
+
+Version 2.13
+------------
 * Got rid of NumPy 1D array warning.
 * Made vstack and hstack not create new variables.
 * Replaced memoize with lazyprop in constraints.
