@@ -26,6 +26,7 @@ class NonCvxVariable(cvxpy.Variable):
     __metaclass__ = abc.ABCMeta
     def __init__(self, *args, **kwargs):
         super(NonCvxVariable, self).__init__(*args, **kwargs)
+        self.noncvx = True
         self.z = cvxpy.Parameter(*self.size)
         self.init_z()
         self.u = cvxpy.Parameter(*self.size)
@@ -61,4 +62,3 @@ class NonCvxVariable(cvxpy.Variable):
     @abc.abstractmethod
     def _fix(self, matrix):
         return NotImplemented
-        

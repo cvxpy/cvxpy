@@ -86,7 +86,7 @@ def quad_form(x, P):
     """ Alias for :math:`x^T P x`.
 
     """
-    x, P = map(Expression.cast_to_const, (x,P))
+    x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
     n = P.size[0]
     if P.size[1] != n or x.size != (n,1):

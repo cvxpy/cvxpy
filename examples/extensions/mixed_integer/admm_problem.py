@@ -23,27 +23,27 @@ from cvxpy import settings as s
 
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho=0.5, iterations=5, solver=cvx.ECOS):
-    vars_ = self.objective.variables()
-    for constr in self.constraints:
-        vars_ += constr.variables()
-    noncvx_vars = [obj for obj in vars_ if isinstance(obj, NonCvxVariable)]
+    noncvx_vars = []
+    for var in self.variables():
+        if getattr(var, "noncvx", False):
+            noncvx_vars += [var]
     # Form ADMM problem.
     obj = self.objective._expr
     for var in noncvx_vars:
         obj = obj + (rho/2)*cvx.sum_entries(cvx.square(var - var.z + var.u))
-    p = cvx.Problem(cvx.Minimize(obj), self.constraints)
+    prob = cvx.Problem(cvx.Minimize(obj), self.constraints)
     # ADMM loop
     for i in range(iterations):
-        result = p.solve(solver=solver)
+        result = prob.solve(solver=solver)
         for var in noncvx_vars:
             var.z.value = var.round(var.value + var.u.value)
-            var.u.value = var.value - var.z.value
+            var.u.value += var.value - var.z.value
     # Fix noncvx variables and solve.
     fix_constr = []
     for var in noncvx_vars:
         fix_constr += var.fix(var.z.value)
-    p = cvx.Problem(self.objective, self.constraints + fix_constr)
-    return p.solve(solver=solver)
+    prob = cvx.Problem(self.objective, self.constraints + fix_constr)
+    return prob.solve(solver=solver)
 
 # Add admm method to cvx Problem.
 cvx.Problem.register_solve("admm", admm)
