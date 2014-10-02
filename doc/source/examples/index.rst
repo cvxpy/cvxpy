@@ -10,10 +10,7 @@ These examples show many different ways to use CVXPY. The :ref:`basic` section s
 Basic Examples
 --------------
 
-.. toctree::
-    :maxdepth: 1
 
-    images/index
 
 .. _advanced-python:
 
