@@ -35,6 +35,10 @@ import unittest
 import math
 import sys
 from cStringIO import StringIO
+# Solvers.
+import scs
+import cvxopt.solvers
+import ecos
 
 class TestProblem(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -109,6 +113,37 @@ class TestProblem(BaseTest):
         self.assertEqual(c.size, (3, 1))
         self.assertEqual(A.size, (0, 3))
         self.assertEqual(G.size, (3, 3))
+
+    def test_unpack_results(self):
+        """Test unpack results method.
+        """
+        with self.assertRaises(Exception) as cm:
+            Problem(Minimize(exp(self.a))).unpack_results("blah", None)
+        self.assertEqual(str(cm.exception), "Unknown solver.")
+
+        prob = Problem(Minimize(exp(self.a)), [self.a == 0])
+        args = prob.get_problem_data(s.SCS)
+        results_dict = scs.solve(*args)
+        prob.unpack_results(s.SCS, results_dict)
+        self.assertAlmostEqual(self.a.value, 0, places=4)
+        self.assertAlmostEqual(prob.value, 1, places=3)
+        self.assertAlmostEqual(prob.status, s.OPTIMAL)
+
+        prob = Problem(Minimize(norm(self.x)), [self.x == 0])
+        args = prob.get_problem_data(s.ECOS)
+        results_dict = ecos.solve(*args)
+        prob.unpack_results(s.ECOS, results_dict)
+        self.assertItemsAlmostEqual(self.x.value, [0,0])
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(prob.status, s.OPTIMAL)
+
+        prob = Problem(Minimize(norm(self.x)), [self.x == 0])
+        args = prob.get_problem_data(s.CVXOPT)
+        results_dict = cvxopt.solvers.conelp(*args)
+        prob.unpack_results(s.CVXOPT, results_dict)
+        self.assertItemsAlmostEqual(self.x.value, [0,0])
+        self.assertAlmostEqual(prob.value, 0)
+        self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
     # Test silencing and enabling solver messages.
     def test_verbose(self):
