@@ -1,6 +1,10 @@
-Version 2.14 (next release)
+Version 2.15 (next release)
 ---------------------------
+
+Version 2.14
+------------
 * Added unpack_results function to update problem state given results from a solver.
+* Fixed bug where parameters were cached.
 
 
 Version 2.13
