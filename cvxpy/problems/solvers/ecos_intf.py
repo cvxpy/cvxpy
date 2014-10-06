@@ -83,12 +83,35 @@ class ECOS(Solver):
         """
         prob_data = self.get_problem_data(objective, constraints, cached_data)
         obj_offset = prob_data[1]
-        results = ecos.solve(*prob_data[0], verbose=verbose, **solver_opts)
-        status = s.SOLVER_STATUS[s.ECOS][results['info']['exitFlag']]
-        if status in s.SOLUTION_PRESENT:
-            primal_val = results['info']['pcost']
-            value = primal_val + obj_offset
-            return (status, value,
-                    results['x'], results['y'], results['z'])
-        else:
-            return (status, None, None, None, None)
+        results_dict = ecos.solve(*prob_data[0], verbose=verbose,
+                                  **solver_opts)
+        return self.format_results(results_dict, None, obj_offset)
+
+    def format_results(self, results_dict, dims, obj_offset=0):
+        """Converts the solver output into standard form.
+
+        Parameters
+        ----------
+        results_dict : dict
+            The solver output.
+        dims : dict
+            The cone dimensions in the canonicalized problem.
+        obj_offset : float, optional
+            The constant term in the objective.
+
+        Returns
+        -------
+        dict
+            The solver output in standard form.
+        """
+        new_results = {}
+        status = s.SOLVER_STATUS[s.ECOS][results_dict['info']['exitFlag']]
+        new_results[s.STATUS] = status
+        if new_results[s.STATUS] in s.SOLUTION_PRESENT:
+            primal_val = results_dict['info']['pcost']
+            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.PRIMAL] = results_dict['x']
+            new_results[s.EQ_DUAL] = results_dict['y']
+            new_results[s.INEQ_DUAL] = results_dict['z']
+
+        return new_results

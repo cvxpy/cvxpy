@@ -109,28 +109,50 @@ class CVXOPT(Solver):
                 _, F, G, _, dims, A, _ = prob_data[0]
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A, F)
-                results = cvxopt.solvers.cpl(*prob_data[0],
-                                             kktsolver=kktsolver)
+                results_dict = cvxopt.solvers.cpl(*prob_data[0],
+                                                  kktsolver=kktsolver)
             else:
                 _, G, _, dims, A, _ = prob_data[0]
                 # Get custom kktsolver.
                 kktsolver = get_kktsolver(G, dims, A)
-                results = cvxopt.solvers.conelp(*prob_data[0],
-                                                kktsolver=kktsolver)
-            status = s.SOLVER_STATUS[s.CVXOPT][results['status']]
+                results_dict = cvxopt.solvers.conelp(*prob_data[0],
+                                                     kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
-            status = s.SOLVER_ERROR
+            results_dict = {'status': 'unknown'}
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
-        if status in s.SOLUTION_PRESENT:
-            primal_val = results['primal objective']
-            value = primal_val + obj_offset
+        return self.format_results(results_dict, dims, obj_offset)
+
+    def format_results(self, results_dict, dims, obj_offset=0):
+        """Converts the solver output into standard form.
+
+        Parameters
+        ----------
+        results_dict : dict
+            The solver output.
+        dims : dict
+            The cone dimensions in the canonicalized problem.
+        obj_offset : float, optional
+            The constant term in the objective.
+
+        Returns
+        -------
+        dict
+            The solver output in standard form.
+        """
+        new_results = {}
+        status = s.SOLVER_STATUS[s.CVXOPT][results_dict['status']]
+        new_results[s.STATUS] = status
+        if new_results[s.STATUS] in s.SOLUTION_PRESENT:
+            primal_val = results_dict['primal objective']
+            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.PRIMAL] = results_dict['x']
+            new_results[s.EQ_DUAL] = results_dict['y']
             if dims[s.EXP_DIM]:
-                ineq_dual = results['zl']
+                new_results[s.INEQ_DUAL] = results_dict['zl']
             else:
-                ineq_dual = results['z']
-            return (status, value, results['x'], results['y'], ineq_dual)
-        else:
-            return (status, None, None, None, None)
+                new_results[s.INEQ_DUAL] = results_dict['z']
+
+        return new_results

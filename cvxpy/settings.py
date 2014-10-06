@@ -95,3 +95,11 @@ LEQ_DIM = "l"
 SOC_DIM = "q"
 SDP_DIM = "s"
 EXP_DIM = "ep"
+
+# Keys for results_dict.
+STATUS = "status"
+VALUE = "value"
+OBJ_OFFSET = "obj_offset"
+PRIMAL = "primal"
+EQ_DUAL = "eq_dual"
+INEQ_DUAL = "ineq_dual"

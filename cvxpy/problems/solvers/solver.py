@@ -239,3 +239,23 @@ class Solver(object):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         pass
+
+    @abc.abstractmethod
+    def format_results(self, results_dict, dims, obj_offset=0):
+        """Converts the solver output into standard form.
+
+        Parameters
+        ----------
+        results_dict : dict
+            The solver output.
+        dims : dict
+            The cone dimensions in the canonicalized problem.
+        obj_offset : float, optional
+            The constant term in the objective.
+
+        Returns
+        -------
+        dict
+            The solver output in standard form.
+        """
+        pass

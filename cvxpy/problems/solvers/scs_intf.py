@@ -93,13 +93,34 @@ class SCS(Solver):
                                                          cached_data)
         # Set the options to be VERBOSE plus any user-specific options.
         solver_opts["verbose"] = verbose
-        results = scs.solve(data, dims, **solver_opts)
-        status = s.SOLVER_STATUS[s.SCS][results["info"]["status"]]
-        if status in s.SOLUTION_PRESENT:
-            primal_val = results["info"]["pobj"]
-            value = primal_val + obj_offset
-            eq_dual = results["y"][0:dims["f"]]
-            ineq_dual = results["y"][dims["f"]:]
-            return (status, value, results["x"], eq_dual, ineq_dual)
-        else:
-            return (status, None, None, None, None)
+        results_dict = scs.solve(data, dims, **solver_opts)
+        return self.format_results(results_dict, dims, obj_offset)
+
+    def format_results(self, results_dict, dims, obj_offset=0):
+        """Converts the solver output into standard form.
+
+        Parameters
+        ----------
+        results_dict : dict
+            The solver output.
+        dims : dict
+            The cone dimensions in the canonicalized problem.
+        obj_offset : float, optional
+            The constant term in the objective.
+
+        Returns
+        -------
+        dict
+            The solver output in standard form.
+        """
+        new_results = {}
+        status = s.SOLVER_STATUS[s.SCS][results_dict["info"]["status"]]
+        new_results[s.STATUS] = status
+        if new_results[s.STATUS] in s.SOLUTION_PRESENT:
+            primal_val = results_dict["info"]["pobj"]
+            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.PRIMAL] = results_dict["x"]
+            new_results[s.EQ_DUAL] = results_dict["y"][0:dims["f"]]
+            new_results[s.INEQ_DUAL] = results_dict["y"][dims["f"]:]
+
+        return new_results

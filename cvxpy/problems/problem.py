@@ -235,39 +235,83 @@ class Problem(u.Canonical):
                                        self._cached_data)
         # Presolve couldn't solve the problem.
         if sym_data.presolve_status is None:
-            status, value, x, y, z = solver.solve(objective, constraints,
-                                                  self._cached_data,
-                                                  verbose, kwargs)
+            results_dict = solver.solve(objective, constraints,
+                                        self._cached_data,
+                                        verbose, kwargs)
         # Presolve determined problem was unbounded or infeasible.
         else:
-            status = sym_data.presolve_status
+            results_dict = {s.STATUS: sym_data.presolve_status}
 
-        if status in s.SOLUTION_PRESENT:
-            self._save_values(x, self.variables(), sym_data.var_offsets)
-            self._save_dual_values(y, sym_data.constr_map[s.EQ],
+        self._update_problem_state(results_dict, sym_data, solver)
+        return self.value
+
+    def _update_problem_state(self, results_dict, sym_data, solver):
+        """Updates the problem state given the solver results.
+
+        Updates problem.status, problem.value and value of
+        primal and dual variables.
+
+        Parameters
+        ----------
+        results_dict : dict
+            A dictionary containing the solver results.
+        sym_data : SymData
+            The symbolic data for the problem.
+        solver : Solver
+            The solver type used to obtain the results.
+        """
+        if results_dict[s.STATUS] in s.SOLUTION_PRESENT:
+            self._save_values(results_dict[s.PRIMAL], self.variables(),
+                              sym_data.var_offsets)
+            self._save_dual_values(results_dict[s.EQ_DUAL],
+                                   sym_data.constr_map[s.EQ],
                                    EqConstraint)
-            self._save_dual_values(z, sym_data.constr_map[s.LEQ],
+            self._save_dual_values(results_dict[s.INEQ_DUAL],
+                                   sym_data.constr_map[s.LEQ],
                                    LeqConstraint)
             # Correct optimal value if the objective was Maximize.
+            value = results_dict[s.VALUE]
             self._value = self.objective.primal_to_result(value)
         # Infeasible or unbounded.
-        elif status in s.INF_OR_UNB:
-            self._handle_no_solution(status)
+        elif results_dict[s.STATUS] in s.INF_OR_UNB:
+            self._handle_no_solution(results_dict[s.STATUS])
         # Solver failed to solve.
         else:
             raise SolverError(
                 "Solver '%s' failed. Try another solver." % solver.name()
             )
-        self._status = status
-        return self.value
+        self._status = results_dict[s.STATUS]
+
+    def unpack_results(self, solver_name, results_dict):
+        """Parses the output from a solver and updates the problem state.
+
+        Updates problem.status, problem.value and value of
+        primal and dual variables.
+
+        Assumes the results are from the given solver.
+
+        Parameters
+        ----------
+        solver_name : str
+            The name of the solver being used.
+        results_dict : dict
+            The solver output.
+        """
+        if solver_name not in SOLVERS:
+            raise SolverError("Unknown solver.")
+        solver = SOLVERS[solver_name]
+        # Assumes get_problem_data was called for the solver.
+        sym_data = self._cached_data[solver_name].sym_data
+        results_dict = solver.format_results(results_dict, sym_data.dims)
+        self._update_problem_state(results_dict, sym_data, solver)
 
     def _handle_no_solution(self, status):
         """Updates value fields when the problem is infeasible or unbounded.
 
         Parameters
         ----------
-            status: str
-                The status of the solver.
+        status: str
+            The status of the solver.
         """
         # Set all primal and dual variable values to None.
         for var_ in self.variables():
