@@ -300,8 +300,10 @@ class Problem(u.Canonical):
         if solver_name not in SOLVERS:
             raise SolverError("Unknown solver.")
         solver = SOLVERS[solver_name]
-        # Assumes get_problem_data was called for the solver.
-        sym_data = self._cached_data[solver_name].sym_data
+
+        objective, constraints = self.canonicalize()
+        sym_data = solver.get_sym_data(objective, constraints,
+                                       self._cached_data)
         results_dict = solver.format_results(results_dict, sym_data.dims)
         self._update_problem_state(results_dict, sym_data, solver)
 

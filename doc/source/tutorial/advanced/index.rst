@@ -295,6 +295,19 @@ If you are interested in getting the standard form that CVXPY produces for a pro
     # Get SCS arguments.
     data, dims = prob.get_problem_data(SCS)
 
+After you solve the standard conic form problem returned by ``get_problem_data``, you can unpack the raw solver output using the ``unpack_results`` method. Calling ``unpack_results(solver, solver_output)`` on a problem will update the values of all primal and dual variables as well as the problem value and status.
+
+For example, the following code is equivalent to solving the problem directly with CVXPY:
+
+.. code:: python
+
+    # Get ECOS arguments.
+    c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+    # Call ECOS solver.
+    solver_output = ecos.solve(c, G, h, dims, A, b)
+    # Unpack raw solver output.
+    prob.unpack_results(ECOS, solver_output)
+
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs

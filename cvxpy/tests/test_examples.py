@@ -559,6 +559,28 @@ class TestExamples(BaseTest):
         prob = Problem(obj, constraints)
         prob.solve(solver=SCS)
 
+    def test_advanced(self):
+        """Test code from the advanced section of the tutorial.
+        """
+        x = Variable()
+        prob = Problem(Minimize(square(x)), [x == 2])
+        # Get ECOS arguments.
+        c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+
+        # Get CVXOPT arguments.
+        c, G, h, dims, A, b = prob.get_problem_data(CVXOPT)
+
+        # Get SCS arguments.
+        data, dims = prob.get_problem_data(SCS)
+
+        import ecos
+        # Get ECOS arguments.
+        c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+        # Call ECOS solver.
+        solver_output = ecos.solve(c, G, h, dims, A, b)
+        # Unpack raw solver output.
+        prob.unpack_results(ECOS, solver_output)
+
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
     #     from math import sqrt
