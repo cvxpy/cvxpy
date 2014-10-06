@@ -1092,3 +1092,26 @@ class TestProblem(BaseTest):
         gamma.value = 1
         prob.solve(solver=s.CVXOPT)
         self.assertEqual(prob.status, s.OPTIMAL)
+
+    def test_parameter_expressions(self):
+        """Test that expressions with parameters are updated properly.
+        """
+        x = Variable()
+        y = Variable()
+        x0 = Parameter()
+        xSquared = x0*x0 + 2*x0*(x - x0)
+
+        # initial guess for x
+        x0.value = 2
+
+        # make the constraint x**2 - y == 0
+        g = xSquared - y
+
+        # set up the problem
+        obj = abs(x - 1)
+        prob = Problem( Minimize( obj ), [ g == 0 ] )
+        prob.solve()
+        x0.value = 1
+        prob.solve()
+        self.assertAlmostEqual(g.value, 0)
+

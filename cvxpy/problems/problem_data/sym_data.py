@@ -96,7 +96,7 @@ class SymData(object):
         return constr_map
 
     @staticmethod
-    def presolve(objective, constr_map, check_params=False):
+    def presolve(objective, constr_map):
         """Eliminates unnecessary constraints and short circuits the solver
         if possible.
 
@@ -106,8 +106,6 @@ class SymData(object):
             The canonicalized objective.
         constr_map : dict
             A map of constraint type to a list of constraints.
-        check_params : bool, optional
-            Should constraints with parameters be evaluated?
 
         Returns
         -------

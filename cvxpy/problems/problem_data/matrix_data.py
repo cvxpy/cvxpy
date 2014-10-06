@@ -22,6 +22,7 @@ import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
+from toolz import itertoolz
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -30,6 +31,8 @@ class MatrixCache(object):
     ----------
     coo_tup : tuple
             A (V, I, J) triplet for the matrix.
+    param_coo_tup : tuple
+            A (V, I, J) triplet for the parameterized matrix.
     const_vec : array
         The vector offset.
     constraints : list
@@ -44,6 +47,12 @@ class MatrixCache(object):
         rows = sum([c.size[0] * c.size[1] for c in constraints])
         cols = x_length
         self.size = (rows, cols)
+        self.param_coo_tup = ([], [], [])
+
+    def reset_param_data(self):
+        """Clear old parameter data.
+        """
+        self.param_coo_tup = ([], [], [])
 
 
 class MatrixData(object):
@@ -155,7 +164,8 @@ class MatrixData(object):
         for constr in mat_cache.constraints:
             # Process the constraint if it has a parameter and not caching
             # or it doesn't have a parameter and caching.
-            if lu.get_expr_params(constr.expr) != caching:
+            has_param = len(lu.get_expr_params(constr.expr)) > 0
+            if (has_param and not caching) or (not has_param and caching):
                 self._process_constr(constr, mat_cache, vert_offset)
             vert_offset += constr.size[0]*constr.size[1]
 
@@ -171,18 +181,25 @@ class MatrixData(object):
         -------
         A (matrix, vector) tuple.
         """
+        # Get parameter values.
+        param_cache = self._init_matrix_cache(mat_cache.constraints,
+                                              mat_cache.size[0])
+        self._lin_matrix(param_cache)
         rows, cols = mat_cache.size
         # Create the constraints matrix.
+        # Combine the cached data with the parameter data.
         V, I, J = mat_cache.coo_tup
-        if len(V) > 0:
-            matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
+        Vp, Ip, Jp = param_cache.coo_tup
+        if len(V) + len(Vp) > 0:
+            matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
             # Convert the constraints matrix to the correct type.
             matrix = self.matrix_intf.const_to_matrix(matrix,
                                                       convert_scalars=True)
         else: # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
-        const_vec = intf.from_2D_to_1D(mat_cache.const_vec)
+        combo_vec = mat_cache.const_vec + param_cache.const_vec
+        const_vec = intf.from_2D_to_1D(combo_vec)
         return (matrix, -const_vec)
 
     def _process_constr(self, constr, mat_cache, vert_offset):
