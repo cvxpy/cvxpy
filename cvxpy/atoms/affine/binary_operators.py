@@ -18,8 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from affine_atom import AffAtom
+import cvxpy.utilities as u
 import cvxpy.interface as intf
-from ...expressions.constants import Constant
+from cvxpy.expressions.constants import Constant
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 import numpy as np
@@ -41,18 +42,36 @@ class BinaryOperator(AffAtom):
     def numeric(self, values):
         return reduce(self.OP_FUNC, values)
 
-    # Sets the sign, curvature, and shape.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
-                                      self.args[1]._dcp_attr)
+    def shape_from_args(self):
+        """Return the shape of the expression.
+        """
+        return self.OP_FUNC(self.args[0]._dcp_attr.shape,
+                            self.args[1]._dcp_attr.shape)
+
+    def sign_from_args(self):
+        """Return the sign of the expression.
+        """
+        return self.OP_FUNC(self.args[0]._dcp_attr.sign,
+                            self.args[1]._dcp_attr.sign)
 
     # Validate the dimensions.
     def validate_arguments(self):
-        self.OP_FUNC(self.args[0].shape, self.args[1].shape)
+        self.shape_from_args()
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
+
+    def monotonicity(self):
+        """Returns a list with the monotonicity in each argument.
+
+        monotonicity can depend on the sign of the argument.
+        """
+        arg_mono_list = len(self.args)*[u.monotonicity.INCREASING]
+        for i in range(2):
+            if self.args[(i+1)%2].is_negative():
+                arg_mono_list[i] = u.monotonicity.DECREASING
+        return arg_mono_list
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -78,7 +97,7 @@ class MulExpression(BinaryOperator):
             arg_objs[1] = lu.diag_vec(arg)
         return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 
-class DivExpression(BinaryOperator):
+class DivExpression(MulExpression):
     OP_NAME = "/"
     OP_FUNC = op.div
 

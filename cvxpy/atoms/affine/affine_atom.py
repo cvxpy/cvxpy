@@ -35,6 +35,10 @@ class AffAtom(Atom):
         arg_signs = [arg._dcp_attr.sign for arg in self.args]
         return reduce(op.add, arg_signs)
 
-    # Doesn't matter for affine atoms.
     def monotonicity(self):
+        """Returns a list with the monotonicity in each argument.
+
+        monotonicity can depend on the sign of the argument.
+        By default monotonicity is increasing.
+        """
         return len(self.args)*[u.monotonicity.INCREASING]
