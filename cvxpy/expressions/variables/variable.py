@@ -28,15 +28,22 @@ class Variable(Leaf):
     # rows - variable height.
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
+        self._rows = rows
+        self._cols = cols
         self.id = lu.get_id()
         if name is None:
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         else:
             self._name = name
         self.primal_value = None
+        self.init_dcp_attr()
+
+    def init_dcp_attr(self):
+        """Determines the curvature, sign, and shape from the arguments.
+        """
         self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
                                    u.Curvature.AFFINE,
-                                   u.Shape(rows, cols))
+                                   u.Shape(self._rows, self._cols))
 
     def name(self):
         return self._name

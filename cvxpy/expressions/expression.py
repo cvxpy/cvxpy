@@ -84,6 +84,12 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    @abc.abstractmethod
+    def init_dcp_attr(self):
+        """Determines the curvature, sign, and shape from the arguments.
+        """
+        return NotImplemented
+
     # Curvature properties.
 
     @property

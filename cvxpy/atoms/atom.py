@@ -46,8 +46,9 @@ class Atom(Expression):
         return "%s(%s)" % (self.__class__.__name__,
                            ", ".join([arg.name() for arg in self.args]))
 
-    # Determines the curvature, sign, and shape from the arguments.
     def init_dcp_attr(self):
+        """Determines the curvature, sign, and shape from the arguments.
+        """
         # Initialize _shape. Raises an error for invalid argument sizes.
         shape = self.shape_from_args()
         sign = self.sign_from_args()
