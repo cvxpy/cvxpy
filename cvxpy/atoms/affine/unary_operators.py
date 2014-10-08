@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
@@ -36,26 +35,13 @@ class UnaryOperator(AffAtom):
     def numeric(self, values):
         return self.OP_FUNC(values[0])
 
-    def shape_from_args(self):
-        """Return the shape of the expression.
-        """
-        return self.args[0]._dcp_attr.shape
-
-    def sign_from_args(self):
-        """Return the sign of the expression.
-        """
-        return self.OP_FUNC(self.args[0]._dcp_attr.sign)
+    # Returns the sign, curvature, and shape.
+    def init_dcp_attr(self):
+        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr)
 
 class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
-
-    def monotonicity(self):
-        """Returns a list with the monotonicity in each argument.
-
-        monotonicity can depend on the sign of the argument.
-        """
-        return [u.monotonicity.DECREASING]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

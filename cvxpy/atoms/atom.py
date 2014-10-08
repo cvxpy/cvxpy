@@ -56,18 +56,6 @@ class Atom(Expression):
                                        self.monotonicity())
         self._dcp_attr = u.DCPAttr(sign, curvature, shape)
 
-    @abc.abstractmethod
-    def shape_from_args(self):
-        """Return the shape of the expression.
-        """
-        return NotImplemented
-
-    @abc.abstractmethod
-    def sign_from_args(self):
-        """Return the sign of the expression.
-        """
-        return NotImplemented
-
     # Returns argument curvatures as a list.
     def argument_curvatures(self):
         return [arg.curvature for arg in self.args]
@@ -82,12 +70,10 @@ class Atom(Expression):
     def func_curvature(self):
         return NotImplemented
 
+    # Returns a list with the monotonicity in each argument.
+    # monotonicity can depend on the sign of the argument.
     @abc.abstractmethod
     def monotonicity(self):
-        """Returns a list with the monotonicity in each argument.
-
-        monotonicity can depend on the sign of the argument.
-        """
         return NotImplemented
 
     # Applies DCP composition rules to determine curvature in each argument.

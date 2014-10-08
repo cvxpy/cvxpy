@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
@@ -29,20 +28,13 @@ class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """
 
-    def __init__(self, arg_groups):
-        # Group arguments into sums for efficiency.
-        self._arg_groups = arg_groups
-        super(AddExpression, self).__init__(*arg_groups)
+    def __init__(self, terms):
+        # TODO call super class init?
+        self._dcp_attr = reduce(op.add, [t._dcp_attr for t in terms])
         self.args = []
-        for group in self._arg_groups:
-            self.args += self.expand_args(group)
+        for term in terms:
+            self.args += self.expand_args(term)
         self.subexpressions = self.args
-
-    def shape_from_args(self):
-        """Returns the shape of the expression.
-        """
-        arg_shapes = [g._dcp_attr.shape for g in self.args]
-        return reduce(op.add, arg_shapes)
 
     def expand_args(self, expr):
         """Helper function to extract the arguments from an AddExpression.
