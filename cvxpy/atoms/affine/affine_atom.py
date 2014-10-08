@@ -32,7 +32,7 @@ class AffAtom(Atom):
     def sign_from_args(self):
         """By default, the sign is the most general of all the argument signs.
         """
-        arg_signs = [arg.dcp_attr().sign for arg in self.args]
+        arg_signs = [arg._dcp_attr.sign for arg in self.args]
         return reduce(op.add, arg_signs)
 
     # Doesn't matter for affine atoms.

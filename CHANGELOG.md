@@ -1,6 +1,5 @@
 Version 2.15 (next release)
 ---------------------------
-* Made convexity checking recursive, instead of being cached.
 
 Version 2.14
 ------------

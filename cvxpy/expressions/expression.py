@@ -84,44 +84,38 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
-    @abc.abstractmethod
-    def dcp_attr(self):
-        """Returns a struct with the expression's curvature, sign, and shape.
-        """
-        return NotImplemented
-
     # Curvature properties.
 
     @property
     def curvature(self):
         """ Returns the curvature of the expression.
         """
-        return str(self.dcp_attr().curvature)
+        return str(self._dcp_attr.curvature)
 
     def is_constant(self):
         """Is the expression constant?
         """
-        return self.dcp_attr().curvature.is_constant()
+        return self._dcp_attr.curvature.is_constant()
 
     def is_affine(self):
         """Is the expression affine?
         """
-        return self.dcp_attr().curvature.is_affine()
+        return self._dcp_attr.curvature.is_affine()
 
     def is_convex(self):
         """Is the expression convex?
         """
-        return self.dcp_attr().curvature.is_convex()
+        return self._dcp_attr.curvature.is_convex()
 
     def is_concave(self):
         """Is the expression concave?
         """
-        return self.dcp_attr().curvature.is_concave()
+        return self._dcp_attr.curvature.is_concave()
 
     def is_dcp(self):
         """Is the expression DCP compliant? (i.e., no unknown curvatures).
         """
-        return self.dcp_attr().curvature.is_dcp()
+        return self._dcp_attr.curvature.is_dcp()
 
     # Sign properties.
 
@@ -129,29 +123,29 @@ class Expression(u.Canonical):
     def sign(self):
         """ Returns the sign of the expression.
         """
-        return str(self.dcp_attr().sign)
+        return str(self._dcp_attr.sign)
 
     def is_zero(self):
         """Is the expression all zero?
         """
-        return self.dcp_attr().sign.is_zero()
+        return self._dcp_attr.sign.is_zero()
 
     def is_positive(self):
         """Is the expression positive?
         """
-        return self.dcp_attr().sign.is_positive()
+        return self._dcp_attr.sign.is_positive()
 
     def is_negative(self):
         """Is the expression negative?
         """
-        return self.dcp_attr().sign.is_negative()
+        return self._dcp_attr.sign.is_negative()
 
     # The shape of the expression, an object.
     @property
     def shape(self):
         """ Returns the shape of the expression.
         """
-        return self.dcp_attr().shape
+        return self._dcp_attr.shape
 
     @property
     def size(self):

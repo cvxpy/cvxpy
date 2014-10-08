@@ -41,21 +41,14 @@ class BinaryOperator(AffAtom):
     def numeric(self, values):
         return reduce(self.OP_FUNC, values)
 
-    def shape_from_args(self):
-        """Returns the shape of the expression.
-        """
-        return self.OP_FUNC(self.args[0].dcp_attr().shape,
-                            self.args[1].dcp_attr().shape)
-
-    def sign_from_args(self):
-        """Returns the sign of the expression.
-        """
-        return self.OP_FUNC(self.args[0].dcp_attr().sign,
-                            self.args[1].dcp_attr().sign)
+    # Sets the sign, curvature, and shape.
+    def init_dcp_attr(self):
+        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
+                                      self.args[1]._dcp_attr)
 
     # Validate the dimensions.
     def validate_arguments(self):
-        self.shape_from_args()
+        self.OP_FUNC(self.args[0].shape, self.args[1].shape)
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"

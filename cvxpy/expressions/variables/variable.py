@@ -29,20 +29,14 @@ class Variable(Leaf):
     # cols - variable width.
     def __init__(self, rows=1, cols=1, name=None):
         self.id = lu.get_id()
-        self._rows = rows
-        self._cols = cols
         if name is None:
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         else:
             self._name = name
         self.primal_value = None
-
-    def dcp_attr(self):
-        """Returns a struct with the expression's curvature, sign, and shape.
-        """
-        return u.DCPAttr(u.Sign.UNKNOWN,
-                         u.Curvature.AFFINE,
-                         u.Shape(self._rows, self._cols))
+        self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
+                                   u.Curvature.AFFINE,
+                                   u.Shape(rows, cols))
 
     def name(self):
         return self._name
