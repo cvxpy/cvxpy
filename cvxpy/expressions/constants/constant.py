@@ -35,8 +35,6 @@ class Constant(Leaf):
         else:
             self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
             self._sparse = False
-        # Set DCP attributes.
-        self.init_dcp_attr()
 
     def name(self):
         return str(self.value)
@@ -45,11 +43,12 @@ class Constant(Leaf):
     def value(self):
         return self._value
 
-    # Return the DCP attributes of the constant.
-    def init_dcp_attr(self):
+    def dcp_attr(self):
+        """Returns a struct with the expression's curvature, sign, and shape.
+        """
         shape = u.Shape(*intf.size(self.value))
         sign = intf.sign(self.value)
-        self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
+        return u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

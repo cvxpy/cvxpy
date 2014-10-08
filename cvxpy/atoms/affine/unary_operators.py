@@ -35,9 +35,15 @@ class UnaryOperator(AffAtom):
     def numeric(self, values):
         return self.OP_FUNC(values[0])
 
-    # Returns the sign, curvature, and shape.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr)
+    def shape_from_args(self):
+        """Returns the shape of the expression.
+        """
+        return self.args[0].dcp_attr().shape
+
+    def sign_from_args(self):
+        """Returns the sign of the expression.
+        """
+        return self.OP_FUNC(self.args[0].dcp_attr().sign)
 
 class NegExpression(UnaryOperator):
     OP_NAME = "-"

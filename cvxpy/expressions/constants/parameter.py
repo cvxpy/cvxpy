@@ -37,7 +37,6 @@ class Parameter(Constant):
             self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
         else:
             self._name = name
-        self.init_dcp_attr()
         # Initialize with value if provided.
         if value is not None:
             self.value = value
@@ -45,10 +44,12 @@ class Parameter(Constant):
     def name(self):
         return self._name
 
-    def init_dcp_attr(self):
+    def dcp_attr(self):
+        """Returns a struct with the expression's curvature, sign, and shape.
+        """
         shape = u.Shape(self._rows, self._cols)
         sign = u.Sign(self.sign_str)
-        self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
+        return u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
 
     # Getter and setter for parameter value.
     @property

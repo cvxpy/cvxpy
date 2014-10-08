@@ -530,3 +530,13 @@ class TestExpressions(BaseTest):
         """Test indexing with logical arrays.
         """
         pass
+
+    def test_dcp_update(self):
+        """Test that convexity info updates when the facts change.
+        """
+        from cvxpy.atoms import square
+        a = np.array([1,2])
+        cost = square(self.x).T*a
+        assert cost.is_dcp()
+        a[0] = -1
+        assert not cost.is_dcp()

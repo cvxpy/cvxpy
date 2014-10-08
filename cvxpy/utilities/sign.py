@@ -130,6 +130,11 @@ class Sign(object):
         else:
             return Sign.POSITIVE
 
+    def __div__(self, other):
+        """Handles logic of dividing signs.
+        """
+        return self*other
+
     def __neg__(self):
         """Equivalent to NEGATIVE * self.
         """

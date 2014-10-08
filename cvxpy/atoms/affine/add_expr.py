@@ -28,13 +28,24 @@ class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """
 
-    def __init__(self, terms):
+    def __init__(self, arg_groups):
         # TODO call super class init?
-        self._dcp_attr = reduce(op.add, [t._dcp_attr for t in terms])
-        self.args = []
-        for term in terms:
-            self.args += self.expand_args(term)
-        self.subexpressions = self.args
+        self._arg_groups = arg_groups
+        args = []
+        for group in self._arg_groups:
+            args += self.expand_args(group)
+        super(AddExpression, self).__init__(*args)
+
+    def shape_from_args(self):
+        """Returns the shape of the expression.
+        """
+        arg_shapes = [arg.dcp_attr().shape for arg in self.args]
+        return reduce(op.add, arg_shapes)
+
+    def validate_arguments(self):
+        """Checks that the expression has a valid shape.
+        """
+        self.shape_from_args()
 
     def expand_args(self, expr):
         """Helper function to extract the arguments from an AddExpression.

@@ -38,7 +38,6 @@ class Atom(Expression):
         # Convert raw values to Constants.
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
-        self.init_dcp_attr()
         self.subexpressions = self.args
 
     # Returns the string representation of the function call.
@@ -46,34 +45,52 @@ class Atom(Expression):
         return "%s(%s)" % (self.__class__.__name__,
                            ", ".join([arg.name() for arg in self.args]))
 
-    # Determines the curvature, sign, and shape from the arguments.
-    def init_dcp_attr(self):
-        # Initialize _shape. Raises an error for invalid argument sizes.
+    def dcp_attr(self):
+        """Returns a struct with the expression's curvature, sign, and shape.
+        """
         shape = self.shape_from_args()
         sign = self.sign_from_args()
         curvature = Atom.dcp_curvature(self.func_curvature(),
                                        self.args,
                                        self.monotonicity())
-        self._dcp_attr = u.DCPAttr(sign, curvature, shape)
+        return u.DCPAttr(sign, curvature, shape)
 
-    # Returns argument curvatures as a list.
-    def argument_curvatures(self):
-        return [arg.curvature for arg in self.args]
-
-    # Raises an error if the arguments are invalid.
-    def validate_arguments(self):
-        pass
-
-    # The curvature of the atom if all arguments conformed to DCP.
-    # Alternatively, the curvature of the atom's function.
     @abc.abstractmethod
-    def func_curvature(self):
+    def shape_from_args(self):
+        """Returns the shape of the expression.
+        """
         return NotImplemented
 
-    # Returns a list with the monotonicity in each argument.
-    # monotonicity can depend on the sign of the argument.
+    @abc.abstractmethod
+    def sign_from_args(self):
+        """Returns the sign of the expression.
+        """
+        return NotImplemented
+
+    def argument_curvatures(self):
+        """Returns argument curvatures as a list.
+        """
+        return [arg.curvature for arg in self.args]
+
+    def validate_arguments(self):
+        """Raises an error if the arguments are invalid.
+        """
+        pass
+
+    @abc.abstractmethod
+    def func_curvature(self):
+        """The curvature of the atom if all arguments were affine.
+
+        Alternatively, the curvature of the atom's function.
+        """
+        return NotImplemented
+
     @abc.abstractmethod
     def monotonicity(self):
+        """Returns a list with the monotonicity in each argument.
+
+        Monotonicity can depend on the sign of the argument.
+        """
         return NotImplemented
 
     # Applies DCP composition rules to determine curvature in each argument.
@@ -86,8 +103,8 @@ class Atom(Expression):
         arg_curvatures = []
         for arg, monotonicity in zip(args, monotonicities):
             arg_curv = u.monotonicity.dcp_curvature(monotonicity, curvature,
-                                                    arg._dcp_attr.sign,
-                                                    arg._dcp_attr.curvature)
+                                                    arg.dcp_attr().sign,
+                                                    arg.dcp_attr().curvature)
             arg_curvatures.append(arg_curv)
         return reduce(lambda x,y: x+y, arg_curvatures)
 
