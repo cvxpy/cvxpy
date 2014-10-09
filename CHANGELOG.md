@@ -1,5 +1,6 @@
 Version 2.15 (next release)
 ---------------------------
+* Made it so you can assign a value to a variable for an initial value.
 
 Version 2.14
 ------------
