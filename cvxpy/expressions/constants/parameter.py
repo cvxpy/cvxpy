@@ -55,34 +55,6 @@ class Parameter(Constant):
     def value(self):
         return self._value
 
-    def _validate_value(self, val):
-        """Check that the value satisfies the parameter's symbolic attributes.
-
-        Parameters
-        ----------
-        val : numeric type
-            The value assigned.
-
-        Returns
-        -------
-        numeric type
-            The value converted to the proper matrix type.
-        """
-        # Convert val to the proper matrix type.
-        val = intf.DEFAULT_INTERFACE.const_to_matrix(val)
-        size = intf.size(val)
-        if size != self.size:
-            raise ValueError(
-                ("Invalid dimensions (%s, %s) for Parameter value." % size)
-            )
-        # All signs are valid if sign is unknown.
-        # Otherwise value sign must match declared sign.
-        sign = intf.sign(val)
-        if self.is_positive() and not sign.is_positive() or \
-           self.is_negative() and not sign.is_negative():
-            raise ValueError("Invalid sign for Parameter value.")
-        return val
-
     @value.setter
     def value(self, val):
         self._value = self._validate_value(val)

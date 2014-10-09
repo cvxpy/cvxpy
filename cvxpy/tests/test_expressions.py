@@ -83,6 +83,25 @@ class TestExpressions(BaseTest):
         # self.assertEqual(mat.shape, (2,4))
         # self.assertEqual(mat[0,2], 1)
 
+    def test_assign_var_value(self):
+        """Test assigning a value to a variable.
+        """
+        # Scalar variable.
+        a = Variable()
+        a.value = 1
+        self.assertEqual(a.value, 1)
+        with self.assertRaises(Exception) as cm:
+            a.value = [2, 1]
+        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Variable value.")
+        # Vector variable.
+        x = Variable(2)
+        x.value = [2, 1]
+        self.assertItemsAlmostEqual(x.value, [2, 1])
+        # Matrix variable.
+        A = Variable(3, 2)
+        A.value = np.ones((3, 2))
+        self.assertItemsAlmostEqual(A.value, np.ones((3, 2)))
+
     # Test tranposing variables.
     def test_transpose_variable(self):
         var = self.a.T

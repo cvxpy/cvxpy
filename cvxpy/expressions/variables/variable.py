@@ -56,6 +56,13 @@ class Variable(Leaf):
     def value(self):
         return self.primal_value
 
+    @value.setter
+    def value(self, val):
+        """Assign a value to the variable.
+        """
+        val = self._validate_value(val)
+        self.save_value(val)
+
     def variables(self):
         """Returns itself as a variable.
         """
