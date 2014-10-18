@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__version__ = "0.2.14"
+__version__ = "0.2.15"
 from atoms import *
 from expressions.variables import Variable, Semidef
 from expressions.constants import Parameter, CallbackParam, Constant
