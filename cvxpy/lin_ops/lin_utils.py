@@ -506,7 +506,10 @@ def get_expr_params(operator):
     if operator.type is lo.PARAM:
         return operator.data.parameters()
     else:
-        vars_ = []
+        params = []
         for arg in operator.args:
-            vars_ += get_expr_params(arg)
-        return vars_
+            params += get_expr_params(arg)
+        # Some LinOps have a param as data.
+        if isinstance(operator.data, lo.LinOp):
+            params += get_expr_params(operator.data)
+        return params

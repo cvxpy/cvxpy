@@ -25,11 +25,11 @@ class CallbackParam(Parameter):
     """
     PARAM_COUNT = 0
     def __init__(self, callback, rows=1, cols=1, name=None, sign="unknown"):
-        self.callback = callback
+        self._callback = callback
         super(CallbackParam, self).__init__(rows, cols, name, sign)
 
     @property
     def value(self):
         """Evaluate the callback to get the value.
         """
-        return self._validate_value(self.callback())
+        return self._validate_value(self._callback())

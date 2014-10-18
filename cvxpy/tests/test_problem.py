@@ -1115,3 +1115,10 @@ class TestProblem(BaseTest):
         prob.solve()
         self.assertAlmostEqual(g.value, 0)
 
+        # Test multiplication.
+        prob = Problem( Minimize( x0*x ), [ x == 1 ] )
+        x0.value = 2
+        prob.solve()
+        x0.value = 1
+        prob.solve()
+        self.assertAlmostEqual(prob.value, 1)
