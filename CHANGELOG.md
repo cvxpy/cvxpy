@@ -1,6 +1,7 @@
-Version 2.15 (next release)
----------------------------
+Version 2.15
+------------
 * Made it so you can assign a value to a variable for an initial value.
+* Overloaded power operator.
 
 Version 2.14
 ------------

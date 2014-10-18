@@ -23,25 +23,37 @@ def constant():
     return constants.Constant
 
 def add_expr():
-    from ..atoms.affine import add_expr
+    from cvxpy.atoms.affine import add_expr
     return add_expr.AddExpression
 
 def mul_expr():
-    from ..atoms.affine import binary_operators
+    from cvxpy.atoms.affine import binary_operators
     return binary_operators.MulExpression
 
 def div_expr():
-    from ..atoms.affine import binary_operators
+    from cvxpy.atoms.affine import binary_operators
     return binary_operators.DivExpression
 
 def neg_expr():
-    from ..atoms.affine import unary_operators
+    from cvxpy.atoms.affine import unary_operators
     return unary_operators.NegExpression
 
 def index():
-    from ..atoms.affine import index
+    from cvxpy.atoms.affine import index
     return index.index
 
 def transpose():
-    from ..atoms.affine import transpose
+    from cvxpy.atoms.affine import transpose
     return transpose.transpose
+
+def inv_pos():
+    from cvxpy.atoms.elementwise import inv_pos
+    return inv_pos.inv_pos
+
+def square():
+    from cvxpy.atoms.elementwise import square
+    return square.square
+
+def sqrt():
+    from cvxpy.atoms.elementwise import sqrt
+    return sqrt.sqrt

@@ -549,3 +549,15 @@ class TestExpressions(BaseTest):
         """Test indexing with logical arrays.
         """
         pass
+
+    def test_powers(self):
+        exp = self.x**2
+        self.assertEqual(exp.curvature, u.Curvature.CONVEX_KEY)
+        exp = self.x**0.5
+        self.assertEqual(exp.curvature, u.Curvature.CONCAVE_KEY)
+        exp = self.x**-1
+        self.assertEqual(exp.curvature, u.Curvature.CONVEX_KEY)
+        with self.assertRaises(Exception) as cm:
+            (self.x**3)
+        self.assertEqual(str(cm.exception), "Invalid power: 3.")
+

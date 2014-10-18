@@ -193,6 +193,18 @@ class Expression(u.Canonical):
         else:
             return types.transpose()(self)
 
+    def __pow__(self, power):
+        """The power operator.
+        """
+        if power == 2:
+            return types.square()(self)
+        elif power == 0.5:
+            return types.sqrt()(self)
+        elif power == -1:
+            return types.inv_pos()(self)
+        else:
+            raise ValueError("Invalid power: %d." % power)
+
     # Arithmetic operators.
     @staticmethod
     def cast_to_const(expr):
