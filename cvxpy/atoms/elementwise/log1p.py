@@ -19,33 +19,25 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.affine.index import index
-from cvxpy.constraints.exponential import ExpCone
+from cvxpy.atoms.elementwise.log import log
 import numpy as np
 
-class log(Elementwise):
-    """Elementwise :math:`\log x`.
+class log1p(log):
+    """Elementwise :math:`\log (1 + x)`.
     """
     def __init__(self, x):
-        super(log, self).__init__(x)
+        super(log1p, self).__init__(x)
 
-    @Elementwise.numpy_numeric
+    @log.numpy_numeric
     def numeric(self, values):
-        """Returns the elementwise natural log of x.
+        """Returns the elementwise natural log of x+1.
         """
-        return np.log(values[0])
+        return np.log(values[0]+1)
 
-    # Always unknown.
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
-
-    # Default curvature.
-    def func_curvature(self):
-        return u.Curvature.CONCAVE
-
-    def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+        """The same sign as the argument.
+        """
+        return self.args[0]._dcp_attr.sign
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -65,8 +57,7 @@ class log(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        t = lu.create_var(size)
         x = arg_objs[0]
-        ones = lu.create_const(np.mat(np.ones(size)), size)
-
-        return (t, [ExpCone(t, ones, x)])
+        ones = lu.create_const(np.mat(np.ones(x.size)), x.size)
+        xp1 = lu.sum_expr([x, ones])
+        return log.graph_implementation([xp1], size, data)

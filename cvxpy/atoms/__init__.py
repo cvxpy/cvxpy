@@ -54,6 +54,7 @@ from elementwise.exp import exp
 from elementwise.huber import huber
 from elementwise.inv_pos import inv_pos
 from elementwise.log import log
+from elementwise.log1p import log1p
 from elementwise.max_elemwise import max_elemwise
 from elementwise.min_elemwise import min_elemwise
 from elementwise.neg import neg

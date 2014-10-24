@@ -145,6 +145,7 @@ atoms = [
         (lambda_min, (1, 1), [ [[2,0],[0,1]] ], Constant([1])),
         (lambda_min, (1, 1), [ [[5,7],[7,-3]] ], Constant([-7.06225775])),
         (log, (2, 2), [ [[1, math.e],[math.e**2, 1.0/math.e]] ], Constant([[0, 1],[2, -1]])),
+        (log1p, (2, 2), [ [[0, math.e-1],[math.e**2-1, 1.0/math.e-1]] ], Constant([[0, 1],[2, -1]])),
         (min_elemwise, (2, 1), [ [-5,2],[-3,1],0,[1,2] ], Constant([-5,0])),
         (min_elemwise, (2, 2), [ [[-5,2],[-3,-1]],0,[[5,4],[-1,2]] ], Constant([[-5,0],[-3,-1]])),
         (min_entries, (1, 1), [ [[-5,2],[-3,1]] ], Constant([-5])),

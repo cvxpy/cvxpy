@@ -330,3 +330,13 @@ class TestAtoms(unittest.TestCase):
             trace(self.C)
         self.assertEqual(str(cm.exception),
             "Argument to trace must be a square matrix.")
+
+    def test_log1p(self):
+        """Test the log1p atom.
+        """
+        expr = log1p(1)
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.CONSTANT_KEY)
+        self.assertEquals(expr.size, (1, 1))
+        expr = log1p(-0.5)
+        self.assertEquals(expr.sign, u.Sign.NEGATIVE_KEY)
