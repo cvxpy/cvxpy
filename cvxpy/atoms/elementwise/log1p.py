@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.log import log
+import scipy
 import numpy as np
 
 class log1p(log):
@@ -32,7 +33,7 @@ class log1p(log):
     def numeric(self, values):
         """Returns the elementwise natural log of x+1.
         """
-        return np.log(values[0]+1)
+        return scipy.special.log1p(values[0])
 
     def sign_from_args(self):
         """The same sign as the argument.

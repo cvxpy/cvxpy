@@ -1,3 +1,8 @@
+Version 2.16 (next release)
+---------------------------
+* Added log1p.
+
+
 Version 2.15
 ------------
 * Made it so you can assign a value to a variable for an initial value.
