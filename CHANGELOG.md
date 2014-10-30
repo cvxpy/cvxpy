@@ -2,7 +2,7 @@ Version 2.16 (next release)
 ---------------------------
 * Added log1p.
 * Added scalene penalty.
-
+* Made LinOp for multiplication on the right.
 
 Version 2.15
 ------------
