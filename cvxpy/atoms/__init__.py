@@ -59,5 +59,6 @@ from elementwise.max_elemwise import max_elemwise
 from elementwise.min_elemwise import min_elemwise
 from elementwise.neg import neg
 from elementwise.pos import pos
+from elementwise.scalene import scalene
 from elementwise.sqrt import sqrt
 from elementwise.square import square

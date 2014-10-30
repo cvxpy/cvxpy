@@ -234,6 +234,12 @@ scalars, which are promoted.
 | pos(x)                    | :math:`\max \left\{     | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! incr.     |
 |                           | x, 0 \right\}`          |                            |                     |                   |                  |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
+| scalene(x, alpha, beta)   | :math:`\alpha           | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! for       |
+|                           | \mathrm{pos}(x)         |                            |                     |                   | :math:`x \geq 0` |
+| alpha >= 0                | + \beta                 |                            |                     |                   |                  |
+|                           | \mathrm{neg}(x)`        |                            |                     |                   | !decr! for       |
+| beta >= 0                 |                         |                            |                     |                   | :math:`x \leq 0` |
++---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | sqrt(x)                   | :math:`\sqrt x`         | :math:`x \geq 0`           | !positive! positive | !concave! concave | !incr! incr.     |
 +---------------------------+-------------------------+----------------------------+---------------------+-------------------+------------------+
 | square(x)                 | :math:`x^2`             | :math:`x \in \mathbf{R}`   | !positive! positive | !convex! convex   | !incr! for       |

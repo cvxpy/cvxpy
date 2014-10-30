@@ -1,6 +1,7 @@
 Version 2.16 (next release)
 ---------------------------
 * Added log1p.
+* Added scalene penalty.
 
 
 Version 2.15
