@@ -158,7 +158,7 @@ def sub_expr(lh_op, rh_op):
     return sum_expr([lh_op, neg_expr(rh_op)])
 
 def mul_expr(lh_op, rh_op, size):
-    """Multiply two linear operators.
+    """Multiply two linear operators, with the constant on the left.
 
     Parameters
     ----------
@@ -175,6 +175,25 @@ def mul_expr(lh_op, rh_op, size):
         A linear operator representing the product.
     """
     return lo.LinOp(lo.MUL, size, [rh_op], lh_op)
+
+def rmul_expr(lh_op, rh_op, size):
+    """Multiply two linear operators, with the constant on the right.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the product.
+    rh_op : LinOp
+        The right-hand operator in the product.
+    size : tuple
+        The size of the product.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the product.
+    """
+    return lo.LinOp(lo.RMUL, size, [lh_op], rh_op)
 
 def mul_elemwise(lh_op, rh_op):
     """Multiply two linear operators elementwise.

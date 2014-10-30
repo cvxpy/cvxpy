@@ -349,7 +349,7 @@ class TestExpressions(BaseTest):
         # Scalar constants on the right should be moved left
         # instead of taking the transpose.
         expr = self.C*2
-        self.assertEqual(expr.args[0].value, 2)
+        self.assertEqual(expr.args[1].value, 2)
 
     # Test the DivExpresion class.
     def test_div_expression(self):

@@ -269,6 +269,28 @@ def mul_mat(lin_op):
         constant = sp.block_diag(lin_op.size[1]*[constant]).tocsc()
     return [constant]
 
+def rmul_mat(lin_op):
+    """Returns the coefficient matrix for RMUL linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The rmul linear op.
+
+    Returns
+    -------
+    list of SciPy CSC matrix or scalar.
+        The matrix for the multiplication on the right operator.
+    """
+    constant = const_mat(lin_op.data)
+    # Scalars don't need to be replicated.
+    if not intf.is_scalar(constant):
+        # Matrix is the kronecker product of constant.T and identity.
+        # Each column in the product is a linear combination of the
+        # columns of the left hand multiple.
+        constant = sp.kron(constant.T, sp.eye(lin_op.size[0])).tocsc()
+    return [constant]
+
 def index_mat(lin_op):
     """Returns the coefficient matrix for indexing.
 
@@ -470,6 +492,7 @@ TYPE_TO_FUNC = {
     lo.PROMOTE: promote_mat,
     lo.NEG: neg_mat,
     lo.MUL: mul_mat,
+    lo.RMUL: rmul_mat,
     lo.MUL_ELEM: mul_elemwise_mat,
     lo.DIV: div_mat,
     lo.SUM_ENTRIES: sum_entries_mat,

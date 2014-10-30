@@ -37,6 +37,9 @@ PROMOTE = "promote"
 # Multiplying an expression by a constant.
 # Data: LinOp evaluating to the left hand multiple.
 MUL = "mul"
+# Multiplying an expression by a constant on the right.
+# Data: LinOp evaluating to the right hand multiple.
+RMUL = "rmul"
 # Multiplying an expression elementwise by a constant.
 # Data: LinOp evaluating to the left hand multiple.
 MUL_ELEM = "mul_elem"

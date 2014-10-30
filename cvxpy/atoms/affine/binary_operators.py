@@ -78,6 +78,34 @@ class MulExpression(BinaryOperator):
             arg_objs[1] = lu.diag_vec(arg)
         return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 
+class RMulExpression(MulExpression):
+    """Multiplication by a constant on the right.
+    """
+
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Multiply the linear expressions.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        # Promote the left hand side to a diagonal matrix if necessary.
+        if size[0] != 1 and arg_objs[0].size == (1, 1):
+            arg = lu.promote(arg_objs[0], (size[0], 1))
+            arg_objs[0] = lu.diag_vec(arg)
+        return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.div
