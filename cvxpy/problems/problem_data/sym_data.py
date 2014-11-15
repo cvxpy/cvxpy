@@ -178,7 +178,7 @@ class SymData(object):
         dims[s.INT_IDS] = []
         # Formats nonlinear constraints for the solver.
         for constr_type in constr_map.keys():
-            if constr_type not in [s.EQ_DIM, s.LEQ_DIM]:
+            if constr_type not in [s.EQ, s.LEQ]:
                 for constr in constr_map[constr_type]:
                     constr.format(constr_map[s.EQ], constr_map[s.LEQ],
                                   dims, solver)

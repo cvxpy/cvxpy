@@ -38,20 +38,47 @@ class TestMIPVariable(BaseTest):
         self.assertEqual(repr(self.x_bool), "BoolVar(1, 1)")
         self.assertEqual(repr(self.B_int), "IntVar(2, 3)")
 
-    # def test_bool_prob(self):
-    #     # BoolVar in objective.
-    #     obj = Minimize(square(self.x_bool))
-    #     p = Problem(obj,[])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0)
+    def test_bool_prob(self):
+        # BoolVar in objective.
+        obj = Minimize(square(self.x_bool))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
 
-    #     self.assertAlmostEqual(self.x_bool.value, 0)
+        self.assertAlmostEqual(self.x_bool.value, 0)
+
+        # BoolVar in constraint.
+        t = Variable()
+        obj = Minimize(t)
+        p = Problem(obj,[square(self.x_bool) <= t])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
+        self.assertAlmostEqual(self.x_bool.value, 0)
+
+        # Matrix BoolVar in objective.
+        C = matrix([[0, 1, 0], [1, 1, 1]])
+        obj = Minimize(sum_squares(self.A_bool - C))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
+        self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
+
+        # Matrix BoolVar in constraint.
+        t = Variable()
+        obj = Minimize(t)
+        p = Problem(obj, [sum_squares(self.A_bool - C) <= t])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
+        self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
     # def test_int_prob(self):
     #     # IntVar in objective.
-    #     obj = Minimize(square(self.y_bool - 0.2))
+    #     obj = Minimize(square(self.y_int - 0.2))
     #     p = Problem(obj,[])
     #     result = p.solve()
     #     self.assertAlmostEqual(result, 0.04)
 
-    #     self.assertAlmostEqual(self.y_bool.value, 0)
+    #     self.assertAlmostEqual(self.y_int.value, 0)

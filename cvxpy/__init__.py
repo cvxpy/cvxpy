@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 __version__ = "0.2.15"
 from atoms import *
-from expressions.variables import Variable, Semidef
+from expressions.variables import Variable, Semidef, BoolVar, IntVar
 from expressions.constants import Parameter, CallbackParam, Constant
 from problems.problem import Problem
 from problems.objective import Maximize, Minimize

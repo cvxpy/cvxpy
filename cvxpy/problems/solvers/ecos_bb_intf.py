@@ -88,6 +88,6 @@ class ECOS_BB(ECOS):
                                                    sym_data.var_offsets,
                                                    sym_data.var_sizes)
         results_dict = ecos.solve(*prob_data[0], verbose=verbose,
-                                  bool_vars_idx=bool_idx, int_vars_idx=int_idx,
+                                  bool_vars_idx=bool_idx,# int_vars_idx=int_idx,
                                   **solver_opts)
         return self.format_results(results_dict, None, obj_offset)
