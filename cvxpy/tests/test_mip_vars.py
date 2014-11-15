@@ -46,3 +46,12 @@ class TestMIPVariable(BaseTest):
         self.assertAlmostEqual(result, 0)
 
         self.assertAlmostEqual(self.x_bool.value, 0)
+
+    def test_int_prob(self):
+        # IntVar in objective.
+        obj = Minimize(square(self.y_bool - 0.2))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0.04)
+
+        self.assertAlmostEqual(self.y_bool.value, 0)
