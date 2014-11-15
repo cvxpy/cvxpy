@@ -22,7 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_to_matrix as op2mat
-from cvxpy.constraints import SOC, SDP, ExpCone
+from cvxpy.constraints import SOC, SDP, ExpCone, BoolConstr, IntConstr
 from toolz.itertoolz import unique
 from collections import OrderedDict
 
@@ -81,7 +81,9 @@ class SymData(object):
                       s.SOC: [],
                       s.SOC_EW: [],
                       s.SDP: [],
-                      s.EXP: []}
+                      s.EXP: [],
+                      s.BOOL: [],
+                      s.INT: []}
         for c in constraints:
             if isinstance(c, lo.LinEqConstr):
                 constr_map[s.EQ].append(c)
@@ -93,6 +95,10 @@ class SymData(object):
                 constr_map[s.SDP].append(c)
             elif isinstance(c, ExpCone):
                 constr_map[s.EXP].append(c)
+            elif isinstance(c, BoolConstr):
+                constr_map[s.BOOL].append(c)
+            elif isinstance(c, IntConstr):
+                constr_map[s.INT].append(c)
         return constr_map
 
     @staticmethod
@@ -168,10 +174,14 @@ class SymData(object):
         dims[s.SOC_DIM] = []
         dims[s.SDP_DIM] = []
         dims[s.EXP_DIM] = 0
-        # Formats SOC, SOC_EW, SDP, and EXP constraints for the solver.
-        nonlin = constr_map[s.SOC] + constr_map[s.SDP] + constr_map[s.EXP]
-        for constr in nonlin:
-            constr.format(constr_map[s.EQ], constr_map[s.LEQ], dims, solver)
+        dims[s.BOOL_IDS] = []
+        dims[s.INT_IDS] = []
+        # Formats nonlinear constraints for the solver.
+        for constr_type in constr_map.keys():
+            if constr_type not in [s.EQ_DIM, s.LEQ_DIM]:
+                for constr in constr_map[constr_type]:
+                    constr.format(constr_map[s.EQ], constr_map[s.LEQ],
+                                  dims, solver)
 
         return dims
 
@@ -217,4 +227,3 @@ class SymData(object):
             vert_offset += var_size[0]*var_size[1]
 
         return (var_offsets, var_sizes, vert_offset)
-

@@ -22,7 +22,6 @@ import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
-from toolz import itertoolz
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -240,8 +239,8 @@ class MatrixData(object):
                     # scipy CSC sparse matrix.
                     if not intf.is_sparse(block):
                         block = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(
-                                    block
-                                )
+                            block
+                        )
                     block = block.tocoo()
                     V.extend(block.data)
                     I.extend(block.row + vert_start)

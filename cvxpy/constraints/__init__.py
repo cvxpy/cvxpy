@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from bool_constr import BoolConstr
 from eq_constraint import EqConstraint
 from exponential import ExpCone
+from int_constr import IntConstr
 from leq_constraint import LeqConstraint
 from second_order import SOC
 from semi_definite import SDP

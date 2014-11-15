@@ -73,6 +73,11 @@ class Solver(object):
         """
         return self.name() in s.EXP_CAPABLE
 
+    def mip_capable(self):
+        """Can the solver handle boolean or integer variables?
+        """
+        return self.name() in s.MIP_CAPABLE
+
     @staticmethod
     def choose_solver(constraints):
         """Determines the appropriate solver.
@@ -91,6 +96,9 @@ class Solver(object):
         # If no constraints, use ECOS.
         if len(constraints) == 0:
             return s.ECOS
+        # If mixed integer constraints, use ECOS_BB.
+        elif constr_map[s.BOOL] or constr_map[s.INT]:
+            return s.ECOS_BB
         # If SDP or EXP, defaults to CVXOPT.
         elif constr_map[s.SDP] or constr_map[s.EXP]:
             return s.CVXOPT
@@ -107,7 +115,9 @@ class Solver(object):
             The list of canonicalized constraints.
         """
         constr_map = SymData.filter_constraints(constraints)
-        if (constr_map[s.SDP] and not self.sdp_capable()) or \
+        if (constr_map[s.BOOL] or constr_map[s.INT] \
+            and not self.mip_capable()) or \
+           (constr_map[s.SDP] and not self.sdp_capable()) or \
            (constr_map[s.EXP] and not self.exp_capable()) or \
            (len(constraints) == 0 and self.name() == s.SCS):
             raise SolverError(
@@ -130,8 +140,8 @@ class Solver(object):
         if prob_data.sym_data is not None and \
            (objective != prob_data.sym_data.objective or \
             constraints != prob_data.sym_data.constraints):
-           prob_data.sym_data = None
-           prob_data.matrix_data = None
+            prob_data.sym_data = None
+            prob_data.matrix_data = None
 
     def get_sym_data(self, objective, constraints, cached_data):
         """Returns the symbolic data for the problem.

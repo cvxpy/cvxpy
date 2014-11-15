@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, Eric Chu
 
 This file is part of CVXPY.
 
@@ -16,8 +16,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+from cvxpy.expressions.variables.variable import Variable
+from cvxpy.constraints.int_constr import IntConstr
 
-from bool_var import BoolVar
-from int_var import IntVar
-from variable import Variable
-from semidefinite import Semidef
+class IntVar(Variable):
+    """ An integer variable. """
+
+    def canonicalize(self):
+        """Variable must be an integer.
+        """
+        obj, constr = super(IntVar, self).canonicalize()
+        return (obj, constr + [IntConstr(obj)])
+
+    def __repr__(self):
+        """String to recreate the object.
+        """
+        return "IntVar(%d, %d)" % self.size

@@ -65,7 +65,7 @@ ECOS_STATUS = {0: OPTIMAL,
                -2: SOLVER_ERROR,
                -3: SOLVER_ERROR,
                -7: SOLVER_ERROR}
-
+ECOS_BB = "ECOS_BB"
 SCS = "SCS"
 SCS_STATUS = {"Solved": OPTIMAL,
               "Solved/Inaccurate": OPTIMAL_INACCURATE,
@@ -78,16 +78,18 @@ SCS_STATUS = {"Solved": OPTIMAL,
 
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS,
+                 ECOS_BB: ECOS_STATUS,
                  SCS: SCS_STATUS}
 
 # Solver capabilities.
-SOLVERS = [ECOS, CVXOPT, SCS]
+SOLVERS = [ECOS, ECOS_BB, CVXOPT, SCS]
 SDP_CAPABLE = [CVXOPT, SCS]
 EXP_CAPABLE = [CVXOPT, SCS]
 SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
+MIP_CAPABLE = [ECOS_BB]
 
 # Map of constraint types.
-EQ, LEQ, SOC, SOC_EW, SDP, EXP = range(6)
+EQ, LEQ, SOC, SOC_EW, SDP, EXP, BOOL, INT = range(8)
 
 # Keys in the dictionary of cone dimensions.
 EQ_DIM = "f"
@@ -95,6 +97,11 @@ LEQ_DIM = "l"
 SOC_DIM = "q"
 SDP_DIM = "s"
 EXP_DIM = "ep"
+# Keys for non-convex constraints.
+BOOL_IDS = "bool_ids"
+BOOL_IDX = "bool_idx"
+INT_IDS = "bool_ids"
+INT_IDX = "bool_idx"
 
 # Keys for results_dict.
 STATUS = "status"

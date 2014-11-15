@@ -17,7 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from bool_var import BoolVar
-from int_var import IntVar
-from variable import Variable
-from semidefinite import Semidef
+import cvxpy.settings as s
+from cvxpy.constraints.bool_constr import BoolConstr
+
+class IntConstr(BoolConstr):
+    """
+    An integer constraint:
+        X_{ij} in Z for all i,j.
+
+    Attributes:
+        noncvx_var: A variable constrained to be elementwise integral.
+        lin_op: The linear operator equal to the noncvx_var.
+    """
+    CONSTR_TYPE = s.INT_IDS
+
+    def __str__(self):
+        return "IntConstr(%s)" % self.lin_op

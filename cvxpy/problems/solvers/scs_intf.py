@@ -17,32 +17,21 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.problems.solvers.solver import Solver
+from cvxpy.problems.solvers.ecos_intf import ECOS
 # Attempt to import SCS.
 try:
     import scs
 except ImportError:
     warnings.warn("The solver SCS could not be imported.")
 
-class SCS(Solver):
+class SCS(ECOS):
     """An interface for the SCS solver.
     """
     def name(self):
         """The name of the solver.
         """
         return s.SCS
-
-    def matrix_intf(self):
-        """The interface for matrices passed to the solver.
-        """
-        return intf.DEFAULT_SPARSE_INTERFACE
-
-    def vec_intf(self):
-        """The interface for vectors passed to the solver.
-        """
-        return intf.DEFAULT_INTERFACE
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.

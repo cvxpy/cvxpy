@@ -25,22 +25,6 @@ import numpy as np
 from base_test import BaseTest
 import unittest
 
-def diag(X):
-    """ Get the diagonal elements of a matrix.
-
-        ECHU: Not sure if we implemented this somewhere already.
-    """
-    for i in X.size[0]:
-        yield X[i,i]
-
-def trace(X):
-    """ Compute the trace of a matrix.
-
-        ECHU: Not sure if we implemented this somewhere already.
-    """
-    return sum(diag(X))
-
-
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
