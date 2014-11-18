@@ -115,7 +115,7 @@ class Solver(object):
             The list of canonicalized constraints.
         """
         constr_map = SymData.filter_constraints(constraints)
-        if (constr_map[s.BOOL] or constr_map[s.INT] \
+        if ((constr_map[s.BOOL] or constr_map[s.INT]) \
             and not self.mip_capable()) or \
            (constr_map[s.SDP] and not self.sdp_capable()) or \
            (constr_map[s.EXP] and not self.exp_capable()) or \

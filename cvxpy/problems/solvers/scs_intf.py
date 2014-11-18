@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
+import warnings
 # Attempt to import SCS.
 try:
     import scs

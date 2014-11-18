@@ -85,7 +85,7 @@ SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, SCS]
 SDP_CAPABLE = [CVXOPT, SCS]
 EXP_CAPABLE = [CVXOPT, SCS]
-SOCP_CAPABLE = [ECOS, CVXOPT, SCS]
+SOCP_CAPABLE = [ECOS, ECOS_BB, CVXOPT, SCS]
 MIP_CAPABLE = [ECOS_BB]
 
 # Map of constraint types.
@@ -100,8 +100,8 @@ EXP_DIM = "ep"
 # Keys for non-convex constraints.
 BOOL_IDS = "bool_ids"
 BOOL_IDX = "bool_idx"
-INT_IDS = "bool_ids"
-INT_IDX = "bool_idx"
+INT_IDS = "int_ids"
+INT_IDX = "int_idx"
 
 # Keys for results_dict.
 STATUS = "status"

@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.expressions.variables import Variable, Semidef
+from cvxpy.expressions.variables import Variable, Semidef, BoolVar
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.solvers.utilities import SOLVERS
@@ -157,11 +157,13 @@ class TestProblem(BaseTest):
 
         # ####
         for verbose in [True, False]:
-            for solver in [s.ECOS, s.CVXOPT, s.SCS]:
+            for solver in s.SOLVERS:
                 sys.stdout = StringIO()     # capture output
                 p = Problem(Minimize(self.a + self.x[0]), [self.a >= 2, self.x >= 2])
+                if solver in s.MIP_CAPABLE:
+                    p.constraints.append(BoolVar() == 0)
                 p.solve(verbose=verbose, solver=solver)
-                if solver != s.ECOS:
+                if solver in s.EXP_CAPABLE:
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
                 out = sys.stdout.getvalue() # release output

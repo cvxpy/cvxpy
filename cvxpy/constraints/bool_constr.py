@@ -79,9 +79,9 @@ class BoolConstr(Constraint):
             (equality constraints, inequality constraints)
         """
         eq_constr = []
-        # If a bool var was created, add an equality constraint.
+        # If a noncvx var was created, add an equality constraint.
         if self.noncvx_var != self.lin_op:
-            eq_constr += lu.create_eq(self.lin_op, noncvx_var)
+            eq_constr += lu.create_eq(self.lin_op, self.noncvx_var)
         return (eq_constr, [])
 
     @property

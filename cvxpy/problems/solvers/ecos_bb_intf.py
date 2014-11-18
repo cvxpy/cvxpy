@@ -55,7 +55,7 @@ class ECOS_BB(ECOS):
                 offset = var_offsets[var_id]
                 size = var_sizes[var_id]
                 for i in range(size[0]*size[1]):
-                    indices += [offset + i]
+                    indices.append(offset + i)
 
         return bool_idx, int_idx
 
@@ -87,7 +87,8 @@ class ECOS_BB(ECOS):
         bool_idx, int_idx = self._noncvx_id_to_idx(sym_data.dims,
                                                    sym_data.var_offsets,
                                                    sym_data.var_sizes)
+
         results_dict = ecos.solve(*prob_data[0], verbose=verbose,
-                                  bool_vars_idx=bool_idx,# int_vars_idx=int_idx,
+                                  bool_vars_idx=bool_idx, int_vars_idx=int_idx,
                                   **solver_opts)
         return self.format_results(results_dict, None, obj_offset)
