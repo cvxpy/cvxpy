@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from geo_mean import geo_mean
 from kl_div import kl_div
 from lambda_max import lambda_max
 from lambda_min import lambda_min
@@ -51,6 +50,7 @@ from affine.vstack import vstack
 from elementwise.abs import abs
 from elementwise.entr import entr
 from elementwise.exp import exp
+from elementwise.geo_mean import geo_mean
 from elementwise.huber import huber
 from elementwise.inv_pos import inv_pos
 from elementwise.log import log

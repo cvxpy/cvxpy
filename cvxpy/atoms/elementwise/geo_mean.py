@@ -19,26 +19,22 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms.atom import Atom
-from cvxpy.constraints import SOC
-import math
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints import SOC_Elemwise
+import numpy as np
 
-class geo_mean(Atom):
-    """ Geometric mean of two scalars; :math:`(x_1, \cdots, x_n)^{1/n}`. """
+class geo_mean(Elementwise):
+    """ Elementwise geometric mean; :math:`(x_1, x_2)^{1/2}`. """
     def __init__(self, x, y):
         super(geo_mean, self).__init__(x, y)
 
     # Returns the geometric mean of x and y.
     def numeric(self, values):
-        return math.sqrt(values[0]*values[1])
+        return np.sqrt(np.multiply(values[0], values[1]))
 
-    # The shape is the common width and the sum of the heights.
-    def shape_from_args(self):
-        return u.Shape(1, 1)
-
-    # Always unknown.
+    # Always positive.
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
+        return u.Sign.POSITIVE
 
     # Default curvature.
     def func_curvature(self):
@@ -46,11 +42,6 @@ class geo_mean(Atom):
 
     def monotonicity(self):
         return len(self.args)*[u.monotonicity.INCREASING]
-
-    # Only scalar arguments are valid.
-    def validate_arguments(self):
-        if not self.args[0].is_scalar() or not self.args[1].is_scalar():
-            raise TypeError("The arguments to geo_mean must resolve to scalars." )
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -70,16 +61,15 @@ class geo_mean(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # TODO use log for n != 2.
-        v = lu.create_var((1, 1))
         x = arg_objs[0]
         y = arg_objs[1]
+        v = lu.create_var(x.size)
         two = lu.create_const(2, (1, 1))
         # SOC(x + y, [y - x, 2*v])
         constraints = [
-            SOC(lu.sum_expr([x, y]),
-                [lu.sub_expr(y, x),
-                 lu.mul_expr(two, v, (1, 1))])
+            SOC_Elemwise(lu.sum_expr([x, y]),
+                         [lu.sub_expr(y, x),
+                          lu.mul_expr(two, v, v.size)])
         ]
         # 0 <= x, 0 <= y
         constraints += [lu.create_geq(x), lu.create_geq(y)]

@@ -76,6 +76,15 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX_KEY)
 
+    # Test the geo_mean class.
+    def test_geo_mean(self):
+        exp = self.x+self.y
+        atom = geo_mean(exp, self.x)
+        # self.assertEquals(atom.name(), "norm2(x + y)")
+        self.assertEquals(atom.size, (2,1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
     def test_quad_over_lin(self):
         # Test quad_over_lin DCP.
         atom = quad_over_lin(square(self.x), self.a)
