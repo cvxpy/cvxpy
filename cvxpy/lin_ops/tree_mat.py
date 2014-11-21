@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_op as lo
 import copy
 import numpy as np
 from numpy.fft import fft, ifft
+from scipy.signal import fftconvolve
 
 # Utility functions for treating an expression tree as a matrix
 # and multiplying by it and it's transpose.
@@ -211,25 +212,19 @@ def op_tmul(lin_op, value):
 def conv_mul(lin_op, rh_val, transpose=False):
     """Multiply by a convolution operator.
     """
-    # F^-1{F{left hand}*F(right hand)}
-    length = lin_op.size[0]
     constant = mul(lin_op.data, {})
     # Convert to 2D
     constant, rh_val = map(intf.from_1D_to_2D, [constant, rh_val])
-    lh_term = fft(constant, length, axis=0)
-    rh_term = fft(rh_val, length, axis=0)
-    # Transpose equivalent to taking conjugate
-    # and keeping only first m terms.
     if transpose:
-        lh_term = np.conjugate(lh_term)
-    product = np.multiply(lh_term, rh_term)
-    result = ifft(product, length, axis=0).real
-
-    if transpose:
-        rh_length = lin_op.args[0].size[0]
-        return result[:rh_length]
+        constant = np.flipud(constant)
+        # rh_val always larger than constant.
+        return fftconvolve(rh_val, constant, mode='valid')
     else:
-        return result
+        # First argument must be larger.
+        if constant.size >= rh_val.size:
+            return fftconvolve(constant, rh_val, mode='full')
+        else:
+            return fftconvolve(rh_val, constant, mode='full')
 
 def get_constant(lin_op):
     """Returns the constant term in the expression.
