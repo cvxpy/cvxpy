@@ -1124,3 +1124,9 @@ class TestProblem(BaseTest):
         x0.value = 1
         prob.solve()
         self.assertAlmostEqual(prob.value, 1)
+
+    def test_geo_mean(self):
+        cost = sum_entries(geo_mean(self.x, 1))
+        prob = Problem(Maximize(cost), [self.x == 1])
+        prob.solve()
+        self.assertAlmostEqual(prob.value, 2)

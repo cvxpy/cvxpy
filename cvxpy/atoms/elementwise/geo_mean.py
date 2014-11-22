@@ -61,6 +61,10 @@ class geo_mean(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
+        # Promote scalars.
+        for idx, arg in enumerate(arg_objs):
+            if arg.size != size:
+                arg_objs[idx] = lu.promote(arg, size)
         x = arg_objs[0]
         y = arg_objs[1]
         v = lu.create_var(x.size)
