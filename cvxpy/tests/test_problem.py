@@ -176,6 +176,7 @@ class TestProblem(BaseTest):
         for output in outputs[True]:
             assert len(output) > 0
         for output in outputs[False]:
+            print output
             assert len(output) == 0
 
     # Test registering other solve methods.

@@ -27,7 +27,7 @@ from scipy.signal import fftconvolve
 # Utility functions for treating an expression tree as a matrix
 # and multiplying by it and it's transpose.
 
-def mul(lin_op, val_dict):
+def mul(lin_op, val_dict, is_abs=False):
     """Multiply the expression tree by a vector.
 
     Parameters
@@ -36,6 +36,8 @@ def mul(lin_op, val_dict):
         The root of an expression tree.
     val_dict : dict
         A map of variable id to value.
+    is_abs : bool, optional
+        Multiply by the absolute value of the matrix?
 
     Returns
     -------
@@ -45,7 +47,11 @@ def mul(lin_op, val_dict):
     # Look up the value for a variable.
     if lin_op.type is lo.VARIABLE:
         if lin_op.data in val_dict:
-            return val_dict[lin_op.data]
+            # Use absolute value of variable.
+            if is_abs:
+                return np.abs(val_dict[lin_op.data])
+            else:
+                return val_dict[lin_op.data]
         # Defaults to zero if no value given.
         else:
             return np.mat(np.zeros(lin_op.size))
@@ -55,10 +61,13 @@ def mul(lin_op, val_dict):
     else:
         eval_args = []
         for arg in lin_op.args:
-            eval_args.append(mul(arg, val_dict))
-        return op_mul(lin_op, eval_args)
+            eval_args.append(mul(arg, val_dict, is_abs))
+        if is_abs:
+            return op_abs_mul(lin_op, eval_args)
+        else:
+            return op_mul(lin_op, eval_args)
 
-def tmul(lin_op, value):
+def tmul(lin_op, value, is_abs=False):
     """Multiply the transpose of the expression tree by a vector.
 
     Parameters
@@ -67,6 +76,8 @@ def tmul(lin_op, value):
         The root of an expression tree.
     value : NumPy matrix
         The vector to multiply by.
+    is_abs : bool, optional
+        Multiply by the absolute value of the matrix?
 
     Returns
     -------
@@ -80,10 +91,13 @@ def tmul(lin_op, value):
     elif lin_op.type is lo.NO_OP:
         return {}
     else:
-        result = op_tmul(lin_op, value)
+        if is_abs:
+            result = op_abs_tmul(lin_op, value)
+        else:
+            result = op_tmul(lin_op, value)
         result_dicts = []
         for arg in lin_op.args:
-            result_dicts.append(tmul(arg, result))
+            result_dicts.append(tmul(arg, result, is_abs))
         # Sum repeated ids.
         return sum_dicts(result_dicts)
 
@@ -125,7 +139,6 @@ def op_mul(lin_op, args):
     NumPy matrix or SciPy sparse matrix.
         The result of applying the linear operator.
     """
-    #print lin_op.type
     # Constants convert directly to their value.
     if lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
         result = lin_op.data
@@ -159,7 +172,39 @@ def op_mul(lin_op, args):
         result = np.diag(val)
     else:
         raise Exception("Unknown linear operator.")
-    #print result
+    return result
+
+def op_abs_mul(lin_op, args):
+    """Applies the absolute value of the linear operator to the arguments.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        A linear operator.
+    args : list
+        The arguments to the operator.
+
+    Returns
+    -------
+    NumPy matrix or SciPy sparse matrix.
+        The result of applying the linear operator.
+    """
+    # Constants convert directly to their absolute value.
+    if lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
+        result = np.abs(lin_op.data)
+    elif lin_op.type is lo.NEG:
+        result = args[0]
+    # Absolute value of coefficient.
+    elif lin_op.type is lo.MUL:
+        coeff = mul(lin_op.data, {}, True)
+        result = coeff*args[0]
+    elif lin_op.type is lo.DIV:
+        divisor = mul(lin_op.data, {}, True)
+        result = args[0]/divisor
+    elif lin_op.type is lo.CONV:
+        result = conv_mul(lin_op, args[0], is_abs=True)
+    else:
+        result = op_mul(lin_op, args)
     return result
 
 def op_tmul(lin_op, value):
@@ -204,15 +249,65 @@ def op_tmul(lin_op, value):
     elif lin_op.type is lo.DIAG_VEC:
         result = np.diag(value)
     elif lin_op.type is lo.CONV:
-        return conv_mul(lin_op, value, True)
+        result = conv_mul(lin_op, value, transpose=True)
     else:
         raise Exception("Unknown linear operator.")
     return result
 
-def conv_mul(lin_op, rh_val, transpose=False):
-    """Multiply by a convolution operator.
+def op_abs_tmul(lin_op, value):
+    """Applies the linear operator |A.T| to the arguments.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        A linear operator.
+    value : NumPy matrix
+        A numeric value to apply the operator's transpose to.
+
+    Returns
+    -------
+    NumPy matrix or SciPy sparse matrix.
+        The result of applying the linear operator.
     """
-    constant = mul(lin_op.data, {})
+    if lin_op.type is lo.NEG:
+        result = value
+    # Absolute value of coefficient.
+    elif lin_op.type is lo.MUL:
+        coeff = mul(lin_op.data, {}, True)
+        # Scalar coefficient, no need to transpose.
+        if np.isscalar(coeff):
+            result = coeff*value
+        else:
+            result = coeff.T*value
+    elif lin_op.type is lo.DIV:
+        divisor = mul(lin_op.data, {}, True)
+        result = value/divisor
+    elif lin_op.type is lo.CONV:
+        result = conv_mul(lin_op, value, True, True)
+    else:
+        result = op_tmul(lin_op, value)
+    return result
+
+def conv_mul(lin_op, rh_val, transpose=False, is_abs=False):
+    """Multiply by a convolution operator.
+
+    arameters
+    ----------
+    lin_op : LinOp
+        The root linear operator.
+    rh_val : NDArray
+        The vector being convolved.
+    transpose : bool
+        Is the transpose of convolution being applied?
+    is_abs : bool
+        Is the absolute value of convolution being applied?
+
+    Returns
+    -------
+    NumPy NDArray
+        The convolution.
+    """
+    constant = mul(lin_op.data, {}, is_abs)
     # Convert to 2D
     constant, rh_val = map(intf.from_1D_to_2D, [constant, rh_val])
     if transpose:

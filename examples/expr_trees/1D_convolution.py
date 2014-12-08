@@ -24,31 +24,33 @@ for i in range(n):
         nnz += 1
 
 # Gaussian kernel.
-m = 51
-kernel = gauss(m)
+m = 1001
+kernel = gauss(m, m/10)
 
 # Noisy signal.
 std = 1
 noise = np.random.normal(scale=std, size=n+m-1)
-noisy_signal = conv(kernel, signal) + noise
+noisy_signal = conv(kernel, signal) #+ noise
 
 gamma = Parameter(sign="positive")
 fit = norm(conv(kernel, x) - noisy_signal, 2)
 regularization = norm(x, 1)
 constraints = [x >= 0]
 gamma.value = 0.06
-prob = Problem(Minimize(fit + gamma*regularization), constraints)
-solver_options = {"NORMALIZE": True, "MAX_ITERS": 2500}
+prob = Problem(Minimize(fit), constraints)
+solver_options = {"NORMALIZE": True, "MAX_ITERS": 2500,
+                  "EPS":1e-3}
 result = prob.solve(solver=SCS,
                     verbose=True,
-                    solver_specific_opts=solver_options)
+                    NORMALIZE=True,
+                    MAX_ITERS=2500)
 # Get problem matrix.
 data, dims = prob.get_problem_data(solver=SCS)
 
 # Plot result and fit.
 import matplotlib.pyplot as plt
-plt.plot(range(1000), signal, label="true signal")
-plt.plot(range(1000), np.asarray(noisy_signal.value[:1000, 0]), label="noisy convolution")
-plt.plot(range(1000), np.asarray(x.value[:,0]), label="recovered signal")
+plt.plot(range(n), signal, label="true signal")
+plt.plot(range(n), np.asarray(noisy_signal.value[:n, 0]), label="noisy convolution")
+plt.plot(range(n), np.asarray(x.value[:,0]), label="recovered signal")
 plt.legend(loc='upper right')
 plt.show()

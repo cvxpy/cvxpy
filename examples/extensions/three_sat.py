@@ -8,8 +8,8 @@ EPSILON = 1e-8
 MAX_ITER = 10
 
 # Randomly generate a feasible 3-SAT problem.
-VARIABLES = 30
-CLAUSES_PER_VARIABLE = 3
+VARIABLES = 250
+CLAUSES_PER_VARIABLE = 2
 
 # The 3-SAT solution.
 solution = [random.random() < 0.5 for i in range(VARIABLES)]
@@ -23,11 +23,12 @@ for i in range(VARIABLES*CLAUSES_PER_VARIABLE):
         negated = [random.random() < 0.5 for j in range(3)]
         # Must be consistent with the solution.
         result = False
-        for index,negation in zip(clause_vars,negated):
+        for index, negation in zip(clause_vars,negated):
             result |= negation ^ solution[index]
         if result:
             break
     clauses.append( (clause_vars, negated) )
+print "Generated %d clauses." % len(clauses)
 
 # The 3-SAT variables.
 vars = [BoolVar() for i in range(VARIABLES)]

@@ -26,17 +26,17 @@ import scipy.sparse.linalg as LA
 
 def get_mul_funcs(sym_data):
 
-    def accAmul(x, y):
+    def accAmul(x, y, is_abs=False):
         # y += A*x
         rows = y.shape[0]
         var_dict = vec_to_dict(x, sym_data.var_offsets,
                                sym_data.var_sizes)
-        y += constr_mul(sym_data.constraints, var_dict, rows)
+        y += constr_mul(sym_data.constraints, var_dict, rows, is_abs)
 
-    def accATmul(x, y):
+    def accATmul(x, y, is_abs=False):
         # y += A.T*x
         terms = constr_unpack(sym_data.constraints, x)
-        val_dict = constr_tmul(sym_data.constraints, terms)
+        val_dict = constr_tmul(sym_data.constraints, terms, is_abs)
         y += dict_to_vec(val_dict, sym_data.var_offsets,
                          sym_data.var_sizes, sym_data.x_length)
 
@@ -112,7 +112,7 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
             offset += size[0]
     return vector
 
-def constr_mul(constraints, var_dict, vec_size):
+def constr_mul(constraints, var_dict, vec_size, is_abs):
     """Multiplies a vector by the matrix implied by the constraints.
 
     Parameters
@@ -123,11 +123,13 @@ def constr_mul(constraints, var_dict, vec_size):
         A dictionary mapping variable id to value.
     vec_size : int
         The length of the product vector.
+    is_abs : bool
+        Multiply by the absolute value of the matrix?
     """
     product = np.zeros(vec_size)
     offset = 0
     for constr in constraints:
-        result = mul(constr.expr, var_dict)
+        result = mul(constr.expr, var_dict, is_abs)
         rows, cols = constr.size
         for col in range(cols):
             # Handle scalars separately.
@@ -139,7 +141,7 @@ def constr_mul(constraints, var_dict, vec_size):
 
     return product
 
-def constr_tmul(constraints, values):
+def constr_tmul(constraints, values, is_abs):
     """Multiplies a vector by the transpose of the constraints matrix.
 
     Parameters
@@ -148,6 +150,8 @@ def constr_tmul(constraints, values):
         A list of linear constraints.
     values : list
         A list of NumPy matrices.
+    is_abs : bool
+        Multiply by the absolute value of the matrix?
 
     Returns
     -------
@@ -156,5 +160,5 @@ def constr_tmul(constraints, values):
     """
     products = []
     for constr, val in zip(constraints, values):
-        products.append(tmul(constr.expr, val))
+        products.append(tmul(constr.expr, val, is_abs))
     return sum_dicts(products)

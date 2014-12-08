@@ -128,6 +128,104 @@ class test_tree_mat(BaseTest):
         x_val = toep.dot(value)
         self.assertItemsAlmostEqual(result_dict[x.id], x_val)
 
+    def test_abs_mul(self):
+        """Test the abs mul method.
+        """
+        n = 2
+        ones = np.mat(np.ones((n, n)))
+        # Multiplication
+        x = Variable(n, n)
+        A = np.matrix("-1 2; -3 4")
+        abs_A = np.abs(A)
+        expr = (A*x).canonical_form[0]
+
+        val_dict = {x.id: ones}
+
+        result = mul(expr, val_dict, True)
+        assert (result == abs_A*ones).all()
+
+        result_dict = tmul(expr, result, True)
+        assert (result_dict[x.id] == abs_A.T*abs_A*ones).all()
+
+        # Multiplication with promotion.
+        t = Variable()
+        A = np.matrix("1 -2; -3 -4")
+        abs_A = np.abs(A)
+        expr = (A*t).canonical_form[0]
+
+        val_dict = {t.id: 2}
+
+        result = mul(expr, val_dict, True)
+        assert (result == abs_A*2).all()
+
+        result_dict = tmul(expr, result, True)
+        total = 0
+        for i in range(A.shape[0]):
+            for j in range(A.shape[1]):
+                total += abs_A[i, j]*result[i, j]
+        assert (result_dict[t.id] == total)
+
+        # Addition
+        y = Variable(n, n)
+        expr = (y + A*x).canonical_form[0]
+        val_dict = {x.id: np.ones((n, n)),
+                    y.id: np.ones((n, n))}
+
+        result = mul(expr, val_dict)
+        assert (result == A*ones + ones).all()
+
+        result_dict = tmul(expr, result)
+        assert (result_dict[y.id] == result).all()
+        assert (result_dict[x.id] == A.T*result).all()
+
+        val_dict = {x.id: A,
+                    y.id: A}
+
+        # Indexing
+        expr = (x[:, 0] + y[:, 1]).canonical_form[0]
+        result = mul(expr, val_dict)
+        assert (result == A[:, 0] + A[:, 1]).all()
+
+        result_dict = tmul(expr, result)
+        mat = ones
+        mat[:, 0] = result
+        mat[:, 1] = 0
+        assert (result_dict[x.id] == mat).all()
+
+        # Negation
+        val_dict = {x.id: A}
+        expr = (-x).canonical_form[0]
+
+        result = mul(expr, val_dict)
+        assert (result == -A).all()
+
+        result_dict = tmul(expr, result)
+        assert (result_dict[x.id] == A).all()
+
+        # Transpose
+        expr = x.T.canonical_form[0]
+        val_dict = {x.id: A}
+        result = mul(expr, val_dict)
+        assert (result == A.T).all()
+        result_dict = tmul(expr, result)
+        assert (result_dict[x.id] == A).all()
+
+        # Convolution
+        x = Variable(3)
+        f = np.matrix(np.array([1, -2, -3])).T
+        g = np.array([0, 1, 0.5])
+        f_conv_g = np.array([ 0., 1., 2.5,  4., 1.5])
+        expr = conv(f, x).canonical_form[0]
+        val_dict = {x.id: g}
+        result = mul(expr, val_dict, True)
+        self.assertItemsAlmostEqual(result, f_conv_g)
+        value = np.array(range(5))
+        result_dict = tmul(expr, value, True)
+        toep = LA.toeplitz(np.array([1,0,0]),
+                           np.array([1, 2, 3, 0, 0]))
+        x_val = toep.dot(value)
+        self.assertItemsAlmostEqual(result_dict[x.id], x_val)
+
     def test_prune_constants(self):
         """Test pruning constants from constraints.
         """

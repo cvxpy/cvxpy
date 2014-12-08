@@ -40,10 +40,10 @@ class TestMIPVariable(BaseTest):
 
     def test_bool_prob(self):
         # BoolVar in objective.
-        obj = Minimize(square(self.x_bool))
+        obj = Minimize(square(self.x_bool - 0.2))
         p = Problem(obj,[])
         result = p.solve()
-        self.assertAlmostEqual(result, 0)
+        self.assertAlmostEqual(result, 0.04)
 
         self.assertAlmostEqual(self.x_bool.value, 0)
 
