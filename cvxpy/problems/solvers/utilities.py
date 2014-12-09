@@ -21,6 +21,7 @@ from cvxpy.problems.solvers.ecos_intf import ECOS
 from cvxpy.problems.solvers.ecos_bb_intf import ECOS_BB
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
 from cvxpy.problems.solvers.scs_intf import SCS
+from cvxpy.problems.solvers.scs_mat_free_intf import SCS_MAT_FREE
 
-solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), SCS()]
+solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), SCS(), SCS_MAT_FREE()]
 SOLVERS = {solver.name():solver for solver in solver_intf}

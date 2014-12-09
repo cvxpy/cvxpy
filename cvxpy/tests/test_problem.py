@@ -1131,3 +1131,19 @@ class TestProblem(BaseTest):
         prob = Problem(Maximize(cost), [self.x == 1])
         prob.solve()
         self.assertAlmostEqual(prob.value, 2)
+
+    def test_mat_free(self):
+        """Test SCS mat free solver.
+        """
+        n = 100
+        x = Variable(n)
+        numpy.random.seed(1)
+        A = numpy.random.randn(2*n, n)
+        b = A.dot(numpy.ones((n, 1)))
+        fit = norm(A*x - b)
+        prob = Problem(Minimize(fit), [])
+        result = prob.solve(solver=s.SCS_MAT_FREE)
+        fit1 = fit.value
+        result2 = prob.solve(solver=s.SCS)
+        fit2 = fit.value
+        self.assertAlmostEqual(fit1, fit2, places=3)

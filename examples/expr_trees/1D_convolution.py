@@ -38,14 +38,13 @@ regularization = norm(x, 1)
 constraints = [x >= 0]
 gamma.value = 0.06
 prob = Problem(Minimize(fit), constraints)
-solver_options = {"NORMALIZE": True, "MAX_ITERS": 2500,
-                  "EPS":1e-3}
-result = prob.solve(solver=SCS,
+result = prob.solve(solver=SCS_MAT_FREE,
                     verbose=True,
                     NORMALIZE=True,
-                    MAX_ITERS=2500)
-# Get problem matrix.
-data, dims = prob.get_problem_data(solver=SCS)
+                    MAX_ITERS=2500,
+                    EPS=1e-3)
+# # Get problem matrix.
+# data, dims = prob.get_problem_data(solver=SCS)
 
 # Plot result and fit.
 import matplotlib.pyplot as plt

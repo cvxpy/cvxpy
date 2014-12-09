@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
-from cvxpy.settings import SCS, ECOS, CVXOPT, OPTIMAL
+from cvxpy.settings import SCS, SCS_MAT_FREE, ECOS, CVXOPT, OPTIMAL
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
@@ -34,6 +34,7 @@ import math
 from nose.tools import assert_raises
 
 SOLVER_TO_TOL = {SCS: 1e-1,
+                 SCS_MAT_FREE: 1e-1,
                  ECOS: 1e-5,
                  CVXOPT: 1e-4}
 
@@ -195,7 +196,7 @@ def test_atom():
         for atom, size, args, obj_val in atom_list:
             for row in xrange(size[0]):
                 for col in xrange(size[1]):
-                    for solver in [ECOS, SCS, CVXOPT]:
+                    for solver in [ECOS, SCS, CVXOPT, SCS_MAT_FREE]:
                         # Atoms with Constant arguments.
                         yield (run_atom,
                                atom,

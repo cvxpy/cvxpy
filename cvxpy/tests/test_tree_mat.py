@@ -254,8 +254,8 @@ class test_tree_mat(BaseTest):
         A = data["A"]
         objective, constraints = prob.canonicalize()
         sym_data = SymData(objective, constraints, SOLVERS[SCS])
-        sym_data.constraints = prune_constants(sym_data.constraints)
-        Amul, ATmul = iterative.get_mul_funcs(sym_data)
+        constraints = prune_constants(sym_data.constraints)
+        Amul, ATmul = iterative.get_mul_funcs(sym_data, constraints)
         vec = np.array(range(sym_data.x_length))
         # A*vec
         result = np.zeros(A.shape[0])
