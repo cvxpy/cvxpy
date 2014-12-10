@@ -6,45 +6,48 @@ import random
 
 from math import pi, sqrt, exp
 
-def gauss(n=11,sigma=1):
+def gauss(n=11,sigma=1, scale=1):
     r = range(-int(n/2),int(n/2)+1)
-    return [1 / (sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)) for x in r]
+    return [scale / (sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)) for x in r]
 
 np.random.seed(5)
 random.seed(5)
-DENSITY = 0.008
 n = 1000
+DENSITY = 6.0/n
 x = Variable(n)
 # Create sparse signal.
+HEIGHT = 100
 signal = np.zeros(n)
 nnz = 0
 for i in range(n):
     if random.random() < DENSITY:
-        signal[i] = random.uniform(0, 100)
+        signal[i] = random.uniform(0, HEIGHT)
         nnz += 1
 
 # Gaussian kernel.
-m = 1001
-kernel = gauss(m, m/10)
+m = 101
+kernel = gauss(m, m/10, max(m/250,1))
 
 # Noisy signal.
 std = 1
 noise = np.random.normal(scale=std, size=n+m-1)
-noisy_signal = conv(kernel, signal) #+ noise
+noisy_signal = conv(kernel, signal) + noise
 
 gamma = Parameter(sign="positive")
-fit = norm(conv(kernel, x) - noisy_signal, 2)
-regularization = norm(x, 1)
+fit = sum_squares(conv(kernel, x) - noisy_signal)
+reg = norm(x, 1)
 constraints = [x >= 0]
-gamma.value = 0.06
-prob = Problem(Minimize(fit), constraints)
+gamma.value = 0.5
+prob = Problem(Minimize(fit),
+               constraints)
+# result = prob.solve(solver=ECOS, verbose=True)
+# print "true signal fit", fit.value
 result = prob.solve(solver=SCS_MAT_FREE,
                     verbose=True,
-                    NORMALIZE=True,
-                    MAX_ITERS=2500,
-                    EPS=1e-3)
-# # Get problem matrix.
-# data, dims = prob.get_problem_data(solver=SCS)
+                    max_iters=10000,
+                    equil_steps=1,
+                    eps=1e-3)
+print "recovered signal fit", fit.value
 
 # Plot result and fit.
 import matplotlib.pyplot as plt

@@ -32,6 +32,21 @@ class CVXOPT(Solver):
         """
         return s.CVXOPT
 
+    def sdp_capable(self):
+        """Can the solver handle SDPs?
+        """
+        return True
+
+    def exp_capable(self):
+        """Can the solver handle the exponential cone?
+        """
+        return True
+
+    def mip_capable(self):
+        """Can the solver handle boolean or integer variables?
+        """
+        return False
+
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """

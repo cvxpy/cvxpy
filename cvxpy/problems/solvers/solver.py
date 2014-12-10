@@ -63,20 +63,23 @@ class Solver(object):
         """
         pass
 
+    @abc.abstractmethod
     def sdp_capable(self):
         """Can the solver handle SDPs?
         """
-        return self.name() in s.SDP_CAPABLE
+        pass
 
+    @abc.abstractmethod
     def exp_capable(self):
         """Can the solver handle the exponential cone?
         """
-        return self.name() in s.EXP_CAPABLE
+        pass
 
+    @abc.abstractmethod
     def mip_capable(self):
         """Can the solver handle boolean or integer variables?
         """
-        return self.name() in s.MIP_CAPABLE
+        pass
 
     @staticmethod
     def choose_solver(constraints):

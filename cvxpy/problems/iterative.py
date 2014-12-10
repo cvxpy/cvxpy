@@ -130,13 +130,13 @@ def constr_mul(constraints, var_dict, vec_size, is_abs):
     for constr in constraints:
         result = mul(constr.expr, var_dict, is_abs)
         rows, cols = constr.size
-        for col in range(cols):
-            # Handle scalars separately.
-            if np.isscalar(result):
-                product[offset:offset+rows] = result
-            else:
-                product[offset:offset+rows] = np.squeeze(result[:, col])
-            offset += rows
+        # Handle scalars separately.
+        if np.isscalar(result):
+            product[offset:offset+rows*cols] = result
+        else:
+            flattened = np.reshape(result, rows*cols, order='F')
+            product[offset:offset+rows*cols] = flattened
+        offset += rows*cols
 
     return product
 

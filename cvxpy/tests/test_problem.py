@@ -407,6 +407,16 @@ class TestProblem(BaseTest):
         # Test variables are dense.
         self.assertEqual(type(self.A.value), intf.DEFAULT_INTERFACE.TARGET_MATRIX)
 
+    def test_matrix_socp(self):
+        """Test matrix SOCP.
+        """
+        A = numpy.ones((10, 10))
+        X = Variable(10, 10)
+        cost = norm(X - 1, 'fro')
+        prob = Problem(Minimize(cost), [A*X >= 2])
+        result = prob.solve(solver=s.ECOS)
+        self.assertAlmostEqual(result, 0)
+
     # Test variable promotion.
     def test_variable_promotion(self):
         p = Problem(Minimize(self.a), [self.x <= self.a, self.x == [1,2]])
@@ -1131,19 +1141,3 @@ class TestProblem(BaseTest):
         prob = Problem(Maximize(cost), [self.x == 1])
         prob.solve()
         self.assertAlmostEqual(prob.value, 2)
-
-    def test_mat_free(self):
-        """Test SCS mat free solver.
-        """
-        n = 100
-        x = Variable(n)
-        numpy.random.seed(1)
-        A = numpy.random.randn(2*n, n)
-        b = A.dot(numpy.ones((n, 1)))
-        fit = norm(A*x - b)
-        prob = Problem(Minimize(fit), [])
-        result = prob.solve(solver=s.SCS_MAT_FREE)
-        fit1 = fit.value
-        result2 = prob.solve(solver=s.SCS)
-        fit2 = fit.value
-        self.assertAlmostEqual(fit1, fit2, places=3)

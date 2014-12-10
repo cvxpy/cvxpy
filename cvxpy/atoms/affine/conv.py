@@ -21,7 +21,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
+from scipy.signal import fftconvolve
 
 class conv(AffAtom):
     """ 1D discrete convolution of two vectors.
@@ -36,7 +36,11 @@ class conv(AffAtom):
         """
         # Convert values to 1D.
         values = map(intf.from_2D_to_1D, values)
-        return np.convolve(values[0], values[1])
+        # First argument must be larger.
+        if values[0].size >= values[1].size:
+            return fftconvolve(values[0], values[1], mode='full')
+        else:
+            return fftconvolve(values[1], values[0], mode='full')
 
     def validate_arguments(self):
         """Checks that both arguments are vectors, and the first is constant.

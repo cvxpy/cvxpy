@@ -29,6 +29,11 @@ class ECOS_BB(ECOS):
         """
         return s.ECOS_BB
 
+    def mip_capable(self):
+        """Can the solver handle boolean or integer variables?
+        """
+        return True
+
     @staticmethod
     def _noncvx_id_to_idx(dims, var_offsets, var_sizes):
         """Converts the nonconvex constraint variable ids in dims into indices.

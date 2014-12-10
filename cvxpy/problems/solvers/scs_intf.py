@@ -34,6 +34,21 @@ class SCS(ECOS):
         """
         return s.SCS
 
+    def sdp_capable(self):
+        """Can the solver handle SDPs?
+        """
+        return True
+
+    def exp_capable(self):
+        """Can the solver handle the exponential cone?
+        """
+        return True
+
+    def mip_capable(self):
+        """Can the solver handle boolean or integer variables?
+        """
+        return False
+
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
 
