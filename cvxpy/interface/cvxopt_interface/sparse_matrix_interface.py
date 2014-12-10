@@ -57,6 +57,11 @@ class SparseMatrixInterface(DenseMatrixInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
+        if isinstance(rows, numbers.Number):
+            rows = int(rows)
+        if isinstance(cols, numbers.Number):
+            cols = int(cols)
+
         if value == 0:
             return cvxopt.spmatrix(0, [], [], size=(rows,cols))
         else:

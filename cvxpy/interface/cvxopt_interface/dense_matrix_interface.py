@@ -62,6 +62,10 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
+        if isinstance(rows, numbers.Number):
+            rows = int(rows)
+        if isinstance(cols, numbers.Number):
+            cols = int(cols)
         return cvxopt.matrix(value, (rows,cols), tc='d')
 
     # Stuff the matrix into a different shape.
