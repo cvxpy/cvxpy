@@ -39,6 +39,8 @@ from cStringIO import StringIO
 import scs
 import cvxopt.solvers
 import ecos
+PY2 = sys.version_info < (3, 0)
+
 
 class TestProblem(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -75,8 +77,11 @@ class TestProblem(BaseTest):
         """
         p = Problem(Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
         vars_ = p.variables()
-        for var, ref in zip(vars_, [self.a, self.x, self.b, self.A]):
-            self.assertIs(var, ref)
+        ref = [self.a, self.x, self.b, self.A]
+        if PY2:
+            self.assertItemsEqual(vars_, ref)
+        else:
+            self.assertCountEqual(vars_, ref)
 
     def test_parameters(self):
         """Test the parameters method.
@@ -86,8 +91,11 @@ class TestProblem(BaseTest):
         p3 = Parameter(4, 4, sign="positive")
         p = Problem(Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         params = p.parameters()
-        for param, ref in zip(params, [p1, p2, p3]):
-            self.assertIs(param, ref)
+        ref = [p1, p2, p3]
+        if PY2:
+            self.assertItemsEqual(params, ref)
+        else:
+            self.assertCountEqual(params, ref)
 
     def test_get_problem_data(self):
         """Test get_problem_data method.
