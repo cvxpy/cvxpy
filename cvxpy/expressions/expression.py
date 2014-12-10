@@ -22,7 +22,7 @@ import cvxpy.utilities as u
 import cvxpy.settings as s
 from cvxpy.utilities import performance_utils as pu
 from cvxpy.constraints import EqConstraint, LeqConstraint
-import types
+from cvxpy.expressions import types
 import abc
 import numpy as np
 
@@ -252,6 +252,12 @@ class Expression(u.Canonical):
             return types.mul_expr()(self, other)
 
     @_cast_other
+    def __truediv__(self, other):
+        """One expression divided by another.
+        """
+        return self.__div__(other)
+
+    @_cast_other
     def __div__(self, other):
         """One expression divided by another.
         """
@@ -268,6 +274,12 @@ class Expression(u.Canonical):
         return other / self
 
     @_cast_other
+    def __rtruediv__(self, other):
+        """Called for Number / Expression.
+        """
+        return other / self
+
+    @_cast_other
     def __rmul__(self, other):
         """Called for Number * Expression.
         """
@@ -277,6 +289,10 @@ class Expression(u.Canonical):
         """The negation of the expression.
         """
         return types.neg_expr()(self)
+
+    #needed for python3:
+    def __hash__(self):
+        return id(self)
 
     # Comparison operators.
     @_cast_other

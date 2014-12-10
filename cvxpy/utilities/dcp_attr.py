@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from curvature import Curvature
-from shape import Shape
-from sign import Sign
+from cvxpy.utilities.curvature import Curvature
+from cvxpy.utilities.shape import Shape
+from cvxpy.utilities.sign import Sign
 
 class DCPAttr(object):
     """ A data structure for the sign, curvature, and shape of an expression.
@@ -105,6 +105,20 @@ class DCPAttr(object):
         return DCPAttr(sign, curvature, shape)
 
     def __div__(self, other):
+        """Determines the DCP attributes of one expression divided by another.
+
+        Assumes the right-hand argument has constant curvature.
+
+        Args:
+            self: The DCPAttr of the left-hand expression.
+            other: The DCPAttr of the right-hand expression.
+
+        Returns:
+            The DCPAttr of the product.
+        """
+        return other*self
+
+    def __truediv__(self, other):
         """Determines the DCP attributes of one expression divided by another.
 
         Assumes the right-hand argument has constant curvature.

@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to solve circular imports.
 def constant():
-    import constants
+    from cvxpy.expressions import constants
     return constants.Constant
 
 def add_expr():

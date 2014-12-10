@@ -17,7 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from affine_atom import AffAtom
+from __future__ import division
+import sys
+
+from .affine_atom import AffAtom
 import cvxpy.interface as intf
 from ...expressions.constants import Constant
 import cvxpy.lin_ops.lin_utils as lu
@@ -108,7 +111,7 @@ class RMulExpression(MulExpression):
 
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
-    OP_FUNC = op.div
+    OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

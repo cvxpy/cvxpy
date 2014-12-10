@@ -171,7 +171,7 @@ def check_solver(prob, solver_name):
     try:
         solver.validate_solver(constraints)
         return True
-    except Exception, e:
+    except Exception as e:
         return False
 
 # Tests numeric version of atoms.

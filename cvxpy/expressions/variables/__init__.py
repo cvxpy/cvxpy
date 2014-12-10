@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from bool_var import BoolVar
-from int_var import IntVar
-from variable import Variable
-from semidefinite import Semidef
+from .bool_var import BoolVar
+from .int_var import IntVar
+from .variable import Variable
+from .semidefinite import Semidef

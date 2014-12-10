@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from leq_constraint import LeqConstraint
+from cvxpy.constraints.leq_constraint import LeqConstraint
 import cvxpy.lin_ops.lin_utils as lu
 
 class EqConstraint(LeqConstraint):

@@ -139,7 +139,8 @@ def size(key, shape):
     for i in range(2):
         stop = get_stop(key[i], shape.size[i])
         dims.append(1 + (stop-1-key[i].start)/key[i].step)
-    return tuple(dims)
+    # size must be integral!
+    return tuple(map(int, dims))
 
 def to_str(key):
     """Converts a key (i.e. two slices) into a string.

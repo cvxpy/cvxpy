@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from dense_matrix_interface import DenseMatrixInterface
+from cvxpy.interface.cvxopt_interface.dense_matrix_interface import DenseMatrixInterface
 import scipy.sparse as sp
 import cvxopt
 import numpy
@@ -57,6 +57,11 @@ class SparseMatrixInterface(DenseMatrixInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
+        if isinstance(rows, numbers.Number):
+            rows = int(rows)
+        if isinstance(cols, numbers.Number):
+            cols = int(cols)
+
         if value == 0:
             return cvxopt.spmatrix(0, [], [], size=(rows,cols))
         else:
@@ -69,6 +74,6 @@ class SparseMatrixInterface(DenseMatrixInterface):
         for v,i,j in zip(matrix.V, matrix.I, matrix.J):
             pos = i + old_size[0]*j
             new_row = pos % size[0]
-            new_col = pos / size[0]
+            new_col = pos // size[0]
             new_mat[new_row, new_col] = v
         return new_mat

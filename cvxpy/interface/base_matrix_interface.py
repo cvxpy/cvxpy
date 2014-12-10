@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import matrix_utilities as intf
+import cvxpy.interface.matrix_utilities
 import abc
 import numbers
 import numpy as np
@@ -46,8 +46,8 @@ class BaseMatrixInterface(object):
     @staticmethod
     def scalar_const(converter):
         def new_converter(self, value, convert_scalars=False):
-            if not convert_scalars and intf.is_scalar(value):
-                return intf.scalar_value(value)
+            if not convert_scalars and cvxpy.interface.matrix_utilities.is_scalar(value):
+                return cvxpy.interface.matrix_utilities.scalar_value(value)
             else:
                 return converter(self, value)
         return new_converter
@@ -84,8 +84,8 @@ class BaseMatrixInterface(object):
     def index(self, matrix, key):
         value = matrix[key]
         # Reduce to a scalar if possible.
-        if intf.size(value) == (1,1):
-            return intf.scalar_value(value)
+        if cvxpy.interface.matrix_utilities.size(value) == (1,1):
+            return cvxpy.interface.matrix_utilities.scalar_value(value)
         else:
             return value
 
@@ -122,13 +122,13 @@ class BaseMatrixInterface(object):
             cols: The width of the block.
         """
         # If the block is a scalar, promote it.
-        if intf.is_scalar(block):
-            block = self.scalar_matrix(intf.scalar_value(block), rows, cols)
+        if cvxpy.interface.matrix_utilities.is_scalar(block):
+            block = self.scalar_matrix(cvxpy.interface.matrix_utilities.scalar_value(block), rows, cols)
         # If the block is a vector coerced into a matrix, promote it.
-        elif intf.is_vector(block) and cols > 1:
+        elif cvxpy.interface.matrix_utilities.is_vector(block) and cols > 1:
             block = self.reshape(block, (rows, cols))
         # If the block is a matrix coerced into a vector, vectorize it.
-        elif not intf.is_vector(block) and cols == 1:
+        elif not cvxpy.interface.matrix_utilities.is_vector(block) and cols == 1:
             block = self.reshape(block, (rows, cols))
         # Ensure the block is the same type as the matrix.
         elif type(block) != type(matrix):
