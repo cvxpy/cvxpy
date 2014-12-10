@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy import *
 import numpy as np
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 
 class TestNonOptimal(BaseTest):
     """ Unit tests for infeasible and unbounded problems. """
@@ -34,7 +34,7 @@ class TestNonOptimal(BaseTest):
         p_unb = Problem(obj, constraints)
         p_inf = Problem(Minimize(x1), [0 <= x1, x1 <= -1])
         for solver in [ECOS, CVXOPT, SCS]:
-            print solver
+            print(solver)
             p_unb.solve(solver=solver)
             self.assertEqual(p_unb.status, UNBOUNDED)
             p_inf.solve(solver=solver)
@@ -50,7 +50,7 @@ class TestNonOptimal(BaseTest):
                          x <= 0])
         p_unb = Problem(Minimize(sum_entries(x)), [x <= 1])
         for solver in [ECOS, CVXOPT, SCS]:
-            print solver
+            print(solver)
             p_inf.solve(solver=solver)
             self.assertEqual(p_inf.status, INFEASIBLE)
             p_unb.solve(solver=solver)
@@ -76,7 +76,7 @@ class TestNonOptimal(BaseTest):
     #                      x <= 0])
     #     p_unb = Problem(obj, [x >= 1])
     #     for solver in [ECOS, CVXOPT, SCS]:
-    #         print solver
+    #         print(solver)
     #         p_inf.solve(solver=solver)
     #         self.assertEqual(p_inf.status, INFEASIBLE)
     #         p_unb.solve(solver=solver)
@@ -93,7 +93,7 @@ class TestNonOptimal(BaseTest):
     #                      X <= 0])
     #     p_unb = Problem(obj)
     #     for solver in [CVXOPT, SCS]:
-    #         print solver
+    #         print(solver)
     #         p_inf.solve(solver=solver)
     #         self.assertEqual(p_inf.status, INFEASIBLE)
     #         p_unb.solve(solver=solver)

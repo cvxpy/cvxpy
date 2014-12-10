@@ -21,7 +21,7 @@ from cvxpy import *
 from cvxpy.expressions.variables import BoolVar, IntVar
 from cvxopt import matrix
 import numpy as np
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 import unittest
 
 class TestMIPVariable(BaseTest):

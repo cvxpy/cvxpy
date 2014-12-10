@@ -27,7 +27,7 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.linalg as LA
 import unittest
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 
 class test_tree_mat(BaseTest):
     """ Unit tests for the matrix ops with expression trees. """

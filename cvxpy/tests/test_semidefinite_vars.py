@@ -22,7 +22,7 @@ from cvxpy.expressions.variables import Semidef
 from cvxpy.expressions.variables.semidefinite import Semidef as semidefinite
 from cvxopt import matrix
 import numpy as np
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 import unittest
 
 class TestSemidefiniteVariable(BaseTest):
@@ -68,7 +68,7 @@ class TestSemidefiniteVariable(BaseTest):
                        square(self.X[1,1] - 4))
         p = Problem(obj,[])
         result = p.solve()
-        print self.X.value
+        print(self.X.value)
         self.assertAlmostEqual(result, 0)
 
         self.assertAlmostEqual(self.X.value[0,0], 1, places=3)

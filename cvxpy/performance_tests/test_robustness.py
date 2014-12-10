@@ -62,7 +62,7 @@ class TestProblem(unittest.TestCase):
             p = Problem(Minimize(at.sum_entries(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
-            print result - answer
+            print(result - answer)
             self.assertAlmostEqual(result, answer)
 
     def test_large_square(self):

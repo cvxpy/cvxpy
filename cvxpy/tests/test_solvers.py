@@ -1,5 +1,5 @@
 from cvxpy import *
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 
 class TestSolvers(BaseTest):
     """ Unit tests for solver specific behavior. """

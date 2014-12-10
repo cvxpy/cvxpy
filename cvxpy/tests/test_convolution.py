@@ -23,7 +23,7 @@ from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import cvxpy.problems.iterative as iterative
 from cvxpy.utilities import Curvature
 from cvxpy.utilities import Sign
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
 class TestConvolution(BaseTest):
@@ -115,4 +115,4 @@ class TestConvolution(BaseTest):
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum_entries(cvx.mul_elemwise(y,v[0:N])))
-        print cvx.Problem(obj, []).solve()
+        print(cvx.Problem(obj, []).solve())

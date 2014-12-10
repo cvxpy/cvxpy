@@ -24,7 +24,7 @@ import scipy.sparse as sp
 import cvxopt
 import scipy
 import unittest
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 
 class TestInterfaces(BaseTest):
     """ Unit tests for matrix interfaces. """

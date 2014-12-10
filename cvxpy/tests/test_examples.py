@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy import *
 import cvxpy.interface as intf
 import numpy as np
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 import cvxopt
 import numbers
 
@@ -66,7 +66,7 @@ class TestExamples(BaseTest):
         eye = cvxopt.spmatrix(1.0, range(n), range(n))
         P0 = P0.T * P0 + eps * eye
 
-        print P0
+        print(P0)
 
         P1 = cvxopt.normal(n, n)
         P1 = P1.T*P1
@@ -101,17 +101,17 @@ class TestExamples(BaseTest):
 
         # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
         # When feasible, we can print out the following values
-        print x.value # solution
+        print(x.value) # solution
         lam1 = constraints[0].dual_value
         lam2 = constraints[1].dual_value
         lam3 = constraints[2].dual_value
-        print type(lam1)
+        print(type(lam1))
 
         P_lam = P0 + lam1*P1 + lam2*P2 + lam3*P3
         q_lam = q0 + lam1*q1 + lam2*q2 + lam3*q3
         r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
         dual_result = -0.5*q_lam.T.dot(P_lam).dot(q_lam) + r_lam
-        print dual_result.shape
+        print(dual_result.shape)
         self.assertEquals(intf.size(dual_result), (1,1))
 
     # Tests examples from the README.
@@ -134,10 +134,10 @@ class TestExamples(BaseTest):
         # The optimal objective is returned by p.solve().
         result = p.solve()
         # The optimal value for x is stored in x.value.
-        print x.value
+        print(x.value)
         # The optimal Lagrange multiplier for a constraint
         # is stored in constraint.dual_value.
-        print constraints[0].dual_value
+        print(constraints[0].dual_value)
 
         ####################################################
 
@@ -232,10 +232,10 @@ class TestExamples(BaseTest):
         result = p.solve()
 
         # The optimal expected return.
-        print expected_return.value
+        print(expected_return.value)
 
         # The optimal risk.
-        print risk.value
+        print(risk.value)
 
         ###########################################
 
@@ -268,9 +268,9 @@ class TestExamples(BaseTest):
             if label*(sample.T*a - b).value < 0:
                 errors += 1
 
-        print "%s misclassifications" % errors
-        print a.value
-        print b.value
+        print("%s misclassifications" % errors)
+        print(a.value)
+        print(b.value)
 
     def test_log_det(self):
         # Generate data
@@ -341,10 +341,10 @@ class TestExamples(BaseTest):
         # The optimal objective is returned by p.solve().
         result = prob.solve()
         # The optimal value for x is stored in x.value.
-        print x.value
+        print(x.value)
         # The optimal Lagrange multiplier for a constraint
         # is stored in constraint.dual_value.
-        print constraints[0].dual_value
+        print(constraints[0].dual_value)
 
         ########################################
 
@@ -362,9 +362,9 @@ class TestExamples(BaseTest):
         # Form and solve problem.
         prob = Problem(obj, constraints)
         prob.solve()  # Returns the optimal value.
-        print "status:", prob.status
-        print "optimal value", prob.value
-        print "optimal var", x.value, y.value
+        print("status:", prob.status)
+        print("optimal value", prob.value)
+        print("optimal var", x.value, y.value)
 
         ########################################
 
@@ -384,9 +384,9 @@ class TestExamples(BaseTest):
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
         prob.solve()  # Returns the optimal value.
-        print "status:", prob.status
-        print "optimal value", prob.value
-        print "optimal var", x.value, y.value
+        print("status:", prob.status)
+        print("optimal value", prob.value)
+        print("optimal var", x.value, y.value)
 
         self.assertEqual(prob.status, OPTIMAL)
         self.assertAlmostEqual(prob.value, 1.0)
@@ -397,13 +397,13 @@ class TestExamples(BaseTest):
 
         # Replace the objective.
         prob.objective = Maximize(x + y)
-        print "optimal value", prob.solve()
+        print("optimal value", prob.solve())
 
         self.assertAlmostEqual(prob.value, 1.0)
 
         # Replace the constraint (x + y == 1).
         prob.constraints[0] = (x + y <= 3)
-        print "optimal value", prob.solve()
+        print("optimal value", prob.solve())
 
         self.assertAlmostEqual(prob.value, 3.0)
 
@@ -414,8 +414,8 @@ class TestExamples(BaseTest):
         # An infeasible problem.
         prob = Problem(Minimize(x), [x >= 1, x <= 0])
         prob.solve()
-        print "status:", prob.status
-        print "optimal value", prob.value
+        print("status:", prob.status)
+        print("optimal value", prob.value)
 
         self.assertEquals(prob.status, INFEASIBLE)
         self.assertAlmostEqual(prob.value, np.inf)
@@ -423,8 +423,8 @@ class TestExamples(BaseTest):
         # An unbounded problem.
         prob = Problem(Minimize(x))
         prob.solve()
-        print "status:", prob.status
-        print "optimal value", prob.value
+        print("status:", prob.status)
+        print("optimal value", prob.value)
 
         self.assertEquals(prob.status, UNBOUNDED)
         self.assertAlmostEqual(prob.value, -np.inf)
@@ -456,9 +456,9 @@ class TestExamples(BaseTest):
         constraints = [0 <= x, x <= 1]
         prob = Problem(objective, constraints)
 
-        print "Optimal value", prob.solve()
-        print "Optimal var"
-        print x.value # A numpy matrix.
+        print("Optimal value", prob.solve())
+        print("Optimal var")
+        print(x.value) # A numpy matrix.
 
         self.assertAlmostEqual(prob.value, 4.14133859146)
 
@@ -523,15 +523,15 @@ class TestExamples(BaseTest):
         A = numpy.ones((3, 5))
 
         # Use expr.size to get the dimensions.
-        print "dimensions of X:", X.size
-        print "dimensions of sum_entries(X):", sum_entries(X).size
-        print "dimensions of A*X:", (A*X).size
+        print("dimensions of X:", X.size)
+        print("dimensions of sum_entries(X):", sum_entries(X).size)
+        print("dimensions of A*X:", (A*X).size)
 
         # ValueError raised for invalid dimensions.
         try:
             A + X
-        except ValueError, e:
-            print e
+        except ValueError as e:
+            print(e)
 
     def test_inpainting(self):
         """Test image in-painting.

@@ -25,7 +25,7 @@ import cvxpy.interface as intf
 import numpy as np
 import scipy.sparse as sp
 import unittest
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 import sys
 PY2 = sys.version_info < (3, 0)
 

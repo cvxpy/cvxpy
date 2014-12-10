@@ -27,7 +27,7 @@ from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.problems.problem_data.sym_data import SymData
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 from cvxopt import matrix
 from numpy import linalg as LA
 import numpy
@@ -186,7 +186,7 @@ class TestProblem(BaseTest):
         for output in outputs[True]:
             assert len(output) > 0
         for output in outputs[False]:
-            print output
+            print(output)
             assert len(output) == 0
 
     # Test registering other solve methods.

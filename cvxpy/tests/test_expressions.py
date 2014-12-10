@@ -27,7 +27,7 @@ import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from collections import deque
 import unittest
-from base_test import BaseTest
+from cvxpy.tests.base_test import BaseTest
 from cvxopt import matrix
 import numpy as np
 import warnings
@@ -364,7 +364,7 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x/[2,2,3])
-        print cm.exception
+        print(cm.exception)
         self.assertEqual(str(cm.exception), "Can only divide by a scalar constant.")
 
         # Constant expressions.
