@@ -67,7 +67,7 @@ for i in range(NUM_PROCS):
 for i in range(MAX_ITER):
     # Gather.
     xbar = sum([pipe.recv() for pipe in pipes])/NUM_PROCS
-    print get_error(xbar)
+    # print get_error(xbar)
     # Scatter.
     [pipe.send(xbar) for pipe in pipes]
 

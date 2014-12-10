@@ -21,6 +21,7 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.scs_intf import SCS
 import cvxpy.problems.iterative as iterative
 import cvxpy.lin_ops.tree_mat as tree_mat
+import scs_mat_free
 
 class SCS_MAT_FREE(SCS):
     """An interface for the SCS solver.
@@ -101,12 +102,13 @@ class SCS_MAT_FREE(SCS):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+        (data, dims), obj_offset = self.get_problem_data(objective,
+                                                         constraints,
+                                                         cached_data)
         # Always use indirect method.
         solver_opts["use_indirect"] = True
-        return super(SCS_MAT_FREE, self).solve(
-            objective,
-            constraints,
-            cached_data,
-            verbose,
-            solver_opts
-        )
+        # Set the options to be VERBOSE plus any user-specific options.
+        solver_opts["verbose"] = verbose
+        results_dict = scs_mat_free.solve(data, dims, **solver_opts)
+        return self.format_results(results_dict, dims, obj_offset)
+
