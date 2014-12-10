@@ -96,7 +96,9 @@ class test_lin_ops(BaseTest):
         # Expanding dict.
         add_expr = sum_expr([x, y, A])
         vars_ = get_expr_vars(add_expr)
-        self.assertItemsEqual(vars_, [(x.data, size), (y.data, size)])
+        for v, (data, size) in zip(vars_, [(x.data, size), (y.data, size)]):
+            self.assertIs(v[0], data)
+            self.assertIs(v[1], size)
 
     def test_neg_expr(self):
         """Test negating an expression.
@@ -120,7 +122,9 @@ class test_lin_ops(BaseTest):
         constr = create_eq(lh_expr, rh_expr)
         self.assertEqual(constr.size, size)
         vars_ = get_expr_vars(constr.expr)
-        self.assertItemsEqual(vars_, [(x.data, size), (y.data, size)])
+        for v, (data, size) in zip(vars_, [(x.data, size), (y.data, size)]):
+            self.assertIs(v[0], data)
+            self.assertIs(v[1], size)
 
     def test_leq_constr(self):
         """Test creating a less than or equal constraint.
@@ -134,7 +138,9 @@ class test_lin_ops(BaseTest):
         constr = create_leq(lh_expr, rh_expr)
         self.assertEqual(constr.size, size)
         vars_ = get_expr_vars(constr.expr)
-        self.assertItemsEqual(vars_, [(x.data, size), (y.data, size)])
+        for v, (data, size) in zip(vars_, [(x.data, size), (y.data, size)]):
+            self.assertIs(v[0], data)
+            self.assertIs(v[1], size)
 
     def test_get_coefficients(self):
         """Test the get_coefficients function.
