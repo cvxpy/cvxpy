@@ -252,9 +252,11 @@ class Expression(u.Canonical):
             return types.mul_expr()(self, other)
 
     @_cast_other
-    def __truediv__(self,other):
-        self.__div__(other)
-    
+    def __truediv__(self, other):
+        """One expression divided by another.
+        """
+        return self.__div__(other)
+
     @_cast_other
     def __div__(self, other):
         """One expression divided by another.
@@ -267,6 +269,12 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __rdiv__(self, other):
+        """Called for Number / Expression.
+        """
+        return other / self
+
+    @_cast_other
+    def __rtruediv__(self, other):
         """Called for Number / Expression.
         """
         return other / self
