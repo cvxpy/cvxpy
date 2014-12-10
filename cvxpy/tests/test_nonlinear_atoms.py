@@ -120,10 +120,10 @@ class TestNonlinearAtoms(BaseTest):
         #Distribution to be estimated
         v_prob=cp.Variable(kK,1)
         objkl=0.0
-        for k in xrange(kK):
+        for k in range(kK):
             objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
 
-        constrs=[__builtins__['sum']([v_prob[k,0] for k in xrange(kK)])==1]
+        constrs=[__builtins__['sum']([v_prob[k,0] for k in range(kK)])==1]
         klprob=cp.Problem(cp.Minimize(objkl),constrs)
         p_refProb.value=npSPriors
         result = klprob.solve(solver=CVXOPT, verbose=True)

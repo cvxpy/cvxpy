@@ -34,13 +34,15 @@ import numpy
 import unittest
 import math
 import sys
-from cStringIO import StringIO
 # Solvers.
 import scs
 import cvxopt.solvers
 import ecos
 PY2 = sys.version_info < (3, 0)
-
+if sys.version_info < (3, 0):
+    from cStringIO import StringIO
+else:
+    from io import StringIO
 
 class TestProblem(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -168,7 +170,7 @@ class TestProblem(BaseTest):
         # ####
         for verbose in [True, False]:
             for solver in s.SOLVERS:
-                sys.stdout = StringIO()     # capture output
+                sys.stdout = StringIO() # capture output
                 p = Problem(Minimize(self.a + self.x[0]), [self.a >= 2, self.x >= 2])
                 if solver in s.MIP_CAPABLE:
                     p.constraints.append(BoolVar() == 0)
@@ -231,7 +233,7 @@ class TestProblem(BaseTest):
             sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
             # Sort by offset.
             vars_ = sorted(sym_data.var_offsets.items(),
-                key=lambda (var_id, offset): offset)
+                key=lambda key_val: key_val[1])
             vars_ = [var_id for (var_id, offset) in vars_]
             vars_lists.append(vars_)
             ineqs_lists.append(sym_data.constr_map[s.LEQ])

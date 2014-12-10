@@ -24,6 +24,9 @@ import cvxopt
 import unittest
 import math
 import numpy as np
+import sys
+if sys.version_info >= (3, 0):
+    from functools import reduce
 
 class TestSCS(BaseTest):
     """ Unit tests for the nonlinear atoms module. """
@@ -120,10 +123,10 @@ class TestSCS(BaseTest):
         #Distribution to be estimated
         v_prob=cp.Variable(kK,1)
         objkl=0.0
-        for k in xrange(kK):
+        for k in range(kK):
             objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
 
-        constrs=[sum([v_prob[k,0] for k in xrange(kK)])==1]
+        constrs=[sum([v_prob[k,0] for k in range(kK)])==1]
         klprob=cp.Problem(cp.Minimize(objkl),constrs)
         p_refProb.value=npSPriors
         result = klprob.solve(solver=SCS, verbose=True)

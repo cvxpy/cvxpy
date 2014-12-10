@@ -111,8 +111,8 @@ class log_det(Atom):
         constraints = [SDP(X), SDP(A)]
         # Fix Z as upper triangular, D as diagonal,
         # and diag(D) as diag(Z).
-        for i in xrange(n):
-            for j in xrange(n):
+        for i in range(n):
+            for j in range(n):
                 if i != j:
                     # D[i, j] == 0
                     Dij = index.get_index(D, constraints, i, j)

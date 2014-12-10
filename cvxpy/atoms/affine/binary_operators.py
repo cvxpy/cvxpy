@@ -20,12 +20,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import sys
 
-from .affine_atom import AffAtom
+from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.interface as intf
-from ...expressions.constants import Constant
+from cvxpy.expressions.constants import Constant
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 import numpy as np
+if sys.version_info >= (3, 0):
+    from functools import reduce
 
 class BinaryOperator(AffAtom):
     """

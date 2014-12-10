@@ -17,10 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
+
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
+if sys.version_info >= (3, 0):
+    from functools import reduce
 
 class max_elemwise(Elementwise):
     """ Elementwise maximum. """

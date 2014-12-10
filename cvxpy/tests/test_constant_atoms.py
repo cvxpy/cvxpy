@@ -193,8 +193,8 @@ def run_atom(atom, problem, obj_val, solver):
 def test_atom():
     for atom_list, objective_type in atoms:
         for atom, size, args, obj_val in atom_list:
-            for row in xrange(size[0]):
-                for col in xrange(size[1]):
+            for row in range(size[0]):
+                for col in range(size[1]):
                     for solver in [ECOS, SCS, CVXOPT]:
                         # Atoms with Constant arguments.
                         yield (run_atom,

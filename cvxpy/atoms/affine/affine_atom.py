@@ -25,7 +25,6 @@ import operator as op
 if sys.version_info >= (3, 0):
     from functools import reduce
 
-
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta

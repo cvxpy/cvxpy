@@ -35,7 +35,7 @@ class conv(AffAtom):
         """Convolve the two values.
         """
         # Convert values to 1D.
-        values = map(intf.from_2D_to_1D, values)
+        values = list(map(intf.from_2D_to_1D, values))
         return np.convolve(values[0], values[1])
 
     def validate_arguments(self):

@@ -547,8 +547,8 @@ class TestExamples(BaseTest):
         # Known is 1 if the pixel is known,
         # 0 if the pixel was corrupted.
         Known = np.zeros((rows, cols))
-        for i in xrange(rows):
-            for j in xrange(cols):
+        for i in range(rows):
+            for j in range(cols):
                 if np.random.random() > 0.7:
                     Known[i, j] = 1
         Ucorr = Known*Uorig

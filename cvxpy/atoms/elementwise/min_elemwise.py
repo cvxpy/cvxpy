@@ -16,12 +16,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+import sys
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 import numpy as np
+if sys.version_info >= (3, 0):
+    from functools import reduce
 
 class min_elemwise(max_elemwise):
     """ Elementwise minimum. """

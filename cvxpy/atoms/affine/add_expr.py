@@ -53,7 +53,7 @@ class AddExpression(AffAtom):
 
     def name(self):
         result = str(self.args[0])
-        for i in xrange(1, len(self.args)):
+        for i in range(1, len(self.args)):
             result += " + " + str(self.args[i])
         return result
 

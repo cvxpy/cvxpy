@@ -60,8 +60,8 @@ class diag_vec(AffAtom):
         """Convert the vector constant into a diagonal matrix.
         """
         # Convert values to 1D.
-        values = map(intf.from_2D_to_1D, values)
-        return np.diag(values[0])
+        value = intf.from_2D_to_1D(values[0])
+        return np.diag(value)
 
     def shape_from_args(self):
         """A square matrix.

@@ -176,7 +176,7 @@ def trace_mat(lin_op):
     """
     rows, _ = lin_op.args[0].size
     mat = np.zeros((1, rows**2))
-    for i in xrange(rows):
+    for i in range(rows):
         mat[0, i*rows + i] = 1
     return [np.matrix(mat)]
 
@@ -342,8 +342,8 @@ def transpose_mat(lin_op):
     val_arr = []
     row_arr = []
     col_arr = []
-    for col in xrange(cols):
-        for row in xrange(rows):
+    for col in range(cols):
+        for row in range(rows):
             # Index in transposed coeff.
             row_arr.append(col*rows + row)
             # Index in original coeff.
@@ -371,7 +371,7 @@ def diag_vec_mat(lin_op):
     val_arr = []
     row_arr = []
     col_arr = []
-    for i in xrange(rows):
+    for i in range(rows):
         # Index in the diagonal matrix.
         row_arr.append(i*rows + i)
         # Index in the original vector.
@@ -399,7 +399,7 @@ def diag_mat_mat(lin_op):
     val_arr = []
     row_arr = []
     col_arr = []
-    for i in xrange(rows):
+    for i in range(rows):
         # Index in the original matrix.
         col_arr.append(i*rows + i)
         # Index in the extracted vector.
@@ -471,8 +471,8 @@ def stack_mats(lin_op, vertical):
             col_offset = arg.size[0]
             offset_incr = arg.size[0]*arg.size[1]
 
-        for i in xrange(arg.size[0]):
-            for j in xrange(arg.size[1]):
+        for i in range(arg.size[0]):
+            for j in range(arg.size[1]):
                 row_arr.append(i + j*col_offset + offset)
                 col_arr.append(i + j*arg.size[0])
                 val_arr.append(1)
