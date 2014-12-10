@@ -74,6 +74,6 @@ class SparseMatrixInterface(DenseMatrixInterface):
         for v,i,j in zip(matrix.V, matrix.I, matrix.J):
             pos = i + old_size[0]*j
             new_row = pos % size[0]
-            new_col = pos / size[0]
+            new_col = pos // size[0]
             new_mat[new_row, new_col] = v
         return new_mat
