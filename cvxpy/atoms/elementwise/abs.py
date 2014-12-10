@@ -22,7 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions import types
 from cvxpy.expressions.variables import Variable
-from elementwise import Elementwise
+from .elementwise import Elementwise
 import numpy as np
 
 class abs(Elementwise):

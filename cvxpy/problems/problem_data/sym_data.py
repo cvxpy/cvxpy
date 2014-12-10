@@ -217,7 +217,7 @@ class SymData(object):
         # Ensure the variables are always in the same
         # order for the same problem.
         var_names = list(set(vars_))
-        var_names.sort(key=lambda (var_id, var_size): var_id)
+        var_names.sort(key=lambda id_and_size: id_and_size[0])
         # Map var ids to offsets and size.
         var_sizes = {}
         vert_offset = 0

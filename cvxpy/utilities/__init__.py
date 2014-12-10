@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from canonical import Canonical
-from curvature import Curvature
-from dcp_attr import DCPAttr
-import monotonicity
-from sign import Sign
-from shape import Shape
+from cvxpy.utilities.canonical import Canonical
+from cvxpy.utilities.curvature import Curvature
+from cvxpy.utilities.dcp_attr import DCPAttr
+import cvxpy.utilities.monotonicity
+from cvxpy.utilities.sign import Sign
+from cvxpy.utilities.shape import Shape

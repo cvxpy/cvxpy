@@ -38,6 +38,16 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 
+from cvxpy.atoms.affine.conv import conv
+from cvxpy.atoms.affine.diag import diag
+from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.mul_elemwise import mul_elemwise
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms.affine.vec import vec
+from cvxpy.atoms.affine.vstack import vstack
+
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp

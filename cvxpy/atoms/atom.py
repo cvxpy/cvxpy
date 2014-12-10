@@ -25,6 +25,10 @@ from ..expressions.constants import Constant, CallbackParam
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
+import sys
+if sys.version_info >= (3, 0):
+    from functools import reduce
+
 
 class Atom(Expression):
     """ Abstract base class for atoms. """

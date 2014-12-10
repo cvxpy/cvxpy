@@ -17,9 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
 import abc
 from cvxpy.atoms.atom import Atom
 import operator as op
+if sys.version_info >= (3, 0):
+    from functools import reduce
+
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """

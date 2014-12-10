@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from dense_matrix_interface import DenseMatrixInterface
+from cvxpy.interface.cvxopt_interface.dense_matrix_interface import DenseMatrixInterface
 import scipy.sparse as sp
 import cvxopt
 import numpy

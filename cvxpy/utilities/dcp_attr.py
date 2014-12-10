@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from curvature import Curvature
-from shape import Shape
-from sign import Sign
+from cvxpy.utilities.curvature import Curvature
+from cvxpy.utilities.shape import Shape
+from cvxpy.utilities.sign import Sign
 
 class DCPAttr(object):
     """ A data structure for the sign, curvature, and shape of an expression.

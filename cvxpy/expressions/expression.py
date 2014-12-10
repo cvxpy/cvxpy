@@ -22,7 +22,7 @@ import cvxpy.utilities as u
 import cvxpy.settings as s
 from cvxpy.utilities import performance_utils as pu
 from cvxpy.constraints import EqConstraint, LeqConstraint
-import types
+from cvxpy.expressions import types
 import abc
 import numpy as np
 
