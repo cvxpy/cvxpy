@@ -12,7 +12,7 @@ def gauss(n=11,sigma=1, scale=1):
 
 np.random.seed(5)
 random.seed(5)
-n = 1000
+n = 100000
 DENSITY = 6.0/n
 x = Variable(n)
 # Create sparse signal.
@@ -25,8 +25,8 @@ for i in range(n):
         nnz += 1
 
 # Gaussian kernel.
-m = 101
-kernel = gauss(m, m/10, max(m/250,1))
+m = 100001
+kernel = gauss(m, m/10, 1)
 
 # Noisy signal.
 std = 1
@@ -44,15 +44,15 @@ prob = Problem(Minimize(fit),
 # print "true signal fit", fit.value
 result = prob.solve(solver=SCS_MAT_FREE,
                     verbose=True,
-                    max_iters=10000,
+                    max_iters=500,
                     equil_steps=1,
                     eps=1e-3)
 print "recovered signal fit", fit.value
 
-# Plot result and fit.
-import matplotlib.pyplot as plt
-plt.plot(range(n), signal, label="true signal")
-plt.plot(range(n), np.asarray(noisy_signal.value[:n, 0]), label="noisy convolution")
-plt.plot(range(n), np.asarray(x.value[:,0]), label="recovered signal")
-plt.legend(loc='upper right')
-plt.show()
+# # Plot result and fit.
+# import matplotlib.pyplot as plt
+# plt.plot(range(n), signal, label="true signal")
+# plt.plot(range(n), np.asarray(noisy_signal.value[:n, 0]), label="noisy convolution")
+# plt.plot(range(n), np.asarray(x.value[:,0]), label="recovered signal")
+# plt.legend(loc='upper right')
+# plt.show()
