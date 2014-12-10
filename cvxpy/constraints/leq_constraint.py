@@ -57,6 +57,18 @@ class LeqConstraint(u.Canonical, Constraint):
     def __nonzero__(self):
         """Raises an exception when called.
 
+        Python 2 version.
+
+        Called when evaluating the truth value of the constraint.
+        Raising an error here prevents writing chained constraints.
+        """
+        raise Exception("Cannot evaluate the truth value of a constraint.")
+
+    def __bool__(self):
+        """Raises an exception when called.
+
+        Python 3 version.
+
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """

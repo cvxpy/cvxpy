@@ -15,6 +15,7 @@ Version 0.2.16 (next release)
 * TODO break up DCPAttr so only use atom DCP function.
 * Added boolean and integer variables.
 * Made geo_mean elementwise.
+* Python 3 support!!!
 
 Version 0.2.15
 ------------
