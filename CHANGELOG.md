@@ -6,6 +6,7 @@ Version 1.0 (targets)
 * TODO separate out parts of DCPAttr and refactor so universal rules used for affine atoms.
 * TODO change size to size[0]*size[1] and shape to size.
 * TODO add integer/boolean variables.
+* TODO return 2D arrays instead of matrices.
 
 Version 0.2.16 (next release)
 ---------------------------
