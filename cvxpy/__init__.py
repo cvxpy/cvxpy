@@ -18,16 +18,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 __version__ = "0.2.15"
-from atoms import *
-from expressions.variables import Variable, Semidef, BoolVar, IntVar
-from expressions.constants import Parameter, CallbackParam, Constant
-from problems.problem import Problem
-from problems.objective import Maximize, Minimize
-import interface.numpy_wrapper
-from error import SolverError
-from settings import (CVXOPT, ECOS, SCS,
+from cvxpy.atoms import *
+from cvxpy.expressions.variables import Variable, Semidef, BoolVar, IntVar
+from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
+from cvxpy.problems.problem import Problem
+from cvxpy.problems.objective import Maximize, Minimize
+import cvxpy.interface.numpy_wrapper
+from cvxpy.error import SolverError
+from cvxpy.settings import (CVXOPT, ECOS, SCS,
 OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,
 OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 
 # Legacy names.
-from expressions.variables.semidefinite import Semidef as semidefinite
+from cvxpy.expressions.variables.semidefinite import Semidef as semidefinite

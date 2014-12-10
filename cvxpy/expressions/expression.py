@@ -252,6 +252,10 @@ class Expression(u.Canonical):
             return types.mul_expr()(self, other)
 
     @_cast_other
+    def __truediv__(self,other):
+        self.__div__(other)
+    
+    @_cast_other
     def __div__(self, other):
         """One expression divided by another.
         """
@@ -277,6 +281,10 @@ class Expression(u.Canonical):
         """The negation of the expression.
         """
         return types.neg_expr()(self)
+
+    #needed for python3:
+    def __hash__(self):
+        return id(self)
 
     # Comparison operators.
     @_cast_other

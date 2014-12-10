@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
@@ -125,7 +126,7 @@ class Atom(Expression):
         return None
 
     @abc.abstractmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(self,arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
