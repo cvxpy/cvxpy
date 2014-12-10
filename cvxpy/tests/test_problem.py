@@ -75,7 +75,8 @@ class TestProblem(BaseTest):
         """
         p = Problem(Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
         vars_ = p.variables()
-        self.assertItemsEqual(vars_, [self.a, self.x, self.b, self.A])
+        for var, ref in zip(vars_, [self.a, self.x, self.b, self.A]):
+            self.assertIs(var, ref)
 
     def test_parameters(self):
         """Test the parameters method.
@@ -85,7 +86,8 @@ class TestProblem(BaseTest):
         p3 = Parameter(4, 4, sign="positive")
         p = Problem(Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         params = p.parameters()
-        self.assertItemsEqual(params, [p1, p2, p3])
+        for param, ref in zip(params, [p1, p2, p3]):
+            self.assertIs(param, ref)
 
     def test_get_problem_data(self):
         """Test get_problem_data method.
@@ -373,7 +375,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 26, places=3)
         obj = c.T*self.x.value + self.a.value
-        self.assertAlmostEqual(obj[0], result)
+        self.assertAlmostEqual(obj[0,0], result)
         self.assertItemsAlmostEqual(self.x.value, [8,8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2,2], places=3)
 
@@ -478,8 +480,8 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(normInf(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
-        self.assertAlmostEqual(result, 12)
-        self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
+        self.assertAlmostEqual(float(result), 12)
+        self.assertAlmostEqual(float(list(self.x.value)[1] - list(self.z.value)[1]), 7)
 
     # Test problems with norm1
     def test_norm1(self):
@@ -504,8 +506,8 @@ class TestProblem(BaseTest):
         p = Problem(Minimize(norm1(self.x - self.z) + 5),
             [self.x >= [2,3], self.z <= [-1,-4]])
         result = p.solve()
-        self.assertAlmostEqual(result, 15)
-        self.assertAlmostEqual(list(self.x.value)[1] - list(self.z.value)[1], 7)
+        self.assertAlmostEqual(float(result), 15)
+        self.assertAlmostEqual(float(list(self.x.value)[1] - list(self.z.value)[1]), 7)
 
     # Test problems with norm2
     def test_norm2(self):
