@@ -130,7 +130,7 @@ class Atom(Expression):
         return None
 
     @abc.abstractmethod
-    def graph_implementation(self,arg_objs, size, data=None):
+    def graph_implementation(self, arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters

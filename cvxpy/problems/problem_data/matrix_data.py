@@ -216,8 +216,8 @@ class MatrixData(object):
         V, I, J = mat_cache.coo_tup
         coeffs = op2mat.get_coefficients(constr.expr)
         for id_, block in coeffs:
-            vert_start = int(vert_offset)
-            vert_end = int(vert_start + constr.size[0]*constr.size[1])
+            vert_start = vert_offset
+            vert_end = vert_start + constr.size[0]*constr.size[1]
             if id_ is lo.CONSTANT_ID:
                 # Flatten the block.
                 block = self.vec_intf.const_to_matrix(block)
