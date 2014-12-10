@@ -53,7 +53,7 @@ def is_sparse(constant):
 
 # Get the dimensions of the constant.
 def size(constant):
-    if isinstance(constant, numbers.Number):
+    if isinstance(constant, numbers.Number) or np.isscalar(constant):
         return (1,1)
     elif isinstance(constant, list):
         if len(constant) == 0:
@@ -97,7 +97,7 @@ def from_1D_to_2D(constant):
 # Get the value of the passed constant, interpreted as a scalar.
 def scalar_value(constant):
     assert is_scalar(constant)
-    if isinstance(constant, numbers.Number):
+    if isinstance(constant, numbers.Number) or np.isscalar(constant):
         return constant
     elif isinstance(constant, list):
         return constant[0]
