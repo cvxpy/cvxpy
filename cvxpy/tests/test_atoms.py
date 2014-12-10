@@ -106,13 +106,15 @@ class TestAtoms(unittest.TestCase):
         """
         with self.assertRaises(Exception) as cm:
             max_elemwise(1)
-        #self.assertTrue(str(cm.exception) == "__init__() takes at least 3 arguments (2 given)")
-        print(self.assertContains)
+        self.assertTrue(str(cm.exception) in (
+            "__init__() takes at least 3 arguments (2 given)",
+            "__init__() missing 1 required positional argument: 'arg2'"))
 
         with self.assertRaises(Exception) as cm:
             min_elemwise(1)
-        self.assertEqual(str(cm.exception),
-            "__init__() takes at least 3 arguments (2 given)")
+        self.assertTrue(str(cm.exception) in (
+            "__init__() takes at least 3 arguments (2 given)",
+            "__init__() missing 1 required positional argument: 'arg2'"))
 
     def test_matrix_frac(self):
         """Test for the matrix_frac atom.
