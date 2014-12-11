@@ -21,7 +21,7 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.scs_intf import SCS
 import cvxpy.problems.iterative as iterative
 import cvxpy.lin_ops.tree_mat as tree_mat
-import scs_mat_free
+import scs
 
 class SCS_MAT_FREE(SCS):
     """An interface for the SCS solver.
@@ -109,6 +109,5 @@ class SCS_MAT_FREE(SCS):
         solver_opts["use_indirect"] = True
         # Set the options to be VERBOSE plus any user-specific options.
         solver_opts["verbose"] = verbose
-        results_dict = scs_mat_free.solve(data, dims, **solver_opts)
+        results_dict = scs.solve(data, dims, **solver_opts)
         return self.format_results(results_dict, dims, obj_offset)
-
