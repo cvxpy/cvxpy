@@ -7,6 +7,8 @@ Version 1.0 (targets)
 * TODO change size to size[0]*size[1] and shape to size.
 * TODO add integer/boolean variables.
 * TODO return 2D arrays instead of matrices.
+* TODO add sets and domains for Parameters/Variables that affect DCP properties.
+* TODO PSD parameters?
 
 Version 0.2.16 (next release)
 ---------------------------
