@@ -13,7 +13,7 @@ def gauss(n=11,sigma=1, scale=1):
 
 np.random.seed(5)
 random.seed(5)
-n = 1000
+n = 100000
 # DENSITY = 6.0/n
 # x = Variable(n)
 # # Create sparse signal.
@@ -38,7 +38,7 @@ m = n+1
 kernel = gauss(m, m/10.0, 1)
 
 # Noisy signal.
-SNR = 10.0
+SNR = 0.5
 signal = conv(kernel, A.dot(true_x))
 sigma = norm(signal,2).value/(SNR*sqrt(n+m-1))
 noise = np.random.normal(scale=sigma, size=n+m-1)
@@ -50,7 +50,7 @@ gamma = Parameter(sign="positive")
 fit = norm(conv(kernel, x) - noisy_signal, 2)
 reg = 0.1*tv(x)
 constraints = [-1 <= x, x <= 1]
-prob = Problem(Minimize(fit + reg),
+prob = Problem(Minimize(fit),
                constraints)
 # result = prob.solve(solver=ECOS, verbose=True)
 # # result = prob.solve(solver=SCS,
@@ -61,11 +61,16 @@ prob = Problem(Minimize(fit + reg),
 # print("true signal fit", fit.value)
 result = prob.solve(solver=SCS_MAT_FREE,
                     verbose=True,
-                    max_iters=2000,
-                    equil_steps=1,
-                    eps=1e-3,
+                    max_iters=1000,
+                    equil_steps=10,
+                    eps=1e-4,
                     cg_rate=2)
 # print("recovered x fit", fit.value)
+
+# Timings:
+# n=m=1e5, 161 sec for 500*1.51 CG steps.
+# At 10 GFlops should be .160 seconds.
+# n=m=1e5, eps=1e-4, 155 sec for 580*1.02 CG steps.
 
 # Plot result and fit.
 # Assumes convolution kernel is centered around m/2.
