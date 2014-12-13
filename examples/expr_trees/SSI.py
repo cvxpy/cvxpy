@@ -13,7 +13,7 @@ def gauss(n=11,sigma=1, scale=1):
 
 np.random.seed(5)
 random.seed(5)
-n = 100000
+n = 1000
 # DENSITY = 6.0/n
 # x = Variable(n)
 # # Create sparse signal.
