@@ -59,7 +59,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         # Slicing drops the second dimension.
         if len(matrix.shape) == 1:
             dim = matrix.shape[0]
-            return (dim, matrix.size/dim)
+            return (dim, matrix.size//dim)
         else:
             return matrix.shape
 
