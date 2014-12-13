@@ -560,4 +560,7 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.x**3)
         self.assertEqual(str(cm.exception), "Invalid power: 3.")
+        with self.assertRaises(Exception) as cm:
+            (self.x**self.x)
+        self.assertEqual(str(cm.exception), "Power must be a numeric scalar.")
 

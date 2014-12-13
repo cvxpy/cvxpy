@@ -196,7 +196,9 @@ class Expression(u.Canonical):
     def __pow__(self, power):
         """The power operator.
         """
-        if power == 2:
+        if not np.isscalar(power):
+            raise TypeError("Power must be a numeric scalar.")
+        elif power == 2:
             return types.square()(self)
         elif power == 0.5:
             return types.sqrt()(self)

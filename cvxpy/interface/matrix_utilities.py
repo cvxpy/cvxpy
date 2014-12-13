@@ -54,21 +54,21 @@ def is_sparse(constant):
 # Get the dimensions of the constant.
 def size(constant):
     if isinstance(constant, numbers.Number) or np.isscalar(constant):
-        return (1,1)
+        return (1, 1)
     elif isinstance(constant, list):
         if len(constant) == 0:
             return (0,0)
         elif isinstance(constant[0], numbers.Number): # Vector
             return (len(constant),1)
         else: # Matrix
-            return (len(constant[0]),len(constant))
+            return (len(constant[0]), len(constant))
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].size(constant)
     # Direct all sparse matrices to CSC interface.
     elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].size(constant)
     else:
-        raise Exception("%s is not a valid type for a Constant value." % type(constant))
+        raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
 # Is the constant a column vector?
 def is_vector(constant):
@@ -107,7 +107,7 @@ def scalar_value(constant):
     elif is_sparse(constant):
         return INTERFACES[sp.csc_matrix].scalar_value(constant.tocsc())
     else:
-        raise Exception("%s is not a valid type for a Constant value." % type(constant))
+        raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
 # Return the collective sign of the matrix entries.
 def sign(constant):

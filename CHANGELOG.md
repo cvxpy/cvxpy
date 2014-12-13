@@ -19,6 +19,7 @@ Version 0.2.16 (next release)
 * Added boolean and integer variables.
 * Made geo_mean elementwise.
 * Python 3 support!!!
+* TODO error checking for x**p.
 
 Version 0.2.15
 ------------
