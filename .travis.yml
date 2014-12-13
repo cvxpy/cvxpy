@@ -4,10 +4,10 @@ virtualenv:
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.14.0" CVXOPT_VERSION="1.1.6"
+      NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.14.0"
       COVERAGE="true"
     - DISTRIB="conda" PYTHON_VERSION="3.4" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.14.0" CVXOPT_VERSION="1.1.6"
+      NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.14.0"
       COVERAGE="true"
 install: source continuous_integration/install.sh
 script: bash continuous_integration/test_script.sh
