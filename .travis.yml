@@ -1,12 +1,12 @@
 language: python
-python:
-  - "2.7"
-  - "3.4"
 virtualenv:
   system_site_packages: true
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
+      NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.14.0" CVXOPT_VERSION="1.1.6"
+      COVERAGE="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.4" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.8.1" SCIPY_VERSION="0.14.0" CVXOPT_VERSION="1.1.6"
       COVERAGE="true"
 install: source continuous_integration/install.sh
