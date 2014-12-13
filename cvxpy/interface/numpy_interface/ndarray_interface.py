@@ -56,10 +56,9 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Return the dimensions of the matrix.
     def size(self, matrix):
-        # Slicing drops the second dimension.
+        # 1D arrays are treated as column vectors.
         if len(matrix.shape) == 1:
-            dim = matrix.shape[0]
-            return (dim, matrix.size//dim)
+            return (matrix.size, 1)
         else:
             return matrix.shape
 
