@@ -9,6 +9,7 @@ Version 1.0 (targets)
 * TODO return 2D arrays instead of matrices.
 * TODO add sets and domains for Parameters/Variables that affect DCP properties.
 * TODO PSD parameters?
+* TODO warmstart for SCS.
 
 Version 0.2.16 (next release)
 ---------------------------
@@ -19,7 +20,7 @@ Version 0.2.16 (next release)
 * Added boolean and integer variables.
 * Made geo_mean elementwise.
 * Python 3 support!!!
-* TODO error checking for x**p.
+* Error checking for x**p.
 
 Version 0.2.15
 ------------

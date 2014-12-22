@@ -22,6 +22,7 @@ from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
+from cvxpy import Problem, Minimize
 import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
@@ -544,6 +545,17 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(exp.value, [2, 3])
         self.assertEquals(exp.size, (2, 1))
         self.assertEquals(exp.curvature, u.Curvature.CONSTANT_KEY)
+
+        c = Constant([1,2,3,4])
+        exp = c[::-1]
+        self.assertItemsAlmostEqual(exp.value, [4, 3, 2, 1])
+        self.assertEquals(exp.size, (4, 1))
+        self.assertEquals(exp.curvature, u.Curvature.CONSTANT_KEY)
+
+        x = Variable(4)
+        Problem(Minimize(0), [x[::-1] == c]).solve()
+        self.assertItemsAlmostEqual(x.value, [4, 3, 2, 1])
+        self.assertEquals(x.size, (4, 1))
 
     def test_logical_indices(self):
         """Test indexing with logical arrays.
