@@ -79,6 +79,19 @@ def wrap_neg_index(index, dim):
         index %= dim
     return index
 
+def index_to_slice(idx):
+    """Converts an index to a slice.
+
+    Args:
+        idx: int
+            The index.
+
+    Returns:
+    slice
+        A slice equivalent to the index.
+    """
+    return slice(idx, idx+1, None)
+
 def slice_to_str(slc):
     """Converts a slice into a string.
     """
@@ -98,11 +111,15 @@ def none_to_empty(val):
     else:
         return val
 
-def is_single_index(slice_):
+def is_single_index(slc):
     """Is the slice equivalent to a single index?
     """
-    return slice_.stop is not None and \
-    slice_.start + slice_.step >= slice_.stop
+    if slc.step is None:
+        step = 1
+    else:
+        step = slc.step
+    return slc.stop is not None and \
+    slc.start + step >= slc.stop
 
 def size(key, shape):
     """Finds the dimensions of a sliced expression.
