@@ -22,137 +22,90 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxopt import blas, lapack
 from cvxopt.base import matrix
-from cvxopt.misc import scale, pack, pack2, unpack, symm
+from cvxopt.misc import scale, pack, unpack
 
-# Regularization constant (denoted elsewhere by E).
+# Regularization constant.
 REG_EPS = 1e-9
 
 # Returns a kktsolver for linear cone programs (or nonlinear if F is given).
 def get_kktsolver(G, dims, A, F=None):
     if F is None:
-        factor = kkt_chol(G, dims, A)
+        factor = kkt_ldl(G, dims, A)
         def kktsolver(W):
             return factor(W)
     else:
         mnl, x0 = F()
-        factor = kkt_chol(G, dims, A, mnl)
+        factor = kkt_ldl(G, dims, A, mnl)
         def kktsolver(x, z, W):
             f, Df, H = F(x, z)
             return factor(W, H, Df)
     return kktsolver
 
-def kkt_chol(G, dims, A, mnl = 0):
+def kkt_ldl(G, dims, A, mnl = 0):
     """
-    Solution of KKT equations by reduction to a 2 x 2 system, a QR
-    factorization to eliminate the equality constraints, and a dense
-    Cholesky factorization of order n-p.
+    Solution of KKT equations by a dense LDL factorization of the
+    3 x 3 system.
 
-    Computes the QR factorization
+    Returns a function that (1) computes the LDL factorization of
 
-        A' = [Q1, Q2] * [R; 0]
-
-    and returns a function that (1) computes the Cholesky factorization
-
-        Q_2^T * (H + GG^T * W^{-1} * W^{-T} * GG) * Q2 = L * L^T,
+        [ H           A'   GG'*W^{-1} ]
+        [ A           0    0          ],
+        [ W^{-T}*GG   0   -I          ]
 
     given H, Df, W, where GG = [Df; G], and (2) returns a function for
     solving
 
-        [ H    A'   GG'    ]   [ ux ]   [ bx ]
-        [ A    0    0      ] * [ uy ] = [ by ].
-        [ GG   0    -W'*W  ]   [ uz ]   [ bz ]
+        [ H     A'   GG'   ]   [ ux ]   [ bx ]
+        [ A     0    0     ] * [ uy ] = [ by ].
+        [ GG    0   -W'*W  ]   [ uz ]   [ bz ]
 
     H is n x n,  A is p x n, Df is mnl x n, G is N x n where
     N = dims['l'] + sum(dims['q']) + sum( k**2 for k in dims['s'] ).
     """
 
     p, n = A.size
-    cdim = mnl + dims['l'] + sum(dims['q']) + sum([ k**2 for k in
-        dims['s'] ])
-    cdim_pckd = mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
+    ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
         for k in dims['s'] ])
-
-    # A'/E
-    mA = matrix(A)
-    AT = matrix(A.T)
-    blas.scal(1/REG_EPS, AT)
-    # A'A/E
-    ATA = matrix(AT*A)
-
-    Gs = matrix(0.0, (cdim, n))
-    K = matrix(0.0, (n,n))
-    bzp = matrix(0.0, (cdim_pckd, 1))
-    yy = matrix(0.0, (p,1))
+    K = matrix(0.0, (ldK, ldK))
+    ipiv = matrix(0, (ldK, 1))
+    u = matrix(0.0, (ldK, 1))
+    g = matrix(0.0, (mnl + G.size[0], 1))
 
     def factor(W, H = None, Df = None):
-
-        # Compute
-        #
-        #     K = [Q1, Q2]' * (H + E*I + GG' * W^{-1} * W^{-T} * GG / (1 + E) + A'A/E) * [Q1, Q2]
-        #
-        # and take the Cholesky factorization.
-
-        # Gs = W^{-T} * GG in packed storage.
-        # print "1"
-        if mnl:
-            Gs[:mnl, :] = Df
-        Gs[mnl:, :] = G
-        scale(Gs, W, trans = 'T', inverse = 'I')
-        pack2(Gs, dims, mnl)
-
-        # K = H + E*I + GG' * W^{-1} * W^{-T} * GG / (1 + E) + A'A/E.
-        blas.syrk(Gs, K, k = cdim_pckd, trans = 'T')
-        blas.scal(1/(1+REG_EPS), Gs)
-        if H is not None: K[:,:] += H
-        K[:,:] += ATA
-        K[:: n+1]  += REG_EPS
-        # print "2"
-        symm(K, n)
-        # print "3"
-
-        # Cholesky factorization of K.
-        lapack.potrf(K)
+        blas.scal(0.0, K)
+        if H is not None: K[:n, :n] = H
+        K[n:n+p, :n] = A
+        for k in range(n):
+            if mnl: g[:mnl] = Df[:,k]
+            g[mnl:] = G[:,k]
+            scale(g, W, trans = 'T', inverse = 'I')
+            pack(g, K, dims, mnl, offsety = k*ldK + n + p)
+        K[(ldK+1)*(p+n) :: ldK+1]  = -1.0
+        # Add positive regularization in 1x1 block and negative in 2x2 block.
+        K[0 : (ldK+1)*n : ldK+1]  += REG_EPS
+        K[(ldK+1)*n :: ldK+1]  += -REG_EPS
+        lapack.sytrf(K, ipiv)
 
         def solve(x, y, z):
+
             # Solve
             #
-            #     [ H+EPS      A'      GG'*W^{-1} ]   [ ux   ]   [ bx        ]
-            #     [ A          -EPS    0          ] * [ uy   ] = [ by        ]
-            #     [ W^{-T}*GG  0   -I-EPS         ]   [ W*uz ]   [ W^{-T}*bz ]
+            #     [ H          A'   GG'*W^{-1} ]   [ ux   ]   [ bx        ]
+            #     [ A          0    0          ] * [ uy   [ = [ by        ]
+            #     [ W^{-T}*GG  0   -I          ]   [ W*uz ]   [ W^{-T}*bz ]
             #
             # and return ux, uy, W*uz.
             #
             # On entry, x, y, z contain bx, by, bz.  On exit, they contain
             # the solution ux, uy, W*uz.
-            #
-            # We reduce the linear system and arrive at
-            #
-            #     K*ux = bx + A'*by/E + GG'W^{-1}W^{-T}*bz/(1+E)
-            #     uy = (A*ux - by)/E
-            #     W*uz = W^{-T} * ( GG*ux - bz ).
-
-            # bzp := W^{-T} * bz in packed storage
+            blas.copy(x, u)
+            blas.copy(y, u, offsety = n)
             scale(z, W, trans = 'T', inverse = 'I')
-            pack(z, bzp, dims, mnl)
-            blas.scal(1/(1+REG_EPS), bzp)
-            # x := (x + Gs' * bzp)
-            blas.gemv(Gs, bzp, x, beta = 1.0, trans = 'T', m = cdim_pckd)
-            # x += A'*y/E
-            blas.gemv(AT, y, x, beta = 1.0)
-            # x := K^{-1}x
-            lapack.potrs(K, x)
-            # y := (A*ux - by)/E
-            # y[:] = (A*x - y)/REG_EPS
-            blas.gemv(mA, x, y, alpha = 1.0, beta = -1.0)
-            blas.scal(1/REG_EPS, y)
-
-            # bzp := Gs * x - bzp.
-            #      = W^{-T} * ( GG*ux - bz ) in packed storage.
-            # Unpack and copy to z.
-            blas.gemv(Gs, x, bzp, alpha = 1.0, beta = -1.0, m = cdim_pckd)
-            unpack(bzp, z, dims, mnl)
-            # z /= (1+REG_EPS)
-            blas.scal(1/(1+REG_EPS), z)
+            pack(z, u, dims, mnl, offsety = n + p)
+            lapack.sytrs(K, ipiv, u)
+            blas.copy(u, x, n = n)
+            blas.copy(u, y, offsetx = n, n = p)
+            unpack(u, z, dims, mnl, offsetx = n + p)
 
         return solve
 
