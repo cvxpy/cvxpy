@@ -247,7 +247,10 @@ def op_tmul(lin_op, value):
     elif lin_op.type is lo.PROMOTE:
         result = np.ones(lin_op.size[0]).dot(value)
     elif lin_op.type is lo.DIAG_VEC:
+        # The return type in numpy versions < 1.10 was ndarray.
         result = np.diag(value)
+        if isinstance(result, np.matrix):
+            result = result.A[0]
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, value, transpose=True)
     else:
