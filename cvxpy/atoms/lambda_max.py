@@ -23,8 +23,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semi_definite import SDP
-import scipy.sparse as sp
-from numpy import linalg as LA
+from scipy import linalg as LA
 
 class lambda_max(Atom):
     """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
@@ -33,34 +32,42 @@ class lambda_max(Atom):
     def __init__(self, A):
         super(lambda_max, self).__init__(A)
 
-    # Returns the smallest eigenvalue of A.
-    # Requires that A be symmetric.
     @Atom.numpy_numeric
     def numeric(self, values):
+        """Returns the smallest eigenvalue of A.
+
+        Requires that A be symmetric.
+        """
         if not (values[0].T == values[0]).all():
             raise Exception("lambda_max called on a non-symmetric matrix.")
-        w, v = LA.eig(values[0])
-        return max(w)
+        lo = hi = self.size[0]
+        return LA.eigvalsh(values[0], eigvals=(lo, hi))
 
-    # Resolves to a scalar.
     def shape_from_args(self):
+        """Resolves to a scalar.
+        """
         return u.Shape(1,1)
 
-    # Verify that the argument A is square.
     def validate_arguments(self):
+        """Verify that the argument A is square.
+        """
         if not self.args[0].size[0] == self.args[0].size[1]:
             raise TypeError("The argument '%s' to lambda_max must resolve to a square matrix."
                 % self.args[0].name())
 
-    # Always unknown.
     def sign_from_args(self):
+        """Always unknown.
+        """
         return u.Sign.UNKNOWN
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Non-monotonic.
+        """
         return [u.monotonicity.NONMONOTONIC]
 
     @staticmethod
