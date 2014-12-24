@@ -71,5 +71,5 @@ class TestSolvers(BaseTest):
         EPS = 1e-7
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
         prob.solve(solver=CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
-                   max_iters=20, verbose=True)
+                   max_iters=20, verbose=True, kktsolver="chol", refinement=2)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])

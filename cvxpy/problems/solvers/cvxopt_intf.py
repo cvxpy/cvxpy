@@ -89,12 +89,12 @@ class CVXOPT(Solver):
         prob_data = self.get_problem_data(objective, constraints, cached_data)
         dims = prob_data[0][-3] # TODO this is a hack.
         obj_offset = prob_data[1]
+        # User chosen KKT solver option.
+        kktsolver = self.get_kktsolver(solver_opts)
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options
         # Silence cvxopt if verbose is False.
-        cvxopt.solvers.options['show_progress'] = verbose
-        # Always do 1 step of iterative refinement after solving KKT system.
-        cvxopt.solvers.options['refinement'] = 1
+        cvxopt.solvers.options["show_progress"] = verbose
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
@@ -103,27 +103,55 @@ class CVXOPT(Solver):
         for key, value in solver_opts.items():
             cvxopt.solvers.options[key] = value
 
+        # Always do 1 step of iterative refinement after solving KKT system.
+        if not "refinement" in cvxopt.solvers.options:
+            cvxopt.solvers.options["refinement"] = 1
+
         try:
             # Target cvxopt clp if nonlinear constraints exist
             if dims[s.EXP_DIM]:
                 _, F, G, _, dims, A, _ = prob_data[0]
-                # Get custom kktsolver.
-                kktsolver = get_kktsolver(G, dims, A, F)
+                if kktsolver is None:
+                    # Get custom kktsolver.
+                    kktsolver = get_kktsolver(G, dims, A, F)
                 results_dict = cvxopt.solvers.cpl(*prob_data[0],
                                                   kktsolver=kktsolver)
             else:
                 _, G, _, dims, A, _ = prob_data[0]
-                # Get custom kktsolver.
-                kktsolver = get_kktsolver(G, dims, A)
+                if kktsolver is None:
+                    # Get custom kktsolver.
+                    kktsolver = get_kktsolver(G, dims, A)
                 results_dict = cvxopt.solvers.conelp(*prob_data[0],
                                                      kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
-            results_dict = {'status': 'unknown'}
+            results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
         return self.format_results(results_dict, dims, obj_offset)
+
+    def get_kktsolver(self, solver_opts):
+        """Returns the KKT solver selected by the user.
+
+        Removes the KKT solver from solver_opts.
+
+        Parameters
+        ----------
+        solver_opts : dict
+            Additional arguments for the solver.
+
+        Returns
+        -------
+        str or None
+            The KKT solver chosen by the user.
+        """
+        if "kktsolver" in solver_opts:
+            kktsolver = solver_opts["kktsolver"]
+            del solver_opts["kktsolver"]
+        else:
+            kktsolver = None
+        return kktsolver
 
     def format_results(self, results_dict, dims, obj_offset=0):
         """Converts the solver output into standard form.

@@ -262,6 +262,12 @@ Here's the complete list of solver options.
 ``'feastol'``
     tolerance for feasibility conditions (default: 1e-7).
 
+``'refinement'``
+    number of iterative refinement steps after solving KKT system (default: 1).
+
+``'kktsolver'``
+    The KKT solver used. The default is a regularized LDL solver. The "chol" solver is faster but requires that A and [A; G] be full rank.
+
 `SCS`_ options:
 
 ``'max_iters'``
