@@ -118,8 +118,7 @@ class CVXOPT(Solver):
                 results_dict = cvxopt.solvers.conelp(*prob_data[0],
                                                      kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
-        except ValueError as e:
-            print e
+        except ValueError:
             results_dict = {'status': 'unknown'}
 
         # Restore original cvxopt solver options.
