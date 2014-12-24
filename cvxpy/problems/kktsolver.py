@@ -151,6 +151,7 @@ def kkt_chol(G, dims, A, mnl = 0):
             # Unpack and copy to z.
             blas.gemv(Gs, x, bzp, alpha = 1.0, beta = -1.0, m = cdim_pckd)
             unpack(bzp, z, dims, mnl)
+            # z /= (1+REG_EPS)
             blas.scal(1/(1+REG_EPS), z)
 
         return solve

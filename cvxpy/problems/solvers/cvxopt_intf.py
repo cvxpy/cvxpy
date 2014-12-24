@@ -94,7 +94,7 @@ class CVXOPT(Solver):
         # Silence cvxopt if verbose is False.
         cvxopt.solvers.options['show_progress'] = verbose
         # Always do 20 steps of iterative refinement after solving KKT system.
-        cvxopt.solvers.options['refinement'] = 20
+        cvxopt.solvers.options['refinement'] = 100
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
