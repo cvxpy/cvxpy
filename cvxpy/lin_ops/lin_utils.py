@@ -383,6 +383,23 @@ def diag_mat(operator):
     size = (operator.size[0], 1)
     return lo.LinOp(lo.DIAG_MAT, size, [operator], None)
 
+def upper_tri(operator):
+    """Vectorized upper triangular portion of a square matrix.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The matrix operator.
+
+    Returns
+    -------
+    LinOp
+       LinOp representing the vectorized upper triangle.
+    """
+    entries = operator.size[0]*operator.size[1]
+    size = ((entries - operator.size[0])//2, 1)
+    return lo.LinOp(lo.UPPER_TRI, size, [operator], None)
+
 def hstack(operators, size):
     """Concatenates operators horizontally.
 

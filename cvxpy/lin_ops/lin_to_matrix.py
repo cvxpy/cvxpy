@@ -409,6 +409,39 @@ def diag_mat_mat(lin_op):
     return [sp.coo_matrix((val_arr, (row_arr, col_arr)),
                           (rows, rows**2)).tocsc()]
 
+def upper_tri_mat(lin_op):
+    """Returns the coefficients matrix for UPPER_TRI linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The upper tri linear op.
+
+    Returns
+    -------
+    SciPy CSC matrix
+        The matrix to vectorize the upper triangle.
+    """
+    rows, cols = lin_op.args[0].size
+
+    val_arr = []
+    row_arr = []
+    col_arr = []
+    count = 0
+    for i in range(rows):
+        for j in range(cols):
+            if j > i:
+                # Index in the original matrix.
+                col_arr.append(j*rows + i)
+                # Index in the extracted vector.
+                row_arr.append(count)
+                val_arr.append(1.0)
+                count += 1
+
+    entries, _ = lin_op.size
+    return [sp.coo_matrix((val_arr, (row_arr, col_arr)),
+                          (entries, rows*cols)).tocsc()]
+
 def conv_mat(lin_op):
     """Returns the coefficient matrix for CONV linear op.
 
@@ -503,6 +536,7 @@ TYPE_TO_FUNC = {
     lo.SUM: lambda lin_op: [1]*len(lin_op.args),
     lo.DIAG_VEC: diag_vec_mat,
     lo.DIAG_MAT: diag_mat_mat,
+    lo.UPPER_TRI: upper_tri_mat,
     lo.CONV: conv_mat,
     lo.HSTACK: lambda lin_op: stack_mats(lin_op, False),
     lo.VSTACK: lambda lin_op: stack_mats(lin_op, True),

@@ -53,12 +53,12 @@ class SDP(Constraint):
         solver : str
             The solver being called.
         """
-        # A == A.T
+        # upper_tri(A) == upper_tri(A.T)
         eq_constr += self.__format[0]
         # 0 <= A
         leq_constr += self.__format[1]
         # Update dims.
-        dims[s.EQ_DIM] += self.size[0]*self.size[1]
+        dims[s.EQ_DIM] += (self.size[0]*(self.size[1] - 1))//2
         dims[s.SDP_DIM].append(self.size[0])
 
     @pu.lazyprop
@@ -70,7 +70,9 @@ class SDP(Constraint):
         tuple
             (equality constraints, inequality constraints)
         """
-        eq_constr = lu.create_eq(self.A, lu.transpose(self.A))
+        upper_tri = lu.upper_tri(self.A)
+        lower_tri = lu.upper_tri(lu.transpose(self.A))
+        eq_constr = lu.create_eq(upper_tri, lower_tri)
         leq_constr = lu.create_geq(self.A)
         return ([eq_constr], [leq_constr])
 
