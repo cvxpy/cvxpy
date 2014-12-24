@@ -21,6 +21,7 @@ Version 0.2.16 (next release)
 * Made geo_mean elementwise.
 * Python 3 support!!!
 * Error checking for x**p.
+* Added upper_tri.
 
 Version 0.2.15
 ------------

@@ -351,3 +351,10 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(expr.size, (1, 1))
         expr = log1p(-0.5)
         self.assertEquals(expr.sign, u.Sign.NEGATIVE_KEY)
+
+    def test_upper_tri(self):
+        with self.assertRaises(Exception) as cm:
+            upper_tri(self.C)
+        self.assertEqual(str(cm.exception),
+            "Argument to upper_tri must be a square matrix.")
+

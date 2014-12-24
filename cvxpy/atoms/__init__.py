@@ -45,6 +45,7 @@ from cvxpy.atoms.affine.mul_elemwise import mul_elemwise
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum_entries import sum_entries
 from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
 
