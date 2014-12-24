@@ -72,13 +72,12 @@ def kkt_chol(G, dims, A, mnl = 0):
     cdim_pckd = mnl + dims['l'] + sum(dims['q']) + sum([ int(k*(k+1)/2)
         for k in dims['s'] ])
 
-    # A' = [Q1, Q2] * [R; 0]  (Q1 is n x p, Q2 is n x n-p).
-    if type(A) is matrix:
-        QA = A.T
-    else:
-        QA = matrix(A.T)
-    tauA = matrix(0.0, (p,1))
-    lapack.geqrf(QA, tauA)
+    # A'/E
+    mA = matrix(A)
+    AT = matrix(A.T)
+    blas.scal(1/REG_EPS, AT)
+    # A'A/E
+    ATA = matrix(AT*A)
 
     Gs = matrix(0.0, (cdim, n))
     K = matrix(0.0, (n,n))
@@ -91,34 +90,30 @@ def kkt_chol(G, dims, A, mnl = 0):
         #
         #     K = [Q1, Q2]' * (H + E*I + GG' * W^{-1} * W^{-T} * GG / (1 + E) + A'A/E) * [Q1, Q2]
         #
-        # and take the Cholesky factorization of the 2,2 block
-        #
-        #     Q_2' * (H + GG^T * W^{-1} * W^{-T} * GG) * Q2.
+        # and take the Cholesky factorization.
 
         # Gs = W^{-T} * GG in packed storage.
-        print "1"
+        # print "1"
         if mnl:
             Gs[:mnl, :] = Df
         Gs[mnl:, :] = G
         scale(Gs, W, trans = 'T', inverse = 'I')
         pack2(Gs, dims, mnl)
 
-        # K = [Q1, Q2]' * (H + Gs' * Gs) * [Q1, Q2].
+        # K = H + E*I + GG' * W^{-1} * W^{-T} * GG / (1 + E) + A'A/E.
         blas.syrk(Gs, K, k = cdim_pckd, trans = 'T')
+        blas.scal(1/(1+REG_EPS), Gs)
         if H is not None: K[:,:] += H
-        print "2"
+        K[:,:] += ATA
+        K[:: n+1]  += REG_EPS
+        # print "2"
         symm(K, n)
-        print "3"
-        lapack.ormqr(QA, tauA, K, side = 'L', trans = 'T')
-        print "4"
-        lapack.ormqr(QA, tauA, K, side = 'R')
-        print "5"
+        # print "3"
 
-        # Cholesky factorization of 2,2 block of K.
-        lapack.potrf(K, n = n-p, offsetA = p*(n+1))
+        # Cholesky factorization of K.
+        lapack.potrf(K)
 
         def solve(x, y, z):
-            print "solving"
             # Solve
             #
             #     [ H+EPS      A'      GG'*W^{-1} ]   [ ux   ]   [ bx        ]
@@ -130,56 +125,33 @@ def kkt_chol(G, dims, A, mnl = 0):
             # On entry, x, y, z contain bx, by, bz.  On exit, they contain
             # the solution ux, uy, W*uz.
             #
-            # If we change variables ux = Q1*v + Q2*w, the system becomes
+            # We reduce the linear system and arrive at
             #
-            #     [ K11 K12    R ]   [ v  ]   [Q1'*(bx+GG'*W^{-1}*W^{-T}*bz)]
-            #     [ K21 K22    0 ] * [ w  ] = [Q2'*(bx+GG'*W^{-1}*W^{-T}*bz)]
-            #     [ R^T 0   -EPS ]   [ uy ]   [by                           ]
-            #
+            #     K*ux = bx + A'*by/E + GG'W^{-1}W^{-T}*bz/(1+E)
+            #     uy = (A*ux - by)/E
             #     W*uz = W^{-T} * ( GG*ux - bz ).
 
             # bzp := W^{-T} * bz in packed storage
             scale(z, W, trans = 'T', inverse = 'I')
             pack(z, bzp, dims, mnl)
-            print "6"
-            # x := [Q1, Q2]' * (x + Gs' * bzp)
-            #    = [Q1, Q2]' * (bx + Gs' * W^{-T} * bz)
+            blas.scal(1/(1+REG_EPS), bzp)
+            # x := (x + Gs' * bzp)
             blas.gemv(Gs, bzp, x, beta = 1.0, trans = 'T', m = cdim_pckd)
-            lapack.ormqr(QA, tauA, x, side = 'L', trans = 'T')
-            print "7"
-            # y := x[:p]
-            #    = Q1' * (bx + Gs' * W^{-T} * bz)
-            blas.copy(y, yy)
-            blas.copy(x, y, n = p)
-            print "8"
-            # x[:p] := v = R^{-T} * by
-            blas.copy(yy, x)
-            lapack.trtrs(QA, x, uplo = 'U', trans = 'T', n = p)
-            print "9" # Fails here because R not full rank.
-            # x[p:] := K22^{-1} * (x[p:] - K21*x[:p])
-            #        = K22^{-1} * (Q2' * (bx + Gs' * W^{-T} * bz) - K21*v)
-            blas.gemv(K, x, x, alpha = -1.0, beta = 1.0, m = n-p, n = p,
-                offsetA = p, offsety = p)
-            lapack.potrs(K, x, n = n-p, offsetA = p*(n+1), offsetB = p)
-            print "10"
-            # y := y - [K11, K12] * x
-            #    = Q1' * (bx + Gs' * W^{-T} * bz) - K11*v - K12*w
-            blas.gemv(K, x, y, alpha = -1.0, beta = 1.0, m = p, n = n)
+            # x += A'*y/E
+            blas.gemv(AT, y, x, beta = 1.0)
+            # x := K^{-1}x
+            lapack.potrs(K, x)
+            # y := (A*ux - by)/E
+            # y[:] = (A*x - y)/REG_EPS
+            blas.gemv(mA, x, y, alpha = 1.0, beta = -1.0)
+            blas.scal(1/REG_EPS, y)
 
-            # y := R^{-1}*y
-            #    = R^{-1} * (Q1' * (bx + Gs' * W^{-T} * bz) - K11*v
-            #      - K12*w)
-            lapack.trtrs(QA, y, uplo = 'U', n = p)
-
-            # x := [Q1, Q2] * x
-            lapack.ormqr(QA, tauA, x, side = 'L')
-            print "13"
             # bzp := Gs * x - bzp.
             #      = W^{-T} * ( GG*ux - bz ) in packed storage.
             # Unpack and copy to z.
             blas.gemv(Gs, x, bzp, alpha = 1.0, beta = -1.0, m = cdim_pckd)
             unpack(bzp, z, dims, mnl)
-            print "14"
+            blas.scal(1/(1+REG_EPS), z)
 
         return solve
 

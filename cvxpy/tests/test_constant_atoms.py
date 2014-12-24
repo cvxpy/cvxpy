@@ -182,7 +182,7 @@ def run_atom(atom, problem, obj_val, solver):
     if check_solver(problem, solver):
         print("solver", solver)
         tolerance = SOLVER_TO_TOL[solver]
-        result = problem.solve(solver=solver)
+        result = problem.solve(solver=solver, verbose=True)
         if problem.status is OPTIMAL:
             print(result)
             print(obj_val)

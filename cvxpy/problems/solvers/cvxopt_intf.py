@@ -93,8 +93,8 @@ class CVXOPT(Solver):
         old_options = cvxopt.solvers.options
         # Silence cvxopt if verbose is False.
         cvxopt.solvers.options['show_progress'] = verbose
-        # Always do one step of iterative refinement after solving KKT system.
-        cvxopt.solvers.options['refinement'] = 1
+        # Always do 20 steps of iterative refinement after solving KKT system.
+        cvxopt.solvers.options['refinement'] = 20
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
@@ -114,6 +114,12 @@ class CVXOPT(Solver):
             else:
                 _, G, _, dims, A, _ = prob_data[0]
                 # Get custom kktsolver.
+                # import numpy.linalg
+                # print "A dims", A.size
+                # print "A rank", numpy.linalg.matrix_rank(A)
+                # print A
+                # print b
+                # print G
                 kktsolver = get_kktsolver(G, dims, A)
                 results_dict = cvxopt.solvers.conelp(*prob_data[0],
                                                      kktsolver=kktsolver)
