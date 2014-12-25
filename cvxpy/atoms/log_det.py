@@ -34,10 +34,18 @@ class log_det(Atom):
     def __init__(self, A):
         super(log_det, self).__init__(A)
 
-    # Returns the nuclear norm (i.e. the sum of the singular values) of A.
     @Atom.numpy_numeric
     def numeric(self, values):
-        return np.log(LA.det(values[0]))
+        """Returns the logdet of SDP matrix A.
+
+        For SDP matrix A, this is the sum of logs of eigenvalues of A
+        and is equivalent to the nuclear norm of the matrix exponential of A.
+        """
+        sign, logdet = LA.slogdet(values[0])
+        if sign == 1:
+            return logdet
+        else:
+            return -np.inf
 
     # Resolves to a scalar.
     def shape_from_args(self):
