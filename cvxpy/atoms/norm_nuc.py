@@ -23,7 +23,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semi_definite import SDP
-from numpy import linalg as LA
+import scipy.linalg
 
 class normNuc(Atom):
     """ Sum of the singular values. """
@@ -34,8 +34,7 @@ class normNuc(Atom):
     def numeric(self, values):
         """Returns the nuclear norm (i.e. the sum of the singular values) of A.
         """
-        U,s,V = LA.svd(values[0])
-        return sum(s)
+        return scipy.linalg.svdvals(values[0]).sum()
 
     def shape_from_args(self):
         """Resolves to a scalar.
