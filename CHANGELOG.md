@@ -10,6 +10,7 @@ Version 1.0 (targets)
 * TODO add sets and domains for Parameters/Variables that affect DCP properties.
 * TODO PSD parameters?
 * TODO warmstart for SCS.
+* TODO change diag for matrices to diagm so can choose which diagonal to access.
 
 Version 0.2.16 (next release)
 ---------------------------
@@ -22,6 +23,7 @@ Version 0.2.16 (next release)
 * Python 3 support!!!
 * Error checking for x**p.
 * Added upper_tri.
+* TODO change BoolVar, IntVar to Bool, Int.
 
 Version 0.2.15
 ------------
