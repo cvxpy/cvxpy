@@ -23,7 +23,8 @@ Version 0.2.16 (next release)
 * Python 3 support!!!
 * Error checking for x**p.
 * Added upper_tri.
-* TODO change BoolVar, IntVar to Bool, Int.
+* Changed BoolVar, IntVar to Bool, Int.
+* Simplified Huber loss graph_implementation.
 
 Version 0.2.15
 ------------

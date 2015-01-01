@@ -19,11 +19,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.square import square
+import numpy as np
 
-def huber(x, M=1):
+class huber(Elementwise):
     """The Huber function
 
     Huber(x, M) = 2M|x|-M^2 for |x| >= |M|
@@ -34,44 +36,60 @@ def huber(x, M=1):
     ----------
     x : Expression
         A CVXPY expression.
-    M : int/float
+    M : int/float or Parameter
     """
-    # TODO require that M is positive?
-    return square(M)*huber_pos(abs(x)/abs(M))
+    def __init__(self, x, M=1):
+        self.M = self.cast_to_const(M)
+        super(huber, self).__init__(x)
 
-class huber_pos(Elementwise):
-    """Elementwise Huber function for non-negative expressions and M=1.
-    """
-    def __init__(self, x):
-        super(huber_pos, self).__init__(x)
-
-    # Returns the huber function applied elementwise to x.
     @Elementwise.numpy_numeric
     def numeric(self, values):
+        """Returns the huber function applied elementwise to x.
+        """
         x = values[0]
+        output = np.zeros(x.shape)
+        M = self.M.value
         for row in range(x.shape[0]):
             for col in range(x.shape[1]):
-                if x[row, col] >= 1:
-                    x[row, col] = 2*x[row, col] - 1
+                if np.abs(x[row, col]) <= M:
+                    output[row, col] = np.square(x[row, col])
                 else:
-                    x[row, col] = x[row, col]**2
+                    output[row, col] = 2*M*np.abs(x[row, col]) - M**2
+        return output
 
-        return x
-
-    # Always positive.
     def sign_from_args(self):
+        """Always positive.
+        """
         return u.Sign.POSITIVE
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
+        """Increasing for positive arg, decreasing for negative.
+        """
         return [u.monotonicity.SIGNED]
+
+    def get_data(self):
+        """Returns the parameter M.
+        """
+        return self.M
+
+    def validate_arguments(self):
+        """Checks that M >= 0 and is constant.
+        """
+        if not (self.M.is_positive() and self.M.is_constant() \
+                and self.M.is_scalar()):
+            raise ValueError("M must be a non-negative scalar constant.")
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
+
+        minimize n^2 + 2M|s|
+        subject to s + n = x
 
         Parameters
         ----------
@@ -87,15 +105,22 @@ class huber_pos(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
+        M = data
         x = arg_objs[0]
-        w = lu.create_var(size)
-        v = lu.create_var(size)
+        n = lu.create_var(size)
+        s = lu.create_var(size)
         two = lu.create_const(2, (1, 1))
-        # w**2 + 2*v
-        obj, constraints = square.graph_implementation([w], size)
-        obj = lu.sum_expr([obj, lu.mul_expr(two, v, size)])
-        # x <= w + v
-        constraints.append(lu.create_leq(x, lu.sum_expr([w, v])))
-        # v >= 0
-        constraints.append(lu.create_geq(v))
+        if isinstance(M, Parameter):
+            M = lu.create_param(M, (1, 1))
+        else: # M is constant.
+            M = lu.create_const(M.value, (1, 1))
+
+        # n**2 + 2*M*|s|
+        n2, constr_sq = square.graph_implementation([n], size)
+        abs_s, constr_abs = abs.graph_implementation([s], size)
+        M_abs_s = lu.mul_expr(M, abs_s, size)
+        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, size)])
+        # x == s + n
+        constraints = constr_sq + constr_abs
+        constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))
         return (obj, constraints)

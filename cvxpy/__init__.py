@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 __version__ = "0.2.15"
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable, Semidef, BoolVar, IntVar
+from cvxpy.expressions.variables import Variable, Semidef, Bool, Int
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
@@ -30,4 +30,4 @@ OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,
 OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 
 # Legacy names.
-from cvxpy.expressions.variables.semidefinite import Semidef as semidefinite
+from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite

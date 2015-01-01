@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import BoolVar, IntVar
+from cvxpy.expressions.variables import Bool, Int
 from cvxopt import matrix
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
@@ -27,19 +27,19 @@ import unittest
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
     def setUp(self):
-        self.x_bool = BoolVar()
-        self.y_int = IntVar()
-        self.A_bool = BoolVar(3, 2)
-        self.B_int = IntVar(2, 3)
+        self.x_bool = Bool()
+        self.y_int = Int()
+        self.A_bool = Bool(3, 2)
+        self.B_int = Int(2, 3)
 
     def test_mip_print(self):
         """Test to string methods for Bool/Int vars.
         """
-        self.assertEqual(repr(self.x_bool), "BoolVar(1, 1)")
-        self.assertEqual(repr(self.B_int), "IntVar(2, 3)")
+        self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
+        self.assertEqual(repr(self.B_int), "Int(2, 3)")
 
     def test_bool_prob(self):
-        # BoolVar in objective.
+        # Bool in objective.
         obj = Minimize(square(self.x_bool - 0.2))
         p = Problem(obj,[])
         result = p.solve()
@@ -47,7 +47,7 @@ class TestMIPVariable(BaseTest):
 
         self.assertAlmostEqual(self.x_bool.value, 0)
 
-        # BoolVar in constraint.
+        # Bool in constraint.
         t = Variable()
         obj = Minimize(t)
         p = Problem(obj,[square(self.x_bool) <= t])
@@ -56,7 +56,7 @@ class TestMIPVariable(BaseTest):
 
         self.assertAlmostEqual(self.x_bool.value, 0)
 
-        # Matrix BoolVar in objective.
+        # Matrix Bool in objective.
         C = matrix([[0, 1, 0], [1, 1, 1]])
         obj = Minimize(sum_squares(self.A_bool - C))
         p = Problem(obj,[])
@@ -65,7 +65,7 @@ class TestMIPVariable(BaseTest):
 
         self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
-        # Matrix BoolVar in constraint.
+        # Matrix Bool in constraint.
         t = Variable()
         obj = Minimize(t)
         p = Problem(obj, [sum_squares(self.A_bool - C) <= t])
@@ -75,7 +75,7 @@ class TestMIPVariable(BaseTest):
         self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
     def test_int_prob(self):
-        # IntVar in objective.
+        # Int in objective.
         obj = Minimize(square(self.y_int - 0.2))
         p = Problem(obj,[])
         result = p.solve()

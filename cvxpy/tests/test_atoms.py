@@ -358,3 +358,29 @@ class TestAtoms(unittest.TestCase):
         self.assertEqual(str(cm.exception),
             "Argument to upper_tri must be a square matrix.")
 
+    def test_huber(self):
+        # Valid.
+        huber(self.x, 1)
+
+        with self.assertRaises(Exception) as cm:
+            huber(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "M must be a non-negative scalar constant.")
+
+        with self.assertRaises(Exception) as cm:
+            huber(self.x, [1,1])
+        self.assertEqual(str(cm.exception),
+            "M must be a non-negative scalar constant.")
+
+        # M parameter.
+        M = Parameter(sign="positive")
+        # Valid.
+        huber(self.x, M)
+        M.value = 1
+        self.assertAlmostEquals(huber(2, M).value, 3)
+        # Invalid.
+        M = Parameter(sign="negative")
+        with self.assertRaises(Exception) as cm:
+            huber(self.x, M)
+        self.assertEqual(str(cm.exception),
+            "M must be a non-negative scalar constant.")

@@ -19,16 +19,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.constraints.bool_constr import BoolConstr
 
-class BoolVar(Variable):
+class Bool(Variable):
     """ A boolean variable. """
 
     def canonicalize(self):
         """Variable must be boolean.
         """
-        obj, constr = super(BoolVar, self).canonicalize()
+        obj, constr = super(Bool, self).canonicalize()
         return (obj, constr + [BoolConstr(obj)])
 
     def __repr__(self):
         """String to recreate the object.
         """
-        return "BoolVar(%d, %d)" % self.size
+        return "Bool(%d, %d)" % self.size
