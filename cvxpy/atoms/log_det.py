@@ -114,31 +114,22 @@ class log_det(Atom):
         n, _ = A.size
         X = lu.create_var((2*n, 2*n))
         Z = lu.create_var((n, n))
-        D = lu.create_var((n, n))
+        D = lu.create_var((n, 1))
         # Require that X and A are PSD.
         constraints = [SDP(X), SDP(A)]
         # Fix Z as upper triangular, D as diagonal,
         # and diag(D) as diag(Z).
-        for i in range(n):
-            for j in range(n):
-                if i != j:
-                    # D[i, j] == 0
-                    Dij = index.get_index(D, constraints, i, j)
-                    constraints.append(lu.create_eq(Dij))
-                if i > j:
-                    # Z[i, j] == 0
-                    Zij = index.get_index(Z, constraints, i, j)
-                    constraints.append(lu.create_eq(Zij))
+        Z_lower_tri = lu.upper_tri(lu.transpose(Z))
+        constraints.append(lu.create_eq(Z_lower_tri))
         # D[i, i] = Z[i, i]
-        constraints.append(lu.create_eq(lu.diag_mat(D), lu.diag_mat(Z)))
+        constraints.append(lu.create_eq(D, lu.diag_mat(Z)))
         # Fix X using the fact that A must be affine by the DCP rules.
         # X[0:n, 0:n] == D
-        index.block_eq(X, D, constraints, 0, n, 0, n)
+        index.block_eq(X, lu.diag_vec(D), constraints, 0, n, 0, n)
         # X[0:n, n:2*n] == Z,
         index.block_eq(X, Z, constraints, 0, n, n, 2*n)
         # X[n:2*n, n:2*n] == A
         index.block_eq(X, A, constraints, n, 2*n, n, 2*n)
         # Add the objective sum(log(D[i, i])
-        diag = lu.diag_mat(D)
-        obj, constr = log.graph_implementation([diag], (n, 1))
+        obj, constr = log.graph_implementation([D], (n, 1))
         return (lu.sum_entries(obj), constraints + constr)
