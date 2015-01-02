@@ -268,7 +268,7 @@ class TestProblem(BaseTest):
         obj = sum_entries(X + X)
         p = Problem(Minimize(obj))
         result = p.solve(method="test")
-        self.assertEqual(result, (1, 1))
+        self.assertEqual(result, (0, 1))
 
         # Duplicates from non-linear constraints.
         exp = norm(self.x, 2)

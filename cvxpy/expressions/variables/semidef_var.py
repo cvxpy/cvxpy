@@ -88,4 +88,4 @@ class SemidefUpperTri(Variable):
     def __repr__(self):
         """String to recreate the object.
         """
-        return "SemidefUpperTri(%d)" % self.size[0]
+        return "SemidefUpperTri(%d)" % self.n

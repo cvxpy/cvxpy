@@ -19,7 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy import *
 from cvxpy.expressions.variables import Semidef
-from cvxpy.expressions.variables.semidefinite import Semidef as semidefinite
+from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite
+from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
 from cvxopt import matrix
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
@@ -35,7 +36,7 @@ class TestSemidefiniteVariable(BaseTest):
     def test_sdp_print(self):
         """Test to string methods for SDP vars.
         """
-        self.assertEqual(repr(self.X), "Semidef(2)")
+        self.assertEqual(repr(SemidefUpperTri(2)), "SemidefUpperTri(2)")
 
     def test_sdp_problem(self):
         # SDP in objective.
