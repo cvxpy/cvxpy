@@ -48,8 +48,9 @@ class Variable(Leaf):
     def name(self):
         return self._name
 
-    # Save the value of the primal variable.
     def save_value(self, value):
+        """Save the value of the primal variable.
+        """
         self.primal_value = value
 
     @property

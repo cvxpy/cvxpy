@@ -11,6 +11,7 @@ Version 1.0 (targets)
 * TODO PSD parameters?
 * TODO warmstart for SCS.
 * TODO change diag for matrices to diagm so can choose which diagonal to access.
+* TODO make sure Bool.value = ? etc satisfy constraints.
 
 Version 0.2.16 (next release)
 ---------------------------

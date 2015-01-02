@@ -31,9 +31,11 @@ class SDP(Constraint):
 
     Attributes:
         A: The matrix variable constrained to be semi-definite.
+        is_sym: Should symmetry constraints be added?
     """
-    def __init__(self, A):
+    def __init__(self, A, is_sym=True):
         self.A = A
+        self.is_sym = is_sym
         super(SDP, self).__init__()
 
     def __str__(self):
@@ -53,12 +55,14 @@ class SDP(Constraint):
         solver : str
             The solver being called.
         """
-        # upper_tri(A) == upper_tri(A.T)
-        eq_constr += self.__format[0]
+        if self.is_sym:
+            # upper_tri(A) == upper_tri(A.T)
+            eq_constr += self.__format[0]
+            # Update dims.
+            dims[s.EQ_DIM] += (self.size[0]*(self.size[1] - 1))//2
         # 0 <= A
         leq_constr += self.__format[1]
         # Update dims.
-        dims[s.EQ_DIM] += (self.size[0]*(self.size[1] - 1))//2
         dims[s.SDP_DIM].append(self.size[0])
 
     @pu.lazyprop

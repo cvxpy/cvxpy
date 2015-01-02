@@ -98,6 +98,25 @@ class TestSCS(BaseTest):
         result = p.solve(solver=SCS)
         self.assertAlmostEqual(result, 1)
 
+    def test_sigma_max(self):
+        """Test sigma_max.
+        """
+        const = Constant([[1,2,3],[4,5,6]])
+        constr = [self.C == const]
+        prob = Problem(Minimize(norm(self.C, 2)), constr)
+        result = prob.solve(solver=SCS)
+        self.assertAlmostEqual(result, norm(const, 2).value)
+        self.assertItemsAlmostEqual(self.C.value, const.value)
+
+    def test_sdp_var(self):
+        """Test sdp var.
+        """
+        const = Constant([[1,2,3],[4,5,6], [7,8,9]])
+        X = Semidef(3)
+        prob = Problem(Minimize(0), [X == const])
+        prob.solve(verbose=True, solver=SCS)
+        self.assertEqual(prob.status, INFEASIBLE)
+
     def test_entr(self):
         """Test the entr atom.
         """

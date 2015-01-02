@@ -46,6 +46,10 @@ def index():
     from cvxpy.atoms.affine import index
     return index.index
 
+def reshape():
+    from cvxpy.atoms.affine import reshape
+    return reshape.reshape
+
 def transpose():
     from cvxpy.atoms.affine import transpose
     return transpose.transpose
