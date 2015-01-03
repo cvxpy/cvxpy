@@ -54,7 +54,7 @@ class TestMIPVariable(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
-        self.assertAlmostEqual(self.x_bool.value, 0)
+        self.assertAlmostEqual(self.x_bool.value, 0, places=4)
 
         # Matrix Bool in objective.
         C = matrix([[0, 1, 0], [1, 1, 1]])
