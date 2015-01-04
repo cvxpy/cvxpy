@@ -64,6 +64,7 @@ ECOS_STATUS = {0: OPTIMAL,
                -1: SOLVER_ERROR,
                -2: SOLVER_ERROR,
                -3: SOLVER_ERROR,
+               -4: SOLVER_ERROR,
                -7: SOLVER_ERROR}
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
@@ -102,6 +103,7 @@ INT_IDX = "int_idx"
 
 # Keys for results_dict.
 STATUS = "status"
+SOLVE_TIME = "solve_time"
 VALUE = "value"
 OBJ_OFFSET = "obj_offset"
 PRIMAL = "primal"

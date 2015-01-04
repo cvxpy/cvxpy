@@ -122,6 +122,7 @@ class ECOS(Solver):
         new_results = {}
         status = s.SOLVER_STATUS[s.ECOS][results_dict['info']['exitFlag']]
         new_results[s.STATUS] = status
+        new_results[s.SOLVE_TIME] = results_dict['info']["timing"]['runtime']
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['info']['pcost']
             new_results[s.VALUE] = primal_val + obj_offset

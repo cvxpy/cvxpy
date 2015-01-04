@@ -55,6 +55,7 @@ class Problem(u.Canonical):
         self.constraints = constraints
         self._value = None
         self._status = None
+        self._solve_time = None
         # Cached processed data for each solver.
         self._cached_data = {}
         self._reset_cache()
@@ -84,6 +85,16 @@ class Problem(u.Canonical):
         str
         """
         return self._status
+
+    @property
+    def solve_time(self):
+        """The solve time from the last time the problem was solved.
+
+        Returns
+        -------
+        str
+        """
+        return self._solve_time
 
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
@@ -281,6 +292,7 @@ class Problem(u.Canonical):
                 "Solver '%s' failed. Try another solver." % solver.name()
             )
         self._status = results_dict[s.STATUS]
+        self._solve_time = results_dict[s.SOLVE_TIME]
 
     def unpack_results(self, solver_name, results_dict):
         """Parses the output from a solver and updates the problem state.

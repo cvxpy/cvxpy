@@ -41,21 +41,24 @@ gamma = Parameter(sign="positive")
 gamma.value = 0
 fit = norm(conv(kernel, x) - noisy_signal, 2)
 constraints = [x >= 0]
-prob = Problem(Minimize(fit + gamma*sum_entries(x)),
+prob = Problem(Minimize(fit),
                constraints)
-result = prob.solve(solver=ECOS, verbose=True)
+# result = prob.solve(solver=ECOS, verbose=True)
+# print("solve time", prob.solve_time)
 # result = prob.solve(solver=SCS,
 #                     verbose=True,
 #                     max_iters=2500,
 #                     eps=1e-3,
 #                     use_indirect=False)
+# print("solve time", prob.solve_time)
 # print("true signal fit", fit.value)
-# result = prob.solve(solver=SCS_MAT_FREE,
-#                     verbose=True,
-#                     max_iters=2000,
-#                     equil_steps=2,
-#                     eps=1e-3,
-#                     cg_rate=2)
+result = prob.solve(solver=SCS_MAT_FREE,
+                    verbose=True,
+                    max_iters=2000,
+                    equil_steps=2,
+                    eps=1e-3,
+                    cg_rate=2)
+print("solve time", prob.solve_time)
 print("recovered x fit", fit.value)
 
 print("nnz =", np.sum(x.value >= 1))

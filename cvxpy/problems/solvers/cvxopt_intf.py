@@ -23,6 +23,7 @@ from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.kktsolver import get_kktsolver
 import cvxopt
 import cvxopt.solvers
+import time
 
 class CVXOPT(Solver):
     """An interface for the CVXOPT solver.
@@ -118,6 +119,8 @@ class CVXOPT(Solver):
         for key, value in solver_opts.items():
             cvxopt.solvers.options[key] = value
 
+        # Record the solve time.
+        start = time.time()
         try:
             # Target cvxopt clp if nonlinear constraints exist
             if dims[s.EXP_DIM]:
@@ -135,6 +138,9 @@ class CVXOPT(Solver):
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
             results_dict = {'status': 'unknown'}
+
+        end = time.time()
+        results_dict[s.SOLVE_TIME] = end - start
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
@@ -160,6 +166,7 @@ class CVXOPT(Solver):
         new_results = {}
         status = s.SOLVER_STATUS[s.CVXOPT][results_dict['status']]
         new_results[s.STATUS] = status
+        new_results[s.SOLVE_TIME] = results_dict[s.SOLVE_TIME]
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
             new_results[s.VALUE] = primal_val + obj_offset

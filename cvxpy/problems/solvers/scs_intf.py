@@ -121,6 +121,8 @@ class SCS(ECOS):
         new_results = {}
         status = s.SOLVER_STATUS[s.SCS][results_dict["info"]["status"]]
         new_results[s.STATUS] = status
+        new_results[s.SOLVE_TIME] = results_dict["info"]["solveTime"] + \
+                                    results_dict["info"]["setupTime"]
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict["info"]["pobj"]
             new_results[s.VALUE] = primal_val + obj_offset
