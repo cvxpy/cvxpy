@@ -13,9 +13,10 @@ Version 1.0 (targets)
 * TODO change diag for matrices to diagm so can choose which diagonal to access.
 * TODO make sure Bool.value = ? etc satisfy constraints.
 * TODO make upper_tri_to_full atom?
+* TODO parameterize upper_tri (so takes elems above kth diagonal).
 
-Version 0.2.16 (next release)
----------------------------
+Version 0.2.16
+--------------
 * Added log1p.
 * Added scalene penalty.
 * Made LinOp for multiplication on the right.

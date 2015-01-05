@@ -185,7 +185,7 @@ Install from source
 
 CVXPY has the following dependencies:
 
-* Python 2.7
+* Python 2.7 or Python 3.4
 * `setuptools`_ >= 1.4
 * `toolz`_
 * `CVXOPT`_ >= 1.1.6

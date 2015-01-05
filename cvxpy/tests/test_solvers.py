@@ -41,6 +41,20 @@ class TestSolvers(BaseTest):
                    max_iters=20, verbose=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
+    def test_ecos_bb_options(self):
+        """Test that all the ECOS BB solver options work.
+        """
+        # 'mi_maxiter'
+        # maximum number of branch and bound iterations (default: 1000)
+        # 'mi_abs_eps'
+        # absolute tolerance between upper and lower bounds (default: 1e-6)
+        # 'mi_rel_eps'
+        EPS = 1e-4
+        prob = Problem(Minimize(norm(self.x, 1)), [self.x == Bool(2)])
+        prob.solve(solver=ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
+        mi_rel_eps=1e-5, verbose=True)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
     def test_scs_options(self):
         """Test that all the SCS solver options work.
         """

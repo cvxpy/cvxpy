@@ -78,6 +78,29 @@ To constrain a matrix expression to be symmetric (but not necessarily positive o
     # expr must be symmetric.
     constr = (expr == expr.T)
 
+.. _mip:
+
+Mixed-integer programs
+----------------------
+
+In mixed-integer programs, certain variables are constrained to be boolean or integer valued. You can construct mixed-integer programs using the ``Bool`` and ``Int`` constructors. These take the same arguments as the ``Variable`` constructor, and they return a variable constrained to have only boolean or integer valued entries.
+
+The following code shows the ``Bool`` and ``Int`` constructors in action:
+
+.. code:: python
+
+    # Creates a 10-vector constrained to have boolean valued entries.
+    x = Bool(10)
+
+    # expr1 must be boolean valued.
+    constr1 = (expr1 == x)
+
+    # Creates a 5 by 7 matrix constrained to have integer valued entries.
+    Z = Int(5, 7)
+
+    # expr2 must be integer valued.
+    constr2 = (expr2 == Z)
+
 Solve method options
 --------------------
 
@@ -101,17 +124,19 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY uses the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_. The table below shows the types of problems the solvers can handle.
+CVXPY uses the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_. The table below shows the types of problems the solvers can handle.
 
-+-----------+----+------+-----+-----+
-|           | LP | SOCP | SDP | EXP |
-+===========+====+======+=====+=====+
-| `ECOS`_   | X  | X    |     |     |
-+-----------+----+------+-----+-----+
-| `CVXOPT`_ | X  | X    | X   | X   |
-+-----------+----+------+-----+-----+
-| `SCS`_    | X  | X    | X   | X   |
-+-----------+----+------+-----+-----+
++------------+----+------+-----+-----+-----+
+|            | LP | SOCP | SDP | EXP | MIP |
++============+====+======+=====+=====+=====+
+| `ECOS`_    | X  | X    |     |     |     |
++------------+----+------+-----+-----+-----+
+| `ECOS_BB`_ | X  | X    |     |     | X   |
++------------+----+------+-----+-----+-----+
+| `CVXOPT`_  | X  | X    | X   | X   |     |
++------------+----+------+-----+-----+-----+
+| `SCS`_     | X  | X    | X   | X   |     |
++------------+----+------+-----+-----+-----+
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -119,7 +144,7 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
 
 You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems. `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems (except mixed-integer programs). `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate. `ECOS_BB`_ is called for mixed-integer LPs and SOCPs.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
@@ -135,6 +160,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=ECOS)
     print "optimal value with ECOS:", prob.value
 
+    # Solve with ECOS_BB.
+    prob.solve(solver=ECOS_BB)
+    print "optimal value with ECOS_BB:", prob.value
+
     # Solve with CVXOPT.
     prob.solve(solver=CVXOPT)
     print "optimal value with CVXOPT:", prob.value
@@ -146,6 +175,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 .. parsed-literal::
 
     optimal value with ECOS: 6.82842708233
+    optimal value with ECOS_BB: 6.82842708233
     optimal value with CVXOPT: 6.82842708994
     optimal value with SCS: 6.82837896978
 
@@ -180,7 +210,7 @@ All the solvers can print out information about their progress while solving the
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -247,6 +277,17 @@ Here's the complete list of solver options.
 
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+
+`ECOS_BB`_ options:
+
+``'mi_max_iters'``
+    maximum number of branch and bound iterations (default: 1000)
+
+``'mi_abs_eps'``
+    absolute tolerance between upper and lower bounds (default: 1e-6)
+
+``'mi_rel_eps'``
+    relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)
 
 `CVXOPT`_ options:
 
@@ -315,5 +356,6 @@ For example, the following code is equivalent to solving the problem directly wi
     prob.unpack_results(ECOS, solver_output)
 
 .. _CVXOPT: http://cvxopt.org/
-.. _ECOS: http://github.com/ifa-ethz/ecos
+.. _ECOS: https://www.embotech.com/ECOS
+.. _ECOS_BB: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
