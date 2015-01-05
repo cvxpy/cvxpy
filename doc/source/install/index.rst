@@ -84,6 +84,12 @@ Ubuntu 14.04
 
        sudo pip install cvxpy
 
+  or to install locally
+
+   ::
+
+      pip install --user cvxpy
+
 6. Install ``nose``.
 
   ::
