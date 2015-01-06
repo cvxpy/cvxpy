@@ -47,9 +47,5 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
-    if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-        pip install coverage coveralls
-    else
-        pip3 install coverage coveralls
-    fi
+    pip install coverage coveralls
 fi
