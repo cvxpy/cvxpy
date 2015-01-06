@@ -39,7 +39,7 @@ noisy_signal = signal + noise
 
 gamma = Parameter(sign="positive")
 gamma.value = 0
-fit = norm(conv(kernel, x) - noisy_signal, 2)
+fit = sum_squares(conv(kernel, x) - noisy_signal)
 constraints = [x >= 0]
 prob = Problem(Minimize(fit),
                constraints)
@@ -54,8 +54,8 @@ prob = Problem(Minimize(fit),
 # print("true signal fit", fit.value)
 result = prob.solve(solver=SCS_MAT_FREE,
                     verbose=True,
-                    max_iters=2000,
-                    equil_steps=2,
+                    max_iters=2500,
+                    equil_steps=10,
                     eps=1e-3,
                     cg_rate=2)
 print("solve time", prob.solve_time)
