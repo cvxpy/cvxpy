@@ -14,6 +14,7 @@ Version 1.0 (targets)
 * TODO make sure Bool.value = ? etc satisfy constraints.
 * TODO make upper_tri_to_full atom?
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
+* TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 
 Version 0.2.16
 --------------
