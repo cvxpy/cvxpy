@@ -251,7 +251,7 @@ class Expression(u.Canonical):
         elif self.is_constant():
             return types.mul_expr()(self, other)
         # Having the constant on the left is more efficient.
-        elif self.is_scalar():
+        elif self.is_scalar() or other.is_scalar():
             return types.mul_expr()(other, self)
         else:
             return types.rmul_expr()(self, other)

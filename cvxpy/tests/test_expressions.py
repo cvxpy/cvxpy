@@ -347,10 +347,13 @@ class TestExpressions(BaseTest):
         exp = [[1], [2]] + c*self.C
         self.assertEqual(exp.sign, u.Sign.UNKNOWN_KEY)
 
-        # Scalar constants on the right should be moved left
-        # instead of taking the transpose.
+        # Scalar constants on the right should be moved left.
         expr = self.C*2
-        self.assertEqual(expr.args[1].value, 2)
+        self.assertEqual(expr.args[0].value, 2)
+
+        # Scalar variables on the left should be moved right.
+        expr = self.a*[2,1]
+        self.assertItemsAlmostEqual(expr.args[0].value, [2,1])
 
     # Test the DivExpresion class.
     def test_div_expression(self):
