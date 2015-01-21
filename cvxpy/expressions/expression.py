@@ -248,10 +248,13 @@ class Expression(u.Canonical):
             raise TypeError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
-        elif not self.is_constant():
-            return types.rmul_expr()(self, other)
-        else:
+        elif self.is_constant():
             return types.mul_expr()(self, other)
+        # Having the constant on the left is more efficient.
+        elif self.is_scalar():
+            return types.mul_expr()(other, self)
+        else:
+            return types.rmul_expr()(self, other)
 
     @_cast_other
     def __truediv__(self, other):
