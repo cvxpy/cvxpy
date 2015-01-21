@@ -132,7 +132,7 @@ Here is a step-by-step guide to installing cvxpy on a Windows machine.
 
 6. From the console, run "pip install ecos" to install ecos.
 
-7. We need to install BLAS and LAPACK libraries, and make the scs package use them. Go here to download the win32 version of the dll and lib files of both BLAS and LAPACK. Put them under some directory, say C:\blaslapack, as shown below.
+7. We need to install BLAS and LAPACK libraries, and make the scs package use them. Go `here <http://icl.cs.utk.edu/lapack-for-windows/lapack/#libraries_mingw>`_ to download the win32 version of the dll and lib files of both BLAS and LAPACK. Put them under some directory, say C:\blaslapack, as shown below.
 
   .. image:: files/windows5.png
       :scale: 100%
@@ -142,7 +142,7 @@ Here is a step-by-step guide to installing cvxpy on a Windows machine.
   .. image:: files/windows6.png
       :scale: 100%
 
-9. Go here and download the scs package as a zip file. Unzip it.
+9. Go `here <https://github.com/cvxgrp/scs>`_ and download the scs package as a zip file. Unzip it.
 
 10. Browse to scs-master directory, and edit line 48 of the file scs.mk to "USE_LAPACK = 1". Without this, scs won't be able to solve SDPs.
 
