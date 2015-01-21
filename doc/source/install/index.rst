@@ -120,7 +120,7 @@ Here is a step-by-step guide to installing cvxpy on a Windows machine.
       :scale: 100%
 
 
-4. We need to set the default compiler as mingw32. Open Notepad and type the following, save the file at C:\Python27\Lib\distutils\distutils.cfg. (This is the default location. If you installed Python somewhere else, use the appropriate location.)
+4. We need to set the default compiler as mingw32. Open Notepad and type the following, save the file at C:\\Python27\\Lib\\distutils\\distutils.cfg. (This is the default location. If you installed Python somewhere else, use the appropriate location.)
 
   .. image:: files/windows3.png
       :scale: 100%
@@ -154,7 +154,7 @@ Here is a step-by-step guide to installing cvxpy on a Windows machine.
   .. image:: files/windows8.png
       :scale: 100%
 
-12. We have to change the numpy settings so that it knows where to find the libraries. Open C:\Python27\Lib\site-packages\numpy\distutils\site.cfg and add the following lines to the end of the file:
+12. We have to change the numpy settings so that it knows where to find the libraries. Open C:\\Python27\\Lib\\site-packages\\numpy\\distutils\\site.cfg and add the following lines to the end of the file:
 
   ::
 
@@ -176,7 +176,7 @@ You can remove what's already in there, and replace the file with just the six l
 
 15. Reboot your computer so that the path environment variable we set in step 8 takes effect.
 
-16. cvxpy should work now. You can use the Spyder IDE from the Python(x,y) home window. Click on the Spyder button to launch it. This IDE allows you to code, run, and view the console all in the same window. In order to check if the installation was successful, open a terminal, browse to C:\Python27\Lib\site-packages\cvxpy, and run "nosetests tests". This runs all unit tests and reports any error found.
+16. cvxpy should work now. You can use the Spyder IDE from the Python(x,y) home window. Click on the Spyder button to launch it. This IDE allows you to code, run, and view the console all in the same window. In order to check if the installation was successful, open a terminal, browse to C:\\Python27\\Lib\\site-packages\\cvxpy, and run "nosetests tests". This runs all unit tests and reports any error found.
 
   .. image:: files/windows10.png
       :scale: 50%
