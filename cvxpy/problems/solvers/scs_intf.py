@@ -49,14 +49,6 @@ class SCS(ECOS):
         """
         return (constr_map[s.EQ] + constr_map[s.LEQ], [], [])
 
-    def _shape_args(self, c, A, b, G, h, F, dims):
-        """Returns the arguments that will be passed to the solver.
-        """
-        data = {"c": c}
-        data["A"] = A
-        data["b"] = b
-        return (data, dims)
-
     def solve(self, objective, constraints, cached_data, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
@@ -78,13 +70,14 @@ class SCS(ECOS):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        (data, dims), obj_offset = self.get_problem_data(objective,
-                                                         constraints,
-                                                         cached_data)
+        data = self.get_problem_data(objective,
+                                     constraints,
+                                     cached_data)
         # Set the options to be VERBOSE plus any user-specific options.
         solver_opts["verbose"] = verbose
-        results_dict = scs.solve(data, dims, **solver_opts)
-        return self.format_results(results_dict, dims, obj_offset)
+        args = {"c": data[s.C], "A": data[s.A], "b": data[s.B]}
+        results_dict = scs.solve(args, data[s.DIMS], **solver_opts)
+        return self.format_results(results_dict, data[s.DIMS], data[s.OFFSET])
 
     def format_results(self, results_dict, dims, obj_offset=0):
         """Converts the solver output into standard form.

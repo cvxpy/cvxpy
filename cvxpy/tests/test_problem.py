@@ -106,25 +106,25 @@ class TestProblem(BaseTest):
             Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
         self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
 
-        args = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
-        data, dims = args
+        data = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
+        dims = data["dims"]
         self.assertEqual(dims['ep'], 1)
         self.assertEqual(data["c"].shape, (2,))
         self.assertEqual(data["A"].shape, (3, 2))
 
-        args = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.ECOS)
-        c, G, h, dims, A, b = args
+        data = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.ECOS)
+        dims = data["dims"]
         self.assertEqual(dims["q"], [3])
-        self.assertEqual(c.shape, (3,))
-        self.assertEqual(A.shape, (0, 3))
-        self.assertEqual(G.shape, (3, 3))
+        self.assertEqual(data["c"].shape, (3,))
+        self.assertEqual(data["A"].shape, (0, 3))
+        self.assertEqual(data["G"].shape, (3, 3))
 
-        args = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.CVXOPT)
-        c, G, h, dims, A, b = args
+        data = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.CVXOPT)
+        dims = data["dims"]
         self.assertEqual(dims["q"], [3])
-        self.assertEqual(c.size, (3, 1))
-        self.assertEqual(A.size, (0, 3))
-        self.assertEqual(G.size, (3, 3))
+        self.assertEqual(data["c"].size, (3, 1))
+        self.assertEqual(data["A"].size, (0, 3))
+        self.assertEqual(data["G"].size, (3, 3))
 
     def test_unpack_results(self):
         """Test unpack results method.
@@ -135,7 +135,8 @@ class TestProblem(BaseTest):
 
         prob = Problem(Minimize(exp(self.a)), [self.a == 0])
         args = prob.get_problem_data(s.SCS)
-        results_dict = scs.solve(*args)
+        data = {"c": args["c"], "A": args["A"], "b": args["b"]}
+        results_dict = scs.solve(data, args["dims"])
         prob = Problem(Minimize(exp(self.a)), [self.a == 0])
         prob.unpack_results(s.SCS, results_dict)
         self.assertAlmostEqual(self.a.value, 0, places=4)
@@ -144,7 +145,8 @@ class TestProblem(BaseTest):
 
         prob = Problem(Minimize(norm(self.x)), [self.x == 0])
         args = prob.get_problem_data(s.ECOS)
-        results_dict = ecos.solve(*args)
+        results_dict = ecos.solve(args["c"], args["G"], args["h"],
+                                  args["dims"], args["A"], args["b"])
         prob = Problem(Minimize(norm(self.x)), [self.x == 0])
         prob.unpack_results(s.ECOS, results_dict)
         self.assertItemsAlmostEqual(self.x.value, [0,0])
@@ -153,7 +155,8 @@ class TestProblem(BaseTest):
 
         prob = Problem(Minimize(norm(self.x)), [self.x == 0])
         args = prob.get_problem_data(s.CVXOPT)
-        results_dict = cvxopt.solvers.conelp(*args)
+        results_dict = cvxopt.solvers.conelp(args["c"], args["G"], args["h"],
+                                             args["dims"], args["A"], args["b"])
         prob = Problem(Minimize(norm(self.x)), [self.x == 0])
         prob.unpack_results(s.CVXOPT, results_dict)
         self.assertItemsAlmostEqual(self.x.value, [0,0])
@@ -1086,7 +1089,9 @@ class TestProblem(BaseTest):
         x = Variable()
         obj = Maximize(sqrt(x))
         prob = Problem(obj)
-        c, G, h, dims, A, b = prob.get_problem_data(s.ECOS)
+        data = prob.get_problem_data(s.ECOS)
+        A = data["A"]
+        G = data["G"]
         for row in range(A.shape[0]):
             assert A[row, :].nnz > 0
         for row in range(G.shape[0]):

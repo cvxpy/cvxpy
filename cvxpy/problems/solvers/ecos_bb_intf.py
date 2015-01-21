@@ -59,6 +59,33 @@ class ECOS_BB(ECOS):
 
         return bool_idx, int_idx
 
+    def get_problem_data(self, objective, constraints, cached_data):
+        """Returns the argument for the call to the solver.
+
+        Parameters
+        ----------
+        objective : LinOp
+            The canonicalized objective.
+        constraints : list
+            The list of canonicalized cosntraints.
+        cached_data : dict
+            A map of solver name to cached problem data.
+
+        Returns
+        -------
+        dict
+            The arguments needed for the solver.
+        """
+        data = super(ECOS_BB, self).get_problem_data(objective, constraints,
+                                                     cached_data)
+        sym_data = self.get_sym_data(objective, constraints, cached_data)
+        bool_idx, int_idx = self._noncvx_id_to_idx(sym_data.dims,
+                                                   sym_data.var_offsets,
+                                                   sym_data.var_sizes)
+        data[s.BOOL_IDX] = bool_idx
+        data[s.INT_IDX] = int_idx
+        return data
+
     def solve(self, objective, constraints, cached_data, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
@@ -80,19 +107,14 @@ class ECOS_BB(ECOS):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        prob_data = self.get_problem_data(objective, constraints, cached_data)
-        obj_offset = prob_data[1]
-        # Add arguments for MIP solver.
-        sym_data = self.get_sym_data(objective, constraints, cached_data)
-        bool_idx, int_idx = self._noncvx_id_to_idx(sym_data.dims,
-                                                   sym_data.var_offsets,
-                                                   sym_data.var_sizes)
+        data = self.get_problem_data(objective, constraints, cached_data)
         # Default verbose to false for BB wrapper.
         mi_verbose = solver_opts.get('mi_verbose', False)
-        results_dict = ecos.solve(*prob_data[0],
+        results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
+                                  data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
                                   mi_verbose=mi_verbose,
-                                  bool_vars_idx=bool_idx,
-                                  int_vars_idx=int_idx,
+                                  bool_vars_idx=data[s.BOOL_IDX],
+                                  int_vars_idx=data[s.INT_IDX],
                                   **solver_opts)
-        return self.format_results(results_dict, None, obj_offset)
+        return self.format_results(results_dict, None, data[s.OFFSET])

@@ -329,18 +329,21 @@ Here's the complete list of solver options.
 Getting the standard form
 -------------------------
 
-If you are interested in getting the standard form that CVXPY produces for a problem, you can use the ``get_problem_data`` method. Calling ``get_problem_data(solver)`` on a problem object returns the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.
+If you are interested in getting the standard form that CVXPY produces for a problem, you can use the ``get_problem_data`` method. Calling ``get_problem_data(solver)`` on a problem object returns a dict of the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.
 
 .. code:: python
 
     # Get ECOS arguments.
-    c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+    data = prob.get_problem_data(ECOS)
+
+    # Get ECOS_BB arguments.
+    data = prob.get_problem_data(ECOS_BB)
 
     # Get CVXOPT arguments.
-    c, G, h, dims, A, b = prob.get_problem_data(CVXOPT)
+    data = prob.get_problem_data(CVXOPT)
 
     # Get SCS arguments.
-    data, dims = prob.get_problem_data(SCS)
+    data = prob.get_problem_data(SCS)
 
 After you solve the standard conic form problem returned by ``get_problem_data``, you can unpack the raw solver output using the ``unpack_results`` method. Calling ``unpack_results(solver, solver_output)`` on a problem will update the values of all primal and dual variables as well as the problem value and status.
 
@@ -349,9 +352,10 @@ For example, the following code is equivalent to solving the problem directly wi
 .. code:: python
 
     # Get ECOS arguments.
-    c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+    data = prob.get_problem_data(ECOS)
     # Call ECOS solver.
-    solver_output = ecos.solve(c, G, h, dims, A, b)
+    solver_output = ecos.solve(data["c"], data["G"], data["h"],
+                               data["dims"], data["A"], data["b"])
     # Unpack raw solver output.
     prob.unpack_results(ECOS, solver_output)
 

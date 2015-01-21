@@ -16,6 +16,12 @@ Version 1.0 (targets)
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 
+
+Version 02.17
+-------------
+* Optimizes rmul to mul.
+* Fixed nondeterminism in MIP.
+
 Version 0.2.16
 --------------
 * Added log1p.

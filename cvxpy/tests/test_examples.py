@@ -565,19 +565,23 @@ class TestExamples(BaseTest):
         x = Variable()
         prob = Problem(Minimize(square(x)), [x == 2])
         # Get ECOS arguments.
-        c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+        data = prob.get_problem_data(ECOS)
+
+        # Get ECOS_BB arguments.
+        data = prob.get_problem_data(ECOS_BB)
 
         # Get CVXOPT arguments.
-        c, G, h, dims, A, b = prob.get_problem_data(CVXOPT)
+        data = prob.get_problem_data(CVXOPT)
 
         # Get SCS arguments.
-        data, dims = prob.get_problem_data(SCS)
+        data = prob.get_problem_data(SCS)
 
         import ecos
         # Get ECOS arguments.
-        c, G, h, dims, A, b = prob.get_problem_data(ECOS)
+        data = prob.get_problem_data(ECOS)
         # Call ECOS solver.
-        solver_output = ecos.solve(c, G, h, dims, A, b)
+        solver_output = ecos.solve(data["c"], data["G"], data["h"],
+                                   data["dims"], data["A"], data["b"])
         # Unpack raw solver output.
         prob.unpack_results(ECOS, solver_output)
 

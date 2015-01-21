@@ -250,7 +250,7 @@ class test_tree_mat(BaseTest):
         obj = Minimize(norm(x, 1))
         constraints = [x >= 2]
         prob = Problem(obj, constraints)
-        data, dims = prob.get_problem_data(solver=SCS)
+        data = prob.get_problem_data(solver=SCS)
         A = data["A"]
         objective, constraints = prob.canonicalize()
         sym_data = SymData(objective, constraints, SOLVERS[SCS])

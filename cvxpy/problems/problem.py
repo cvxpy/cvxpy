@@ -185,7 +185,7 @@ class Problem(u.Canonical):
         # Raise an error if the solver cannot handle the problem.
         SOLVERS[solver].validate_solver(constraints)
         return SOLVERS[solver].get_problem_data(objective, constraints,
-                                                self._cached_data)[0]
+                                                self._cached_data)
 
     def _solve(self, solver=None, ignore_dcp=False, verbose=False, **kwargs):
         """Solves a DCP compliant optimization problem.

@@ -57,14 +57,6 @@ class CVXOPT(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], constr_map[s.EXP])
 
-    def _shape_args(self, c, A, b, G, h, F, dims):
-        """Returns the arguments that will be passed to the solver.
-        """
-        if dims[s.EXP_DIM]:
-            return (c, F, G, h, dims, A, b)
-        else:
-            return (c, G, h, dims, A, b)
-
     def solve(self, objective, constraints, cached_data, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
@@ -86,11 +78,9 @@ class CVXOPT(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        prob_data = self.get_problem_data(objective, constraints, cached_data)
-        dims = prob_data[0][-3] # TODO this is a hack.
-        obj_offset = prob_data[1]
+        data = self.get_problem_data(objective, constraints, cached_data)
         # User chosen KKT solver option.
-        kktsolver = self.get_kktsolver(solver_opts)
+        kktsolver = self.get_kktsolver_opt(solver_opts)
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options
         # Silence cvxopt if verbose is False.
@@ -109,19 +99,33 @@ class CVXOPT(Solver):
 
         try:
             # Target cvxopt clp if nonlinear constraints exist
-            if dims[s.EXP_DIM]:
-                _, F, G, _, dims, A, _ = prob_data[0]
+            if data[s.DIMS][s.EXP_DIM]:
                 if kktsolver is None:
                     # Get custom kktsolver.
-                    kktsolver = get_kktsolver(G, dims, A, F)
-                results_dict = cvxopt.solvers.cpl(*prob_data[0],
+                    kktsolver = get_kktsolver(data[s.G],
+                                              data[s.DIMS],
+                                              data[s.A],
+                                              data[s.F])
+                results_dict = cvxopt.solvers.cpl(data[s.C],
+                                                  data[s.F],
+                                                  data[s.G],
+                                                  data[s.H],
+                                                  data[s.DIMS],
+                                                  data[s.A],
+                                                  data[s.B],
                                                   kktsolver=kktsolver)
             else:
-                _, G, _, dims, A, _ = prob_data[0]
                 if kktsolver is None:
                     # Get custom kktsolver.
-                    kktsolver = get_kktsolver(G, dims, A)
-                results_dict = cvxopt.solvers.conelp(*prob_data[0],
+                    kktsolver = get_kktsolver(data[s.G],
+                                              data[s.DIMS],
+                                              data[s.A])
+                results_dict = cvxopt.solvers.conelp(data[s.C],
+                                                     data[s.G],
+                                                     data[s.H],
+                                                     data[s.DIMS],
+                                                     data[s.A],
+                                                     data[s.B],
                                                      kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
@@ -129,9 +133,10 @@ class CVXOPT(Solver):
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
-        return self.format_results(results_dict, dims, obj_offset)
+        return self.format_results(results_dict, data[s.DIMS], data[s.OFFSET])
 
-    def get_kktsolver(self, solver_opts):
+    @staticmethod
+    def get_kktsolver_opt(solver_opts):
         """Returns the KKT solver selected by the user.
 
         Removes the KKT solver from solver_opts.

@@ -207,24 +207,19 @@ class Solver(object):
 
         Returns
         -------
-        tuple
-            (solver args tuple, offset)
+        dict
+            The arguments needed for the solver.
         """
         sym_data = self.get_sym_data(objective, constraints, cached_data)
         matrix_data = self.get_matrix_data(objective, constraints,
                                            cached_data)
-        c, offset = matrix_data.get_objective()
-        A, b = matrix_data.get_eq_constr()
-        G, h = matrix_data.get_ineq_constr()
-        F = matrix_data.get_nonlin_constr()
-        args = self._shape_args(c, A, b, G, h, F, sym_data.dims)
-        return (args, offset)
-
-    @abc.abstractmethod
-    def _shape_args(self, c, A, b, G, h, F, dims):
-        """Returns the arguments that will be passed to the solver.
-        """
-        pass
+        data = {}
+        data[s.C], data[s.OFFSET] = matrix_data.get_objective()
+        data[s.A], data[s.B] = matrix_data.get_eq_constr()
+        data[s.G], data[s.H] = matrix_data.get_ineq_constr()
+        data[s.F] = matrix_data.get_nonlin_constr()
+        data[s.DIMS] = sym_data.dims
+        return data
 
     @abc.abstractmethod
     def solve(self, objective, constraints, cached_data, verbose, solver_opts):

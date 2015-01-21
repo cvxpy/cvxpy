@@ -55,11 +55,6 @@ class ECOS(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
 
-    def _shape_args(self, c, A, b, G, h, F, dims):
-        """Returns the arguments that will be passed to the solver.
-        """
-        return (c, G, h, dims, A, b)
-
     def solve(self, objective, constraints, cached_data, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
@@ -81,11 +76,12 @@ class ECOS(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        prob_data = self.get_problem_data(objective, constraints, cached_data)
-        obj_offset = prob_data[1]
-        results_dict = ecos.solve(*prob_data[0], verbose=verbose,
+        data = self.get_problem_data(objective, constraints, cached_data)
+        results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
+                                  data[s.DIMS], data[s.A], data[s.B],
+                                  verbose=verbose,
                                   **solver_opts)
-        return self.format_results(results_dict, None, obj_offset)
+        return self.format_results(results_dict, None, data[s.OFFSET])
 
     def format_results(self, results_dict, dims, obj_offset=0):
         """Converts the solver output into standard form.
