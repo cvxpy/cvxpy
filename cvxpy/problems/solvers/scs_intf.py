@@ -49,7 +49,8 @@ class SCS(ECOS):
         """
         return (constr_map[s.EQ] + constr_map[s.LEQ], [], [])
 
-    def solve(self, objective, constraints, cached_data, verbose, solver_opts):
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -60,6 +61,8 @@ class SCS(ECOS):
             The list of canonicalized cosntraints.
         cached_data : dict
             A map of solver name to cached problem data.
+        warm_start : bool
+            Should the previous solver result be used to warm_start?
         verbose : bool
             Should the solver print output?
         solver_opts : dict
@@ -76,10 +79,18 @@ class SCS(ECOS):
         # Set the options to be VERBOSE plus any user-specific options.
         solver_opts["verbose"] = verbose
         args = {"c": data[s.C], "A": data[s.A], "b": data[s.B]}
-        results_dict = scs.solve(args, data[s.DIMS], **solver_opts)
-        return self.format_results(results_dict, data[s.DIMS], data[s.OFFSET])
+        # If warm_starting, add old primal and dual variables.
+        solver_cache = cached_data[self.name()]
+        if warm_start and solver_cache.prev_result is not None:
+            data["x"] = solver_cache.prev_result["x"]
+            data["y"] = solver_cache.prev_result["y"]
+            data["z"] = solver_cache.prev_result["z"]
 
-    def format_results(self, results_dict, dims, obj_offset=0):
+        results_dict = scs.solve(args, data[s.DIMS], **solver_opts)
+        return self.format_results(results_dict, data[s.DIMS],
+                                   data[s.OFFSET], cached_data)
+
+    def format_results(self, results_dict, dims, obj_offset, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
@@ -90,20 +101,30 @@ class SCS(ECOS):
             The cone dimensions in the canonicalized problem.
         obj_offset : float, optional
             The constant term in the objective.
+        cached_data : dict
+            A map of solver name to cached problem data.
 
         Returns
         -------
         dict
             The solver output in standard form.
         """
+        solver_cache = cached_data[self.name()]
         new_results = {}
         status = s.SOLVER_STATUS[s.SCS][results_dict["info"]["status"]]
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
+            # Save previous result for possible future warm_start.
+            solver_cache.prev_result = {"x": results_dict["x"],
+                                        "y": results_dict["y"],
+                                        "s": results_dict["s"]}
             primal_val = results_dict["info"]["pobj"]
             new_results[s.VALUE] = primal_val + obj_offset
             new_results[s.PRIMAL] = results_dict["x"]
             new_results[s.EQ_DUAL] = results_dict["y"][0:dims["f"]]
             new_results[s.INEQ_DUAL] = results_dict["y"][dims["f"]:]
+        else:
+            # No result to save.
+            solver_cache.prev_result = None
 
         return new_results

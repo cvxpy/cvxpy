@@ -84,9 +84,15 @@ class ECOS_BB(ECOS):
                                                    sym_data.var_sizes)
         data[s.BOOL_IDX] = bool_idx
         data[s.INT_IDX] = int_idx
+        # Remove int_id and bool_id from dims.
+        dims = data[s.DIMS].copy()
+        for constr_type in [s.BOOL_IDS, s.INT_IDS]:
+            del dims[constr_type]
+        data["dims"] = dims
         return data
 
-    def solve(self, objective, constraints, cached_data, verbose, solver_opts):
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -97,6 +103,8 @@ class ECOS_BB(ECOS):
             The list of canonicalized cosntraints.
         cached_data : dict
             A map of solver name to cached problem data.
+        warm_start : bool
+            Not used.
         verbose : bool
             Should the solver print output?
         solver_opts : dict
@@ -117,4 +125,5 @@ class ECOS_BB(ECOS):
                                   bool_vars_idx=data[s.BOOL_IDX],
                                   int_vars_idx=data[s.INT_IDX],
                                   **solver_opts)
-        return self.format_results(results_dict, None, data[s.OFFSET])
+        return self.format_results(results_dict, None,
+                                   data[s.OFFSET], cached_data)

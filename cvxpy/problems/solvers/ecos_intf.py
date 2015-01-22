@@ -55,7 +55,8 @@ class ECOS(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
 
-    def solve(self, objective, constraints, cached_data, verbose, solver_opts):
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -66,6 +67,8 @@ class ECOS(Solver):
             The list of canonicalized cosntraints.
         cached_data : dict
             A map of solver name to cached problem data.
+        warm_start : bool
+            Not used.
         verbose : bool
             Should the solver print output?
         solver_opts : dict
@@ -81,9 +84,10 @@ class ECOS(Solver):
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
                                   **solver_opts)
-        return self.format_results(results_dict, None, data[s.OFFSET])
+        return self.format_results(results_dict, None,
+                                   data[s.OFFSET], cached_data)
 
-    def format_results(self, results_dict, dims, obj_offset=0):
+    def format_results(self, results_dict, dims, obj_offset, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
@@ -94,6 +98,8 @@ class ECOS(Solver):
             The cone dimensions in the canonicalized problem.
         obj_offset : float, optional
             The constant term in the objective.
+        cached_data : dict
+            A map of solver name to cached problem data.
 
         Returns
         -------

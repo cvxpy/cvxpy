@@ -222,7 +222,8 @@ class Solver(object):
         return data
 
     @abc.abstractmethod
-    def solve(self, objective, constraints, cached_data, verbose, solver_opts):
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -233,6 +234,8 @@ class Solver(object):
             The list of canonicalized cosntraints.
         cached_data : dict
             A map of solver name to cached problem data.
+        warm_start : bool
+            Should the previous solver result be used to warm_start?
         verbose : bool
             Should the solver print output?
         solver_opts : dict
@@ -246,7 +249,7 @@ class Solver(object):
         pass
 
     @abc.abstractmethod
-    def format_results(self, results_dict, dims, obj_offset=0):
+    def format_results(self, results_dict, dims, obj_offset, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
@@ -255,8 +258,10 @@ class Solver(object):
             The solver output.
         dims : dict
             The cone dimensions in the canonicalized problem.
-        obj_offset : float, optional
+        obj_offset : float
             The constant term in the objective.
+        cached_data : dict
+            A map of solver name to cached problem data.
 
         Returns
         -------

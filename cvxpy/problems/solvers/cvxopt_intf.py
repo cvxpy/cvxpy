@@ -57,7 +57,8 @@ class CVXOPT(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], constr_map[s.EXP])
 
-    def solve(self, objective, constraints, cached_data, verbose, solver_opts):
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -68,6 +69,8 @@ class CVXOPT(Solver):
             The list of canonicalized cosntraints.
         cached_data : dict
             A map of solver name to cached problem data.
+        warm_start : bool
+            Not used.
         verbose : bool
             Should the solver print output?
         solver_opts : dict
@@ -133,7 +136,8 @@ class CVXOPT(Solver):
 
         # Restore original cvxopt solver options.
         cvxopt.solvers.options = old_options
-        return self.format_results(results_dict, data[s.DIMS], data[s.OFFSET])
+        return self.format_results(results_dict, data[s.DIMS],
+                                   data[s.OFFSET], cached_data)
 
     @staticmethod
     def get_kktsolver_opt(solver_opts):
@@ -158,7 +162,7 @@ class CVXOPT(Solver):
             kktsolver = None
         return kktsolver
 
-    def format_results(self, results_dict, dims, obj_offset=0):
+    def format_results(self, results_dict, dims, obj_offset, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
@@ -169,6 +173,8 @@ class CVXOPT(Solver):
             The cone dimensions in the canonicalized problem.
         obj_offset : float, optional
             The constant term in the objective.
+        cached_data : dict
+            A map of solver name to cached problem data.
 
         Returns
         -------

@@ -20,7 +20,8 @@ Version 1.0 (targets)
 Version 02.17
 -------------
 * Optimizes rmul to mul.
-* Fixed nondeterminism in MIP.
+* Added warmstart.
+* Disabled MIP tests until nondeterminism is resolved.
 
 Version 0.2.16
 --------------

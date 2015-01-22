@@ -187,7 +187,8 @@ class Problem(u.Canonical):
         return SOLVERS[solver].get_problem_data(objective, constraints,
                                                 self._cached_data)
 
-    def _solve(self, solver=None, ignore_dcp=False, verbose=False, **kwargs):
+    def _solve(self, solver=None, ignore_dcp=False,
+               warm_start=False, verbose=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -200,6 +201,8 @@ class Problem(u.Canonical):
         ignore_dcp : bool, optional
             Overrides the default of raising an exception if the problem is not
             DCP.
+        warm_start : bool, optional
+            Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
         kwargs : dict, optional
@@ -237,7 +240,7 @@ class Problem(u.Canonical):
         if sym_data.presolve_status is None:
             results_dict = solver.solve(objective, constraints,
                                         self._cached_data,
-                                        verbose, kwargs)
+                                        warm_start, verbose, kwargs)
         # Presolve determined problem was unbounded or infeasible.
         else:
             results_dict = {s.STATUS: sym_data.presolve_status}
@@ -304,7 +307,8 @@ class Problem(u.Canonical):
         objective, constraints = self.canonicalize()
         sym_data = solver.get_sym_data(objective, constraints,
                                        self._cached_data)
-        results_dict = solver.format_results(results_dict, sym_data.dims)
+        results_dict = solver.format_results(results_dict, sym_data.dims,
+                                             0, self._cached_data)
         self._update_problem_state(results_dict, sym_data, solver)
 
     def _handle_no_solution(self, status):

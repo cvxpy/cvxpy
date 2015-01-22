@@ -36,9 +36,10 @@ class TestSolvers(BaseTest):
         # max_iters for the maximum number of iterations,
         EPS = 1e-4
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        prob.solve(solver=ECOS, feastol=EPS, abstol=EPS, reltol=EPS,
-                   feastol_inacc=EPS, abstol_inacc=EPS, reltol_inacc=EPS,
-                   max_iters=20, verbose=True)
+        for i in range(2):
+            prob.solve(solver=ECOS, feastol=EPS, abstol=EPS, reltol=EPS,
+                       feastol_inacc=EPS, abstol_inacc=EPS, reltol_inacc=EPS,
+                       max_iters=20, verbose=True, warmstart=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_ecos_bb_options(self):
@@ -51,8 +52,9 @@ class TestSolvers(BaseTest):
         # 'mi_rel_eps'
         EPS = 1e-4
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == Bool(2)])
-        prob.solve(solver=ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
-        mi_rel_eps=1e-5, verbose=True)
+        for i in range(2):
+            prob.solve(solver=ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
+            mi_rel_eps=1e-5, verbose=True, warmstart=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_scs_options(self):
@@ -64,8 +66,9 @@ class TestSolvers(BaseTest):
         # USE_INDIRECT = True
         EPS = 1e-4
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        prob.solve(solver=SCS, max_iters=50, eps=EPS, alpha=EPS,
-                   verbose=True, normalize=True, use_indirect=False)
+        for i in range(2):
+            prob.solve(solver=SCS, max_iters=50, eps=EPS, alpha=EPS,
+                       verbose=True, normalize=True, use_indirect=False)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_cvxopt_options(self):
@@ -84,6 +87,8 @@ class TestSolvers(BaseTest):
         # number of iterative refinement steps when solving KKT equations (default: 0 if the problem has no second-order cone or matrix inequality constraints; 1 otherwise).
         EPS = 1e-7
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        prob.solve(solver=CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
-                   max_iters=20, verbose=True, kktsolver="chol", refinement=2)
+        for i in range(2):
+            prob.solve(solver=CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
+                       max_iters=20, verbose=True, kktsolver="chol",
+                       refinement=2, warmstart=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
