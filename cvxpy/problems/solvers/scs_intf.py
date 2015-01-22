@@ -78,15 +78,15 @@ class SCS(ECOS):
                                      cached_data)
         # Set the options to be VERBOSE plus any user-specific options.
         solver_opts["verbose"] = verbose
-        args = {"c": data[s.C], "A": data[s.A], "b": data[s.B]}
+        scs_args = {"c": data[s.C], "A": data[s.A], "b": data[s.B]}
         # If warm_starting, add old primal and dual variables.
         solver_cache = cached_data[self.name()]
         if warm_start and solver_cache.prev_result is not None:
-            data["x"] = solver_cache.prev_result["x"]
-            data["y"] = solver_cache.prev_result["y"]
-            data["s"] = solver_cache.prev_result["s"]
+            scs_args["x"] = solver_cache.prev_result["x"]
+            scs_args["y"] = solver_cache.prev_result["y"]
+            scs_args["s"] = solver_cache.prev_result["s"]
 
-        results_dict = scs.solve(args, data[s.DIMS], **solver_opts)
+        results_dict = scs.solve(scs_args, data[s.DIMS], **solver_opts)
         return self.format_results(results_dict, data[s.DIMS],
                                    data[s.OFFSET], cached_data)
 

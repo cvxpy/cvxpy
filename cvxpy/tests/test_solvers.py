@@ -39,7 +39,7 @@ class TestSolvers(BaseTest):
         for i in range(2):
             prob.solve(solver=ECOS, feastol=EPS, abstol=EPS, reltol=EPS,
                        feastol_inacc=EPS, abstol_inacc=EPS, reltol_inacc=EPS,
-                       max_iters=20, verbose=True, warmstart=True)
+                       max_iters=20, verbose=True, warm_start=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_ecos_bb_options(self):
@@ -54,7 +54,7 @@ class TestSolvers(BaseTest):
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == Bool(2)])
         for i in range(2):
             prob.solve(solver=ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
-            mi_rel_eps=1e-5, verbose=True, warmstart=True)
+            mi_rel_eps=1e-5, verbose=True, warm_start=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_scs_options(self):
@@ -90,5 +90,5 @@ class TestSolvers(BaseTest):
         for i in range(2):
             prob.solve(solver=CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
                        max_iters=20, verbose=True, kktsolver="chol",
-                       refinement=2, warmstart=True)
+                       refinement=2, warm_start=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])

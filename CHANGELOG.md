@@ -9,7 +9,7 @@ Version 1.0 (targets)
 * TODO return 2D arrays instead of matrices.
 * TODO add sets and domains for Parameters/Variables that affect DCP properties.
 * TODO PSD parameters?
-* TODO warmstart for SCS.
+* TODO warmstart based on variable values.
 * TODO change diag for matrices to diagm so can choose which diagonal to access.
 * TODO make sure Bool.value = ? etc satisfy constraints.
 * TODO make upper_tri_to_full atom?

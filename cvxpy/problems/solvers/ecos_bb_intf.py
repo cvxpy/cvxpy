@@ -56,6 +56,7 @@ class ECOS_BB(ECOS):
                 size = var_sizes[var_id]
                 for i in range(size[0]*size[1]):
                     indices.append(offset + i)
+            del dims[constr_type]
 
         return bool_idx, int_idx
 
@@ -79,16 +80,11 @@ class ECOS_BB(ECOS):
         data = super(ECOS_BB, self).get_problem_data(objective, constraints,
                                                      cached_data)
         sym_data = self.get_sym_data(objective, constraints, cached_data)
-        bool_idx, int_idx = self._noncvx_id_to_idx(sym_data.dims,
+        bool_idx, int_idx = self._noncvx_id_to_idx(data[s.DIMS],
                                                    sym_data.var_offsets,
                                                    sym_data.var_sizes)
         data[s.BOOL_IDX] = bool_idx
         data[s.INT_IDX] = int_idx
-        # Remove int_id and bool_id from dims.
-        dims = data[s.DIMS].copy()
-        for constr_type in [s.BOOL_IDS, s.INT_IDS]:
-            del dims[constr_type]
-        data["dims"] = dims
         return data
 
     def solve(self, objective, constraints, cached_data,

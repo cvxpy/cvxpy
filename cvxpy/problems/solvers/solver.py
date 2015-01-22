@@ -218,7 +218,7 @@ class Solver(object):
         data[s.A], data[s.B] = matrix_data.get_eq_constr()
         data[s.G], data[s.H] = matrix_data.get_ineq_constr()
         data[s.F] = matrix_data.get_nonlin_constr()
-        data[s.DIMS] = sym_data.dims
+        data[s.DIMS] = sym_data.dims.copy()
         return data
 
     @abc.abstractmethod
