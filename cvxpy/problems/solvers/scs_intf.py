@@ -84,7 +84,7 @@ class SCS(ECOS):
         if warm_start and solver_cache.prev_result is not None:
             data["x"] = solver_cache.prev_result["x"]
             data["y"] = solver_cache.prev_result["y"]
-            data["z"] = solver_cache.prev_result["z"]
+            data["s"] = solver_cache.prev_result["s"]
 
         results_dict = scs.solve(args, data[s.DIMS], **solver_opts)
         return self.format_results(results_dict, data[s.DIMS],
