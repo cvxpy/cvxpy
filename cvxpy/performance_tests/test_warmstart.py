@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function
 import unittest
 import time
 from cvxpy import *
@@ -47,7 +48,7 @@ class TestWarmstart(unittest.TestCase):
         sq_penalty = []
         l1_penalty = []
         x_values = []
-        gamma_vals = numpy.logspace(-4, 6)
+        gamma_vals = numpy.logspace(-4, 6, 10)
 
         start = time.time()
         for val in gamma_vals:
@@ -59,4 +60,4 @@ class TestWarmstart(unittest.TestCase):
             l1_penalty.append(norm(x, 1).value)
             x_values.append(x.value)
         end = time.time()
-        print "time elapsed=", end - start
+        print("time elapsed=", end - start)
