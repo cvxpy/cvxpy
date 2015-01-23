@@ -14,18 +14,19 @@ Mac OS X
 
    Follow the instructions on the `website`_.
 
-3. Make sure `Anaconda`_ has the latest version of Python 2.
+3. Create a new ``conda`` environment for ``cvxpy``. We'll call it ``cvxpy_env`` in these instructions.
 
    ::
 
-       conda update python
+     conda create -n cvxpy_env python=2 scipy numpy pip nose
 
-
-4. Install ``numpy`` and ``scipy`` using conda from the command-line.
+4. Activate the new ``conda`` environment.
 
    ::
 
-       conda install numpy scipy
+     source activate cvxpy_env
+
+In the future, make sure you have the ``cvxpy_env`` environment activated whenever you use ``cvxpy``. You know the environment is activated if you see ``(cvxpy_env)`` on the left hand side of your terminal prompt.
 
 5. Install ``cvxpy`` with ``pip`` from the command-line.
 
@@ -33,13 +34,7 @@ Mac OS X
 
        pip install cvxpy
 
-6. Install ``nose`` using conda from the command-line.
-
-  ::
-
-       conda install nose
-
-7. Test the installation with ``nose``.
+6. Test the installation with ``nose``.
 
   ::
 
