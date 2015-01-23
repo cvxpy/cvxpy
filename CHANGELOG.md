@@ -15,10 +15,12 @@ Version 1.0 (targets)
 * TODO make upper_tri_to_full atom?
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
+* TODO redo tree_mat so it uses SMs (and doesn't compress the left hand side of A*x into a matrix).
+* TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 
 
-Version 02.17
--------------
+Version 0.2.17 (next release)
+-----------------------------
 * Optimizes rmul to mul.
 * Added warmstart.
 * Disabled MIP tests until nondeterminism is resolved.
