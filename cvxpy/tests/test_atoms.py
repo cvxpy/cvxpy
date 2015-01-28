@@ -394,11 +394,6 @@ class TestAtoms(unittest.TestCase):
             "Second argument must be a positive integer.")
 
         with self.assertRaises(Exception) as cm:
-            sum_largest(self.A, -1)
-        self.assertEqual(str(cm.exception),
-            "First argument must be a vector.")
-
-        with self.assertRaises(Exception) as cm:
             lambda_sum_largest(self.x, 2.4)
         self.assertEqual(str(cm.exception),
             "First argument must be a square matrix.")
@@ -420,8 +415,3 @@ class TestAtoms(unittest.TestCase):
             lambda_sum_smallest(Variable(2,2), 2.4)
         self.assertEqual(str(cm.exception),
             "Second argument must be a positive integer.")
-
-        with self.assertRaises(Exception) as cm:
-            sum_smallest(self.A, -1)
-        self.assertEqual(str(cm.exception),
-            "First argument must be a vector.")

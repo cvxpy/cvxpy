@@ -25,25 +25,23 @@ from cvxpy.atoms.affine.sum_entries import sum_entries
 import numpy as np
 
 class sum_largest(Atom):
-    """Sum of the largest k values.
+    """Sum of the largest k values in the matrix X.
     """
     def __init__(self, x, k):
         self.k = k
         super(sum_largest, self).__init__(x)
 
     def validate_arguments(self):
-        """Verify that the x is a vector and k is a positive integer.
+        """Verify that k is a positive integer.
         """
-        if not self.args[0].is_vector():
-            raise ValueError("First argument must be a vector.")
-        elif int(self.k) != self.k or self.k <= 0:
+        if int(self.k) != self.k or self.k <= 0:
             raise ValueError("Second argument must be a positive integer.")
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns the sum of the k largest entries of values[0].
+        """Returns the sum of the k largest entries of the matrix.
         """
-        value = intf.from_2D_to_1D(values[0])
+        value = intf.from_2D_to_1D(values[0].flatten().T)
         indices = np.argsort(-value)[:int(self.k)]
         return value[indices].sum()
 
