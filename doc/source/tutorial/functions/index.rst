@@ -135,12 +135,6 @@ and returns a scalar.
 |                           | \lambda_{\max}         | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 | norm(X, 2)                | \left(X^T X\right)}`   |                              |                     |                   |                           |
 +---------------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| norm_largest(x, k)        | :math:`\mathrm{        | :math:`x \in                 | |positive| positive | |convex| convex   | |incr| for                |
-|                           | sum\_largest}(         | \mathbf{R}^{n}`              |                     |                   | :math:`x_i \geq 0`        |
-|                           | \mathrm{abs}(x),k)`    |                              |                     |                   |                           |
-|                           |                        | :math:`k \in \{1,2,\ldots\}` |                     |                   | |decr| for                |
-|                           |                        |                              |                     |                   | :math:`x_i \leq 0`        |
-+---------------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | quad_form(x, P)           | :math:`x^T P x`        | :math:`x \in \mathbf{R}^n`   | |positive| positive | |convex| convex   | |incr| for                |
 |                           |                        |                              |                     |                   | :math:`x_i \geq 0`        |
 | P constant                |                        | :math:`P \in \mathbf{S}^n_+` |                     |                   |                           |

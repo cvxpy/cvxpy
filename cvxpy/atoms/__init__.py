@@ -32,7 +32,6 @@ from cvxpy.atoms.norm import norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm2 import norm2
 from cvxpy.atoms.norm_inf import normInf
-from cvxpy.atoms.norm_largest import norm_largest
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
 from cvxpy.atoms.quad_form import quad_form

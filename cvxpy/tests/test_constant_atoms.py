@@ -94,7 +94,7 @@ atoms = [
             Constant([23.173260452512931])),
         (lambda x: norm(x,"nuc"), (1, 1), [ [[3,4,5],[6,7,8]] ],
             Constant([14.618376738088918])),
-        (lambda x: norm_largest(x, 3), (1, 1), [ [1,2,3,-4,-5] ], Constant([5+4+3])),
+        (lambda x: sum_largest(abs(x), 3), (1, 1), [ [1,2,3,-4,-5] ], Constant([5+4+3])),
         (lambda x: mixed_norm(x,1,1), (1, 1), [ [[1,2],[3,4],[5,6]] ],
             Constant([21])),
         (lambda x: mixed_norm(x,1,1), (1, 1), [ [[1,2,3],[4,5,6]] ],
