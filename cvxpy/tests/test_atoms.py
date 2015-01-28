@@ -384,3 +384,49 @@ class TestAtoms(unittest.TestCase):
             huber(self.x, M)
         self.assertEqual(str(cm.exception),
             "M must be a non-negative scalar constant.")
+
+    def test_sum_largest(self):
+        """Test the sum_largest atom and related atoms.
+        """
+        with self.assertRaises(Exception) as cm:
+            sum_largest(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "Second argument must be a positive integer.")
+
+        with self.assertRaises(Exception) as cm:
+            sum_largest(self.A, -1)
+        self.assertEqual(str(cm.exception),
+            "First argument must be a vector.")
+
+        with self.assertRaises(Exception) as cm:
+            norm_largest(self.x, 0.4)
+        self.assertEqual(str(cm.exception),
+            "Second argument must be a positive integer.")
+
+        with self.assertRaises(Exception) as cm:
+            lambda_sum_largest(self.x, 2.4)
+        self.assertEqual(str(cm.exception),
+            "First argument must be a square matrix.")
+
+        with self.assertRaises(Exception) as cm:
+            lambda_sum_largest(Variable(2, 2), 2.4)
+        self.assertEqual(str(cm.exception),
+            "Second argument must be a positive integer.")
+
+    def test_sum_smallest(self):
+        """Test the sum_smallest atom and related atoms.
+        """
+        with self.assertRaises(Exception) as cm:
+            sum_smallest(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "Second argument must be a positive integer.")
+
+        with self.assertRaises(Exception) as cm:
+            lambda_sum_smallest(Variable(2,2), 2.4)
+        self.assertEqual(str(cm.exception),
+            "Second argument must be a positive integer.")
+
+        with self.assertRaises(Exception) as cm:
+            sum_smallest(self.A, -1)
+        self.assertEqual(str(cm.exception),
+            "First argument must be a vector.")

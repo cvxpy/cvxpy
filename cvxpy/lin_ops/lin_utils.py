@@ -491,9 +491,9 @@ def create_geq(lh_op, rh_op=None, constr_id=None):
     Parameters
     ----------
     lh_term : LinOp
-        The left-hand operator in the <= constraint.
+        The left-hand operator in the >= constraint.
     rh_term : LinOp
-        The right-hand operator in the <= constraint.
+        The right-hand operator in the >= constraint.
     constr_id : int
         The id of the CVXPY equality constraint creating the constraint.
 

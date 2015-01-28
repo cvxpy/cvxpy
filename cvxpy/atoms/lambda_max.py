@@ -39,7 +39,7 @@ class lambda_max(Atom):
         Requires that A be symmetric.
         """
         if not (values[0].T == values[0]).all():
-            raise Exception("lambda_max called on a non-symmetric matrix.")
+            raise ValueError("lambda_max called on a non-symmetric matrix.")
         lo = hi = self.size[0]
         return LA.eigvalsh(values[0], eigvals=(lo, hi))
 
@@ -52,7 +52,7 @@ class lambda_max(Atom):
         """Verify that the argument A is square.
         """
         if not self.args[0].size[0] == self.args[0].size[1]:
-            raise TypeError("The argument '%s' to lambda_max must resolve to a square matrix."
+            raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
                 % self.args[0].name())
 
     def sign_from_args(self):

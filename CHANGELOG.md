@@ -17,13 +17,15 @@ Version 1.0 (targets)
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO redo tree_mat so it uses SMs (and doesn't compress the left hand side of A*x into a matrix).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
+* TODO add logistic_loss
 
 
-Version 0.2.17 (next release)
------------------------------
+Version 0.2.17
+--------------
 * Optimizes rmul to mul.
 * Added warmstart.
 * Disabled MIP tests until nondeterminism is resolved.
+* Added sum_largest, sum_smallest, norm_largest, lambda_sum_largest, lambda_sum_largest, and lambda_sum_smallest.
 
 Version 0.2.16
 --------------

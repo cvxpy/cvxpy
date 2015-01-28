@@ -21,6 +21,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.kl_div import kl_div
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
+from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
+from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.matrix_frac import matrix_frac
@@ -30,11 +32,14 @@ from cvxpy.atoms.norm import norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm2 import norm2
 from cvxpy.atoms.norm_inf import normInf
+from cvxpy.atoms.norm_largest import norm_largest
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max
+from cvxpy.atoms.sum_largest import sum_largest
+from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 
