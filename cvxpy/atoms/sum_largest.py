@@ -88,7 +88,7 @@ class sum_largest(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # min 1^Tt + kq
+        # min sum_entries(t) + kq
         # s.t. x <= t + q
         #      0 <= t
         x = arg_objs[0]
