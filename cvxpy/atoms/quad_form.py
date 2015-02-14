@@ -96,6 +96,10 @@ def quad_form(x, P):
     elif P.is_constant():
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
+        # P must be symmetric.
+        if not (P == P.T).all():
+            msg = "P is not symmetric."
+            raise CvxPyDomainError(msg)
         sgn, scale, M = _decomp_quad(P)
         return sgn * scale * square(norm(Constant(M.T) * x))
     else:

@@ -19,6 +19,11 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
+Version 0.2.18 (next release)
+-----------------------------
+* Requires ECOS 1.1.1.
+* Removed norm_largest.
+
 
 Version 0.2.17
 --------------

@@ -62,3 +62,23 @@ class TestNonOptimal(BaseTest):
         cost = cvxpy.quad_form(x,Q)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1,2]])
         self.assertAlmostEqual(prob.solve(), 5)
+
+    def test_non_symmetric(self):
+        """Test error when P is constant and not symmetric.
+        """
+        P = np.array([[1, 2], [3, 4]])
+        x = cvxpy.Variable(2,1)
+        with self.assertRaises(Exception) as cm:
+            cvxpy.quad_form(x,P)
+        self.assertEqual(str(cm.exception),
+            "P is not symmetric.")
+
+    def test_non_psd(self):
+        """Test error when P is symmetric but not definite.
+        """
+        P = np.array([[1, 0], [0, -1]])
+        x = cvxpy.Variable(2,1)
+        with self.assertRaises(Exception) as cm:
+            cvxpy.quad_form(x,P)
+        self.assertEqual(str(cm.exception),
+            "P has both positive and negative eigenvalues.")
