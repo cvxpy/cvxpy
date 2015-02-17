@@ -97,7 +97,7 @@ def quad_form(x, P):
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
         # P must be symmetric.
-        if not (P == P.T).all():
+        if not np.allclose(P, P.T):
             msg = "P is not symmetric."
             raise CvxPyDomainError(msg)
         sgn, scale, M = _decomp_quad(P)
