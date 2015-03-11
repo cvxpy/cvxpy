@@ -24,6 +24,14 @@ import ecos
 class ECOS_BB(ECOS):
     """An interface for the ECOS BB solver.
     """
+
+    # Solver capabilities.
+    LP_CAPABLE = True
+    SOCP_CAPABLE = True
+    SDP_CAPABLE = False
+    EXP_CAPABLE = False
+    MIP_CAPABLE = True
+
     def name(self):
         """The name of the solver.
         """

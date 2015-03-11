@@ -32,6 +32,22 @@ if [[ "$DISTRIB" == "conda" ]]; then
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
 
+    if [[ "$INSTALL_GLPK" == "true" ]]; then
+        # Install GLPK.
+        wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
+        tar -zxvf glpk-4.55.tar.gz
+        cd glpk
+        ./configure
+        make
+        make install
+        cd ..
+        # Install CVXOPT with GLPK bindings.
+        CVXOPT_BUILD_GLPK=1
+        CVXOPT_GLPK_LIB_DIR=/home/travis/glpk-4.55/lib
+        CVXOPT_GLPK_INC_DIR=/home/travis/glpk-4.55/include
+        pip install cvxopt
+    fi
+
     if [[ "$INSTALL_MKL" == "true" ]]; then
         # Make sure that MKL is used
         conda install --yes mkl

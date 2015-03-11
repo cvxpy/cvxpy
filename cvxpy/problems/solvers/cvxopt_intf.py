@@ -21,16 +21,33 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.kktsolver import get_kktsolver
-import cvxopt
-import cvxopt.solvers
 
 class CVXOPT(Solver):
     """An interface for the CVXOPT solver.
     """
+
+    # Solver capabilities.
+    LP_CAPABLE = True
+    SOCP_CAPABLE = True
+    SDP_CAPABLE = True
+    EXP_CAPABLE = True
+    MIP_CAPABLE = False
+
+    # Map of CVXOPT status to CVXPY status.
+    STATUS_MAP = {'optimal': s.OPTIMAL,
+                  'primal infeasible': s.INFEASIBLE,
+                  'dual infeasible': s.UNBOUNDED,
+                  'unknown': s.SOLVER_ERROR}
+
     def name(self):
         """The name of the solver.
         """
         return s.CVXOPT
+
+    def import_solver(self):
+        """Imports the solver.
+        """
+        import cvxopt
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -81,6 +98,7 @@ class CVXOPT(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+        import cvxopt, cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
         # User chosen KKT solver option.
         kktsolver = self.get_kktsolver_opt(solver_opts)
@@ -182,7 +200,7 @@ class CVXOPT(Solver):
             The solver output in standard form.
         """
         new_results = {}
-        status = s.SOLVER_STATUS[s.CVXOPT][results_dict['status']]
+        status = self.STATUS_MAP[results_dict['status']]
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']

@@ -19,20 +19,37 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
-import warnings
-# Attempt to import SCS.
-try:
-    import scs
-except ImportError:
-    warnings.warn("The solver SCS could not be imported.")
 
 class SCS(ECOS):
     """An interface for the SCS solver.
     """
+
+    # Solver capabilities.
+    LP_CAPABLE = True
+    SOCP_CAPABLE = True
+    SDP_CAPABLE = True
+    EXP_CAPABLE = True
+    MIP_CAPABLE = False
+
+    # Map of SCS status to CVXPY status.
+    STATUS_MAP = {"Solved": s.OPTIMAL,
+                  "Solved/Inaccurate": s.OPTIMAL_INACCURATE,
+                  "Unbounded": s.UNBOUNDED,
+                  "Unbounded/Inaccurate": s.UNBOUNDED_INACCURATE,
+                  "Infeasible": s.INFEASIBLE,
+                  "Infeasible/Inaccurate": s.INFEASIBLE_INACCURATE,
+                  "Failure": s.SOLVER_ERROR,
+                  "Indeterminate": s.SOLVER_ERROR}
+
     def name(self):
         """The name of the solver.
         """
         return s.SCS
+
+    def import_solver(self):
+        """Imports the solver.
+        """
+        import scs
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -73,6 +90,7 @@ class SCS(ECOS):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+        import scs
         data = self.get_problem_data(objective,
                                      constraints,
                                      cached_data)
@@ -111,7 +129,7 @@ class SCS(ECOS):
         """
         solver_cache = cached_data[self.name()]
         new_results = {}
-        status = s.SOLVER_STATUS[s.SCS][results_dict["info"]["status"]]
+        status = self.STATUS_MAP[results_dict["info"]["status"]]
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # Save previous result for possible future warm_start.

@@ -20,11 +20,35 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
-import ecos
 
 class ECOS(Solver):
     """An interface for the ECOS solver.
     """
+
+    # Solver capabilities.
+    LP_CAPABLE = True
+    SOCP_CAPABLE = True
+    SDP_CAPABLE = False
+    EXP_CAPABLE = False
+    MIP_CAPABLE = False
+
+    # Map of ECOS status to CVXPY status.
+    STATUS_MAP = {0: s.OPTIMAL,
+                  1: s.INFEASIBLE,
+                  2: s.UNBOUNDED,
+                  10: s.OPTIMAL_INACCURATE,
+                  11: s.INFEASIBLE_INACCURATE,
+                  12: s.UNBOUNDED_INACCURATE,
+                  -1: s.SOLVER_ERROR,
+                  -2: s.SOLVER_ERROR,
+                  -3: s.SOLVER_ERROR,
+                  -7: s.SOLVER_ERROR}
+
+    def import_solver(self):
+        """Imports the solver.
+        """
+        import ecos
+
     def name(self):
         """The name of the solver.
         """
@@ -79,6 +103,7 @@ class ECOS(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+        import ecos
         data = self.get_problem_data(objective, constraints, cached_data)
         results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
                                   data[s.DIMS], data[s.A], data[s.B],
@@ -107,7 +132,7 @@ class ECOS(Solver):
             The solver output in standard form.
         """
         new_results = {}
-        status = s.SOLVER_STATUS[s.ECOS][results_dict['info']['exitFlag']]
+        status = self.STATUS_MAP[results_dict['info']['exitFlag']]
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['info']['pcost']

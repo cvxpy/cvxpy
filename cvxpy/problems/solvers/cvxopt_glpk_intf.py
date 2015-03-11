@@ -17,19 +17,30 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
-import cvxopt
-import cvxopt.solvers
 
 class CVXOPT_GLPK(CVXOPT):
     """An interface for the CVXOPT solver.
     """
+
+    # Solver capabilities.
+    LP_CAPABLE = True
+    SOCP_CAPABLE = False
+    SDP_CAPABLE = False
+    EXP_CAPABLE = False
+    MIP_CAPABLE = False
+
     def name(self):
         """The name of the solver.
         """
         return s.CVXOPT_GLPK
+
+    def import_solver(self):
+        """Imports the solver.
+        """
+        import cvxopt
+        from cvxopt import glpk
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
@@ -55,6 +66,7 @@ class CVXOPT_GLPK(CVXOPT):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+        import cvxopt, cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options
@@ -71,17 +83,13 @@ class CVXOPT_GLPK(CVXOPT):
         for key, value in solver_opts.items():
             cvxopt.solvers.options[key] = value
 
-        # Always do 1 step of iterative refinement after solving KKT system.
-        if not "refinement" in cvxopt.solvers.options:
-            cvxopt.solvers.options["refinement"] = 1
-
         try:
             results_dict = cvxopt.solvers.lp(data[s.C],
                                              data[s.G],
                                              data[s.H],
                                              data[s.A],
                                              data[s.B],
-                                             solver = "glpk")
+                                             solver="glpk")
 
          # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:

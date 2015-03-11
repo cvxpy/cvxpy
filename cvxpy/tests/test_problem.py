@@ -175,8 +175,9 @@ class TestProblem(BaseTest):
             for solver in s.SOLVERS:
 
                 if solver == "CVXOPT_GLPK":
-                    # GLPK's stdout is separate from python, so we have to do this
-                    # Note: This probably breaks (badly) on Windows
+                    # GLPK's stdout is separate from python,
+                    # so we have to do this.
+                    # Note: This probably breaks (badly) on Windows.
                     import os
                     import tempfile
 
@@ -187,15 +188,16 @@ class TestProblem(BaseTest):
                     sys.stdout = StringIO() # capture output
 
                 p = Problem(Minimize(self.a + self.x[0]), [self.a >= 2, self.x >= 2])
-                if solver in s.MIP_CAPABLE:
+                if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
                 p.solve(verbose=verbose, solver=solver)
-                if solver in s.EXP_CAPABLE:
+                if SOLVERS[solver].EXP_CAPABLE:
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
                 if solver == "CVXOPT_GLPK":
-                    # GLPK's stdout is separate from python, so we have to do this
+                    # GLPK's stdout is separate from python,
+                    # so we have to do this.
                     tmp_handle.seek(0)
                     out = tmp_handle.read()
                     tmp_handle.close()

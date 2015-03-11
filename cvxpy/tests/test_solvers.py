@@ -105,5 +105,9 @@ class TestSolvers(BaseTest):
                         self.x[0] >= 0,
                         self.x[1] >= 0]
         prob = Problem(objective, constraints)
-        prob.solve(solver = CVXOPT_GLPK)
-        self.assertItemsAlmostEqual(self.x.value, [1, 1])
+        # Either the problem is solved or GLPK is not installed.
+        try:
+            prob.solve(solver = CVXOPT_GLPK)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+        except SolverError, e:
+            self.assertEqual(str(e.exception), "The solver %s is not installed." % CVXOPT_GLPK)

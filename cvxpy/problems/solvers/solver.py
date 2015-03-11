@@ -36,6 +36,12 @@ class Solver(object):
         pass
 
     @abc.abstractmethod
+    def import_solver(self):
+        """Imports the solver.
+        """
+        pass
+
+    @abc.abstractmethod
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """
@@ -62,31 +68,6 @@ class Solver(object):
             (eq_constr, ineq_constr, nonlin_constr)
         """
         pass
-
-    def sdp_capable(self):
-        """Can the solver handle SDPs?
-        """
-        return self.name() in s.SDP_CAPABLE
-
-    def exp_capable(self):
-        """Can the solver handle the exponential cone?
-        """
-        return self.name() in s.EXP_CAPABLE
-
-    def socp_capable(self):
-        """Can the solver handle the second-order cone?
-        """
-        return self.name() in s.SOCP_CAPABLE
-
-    def mip_capable(self):
-        """Can the solver handle boolean or integer variables?
-        """
-        return self.name() in s.MIP_CAPABLE
-
-    def no_constr_capable(self):
-        """Can the solver handle problems with no constraints?
-        """
-        return self.name() in s.NO_CONSTR_CAPABLE
 
     @staticmethod
     def choose_solver(constraints):
@@ -116,6 +97,14 @@ class Solver(object):
         else:
             return s.ECOS
 
+    def validate_install(self):
+        """Raises an exception if the solver is not installed.
+        """
+        try:
+            self.import_solver()
+        except ImportError:
+            raise SolverError("The solver %s is not installed." % self.name())
+
     def validate_solver(self, constraints):
         """Raises an exception if the solver cannot solve the problem.
 
@@ -124,13 +113,17 @@ class Solver(object):
         constraints: list
             The list of canonicalized constraints.
         """
+        # Check the solver is installed.
+        self.validate_install()
+        # Check the solver can solve the problem.
         constr_map = SymData.filter_constraints(constraints)
         if ((constr_map[s.BOOL] or constr_map[s.INT]) \
-            and not self.mip_capable()) or \
-           (constr_map[s.SDP] and not self.sdp_capable()) or \
-           (constr_map[s.EXP] and not self.exp_capable()) or \
-           (constr_map[s.SOC] and not self.socp_capable()) or \
-           (len(constraints) == 0 and not self.no_constr_capable()):
+            and not self.MIP_CAPABLE) or \
+           (constr_map[s.SDP] and not self.SDP_CAPABLE) or \
+           (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
+           (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \
+           (len(constraints) == 0 and self.name() in [s.SCS,
+                                                      s.CVXOPT_GLPK]):
             raise SolverError(
                 "The solver %s cannot solve the problem." % self.name()
             )
