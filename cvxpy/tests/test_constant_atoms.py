@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
-from cvxpy.settings import SCS, ECOS, CVXOPT, CVXOPT_GLPK, OPTIMAL
+from cvxpy.settings import SCS, ECOS, CVXOPT, GLPK, OPTIMAL
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *

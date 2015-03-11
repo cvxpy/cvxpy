@@ -124,11 +124,13 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY uses the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_. The table below shows the types of problems the solvers can handle.
+CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_. CVXPY also supports `GLPK`_ via the CVXOPT GLPK interface. The table below shows the types of problems the solvers can handle.
 
 +------------+----+------+-----+-----+-----+
 |            | LP | SOCP | SDP | EXP | MIP |
 +============+====+======+=====+=====+=====+
+| `GLPK`_    | X  |      |     |     |     |
++------------+----+------+-----+-----+-----+
 | `ECOS`_    | X  | X    |     |     |     |
 +------------+----+------+-----+-----+-----+
 | `ECOS_BB`_ | X  | X    |     |     | X   |
@@ -152,7 +154,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 
     # Solving a problem with different solvers.
     x = Variable(2)
-    obj = Minimize(norm(x, 2) + norm(x, 1))
+    obj = Minimize(x[0] + norm(x, 1))
     constraints = [x >= 2]
     prob = Problem(obj, constraints)
 
@@ -172,12 +174,27 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=SCS)
     print "optimal value with SCS:", prob.value
 
+    # Solve with GLPK.
+    prob.solve(solver=GLPK)
+    print "optimal value with GLPK:", prob.value
+
 .. parsed-literal::
 
-    optimal value with ECOS: 6.82842708233
-    optimal value with ECOS_BB: 6.82842708233
-    optimal value with CVXOPT: 6.82842708994
-    optimal value with SCS: 6.82837896978
+    optimal value with ECOS: 5.99999999551
+    optimal value with ECOS_BB: 5.99999999551
+    optimal value with CVXOPT: 6.00000000512
+    optimal value with SCS: 6.00046055789
+    optimal value with GLPK: 6.0
+
+Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
+
+.. code:: python
+
+    print installed_solvers()
+
+.. parsed-literal::
+
+    ['CVXOPT', 'GLPK', 'ECOS_BB', 'ECOS', 'SCS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -363,3 +380,4 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _ECOS: https://www.embotech.com/ECOS
 .. _ECOS_BB: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
+.. _GLPK: https://www.gnu.org/software/glpk/

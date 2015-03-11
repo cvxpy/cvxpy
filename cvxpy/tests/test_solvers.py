@@ -97,9 +97,9 @@ class TestSolvers(BaseTest):
         """Test a basic LP with GLPK.
         """
         # Either the problem is solved or GLPK is not installed.
-        if CVXOPT_GLPK in installed_solvers():
+        if GLPK in installed_solvers():
             prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-            prob.solve(solver = CVXOPT_GLPK)
+            prob.solve(solver = GLPK)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -109,13 +109,13 @@ class TestSolvers(BaseTest):
                             self.x[0] >= 0,
                             self.x[1] >= 0]
             prob = Problem(objective, constraints)
-            prob.solve(solver = CVXOPT_GLPK)
+            prob.solve(solver = GLPK)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-                prob.solve(solver = CVXOPT_GLPK)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % CVXOPT_GLPK)
+                prob.solve(solver = GLPK)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GLPK)
 
     def test_installed_solvers(self):
         """Test the list of installed solvers.

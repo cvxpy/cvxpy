@@ -100,7 +100,7 @@ Ubuntu 14.04
 Windows
 -------
 
-Here is a step-by-step guide to installing cvxpy on a Windows machine.
+Here is a step-by-step guide to installing CVXPY on a Windows machine.
 
 1. If you have Python installed already, it's probably a good idea to remove it first. (Sorry!)
 
@@ -167,11 +167,11 @@ You can remove what's already in there, and replace the file with just the six l
 
 13. Go back to the Python(x,y) terminal, and browse to the python directory of scs-master. From there, type "python setup.py build" to build scs. (If this step results in some error, remove the build directory and try again.) After the build is successful, run "python setup.py install" to install.
 
-14. After scs is installed, run "pip install cvxpy" to install cvxpy.
+14. After scs is installed, run "pip install cvxpy" to install CVXPY.
 
 15. Reboot your computer so that the path environment variable we set in step 8 takes effect.
 
-16. cvxpy should work now. You can use the Spyder IDE from the Python(x,y) home window. Click on the Spyder button to launch it. This IDE allows you to code, run, and view the console all in the same window. In order to check if the installation was successful, open a terminal, browse to C:\\Python27\\Lib\\site-packages\\cvxpy, and run "nosetests tests". This runs all unit tests and reports any error found.
+16. CVXPY should work now. You can use the Spyder IDE from the Python(x,y) home window. Click on the Spyder button to launch it. This IDE allows you to code, run, and view the console all in the same window. In order to check if the installation was successful, open a terminal, browse to C:\\Python27\\Lib\\site-packages\\cvxpy, and run "nosetests tests". This runs all unit tests and reports any error found.
 
   .. image:: files/windows10.png
       :scale: 50%
@@ -179,7 +179,7 @@ You can remove what's already in there, and replace the file with just the six l
 Other Platforms
 ---------------
 
-The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions>`_ for instructions for your platform.
+The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
 
 Install from source
 -------------------
@@ -207,6 +207,24 @@ installed `NumPy`_ and `SciPy`_, installing CVXPY from source is simple:
    ::
 
        python setup.py install
+
+Install with GLPK support
+-------------------------
+
+CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindings. To install CVXPY and its dependencies with GLPK support, follow these instructions:
+
+1. Install `GLPK <https://www.gnu.org/software/glpk/>`_. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.
+
+2. Install `CVXOPT`_ with GLPK bindings.
+
+    ::
+
+      CVXOPT_BUILD_GLPK=1
+      CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
+      CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
+      pip install cvxopt
+
+3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/

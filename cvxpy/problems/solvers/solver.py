@@ -125,7 +125,7 @@ class Solver(object):
            (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
            (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \
            (len(constraints) == 0 and self.name() in [s.SCS,
-                                                      s.CVXOPT_GLPK]):
+                                                      s.GLPK]):
             raise SolverError(
                 "The solver %s cannot solve the problem." % self.name()
             )

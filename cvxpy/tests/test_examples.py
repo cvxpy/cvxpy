@@ -272,6 +272,43 @@ class TestExamples(BaseTest):
         print(a.value)
         print(b.value)
 
+    def test_advanded(self):
+        """Code from the advanced tutorial.
+        """
+        # Solving a problem with different solvers.
+        x = Variable(2)
+        obj = Minimize(x[0] + norm(x, 1))
+        constraints = [x >= 2]
+        prob = Problem(obj, constraints)
+
+        # Solve with ECOS.
+        prob.solve(solver=ECOS)
+        print "optimal value with ECOS:", prob.value
+        self.assertAlmostEqual(prob.value, 6)
+
+        # Solve with ECOS_BB.
+        prob.solve(solver=ECOS_BB)
+        print "optimal value with ECOS_BB:", prob.value
+        self.assertAlmostEqual(prob.value, 6)
+
+        # Solve with CVXOPT.
+        prob.solve(solver=CVXOPT)
+        print "optimal value with CVXOPT:", prob.value
+        self.assertAlmostEqual(prob.value, 6)
+
+        # Solve with SCS.
+        prob.solve(solver=SCS)
+        print "optimal value with SCS:", prob.value
+        self.assertAlmostEqual(prob.value, 6, places=3)
+
+        if GLPK in installed_solvers():
+            # Solve with GLPK.
+            prob.solve(solver=GLPK)
+            print "optimal value with GLPK:", prob.value
+            self.assertAlmostEqual(prob.value, 6)
+
+        print installed_solvers()
+
     def test_log_det(self):
         # Generate data
         x = np.matrix("0.55  0.0;"

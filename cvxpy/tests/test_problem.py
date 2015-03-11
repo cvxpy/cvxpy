@@ -172,7 +172,7 @@ class TestProblem(BaseTest):
         # ####
         for verbose in [True, False]:
             for solver in installed_solvers():
-                if solver == "CVXOPT_GLPK":
+                if solver == "GLPK":
                     # GLPK's stdout is separate from python,
                     # so we have to do this.
                     # Note: This probably breaks (badly) on Windows.
@@ -193,7 +193,7 @@ class TestProblem(BaseTest):
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
-                if solver == "CVXOPT_GLPK":
+                if solver == "GLPK":
                     # GLPK's stdout is separate from python,
                     # so we have to do this.
                     tmp_handle.seek(0)
