@@ -92,3 +92,18 @@ class TestSolvers(BaseTest):
                        max_iters=20, verbose=True, kktsolver="chol",
                        refinement=2, warm_start=True)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+    def test_cvxopt_glpk(self):
+        prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+        prob.solve(solver = CVXOPT_GLPK)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+        # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+        objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+        constraints = [ 2 * self.x[0] + self.x[1] <= 3,
+                        self.x[0] + 2 * self.x[1] <= 3,
+                        self.x[0] >= 0,
+                        self.x[1] >= 0]
+        prob = Problem(objective, constraints)
+        prob.solve(solver = CVXOPT_GLPK)
+        self.assertItemsAlmostEqual(self.x.value, [1, 1])
