@@ -36,7 +36,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         # Install GLPK.
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
         tar -zxvf glpk-4.55.tar.gz
-        cd glpk
+        cd glpk-4.55
         ./configure
         make
         make install
