@@ -37,9 +37,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
         tar -zxvf glpk-4.55.tar.gz
         cd glpk-4.55
-        ./configure
-        make
-        make install
+        sudo ./configure
+        sudo make
+        sudo make install
         cd ..
         # Install CVXOPT with GLPK bindings.
         CVXOPT_BUILD_GLPK=1
