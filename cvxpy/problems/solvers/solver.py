@@ -73,10 +73,20 @@ class Solver(object):
         """
         return self.name() in s.EXP_CAPABLE
 
+    def socp_capable(self):
+        """Can the solver handle the second-order cone?
+        """
+        return self.name() in s.SOCP_CAPABLE
+
     def mip_capable(self):
         """Can the solver handle boolean or integer variables?
         """
         return self.name() in s.MIP_CAPABLE
+
+    def no_constr_capable(self):
+        """Can the solver handle problems with no constraints?
+        """
+        return self.name() in s.NO_CONSTR_CAPABLE
 
     @staticmethod
     def choose_solver(constraints):
@@ -119,7 +129,8 @@ class Solver(object):
             and not self.mip_capable()) or \
            (constr_map[s.SDP] and not self.sdp_capable()) or \
            (constr_map[s.EXP] and not self.exp_capable()) or \
-           (len(constraints) == 0 and self.name() == s.SCS):
+           (constr_map[s.SOC] and not self.socp_capable()) or \
+           (len(constraints) == 0 and not self.no_constr_capable()):
             raise SolverError(
                 "The solver %s cannot solve the problem." % self.name()
             )

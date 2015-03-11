@@ -19,42 +19,17 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.problems.solvers.solver import Solver
+from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
 import cvxopt
 import cvxopt.solvers
 
-class CVXOPT_GLPK(Solver):
+class CVXOPT_GLPK(CVXOPT):
     """An interface for the CVXOPT solver.
     """
     def name(self):
         """The name of the solver.
         """
         return s.CVXOPT_GLPK
-
-    def matrix_intf(self):
-        """The interface for matrices passed to the solver.
-        """
-        return intf.CVXOPT_SPARSE_INTF
-
-    def vec_intf(self):
-        """The interface for vectors passed to the solver.
-        """
-        return intf.CVXOPT_DENSE_INTF
-
-    def split_constr(self, constr_map):
-        """Extracts the equality, inequality, and nonlinear constraints.
-
-        Parameters
-        ----------
-        constr_map : dict
-            A dict of the canonicalized constraints.
-
-        Returns
-        -------
-        tuple
-            (eq_constr, ineq_constr, nonlin_constr)
-        """
-        return (constr_map[s.EQ], constr_map[s.LEQ], constr_map[s.EXP])
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
@@ -116,38 +91,3 @@ class CVXOPT_GLPK(Solver):
         cvxopt.solvers.options = old_options
         return self.format_results(results_dict, data[s.DIMS],
                                    data[s.OFFSET], cached_data)
-
-
-    def format_results(self, results_dict, dims, obj_offset, cached_data):
-        """Converts the solver output into standard form.
-
-        Parameters
-        ----------
-        results_dict : dict
-            The solver output.
-        dims : dict
-            The cone dimensions in the canonicalized problem.
-        obj_offset : float, optional
-            The constant term in the objective.
-        cached_data : dict
-            A map of solver name to cached problem data.
-
-        Returns
-        -------
-        dict
-            The solver output in standard form.
-        """
-        new_results = {}
-        status = s.SOLVER_STATUS[s.CVXOPT][results_dict['status']]
-        new_results[s.STATUS] = status
-        if new_results[s.STATUS] in s.SOLUTION_PRESENT:
-            primal_val = results_dict['primal objective']
-            new_results[s.VALUE] = primal_val + obj_offset
-            new_results[s.PRIMAL] = results_dict['x']
-            new_results[s.EQ_DUAL] = results_dict['y']
-            if dims[s.EXP_DIM]:
-                new_results[s.INEQ_DUAL] = results_dict['zl']
-            else:
-                new_results[s.INEQ_DUAL] = results_dict['z']
-
-        return new_results
