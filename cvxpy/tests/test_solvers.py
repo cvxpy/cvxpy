@@ -94,20 +94,39 @@ class TestSolvers(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_cvxopt_glpk(self):
-        prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        prob.solve(solver = CVXOPT_GLPK)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
-
-        # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
-        objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
-        constraints = [ 2 * self.x[0] + self.x[1] <= 3,
-                        self.x[0] + 2 * self.x[1] <= 3,
-                        self.x[0] >= 0,
-                        self.x[1] >= 0]
-        prob = Problem(objective, constraints)
+        """Test a basic LP with GLPK.
+        """
         # Either the problem is solved or GLPK is not installed.
-        try:
+        if CVXOPT_GLPK in installed_solvers():
+            prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+            prob.solve(solver = CVXOPT_GLPK)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [ 2 * self.x[0] + self.x[1] <= 3,
+                            self.x[0] + 2 * self.x[1] <= 3,
+                            self.x[0] >= 0,
+                            self.x[1] >= 0]
+            prob = Problem(objective, constraints)
             prob.solve(solver = CVXOPT_GLPK)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
-        except SolverError, e:
-            self.assertEqual(str(e.exception), "The solver %s is not installed." % CVXOPT_GLPK)
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver = CVXOPT_GLPK)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % CVXOPT_GLPK)
+
+    def test_installed_solvers(self):
+        """Test the list of installed solvers.
+        """
+        from cvxpy.problems.solvers.utilities import SOLVERS
+        prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+        for solver in SOLVERS.keys():
+            if solver in installed_solvers():
+                prob.solve(solver=solver)
+                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+            else:
+                with self.assertRaises(Exception) as cm:
+                    prob.solve(solver = solver)
+                self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)

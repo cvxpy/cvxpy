@@ -25,3 +25,10 @@ from cvxpy.problems.solvers.scs_intf import SCS
 
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), CVXOPT_GLPK(), SCS()]
 SOLVERS = {solver.name():solver for solver in solver_intf}
+
+def installed_solvers():
+    installed = []
+    for name, solver in SOLVERS.items():
+        if solver.is_installed():
+            installed.append(name)
+    return installed

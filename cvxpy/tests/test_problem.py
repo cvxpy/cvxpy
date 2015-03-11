@@ -23,7 +23,7 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variables import Variable, Semidef, Bool
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
-from cvxpy.problems.solvers.utilities import SOLVERS
+from cvxpy.problems.solvers.utilities import SOLVERS, installed_solvers
 from cvxpy.problems.problem_data.sym_data import SymData
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
@@ -169,11 +169,9 @@ class TestProblem(BaseTest):
         # setup the environment
         outputs = {True: [], False: []}
         backup = sys.stdout
-
         # ####
         for verbose in [True, False]:
-            for solver in s.SOLVERS:
-
+            for solver in installed_solvers():
                 if solver == "CVXOPT_GLPK":
                     # GLPK's stdout is separate from python,
                     # so we have to do this.

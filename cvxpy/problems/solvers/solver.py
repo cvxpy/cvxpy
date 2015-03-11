@@ -97,13 +97,14 @@ class Solver(object):
         else:
             return s.ECOS
 
-    def validate_install(self):
-        """Raises an exception if the solver is not installed.
+    def is_installed(self):
+        """Is the solver installed?
         """
         try:
             self.import_solver()
+            return True
         except ImportError:
-            raise SolverError("The solver %s is not installed." % self.name())
+            return False
 
     def validate_solver(self, constraints):
         """Raises an exception if the solver cannot solve the problem.
@@ -114,7 +115,8 @@ class Solver(object):
             The list of canonicalized constraints.
         """
         # Check the solver is installed.
-        self.validate_install()
+        if not self.is_installed():
+            raise SolverError("The solver %s is not installed." % self.name())
         # Check the solver can solve the problem.
         constr_map = SymData.filter_constraints(constraints)
         if ((constr_map[s.BOOL] or constr_map[s.INT]) \

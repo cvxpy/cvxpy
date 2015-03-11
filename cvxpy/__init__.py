@@ -23,6 +23,7 @@ from cvxpy.expressions.variables import Variable, Semidef, Bool, Int
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.error import SolverError
 from cvxpy.settings import (CVXOPT, CVXOPT_GLPK, ECOS, ECOS_BB, SCS,
 OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,
