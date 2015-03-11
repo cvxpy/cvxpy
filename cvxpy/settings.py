@@ -54,6 +54,7 @@ CVXOPT_STATUS = {'optimal': OPTIMAL,
                  'primal infeasible': INFEASIBLE,
                  'dual infeasible': UNBOUNDED,
                  'unknown': SOLVER_ERROR}
+CVXOPT_GLPK = "CVXOPT_GLPK"
 ECOS = "ECOS"
 ECOS_STATUS = {0: OPTIMAL,
                1: INFEASIBLE,
@@ -77,12 +78,13 @@ SCS_STATUS = {"Solved": OPTIMAL,
               "Indeterminate": SOLVER_ERROR}
 
 SOLVER_STATUS = {CVXOPT: CVXOPT_STATUS,
+                 CVXOPT_GLPK: CVXOPT_STATUS,
                  ECOS: ECOS_STATUS,
                  ECOS_BB: ECOS_STATUS,
                  SCS: SCS_STATUS}
 
 # Solver capabilities.
-SOLVERS = [ECOS, ECOS_BB, CVXOPT, SCS]
+SOLVERS = [ECOS, ECOS_BB, CVXOPT, CVXOPT_GLPK, SCS]
 SDP_CAPABLE = [CVXOPT, SCS]
 EXP_CAPABLE = [CVXOPT, SCS]
 SOCP_CAPABLE = [ECOS, ECOS_BB, CVXOPT, SCS]
