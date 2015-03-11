@@ -173,7 +173,19 @@ class TestProblem(BaseTest):
         # ####
         for verbose in [True, False]:
             for solver in s.SOLVERS:
-                sys.stdout = StringIO() # capture output
+
+                if solver == "CVXOPT_GLPK":
+                    # GLPK's stdout is separate from python, so we have to do this
+                    # Note: This probably breaks (badly) on Windows
+                    import os
+                    import tempfile
+
+                    stdout_fd = 1
+                    tmp_handle = tempfile.TemporaryFile(bufsize = 0)
+                    os.dup2(tmp_handle.fileno(), stdout_fd)
+                else:
+                    sys.stdout = StringIO() # capture output
+
                 p = Problem(Minimize(self.a + self.x[0]), [self.a >= 2, self.x >= 2])
                 if solver in s.MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
@@ -181,7 +193,15 @@ class TestProblem(BaseTest):
                 if solver in s.EXP_CAPABLE:
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
-                out = sys.stdout.getvalue() # release output
+
+                if solver == "CVXOPT_GLPK":
+                    # GLPK's stdout is separate from python, so we have to do this
+                    tmp_handle.seek(0)
+                    out = tmp_handle.read()
+                    tmp_handle.close()
+                else:
+                    out = sys.stdout.getvalue() # release output
+
                 outputs[verbose].append(out.upper())
         # ####
 
