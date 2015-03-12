@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function
 from cvxpy import *
 import cvxpy.interface as intf
 import numpy as np
@@ -283,31 +284,31 @@ class TestExamples(BaseTest):
 
         # Solve with ECOS.
         prob.solve(solver=ECOS)
-        print "optimal value with ECOS:", prob.value
+        print("optimal value with ECOS:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with ECOS_BB.
         prob.solve(solver=ECOS_BB)
-        print "optimal value with ECOS_BB:", prob.value
+        print("optimal value with ECOS_BB:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
         prob.solve(solver=CVXOPT)
-        print "optimal value with CVXOPT:", prob.value
+        print("optimal value with CVXOPT:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with SCS.
         prob.solve(solver=SCS)
-        print "optimal value with SCS:", prob.value
+        print("optimal value with SCS:", prob.value)
         self.assertAlmostEqual(prob.value, 6, places=3)
 
         if GLPK in installed_solvers():
             # Solve with GLPK.
             prob.solve(solver=GLPK)
-            print "optimal value with GLPK:", prob.value
+            print("optimal value with GLPK:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
-        print installed_solvers()
+        print(installed_solvers())
 
     def test_log_det(self):
         # Generate data
