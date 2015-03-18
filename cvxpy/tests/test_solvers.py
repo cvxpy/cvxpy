@@ -134,6 +134,14 @@ class TestSolvers(BaseTest):
             prob = Problem(objective, constraints)
             prob.solve(solver = GUROBI_LIN)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            # Gurobi's default lower bound for a decision variable is zero
+            # This quick test ensures that the cvxpy interface for GUROBI_LIN does *not* have that bound
+            objective = Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = Problem(objective, constraints)
+            prob.solve(solver = GUROBI_LIN)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
