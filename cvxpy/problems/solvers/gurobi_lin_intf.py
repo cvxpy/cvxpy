@@ -135,7 +135,13 @@ class GUROBI_LIN(Solver):
 
         n = c.shape[0]
 
-        variables = [model.addVar(obj = c[i], name = "x_%d" % i) for i in xrange(n)]
+        variables = [
+            model.addVar(
+                obj = c[i],
+                name = "x_%d" % i,
+                lb = -gurobipy.GRB.INFINITY,    # Gurobi's default LB is 0 (WHY???)
+                ub =  gurobipy.GRB.INFINITY)
+            for i in xrange(n)]
         model.update()
 
         eq_constrs = []
