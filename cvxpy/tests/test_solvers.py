@@ -117,6 +117,29 @@ class TestSolvers(BaseTest):
                 prob.solve(solver = GLPK)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GLPK)
 
+    def test_gurobi_lin(self):
+        """Test a basic LP with Gurobi.
+        """
+        if GUROBI_LIN in installed_solvers():
+            prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+            prob.solve(solver = GUROBI_LIN)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [ 2 * self.x[0] + self.x[1] <= 3,
+                            self.x[0] + 2 * self.x[1] <= 3,
+                            self.x[0] >= 0,
+                            self.x[1] >= 0]
+            prob = Problem(objective, constraints)
+            prob.solve(solver = GUROBI_LIN)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver = GLPK)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI_LIN)
+
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """
