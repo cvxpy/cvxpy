@@ -162,20 +162,26 @@ class GUROBI_LIN(Solver):
                 for loc in G_nonzero_locs.select(i, "*"):
                     expr_list.append((G[loc], variables[loc[1]]))
                 expr = gurobipy.LinExpr(expr_list)
+
                 ineq_constrs.append(model.addConstr(expr, gurobipy.GRB.LESS_EQUAL, h[i]))
 
         model.update()
 
-
-        model.optimize()
-
-        results_dict = {
-            "status": self.STATUS_MAP.get(model.Status, "unknown"),
-            "primal objective": model.ObjVal,
-            "x": np.array([v.X for v in variables]),
-            "y": np.array([lc.Pi for lc in eq_constrs]),
-            "z": np.array([lc.Pi for lc in ineq_constrs]),
+        try:
+            model.optimize()
+            results_dict = {
+                "status": self.STATUS_MAP.get(model.Status, "unknown"),
+                "primal objective": model.ObjVal,
+                "x": np.array([v.X for v in variables]),
+                "y": np.array([lc.Pi for lc in eq_constrs]),
+                "z": np.array([lc.Pi for lc in ineq_constrs]),
+                }
+        except gurobipy.GurobiError:
+            results_dict = {
+                "status": s.SOLVER_ERROR
             }
+
+
 
         return self.format_results(results_dict, data[s.DIMS],
                                    data[s.OFFSET], cached_data)
