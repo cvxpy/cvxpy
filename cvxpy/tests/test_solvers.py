@@ -137,7 +137,7 @@ class TestSolvers(BaseTest):
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-                prob.solve(solver = GLPK)
+                prob.solve(solver = GUROBI_LIN)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI_LIN)
 
     def test_installed_solvers(self):
