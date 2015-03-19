@@ -51,6 +51,11 @@ class GUROBI_LIN(Solver):
                   12: s.SOLVER_ERROR,
                   13: s.SOLVER_ERROR}
 
+    CUSTOM_OPTS = [
+                  "update_eq_constrs",
+                  "update_ineq_constrs",
+                  ]
+
     def name(self):
         """The name of the solver.
         """
@@ -113,17 +118,6 @@ class GUROBI_LIN(Solver):
         """
         import gurobipy
 
-        model = gurobipy.Model()
-
-        # Set verbosity and other parameters
-        if verbose:
-            model.setParam("OutputFlag", True)
-        else:
-            model.setParam("OutputFlag", False)
-
-        for key, value in solver_opts.items():
-            model.setParam(key, value)
-
         # Get problem data
         data = self.get_problem_data(objective, constraints, cached_data)
 
@@ -135,47 +129,87 @@ class GUROBI_LIN(Solver):
 
         n = c.shape[0]
 
-        variables = [
-            model.addVar(
-                obj = c[i],
-                name = "x_%d" % i,
-                lb = -gurobipy.GRB.INFINITY,    # Gurobi's default LB is 0 (WHY???)
-                ub =  gurobipy.GRB.INFINITY)
-            for i in xrange(n)]
-        model.update()
+        update_eq_constrs = solver_opts.get("update_eq_constrs", True)
+        update_ineq_constrs = solver_opts.get("update_ineq_constrs", True)
 
-        eq_constrs = []
-        if A.nnz > 0:
-            I, J = zip(*[x for x in A.iterkeys()])
-            I_unique = list(set(I))
-            A_nonzero_locs = gurobipy.tuplelist([x for x in A.iterkeys()])
+        solver_cache = cached_data[self.name()]
 
-            for i in I_unique:
-                expr_list = []
-                for loc in A_nonzero_locs.select(i, "*"):
-                    expr_list.append((A[loc], variables[loc[1]]))
-                expr = gurobipy.LinExpr(expr_list)
-                eq_constrs.append(model.addConstr(expr, gurobipy.GRB.EQUAL, b[i]))
+        if warm_start and solver_cache.prev_result is not None:
+            model = solver_cache.prev_result["model"]
+            variables = solver_cache.prev_result["variables"]
+            eq_constrs = solver_cache.prev_result["eq_constrs"]
+            ineq_constrs = solver_cache.prev_result["ineq_constrs"]
 
-        ineq_constrs = []
-        if G.nnz > 0:
-            I, J = zip(*[x for x in G.iterkeys()])
-            I_unique = list(set(I))
-            G_nonzero_locs = gurobipy.tuplelist([x for x in G.iterkeys()])
+            if update_eq_constrs:
+                for constr in eq_constrs:
+                    model.remove(constr)
 
-            for i in I_unique:
-                expr_list = []
-                for loc in G_nonzero_locs.select(i, "*"):
-                    expr_list.append((G[loc], variables[loc[1]]))
-                expr = gurobipy.LinExpr(expr_list)
+            if update_ineq_constrs:
+                for constr in ineq_constrs:
+                    model.remove(constr)
 
-                ineq_constrs.append(model.addConstr(expr, gurobipy.GRB.LESS_EQUAL, h[i]))
+            model.update()
 
-        model.update()
+        else:
+            model = gurobipy.Model()
+            variables = [
+                model.addVar(
+                    obj = c[i],
+                    name = "x_%d" % i,
+                    lb = -gurobipy.GRB.INFINITY,    # Gurobi's default LB is 0 (WHY???)
+                    ub =  gurobipy.GRB.INFINITY)
+                for i in xrange(n)]
+            model.update()
+
+        # Set verbosity and other parameters
+        if verbose:
+            model.setParam("OutputFlag", True)
+        else:
+            model.setParam("OutputFlag", False)
+
+        for key, value in solver_opts.items():
+            if key in self.CUSTOM_OPTS:
+                continue
+            model.setParam(key, value)
+
+        if update_eq_constrs:
+            eq_constrs = []
+            if A.nnz > 0:
+                I, J = zip(*[x for x in A.iterkeys()])
+                I_unique = list(set(I))
+                A_nonzero_locs = gurobipy.tuplelist([x for x in A.iterkeys()])
+
+                for i in I_unique:
+                    expr_list = []
+                    for loc in A_nonzero_locs.select(i, "*"):
+                        expr_list.append((A[loc], variables[loc[1]]))
+                    expr = gurobipy.LinExpr(expr_list)
+                    eq_constrs.append(model.addConstr(expr, gurobipy.GRB.EQUAL, b[i]))
+
+        if update_ineq_constrs:
+            ineq_constrs = []
+            if G.nnz > 0:
+                I, J = zip(*[x for x in G.iterkeys()])
+                I_unique = list(set(I))
+                G_nonzero_locs = gurobipy.tuplelist([x for x in G.iterkeys()])
+
+                for i in I_unique:
+                    expr_list = []
+                    for loc in G_nonzero_locs.select(i, "*"):
+                        expr_list.append((G[loc], variables[loc[1]]))
+                    expr = gurobipy.LinExpr(expr_list)
+
+                    ineq_constrs.append(model.addConstr(expr, gurobipy.GRB.LESS_EQUAL, h[i]))
+
+            model.update()
 
         try:
             model.optimize()
             results_dict = {
+                "model": model,
+                "variables": variables,
+                "eq_constrs": eq_constrs,
+                "ineq_constrs": ineq_constrs,
                 "status": self.STATUS_MAP.get(model.Status, "unknown"),
                 "primal objective": model.ObjVal,
                 "x": np.array([v.X for v in variables]),
@@ -212,6 +246,13 @@ class GUROBI_LIN(Solver):
         dict
             The solver output in standard form.
         """
+        solver_cache = cached_data[self.name()]
+        solver_cache.prev_result = {
+            "model": results_dict["model"],
+            "variables": results_dict["variables"],
+            "eq_constrs": results_dict["eq_constrs"],
+            "ineq_constrs": results_dict["ineq_constrs"],
+            }
         new_results = {}
         new_results[s.STATUS] = results_dict['status']
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
