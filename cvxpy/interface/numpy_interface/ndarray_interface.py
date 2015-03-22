@@ -48,6 +48,8 @@ class NDArrayInterface(base.BaseMatrixInterface):
             value = value.T
         elif scipy.sparse.issparse(value):
             value = value.A
+        elif isinstance(value, numpy.matrix):
+            value = value.A
         return numpy.atleast_2d(value)
 
     # Return an identity matrix.

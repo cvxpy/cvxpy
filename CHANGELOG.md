@@ -26,6 +26,7 @@ Version 0.2.18 (next release)
 * Removed norm_largest.
 * Added GLPK interface.
 * Updated ECOS BB exit codes.
+* Factored out ability to get parameterized entries of matrix.
 
 Version 0.2.17
 --------------
