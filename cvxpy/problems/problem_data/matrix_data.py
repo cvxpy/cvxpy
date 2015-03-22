@@ -29,9 +29,11 @@ class MatrixCache(object):
     Attributes
     ----------
     coo_tup : tuple
-        A (V, I, J) triplet for the matrix.
-    const_vec : tuple
-        A (V, I, J) triplet for the vector offset.
+            A (V, I, J) triplet for the matrix.
+    param_coo_tup : tuple
+            A (V, I, J) triplet for the parameterized matrix.
+    const_vec : array
+        The vector offset.
     constraints : list
         A list of constraints in the matrix.
     size : tuple
@@ -44,6 +46,13 @@ class MatrixCache(object):
         rows = sum([c.size[0] * c.size[1] for c in constraints])
         cols = x_length
         self.size = (rows, cols)
+        self.param_coo_tup = ([], [], [])
+
+    def reset_param_data(self):
+        """Clear old parameter data.
+        """
+        self.param_coo_tup = ([], [], [])
+
 
 class MatrixData(object):
     """The matrices for the conic form convex optimization problem.
@@ -56,14 +65,6 @@ class MatrixData(object):
         The matrix interface to use for creating the constraints matrix.
     vec_intf : interface
         The matrix interface to use for creating the constant vector.
-    obj_cache : MatrixCache
-        The cached data for the objective.
-    eq_cache : MatrixCache
-        The cached data for the equality constraints.
-    ineq_cache : MatrixCache
-        The cached data for the inequality constraints.
-    F : function
-        The cached nonlinear constraints.
     """
 
     def __init__(self, sym_data, matrix_intf, vec_intf, solver):
@@ -120,24 +121,6 @@ class MatrixData(object):
         """
         return self.F
 
-    def get_param_cache(self, mat_cache):
-        """Returns the parameterized part of the matrix.
-
-        Parameters
-        ----------
-        mat_cache : MatrixCache
-            The cached version of the matrix-vector pair.
-
-        Returns
-        -------
-        The MarixCache for the parameterized constraints.
-        """
-        # Get parameter values.
-        param_cache = self._init_matrix_cache(mat_cache.constraints,
-                                              mat_cache.size[0])
-        self._lin_matrix(param_cache, caching=False)
-        return param_cache
-
     def _init_matrix_cache(self, constraints, x_length):
         """Initializes the data structures for the cached matrix.
 
@@ -149,11 +132,11 @@ class MatrixData(object):
             The number of columns in the matrix.
         Returns
         -------
-        MarixCache data structure.
+        ((V, I, J), array)
         """
         rows = sum([c.size[0] * c.size[1] for c in constraints])
         COO = ([], [], [])
-        const_vec = ([], [], [])
+        const_vec = self.vec_intf.zeros(rows, 1)
         return MatrixCache(COO, const_vec, constraints, x_length)
 
     def _lin_matrix(self, mat_cache, caching=False):
@@ -185,33 +168,6 @@ class MatrixData(object):
                 self._process_constr(constr, mat_cache, vert_offset)
             vert_offset += constr.size[0]*constr.size[1]
 
-    def _coo_to_matrix(self, mat_coo_tup, param_coo_tup, size):
-        """Combines cached and parameterized COO into a matrix.
-
-        Parameters
-        ----------
-        mat_coo_tup : tuple
-            A cached (V, I, J) triplet for the matrix.
-        param_coo_tup : tuple
-            The parameterized (V, I, J) triplet for the matrix.
-        size : tuple
-            The (row, col) dimensions of the matrix.
-
-        Returns
-        -------
-        A matrix.
-        """
-        V, I, J = mat_coo_tup
-        Vp, Ip, Jp = param_coo_tup
-        if len(V) + len(Vp) > 0:
-            matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), size)
-            # Convert the constraints matrix to the correct type.
-            matrix = self.matrix_intf.const_to_matrix(matrix,
-                                                      convert_scalars=True)
-        else: # Empty matrix.
-            matrix = self.matrix_intf.zeros(*size)
-        return matrix
-
     def _cache_to_matrix(self, mat_cache):
         """Converts the cached representation of the constraints matrix.
 
@@ -225,20 +181,25 @@ class MatrixData(object):
         A (matrix, vector) tuple.
         """
         # Get parameter values.
-        param_cache = self.get_param_cache(mat_cache)
+        param_cache = self._init_matrix_cache(mat_cache.constraints,
+                                              mat_cache.size[0])
+        self._lin_matrix(param_cache)
+        rows, cols = mat_cache.size
         # Create the constraints matrix.
-        matrix = self._coo_to_matrix(mat_cache.coo_tup,
-                                     param_cache.coo_tup,
-                                     mat_cache.size)
-        # Create the vector offset.
-        const_vec = self._coo_to_matrix(mat_cache.const_vec,
-                                        param_cache.const_vec,
-                                        (mat_cache.size[0], 1))
+        # Combine the cached data with the parameter data.
+        V, I, J = mat_cache.coo_tup
+        Vp, Ip, Jp = param_cache.coo_tup
+        if len(V) + len(Vp) > 0:
+            matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
+            # Convert the constraints matrix to the correct type.
+            matrix = self.matrix_intf.const_to_matrix(matrix,
+                                                      convert_scalars=True)
+        else: # Empty matrix.
+            matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
-        const_vec = self.vec_intf.const_to_matrix(const_vec,
-                                                  convert_scalars=True)
-        const_vec = intf.from_2D_to_1D(const_vec)
-        return (matrix, const_vec)
+        combo_vec = mat_cache.const_vec + param_cache.const_vec
+        const_vec = intf.from_2D_to_1D(combo_vec)
+        return (matrix, -const_vec)
 
     def _process_constr(self, constr, mat_cache, vert_offset):
         """Extract the coefficients from a constraint.
@@ -252,29 +213,21 @@ class MatrixData(object):
         vert_offset : int
             The row offset of the constraint.
         """
+        V, I, J = mat_cache.coo_tup
         coeffs = op2mat.get_coefficients(constr.expr)
         for id_, block in coeffs:
             vert_start = vert_offset
             vert_end = vert_start + constr.size[0]*constr.size[1]
             if id_ is lo.CONSTANT_ID:
-                V, I, J = mat_cache.const_vec
+                # Flatten the block.
+                block = self.vec_intf.const_to_matrix(block)
                 block_size = intf.size(block)
-                # Negate constant vector.
-                block = -block
-                if intf.is_scalar(block):
-                    V.append(intf.scalar_value(block))
-                else:
-                    # Flatten the block.
-                    block = intf.DEFAULT_NP_INTERFACE.const_to_matrix(block)
-                    block = intf.DEFAULT_NP_INTERFACE.reshape(
-                                block,
-                                (block_size[0]*block_size[1], 1)
-                            )
-                    V.extend(block.flatten().tolist())
-                I.extend(range(vert_start, vert_end))
-                J.extend([0]*(block_size[0]*block_size[1]))
+                block = self.vec_intf.reshape(
+                    block,
+                    (block_size[0]*block_size[1], 1)
+                )
+                mat_cache.const_vec[vert_start:vert_end, :] += block
             else:
-                V, I, J = mat_cache.coo_tup
                 horiz_offset = self.sym_data.var_offsets[id_]
                 if intf.is_scalar(block):
                     block = intf.scalar_value(block)
