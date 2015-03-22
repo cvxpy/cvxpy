@@ -27,6 +27,8 @@ solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(), SCS()]
 SOLVERS = {solver.name():solver for solver in solver_intf}
 
 def installed_solvers():
+    """List the installed solvers.
+    """
     installed = []
     for name, solver in SOLVERS.items():
         if solver.is_installed():

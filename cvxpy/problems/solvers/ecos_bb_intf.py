@@ -32,6 +32,22 @@ class ECOS_BB(ECOS):
     EXP_CAPABLE = False
     MIP_CAPABLE = True
 
+    # Exit flags from ECOS_BB
+    # ECOS_BB found optimal solution.
+    # MI_OPTIMAL_SOLN (ECOS_OPTIMAL)
+    # ECOS_BB proved problem is infeasible.
+    # MI_INFEASIBLE (ECOS_PINF)
+    # ECOS_BB proved problem is unbounded.
+    # MI_UNBOUNDED (ECOS_DINF)
+    # ECOS_BB hit maximum iterations but a feasible solution was found and
+    # the best seen feasible solution was returned.
+    # MI_MAXITER_FEASIBLE_SOLN (ECOS_OPTIMAL + ECOS_INACC_OFFSET)
+    # ECOS_BB hit maximum iterations without finding a feasible solution.
+    # MI_MAXITER_NO_SOLN (ECOS_PINF + ECOS_INACC_OFFSET)
+    # ECOS_BB hit maximum iterations without finding a feasible solution
+    #   that was unbounded.
+    # MI_MAXITER_UNBOUNDED (ECOS_DINF + ECOS_INACC_OFFSET)
+
     def name(self):
         """The name of the solver.
         """

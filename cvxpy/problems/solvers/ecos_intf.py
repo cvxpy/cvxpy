@@ -32,6 +32,17 @@ class ECOS(Solver):
     EXP_CAPABLE = False
     MIP_CAPABLE = False
 
+    # EXITCODES from ECOS
+    # ECOS_OPTIMAL  (0)   Problem solved to optimality
+    # ECOS_PINF     (1)   Found certificate of primal infeasibility
+    # ECOS_DINF     (2)   Found certificate of dual infeasibility
+    # ECOS_INACC_OFFSET (10)  Offset exitflag at inaccurate results
+    # ECOS_MAXIT    (-1)  Maximum number of iterations reached
+    # ECOS_NUMERICS (-2)  Search direction unreliable
+    # ECOS_OUTCONE  (-3)  s or z got outside the cone, numerics?
+    # ECOS_SIGINT   (-4)  solver interrupted by a signal/ctrl-c
+    # ECOS_FATAL    (-7)  Unknown problem in solver
+
     # Map of ECOS status to CVXPY status.
     STATUS_MAP = {0: s.OPTIMAL,
                   1: s.INFEASIBLE,
@@ -42,6 +53,7 @@ class ECOS(Solver):
                   -1: s.SOLVER_ERROR,
                   -2: s.SOLVER_ERROR,
                   -3: s.SOLVER_ERROR,
+                  -4: s.SOLVER_ERROR,
                   -7: s.SOLVER_ERROR}
 
     def import_solver(self):

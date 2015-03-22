@@ -3,7 +3,7 @@
 Examples
 ========
 
-These examples show many different ways to use CVXPY. The :ref:`basic` section shows how to solve some common optimization problems in CVXPY. The :ref:`advanced-python` section shows how to use high-level Python features with CVXPY. The :ref:`applications` section contains more complex examples aimed at experts in convex optimization.
+These examples show many different ways to use CVXPY. The :ref:`basic` section shows how to solve some common optimization problems in CVXPY. The :ref:`applications` section contains more complex examples aimed at experts in convex optimization.
 
 .. _basic:
 
@@ -11,13 +11,6 @@ Basic Examples
 --------------
 
 - `Total variation in-painting <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
-
-.. _advanced-python:
-
-Advanced Python
----------------
-
-- `Object-oriented convex optimization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb>`_
 
 .. _applications:
 

@@ -1,5 +1,6 @@
 Version 1.0 (targets)
 ---------------------
+* TODO add FAQ with info about solver errors, DCP errors, adding an objective in a for loop, dot product with numpy ND arrays.
 * TODO change *args to lists.
 * TODO change OPTIMAL to SOLVED?
 * TODO change SDP to only set upper triag == lower triag.
@@ -23,7 +24,8 @@ Version 0.2.18 (next release)
 -----------------------------
 * Requires ECOS 1.1.1.
 * Removed norm_largest.
-
+* Added GLPK interface.
+* Updated ECOS BB exit codes.
 
 Version 0.2.17
 --------------
