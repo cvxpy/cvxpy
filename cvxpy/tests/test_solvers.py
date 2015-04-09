@@ -214,12 +214,6 @@ class TestSolvers(BaseTest):
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
 
-            # With update_eq_constrs = False, the result shouldn't change from the original
-            # (Even though we updated the equality constraint, we're telling cvxpy to ignore that)
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True, update_eq_constrs = False)
-            self.assertEqual(result, orig_objective)
-            self.assertItemsAlmostEqual(self.x.value, orig_x)
-
             # Without setting update_eq_constrs = False, the results should change to the correct answer
             result = prob.solve(solver = GUROBI_LIN, warm_start = True)
             self.assertEqual(result, 3)
@@ -232,12 +226,6 @@ class TestSolvers(BaseTest):
             h.value = np.array([1, 1])              # <----- Changed
             c.value = np.array([1, 1])
 
-            # With update_ineq_constrs = False, the result shouldn't change from the original
-            # (Even though we updated the inequality constraint, we're telling cvxpy to ignore that)
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True, update_ineq_constrs = False)
-            self.assertEqual(result, orig_objective)
-            self.assertItemsAlmostEqual(self.x.value, orig_x)
-
             # Without setting update_ineq_constrs = False, the results should change to the correct answer
             result = prob.solve(solver = GUROBI_LIN, warm_start = True)
             self.assertEqual(result, 2)
@@ -249,12 +237,6 @@ class TestSolvers(BaseTest):
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
             c.value = np.array([2, 1])              # <----- Changed
-
-            # With update_objective = False, the result shouldn't change from the original
-            # (Even though we updated the objective, we're telling cvxpy to ignore that)
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True, update_objective = False)
-            self.assertEqual(result, orig_objective)
-            self.assertItemsAlmostEqual(self.x.value, orig_x)
 
             # Without setting update_objective = False, the results should change to the correct answer
             result = prob.solve(solver = GUROBI_LIN, warm_start = True)

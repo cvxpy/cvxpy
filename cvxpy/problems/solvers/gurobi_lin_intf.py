@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
+import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from cvxpy.problems.solvers.solver import Solver
 from scipy.sparse import dok_matrix
@@ -32,7 +33,7 @@ class GUROBI_LIN(Solver):
 
     # NOTE: Gurobi should be able to solve these kinds of problems
     # I just haven't tested them.
-    SOCP_CAPABLE = False    
+    SOCP_CAPABLE = False
     SDP_CAPABLE = False
     EXP_CAPABLE = False
     MIP_CAPABLE = False
@@ -90,8 +91,15 @@ class GUROBI_LIN(Solver):
         tuple
             (eq_constr, ineq_constr, nonlin_constr)
         """
-        # return (constr_map[s.EQ], constr_map[s.LEQ], constr_map[s.EXP])
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
+
+    def param_in_constr(self, constraints):
+        """Do any of the constraints contain parameters?
+        """
+        for constr in constraints:
+            if len(lu.get_expr_params(constr.expr)) > 0:
+                return True
+        return False
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
@@ -130,10 +138,6 @@ class GUROBI_LIN(Solver):
 
         n = c.shape[0]
 
-        update_eq_constrs = solver_opts.get("update_eq_constrs", True)
-        update_ineq_constrs = solver_opts.get("update_ineq_constrs", True)
-        update_objective = solver_opts.get("update_objective", True)
-
         solver_cache = cached_data[self.name()]
 
         if warm_start and solver_cache.prev_result is not None:
@@ -147,7 +151,8 @@ class GUROBI_LIN(Solver):
             G_prev = solver_cache.prev_result["G"]
             h_prev = solver_cache.prev_result["h"]
 
-            if update_objective:
+            # If there is a parameter in the objective, it may have changed.
+            if len(lu.get_expr_params(objective)) > 0:
                 c_diff = c - c_prev
 
                 I_unique = list(set(np.where(c_diff)[0]))
@@ -158,7 +163,13 @@ class GUROBI_LIN(Solver):
                 # Stay consistent with Gurobi's representation of the problem
                 c = c_prev
 
-            if update_eq_constrs:
+            # Get equality and inequality constraints.
+            sym_data = self.get_sym_data(objective, constraints, cached_data)
+            eq_constr, ineq_constr, _ = self.split_constr(sym_data.constr_map)
+
+            # If there is a parameter in the equality constraints,
+            # A or b may have changed.
+            if self.param_in_constr(eq_constr):
                 A_diff = dok_matrix(A - A_prev)
                 b_diff = b - b_prev
 
@@ -185,7 +196,9 @@ class GUROBI_LIN(Solver):
                         for loc in A_nonzero_locs.select(i, "*"):
                             expr_list.append((A[loc], variables[loc[1]]))
                         expr = gurobipy.LinExpr(expr_list)
-                        eq_constrs[i] = model.addConstr(expr, gurobipy.GRB.EQUAL, b[i])
+                        eq_constrs[i] = model.addConstr(expr,
+                                                        gurobipy.GRB.EQUAL,
+                                                        b[i])
 
                 model.update()
             else:
@@ -193,7 +206,9 @@ class GUROBI_LIN(Solver):
                 A = A_prev
                 b = b_prev
 
-            if update_ineq_constrs:
+            # If there is a parameter in the inequality constraints,
+            # G or h may have changed.
+            if self.param_in_constr(ineq_constr):
                 G_diff = dok_matrix(G - G_prev)
                 h_diff = h - h_prev
 
@@ -220,7 +235,8 @@ class GUROBI_LIN(Solver):
                         for loc in G_nonzero_locs.select(i, "*"):
                             expr_list.append((G[loc], variables[loc[1]]))
                         expr = gurobipy.LinExpr(expr_list)
-                        ineq_constrs[i] = model.addConstr(expr, gurobipy.GRB.LESS_EQUAL, h[i])
+                        ineq_constrs[i] = model.addConstr(expr,
+                                            gurobipy.GRB.LESS_EQUAL, h[i])
 
                 model.update()
             else:
@@ -234,7 +250,8 @@ class GUROBI_LIN(Solver):
                 model.addVar(
                     obj = c[i],
                     name = "x_%d" % i,
-                    lb = -gurobipy.GRB.INFINITY,    # Gurobi's default LB is 0 (WHY???)
+                    # Gurobi's default LB is 0 (WHY???)
+                    lb = -gurobipy.GRB.INFINITY,
                     ub =  gurobipy.GRB.INFINITY)
                 for i in xrange(n)]
             model.update()
@@ -254,7 +271,9 @@ class GUROBI_LIN(Solver):
                         expr_list.append((A[loc], variables[loc[1]]))
                     expr = gurobipy.LinExpr(expr_list)
 
-                    eq_constrs[i] = model.addConstr(expr, gurobipy.GRB.EQUAL, b[i])
+                    eq_constrs[i] = model.addConstr(expr,
+                                                    gurobipy.GRB.EQUAL,
+                                                    b[i])
 
             ineq_constrs = [None] * h.shape[0]
             if G.nnz > 0 or h.any:
@@ -271,7 +290,9 @@ class GUROBI_LIN(Solver):
                         expr_list.append((G[loc], variables[loc[1]]))
                     expr = gurobipy.LinExpr(expr_list)
 
-                    ineq_constrs[i] = model.addConstr(expr, gurobipy.GRB.LESS_EQUAL, h[i])
+                    ineq_constrs[i] = model.addConstr(expr,
+                                                      gurobipy.GRB.LESS_EQUAL,
+                                                      h[i])
 
             model.update()
 
@@ -285,7 +306,6 @@ class GUROBI_LIN(Solver):
             if key in self.CUSTOM_OPTS:
                 continue
             model.setParam(key, value)
-
 
         try:
             model.optimize()
