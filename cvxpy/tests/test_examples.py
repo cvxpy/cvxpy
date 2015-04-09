@@ -308,6 +308,12 @@ class TestExamples(BaseTest):
             print("optimal value with GLPK:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
+        if GUROBI_LIN in installed_solvers():
+            # Solve with Gurobi.
+            prob.solve(solver=GUROBI_LIN)
+            print("optimal value with GUROBI_LIN:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
+
         print(installed_solvers())
 
     def test_log_det(self):

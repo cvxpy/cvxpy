@@ -25,7 +25,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.error import SolverError
-from cvxpy.settings import (CVXOPT, GLPK, ECOS, ECOS_BB, SCS,
+from cvxpy.settings import (CVXOPT, GLPK, ECOS, ECOS_BB, SCS, GUROBI_LIN,
 OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR,
 OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 
