@@ -9,7 +9,7 @@ MAX_ITER = 10
 
 # Randomly generate a feasible 3-SAT problem.
 VARIABLES = 250
-CLAUSES_PER_VARIABLE = 2
+CLAUSES_PER_VARIABLE = 3
 
 # The 3-SAT solution.
 solution = [random.random() < 0.5 for i in range(VARIABLES)]
@@ -31,7 +31,7 @@ for i in range(VARIABLES*CLAUSES_PER_VARIABLE):
 print "Generated %d clauses." % len(clauses)
 
 # The 3-SAT variables.
-vars = [BoolVar() for i in range(VARIABLES)]
+vars = [Boolean() for i in range(VARIABLES)]
 
 # The 3-SAT constraints.
 constraints = []

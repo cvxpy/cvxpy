@@ -21,7 +21,7 @@ for i in xrange(M):
 gamma = Parameter(sign="positive")
 gamma.value = 0.1
 # 'a' is a variable constrained to have at most 6 non-zero entries.
-a = SparseVar(n, nonzeros=6)
+a = Card(n, k=6)
 b = Variable()
 
 slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]

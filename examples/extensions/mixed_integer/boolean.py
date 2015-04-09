@@ -21,7 +21,7 @@ from noncvx_variable import NonCvxVariable
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
-class BoolVar(NonCvxVariable):
+class Boolean(NonCvxVariable):
     """ A boolean variable. """
     # Sets the initial z value to a matrix of 0.5's.
     def init_z(self):
@@ -37,7 +37,7 @@ class BoolVar(NonCvxVariable):
 
     # In the relaxation, we have 0 <= var <= 1.
     def canonicalize(self):
-        obj, constraints = super(BoolVar, self).canonicalize()
+        obj, constraints = super(Boolean, self).canonicalize()
         one = lu.create_const(1, (1, 1))
         constraints += [lu.create_geq(obj),
                         lu.create_leq(obj, one)]

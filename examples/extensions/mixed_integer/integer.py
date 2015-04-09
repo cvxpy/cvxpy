@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from noncvx_variable import NonCvxVariable
 
-class IntVar(NonCvxVariable):
+class Integer(NonCvxVariable):
     """ An integer variable. """
     # All values set rounded to the nearest integer.
     def _round(self, matrix):

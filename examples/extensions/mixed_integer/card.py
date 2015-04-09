@@ -21,12 +21,12 @@ from noncvx_variable import NonCvxVariable
 import cvxpy.interface.matrix_utilities as intf
 from itertools import product
 
-class SparseVar(NonCvxVariable):
+class Card(NonCvxVariable):
     """ A variable with constrained cardinality. """
     # k - the maximum cardinality of the variable.
-    def __init__(self, rows=1, cols=1, nonzeros=None, *args, **kwargs):
-        self.k = nonzeros
-        super(SparseVar, self).__init__(rows, cols, *args, **kwargs)
+    def __init__(self, rows=1, cols=1, k=None, *args, **kwargs):
+        self.k = k
+        super(Card, self).__init__(rows, cols, *args, **kwargs)
 
     # All values except k-largest (by magnitude) set to zero.
     def _round(self, matrix):

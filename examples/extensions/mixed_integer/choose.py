@@ -17,16 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from boolean import BoolVar
+from boolean import Boolean
 import cvxopt
 import numpy as np
 from itertools import product
 
-class SparseBoolVar(BoolVar):
+class Choose(Boolean):
     """ A variable with k 1's and all other entries 0. """
-    def __init__(self, rows=1, cols=1, nonzeros=None, *args, **kwargs):
-        self.k = nonzeros
-        super(SparseBoolVar, self).__init__(rows, cols, *args, **kwargs)
+    def __init__(self, rows=1, cols=1, k=None, *args, **kwargs):
+        self.k = k
+        super(Choose, self).__init__(rows, cols, *args, **kwargs)
 
     # Sets the initial z value to the expected value of each entry.
     def init_z(self):
