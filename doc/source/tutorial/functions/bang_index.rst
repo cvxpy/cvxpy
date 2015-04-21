@@ -96,7 +96,7 @@ and returns a scalar.
 |                           | \right\}`              |                              |                     |                   |                           |
 +---------------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | mixed_norm(X, p, q)       | :math:`\left(\sum_k    | :math:`X \in                 | !positive! positive | !convex! convex   | None                      |
-|                           | \left(\sum_l           | \mathbf{R}^{m,n}`            |                     |                   |                           |
+|                           | \left(\sum_l           | \mathbf{R}^{n \times n}`     |                     |                   |                           |
 |                           | \lvert x_{k,l}\rvert^p |                              |                     |                   |                           |
 |                           | \right)^{q/p}          |                              |                     |                   |                           |
 |                           | \right)^{1/q}`         |                              |                     |                   |                           |
@@ -163,15 +163,15 @@ and returns a scalar.
 | sum_entries(X)            | :math:`\sum_{ij}       | :math:`X \in                 | same as X           | !affine! affine   | !incr! incr.              |
 |                           | X_{ij}`                | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 +---------------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| sum_largest(x, k)         | :math:`\text{          | :math:`x \in                 | same as x           | !convex! convex   | !incr! incr.              |
-|                           | sum of } k             | \mathbf{R}^{n}`              |                     |                   |                           |
+| sum_largest(X, k)         | :math:`\text{          | :math:`X \in                 | same as X           | !convex! convex   | !incr! incr.              |
+|                           | sum of } k             | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                           | \text{ largest }       |                              |                     |                   |                           |
-|                           | x_i`                   | :math:`k \in \{1,2,\ldots\}` |                     |                   |                           |
+|                           | X_{ij}`                | :math:`k \in \{1,2,\ldots\}` |                     |                   |                           |
 +---------------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
-| sum_smallest(x, k)        | :math:`\text{          | :math:`x \in                 | same as x           | !concave! concave | !incr! incr.              |
-|                           | sum of } k             | \mathbf{R}^{n}`              |                     |                   |                           |
+| sum_smallest(X, k)        | :math:`\text{          | :math:`X \in                 | same as X           | !concave! concave | !incr! incr.              |
+|                           | sum of } k             | \mathbf{R}^{n \times m}`     |                     |                   |                           |
 |                           | \text{ smallest }      |                              |                     |                   |                           |
-|                           | x_i`                   | :math:`k \in \{1,2,\ldots\}` |                     |                   |                           |
+|                           | X_{ij}`                | :math:`k \in \{1,2,\ldots\}` |                     |                   |                           |
 +---------------------------+------------------------+------------------------------+---------------------+-------------------+---------------------------+
 | sum_squares(X)            | :math:`\sum_{ij}       | :math:`X \in                 | !positive! positive | !convex! convex   | !incr! for                |
 |                           | X_{ij}^2`              | \mathbf{R}^{n \times m}`     |                     |                   | :math:`X_{ij} \geq 0`     |

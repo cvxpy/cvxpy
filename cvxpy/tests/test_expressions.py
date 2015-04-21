@@ -558,7 +558,10 @@ class TestExpressions(BaseTest):
         x = Variable(4)
         Problem(Minimize(0), [x[::-1] == c]).solve()
         self.assertItemsAlmostEqual(x.value, [4, 3, 2, 1])
-        self.assertEquals(x.size, (4, 1))
+        self.assertEquals(x[::-1].size, (4, 1))
+
+        x = Variable(2)
+        self.assertEquals(x[::-1].size, (2, 1))
 
     def test_logical_indices(self):
         """Test indexing with logical arrays.
