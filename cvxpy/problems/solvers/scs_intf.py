@@ -105,20 +105,17 @@ class SCS(ECOS):
             scs_args["s"] = solver_cache.prev_result["s"]
 
         results_dict = scs.solve(scs_args, data[s.DIMS], **solver_opts)
-        return self.format_results(results_dict, data[s.DIMS],
-                                   data[s.OFFSET], cached_data)
+        return self.format_results(results_dict, data, cached_data)
 
-    def format_results(self, results_dict, dims, obj_offset, cached_data):
+    def format_results(self, results_dict, data, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
         ----------
         results_dict : dict
             The solver output.
-        dims : dict
-            The cone dimensions in the canonicalized problem.
-        obj_offset : float, optional
-            The constant term in the objective.
+        data : dict
+            Information about the problem.
         cached_data : dict
             A map of solver name to cached problem data.
 
@@ -128,6 +125,7 @@ class SCS(ECOS):
             The solver output in standard form.
         """
         solver_cache = cached_data[self.name()]
+        dims = data[s.DIMS]
         new_results = {}
         status = self.STATUS_MAP[results_dict["info"]["status"]]
         new_results[s.STATUS] = status
@@ -137,7 +135,7 @@ class SCS(ECOS):
                                         "y": results_dict["y"],
                                         "s": results_dict["s"]}
             primal_val = results_dict["info"]["pobj"]
-            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict["x"]
             new_results[s.EQ_DUAL] = results_dict["y"][0:dims["f"]]
             new_results[s.INEQ_DUAL] = results_dict["y"][dims["f"]:]

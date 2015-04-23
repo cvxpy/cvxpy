@@ -124,12 +124,16 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_. CVXPY also supports `GLPK`_ via the CVXOPT GLPK interface. The table below shows the types of problems the solvers can handle.
+CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface.
+The table below shows the types of problems the solvers can handle.
 
 +------------+----+------+-----+-----+-----+
 |            | LP | SOCP | SDP | EXP | MIP |
 +============+====+======+=====+=====+=====+
 | `GLPK`_    | X  |      |     |     |     |
++------------+----+------+-----+-----+-----+
+| `GLPK_MI`_ | X  |      |     |     | X   |
 +------------+----+------+-----+-----+-----+
 | `ECOS`_    | X  | X    |     |     |     |
 +------------+----+------+-----+-----+-----+
@@ -178,6 +182,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GLPK)
     print "optimal value with GLPK:", prob.value
 
+    # Solve with GLPK_MI.
+    prob.solve(solver=GLPK_MI)
+    print "optimal value with GLPK_MI:", prob.value
+
 .. parsed-literal::
 
     optimal value with ECOS: 5.99999999551
@@ -185,6 +193,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
     optimal value with GLPK: 6.0
+    optimal value with GLPK_MI: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -194,7 +203,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 .. parsed-literal::
 
-    ['CVXOPT', 'GLPK', 'ECOS_BB', 'ECOS', 'SCS']
+    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -381,3 +390,4 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _ECOS_BB: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
+.. _GLPK_MI: https://www.gnu.org/software/glpk/

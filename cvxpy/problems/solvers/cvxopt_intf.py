@@ -103,7 +103,7 @@ class CVXOPT(Solver):
         # User chosen KKT solver option.
         kktsolver = self.get_kktsolver_opt(solver_opts)
         # Save original cvxopt solver options.
-        old_options = cvxopt.solvers.options
+        old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
         cvxopt.solvers.options["show_progress"] = verbose
 
@@ -119,7 +119,7 @@ class CVXOPT(Solver):
             cvxopt.solvers.options["refinement"] = 1
 
         try:
-            # Target cvxopt clp if nonlinear constraints exist
+            # Target cvxopt clp if nonlinear constraints exist.
             if data[s.DIMS][s.EXP_DIM]:
                 if kktsolver is None:
                     # Get custom kktsolver.
@@ -153,9 +153,17 @@ class CVXOPT(Solver):
             results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
-        cvxopt.solvers.options = old_options
-        return self.format_results(results_dict, data[s.DIMS],
-                                   data[s.OFFSET], cached_data)
+        self._restore_solver_options(old_options)
+        return self.format_results(results_dict, data, cached_data)
+
+    @staticmethod
+    def _restore_solver_options(old_options):
+        import cvxopt.solvers
+        for key, value in cvxopt.solvers.options.items():
+            if key in old_options:
+                cvxopt.solvers.options[key] = old_options[key]
+            else:
+                del cvxopt.solvers.options[key]
 
     @staticmethod
     def get_kktsolver_opt(solver_opts):
@@ -180,17 +188,15 @@ class CVXOPT(Solver):
             kktsolver = None
         return kktsolver
 
-    def format_results(self, results_dict, dims, obj_offset, cached_data):
+    def format_results(self, results_dict, data, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
         ----------
         results_dict : dict
             The solver output.
-        dims : dict
-            The cone dimensions in the canonicalized problem.
-        obj_offset : float, optional
-            The constant term in the objective.
+        data : dict
+            Information about the problem.
         cached_data : dict
             A map of solver name to cached problem data.
 
@@ -204,10 +210,10 @@ class CVXOPT(Solver):
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
-            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict['x']
             new_results[s.EQ_DUAL] = results_dict['y']
-            if dims[s.EXP_DIM]:
+            if data[s.DIMS][s.EXP_DIM]:
                 new_results[s.INEQ_DUAL] = results_dict['zl']
             else:
                 new_results[s.INEQ_DUAL] = results_dict['z']

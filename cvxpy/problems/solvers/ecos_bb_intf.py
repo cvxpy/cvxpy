@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
-import ecos
 
 class ECOS_BB(ECOS):
     """An interface for the ECOS BB solver.
@@ -52,37 +51,6 @@ class ECOS_BB(ECOS):
         """The name of the solver.
         """
         return s.ECOS_BB
-
-    @staticmethod
-    def _noncvx_id_to_idx(dims, var_offsets, var_sizes):
-        """Converts the nonconvex constraint variable ids in dims into indices.
-
-        Parameters
-        ----------
-        dims : dict
-            The dimensions of the cones.
-        var_offsets : dict
-            A dict of variable id to horizontal offset.
-        var_sizes : dict
-            A dict of variable id to variable dimensions.
-
-        Returns
-        -------
-        tuple
-            A list of indices for the boolean variables and integer variables.
-        """
-        bool_idx = []
-        int_idx = []
-        for indices, constr_type in zip([bool_idx, int_idx],
-                                        [s.BOOL_IDS, s.INT_IDS]):
-            for var_id in dims[constr_type]:
-                offset = var_offsets[var_id]
-                size = var_sizes[var_id]
-                for i in range(size[0]*size[1]):
-                    indices.append(offset + i)
-            del dims[constr_type]
-
-        return bool_idx, int_idx
 
     def get_problem_data(self, objective, constraints, cached_data):
         """Returns the argument for the call to the solver.
@@ -135,6 +103,7 @@ class ECOS_BB(ECOS):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+        import ecos
         data = self.get_problem_data(objective, constraints, cached_data)
         # Default verbose to false for BB wrapper.
         mi_verbose = solver_opts.get('mi_verbose', False)
@@ -145,5 +114,4 @@ class ECOS_BB(ECOS):
                                   bool_vars_idx=data[s.BOOL_IDX],
                                   int_vars_idx=data[s.INT_IDX],
                                   **solver_opts)
-        return self.format_results(results_dict, None,
-                                   data[s.OFFSET], cached_data)
+        return self.format_results(results_dict, data, cached_data)

@@ -121,20 +121,17 @@ class ECOS(Solver):
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
                                   **solver_opts)
-        return self.format_results(results_dict, None,
-                                   data[s.OFFSET], cached_data)
+        return self.format_results(results_dict, data, cached_data)
 
-    def format_results(self, results_dict, dims, obj_offset, cached_data):
+    def format_results(self, results_dict, data, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
         ----------
         results_dict : dict
             The solver output.
-        dims : dict
-            The cone dimensions in the canonicalized problem.
-        obj_offset : float, optional
-            The constant term in the objective.
+        data : dict
+            Information about the problem.
         cached_data : dict
             A map of solver name to cached problem data.
 
@@ -148,7 +145,7 @@ class ECOS(Solver):
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['info']['pcost']
-            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict['x']
             new_results[s.EQ_DUAL] = results_dict['y']
             new_results[s.INEQ_DUAL] = results_dict['z']

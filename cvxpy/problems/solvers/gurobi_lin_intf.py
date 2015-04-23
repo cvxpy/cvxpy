@@ -93,7 +93,8 @@ class GUROBI_LIN(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
 
-    def param_in_constr(self, constraints):
+    @staticmethod
+    def _param_in_constr(constraints):
         """Do any of the constraints contain parameters?
         """
         for constr in constraints:
@@ -169,7 +170,7 @@ class GUROBI_LIN(Solver):
 
             # If there is a parameter in the equality constraints,
             # A or b may have changed.
-            if self.param_in_constr(eq_constr):
+            if self._param_in_constr(eq_constr):
                 A_diff = dok_matrix(A - A_prev)
                 b_diff = b - b_prev
 
@@ -208,7 +209,7 @@ class GUROBI_LIN(Solver):
 
             # If there is a parameter in the inequality constraints,
             # G or h may have changed.
-            if self.param_in_constr(ineq_constr):
+            if self._param_in_constr(ineq_constr):
                 G_diff = dok_matrix(G - G_prev)
                 h_diff = h - h_prev
 
@@ -248,11 +249,11 @@ class GUROBI_LIN(Solver):
             model = gurobipy.Model()
             variables = [
                 model.addVar(
-                    obj = c[i],
-                    name = "x_%d" % i,
+                    obj=c[i],
+                    name="x_%d" % i,
                     # Gurobi's default LB is 0 (WHY???)
-                    lb = -gurobipy.GRB.INFINITY,
-                    ub =  gurobipy.GRB.INFINITY)
+                    lb=-gurobipy.GRB.INFINITY,
+                    ub=gurobipy.GRB.INFINITY)
                 for i in xrange(n)]
             model.update()
 
@@ -325,31 +326,30 @@ class GUROBI_LIN(Solver):
                 "x": np.array([v.X for v in variables]),
                 # Not sure why we need to negate the following,
                 # but need to in order to be consistent with other solvers.
-                "y": -np.array([lc.Pi if lc != None else 0 for lc in eq_constrs]),
-                "z": -np.array([lc.Pi if lc != None else 0 for lc in ineq_constrs]),
-                }
+                "y": -np.array(
+                        [lc.Pi if lc != None else 0 for lc in eq_constrs]
+                    ),
+                "z": -np.array(
+                        [lc.Pi if lc != None else 0 for lc in ineq_constrs]
+                    ),
+            }
         except gurobipy.GurobiError:
             results_dict = {
                 "status": s.SOLVER_ERROR
             }
 
+        return self.format_results(results_dict, data, cached_data)
 
 
-        return self.format_results(results_dict, data[s.DIMS],
-                                   data[s.OFFSET], cached_data)
-
-
-    def format_results(self, results_dict, dims, obj_offset, cached_data):
+    def format_results(self, results_dict, data, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
         ----------
         results_dict : dict
             The solver output.
-        dims : dict
-            The cone dimensions in the canonicalized problem.
-        obj_offset : float, optional
-            The constant term in the objective.
+        data : dict
+            Information about the problem.
         cached_data : dict
             A map of solver name to cached problem data.
 
@@ -375,12 +375,9 @@ class GUROBI_LIN(Solver):
         new_results[s.STATUS] = results_dict['status']
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
-            new_results[s.VALUE] = primal_val + obj_offset
+            new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict['x']
             new_results[s.EQ_DUAL] = results_dict['y']
-            if dims[s.EXP_DIM]:
-                new_results[s.INEQ_DUAL] = results_dict['zl']
-            else:
-                new_results[s.INEQ_DUAL] = results_dict['z']
+            new_results[s.INEQ_DUAL] = results_dict['z']
 
         return new_results

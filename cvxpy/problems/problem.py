@@ -266,12 +266,15 @@ class Problem(u.Canonical):
         if results_dict[s.STATUS] in s.SOLUTION_PRESENT:
             self._save_values(results_dict[s.PRIMAL], self.variables(),
                               sym_data.var_offsets)
-            self._save_dual_values(results_dict[s.EQ_DUAL],
-                                   sym_data.constr_map[s.EQ],
-                                   EqConstraint)
-            self._save_dual_values(results_dict[s.INEQ_DUAL],
-                                   sym_data.constr_map[s.LEQ],
-                                   LeqConstraint)
+            # Not all solvers provide dual variables.
+            if s.EQ_DUAL in results_dict:
+                self._save_dual_values(results_dict[s.EQ_DUAL],
+                                       sym_data.constr_map[s.EQ],
+                                       EqConstraint)
+            if s.INEQ_DUAL in results_dict:
+                self._save_dual_values(results_dict[s.INEQ_DUAL],
+                                       sym_data.constr_map[s.LEQ],
+                                       LeqConstraint)
             # Correct optimal value if the objective was Maximize.
             value = results_dict[s.VALUE]
             self._value = self.objective.primal_to_result(value)
@@ -307,8 +310,9 @@ class Problem(u.Canonical):
         objective, constraints = self.canonicalize()
         sym_data = solver.get_sym_data(objective, constraints,
                                        self._cached_data)
-        results_dict = solver.format_results(results_dict, sym_data.dims,
-                                             0, self._cached_data)
+        data = {s.DIMS: sym_data.dims, s.OFFSET: 0}
+        results_dict = solver.format_results(results_dict, data,
+                                             self._cached_data)
         self._update_problem_state(results_dict, sym_data, solver)
 
     def _handle_no_solution(self, status):

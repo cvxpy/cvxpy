@@ -165,6 +165,7 @@ class TestProblem(BaseTest):
 
     # Test silencing and enabling solver messages.
     def test_verbose(self):
+        import sys
         # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
         # setup the environment
         outputs = {True: [], False: []}
@@ -172,20 +173,14 @@ class TestProblem(BaseTest):
         # ####
         for verbose in [True, False]:
             for solver in installed_solvers():
-                if solver == "GLPK":
-                    # GLPK's stdout is separate from python,
-                    # so we have to do this.
-                    # Note: This probably breaks (badly) on Windows.
-                    import os
-                    import tempfile
+                # Don't test GLPK because there's a race
+                # condition in setting CVXOPT solver options.
+                if solver in ["GLPK", "GLPK_MI"]:
+                    continue
+                sys.stdout = StringIO() # capture output
 
-                    stdout_fd = 1
-                    tmp_handle = tempfile.TemporaryFile(bufsize = 0)
-                    os.dup2(tmp_handle.fileno(), stdout_fd)
-                else:
-                    sys.stdout = StringIO() # capture output
-
-                p = Problem(Minimize(self.a + self.x[0]), [self.a >= 2, self.x >= 2])
+                p = Problem(Minimize(self.a + self.x[0]),
+                                     [self.a >= 2, self.x >= 2])
                 if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
                 p.solve(verbose=verbose, solver=solver)
@@ -193,25 +188,17 @@ class TestProblem(BaseTest):
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
-                if solver == "GLPK":
-                    # GLPK's stdout is separate from python,
-                    # so we have to do this.
-                    tmp_handle.seek(0)
-                    out = tmp_handle.read()
-                    tmp_handle.close()
-                else:
-                    out = sys.stdout.getvalue() # release output
+                out = sys.stdout.getvalue() # release output
 
-                outputs[verbose].append(out.upper())
+                outputs[verbose].append((out, solver))
         # ####
-
         sys.stdout.close()  # close the stream
         sys.stdout = backup # restore original stdout
-
-        for output in outputs[True]:
+        for output, solver in outputs[True]:
+            print(solver)
             assert len(output) > 0
-        for output in outputs[False]:
-            print(output)
+        for output, solver in outputs[False]:
+            print(solver)
             assert len(output) == 0
 
     # Test registering other solve methods.

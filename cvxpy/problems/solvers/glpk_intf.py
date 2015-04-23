@@ -69,7 +69,7 @@ class GLPK(CVXOPT):
         import cvxopt, cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
-        old_options = cvxopt.solvers.options
+        old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
         if verbose:
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
@@ -96,6 +96,5 @@ class GLPK(CVXOPT):
             results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
-        cvxopt.solvers.options = old_options
-        return self.format_results(results_dict, data[s.DIMS],
-                                   data[s.OFFSET], cached_data)
+        self._restore_solver_options(old_options)
+        return self.format_results(results_dict, data, cached_data)

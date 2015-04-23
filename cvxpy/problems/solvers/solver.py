@@ -255,17 +255,15 @@ class Solver(object):
         pass
 
     @abc.abstractmethod
-    def format_results(self, results_dict, dims, obj_offset, cached_data):
+    def format_results(self, results_dict, data, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
         ----------
         results_dict : dict
             The solver output.
-        dims : dict
-            The cone dimensions in the canonicalized problem.
-        obj_offset : float
-            The constant term in the objective.
+        data : dict
+            Information about the problem.
         cached_data : dict
             A map of solver name to cached problem data.
 
@@ -275,3 +273,34 @@ class Solver(object):
             The solver output in standard form.
         """
         pass
+
+    @staticmethod
+    def _noncvx_id_to_idx(dims, var_offsets, var_sizes):
+        """Converts the nonconvex constraint variable ids in dims into indices.
+
+        Parameters
+        ----------
+        dims : dict
+            The dimensions of the cones.
+        var_offsets : dict
+            A dict of variable id to horizontal offset.
+        var_sizes : dict
+            A dict of variable id to variable dimensions.
+
+        Returns
+        -------
+        tuple
+            A list of indices for the boolean variables and integer variables.
+        """
+        bool_idx = []
+        int_idx = []
+        for indices, constr_type in zip([bool_idx, int_idx],
+                                        [s.BOOL_IDS, s.INT_IDS]):
+            for var_id in dims[constr_type]:
+                offset = var_offsets[var_id]
+                size = var_sizes[var_id]
+                for i in range(size[0]*size[1]):
+                    indices.append(offset + i)
+            del dims[constr_type]
+
+        return bool_idx, int_idx

@@ -20,13 +20,17 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.18 (next release)
+Version 0.2.19 (next release)
 -----------------------------
+
+Version 0.2.18
+--------------
 * Requires ECOS 1.1.1.
 * Removed norm_largest.
 * Added GLPK interface.
 * Updated ECOS BB exit codes.
 * Factored out ability to get parameterized entries of matrix.
+* Added GLPK_MIP interface.
 
 Version 0.2.17
 --------------
