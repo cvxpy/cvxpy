@@ -159,7 +159,7 @@ class CVXOPT(Solver):
     @staticmethod
     def _restore_solver_options(old_options):
         import cvxopt.solvers
-        for key, value in cvxopt.solvers.options.items():
+        for key, value in list(cvxopt.solvers.options.items()):
             if key in old_options:
                 cvxopt.solvers.options[key] = old_options[key]
             else:
