@@ -20,8 +20,13 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.19 (next release)
+Version 0.2.20 (next release)
 -----------------------------
+
+Version 0.2.19
+--------------
+* Fixed Python 3 runtime error where modifying the
+cvxopt.solvers.options dictionary while reading it.
 
 Version 0.2.18
 --------------
