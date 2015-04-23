@@ -177,6 +177,17 @@ class TestProblem(BaseTest):
                 # condition in setting CVXOPT solver options.
                 if solver in ["GLPK", "GLPK_MI"]:
                     continue
+                # if solver == "GLPK":
+                #     # GLPK's stdout is separate from python,
+                #     # so we have to do this.
+                #     # Note: This probably breaks (badly) on Windows.
+                #     import os
+                #     import tempfile
+
+                #     stdout_fd = 1
+                #     tmp_handle = tempfile.TemporaryFile(bufsize = 0)
+                #     os.dup2(tmp_handle.fileno(), stdout_fd)
+                # else:
                 sys.stdout = StringIO() # capture output
 
                 p = Problem(Minimize(self.a + self.x[0]),
@@ -188,6 +199,13 @@ class TestProblem(BaseTest):
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
+                # if solver == "GLPK":
+                #     # GLPK's stdout is separate from python,
+                #     # so we have to do this.
+                #     tmp_handle.seek(0)
+                #     out = tmp_handle.read()
+                #     tmp_handle.close()
+                # else:
                 out = sys.stdout.getvalue() # release output
 
                 outputs[verbose].append((out, solver))
