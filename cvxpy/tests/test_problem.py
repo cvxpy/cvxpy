@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from fractions import Fraction
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constants import Constant, Parameter
@@ -31,8 +32,6 @@ from cvxpy.tests.base_test import BaseTest
 from cvxopt import matrix
 from numpy import linalg as LA
 import numpy
-import unittest
-import math
 import sys
 # Solvers.
 import scs

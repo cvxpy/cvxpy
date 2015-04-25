@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
+from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.kl_div import kl_div
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
@@ -56,7 +56,6 @@ from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
-from cvxpy.atoms.elementwise.geo_mean import geo_mean
 from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.log import log
