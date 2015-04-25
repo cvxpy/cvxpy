@@ -36,7 +36,7 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
     print "optimal (x - y >= 1) dual variable", constraints[1].dual_value
     print "x - y value:", (x - y).value
 
-.. parsed-literal::
+::
 
     optimal (x + y == 1) dual variable 6.47610300459e-18
     optimal (x - y >= 1) dual variable 2.00025244976
@@ -186,7 +186,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GLPK_MI)
     print "optimal value with GLPK_MI:", prob.value
 
-.. parsed-literal::
+::
 
     optimal value with ECOS: 5.99999999551
     optimal value with ECOS_BB: 5.99999999551
@@ -201,7 +201,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
     print installed_solvers()
 
-.. parsed-literal::
+::
 
     ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS']
 
@@ -216,7 +216,7 @@ All the solvers can print out information about their progress while solving the
     prob.solve(solver=ECOS, verbose=True)
     print "optimal value with ECOS:", prob.value
 
-.. parsed-literal::
+::
 
     ECOS 1.0.3 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
 
@@ -246,7 +246,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
     prob.solve(solver=SCS, verbose=True, use_indirect=True)
     print "optimal value with SCS:", prob.value
 
-.. parsed-literal::
+::
 
     ----------------------------------------------------------------------------
         SCS v1.0.5 - Splitting Conic Solver

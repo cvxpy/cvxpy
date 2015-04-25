@@ -16,7 +16,7 @@ Expressions
 Expressions in CVXPY are formed from variables, parameters, numerical
 constants such as Python floats and Numpy matrices, the standard
 arithmetic operators ``+, -, *, /``, and a library of
-`functions <../functions/index.html>`__. Here are some examples of CVXPY expressions:
+:ref:`functions <functions>`. Here are some examples of CVXPY expressions:
 
 .. code:: python
 
@@ -56,7 +56,7 @@ dimensions, for example adding matrices of different size.
     except ValueError, e:
         print e
 
-.. parsed-literal::
+::
 
     dimensions of X: (5, 4)
     dimensions of sum_entries(X): (1, 1)
@@ -99,7 +99,7 @@ The sign of an expression is stored as ``expr.sign``:
     print "sign of square(x):", square(x).sign
     print "sign of c*a:", (c*a).sign
 
-.. parsed-literal::
+::
 
     sign of x: UNKNOWN
     sign of a: NEGATIVE
@@ -175,7 +175,7 @@ The curvature of an expression is stored as ``expr.curvature``:
     print "curvature of square(x):", square(x).curvature
     print "curvature of sqrt(x):", sqrt(x).curvature
 
-.. parsed-literal::
+::
 
     curvature of x: AFFINE
     curvature of a: CONSTANT
@@ -244,7 +244,7 @@ certified as convex using the DCP rules.
     print "norm(vstack(1, x), 2) curvature:",
     print norm(vstack(1, x), 2).curvature
 
-.. parsed-literal::
+::
 
     sqrt(1 + square(x)) curvature: UNKNOWN
     norm(vstack(1, x), 2) curvature: CONVEX
@@ -298,7 +298,7 @@ non-DCP problems:
     print "prob4 is DCP:", prob4.is_dcp()
     print "sqrt(x) <= 2 is DCP:", (sqrt(x) <= 2).is_dcp()
 
-.. parsed-literal::
+::
 
     prob1 is DCP: True
     prob2 is DCP: True
@@ -321,6 +321,6 @@ non-DCP problem.
     except Exception as e:
         print e
 
-.. parsed-literal::
+::
 
     Problem does not follow DCP rules.

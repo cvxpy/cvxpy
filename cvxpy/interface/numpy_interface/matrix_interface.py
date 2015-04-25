@@ -17,10 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 import scipy.sparse as sp
-import cvxopt
 import numpy as np
+import cvxopt
 
 class MatrixInterface(NDArrayInterface):
     """
@@ -62,3 +63,4 @@ class MatrixInterface(NDArrayInterface):
 
     def reshape(self, matrix, size):
         return np.reshape(matrix, size, order='F')
+

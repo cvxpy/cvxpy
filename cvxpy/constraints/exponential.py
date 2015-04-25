@@ -25,8 +25,8 @@ from cvxpy.lin_ops.lin_op import VARIABLE
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
-import cvxopt
 import math
+import cvxopt
 
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
