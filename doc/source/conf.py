@@ -13,20 +13,6 @@
 
 import sys, os
 
-
-class Mocked(object):
-    def __setattr__(self, name, value):
-        self.__dict__[name] = value
-
-    def __getattr__(self, name):
-        if name in self.__dict__:
-            return self.__dict__[name]
-        else:
-            return None
-
-MOCK_MODULES = ['cvxopt', 'cvxopt.base', 'cvxopt.misc']
-sys.modules.update((mod_name, Mocked()) for mod_name in MOCK_MODULES)
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -56,6 +42,24 @@ extensions = ['sphinx.ext.autodoc',
 # To suppress autodoc/numpydoc warning.
 # http://stackoverflow.com/questions/12206334/sphinx-autosummary-toctree-contains-reference-to-nonexisting-document-warnings
 numpydoc_show_class_members = False
+
+
+# Since readthedocs.org has trouble compiling `cvxopt`, autodoc fails
+# whenever it tries to import a CVXPY module to document it.
+# The following code replaces the relevant cvxopt modules with
+# a dummy namespace, allowing autodoc to work.
+class Mocked(object):
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
+
+    def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
+        else:
+            return None
+
+MOCK_MODULES = ['cvxopt', 'cvxopt.base', 'cvxopt.misc']
+sys.modules.update((mod_name, Mocked()) for mod_name in MOCK_MODULES)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
