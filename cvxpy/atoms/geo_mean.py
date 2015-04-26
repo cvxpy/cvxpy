@@ -28,12 +28,8 @@ from collections import defaultdict
 
 
 
-# todo: users don't need to know what w_dyad is
-# maybe give some examples quickly, and defer to the docs on the fracify function to see how things get converted
 # todo: what about domain?
 # todo: comment on nonnegativity constraints only working for nonnegative powers
-# power vector? then a normalized weight vector? 'we immediately normalize p so that w = p/sum(p)'
-
 # todo: degenerate case of 1 element input should work?
 
 
@@ -56,7 +52,7 @@ class geo_mean(Atom):
 
     .. note::
 
-        Generally, ``p`` cannot be represented exactly, and so a rational,
+        Generally, ``p`` cannot be represented exactly, so a rational,
         i.e., fractional, **approximation** must be made.
 
         Internally, ``geo_mean`` immediately computes an approximate normalized
@@ -77,15 +73,11 @@ class geo_mean(Atom):
         found through the attributes ``geo_mean.w`` and ``geo_mean.approx_error``.
 
 
+    Examples
+    --------
 
-    When ``p/sum(p)`` cannot be represented exactly, ``w`` is a rational approximation, whose
-    maximum denominator is determined by ``max_denom``. When ``p`` is a sequence
-    of ``int`` and ``Fraction`` objects, the representation is often *exact*. When ``p`` contains
-    ``float`` elements, rational approximations to the floating point numbers are used.
-
-    If omitted, ``p`` defaults to a tuple of 1s to give the *unweighted* geometric mean.
-    The rational weights ``w`` can be seen in the string representation of the ``geo_mean`` object,
-    or the attribute ``geo_mean.w``:
+    The weights ``w`` can be seen from the string representation of the ``geo_mean`` object, or through
+    the ``w`` attribute.
 
     >>> from cvxpy import Variable, geo_mean
     >>> x = Variable(3, name='x')
@@ -95,9 +87,8 @@ class geo_mean(Atom):
     >>> g.w
     (Fraction(1, 4), Fraction(1, 2), Fraction(1, 4))
 
-    ``p`` is expected to be a sequence (list, tuple, numpy.array...) of ``int``, ``float``, or ``Fraction`` objects.
     Floating point numbers with few decimal places can sometimes be represented exactly. The approximation
-    error between ``w`` and ``p/sum(p)`` is given by the attribute ``geo_mean.approx_error``
+    error between ``w`` and ``p/sum(p)`` is given by the ``approx_error`` attribute.
 
     >>> import numpy as np
     >>> x = Variable(4, name='x')
@@ -117,94 +108,54 @@ class geo_mean(Atom):
     >>> 1e-4 <= g.approx_error <= 1e-3
     True
 
+    The weight vector ``p`` can contain ``int``, ``float``, and ``Fraction`` objects.
 
+    >>> from fractions import Fraction
+    >>> x = Variable(4, name='x')
+    >>> g = geo_mean(x, [.1, Fraction(1,3), 0, 2])
+    >>> print g
+    geo_mean(x, (3/73, 10/73, 0, 60/73))
+    >>> g.approx_error <= 1e-10
+    True
 
     Parameters
     ----------
     x : cvxpy.Variable
-        A column vector whose elements we will take the geometric mean of.
+        A column or row vector whose elements we will take the geometric mean of.
 
     p : Sequence (list, tuple, numpy.array, ...) of ``int``, ``float``, or ``Fraction`` objects
         A vector of weights for the weighted geometric mean
-        If ``p`` is ``None``, ``p`` will default to a tuple of all ``1``s with the same length as ``x``.
-        This gives the "unweighted" geometric mean.
 
-        ``p`` must have nonnegative elements, and sum to a value greater than 0.
-        Since the weights can often not be represented exactly (particularly in the case of ``float`` elements),
-        we must approximate ``p`` with a vector of rational numbers, or ``Fraction`` objects.
-        ``p`` will be converted to ``geo_mean.w``, a tuple of nonnegative ``Fractions`` which sums to
-        exactly 1.
-
-        When ``p`` is a tuple of ``int`` and ``Fraction`` objects, we try to have ``w`` be an *exact* representation
-        of p. We can sometimes get an exact representation when ``p`` has ``float`` elements with only a few
-        numbers after the decimal point.
+        When ``p`` is a sequence of ``int`` and/or ``Fraction`` objects, ``w`` can often be an **exact** representation
+        of the weights. An exact representation is sometimes possible when ``p`` has ``float`` elements with only a few
+        decimal places.
 
     max_denom : int
-        The maximum denominator to use in approximating ``p`` with ``geo_mean.w``. If ``w`` is not an exact
-        representation, increasing ``max_denom`` *may* offer a more accurate representation, at the cost of requiring
+        The maximum denominator to use in approximating ``p/sum(p)`` with ``geo_mean.w``. If ``w`` is not an exact
+        representation, increasing ``max_denom`` **may** offer a more accurate representation, at the cost of requiring
         more convex inequalities to represent the geometric mean.
 
 
     Attributes
     ----------
     w : tuple of ``Fractions``
-        The resulting rational approximation of ``p/sum(p)``
-    w_dyad : tuple of ``Fractions`` whose denominators are all a power of two
-        The dyadic completion of ``w``, which is used to form the inequalities representing the geometric mean.
+        A rational approximation of ``p/sum(p)``.
     approx_error : float
-        The error in approximating ``p/sum(p)`` with ``w``, given by :math:`\|a/\mathbf{1}^T a - w_{\mbox{approx}} \|_\infty`
-
-
-    Examples
-    --------
-
-    Given just a CVXPY variable, the (unweighted) geometric mean is given.
-    The power each variable is raised to can be seen from the string representation of the ``geo_mean`` object.
-
-    >>> import cvxpy as cvx
-    >>> x = cvx.Variable(2, name='x')
-    >>> g = cvx.geo_mean(x)
-    >>> print g
-    geo_mean(x, (1/2, 1/2))
-
-    The ``w`` representation is also an attribute of the ``geo_mean`` object.
-    >>> print g.w
-    (Fraction(1, 2), Fraction(1, 2))
-
-
-    >>> x = cvx.Variable(3, name='x')
-    >>> g = cvx.geo_mean(x, [.14, .35, .82])
-    >>> print g
-    geo_mean(x, (14/131, 35/131, 82/131))
-    >>> g.approx_error <= 1e-10
-    True
-
-
-    >>> g = cvx.geo_mean(x, [1, 2, 3])
-    >>> print g
-    geo_mean(x, (1/6, 1/3, 1/2))
-
-
-    >>> from fractions import Fraction
-    >>> x = cvx.Variable(3, name='x')
-    >>> g = cvx.geo_mean(x, [Fraction(1,3), Fraction(3,4), Fraction(5,6)])
-    >>> print g
-    geo_mean(x, (4/23, 9/23, 10/23))
-    >>> g.approx_error <= 1e-10
-    True
-
-    >>> x = cvx.Variable(4, name='x')
-    >>> g = cvx.geo_mean(x, [.1, Fraction(1,3), 0, 2])
-    >>> print g
-    geo_mean(x, (3/73, 10/73, 0, 60/73))
-    >>> g.approx_error <= 1e-10
-    True
-
+        The error in approximating ``p/sum(p)`` with ``w``, given by :math:`\|p/\mathbf{1}^T p - w \|_\infty`
     """
 
     two = lu.create_const(2, (1, 1))
 
     def __init__(self, x, p=None, max_denom=1024):
+        """ Implementation details of geo_mean.
+
+        Attributes
+        ----------
+
+        w_dyad : tuple of ``Fractions`` whose denominators are all a power of two
+            The dyadic completion of ``w``, which is used internally to form the inequalities representing the geometric mean.
+
+        """
         super(geo_mean, self).__init__(x)
 
         if not (isinstance(max_denom, int) and max_denom > 0):

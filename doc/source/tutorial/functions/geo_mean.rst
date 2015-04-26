@@ -5,5 +5,4 @@ geo_mean
 ========
 
 .. autoclass:: cvxpy.geo_mean
-    :members:
 
