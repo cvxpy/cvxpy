@@ -1188,3 +1188,36 @@ class TestProblem(BaseTest):
         x = Variable(1, 5)
         g = geo_mean(x)
         self.assertItemsEqual(g.w, [Fraction(1, 5)]*5)
+
+
+        # check that we get the right answer for
+        # max geo_mean(x) s.t. sum(x) <= 1
+        import numpy as np
+        p = np.array([.07, .12, .23, .19, .39])
+
+        def short_geo_mean(x, p):
+            p = np.array(p)/sum(p)
+            x = np.array(x)
+            return reduce(lambda y, z: y*z, x**p, 1)
+
+        x = Variable(5)
+        prob = Problem(Maximize(geo_mean(x, p)), [sum(x) <= 1])
+        prob.solve()
+        x = np.array(x.value).flatten()
+        x_true = p/sum(p)
+
+        self.assertTrue(np.allclose(prob.value, geo_mean(list(x), p).value))
+        self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
+        self.assertTrue(np.allclose(x, x_true, 1e-3))
+
+        # check that we get the rigth answer for
+        # max geo_mean(x) s.t. norm(x) <= 1
+        x = Variable(5)
+        prob = Problem(Maximize(geo_mean(x, p)), [norm(x) <= 1])
+        prob.solve()
+        x = np.array(x.value).flatten()
+        x_true = np.sqrt(p/sum(p))
+
+        self.assertTrue(np.allclose(prob.value, geo_mean(list(x), p).value))
+        self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
+        self.assertTrue(np.allclose(x, x_true, 1e-3))

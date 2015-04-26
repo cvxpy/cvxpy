@@ -30,8 +30,9 @@ from collections import defaultdict
 
 # todo: what about domain?
 # todo: comment on nonnegativity constraints only working for nonnegative powers
-# todo: degenerate case of 1 element input should work?
-
+# todo: degenerate case of 1 element input should work? write a test
+# todo: write some tests for some weird case of the geomean powers
+# todo: make sure developer docs are good.
 
 class geo_mean(Atom):
     """ The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
