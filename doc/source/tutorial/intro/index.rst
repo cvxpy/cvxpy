@@ -32,7 +32,7 @@ The code below solves a simple optimization problem in CVXPY:
     print "optimal value", prob.value
     print "optimal var", x.value, y.value
 
-.. parsed-literal::
+::
 
     status: optimal
     optimal value 0.999999989323
@@ -84,9 +84,9 @@ CVXPY imported as a namespace.
 Nonetheless we have designed CVXPY so that using ``from cvxpy import *``
 is generally safe for short scripts. The biggest catch is that the built-in
 ``max`` and ``min`` cannot be used on CVXPY expressions. Instead use the
-CVXPY `functions <../functions/index.html>`__ ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
+:ref:`CVXPY functions <functions>` ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
 
-The built-in ``sum`` can be used on lists of CVXPY expressions to add all the list elements together. Use the CVXPY `function <../functions/index.html>`__ ``sum_entries`` to sum the entries of a single CVXPY matrix or vector expression.
+The built-in ``sum`` can be used on lists of CVXPY expressions to add all the list elements together. Use the :ref:`CVXPY function <functions>` ``sum_entries`` to sum the entries of a single CVXPY matrix or vector expression.
 
 Changing the problem
 --------------------
@@ -104,7 +104,7 @@ and constraints.
     prob.constraints[0] = (x + y <= 3)
     print "optimal value", prob.solve()
 
-.. parsed-literal::
+::
 
     optimal value 1.0
     optimal value 3.00000000006
@@ -135,7 +135,7 @@ problem variables are not updated.
     print "status:", prob.status
     print "optimal value", prob.value
 
-.. parsed-literal::
+::
 
     status: infeasible
     optimal value inf
@@ -234,7 +234,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
     print "Optimal var"
     print x.value # A numpy matrix.
 
-.. parsed-literal::
+::
 
     Optimal value 4.14133859146
     Optimal var

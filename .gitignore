@@ -37,3 +37,7 @@ nosetests.xml
 
 # ipython checkpoints
 .ipynb_checkpoints
+
+# virtualenv
+env
+env_*

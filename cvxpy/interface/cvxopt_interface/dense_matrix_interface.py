@@ -17,12 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 #from cvxpy.interface.base_matrix_interface import BaseMatrixInterface
 from cvxpy.interface import base_matrix_interface
-import cvxopt
 import numpy as np
 import scipy.sparse as sp
 import numbers
+import cvxopt
+
 
 class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     """
@@ -73,3 +75,4 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def reshape(self, matrix, size):
         matrix = self.const_to_matrix(matrix, convert_scalars=True)
         return cvxopt.matrix(list(matrix), size, tc='d')
+

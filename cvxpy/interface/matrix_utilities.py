@@ -19,12 +19,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.interface import cvxopt_interface as co_intf
 from cvxpy.interface import numpy_interface as np_intf
-import cvxopt
 import scipy.sparse as sp
 import numbers
 import numpy as np
-import warnings
 from cvxpy.utilities.sign import Sign
+import cvxopt
 
 # A mapping of class to interface.
 INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
