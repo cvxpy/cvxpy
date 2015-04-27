@@ -5,7 +5,7 @@ Functions
 
 This section of the tutorial describes the functions that can be applied
 to CVXPY expressions. CVXPY uses the function information in this
-section and the `DCP rules <../dcp/index.html>`__ to mark expressions with a
+section and the :ref:`DCP rules <dcp>` to mark expressions with a
 sign and curvature.
 
 Operators

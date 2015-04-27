@@ -23,6 +23,7 @@ import numpy as np
 import numbers
 import cvxopt
 
+
 class SparseMatrixInterface(NDArrayInterface):
     """
     An interface to convert constant values to the scipy sparse CSC class.
