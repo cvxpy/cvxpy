@@ -27,13 +27,6 @@ from fractions import Fraction
 from collections import defaultdict
 
 
-
-# todo: what about domain?
-# todo: comment on nonnegativity constraints only working for nonnegative powers
-# todo: degenerate case of 1 element input should work? write a test
-# todo: write some tests for some weird case of the geomean powers
-# todo: make sure developer docs are good.
-
 class geo_mean(Atom):
     """ The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
 
@@ -57,7 +50,7 @@ class geo_mean(Atom):
     The only exception to this rule occurs when
     ``p`` has exactly one nonzero element, say, ``p_i``, in which case
     ``geo_mean(x, p)`` is equivalent to ``x_i`` (without the nonnegativity constraint).
-    A specific case occurs when :math:`x \in \mathbf{R}^1`.
+    A specific case of this is when :math:`x \in \mathbf{R}^1`.
 
 
     .. note::
@@ -184,7 +177,26 @@ class geo_mean(Atom):
         ----------
 
         w_dyad : tuple of ``Fractions`` whose denominators are all a power of two
-            The dyadic completion of ``w``, which is used internally to form the inequalities representing the geometric mean.
+            The dyadic completion of ``w``, which is used internally to form the inequalities representing the
+            geometric mean.
+
+        tree : ``dict``
+            keyed by dyadic tuples, whose values are Sequences of children.
+            The children are also dyadic tuples.
+            This represents the graph that needs to be formed to represent the weighted geometric mean.
+
+        cone_lb : int
+            A known lower bound (which is not always tight) on the number of cones needed to represent this
+            geometric mean.
+
+        cone_num_over : int
+            The number of cones beyond the lower bound that this geometric mean used.
+            If 0, we know that it used the minimum possible number of cones.
+            Since cone_lb is not always tight, it may be using the minimum number of cones even if
+            cone_num_over is not 0.
+
+        cone_num : int
+            The number of second order cones used to form this geometric mean
 
         """
         super(geo_mean, self).__init__(x)
@@ -248,7 +260,7 @@ class geo_mean(Atom):
 
     def func_curvature(self):
         return u.Curvature.CONCAVE
- 
+
     def monotonicity(self):
         return [u.monotonicity.INCREASING]
 
@@ -297,6 +309,10 @@ class geo_mean(Atom):
  
  
 def gm(w, x, y):
+    """ Form the basic second order cone constraint to form the geometric mean expression
+        w <= sqrt(x*y)
+        SOC(x + y, [y - x, 2*w])
+    """
     # w <= sqrt(x*y)
     # SOC(x + y, [y - x, 2*w])
     return SOC(lu.sum_expr([x, y]),
@@ -764,14 +780,23 @@ def decompose(w_dyad):
 
 
 def prettytuple(t):
+    """ Use the string representation of objects in a tuple.
+    """
     return '(' + ', '.join(str(f) for f in t) + ')'
 
 
 def get_max_denom(tup):
+    """ Get the maximum denominator in a sequence of ``Fraction`` and ``int`` objects
+    """
     return max(Fraction(f).denominator for f in tup)
 
 
 def prettydict(d):
+    """ Print keys of a dictionary with children (expected to be a Sequence) indented underneath.
+
+    Used for printing out trees of second order cones to represent weighted geometric means.
+
+    """
     keys = sorted(d.keys(), key=get_max_denom, reverse=True)
     result = ""
     for tup in keys:
