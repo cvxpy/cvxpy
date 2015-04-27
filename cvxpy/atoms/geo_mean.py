@@ -51,6 +51,15 @@ class geo_mean(Atom):
     
         x_1^{1/n} \cdots x_n^{1/n}.
 
+    The geometric mean includes an implicit constraint that :math:`x_i \geq 0`
+    whenever :math:`p_i > 0`. If :math:`p_i = 0`, :math:`x_i` will be unconstrained.
+
+    The only exception to this rule occurs when
+    ``p`` has exactly one nonzero element, say, ``p_i``, in which case
+    ``geo_mean(x, p)`` is equivalent to ``x_i`` (without the nonnegativity constraint).
+    A specific case occurs when :math:`x \in \mathbf{R}^1`.
+
+
     .. note::
 
         Generally, ``p`` cannot be represented exactly, so a rational,
@@ -80,7 +89,7 @@ class geo_mean(Atom):
     The weights ``w`` can be seen from the string representation of the ``geo_mean`` object, or through
     the ``w`` attribute.
 
-    >>> from cvxpy import Variable, geo_mean
+    >>> from cvxpy import Variable, geo_mean, Problem, Maximize
     >>> x = Variable(3, name='x')
     >>> print geo_mean(x)
     geo_mean(x, (1/3, 1/3, 1/3))
@@ -109,7 +118,7 @@ class geo_mean(Atom):
     >>> 1e-4 <= g.approx_error <= 1e-3
     True
 
-    The weight vector ``p`` can contain ``int``, ``float``, and ``Fraction`` objects.
+    The weight vector ``p`` can contain combinations of ``int``, ``float``, and ``Fraction`` objects.
 
     >>> from fractions import Fraction
     >>> x = Variable(4, name='x')
@@ -118,6 +127,27 @@ class geo_mean(Atom):
     geo_mean(x, (3/73, 10/73, 0, 60/73))
     >>> g.approx_error <= 1e-10
     True
+
+    Sequences of ``Fraction`` and ``int`` powers can often be represented **exactly**.
+
+    >>> p = [Fraction(1,17), Fraction(4,9), Fraction(1,3), Fraction(25,153)]
+    >>> x = Variable(4, name='x')
+    >>> print geo_mean(x, p)
+    geo_mean(x, (1/17, 4/9, 1/3, 25/153))
+
+    Terms with a zero power will not have an implicit nonnegativity constraint.
+
+    >>> p = [1, 0, 1]
+    >>> x = Variable(3, name='x')
+    >>> obj = Maximize(geo_mean(x,p))
+    >>> constr = [sum(x) <= 1, -1 <= x, x <= 1]
+    >>> val = Problem(obj, constr).solve()
+    >>> x = np.array(x.value).flatten()
+    >>> print x
+    [ 1. -1.  1.]
+
+
+
 
     Parameters
     ----------
@@ -252,8 +282,8 @@ class geo_mean(Atom):
 
         constraints = []
 
-        vars = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))] + [d[w_dyad]]
-        for i, (p, v) in enumerate(zip(w_dyad, vars)):
+        vars_ = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))] + [d[w_dyad]]
+        for i, (p, v) in enumerate(zip(w_dyad, vars_)):
             if p > 0:
                 tmp = [0]*len(w_dyad)
                 tmp[i] = 1
