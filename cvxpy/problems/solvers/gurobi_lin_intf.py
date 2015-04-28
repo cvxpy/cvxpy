@@ -30,13 +30,11 @@ class GUROBI_LIN(Solver):
 
     # Solver capabilities.
     LP_CAPABLE = True
-
-    # NOTE: Gurobi should be able to solve these kinds of problems
-    # I just haven't tested them.
+    # TODO add SOCP constraints.
     SOCP_CAPABLE = False
     SDP_CAPABLE = False
     EXP_CAPABLE = False
-    MIP_CAPABLE = False
+    MIP_CAPABLE = True
 
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
@@ -247,14 +245,24 @@ class GUROBI_LIN(Solver):
 
         else:
             model = gurobipy.Model()
-            variables = [
-                model.addVar(
-                    obj=c[i],
-                    name="x_%d" % i,
-                    # Gurobi's default LB is 0 (WHY???)
-                    lb=-gurobipy.GRB.INFINITY,
-                    ub=gurobipy.GRB.INFINITY)
-                for i in xrange(n)]
+            variables = []
+            for i in range(n):
+                # Set variable type.
+                if i in data[s.BOOL_IDX]:
+                    vtype = gurobipy.GRB.BINARY
+                elif i in data[s.INT_IDX]:
+                    vtype = gurobipy.GRB.INTEGER
+                else:
+                    vtype = gurobipy.GRB.CONTINUOUS
+                variables.append(
+                    model.addVar(
+                        obj=c[i],
+                        name="x_%d" % i,
+                        vtype=vtype,
+                        # Gurobi's default LB is 0 (WHY???)
+                        lb=-gurobipy.GRB.INFINITY,
+                        ub=gurobipy.GRB.INFINITY)
+                )
             model.update()
 
             eq_constrs = [None] * b.shape[0]
@@ -324,15 +332,19 @@ class GUROBI_LIN(Solver):
                 "status": self.STATUS_MAP.get(model.Status, "unknown"),
                 "primal objective": model.ObjVal,
                 "x": np.array([v.X for v in variables]),
-                # Not sure why we need to negate the following,
-                # but need to in order to be consistent with other solvers.
-                "y": -np.array(
-                        [lc.Pi if lc != None else 0 for lc in eq_constrs]
-                    ),
-                "z": -np.array(
-                        [lc.Pi if lc != None else 0 for lc in ineq_constrs]
-                    ),
             }
+
+            # Only add duals if not a MIP.
+            # Not sure why we need to negate the following,
+            # but need to in order to be consistent with other solvers.
+            if not self.is_mip(data):
+                results_dict["y"] = -np.array(
+                        [lc.Pi if lc != None else 0 for lc in eq_constrs]
+                    )
+                results_dict["z"] = -np.array(
+                        [lc.Pi if lc != None else 0 for lc in ineq_constrs]
+                    )
+
         except gurobipy.GurobiError:
             results_dict = {
                 "status": s.SOLVER_ERROR
@@ -370,14 +382,15 @@ class GUROBI_LIN(Solver):
                 "b": results_dict["b"],
                 "G": results_dict["G"],
                 "h": results_dict["h"],
-                }
+            }
         new_results = {}
         new_results[s.STATUS] = results_dict['status']
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict['x']
-            new_results[s.EQ_DUAL] = results_dict['y']
-            new_results[s.INEQ_DUAL] = results_dict['z']
+            if not self.is_mip(data):
+                new_results[s.EQ_DUAL] = results_dict['y']
+                new_results[s.INEQ_DUAL] = results_dict['z']
 
         return new_results

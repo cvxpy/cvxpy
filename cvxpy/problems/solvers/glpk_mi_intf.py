@@ -46,33 +46,6 @@ class GLPK_MI(GLPK):
         """
         return s.GLPK_MI
 
-    def get_problem_data(self, objective, constraints, cached_data):
-        """Returns the argument for the call to the solver.
-
-        Parameters
-        ----------
-        objective : LinOp
-            The canonicalized objective.
-        constraints : list
-            The list of canonicalized cosntraints.
-        cached_data : dict
-            A map of solver name to cached problem data.
-
-        Returns
-        -------
-        dict
-            The arguments needed for the solver.
-        """
-        data = super(GLPK_MI, self).get_problem_data(objective, constraints,
-                                                      cached_data)
-        sym_data = self.get_sym_data(objective, constraints, cached_data)
-        bool_idx, int_idx = self._noncvx_id_to_idx(data[s.DIMS],
-                                                   sym_data.var_offsets,
-                                                   sym_data.var_sizes)
-        data[s.BOOL_IDX] = bool_idx
-        data[s.INT_IDX] = int_idx
-        return data
-
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
