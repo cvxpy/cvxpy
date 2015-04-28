@@ -293,8 +293,6 @@ class TestSolvers(BaseTest):
             duals_gurobi = [x.dual_value for x in constraints]
             prob.solve(solver = ECOS)
             duals_ecos = [x.dual_value for x in constraints]
-            print duals_gurobi
-            print duals_ecos
             self.assertItemsAlmostEqual(duals_gurobi, duals_ecos)
 
         else:

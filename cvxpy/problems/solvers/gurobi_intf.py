@@ -43,7 +43,9 @@ class GUROBI(Solver):
                   6: s.SOLVER_ERROR,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
-                  9: s.SOLVER_ERROR,
+                  # TODO could be anything.
+                  # means time expired.
+                  9: s.OPTIMAL_INACCURATE,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
@@ -132,7 +134,9 @@ class GUROBI(Solver):
 
         solver_cache = cached_data[self.name()]
 
-        if warm_start and solver_cache.prev_result is not None:
+        # TODO warmstart with SOC constraints.
+        if warm_start and solver_cache.prev_result is not None \
+           and len(data[s.DIMS][s.SOC_DIM]) == 0:
             model = solver_cache.prev_result["model"]
             variables = solver_cache.prev_result["variables"]
             gur_constrs = solver_cache.prev_result["gur_constrs"]
@@ -180,7 +184,6 @@ class GUROBI(Solver):
                         gur_constrs[i] = None
 
                     # Add new constraint
-                    # TODO TODO TODO SOCP constraints.
                     if len(nonzero_locs.select(i, "*")) > 0:
                         expr_list = []
                         for loc in nonzero_locs.select(i, "*"):
