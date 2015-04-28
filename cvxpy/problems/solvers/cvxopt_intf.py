@@ -153,17 +153,8 @@ class CVXOPT(Solver):
             results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
-        self._restore_solver_options(old_options)
+        cvxopt.solvers.options = old_options
         return self.format_results(results_dict, data, cached_data)
-
-    @staticmethod
-    def _restore_solver_options(old_options):
-        import cvxopt.solvers
-        for key, value in list(cvxopt.solvers.options.items()):
-            if key in old_options:
-                cvxopt.solvers.options[key] = old_options[key]
-            else:
-                del cvxopt.solvers.options[key]
 
     @staticmethod
     def get_kktsolver_opt(solver_opts):

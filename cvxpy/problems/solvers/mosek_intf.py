@@ -20,13 +20,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
 
-class GLPK(CVXOPT):
-    """An interface for the GLPK solver.
+class MOSEK(CVXOPT):
+    """An interface for the MOSEK solver.
     """
 
     # Solver capabilities.
     LP_CAPABLE = True
-    SOCP_CAPABLE = False
+    SOCP_CAPABLE = True
     SDP_CAPABLE = False
     EXP_CAPABLE = False
     MIP_CAPABLE = False
@@ -34,13 +34,12 @@ class GLPK(CVXOPT):
     def name(self):
         """The name of the solver.
         """
-        return s.GLPK
+        return s.MOSEK
 
     def import_solver(self):
         """Imports the solver.
         """
-        import cvxopt
-        from cvxopt import glpk
+        import mosek
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
@@ -66,35 +65,32 @@ class GLPK(CVXOPT):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.solvers
+        import vxopt.msk, mosek
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
-        old_options = cvxopt.solvers.options.copy()
-        # Silence cvxopt if verbose is False.
-        if verbose:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
-        else:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
+        old_options = cvxopt.msk.options.copy()
+        # Silence mosek if verbose is False.
+        cvxopt.msk.options[mosek.iparam.log] = verbose
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
             solver_opts["maxiters"] = solver_opts["max_iters"]
         for key, value in solver_opts.items():
-            cvxopt.solvers.options[key] = value
+            cvxopt.msk.options[key] = value
 
         try:
-            results_dict = cvxopt.solvers.lp(data[s.C],
+            results_dict = cvxopt.msk.conelp(data[s.C],
                                              data[s.G],
                                              data[s.H],
                                              data[s.A],
                                              data[s.B],
-                                             solver="glpk")
+                                             solver="mosek")
 
          # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
             results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
-        cvxopt.solvers.options = old_options
+        cvxopt.msk.options = old_options
         return self.format_results(results_dict, data, cached_data)
