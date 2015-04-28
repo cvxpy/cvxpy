@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from fractions import Fraction
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constants import Constant, Parameter
@@ -31,8 +32,6 @@ from cvxpy.tests.base_test import BaseTest
 from cvxopt import matrix
 from numpy import linalg as LA
 import numpy
-import unittest
-import math
 import sys
 # Solvers.
 import scs
@@ -1169,7 +1168,56 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(prob.value, 1)
 
     def test_geo_mean(self):
-        cost = sum_entries(geo_mean(self.x, 1))
-        prob = Problem(Maximize(cost), [self.x == 1])
+        import numpy as np
+
+        x = Variable(2)
+        cost = geo_mean(x)
+        prob = Problem(Maximize(cost), [x <= 1])
         prob.solve()
-        self.assertAlmostEqual(prob.value, 2)
+        self.assertAlmostEqual(prob.value, 1)
+
+        prob = Problem(Maximize(cost), [sum(x) <= 1])
+        prob.solve()
+        self.assertItemsAlmostEqual(x.value, [.5, .5])
+
+        x = Variable(3, 3)
+        self.assertRaises(ValueError, geo_mean, x)
+
+        x = Variable(3, 1)
+        g = geo_mean(x)
+        self.assertSequenceEqual(g.w, [Fraction(1, 3)]*3)
+
+        x = Variable(1, 5)
+        g = geo_mean(x)
+        self.assertSequenceEqual(g.w, [Fraction(1, 5)]*5)
+
+        # check that we get the right answer for
+        # max geo_mean(x) s.t. sum(x) <= 1
+        p = np.array([.07, .12, .23, .19, .39])
+
+        def short_geo_mean(x, p):
+            p = np.array(p)/sum(p)
+            x = np.array(x)
+            return np.prod(x**p)
+
+        x = Variable(5)
+        prob = Problem(Maximize(geo_mean(x, p)), [sum(x) <= 1])
+        prob.solve()
+        x = np.array(x.value).flatten()
+        x_true = p/sum(p)
+
+        self.assertTrue(np.allclose(prob.value, geo_mean(list(x), p).value))
+        self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
+        self.assertTrue(np.allclose(x, x_true, 1e-3))
+
+        # check that we get the right answer for
+        # max geo_mean(x) s.t. norm(x) <= 1
+        x = Variable(5)
+        prob = Problem(Maximize(geo_mean(x, p)), [norm(x) <= 1])
+        prob.solve()
+        x = np.array(x.value).flatten()
+        x_true = np.sqrt(p/sum(p))
+
+        self.assertTrue(np.allclose(prob.value, geo_mean(list(x), p).value))
+        self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
+        self.assertTrue(np.allclose(x, x_true, 1e-3))

@@ -4,5 +4,5 @@
 @import url("alabaster.css");
 
 table.docutils td {
-    white-space: nowrap;
+    white-space: wrap;
 }
