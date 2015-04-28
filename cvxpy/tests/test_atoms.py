@@ -78,10 +78,8 @@ class TestAtoms(unittest.TestCase):
 
     # Test the geo_mean class.
     def test_geo_mean(self):
-        exp = self.x+self.y
-        atom = geo_mean(exp, self.x)
-        # self.assertEquals(atom.name(), "norm2(x + y)")
-        self.assertEquals(atom.size, (2,1))
+        atom = geo_mean(self.x)
+        self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 

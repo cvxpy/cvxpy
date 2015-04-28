@@ -60,6 +60,21 @@ and returns a scalar.
      - |concave| concave
      - None
 
+   * - :ref:`geo_mean(x) <geo_mean>`
+
+       :ref:`geo_mean(x, p) <geo_mean>`
+     - :math:`x_1^{1/n} \cdots x_n^{1/n}`
+
+       :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
+     - :math:`x \in \mathbf{R}^n_{+}`
+
+       :math:`p \in \mathbf{R}^n_{+}`
+
+       :math:`p \neq 0`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
    * - kl_div(X, Y)
      - :math:`\sum_{ij} X_{ij} \log(X_{ij}/Y_{ij}) -X_{ij}+Y_{ij}`
      - :math:`X_{ij} > 0`

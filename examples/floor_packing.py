@@ -80,7 +80,7 @@ class FloorPlan(object):
                             box.width <= box.ASPECT_RATIO*box.height]
             # Enforce minimum area
             constraints += [
-            geo_mean(box.width, box.height) >= math.sqrt(box.min_area)
+            geo_mean(vstack(box.width, box.height)) >= math.sqrt(box.min_area)
             ]
 
         # Enforce the relative ordering of the boxes.
