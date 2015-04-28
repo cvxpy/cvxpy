@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
+
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
@@ -302,7 +302,7 @@ class geo_mean(Atom):
                 tmp[i] = 1
                 d[tuple(tmp)] = v
 
-        for elem, children in tree.iteritems():
+        for elem, children in tree.items():
             if 1 not in elem:
                 constraints += [gm(d[elem], d[children[0]], d[children[1]])]
 
@@ -798,7 +798,7 @@ def prettydict(d):
     Used for printing out trees of second order cones to represent weighted geometric means.
 
     """
-    keys = sorted(d.keys(), key=get_max_denom, reverse=True)
+    keys = sorted(list(d.keys()), key=get_max_denom, reverse=True)
     result = ""
     for tup in keys:
         children = sorted(d[tup], key=get_max_denom, reverse=False)

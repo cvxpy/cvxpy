@@ -150,6 +150,8 @@ atoms = [
         (geo_mean, (1, 1), [[0.01, 7]], Constant([0.2645751311064591])),
         (geo_mean, (1, 1), [[63, 7]], Constant([21])),
         (geo_mean, (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
+        (lambda x: geo_mean(x, [1, 1]), (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
+        (lambda x: geo_mean(x, [.4, .8, 4.9]), (1, 1), [[.5, 1.8, 17]], Constant([10.04921378316062])),
 
         (lambda_min, (1, 1), [ [[2,0],[0,1]] ], Constant([1])),
         (lambda_min, (1, 1), [ [[5,7],[7,-3]] ], Constant([-7.06225775])),
