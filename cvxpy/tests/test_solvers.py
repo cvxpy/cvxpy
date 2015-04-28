@@ -217,6 +217,7 @@ class TestSolvers(BaseTest):
         if GUROBI in installed_solvers():
             prob = Problem(Minimize(norm(self.x, 2)), [self.x == 0])
             prob.solve(solver = GUROBI)
+            self.assertAlmostEqual(prob.value, 0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp

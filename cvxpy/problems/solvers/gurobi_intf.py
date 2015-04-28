@@ -258,38 +258,36 @@ class GUROBI(Solver):
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
-        # try:
-        print gur_constrs
-        model.optimize()
-        print model.Status
-        results_dict = {
-            "model": model,
-            "variables": variables,
-            "gur_constrs": gur_constrs,
-            "status": self.STATUS_MAP.get(model.Status, "unknown"),
-            "primal objective": model.ObjVal,
-            "x": np.array([v.X for v in variables]),
-        }
+        try:
+            model.optimize()
+            results_dict = {
+                "model": model,
+                "variables": variables,
+                "gur_constrs": gur_constrs,
+                "status": self.STATUS_MAP.get(model.Status, "unknown"),
+                "primal objective": model.ObjVal,
+                "x": np.array([v.X for v in variables]),
+            }
 
-        # Only add duals if not a MIP.
-        # Not sure why we need to negate the following,
-        # but need to in order to be consistent with other solvers.
-        if not self.is_mip(data):
-            vals = []
-            for lc in gur_constrs:
-                if lc != None:
-                    if isinstance(lc, gurobipy.QConstr):
-                        vals.append(lc.QCPi)
+            # Only add duals if not a MIP.
+            # Not sure why we need to negate the following,
+            # but need to in order to be consistent with other solvers.
+            if not self.is_mip(data):
+                vals = []
+                for lc in gur_constrs:
+                    if lc != None:
+                        if isinstance(lc, gurobipy.QConstr):
+                            vals.append(lc.QCPi)
+                        else:
+                            vals.append(lc.Pi)
                     else:
-                        vals.append(lc.Pi)
-                else:
-                    vals.append(0)
-            results_dict["y"] = -np.array(vals)
+                        vals.append(0)
+                results_dict["y"] = -np.array(vals)
 
-        # except gurobipy.GurobiError:
-        #     results_dict = {
-        #         "status": s.SOLVER_ERROR
-        #     }
+        except gurobipy.GurobiError:
+            results_dict = {
+                "status": s.SOLVER_ERROR
+            }
 
         return self.format_results(results_dict, data, cached_data)
 
@@ -399,7 +397,7 @@ class GUROBI(Solver):
             ]
 
         t_term = soc_vars[0]*soc_vars[0]
-        x_term = gurobipy.LinExpr([var*var for var in soc_vars[1:]])
+        x_term = gurobipy.quicksum([var*var for var in soc_vars[1:]])
         return (model.addQConstr(x_term <= t_term),
                 new_lin_constrs,
                 soc_vars)
