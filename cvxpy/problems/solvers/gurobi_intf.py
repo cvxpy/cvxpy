@@ -259,6 +259,7 @@ class GUROBI(Solver):
             model.setParam(key, value)
 
         # try:
+        print gur_constrs
         model.optimize()
         print model.Status
         results_dict = {
