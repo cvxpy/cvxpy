@@ -285,68 +285,6 @@ class TestSolvers(BaseTest):
                 prob.solve(solver = GUROBI_LIN, warm_start = True)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI_LIN)
 
-    def test_mosek(self):
-        """Test a basic SOCP with MOSEK.
-        """
-        # Either the problem is solved or GLPK is not installed.
-        if MOSEK in installed_solvers():
-            prob = Problem(Minimize(norm(self.x, 2)), [self.x == 0])
-            prob.solve(solver = MOSEK)
-            self.assertAlmostEqual(prob.value, 0)
-            self.assertItemsAlmostEqual(self.x.value, [0, 0])
-
-            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
-            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
-            constraints = [ 2 * self.x[0] + self.x[1] <= 3,
-                            (self.x[0] + 2 * self.x[1])**2 <= 9,
-                            self.x[0] >= 0,
-                            self.x[1] >= 0]
-            prob = Problem(objective, constraints)
-            prob.solve(solver = MOSEK)
-            print(self.x.value)
-            self.assertAlmostEqual(prob.value, -9)
-            self.assertItemsAlmostEqual(self.x.value, [1, 1])
-        else:
-            with self.assertRaises(Exception) as cm:
-                prob = Problem(Minimize(norm(self.x, 2)), [self.x == 0])
-                prob.solve(solver = MOSEK)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % MOSEK)
-
-    def test_mosek_mi(self):
-        """Test a basic MISOCP with MOSEK.
-        """
-        # Either the problem is solved or GLPK is not installed.
-        if MOSEK_MI in installed_solvers():
-            bool_var = Bool()
-            int_var = Int()
-            prob = Problem(Minimize(norm(self.x, 2)),
-                        [self.x == bool_var, bool_var == 0])
-            prob.solve(solver = MOSEK_MI)
-            self.assertAlmostEqual(prob.value, 0)
-            self.assertAlmostEqual(bool_var.value, 0)
-            self.assertItemsAlmostEqual(self.x.value, [0, 0])
-
-            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
-            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
-            constraints = [ 2 * self.x[0] + self.x[1] <= int_var,
-                            (self.x[0] + 2 * self.x[1])**2 <= 9*bool_var,
-                            self.x[0] >= 0,
-                            self.x[1] >= 0,
-                            int_var == 3*bool_var,
-                            int_var == 3]
-            prob = Problem(objective, constraints)
-            prob.solve(solver = MOSEK_MI)
-            self.assertAlmostEqual(prob.value, -9)
-            self.assertAlmostEqual(int_var.value, 3)
-            self.assertAlmostEqual(bool_var.value, 1)
-            self.assertItemsAlmostEqual(self.x.value, [1, 1])
-        else:
-            with self.assertRaises(Exception) as cm:
-                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-                prob.solve(solver = MOSEK_MI)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % MOSEK_MI)
-
-
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """

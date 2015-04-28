@@ -96,5 +96,5 @@ class GLPK(CVXOPT):
             results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
-        cvxopt.solvers.options = old_options
+        self._restore_solver_options(old_options)
         return self.format_results(results_dict, data, cached_data)
