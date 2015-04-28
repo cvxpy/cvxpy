@@ -177,11 +177,9 @@ class Expression(u.Canonical):
     def __getitem__(self, key):
         """Return a slice/index into the expression.
         """
-        # Indexing into a scalar returns the scalar.
-        if self.is_scalar():
-            return self
-        else:
-            return types.index()(self, key)
+        # Returning self for scalars causes
+        # the built-in sum to hang.
+        return types.index()(self, key)
 
     @property
     def T(self):

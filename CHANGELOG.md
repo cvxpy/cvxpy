@@ -22,6 +22,8 @@ Version 1.0 (targets)
 
 Version 0.2.20 (next release)
 -----------------------------
+* sum no longer crashes on scalar expressions,
+though you shouldn't use it.
 
 Version 0.2.19
 --------------

@@ -582,3 +582,13 @@ class TestExpressions(BaseTest):
             (self.x**self.x)
         self.assertEqual(str(cm.exception), "Power must be a numeric scalar.")
 
+    def test_sum(self):
+        """Test built-in sum. Not good usage.
+        """
+        self.a.value = 1
+        expr = sum(self.a)
+        self.assertEquals(expr.value, 1)
+
+        self.x.value = [1, 2]
+        expr = sum(self.x)
+        self.assertEquals(expr.value, 3)
