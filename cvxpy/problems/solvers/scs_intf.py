@@ -137,8 +137,8 @@ class SCS(ECOS):
             primal_val = results_dict["info"]["pobj"]
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict["x"]
-            new_results[s.EQ_DUAL] = results_dict["y"][0:dims["f"]]
-            new_results[s.INEQ_DUAL] = results_dict["y"][dims["f"]:]
+            new_results[s.EQ_DUAL] = results_dict["y"][0:dims[s.EQ_DIM]]
+            new_results[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM]:]
         else:
             # No result to save.
             solver_cache.prev_result = None
