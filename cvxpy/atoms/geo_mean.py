@@ -141,8 +141,6 @@ class geo_mean(Atom):
     [ 1. -1.  1.]
 
 
-
-
     Parameters
     ----------
     x : cvxpy.Variable
@@ -412,6 +410,8 @@ def is_weight(w):
     True
 
     """
+    if isinstance(w, np.ndarray):
+        w = w.tolist()
     return (all(v >= 0 and isinstance(v, (int, Fraction)) for v in w)
             and sum(w) == 1)
 
@@ -541,6 +541,9 @@ def fracify(a, max_denom=1024, force_dyad=False):
     if not (isinstance(max_denom, int) and max_denom > 0):
         raise ValueError('Input denominator must be an integer.')
 
+    if isinstance(a, np.ndarray):
+        a = a.tolist()
+
     max_denom = next_pow2(max_denom)
     total = sum(a)
 
@@ -581,6 +584,9 @@ def make_frac(a, denom):
 
     inds = np.argsort(err)[:(denom - sum(b))]
     b[inds] += 1
+
+    denom = int(denom)
+    b = b.tolist()
 
     return tuple(Fraction(v, denom) for v in b)
 
