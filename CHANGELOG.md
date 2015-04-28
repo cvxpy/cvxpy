@@ -24,6 +24,7 @@ Version 0.2.20 (next release)
 -----------------------------
 * sum no longer crashes on scalar expressions,
 though you shouldn't use it.
+* Added mixed integer and SOCP support to Gurobi.
 
 Version 0.2.19
 --------------

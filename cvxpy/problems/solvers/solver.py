@@ -225,6 +225,11 @@ class Solver(object):
         data[s.G], data[s.H] = matrix_data.get_ineq_constr()
         data[s.F] = matrix_data.get_nonlin_constr()
         data[s.DIMS] = sym_data.dims.copy()
+        bool_idx, int_idx = self._noncvx_id_to_idx(data[s.DIMS],
+                                                   sym_data.var_offsets,
+                                                   sym_data.var_sizes)
+        data[s.BOOL_IDX] = bool_idx
+        data[s.INT_IDX] = int_idx
         return data
 
     @abc.abstractmethod
@@ -273,6 +278,12 @@ class Solver(object):
             The solver output in standard form.
         """
         pass
+
+    @staticmethod
+    def is_mip(data):
+        """Is the problem a mixed integer program?
+        """
+        return len(data[s.BOOL_IDX]) > 0 or len(data[s.BOOL_IDX]) > 0
 
     @staticmethod
     def _noncvx_id_to_idx(dims, var_offsets, var_sizes):

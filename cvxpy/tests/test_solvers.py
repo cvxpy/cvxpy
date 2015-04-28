@@ -153,12 +153,12 @@ class TestSolvers(BaseTest):
                 prob.solve(solver = GLPK_MI)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GLPK_MI)
 
-    def test_gurobi_lin(self):
+    def test_gurobi(self):
         """Test a basic LP with Gurobi.
         """
-        if GUROBI_LIN in installed_solvers():
+        if GUROBI in installed_solvers():
             prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-            prob.solve(solver = GUROBI_LIN)
+            prob.solve(solver = GUROBI)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -168,33 +168,119 @@ class TestSolvers(BaseTest):
                             self.x[0] >= 0,
                             self.x[1] >= 0]
             prob = Problem(objective, constraints)
-            prob.solve(solver = GUROBI_LIN)
+            prob.solve(solver = GUROBI)
+            self.assertAlmostEqual(prob.value, -9)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
             # Gurobi's default lower bound for a decision variable is zero
-            # This quick test ensures that the cvxpy interface for GUROBI_LIN does *not* have that bound
+            # This quick test ensures that the cvxpy interface for GUROBI does *not* have that bound
             objective = Minimize(self.x[0])
             constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
             prob = Problem(objective, constraints)
-            prob.solve(solver = GUROBI_LIN)
+            prob.solve(solver = GUROBI)
             self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+
+            # Boolean and integer version.
+            bool_var = Bool()
+            int_var = Int()
+            prob = Problem(Minimize(norm(self.x, 1)),
+                        [self.x == bool_var, bool_var == 0])
+            prob.solve(solver = GLPK_MI)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(bool_var.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [ 2 * self.x[0] + self.x[1] <= int_var,
+                            self.x[0] + 2 * self.x[1] <= 3*bool_var,
+                            self.x[0] >= 0,
+                            self.x[1] >= 0,
+                            int_var == 3*bool_var,
+                            int_var == 3]
+            prob = Problem(objective, constraints)
+            prob.solve(solver = GLPK_MI)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertAlmostEqual(int_var.value, 3)
+            self.assertAlmostEqual(bool_var.value, 1)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-                prob.solve(solver = GUROBI_LIN)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI_LIN)
+                prob.solve(solver = GUROBI)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
-    def test_gurobi_lin_dual(self):
+    def test_gurobi_socp(self):
+        """Test a basic SOCP with Gurobi.
+        """
+        if GUROBI in installed_solvers():
+            prob = Problem(Minimize(norm(self.x, 2)), [self.x == 0])
+            prob.solve(solver = GUROBI)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [ 2 * self.x[0] + self.x[1] <= 3,
+                            (self.x[0] + 2 * self.x[1])**2 <= 9,
+                            self.x[0] >= 0,
+                            self.x[1] >= 0]
+            prob = Problem(objective, constraints)
+            prob.solve(solver = GUROBI)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            # Gurobi's default lower bound for a decision variable is zero
+            # This quick test ensures that the cvxpy interface for GUROBI does *not* have that bound
+            objective = Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = Problem(objective, constraints)
+            prob.solve(solver = GUROBI)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+
+            # Boolean and integer version.
+            bool_var = Bool()
+            int_var = Int()
+            prob = Problem(Minimize(norm(self.x, 2)),
+                        [self.x == bool_var, bool_var == 0])
+            prob.solve(solver = GUROBI)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(bool_var.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [ 2 * self.x[0] + self.x[1] <= int_var,
+                            (self.x[0] + 2 * self.x[1])**2 <= 9*bool_var,
+                            self.x[0] >= 0,
+                            self.x[1] >= 0,
+                            int_var == 3*bool_var,
+                            int_var == 3]
+            prob = Problem(objective, constraints)
+            prob.solve(solver = GUROBI)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertAlmostEqual(int_var.value, 3)
+            self.assertAlmostEqual(bool_var.value, 1)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver = GUROBI)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
+
+    def test_gurobi_dual(self):
         """Make sure Gurobi's dual result matches other solvers
         """
-        if GUROBI_LIN in installed_solvers():
+        if GUROBI in installed_solvers():
             constraints = [self.x == 0]
             prob = Problem(Minimize(norm(self.x, 1)))
-            prob.solve(solver = GUROBI_LIN)
-            duals_gurobi_lin = [x.dual_value for x in constraints]
+            prob.solve(solver = GUROBI)
+            duals_gurobi = [x.dual_value for x in constraints]
             prob.solve(solver = ECOS)
             duals_ecos = [x.dual_value for x in constraints]
-            self.assertItemsAlmostEqual(duals_gurobi_lin, duals_ecos)
+            self.assertItemsAlmostEqual(duals_gurobi, duals_ecos)
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
             objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
@@ -203,23 +289,25 @@ class TestSolvers(BaseTest):
                             self.x[0] >= 0,
                             self.x[1] >= 0]
             prob = Problem(objective, constraints)
-            prob.solve(solver = GUROBI_LIN)
-            duals_gurobi_lin = [x.dual_value for x in constraints]
+            prob.solve(solver = GUROBI)
+            duals_gurobi = [x.dual_value for x in constraints]
             prob.solve(solver = ECOS)
             duals_ecos = [x.dual_value for x in constraints]
-            self.assertItemsAlmostEqual(duals_gurobi_lin, duals_ecos)
+            print duals_gurobi
+            print duals_ecos
+            self.assertItemsAlmostEqual(duals_gurobi, duals_ecos)
 
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-                prob.solve(solver = GUROBI_LIN)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI_LIN)
+                prob.solve(solver = GUROBI)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
-    def test_gurobi_lin_warm_start(self):
+    def test_gurobi_warm_start(self):
         """Make sure that warm starting Gurobi behaves as expected
            Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
-        if GUROBI_LIN in installed_solvers():
+        if GUROBI in installed_solvers():
             import numpy as np
 
             A = Parameter(2, 2)
@@ -237,7 +325,7 @@ class TestSolvers(BaseTest):
                             self.x[1] <= h[1],
                             A * self.x == b]
             prob = Problem(objective, constraints)
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True)
+            result = prob.solve(solver = GUROBI, warm_start = True)
             self.assertEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
             orig_objective = result
@@ -251,7 +339,7 @@ class TestSolvers(BaseTest):
             c.value = np.array([1, 1])
 
             # Without setting update_eq_constrs = False, the results should change to the correct answer
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True)
+            result = prob.solve(solver = GUROBI, warm_start = True)
             self.assertEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [2, 1])
 
@@ -263,7 +351,7 @@ class TestSolvers(BaseTest):
             c.value = np.array([1, 1])
 
             # Without setting update_ineq_constrs = False, the results should change to the correct answer
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True)
+            result = prob.solve(solver = GUROBI, warm_start = True)
             self.assertEqual(result, 2)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
@@ -275,15 +363,15 @@ class TestSolvers(BaseTest):
             c.value = np.array([2, 1])              # <----- Changed
 
             # Without setting update_objective = False, the results should change to the correct answer
-            result = prob.solve(solver = GUROBI_LIN, warm_start = True)
+            result = prob.solve(solver = GUROBI, warm_start = True)
             self.assertEqual(result, 4)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-                prob.solve(solver = GUROBI_LIN, warm_start = True)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI_LIN)
+                prob.solve(solver = GUROBI, warm_start = True)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
     def test_installed_solvers(self):
         """Test the list of installed solvers.
