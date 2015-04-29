@@ -43,6 +43,9 @@ Scalar functions
 A scalar function takes one or more scalars, vectors, or matrices as arguments
 and returns a scalar.
 
+.. |_| unicode:: 0xA0
+   :trim:
+
 .. list-table::
    :header-rows: 1
 
@@ -50,7 +53,7 @@ and returns a scalar.
      - Meaning
      - Domain
      - Sign
-     - Curvature
+     - Curvature |_|
      - Monotonicity
 
    * - entr(X)
@@ -98,7 +101,7 @@ and returns a scalar.
      - |concave| concave
      - None
 
-   * - lambda_sum_largest(X, k)
+   * - lambda_sum_largest(X, |_| k)
      - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
 
@@ -107,7 +110,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - lambda_sum_smallest(X, k)
+   * - lambda_sum_smallest(X, |_| k)
      - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
 
@@ -247,9 +250,9 @@ and returns a scalar.
      - :math:`c \in \mathbf{R}^n`
 
        :math:`X \in\mathbf{R}^{n \times n}`
-     - depends on c, X
+     - depends |_| on |_| c, |_| X
      - |affine| affine
-     - depends on c
+     - depends |_| on |_| c
 
    * - quad_over_lin(X, y)
      - :math:`\left(\sum_{ij}X_{ij}^2\right)/y`
@@ -344,7 +347,7 @@ scalars, which are promoted.
      - Meaning
      - Domain
      - Sign
-     - Curvature
+     - Curvature |_|
      - Monotonicity
 
    * - abs(x)
@@ -395,28 +398,28 @@ scalars, which are promoted.
      - |concave| concave
      - |incr| incr.
 
-   * - max_elemwise(x1, ..., xk)
+   * - max_elemwise(x1, |_| ..., |_| xk)
      - :math:`\max \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
      - max(sign(xi))
      - |convex| convex
      - |incr| incr.
 
-   * - min_elemwise(x1, ..., xk)
+   * - min_elemwise(x1, |_| ..., |_| xk)
      - :math:`\min \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
      - min(sign(xi))
      - |concave| concave
      - |incr| incr.
 
-   * - mul_elemwise(c, x)
+   * - mul_elemwise(c, |_| x)
 
        c constant
      - c*x
      - :math:`c,x \in\mathbf{R}`
      - sign(c*x)
      - |affine| affine
-     - depends on c
+     - depends |_| on |_| c
 
    * - neg(x)
      - :math:`\max \left\{-x, 0 \right\}`
@@ -475,7 +478,7 @@ and returns a vector or matrix.
      - Meaning
      - Domain
      - Sign
-     - Curvature
+     - Curvature |_|
      - Monotonicity
 
    * - conv(c, x)
@@ -485,9 +488,9 @@ and returns a vector or matrix.
      - :math:`c\in\mathbf{R}^m`
 
        :math:`x\in \mathbf{R}^n`
-     - depends on c, x
+     - depends |_| on |_| c, |_| x
      - |affine| affine
-     - depends on c
+     - depends |_| on |_| c
 
    * - diag(x)
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
@@ -503,14 +506,14 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - hstack(X1, ..., Xk)
+   * - hstack(X1, |_| ..., |_| Xk)
      - :math:`\left[\begin{matrix}X_1  \cdots    X_k\end{matrix}\right]`
      - :math:`X_i \in\mathbf{R}^{n \times m_i}`
-     - sign(sum([x1, ..., xk]))
+     - sign(sum([x1, |_| ..., |_| xk]))
      - |affine| affine
      - |incr| incr.
 
-   * - reshape(X, n', m')
+   * - reshape(X, |_| n', |_| m')
      - :math:`X' \in\mathbf{R}^{n' \times m'}`
      - :math:`X \in\mathbf{R}^{n \times m}`
 
@@ -526,10 +529,10 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - vstack(X1, ..., Xk)
+   * - vstack(X1, |_| ..., |_| Xk)
      - :math:`\left[\begin{matrix}X_1  \\ \vdots  \\X_k\end{matrix}\right]`
      - :math:`X_i \in\mathbf{R}^{n_i \times m}`
-     - sign(sum([x1, ..., xk]))
+     - sign(sum([x1, |_| ..., |_| xk]))
      - |affine| affine
      - |incr| incr.
 

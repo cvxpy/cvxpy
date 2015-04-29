@@ -32,17 +32,17 @@ class geo_mean(Atom):
     """ The (weighted) geometric mean of vector ``x``, with optional powers given by ``p``:
 
     .. math::
-    
+
         \\left(x_1^{p_1} \cdots x_n^{p_n} \\right)^{\\frac{1}{\mathbf{1}^Tp}}
 
     The powers ``p`` can be a ``list``, ``tuple``, or ``numpy.array`` of nonnegative
     ``int``, ``float``, or ``Fraction`` objects with nonzero sum.
-    
+
     If not specified, ``p`` defaults to a vector of all ones, giving the
     **unweighted** geometric mean
 
     .. math::
-    
+
         x_1^{1/n} \cdots x_n^{1/n}.
 
     The geometric mean includes an implicit constraint that :math:`x_i \geq 0`
@@ -64,7 +64,7 @@ class geo_mean(Atom):
         and the ``geo_mean`` atom is represented as
 
         .. math::
-        
+
             x_1^{w_1} \cdots x_n^{w_n},
 
         where the elements of ``w`` are ``Fraction`` objects that sum to exactly 1.
@@ -73,7 +73,7 @@ class geo_mean(Atom):
         is given by ``max_denom``, which defaults to 1024, but can be adjusted
         to modify the accuracy of the approximations.
 
-        The approximating ``w`` and the approximation error can be 
+        The approximating ``w`` and the approximation error can be
         found through the attributes ``geo_mean.w`` and ``geo_mean.approx_error``.
 
 
@@ -233,7 +233,7 @@ class geo_mean(Atom):
 
         # number of cones used
         self.cone_num = self.cone_lb + self.cone_num_over
- 
+
     # Returns the (weighted) geometric mean of the elements of x.
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -264,16 +264,17 @@ class geo_mean(Atom):
         return [u.monotonicity.INCREASING]
 
     def validate_arguments(self):
-        # since correctly validating arguments with this function is tricky, we do it in __init__ instead.
+        # since correctly validating arguments with this function is tricky,
+        # we do it in __init__ instead.
         pass
- 
+
     def get_data(self):
         return self.w, self.w_dyad, self.tree
- 
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
- 
+
         Parameters
         ----------
         arg_objs : list
@@ -282,7 +283,7 @@ class geo_mean(Atom):
             The size of the resulting expression.
         data :
             Additional data required by the atom.
- 
+
         Returns
         -------
         tuple
@@ -305,8 +306,8 @@ class geo_mean(Atom):
                 constraints += [gm(d[elem], d[children[0]], d[children[1]])]
 
         return d[w_dyad], constraints
- 
- 
+
+
 def gm(w, x, y):
     """ Form the basic second order cone constraint to form the geometric mean expression
         w <= sqrt(x*y)
