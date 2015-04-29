@@ -20,11 +20,15 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.20 (next release)
+Version 0.2.21 (next release)
 -----------------------------
+
+Version 0.2.20
+--------------
 * sum no longer crashes on scalar expressions,
 though you shouldn't use it.
 * Added mixed integer and SOCP support to Gurobi.
+* Added geo_mean
 
 Version 0.2.19
 --------------
