@@ -178,7 +178,10 @@ class Atom(Expression):
             for arg in self.args:
                 # A argument without a value makes all higher level
                 # values None.
-                if arg.value is None:
+                # But if the atom is constant with non-constant
+                # arguments it doesn't depend on its arguments,
+                # so it isn't None.
+                if arg.value is None and not self.is_constant():
                     return None
                 else:
                     arg_values.append(arg.value)

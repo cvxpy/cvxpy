@@ -133,7 +133,6 @@ class power(Elementwise):
         if p == 1:
             return x, []
         elif p == 0:
-            print "this branch!"
             one = lu.create_const(1, x.size)
             return one, []
         else:
