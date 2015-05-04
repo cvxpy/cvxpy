@@ -22,7 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from .elementwise import Elementwise
 import numpy as np
 from fractions import Fraction
-from ...utilities.power_tools import sanitize_scalar, is_power2, gm
+from ...utilities.power_tools import sanitize_scalar, is_power2, gm, gm_constrs
 
 # todo: make p a managed attribute? that way, you can change p on the fly. could be cool...
 
@@ -138,11 +138,18 @@ class power(Elementwise):
         elif p == 0:
             one = lu.create_const(np.mat(np.ones(size)), size)
             return one, []
-        elif p == .5:
-            size = x.size
+        elif 0 < p < 1:
             t = lu.create_var(size)
             one = lu.create_const(np.mat(np.ones(size)), size)
-            return t, [gm(t, x, one)]
+            return t, gm_constrs(t, [x, one], w)
+        elif p > 1:
+            t = lu.create_var(size)
+            one = lu.create_const(np.mat(np.ones(size)), size)
+            return t, gm_constrs(x, [t, one], w)
+        elif p < 0:
+            t = lu.create_var(size)
+            one = lu.create_const(np.mat(np.ones(size)), size)
+            return t, gm_constrs(one, [x, t], w)
         else:
             raise NotImplementedError('this power is not yet supported.')
 

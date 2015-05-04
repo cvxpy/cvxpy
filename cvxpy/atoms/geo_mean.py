@@ -22,9 +22,9 @@ import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 import numpy as np
-from collections import defaultdict
 
-from ..utilities.power_tools import fracify, decompose, approx_error, lower_bound, over_bound, prettydict, gm
+
+from ..utilities.power_tools import fracify, decompose, approx_error, lower_bound, over_bound, prettydict, gm, gm_constrs
 import cvxpy.lin_ops.lin_utils as lu
 
 
@@ -288,19 +288,10 @@ class geo_mean(Atom):
             (LinOp for objective, list of constraints)
         """
         w, w_dyad, tree = data
-        d = defaultdict(lambda: lu.create_var((1, 1)))
+        t = lu.create_var((1, 1))
+        x_list = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))]
 
-        constraints = []
+        #todo: catch cases where we have (0, 0, 1)?
+        #todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1), should this behavior match with what we do in power?
 
-        vars_ = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))] + [d[w_dyad]]
-        for i, (p, v) in enumerate(zip(w_dyad, vars_)):
-            if p > 0:
-                tmp = [0]*len(w_dyad)
-                tmp[i] = 1
-                d[tuple(tmp)] = v
-
-        for elem, children in tree.items():
-            if 1 not in elem:
-                constraints += [gm(d[elem], d[children[0]], d[children[1]])]
-
-        return d[w_dyad], constraints
+        return t, gm_constrs(t, x_list, w)

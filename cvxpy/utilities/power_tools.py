@@ -71,6 +71,8 @@ def gm_constrs(t, x_list, p):
         list of constraints involving elements of x (and possibly t) to form the geometric mean.
 
     """
+    # todo: is x_list the best way to organize the variables? some CVXPY construct I should be using? a matrix where I name the dimensions?
+    # todo: OK to always use SOC_elemwise? why even have regular SOC?
     assert is_weight(p)
     w = dyad_completion(p)
 
@@ -78,7 +80,6 @@ def gm_constrs(t, x_list, p):
     d = defaultdict(lambda: lu.create_var(t.size))
     d[w] = t
 
-    #vars_ = [index.get_index(x, [], i, 0) for i in range(len(w))]
     if len(x_list) < len(w):
         x_list += [t]
 
