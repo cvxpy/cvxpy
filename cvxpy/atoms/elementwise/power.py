@@ -135,31 +135,21 @@ class power(Elementwise):
 
         if p == 1:
             return x, []
-        elif p == 0:
-            one = lu.create_const(np.mat(np.ones(size)), size)
-            return one, []
-        elif 0 < p < 1:
-            t = lu.create_var(size)
-            one = lu.create_const(np.mat(np.ones(size)), size)
-            return t, gm_constrs(t, [x, one], w)
-        elif p > 1:
-            t = lu.create_var(size)
-            one = lu.create_const(np.mat(np.ones(size)), size)
-            return t, gm_constrs(x, [t, one], w)
-        elif p < 0:
-            t = lu.create_var(size)
-            one = lu.create_const(np.mat(np.ones(size)), size)
-            return t, gm_constrs(one, [x, t], w)
         else:
-            raise NotImplementedError('this power is not yet supported.')
+            one = lu.create_const(np.mat(np.ones(size)), size)
+            if p == 0:
+                return one, []
+            else:
+                t = lu.create_var(size)
 
-
-        # x = arg_objs[0]
-        # t = lu.create_var(x.size)
-        # constraints = [lu.create_geq(lu.sum_expr([x, t])),
-        #                lu.create_leq(x, t),
-        # ]
-        # return (t, constraints)
+                if 0 < p < 1:
+                    return t, gm_constrs(t, [x, one], w)
+                elif p > 1:
+                    return t, gm_constrs(x, [t, one], w)
+                elif p < 0:
+                    return t, gm_constrs(one, [x, t], w)
+                else:
+                    raise NotImplementedError('this power is not yet supported.')
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
