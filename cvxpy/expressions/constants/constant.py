@@ -37,6 +37,7 @@ class Constant(Leaf):
             self._sparse = False
         # Set DCP attributes.
         self.init_dcp_attr()
+        super(Constant, self).__init__()
 
     def name(self):
         return str(self.value)

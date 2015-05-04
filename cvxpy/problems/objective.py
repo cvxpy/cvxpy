@@ -28,43 +28,43 @@ class Minimize(u.Canonical):
     NAME = "minimize"
 
     def __init__(self, expr):
-        self._expr = Expression.cast_to_const(expr)
+        self.args = [Expression.cast_to_const(expr)]
         # Validate that the objective resolves to a scalar.
-        if self._expr.size != (1, 1):
+        if self.args[0].size != (1, 1):
             raise Exception("The '%s' objective must resolve to a scalar."
                             % self.NAME)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, repr(self._expr))
+        return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
 
     def __str__(self):
-        return ' '.join([self.NAME, self._expr.name()])
+        return ' '.join([self.NAME, self.args[0].name()])
 
     def canonicalize(self):
         """Pass on the target expression's objective and constraints.
         """
-        return self._expr.canonical_form
+        return self.args[0].canonical_form
 
     def variables(self):
         """Returns the variables in the objective.
         """
-        return self._expr.variables()
+        return self.args[0].variables()
 
     def parameters(self):
         """Returns the parameters in the objective.
         """
-        return self._expr.parameters()
+        return self.args[0].parameters()
 
     def is_dcp(self):
         """The objective must be convex.
         """
-        return self._expr.is_convex()
+        return self.args[0].is_convex()
 
     @property
     def value(self):
         """The value of the objective expression.
         """
-        return self._expr.value
+        return self.args[0].value
 
     @staticmethod
     def primal_to_result(result):
@@ -87,7 +87,7 @@ class Maximize(Minimize):
     def is_dcp(self):
         """The objective must be concave.
         """
-        return self._expr.is_concave()
+        return self.args[0].is_concave()
 
     @staticmethod
     def primal_to_result(result):

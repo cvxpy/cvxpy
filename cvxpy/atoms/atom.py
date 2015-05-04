@@ -44,7 +44,6 @@ class Atom(Expression):
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self.init_dcp_attr()
-        self.subexpressions = self.args
 
     # Returns the string representation of the function call.
     def name(self):
@@ -178,7 +177,10 @@ class Atom(Expression):
             for arg in self.args:
                 # A argument without a value makes all higher level
                 # values None.
-                if arg.value is None:
+                # But if the atom is constant with non-constant
+                # arguments it doesn't depend on its arguments,
+                # so it isn't None.
+                if arg.value is None and not self.is_constant():
                     return None
                 else:
                     arg_values.append(arg.value)
