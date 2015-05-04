@@ -38,7 +38,6 @@ class AddExpression(AffAtom):
         self.args = []
         for group in arg_groups:
             self.args += self.expand_args(group)
-        self.subexpressions = self.args
 
     def init_dcp_attr(self):
         self._dcp_attr = reduce(op.add, [arg._dcp_attr for arg in self.args])

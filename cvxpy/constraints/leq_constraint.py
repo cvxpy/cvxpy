@@ -25,9 +25,10 @@ class LeqConstraint(u.Canonical, Constraint):
     OP_NAME = "<="
     TOLERANCE = 1e-4
     def __init__(self, lh_exp, rh_exp):
-        self.lh_exp = lh_exp
+        self.args = [lh_exp, rh_exp]
+        self.args[0] = lh_exp
         self.rh_exp = rh_exp
-        self._expr = self.lh_exp - self.rh_exp
+        self._expr = self.args[0] - self.rh_exp
         self._dual_value = None
         super(LeqConstraint, self).__init__()
 
@@ -38,9 +39,9 @@ class LeqConstraint(u.Canonical, Constraint):
         return self.constr_id
 
     def name(self):
-        return ' '.join([str(self.lh_exp),
+        return ' '.join([str(self.args[0]),
                          self.OP_NAME,
-                         str(self.rh_exp)])
+                         str(self.args[1])])
 
     def __str__(self):
         """Returns a string showing the mathematical constraint.
@@ -51,8 +52,8 @@ class LeqConstraint(u.Canonical, Constraint):
         """Returns a string with information about the constraint.
         """
         return "%s(%s, %s)" % (self.__class__.__name__,
-                               repr(self.lh_exp),
-                               repr(self.rh_exp))
+                               repr(self.args[0]),
+                               repr(self.args[1]))
 
     def __nonzero__(self):
         """Raises an exception when called.

@@ -44,7 +44,6 @@ class Atom(Expression):
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self.init_dcp_attr()
-        self.subexpressions = self.args
 
     # Returns the string representation of the function call.
     def name(self):
