@@ -18,27 +18,39 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from fractions import Fraction
-from cvxpy.constraints import SOC
+from cvxpy.constraints import SOC, SOC_Elemwise
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+from cvxpy.atoms.affine.index import index
+from collections import defaultdict
 
 two = lu.create_const(2, (1, 1))
+#
+# def gm(t, x, y):
+#     """ Form the basic second order cone constraint to form the geometric mean expression
+#         w <= sqrt(x*y)
+#         SOC(x + y, [y - x, 2*w])
+#     """
+#     # t <= sqrt(x*y)
+#     # SOC(x + y, [y - x, 2*t])
+#     return SOC(lu.sum_expr([x, y]),
+#                [lu.sub_expr(x, y),
+#                 lu.mul_expr(two, t, (1, 1))])
 
 
 def gm(t, x, y):
-    """ Form the basic second order cone constraint to form the geometric mean expression
-        w <= sqrt(x*y)
-        SOC(x + y, [y - x, 2*w])
-    """
-    # t <= sqrt(x*y)
-    # SOC(x + y, [y - x, 2*t])
-    return SOC(lu.sum_expr([x, y]),
+    two = lu.create_const(2, (1, 1))
+    return SOC_Elemwise(lu.sum_expr([x, y]),
                [lu.sub_expr(x, y),
-                lu.mul_expr(two, t, (1, 1))])
+                lu.mul_expr(two, t, t.size)])
 
 
-def gm_constrs(t, x, p):
+def gm_constrs(t, x_list, p):
     """ Form the internal CXVPY constraints to form the weighted geometric mean t <= x^p.
+
+    t <= x[1]^p[1] * x[1]^p[1] * ... * x[n]^p[n]
+
+    where x and t can either be scalar or matrix variables.
 
     Parameters
     ----------
@@ -46,7 +58,7 @@ def gm_constrs(t, x, p):
     t : cvx.Variable
         The epigraph variable
 
-    x : cvx.Variable
+    x_list : list of cvx.Variable objects
         The vector of input variables. Must be the same length as ``p``.
 
     p : list or tuple of ``int`` and ``Fraction`` objects
@@ -55,12 +67,36 @@ def gm_constrs(t, x, p):
 
     Returns
     -------
-    t : The epigraph variable
-
     constr : list
         list of constraints involving elements of x (and possibly t) to form the geometric mean.
 
     """
+    assert is_weight(p)
+    w = dyad_completion(p)
+
+    tree = decompose(w)
+    d = defaultdict(lambda: lu.create_var(t.size))
+    d[w] = t
+
+    #vars_ = [index.get_index(x, [], i, 0) for i in range(len(w))]
+    if len(x_list) < len(w):
+        x_list += [t]
+
+    assert len(x_list) == len(w)
+
+    for i, (p, v) in enumerate(zip(w, x_list)):
+        if p > 0:
+            tmp = [0]*len(w)
+            tmp[i] = 1
+            d[tuple(tmp)] = v
+
+    constraints = []
+    for elem, children in tree.items():
+        if 1 not in elem:
+            constraints += [gm(d[elem], d[children[0]], d[children[1]])]
+
+    return constraints
+
 
 
 def sanitize_scalar(p):
