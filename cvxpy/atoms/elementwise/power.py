@@ -22,13 +22,29 @@ import cvxpy.lin_ops.lin_utils as lu
 from .elementwise import Elementwise
 import numpy as np
 from fractions import Fraction
-from ...utilities.power_tools import sanitize_scalar, is_power2, gm, gm_constrs
-
-# todo: make p a managed attribute? that way, you can change p on the fly. could be cool...
+from ...utilities.power_tools import sanitize_scalar, is_power2, gm_constrs
 
 
 class power(Elementwise):
-    """ Elementwise power function x^p.
+    r""" Elementwise power function :math:`f(x) = x^p`.
+
+    .. math::
+
+        \begin{array}{ccl}
+        p = 0 & f(x) = 1 & \text{constant, positive} \\
+        p = 1 & f(x) = x & \text{affine, increasing, same sign as $x$} \\
+        p = 2,4,8,\ldots &f(x) = |x|^p  & \text{convex, signed monotonicity, positive} \\
+        p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases} & \text{convex, decreasing, positive} \\
+        0 < p < 1 & f(x) = \begin{cases} x^p & x \geq 0 \\ -\infty & x < 0 \end{cases} & \text{concave, increasing, positive} \\
+        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\ +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}
+        \end{array}
+
+    .. note::
+
+        To get the increasing branch, compose with.
+        To get the symmetric branch, compose with
+        The final monotonicity and curvature depend on the rational approximation of p
+
 
     Parameters
     ----------
@@ -37,6 +53,8 @@ class power(Elementwise):
 
     p : int, float, or Fraction
         Scalar power.
+
+
 
     """
     def __init__(self, x, p):
@@ -76,7 +94,8 @@ class power(Elementwise):
 
     def sign_from_args(self):
         if self.p == 1:
-            return u.Sign.UNKNOWN
+            # same sign as input
+            return self.args[0]._dcp_attr.sign
         else:
             return u.Sign.POSITIVE
 

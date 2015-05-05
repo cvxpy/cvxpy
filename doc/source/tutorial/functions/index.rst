@@ -66,14 +66,14 @@ and returns a scalar.
    * - :ref:`geo_mean(x) <geo_mean>`
 
        :ref:`geo_mean(x, p) <geo_mean>`
-     - :math:`x_1^{1/n} \cdots x_n^{1/n}`
-
-       :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
-     - :math:`x \in \mathbf{R}^n_{+}`
 
        :math:`p \in \mathbf{R}^n_{+}`
 
        :math:`p \neq 0`
+     - :math:`x_1^{1/n} \cdots x_n^{1/n}`
+
+       :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
+     - :math:`x \in \mathbf{R}^n_{+}`
      - |positive| positive
      - |concave| concave
      - |incr| incr.
@@ -367,10 +367,10 @@ scalars, which are promoted.
      - |incr| incr.
 
    * - huber(x, M=1)
-     - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
-     - :math:`x \in \mathbf{R}`
 
        :math:`M \geq 0`
+     - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
+     - :math:`x \in \mathbf{R}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`x \geq 0`
@@ -414,9 +414,9 @@ scalars, which are promoted.
 
    * - mul_elemwise(c, |_| x)
 
-       c constant
+       :math:`c \in \mathbf{R}`
      - c*x
-     - :math:`c,x \in\mathbf{R}`
+     - :math:`x \in\mathbf{R}`
      - sign(c*x)
      - |affine| affine
      - depends |_| on |_| c
@@ -435,11 +435,64 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
+   * - :ref:`power(x, 0) <power>`
+     - :math:`1`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - constant
+     - |_|
+
+   * - :ref:`power(x, 1) <power>`
+     - :math:`x`
+     - :math:`x \in \mathbf{R}`
+     - same as ``x``
+     - |affine| affine
+     - |incr| incr.
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p = 2, 4, 8, \ldots`
+     - :math:`x^p`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+
+       |decr| for :math:`x \leq 0`
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p < 0`
+     - :math:`x^p`
+     - :math:`x > 0`
+     - |positive| positive
+     - |convex| convex
+     - |decr| decr.
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`0 < p < 1`
+     - :math:`x^p`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p > 1,\ p \neq 2, 4, 8, \ldots`
+
+     - :math:`x^p`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+
    * - scalene(x, alpha, beta)
 
-       alpha >= 0
+       :math:`\text{alpha} \geq 0`
 
-       beta >= 0
+       :math:`\text{beta} \geq 0`
      - :math:`\alpha\mathrm{pos}(x)+ \beta\mathrm{neg}(x)`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
@@ -483,11 +536,9 @@ and returns a vector or matrix.
 
    * - conv(c, x)
 
-       c constant
+       :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
-     - :math:`c\in\mathbf{R}^m`
-
-       :math:`x\in \mathbf{R}^n`
+     - :math:`x\in \mathbf{R}^n`
      - depends |_| on |_| c, |_| x
      - |affine| affine
      - depends |_| on |_| c
