@@ -102,19 +102,19 @@ and returns a scalar.
      - None
 
    * - lambda_sum_largest(X, |_| k)
+
+       :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
-
-       :math:`k \in \{1,2,\ldots\}`
      - |unknown| unknown
      - |convex| convex
      - None
 
    * - lambda_sum_smallest(X, |_| k)
+
+       :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
-
-       :math:`k \in \{1,2,\ldots\}`
      - |unknown| unknown
      - |concave| concave
      - None
@@ -219,11 +219,11 @@ and returns a scalar.
 
    * - quad_form(x, P)
 
-       P constant
+       constant :math:`P \in \mathbf{S}^n_+`
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`
 
-       :math:`P \in \mathbf{S}^n_+`
+
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`x_i \geq 0`
@@ -232,11 +232,9 @@ and returns a scalar.
 
    * - quad_form(x, P)
 
-       P constant
+       constant :math:`P \in \mathbf{S}^n_-`
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`
-
-       :math:`P \in \mathbf{S}^n_-`
      - |negative| negative
      - |concave| concave
      - |decr| for :math:`x_i \geq 0`
@@ -245,11 +243,9 @@ and returns a scalar.
 
    * - quad_form(c, X)
 
-       c constant
+       constant :math:`c \in \mathbf{R}^n`
      - :math:`c^T X c`
-     - :math:`c \in \mathbf{R}^n`
-
-       :math:`X \in\mathbf{R}^{n \times n}`
+     - :math:`X \in\mathbf{R}^{n \times n}`
      - depends |_| on |_| c, |_| X
      - |affine| affine
      - depends |_| on |_| c
@@ -275,19 +271,19 @@ and returns a scalar.
      - |incr| incr.
 
    * - sum_largest(X, k)
+
+       :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ largest }X_{ij}`
      - :math:`X \in\mathbf{R}^{n \times m}`
-
-       :math:`k \in \{1,2,\ldots\}`
      - same as X
      - |convex| convex
      - |incr| incr.
 
    * - sum_smallest(X, k)
+
+       :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ smallest }X_{ij}`
      - :math:`X \in\mathbf{R}^{n \times m}`
-
-       :math:`k \in \{1,2,\ldots\}`
      - same as X
      - |concave| concave
      - |incr| incr.
