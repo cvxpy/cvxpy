@@ -53,7 +53,8 @@ class BinaryOperator(AffAtom):
 
     # Validate the dimensions.
     def validate_arguments(self):
-        self.OP_FUNC(self.args[0].shape, self.args[1].shape)
+        self.OP_FUNC(self.args[0]._dcp_attr.shape,
+                     self.args[1]._dcp_attr.shape)
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"

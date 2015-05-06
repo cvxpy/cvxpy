@@ -19,6 +19,9 @@ Version 1.0 (targets)
 
 Version 0.2.21 (next release)
 -----------------------------
+* Made operator overloading work with scipy sparse matrices.
+* Removed Expression shape function.
+* Removed Expression __array__ function.
 
 Version 0.2.20
 --------------
