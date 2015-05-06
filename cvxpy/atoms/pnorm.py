@@ -20,35 +20,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.atoms.affine.sum_entries import sum_entries
-from numpy import linalg as LA
 import numpy as np
-from ..utilities.power_tools import sanitize_scalar, pow_high
+from ..utilities.power_tools import sanitize_scalar, pow_high, gm_constrs
+from cvxpy.constraints.second_order import SOC
 
 # todo: OK, we've got a couple of (vector and matrix) norms here. maybe we dispatch to a pnorm (vector) atom
 
 # todo: make sure (along with power and geo_mean) that we don't make extra variables and constraints if we don't need
 # to, in the case where we have trivial powers like (0, 1, 0)
-
-# def pnorm(x, p=2):
-#
-#     x = Expression.cast_to_const(x)
-#     if p == 1:
-#         return norm1(x)
-#     elif p == "inf":
-#         return normInf(x)
-#     elif p == "nuc":
-#         return normNuc(x)
-#     elif p == "fro":
-#         return norm2(x)
-#     elif p == 2:
-#         if x.is_matrix():
-#             return sigma_max(x)
-#         else:
-#             return norm2(x)
-#     else:
-#         raise Exception("Invalid value %s for p." % p)
 
 
 class pnorm(Atom):
@@ -117,12 +96,14 @@ class pnorm(Atom):
     """
     def __init__(self, x, p=2, max_denom=1024):
         if p in ('inf', 'Inf', np.inf):
-            self.p, self.w = np.inf, None
+            p, w = np.inf, None
         elif p < 1:
             raise ValueError("Norm must have p >= 1. {} is an invalid input.".format(p))
-        else:
+        elif p > 1:
             p = sanitize_scalar(p)
             p, w = pow_high(p, max_denom)
+        elif p == 1:
+            p, w = 1, None
 
         if p == 1:
             self.p, self.w = 1, None
@@ -189,17 +170,25 @@ class pnorm(Atom):
             (LinOp for objective, list of constraints)
         """
         p, w = data
+        x = arg_objs[0]
+        t = lu.create_var((1, 1))
 
-        if p == 1:
-            pass
-        elif p == 2:
-            raise NotImplementedError('p={} is not yet implemented'.format(p))
+        if p == 2:
+            return t, [SOC(t, [x])]
         elif p == np.inf:
-            raise NotImplementedError('p={} is not yet implemented'.format(p))
+            promoted_t = lu.promote(t, x.size)
+            constraints = [lu.create_geq(lu.sum_expr([x, promoted_t])),
+                           lu.create_leq(x, promoted_t)]
+            return t, constraints
         else:
-            raise NotImplementedError('p={} is not yet implemented'.format(p))
-
-        # x = arg_objs[0]
-        # obj, abs_constr = abs.graph_implementation([x], x.size)
-        # obj, sum_constr = sum_entries.graph_implementation([obj], (1, 1))
-        # return (obj, abs_constr + sum_constr)
+            r = lu.create_var(x.size)
+            constraints = [lu.create_geq(lu.sum_expr([x, r])),
+                           lu.create_leq(x, r)]
+            if p == 1:
+                return lu.sum_entries(r), constraints
+            else:
+                promoted_t = lu.promote(t, x.size)
+                s = lu.create_var(x.size)
+                constraints += gm_constrs(r, [s, promoted_t], w)
+                constraints += [lu.create_leq(lu.sum_entries(s), t)]
+                return t, constraints
