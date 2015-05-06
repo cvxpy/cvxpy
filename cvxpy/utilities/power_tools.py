@@ -69,8 +69,6 @@ def gm_constrs(t, x_list, p):
         list of constraints involving elements of x (and possibly t) to form the geometric mean.
 
     """
-    # todo: is x_list the best way to organize the variables? some CVXPY construct I should be using? a matrix where I name the dimensions?
-    # todo: OK to always use SOC_elemwise? why even have regular SOC?
     assert is_weight(p)
     w = dyad_completion(p)
 
@@ -114,6 +112,45 @@ def sanitize_scalar(p):
         return Fraction(int(p.numerator), int(p.denominator))
     else:
         return p
+
+
+def pow_high(p, max_denom=1024):
+    """ Return (t,1,x) power tuple
+
+        x <= t^(1/p) 1^(1-1/p)
+
+        user wants the epigraph variable t
+    """
+    assert p > 1
+    p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
+    if 1/p == int(1/p):
+        return int(1/p), (p, 1-p)
+    return 1/p, (p, 1-p)
+
+
+def pow_mid(p, max_denom=1024):
+    """ Return (x,1,t) power tuple
+
+        t <= x^p 1^(1-p)
+
+        user wants the epigraph variable t
+    """
+    assert 0 < p < 1
+    p = Fraction(p).limit_denominator(max_denom)
+    return p, (p, 1-p)
+
+
+def pow_neg(p, max_denom=1024):
+    """ Return (x,t,1) power tuple
+
+        1 <= x^(p/(p-1)) t^(-1/(p-1))
+
+        user wants the epigraph variable t
+    """
+    assert p < 0
+    p = Fraction(p)
+    p = Fraction(p/(p-1)).limit_denominator(max_denom)
+    return p/(p-1), (p, 1-p)
 
 
 def is_power2(num):

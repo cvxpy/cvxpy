@@ -34,6 +34,7 @@ from cvxpy.atoms.norm2 import norm2
 from cvxpy.atoms.norm_inf import normInf
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
+from cvxpy.atoms.pnorm import pnorm
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max

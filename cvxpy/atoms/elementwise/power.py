@@ -21,8 +21,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from .elementwise import Elementwise
 import numpy as np
-from fractions import Fraction
-from ...utilities.power_tools import sanitize_scalar, is_power2, gm_constrs
+from ...utilities.power_tools import sanitize_scalar, is_power2, gm_constrs, pow_mid, pow_high, pow_neg
 
 
 class power(Elementwise):
@@ -234,42 +233,3 @@ class power(Elementwise):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                  self.args[0].name(),
                                  self.p)
-
-
-def pow_high(p, max_denom=1024):
-    """ Return (t,1,x) power tuple
-
-        x <= t^(1/p) 1^(1-1/p)
-
-        user wants the epigraph variable t
-    """
-    assert p > 1
-    p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
-    if 1/p == int(1/p):
-        return int(1/p), (p, 1-p)
-    return 1/p, (p, 1-p)
-
-
-def pow_mid(p, max_denom=1024):
-    """ Return (x,1,t) power tuple
-
-        t <= x^p 1^(1-p)
-
-        user wants the epigraph variable t
-    """
-    assert 0 < p < 1
-    p = Fraction(p).limit_denominator(max_denom)
-    return p, (p, 1-p)
-
-
-def pow_neg(p, max_denom=1024):
-    """ Return (x,t,1) power tuple
-
-        1 <= x^(p/(p-1)) t^(-1/(p-1))
-
-        user wants the epigraph variable t
-    """
-    assert p < 0
-    p = Fraction(p)
-    p = Fraction(p/(p-1)).limit_denominator(max_denom)
-    return p/(p-1), (p, 1-p)
