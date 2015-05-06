@@ -18,10 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from fractions import Fraction
-from cvxpy.constraints import SOC, SOC_Elemwise
+from cvxpy.constraints import SOC_Elemwise
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-from cvxpy.atoms.affine.index import index
 from collections import defaultdict
 
 two = lu.create_const(2, (1, 1))
@@ -39,7 +38,6 @@ two = lu.create_const(2, (1, 1))
 
 
 def gm(t, x, y):
-    two = lu.create_const(2, (1, 1))
     return SOC_Elemwise(lu.sum_expr([x, y]),
                [lu.sub_expr(x, y),
                 lu.mul_expr(two, t, t.size)])
