@@ -102,8 +102,11 @@ def gm_constrs(t, x_list, p):
 
 def sanitize_scalar(p):
     """ Clean input scalar to be Python (and not numpy) `int` or `float` types,
-        and make sure the Fraction's numerator and denominator are `int` and
+        and make sure that a Fraction's numerator and denominator are `int` and
         not `np.int64`.
+
+        We have to do this because if `a` has type np.int64, then
+        ``isinstance(a, int)`` will return False in Python 3, which is usually unintuitive.
     """
     if isinstance(p, np.integer):
         return int(p)

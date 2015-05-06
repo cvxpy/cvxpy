@@ -28,6 +28,8 @@ from ...utilities.power_tools import sanitize_scalar, is_power2, gm_constrs
 class power(Elementwise):
     r""" Elementwise power function :math:`f(x) = x^p`.
 
+    Specifically, the atom is given by the cases
+
     .. math::
 
         \begin{array}{ccl}
@@ -36,14 +38,65 @@ class power(Elementwise):
         p = 2,4,8,\ldots &f(x) = |x|^p  & \text{convex, signed monotonicity, positive} \\
         p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases} & \text{convex, decreasing, positive} \\
         0 < p < 1 & f(x) = \begin{cases} x^p & x \geq 0 \\ -\infty & x < 0 \end{cases} & \text{concave, increasing, positive} \\
-        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\ +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}
+        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\ +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
         \end{array}
 
     .. note::
 
-        To get the increasing branch, compose with.
-        To get the symmetric branch, compose with
-        The final monotonicity and curvature depend on the rational approximation of p
+        Generally, ``p`` cannot be represented exactly, so a rational,
+        i.e., fractional, **approximation** must be made.
+
+        Internally, ``power`` computes a rational approximation
+        to ``p`` with a denominator up to ``max_denom``. The resulting
+        approximation can be found through the attribute ``power.p``.
+        The approximation error is given by the attribute ``power.approx_error``.
+        Increasing ``max_denom`` can give better approximations.
+
+        When ``p`` is an ``int`` or ``Fraction`` object, the approximation
+        is usually **exact**.
+
+    .. note::
+
+        The final domain, sign, monotonicity, and curvature of the ``power`` atom
+        are determined by the rational approximation to ``p``, **not** the input parameter ``p``.
+
+        For example,
+
+        >>> from cvxpy import Variable, power
+        >>> x = Variable()
+        >>> g = power(x, 1.001)
+        >>> g.p
+        Fraction(1001, 1000)
+        >>> g
+        Expression(CONVEX, POSITIVE, (1, 1))
+
+        results in a convex atom with implicit constraint :math:`x \geq 0`, while
+
+        >>> g = power(x, 1.0001)
+        >>> g.p
+        1
+        >>> g
+        Expression(AFFINE, UNKNOWN, (1, 1))
+
+        results in an affine atom with no constraint on ``x``.
+
+
+    When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
+    of the function with full domain,
+
+    .. math::
+
+        f(x) = \begin{cases} x^p & x \geq 0 \\ 0 & x < 0 \end{cases}
+
+    can be formed with the composition ``power(pos(x), p)``.
+
+    The symmetric version with full domain,
+
+    .. math::
+
+        f(x) = |x|^p
+
+    can be formed with the composition ``power(abs(x), p)``.
 
 
     Parameters
@@ -54,20 +107,25 @@ class power(Elementwise):
     p : int, float, or Fraction
         Scalar power.
 
+    max_denom : int
+        The maximum denominator considered in forming a rational approximation of ``p``.
+
 
 
     """
-    def __init__(self, x, p):
+    def __init__(self, x, p, max_denom=1024):
 
         # need to convert p right away to a fraction or integer
         p = sanitize_scalar(p)
+        p_old = p
 
+        # how we convert p to a rational depends on the branch of the function
         if p > 1:
-            p, w = pow_high(p)
+            p, w = pow_high(p, max_denom)
         elif 0 < p < 1:
-            p, w = pow_mid(p)
+            p, w = pow_mid(p, max_denom)
         elif p < 0:
-            p, w = pow_neg(p)
+            p, w = pow_neg(p, max_denom)
 
         # note: if, after making the rational approximation, p ends up being 0 or 1,
         # we default to using the 0 or 1 behavior of the atom, which affects the curvature, domain, etc...
@@ -82,6 +140,8 @@ class power(Elementwise):
             w = None
 
         self.p, self.w = p, w
+
+        self.approx_error = abs(self.p - p_old)
 
         super(power, self).__init__(x)
 
