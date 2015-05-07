@@ -1222,7 +1222,12 @@ class TestProblem(BaseTest):
         self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
         self.assertTrue(np.allclose(x, x_true, 1e-3))
 
-
     def test_power(self):
-        import numpy as np
+        import __builtin__
+        x = Variable()
+        prob = Problem(Minimize(power(x, 1.7) + power(x, -2.3) - power(x, .45)))
+        prob.solve()
+        x = x.value
+        self.assertTrue(__builtin__.abs(1.7*x**.7 - 2.3*x**-3.3 - .45*x**-.55) <= 1e-3)
+
 
