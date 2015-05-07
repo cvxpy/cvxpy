@@ -55,49 +55,6 @@ class pnorm(Atom):
         is usually **exact**.
 
 
-    Notes
-    -----
-
-    For general ``p``, the p-norm is equivalent to the following convex inequalities:
-
-    .. math::
-
-        |x_i| &\leq s_i^{1/p} t^{1 - 1/p}\\
-        \sum_i s_i &\leq t,
-
-    where :math:`p \geq 1`.
-
-    These inequalities are also correct for :math:`p = +\infty` if we interpret :math:`1/\infty` as :math:`0`.
-
-
-    Although the inequalities above are correct, for a few special cases, we can represent the p-norm
-    more efficiently and with fewer variables and inequalities.
-
-    - For :math:`p = 1`, we use the representation
-
-        .. math::
-
-            |x_i| &\leq s_i\\
-            \sum_i s_i &\leq t
-
-    - For :math:`p = \infty`, we use the representation
-
-        .. math::
-
-            |x_i| &\leq t
-
-      Note that we don't need the :math:`s` variables or the sum inequality.
-
-    - For :math:`p = 2`, we use the natural second-order cone representation
-
-        .. math::
-
-            \|x\|_2 \leq t
-
-      Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
-      of a large second-order cone into into several smaller inequalities.
-
-
     Parameters
     ----------
     x : cvxpy.Variable
@@ -109,12 +66,60 @@ class pnorm(Atom):
         The only other valid inputs are ``numpy.inf``, ``float('inf')``, ``float('Inf')``, or
         the strings ``"inf"`` or ``"inf"``, all of which are equivalent and give the infinity norm.
 
+    max_denom : int
+        The maximum denominator considered in forming a rational approximation for ``p``.
+
     Returns
     -------
     Expression
         An Expression representing the norm.
     """
     def __init__(self, x, p=2, max_denom=1024):
+        r""" Implementation notes.
+
+        Notes
+        -----
+
+        For general ``p``, the p-norm is equivalent to the following convex inequalities:
+
+        .. math::
+
+            |x_i| &\leq s_i^{1/p} t^{1 - 1/p}\\
+            \sum_i s_i &\leq t,
+
+        where :math:`p \geq 1`.
+
+        These inequalities are also correct for :math:`p = +\infty` if we interpret :math:`1/\infty` as :math:`0`.
+
+
+        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
+        more efficiently and with fewer variables and inequalities.
+
+        - For :math:`p = 1`, we use the representation
+
+            .. math::
+
+                |x_i| &\leq s_i\\
+                \sum_i s_i &\leq t
+
+        - For :math:`p = \infty`, we use the representation
+
+            .. math::
+
+                |x_i| &\leq t
+
+          Note that we don't need the :math:`s` variables or the sum inequality.
+
+        - For :math:`p = 2`, we use the natural second-order cone representation
+
+            .. math::
+
+                \|x\|_2 \leq t
+
+          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
+          of a large second-order cone into into several smaller inequalities.
+
+        """
         p_old = p
         if p in ('inf', 'Inf', np.inf):
             p, w = np.inf, None
@@ -198,6 +203,8 @@ class pnorm(Atom):
         p, w = data
         x = arg_objs[0]
         t = lu.create_var((1, 1))
+
+        # handle the special cases of p = 1, 2, and np.inf
 
         # todo: clean up this mess of conditionals
         if p == 2:

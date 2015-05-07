@@ -217,6 +217,19 @@ and returns a scalar.
      - |convex| convex
      - None
 
+   * - :ref:`pnorm(x, p) <pnorm>`
+
+       :math:`p \geq 1`
+
+       ``p = 'inf'``
+     - :math:`\|x\|_p`
+     - :math:`x \in \mathbf{R}^n`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`X_{ij} \geq 0`
+
+       |decr| for :math:`X_{ij} \leq 0`
+
    * - quad_form(x, P)
 
        constant :math:`P \in \mathbf{S}^n_+`
