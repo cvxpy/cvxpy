@@ -1221,3 +1221,8 @@ class TestProblem(BaseTest):
         self.assertTrue(np.allclose(prob.value, geo_mean(list(x), p).value))
         self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
         self.assertTrue(np.allclose(x, x_true, 1e-3))
+
+
+    def test_power(self):
+        import numpy as np
+

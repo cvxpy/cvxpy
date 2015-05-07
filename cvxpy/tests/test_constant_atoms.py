@@ -116,6 +116,15 @@ atoms = [
         # #(pow_rat(4,4,2), 16),
         # #(pow_rat(8,4,3), 16),
         # #(pow_rat(8,4,4), 8),
+
+        (lambda x: power(x, 0), (1, 1), [7.45], Constant([1])),
+        (lambda x: power(x, 1), (1, 1), [7.45], Constant([7.45])),
+        (lambda x: power(x, 2), (1, 1), [7.45], Constant([55.502500000000005])),
+        (lambda x: power(x, -1), (1, 1), [7.45], Constant([0.1342281879194631])),
+        (lambda x: power(x, -.7), (1, 1), [7.45], Constant([0.24518314363015764])),
+        (lambda x: power(x, -1.34), (1, 1), [7.45], Constant([0.06781263100321579])),
+        (lambda x: power(x, 1.34), (1, 1), [7.45], Constant([14.746515290825071])),
+
         (quad_over_lin, (1, 1), [ [[-1,2,-2], [-1,2,-2]], 2], Constant([2*4.5])),
         (quad_over_lin, (1, 1), [v, 2], Constant([4.5])),
         # #(square_over_lin(2,4), 1),
@@ -152,6 +161,7 @@ atoms = [
         (geo_mean, (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
         (lambda x: geo_mean(x, [1, 1]), (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
         (lambda x: geo_mean(x, [.4, .8, 4.9]), (1, 1), [[.5, 1.8, 17]], Constant([10.04921378316062])),
+        (lambda x: power(x, .34), (1, 1), [7.45], Constant([1.9793980256141033])),
 
         (lambda_min, (1, 1), [ [[2,0],[0,1]] ], Constant([1])),
         (lambda_min, (1, 1), [ [[5,7],[7,-3]] ], Constant([-7.06225775])),
