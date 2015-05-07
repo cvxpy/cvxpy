@@ -192,8 +192,8 @@ CVXPY has the following dependencies:
 * `CVXOPT`_ >= 1.1.6
 * `ECOS`_ >= 1.0.3
 * `SCS`_ >= 1.0.1
-* `NumPy`_ >= 1.9
-* `SciPy`_ >= 0.15
+* `NumPy`_ >= 1.8
+* `SciPy`_ >= 0.13
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
