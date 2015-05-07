@@ -16,6 +16,7 @@ Version 1.0 (targets)
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
+* TODO bitshift <<, >> for PSD inequality.
 
 Version 0.2.21 (next release)
 -----------------------------
