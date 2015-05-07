@@ -21,7 +21,6 @@ from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
 import numpy as np
 import unittest
 
@@ -81,6 +80,38 @@ class TestAtoms(unittest.TestCase):
         atom = geo_mean(self.x)
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+    # Test the geo_mean class.
+    def test_pnorm(self):
+        atom = pnorm(self.x, p=1.5)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=2)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p='inf')
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p='Inf')
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=np.inf)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
     def test_quad_over_lin(self):

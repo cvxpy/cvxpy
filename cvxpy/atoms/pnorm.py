@@ -189,6 +189,7 @@ class pnorm(Atom):
             else:
                 promoted_t = lu.promote(t, x.size)
                 s = lu.create_var(x.size)
+                # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
                 constraints += gm_constrs(r, [s, promoted_t], w)
                 constraints += [lu.create_leq(lu.sum_entries(s), t)]
                 return t, constraints
