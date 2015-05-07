@@ -38,6 +38,10 @@ class pnorm(Atom):
         \left(\sum_i |x_i|^p \right)^{1/p} \leq t
 
 
+
+    Notes
+    -----
+
     The pnorm can be represented with the following inequalities
 
     .. math::

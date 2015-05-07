@@ -1227,14 +1227,21 @@ class TestProblem(BaseTest):
 
         x = Variable(3, name='x')
 
-        a = np.array([1, 2, 3])
+        a = np.array([1.0, 2, 3])
 
-        for p in (1.6, 1.2, 2, 1.99, 3, 3.7):
+        for p in (1, 1.6, 1.2, 2, 1.99, 3, 3.7, np.inf):
             prob = Problem(Minimize(pnorm(x, p=p)), [x.T*a >= 1])
             prob.solve()
 
             # formula is true for any a >= 0 with p > 1
-            x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))
+            if p == np.inf:
+                x_true = np.ones_like(a)/sum(a)
+            elif p == 1:
+                #only works for the particular a = [1,2,3]
+                x_true = np.array([0, 0, 1.0/3])
+            else:
+                x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))
+
             x_alg = np.array(x.value).flatten()
             self.assertTrue(np.allclose(x_alg, x_true, 1e-3))
             self.assertTrue(np.allclose(prob.value, np.linalg.norm(x_alg, p)))
