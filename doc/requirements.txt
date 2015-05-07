@@ -6,3 +6,4 @@ scipy
 numpy
 ecos
 scs
+recommonmark
