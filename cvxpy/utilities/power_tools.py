@@ -480,7 +480,7 @@ def approx_error(a_orig, w_approx):
     assert len(a_orig) == len(w_approx)
 
     w_orig = np.array(a_orig, dtype=float)/sum(a_orig)
-    return max(abs(v1-v2) for v1, v2 in zip(w_orig, w_approx))
+    return float(max(abs(v1-v2) for v1, v2 in zip(w_orig, w_approx)))
 
 
 def next_pow2(n):

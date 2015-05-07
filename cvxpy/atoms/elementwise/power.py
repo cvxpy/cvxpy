@@ -140,7 +140,7 @@ class power(Elementwise):
 
         self.p, self.w = p, w
 
-        self.approx_error = abs(self.p - p_old)
+        self.approx_error = float(abs(self.p - p_old))
 
         super(power, self).__init__(x)
 

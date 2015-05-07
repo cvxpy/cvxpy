@@ -31,67 +31,83 @@ from cvxpy.constraints.second_order import SOC
 
 
 class pnorm(Atom):
-    r"""Wrapper on the different norm atoms.
+    r"""The p-norm given by
 
     .. math::
 
-        \left(\sum_i |x_i|^p \right)^{1/p} \leq t
+        \left(\sum_i |x_i|^p \right)^{1/p} \leq t,
 
+    where :math:`p \geq 1`. (Including :math:`p = +\infty`.)
+
+    .. note::
+
+        Generally, ``p`` cannot be represented exactly, so a rational,
+        i.e., fractional, **approximation** must be made.
+
+        Internally, ``pnorm`` computes a rational approximation
+        to the reciprocal :math:`1/p` with a denominator up to ``max_denom``.
+        The resulting
+        approximation can be found through the attribute ``pnorm.p``.
+        The approximation error is given by the attribute ``pnorm.approx_error``.
+        Increasing ``max_denom`` can give better approximations.
+
+        When ``p`` is an ``int`` or ``Fraction`` object, the approximation
+        is usually **exact**.
 
 
     Notes
     -----
 
-    The pnorm can be represented with the following inequalities
+    For general ``p``, the p-norm is equivalent to the following convex inequalities:
 
     .. math::
 
         |x_i| &\leq s_i^{1/p} t^{1 - 1/p}\\
         \sum_i s_i &\leq t,
 
-    where :math:`p \geq 1`. (If we do it right, :math:`p = \infty` should also work.)
+    where :math:`p \geq 1`.
 
-    The following are the special cases which we'd like to just automatically work.
-    One thing to figure out is if we always need to form the extra variable for the absolute value term.
+    These inequalities are also correct for :math:`p = +\infty` if we interpret :math:`1/\infty` as :math:`0`.
 
-    - for :math:`p = 1`, we get
 
-        .. math::
+    Although the inequalities above are correct, for a few special cases, we can represent the p-norm
+    more efficiently and with fewer variables and inequalities.
 
-            |x_i| &\leq s_i^1 t^0\\
-            \sum_i s_i &\leq t
-
-      Note that we don't need the first inequality here, we just need the sum of absolute values
-
-    - for :math:`p = \infty`
+    - For :math:`p = 1`, we use the representation
 
         .. math::
 
-            |x_i| &\leq s_i^0 t^1\\
+            |x_i| &\leq s_i\\
             \sum_i s_i &\leq t
 
-      Here, we don't need the s variables, and we don't need the sum inequality
-
-    - for :math:`p = 2`
+    - For :math:`p = \infty`, we use the representation
 
         .. math::
 
-            |x_i| &\leq s_i^{1/2} t^{1/2}\\
-            \sum_i s_i &\leq t
+            |x_i| &\leq t
 
-      Since we can represent this natively, there's no need to do it this way. we can just use SOC,
-      so this should be a special case.
+      Note that we don't need the :math:`s` variables or the sum inequality.
 
-      Although, its cool that we have this alternate decomposition. Maybe we should bake it in so
-      that alternate decomps are always possible, just because its cool.
+    - For :math:`p = 2`, we use the natural second-order cone representation
+
+        .. math::
+
+            \|x\|_2 \leq t
+
+      Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
+      of a large second-order cone into into several smaller inequalities.
 
 
     Parameters
     ----------
-    x : Expression or numeric constant
+    x : cvxpy.Variable
         The value to take the norm of.
+
     p : int, float, Fraction, or string
-        The type of norm.
+        If ``p`` is an ``int``, ``float``, or ``Fraction`` then we must have :math:`p \geq 1`.
+
+        The only other valid inputs are ``numpy.inf``, ``float('inf')``, ``float('Inf')``, or
+        the strings ``"inf"`` or ``"inf"``, all of which are equivalent and give the infinity norm.
 
     Returns
     -------
@@ -99,6 +115,7 @@ class pnorm(Atom):
         An Expression representing the norm.
     """
     def __init__(self, x, p=2, max_denom=1024):
+        p_old = p
         if p in ('inf', 'Inf', np.inf):
             p, w = np.inf, None
         elif p < 1:
@@ -117,6 +134,11 @@ class pnorm(Atom):
             self.p, self.w = p, w
 
         super(pnorm, self).__init__(x)
+
+        if self.p == np.inf:
+            self.approx_error = 0
+        else:
+            self.approx_error = float(abs(self.p - p_old))
 
 
     @Atom.numpy_numeric
@@ -177,6 +199,7 @@ class pnorm(Atom):
         x = arg_objs[0]
         t = lu.create_var((1, 1))
 
+        # todo: clean up this mess of conditionals
         if p == 2:
             return t, [SOC(t, [x])]
         elif p == np.inf:
@@ -189,6 +212,7 @@ class pnorm(Atom):
             constraints = [lu.create_geq(lu.sum_expr([x, r])),
                            lu.create_leq(x, r)]
             if p == 1:
+                # todo: can gm_constr handle this elegantly?
                 return lu.sum_entries(r), constraints
             else:
                 promoted_t = lu.promote(t, x.size)
