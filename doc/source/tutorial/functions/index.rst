@@ -222,7 +222,7 @@ and returns a scalar.
        :math:`p \geq 1`
 
        ``p = 'inf'``
-     - :math:`\|x\|_p`
+     - :math:`\|x\|_p = \left(\sum_i |x_i|^p \right)^{1/p}`
      - :math:`x \in \mathbf{R}^n`
      - |positive| positive
      - |convex| convex
