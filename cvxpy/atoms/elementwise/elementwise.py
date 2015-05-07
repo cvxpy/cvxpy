@@ -32,13 +32,13 @@ class Elementwise(Atom):
     def shape_from_args(self):
         """Shape is the same as the sum of the arguments.
         """
-        return reduce(op.add, [arg.shape for arg in self.args])
+        return reduce(op.add, [arg._dcp_attr.shape for arg in self.args])
 
     def validate_arguments(self):
         """
         Verify that all the shapes are the same
         or can be promoted.
         """
-        shape = self.args[0].shape
+        shape = self.args[0]._dcp_attr.shape
         for arg in self.args[1:]:
-            shape = shape + arg.shape
+            shape = shape + arg._dcp_attr.shape
