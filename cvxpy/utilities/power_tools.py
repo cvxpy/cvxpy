@@ -22,6 +22,7 @@ from cvxpy.constraints import SOC_Elemwise
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict
+import numbers
 
 two = lu.create_const(2, (1, 1))
 #
@@ -95,7 +96,7 @@ def gm_constrs(t, x_list, p):
     return constraints
 
 
-
+# todo: maybe this isn't necessary, as long as I use the numbers.Integral test
 def sanitize_scalar(p):
     """ Clean input scalar to be Python (and not numpy) `int` or `float` types,
         and make sure that a Fraction's numerator and denominator are `int` and
@@ -176,7 +177,7 @@ def is_power2(num):
     >>> is_power2(-4)
     False
     """
-    return isinstance(num, int) and num > 0 and not (num & (num - 1))
+    return isinstance(num, numbers.Integral) and num > 0 and not (num & (num - 1))
 
 
 def is_dyad(frac):
@@ -198,7 +199,7 @@ def is_dyad(frac):
     False
 
     """
-    if isinstance(frac, int) and frac >= 0:
+    if isinstance(frac, numbers.Integral) and frac >= 0:
         return True
     elif isinstance(frac, Fraction) and frac >= 0 and is_power2(frac.denominator):
         return True
@@ -249,7 +250,7 @@ def is_weight(w):
     """
     if isinstance(w, np.ndarray):
         w = w.tolist()
-    return (all(v >= 0 and isinstance(v, (int, Fraction)) for v in w)
+    return (all(v >= 0 and isinstance(v, (numbers.Integral, Fraction)) for v in w)
             and sum(w) == 1)
 
 
@@ -375,7 +376,7 @@ def fracify(a, max_denom=1024, force_dyad=False):
     if any(v < 0 for v in a):
         raise ValueError('Input powers must be nonnegative.')
 
-    if not (isinstance(max_denom, int) and max_denom > 0):
+    if not (isinstance(max_denom, numbers.Integral) and max_denom > 0):
         raise ValueError('Input denominator must be an integer.')
 
     if isinstance(a, np.ndarray):
@@ -386,7 +387,7 @@ def fracify(a, max_denom=1024, force_dyad=False):
 
     if force_dyad is True:
         w_frac = make_frac(a, max_denom)
-    elif all(isinstance(v, (int, Fraction)) for v in a):
+    elif all(isinstance(v, (numbers.Integral, Fraction)) for v in a):
         w_frac = tuple(Fraction(v, total) for v in a)
         d = max(v.denominator for v in w_frac)
         if d > max_denom:
@@ -616,7 +617,8 @@ def decompose(w_dyad):
     """
 
     if not is_dyad_weight(w_dyad):
-        return ValueError('input must be a dyadic weight vector.')
+        raise ValueError('input must be a dyadic weight vector. got: {}'.format(w_dyad))
+
     tree = {}
     todo = [tuple(w_dyad)]
     for t in todo:

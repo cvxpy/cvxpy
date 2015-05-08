@@ -23,6 +23,8 @@ from .elementwise import Elementwise
 import numpy as np
 from ...utilities.power_tools import sanitize_scalar, is_power2, gm_constrs, pow_mid, pow_high, pow_neg
 
+# todo: replace sqrt, square, inv, etc with power function. make sure power is using the most efficient representation in these cases
+
 
 class power(Elementwise):
     r""" Elementwise power function :math:`f(x) = x^p`.

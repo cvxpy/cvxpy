@@ -52,11 +52,6 @@ class Expression(u.Canonical):
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 
-    def __array__(self):
-        """Prevents Numpy == from iterating over the Expression.
-        """
-        return np.array([s.NP_EQUAL_STR], dtype="object")
-
     @abc.abstractmethod
     def value(self):
         """Returns the numeric value of the expression.
@@ -146,18 +141,11 @@ class Expression(u.Canonical):
         """
         return self._dcp_attr.sign.is_negative()
 
-    # The shape of the expression, an object.
-    @property
-    def shape(self):
-        """ Returns the shape of the expression.
-        """
-        return self._dcp_attr.shape
-
     @property
     def size(self):
         """ Returns the (row, col) dimensions of the expression.
         """
-        return self.shape.size
+        return self._dcp_attr.shape.size
 
     def is_scalar(self):
         """Is the expression a scalar?

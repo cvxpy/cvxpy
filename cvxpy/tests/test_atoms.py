@@ -70,10 +70,36 @@ class TestAtoms(unittest.TestCase):
         exp = self.x+self.y
         atom = norm2(exp)
         # self.assertEquals(atom.name(), "norm2(x + y)")
-        self.assertEquals(atom.size, (1,1))
+        self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX_KEY)
+
+    # Test the power class.
+    def test_power(self):
+        from fractions import Fraction
+
+        for size in (1, 1), (3, 1), (2, 3):
+            x = Variable(*size)
+            y = Variable(*size)
+            exp = x + y
+
+            for p in 0, 1, 2, 3, 2.7, .67, -1, -2.3, Fraction(4, 5):
+                atom = power(exp, p)
+
+                self.assertEquals(atom.size, size)
+
+                if p > 1 or p < 0:
+                    self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+                elif p == 1:
+                    self.assertEquals(atom.curvature, u.Curvature.AFFINE_KEY)
+                elif p == 0:
+                    self.assertEquals(atom.curvature, u.Curvature.CONSTANT_KEY)
+                else:
+                    self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+
+                if p != 1:
+                    self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
     # Test the geo_mean class.
     def test_geo_mean(self):
