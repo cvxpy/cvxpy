@@ -36,13 +36,6 @@ class TestAtoms(unittest.TestCase):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
-    # Test the norm wrapper.
-    def test_norm(self):
-        with self.assertRaises(Exception) as cm:
-            norm(self.C, 3)
-        self.assertEqual(str(cm.exception),
-            "Invalid value 3 for p.")
-
     # Test the normInf class.
     def test_normInf(self):
         exp = self.x+self.y
