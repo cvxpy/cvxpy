@@ -54,18 +54,6 @@ def transpose():
     from cvxpy.atoms.affine import transpose
     return transpose.transpose
 
-def inv_pos():
-    from cvxpy.atoms.elementwise import inv_pos
-    return inv_pos.inv_pos
-
-def square():
-    from cvxpy.atoms.elementwise import square
-    return square.square
-
-def sqrt():
-    from cvxpy.atoms.elementwise import sqrt
-    return sqrt.sqrt
-
 def power():
     from cvxpy.atoms.elementwise import power
     return power.power

@@ -575,12 +575,6 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, u.Curvature.CONCAVE_KEY)
         exp = self.x**-1
         self.assertEqual(exp.curvature, u.Curvature.CONVEX_KEY)
-        with self.assertRaises(Exception) as cm:
-            (self.x**3)
-        self.assertEqual(str(cm.exception), "Invalid power: 3.")
-        with self.assertRaises(Exception) as cm:
-            (self.x**self.x)
-        self.assertEqual(str(cm.exception), "Power must be a numeric scalar.")
 
     def test_sum(self):
         """Test built-in sum. Not good usage.

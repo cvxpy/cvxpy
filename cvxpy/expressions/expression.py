@@ -182,16 +182,7 @@ class Expression(u.Canonical):
     def __pow__(self, power):
         """The power operator.
         """
-        if not np.isscalar(power):
-            raise TypeError("Power must be a numeric scalar.")
-        elif power == 2:
-            return types.square()(self)
-        elif power == 0.5:
-            return types.sqrt()(self)
-        elif power == -1:
-            return types.inv_pos()(self)
-        else:
-            return types.power()(self, power)
+        return types.power()(self, power)
 
     # Arithmetic operators.
     @staticmethod
