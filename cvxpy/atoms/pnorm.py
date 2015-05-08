@@ -33,8 +33,8 @@ from cvxpy.constraints.second_order import SOC
 class pnorm(Atom):
     r"""The vector p-norm.
 
-     If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
-     of the concatenated columns.
+    If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
+    of the concatenated columns.
 
     The p-norm is given by
 
