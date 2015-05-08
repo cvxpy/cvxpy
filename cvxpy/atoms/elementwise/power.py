@@ -85,21 +85,21 @@ class power(Elementwise):
 
 
     - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
-    of the function with full domain,
+      of the function with full domain,
 
-    .. math::
+      .. math::
 
-        f(x) = \begin{cases} x^p & x \geq 0 \\ 0 & x < 0 \end{cases}
+          f(x) = \begin{cases} x^p & x \geq 0 \\ 0 & x < 0 \end{cases}
 
-    can be formed with the composition ``power(pos(x), p)``.
+      can be formed with the composition ``power(pos(x), p)``.
 
     - The symmetric version with full domain,
 
-    .. math::
+      .. math::
 
-        f(x) = |x|^p
+          f(x) = |x|^p
 
-    can be formed with the composition ``power(abs(x), p)``.
+      can be formed with the composition ``power(abs(x), p)``.
 
 
     Parameters
