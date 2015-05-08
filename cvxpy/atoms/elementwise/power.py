@@ -21,7 +21,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from .elementwise import Elementwise
 import numpy as np
-from ...utilities.power_tools import sanitize_scalar, is_power2, gm_constrs, pow_mid, pow_high, pow_neg
+from ...utilities.power_tools import is_power2, gm_constrs, pow_mid, pow_high, pow_neg
 
 # todo: replace sqrt, square, inv, etc with power function. make sure power is using the most efficient representation in these cases
 
@@ -115,9 +115,6 @@ class power(Elementwise):
 
     """
     def __init__(self, x, p, max_denom=1024):
-
-        # need to convert p right away to a fraction or integer
-        p = sanitize_scalar(p)
         p_old = p
 
         # how we convert p to a rational depends on the branch of the function

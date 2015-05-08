@@ -21,7 +21,7 @@ from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-from ..utilities.power_tools import sanitize_scalar, pow_high, gm_constrs
+from ..utilities.power_tools import pow_high, gm_constrs
 from cvxpy.constraints.second_order import SOC
 
 # todo: OK, we've got a couple of (vector and matrix) norms here. maybe we dispatch to a pnorm (vector) atom
@@ -126,7 +126,6 @@ class pnorm(Atom):
         elif p < 1:
             raise ValueError("Norm must have p >= 1. {} is an invalid input.".format(p))
         elif p > 1:
-            p = sanitize_scalar(p)
             p, w = pow_high(p, max_denom)
         elif p == 1:
             p, w = 1, None
