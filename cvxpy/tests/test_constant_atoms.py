@@ -103,6 +103,15 @@ atoms = [
             Constant([10])),
         (lambda x: mixed_norm(x,1,'inf'), (1, 1), [ [[1,4],[5,6]] ],
             Constant([10])),
+
+        (pnorm, (1, 1), [[1, 2, 3]], Constant([3.7416573867739413])),
+        (lambda x: pnorm(x, 1), (1, 1), [[1.1, 2, -3]], Constant([6.1])),
+        (lambda x: pnorm(x, 2), (1, 1), [[1.1, 2, -3]], Constant([3.7696153649941531])),
+        (lambda x: pnorm(x, 'inf'), (1, 1), [[1.1, 2, -3]], Constant([3])),
+        (lambda x: pnorm(x, 3), (1, 1), [[1.1, 2, -3]], Constant([3.3120161866074733])),
+        (lambda x: pnorm(x, 5.6), (1, 1), [[1.1, 2, -3]], Constant([3.0548953718931089])),
+        (lambda x: pnorm(x, 1.2), (1, 1), [[[1, 2, 3], [4, 5, 6]]], Constant([15.971021676279573])),
+
         (pos, (1, 1), [8], Constant([8])),
         (pos, (2, 1), [ [-3,2] ], Constant([0,2])),
         (neg, (2, 1), [ [-3,3] ], Constant([3,0])),
@@ -161,8 +170,6 @@ atoms = [
         (geo_mean, (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
         (lambda x: geo_mean(x, [1, 1]), (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
         (lambda x: geo_mean(x, [.4, .8, 4.9]), (1, 1), [[.5, 1.8, 17]], Constant([10.04921378316062])),
-        (lambda x: power(x, .34), (1, 1), [7.45], Constant([1.9793980256141033])),
-
         (lambda_min, (1, 1), [ [[2,0],[0,1]] ], Constant([1])),
         (lambda_min, (1, 1), [ [[5,7],[7,-3]] ], Constant([-7.06225775])),
         (lambda x: lambda_sum_smallest(x, 2), (1, 1), [ [[1, 2, 3], [2,4,5], [3,5,6]] ], Constant([-0.34481428])),

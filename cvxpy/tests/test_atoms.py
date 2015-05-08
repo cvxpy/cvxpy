@@ -36,13 +36,6 @@ class TestAtoms(unittest.TestCase):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
-    # Test the norm wrapper.
-    def test_norm(self):
-        with self.assertRaises(Exception) as cm:
-            norm(self.C, 3)
-        self.assertEqual(str(cm.exception),
-            "Invalid value 3 for p.")
-
     # Test the normInf class.
     def test_normInf(self):
         exp = self.x+self.y
@@ -106,6 +99,38 @@ class TestAtoms(unittest.TestCase):
         atom = geo_mean(self.x)
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+    # Test the geo_mean class.
+    def test_pnorm(self):
+        atom = pnorm(self.x, p=1.5)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=2)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p='inf')
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p='Inf')
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=np.inf)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
     def test_quad_over_lin(self):

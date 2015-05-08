@@ -1222,9 +1222,35 @@ class TestProblem(BaseTest):
         self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
         self.assertTrue(np.allclose(x, x_true, 1e-3))
 
+    def test_pnorm(self):
+        import numpy as np
+
+        x = Variable(3, name='x')
+
+        a = np.array([1.0, 2, 3])
+
+        for p in (1, 1.6, 1.2, 2, 1.99, 3, 3.7, np.inf):
+            prob = Problem(Minimize(pnorm(x, p=p)), [x.T*a >= 1])
+            prob.solve()
+
+            # formula is true for any a >= 0 with p > 1
+            if p == np.inf:
+                x_true = np.ones_like(a)/sum(a)
+            elif p == 1:
+                # only works for the particular a = [1,2,3]
+                x_true = np.array([0, 0, 1.0/3])
+            else:
+                x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))
+
+            x_alg = np.array(x.value).flatten()
+            self.assertTrue(np.allclose(x_alg, x_true, 1e-3))
+            self.assertTrue(np.allclose(prob.value, np.linalg.norm(x_alg, p)))
+            self.assertTrue(np.allclose(np.linalg.norm(x_alg, p), pnorm(x_alg, p).value))
+
     def test_power(self):
         x = Variable()
         prob = Problem(Minimize(power(x, 1.7) + power(x, -2.3) - power(x, .45)))
         prob.solve()
         x = x.value
         self.assertTrue(__builtins__['abs'](1.7*x**.7 - 2.3*x**-3.3 - .45*x**-.55) <= 1e-3)
+

@@ -22,6 +22,7 @@ import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 import numpy as np
+import numbers
 
 
 from ..utilities.power_tools import fracify, decompose, approx_error, lower_bound, over_bound, prettydict, gm, gm_constrs
@@ -197,9 +198,6 @@ class geo_mean(Atom):
 
         """
         super(geo_mean, self).__init__(x)
-
-        if not (isinstance(max_denom, int) and max_denom > 0):
-            raise ValueError('max_denom must be a positive integer.')
 
         x = self.args[0]
         if x.size[0] == 1:
