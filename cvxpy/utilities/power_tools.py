@@ -25,18 +25,6 @@ from collections import defaultdict
 import numbers
 
 two = lu.create_const(2, (1, 1))
-#
-# def gm(t, x, y):
-#     """ Form the basic second order cone constraint to form the geometric mean expression
-#         w <= sqrt(x*y)
-#         SOC(x + y, [y - x, 2*w])
-#     """
-#     # t <= sqrt(x*y)
-#     # SOC(x + y, [y - x, 2*t])
-#     return SOC(lu.sum_expr([x, y]),
-#                [lu.sub_expr(x, y),
-#                 lu.mul_expr(two, t, (1, 1))])
-
 
 def gm(t, x, y):
     return SOC_Elemwise(lu.sum_expr([x, y]),

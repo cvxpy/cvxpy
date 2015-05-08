@@ -19,9 +19,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from .elementwise import Elementwise
+from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
-from ...utilities.power_tools import is_power2, gm_constrs, pow_mid, pow_high, pow_neg
+from cvxpy.utilities.power_tools import (is_power2, gm_constrs, pow_mid,
+                                         pow_high, pow_neg)
 
 # todo: replace sqrt, square, inv, etc with power function. make sure power is using the most efficient representation in these cases
 
@@ -169,8 +170,7 @@ class power(Elementwise):
 
     def monotonicity(self):
         if self.p == 0:
-            # todo: is this right? what do do for constant monotonicity
-            return [u.monotonicity.NONMONOTONIC]
+            return [u.monotonicity.INCREASING]
         if self.p == 1:
             return [u.monotonicity.INCREASING]
         if self.p < 0:

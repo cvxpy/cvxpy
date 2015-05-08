@@ -22,7 +22,6 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.atoms.elementwise.square import square
 import numpy as np
 from .power import power
 from fractions import Fraction
