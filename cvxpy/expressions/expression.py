@@ -191,7 +191,7 @@ class Expression(u.Canonical):
         elif power == -1:
             return types.inv_pos()(self)
         else:
-            raise ValueError("Invalid power: %d." % power)
+            return types.power()(self, power)
 
     # Arithmetic operators.
     @staticmethod

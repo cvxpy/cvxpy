@@ -65,3 +65,7 @@ def square():
 def sqrt():
     from cvxpy.atoms.elementwise import sqrt
     return sqrt.sqrt
+
+def power():
+    from cvxpy.atoms.elementwise import power
+    return power.power

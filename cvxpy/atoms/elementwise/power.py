@@ -169,8 +169,7 @@ class power(Elementwise):
 
     def monotonicity(self):
         if self.p == 0:
-            # todo: is this right? what do do for constant monotonicity
-            return [u.monotonicity.NONMONOTONIC]
+            return [u.monotonicity.INCREASING]
         if self.p == 1:
             return [u.monotonicity.INCREASING]
         if self.p < 0:

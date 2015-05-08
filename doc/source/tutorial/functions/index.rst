@@ -12,7 +12,7 @@ Operators
 ---------
 
 The infix operators ``+, -, *, /`` are treated as functions. ``+`` and
-``-`` are certainly affine functions. ``*`` and ``/`` are affine in
+``-`` are affine functions. ``*`` and ``/`` are affine in
 CVXPY because ``expr1*expr2`` is allowed only when one of the
 expressions is constant and ``expr1/expr2`` is allowed only when
 ``expr2`` is a scalar constant.
@@ -36,6 +36,13 @@ Transpose
 
 The transpose of any expression can be obtained using the syntax
 ``expr.T``. Transpose is an affine function.
+
+Power
+^^^^^
+
+For any CVXPY expression ``expr``,
+the power operator ``expr**p`` is equivalent to
+the function ``power(expr, p)``.
 
 Scalar functions
 ----------------
@@ -128,7 +135,7 @@ and returns a scalar.
 
    * - log_sum_exp(X)
      - :math:`\log \left(\sum_{ij}e^{X_{ij}}\right)`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |unknown| unknown
      - |convex| convex
      - |incr| incr.
@@ -144,14 +151,14 @@ and returns a scalar.
 
    * - max_entries(X)
      - :math:`\max_{ij}\left\{ X_{ij}\right\}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |convex| convex
      - |incr| incr.
 
    * - min_entries(X)
      - :math:`\min_{ij}\left\{ X_{ij}\right\}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |concave| concave
      - |incr| incr.
@@ -176,7 +183,7 @@ and returns a scalar.
 
    * - norm(X, "fro")
      - :math:`\sqrt{\sum_{ij}X_{ij}^2 }`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -185,7 +192,7 @@ and returns a scalar.
 
    * - norm(X, 1)
      - :math:`\sum_{ij}\lvert X_{ij} \rvert`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -194,7 +201,7 @@ and returns a scalar.
 
    * - norm(X, "inf")
      - :math:`\max_{ij} \{\lvert X_{ij} \rvert\}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -203,7 +210,7 @@ and returns a scalar.
 
    * - norm(X, "nuc")
      - :math:`\mathrm{tr}\left(\left(X^T X\right)^{1/2}\right)`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - None
@@ -212,7 +219,7 @@ and returns a scalar.
 
        norm(X, 2)
      - :math:`\sqrt{\lambda_{\max}\left(X^T X\right)}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - None
@@ -278,7 +285,7 @@ and returns a scalar.
 
    * - sum_entries(X)
      - :math:`\sum_{ij}X_{ij}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
@@ -287,7 +294,7 @@ and returns a scalar.
 
        :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ largest }X_{ij}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |convex| convex
      - |incr| incr.
@@ -296,14 +303,14 @@ and returns a scalar.
 
        :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ smallest }X_{ij}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |concave| concave
      - |incr| incr.
 
    * - sum_squares(X)
      - :math:`\sum_{ij}X_{ij}^2`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -454,7 +461,7 @@ scalars, which are promoted.
    * - :ref:`power(x, 1) <power>`
      - :math:`x`
      - :math:`x \in \mathbf{R}`
-     - same as ``x``
+     - same as x
      - |affine| affine
      - |incr| incr.
 
@@ -568,30 +575,30 @@ and returns a vector or matrix.
 
    * - hstack(X1, |_| ..., |_| Xk)
      - :math:`\left[\begin{matrix}X_1  \cdots    X_k\end{matrix}\right]`
-     - :math:`X_i \in\mathbf{R}^{n \times m_i}`
+     - :math:`X_i \in\mathbf{R}^{m \times n_i}`
      - sign(sum([x1, |_| ..., |_| xk]))
      - |affine| affine
      - |incr| incr.
 
    * - reshape(X, |_| n', |_| m')
-     - :math:`X' \in\mathbf{R}^{n' \times m'}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X' \in\mathbf{R}^{m' \times n'}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
 
-       :math:`n'm' = nm`
+       :math:`m'n' = mn`
      - same as X
      - |affine| affine
      - |incr| incr.
 
    * - vec(X)
-     - :math:`x' \in\mathbf{R}^{nm}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`x' \in\mathbf{R}^{mn}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
    * - vstack(X1, |_| ..., |_| Xk)
      - :math:`\left[\begin{matrix}X_1  \\ \vdots  \\X_k\end{matrix}\right]`
-     - :math:`X_i \in\mathbf{R}^{n_i \times m}`
+     - :math:`X_i \in\mathbf{R}^{m_i \times n}`
      - sign(sum([x1, |_| ..., |_| xk]))
      - |affine| affine
      - |incr| incr.
@@ -603,11 +610,11 @@ The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
 :math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
 
 The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
-Formally, :math:`x'_i = X_{i \bmod{n}, \left \lfloor{i/n}\right \rfloor }`.
+Formally, :math:`x'_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`X'` of ``reshape(X, n', m')`` is the matrix :math:`X` cast into an :math:`n' \times m'` matrix.
+The output :math:`X'` of ``reshape(X, m', n')`` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`X'` in column-major order.
-Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{n'j + i}`.
+Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{m'j + i}`.
 
 .. |positive| image:: functions_files/positive.svg
               :width: 15px

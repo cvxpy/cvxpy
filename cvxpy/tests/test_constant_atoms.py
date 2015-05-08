@@ -29,6 +29,7 @@ from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.utilities.ordered_set import OrderedSet
 import cvxpy.interface as intf
 import cvxopt
+import numpy as np
 import numpy.linalg as LA
 import math
 from nose.tools import assert_raises
@@ -179,12 +180,9 @@ atoms = [
         (min_elemwise, (2, 2), [ [[-5,2],[-3,-1]],0,[[5,4],[-1,2]] ], Constant([[-5,0],[-3,-1]])),
         (min_entries, (1, 1), [ [[-5,2],[-3,1]] ], Constant([-5])),
         (min_entries, (1, 1), [ [-5,-10] ], Constant([-10])),
-        # #(pow_rat(4,1,2), 2),
-        # #(pow_rat(8,1,3), 2),
-        # #(pow_rat(16,1,4),2),
-        # #(pow_rat(8,2,3), 4),
-        # #(pow_rat(4,2,4), 2),
-        # #(pow_rat(16,3,4),8),
+        (lambda x: x**0.25, (1, 1), [7.45], Constant([7.45**0.25])),
+        (lambda x: x**0.32, (2, 1), [ [7.45, 3.9] ], Constant(np.power(np.array([7.45, 3.9]), 0.32))),
+        (lambda x: x**0.9, (2, 2),  [ [[7.45, 2.2], [4, 7]] ], Constant(np.power(np.array([[7.45, 2.2], [4, 7]]).T, 0.9))),
         (sqrt, (2, 2), [ [[2,4],[16,1]] ], Constant([[1.414213562373095,2],[4,1]])),
         (lambda x: sum_smallest(x, 3), (1, 1), [ [-1,2,3,4,5] ], Constant([-1+2+3])),
         (lambda x: sum_smallest(x, 4), (1, 1), [ [[-3,-4,5],[6,7,8],[9,10,11]] ], Constant([-3-4+5+6])),
@@ -226,9 +224,10 @@ def test_atom():
                 for col in range(size[1]):
                     for solver in [ECOS, SCS, CVXOPT]:
                         # Atoms with Constant arguments.
+                        const_args = [Constant(arg) for arg in args]
                         yield (run_atom,
                                atom,
-                               Problem(objective_type(atom(*args)[row,col])),
+                               Problem(objective_type(atom(*const_args)[row,col])),
                                obj_val[row,col].value,
                                solver)
                         # Atoms with Variable arguments.
