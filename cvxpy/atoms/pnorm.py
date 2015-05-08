@@ -31,7 +31,12 @@ from cvxpy.constraints.second_order import SOC
 
 
 class pnorm(Atom):
-    r"""The p-norm given by
+    r"""The vector p-norm.
+
+     If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
+     of the concatenated columns.
+
+    The p-norm is given by
 
     .. math::
 
@@ -75,51 +80,6 @@ class pnorm(Atom):
         An Expression representing the norm.
     """
     def __init__(self, x, p=2, max_denom=1024):
-        r""" Implementation notes.
-
-        Notes
-        -----
-
-        For general ``p``, the p-norm is equivalent to the following convex inequalities:
-
-        .. math::
-
-            |x_i| &\leq s_i^{1/p} t^{1 - 1/p}\\
-            \sum_i s_i &\leq t,
-
-        where :math:`p \geq 1`.
-
-        These inequalities are also correct for :math:`p = +\infty` if we interpret :math:`1/\infty` as :math:`0`.
-
-
-        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
-        more efficiently and with fewer variables and inequalities.
-
-        - For :math:`p = 1`, we use the representation
-
-            .. math::
-
-                |x_i| &\leq s_i\\
-                \sum_i s_i &\leq t
-
-        - For :math:`p = \infty`, we use the representation
-
-            .. math::
-
-                |x_i| &\leq t
-
-          Note that we don't need the :math:`s` variables or the sum inequality.
-
-        - For :math:`p = 2`, we use the natural second-order cone representation
-
-            .. math::
-
-                \|x\|_2 \leq t
-
-          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
-          of a large second-order cone into into several smaller inequalities.
-
-        """
         p_old = p
         if p in ('inf', 'Inf', np.inf):
             p, w = np.inf, None
@@ -183,7 +143,7 @@ class pnorm(Atom):
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
+        r"""Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
@@ -198,32 +158,82 @@ class pnorm(Atom):
         -------
         tuple
             (LinOp for objective, list of constraints)
+
+        Notes
+        -----
+
+        Implementation notes.
+
+        For general ``p``, the p-norm is equivalent to the following convex inequalities:
+
+        .. math::
+
+            x_i &\leq r_i\\
+            -x_i &\leq r_i\\
+            r_i &\leq s_i^{1/p} t^{1 - 1/p}\\
+            \sum_i s_i &\leq t,
+
+        where :math:`p \geq 1`.
+
+        These inequalities are also correct for :math:`p = +\infty` if we interpret :math:`1/\infty` as :math:`0`.
+
+
+        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
+        more efficiently and with fewer variables and inequalities.
+
+        - For :math:`p = 1`, we use the representation
+
+            .. math::
+
+                x_i &\leq r_i\\
+                -x_i &\leq r_i\\
+                \sum_i r_i &\leq t
+
+        - For :math:`p = \infty`, we use the representation
+
+            .. math::
+
+                x_i &\leq t\\
+                -x_i &\leq t
+
+          Note that we don't need the :math:`s` variables or the sum inequality.
+
+        - For :math:`p = 2`, we use the natural second-order cone representation
+
+            .. math::
+
+                \|x\|_2 \leq t
+
+          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
+          of a large second-order cone into into several smaller inequalities.
+
         """
         p, w = data
         x = arg_objs[0]
-        t = lu.create_var((1, 1))
+        t = None  # dummy value so linter won't complain about initialization
+        if p != 1:
+            t = lu.create_var((1, 1))
 
-        # handle the special cases of p = 1, 2, and np.inf
-
-        # todo: clean up this mess of conditionals
         if p == 2:
             return t, [SOC(t, [x])]
-        elif p == np.inf:
-            promoted_t = lu.promote(t, x.size)
-            constraints = [lu.create_geq(lu.sum_expr([x, promoted_t])),
-                           lu.create_leq(x, promoted_t)]
-            return t, constraints
+
+        if p == np.inf:
+            r = lu.promote(t, x.size)
         else:
             r = lu.create_var(x.size)
-            constraints = [lu.create_geq(lu.sum_expr([x, r])),
-                           lu.create_leq(x, r)]
-            if p == 1:
-                # todo: can gm_constr handle this elegantly?
-                return lu.sum_entries(r), constraints
-            else:
-                promoted_t = lu.promote(t, x.size)
-                s = lu.create_var(x.size)
-                # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
-                constraints += gm_constrs(r, [s, promoted_t], w)
-                constraints += [lu.create_leq(lu.sum_entries(s), t)]
-                return t, constraints
+
+        constraints = [lu.create_geq(lu.sum_expr([x, r])),
+                       lu.create_leq(x, r)]
+
+        if p == 1:
+            return lu.sum_entries(r), constraints
+
+        if p == np.inf:
+            return t, constraints
+
+        # otherwise do case of general p
+        s = lu.create_var(x.size)
+        # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
+        constraints += gm_constrs(r, [s, lu.promote(t, x.size)], w)
+        constraints += [lu.create_leq(lu.sum_entries(s), t)]
+        return t, constraints

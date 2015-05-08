@@ -1237,7 +1237,7 @@ class TestProblem(BaseTest):
             if p == np.inf:
                 x_true = np.ones_like(a)/sum(a)
             elif p == 1:
-                #only works for the particular a = [1,2,3]
+                # only works for the particular a = [1,2,3]
                 x_true = np.array([0, 0, 1.0/3])
             else:
                 x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))

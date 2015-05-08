@@ -217,13 +217,13 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - :ref:`pnorm(x, p) <pnorm>`
+   * - :ref:`pnorm(X, p) <pnorm>`
 
        :math:`p \geq 1`
 
        ``p = 'inf'``
-     - :math:`\|x\|_p = \left(\sum_i |x_i|^p \right)^{1/p}`
-     - :math:`x \in \mathbf{R}^n`
+     - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
+     - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
