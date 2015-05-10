@@ -76,17 +76,27 @@ class MatrixData(object):
         # Cache everything possible.
         self.obj_cache = self._init_matrix_cache(self._dummy_constr(),
                                                  self.sym_data.x_length)
+
+        print "Objective:"
+        print self.obj_cache.constraints
         self._lin_matrix(self.obj_cache, caching=True)
+       
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
         eq_constr, ineq_constr, nonlin_constr = constr_types
         # Equaliy constraints.
         self.eq_cache = self._init_matrix_cache(eq_constr,
                                                 self.sym_data.x_length)
+
+        print "Equality constraints:"
+        print self.eq_cache.constraints
         self._lin_matrix(self.eq_cache, caching=True)
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
                                                   self.sym_data.x_length)
+
+        print "Inequality constraints:"
+        print self.ineq_cache.constraints
         self._lin_matrix(self.ineq_cache, caching=True)
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
