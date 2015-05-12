@@ -1229,7 +1229,9 @@ class TestProblem(BaseTest):
 
         a = np.array([1.0, 2, 3])
 
-        for p in (1, 1.6, 1.2, 2, 1.99, 3, 3.7, np.inf):
+        # todo: add -1, .5, .3, -2.3 and testing positivity constraints
+
+        for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
             prob = Problem(Minimize(pnorm(x, p=p)), [x.T*a >= 1])
             prob.solve()
 
@@ -1243,9 +1245,29 @@ class TestProblem(BaseTest):
                 x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))
 
             x_alg = np.array(x.value).flatten()
-            self.assertTrue(np.allclose(x_alg, x_true, 1e-3))
+            self.assertTrue(np.allclose(x_alg, x_true, 1e-3), 'p = {}'.format(p))
             self.assertTrue(np.allclose(prob.value, np.linalg.norm(x_alg, p)))
             self.assertTrue(np.allclose(np.linalg.norm(x_alg, p), pnorm(x_alg, p).value))
+
+    def test_pnorm_concave(self):
+        import numpy as np
+
+        x = Variable(3, name='x')
+
+        # test positivity constraints
+        a = np.array([-1.0, 2, 3])
+        for p in (-1, .5, .3, -2.3):
+            prob = Problem(Minimize(sum_entries(abs(x-a))), [pnorm(x, p) >= 0])
+            prob.solve()
+
+            self.assertTrue(np.allclose(prob.value, 1))
+
+        a = np.array([1.0, 2, 3])
+        for p in (-1, .5, .3, -2.3):
+            prob = Problem(Minimize(sum_entries(abs(x-a))), [pnorm(x, p) >= 0])
+            prob.solve()
+
+            self.assertTrue(np.allclose(prob.value, 0))
 
     def test_power(self):
         x = Variable()

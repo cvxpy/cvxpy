@@ -85,6 +85,13 @@ and returns a scalar.
      - |concave| concave
      - |incr| incr.
 
+   * - harmonic_mean(x)
+     - :math:`\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}`
+     - :math:`x \in \mathbf{R}^n_{+}`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
    * - kl_div(X, Y)
      - :math:`\sum_{ij} X_{ij} \log(X_{ij}/Y_{ij}) -X_{ij}+Y_{ij}`
      - :math:`X_{ij} > 0`
@@ -228,7 +235,7 @@ and returns a scalar.
 
        :math:`p \geq 1`
 
-       ``p = 'inf'``
+       or ``p = 'inf'``
      - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
@@ -236,6 +243,16 @@ and returns a scalar.
      - |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+
+   * - :ref:`pnorm(X, p) <pnorm>`
+
+       :math:`p < 1`, :math:`p \neq 0`
+     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
+     - :math:`X \in \mathbf{R}^{m \times n}_+`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
 
    * - quad_form(x, P)
 

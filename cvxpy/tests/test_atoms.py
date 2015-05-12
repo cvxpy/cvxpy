@@ -102,6 +102,13 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
     # Test the geo_mean class.
+    def test_harmonic_mean(self):
+        atom = harmonic_mean(self.x)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+    # Test the geo_mean class.
     def test_pnorm(self):
         atom = pnorm(self.x, p=1.5)
         self.assertEquals(atom.size, (1, 1))
@@ -131,6 +138,31 @@ class TestAtoms(unittest.TestCase):
         atom = pnorm(self.x, p=np.inf)
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=.5)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=.7)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-.1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-1.3)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
     def test_quad_over_lin(self):
