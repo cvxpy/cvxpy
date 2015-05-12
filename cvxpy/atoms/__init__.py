@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.kl_div import kl_div
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min

@@ -85,6 +85,13 @@ and returns a scalar.
      - |concave| concave
      - |incr| incr.
 
+   * - harmonic_mean(x)
+     - :math:`\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}`
+     - :math:`x \in \mathbf{R}^n_{+}`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
    * - kl_div(X, Y)
      - :math:`\sum_{ij} X_{ij} \log(X_{ij}/Y_{ij}) -X_{ij}+Y_{ij}`
      - :math:`X_{ij} > 0`
