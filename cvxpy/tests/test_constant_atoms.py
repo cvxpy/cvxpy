@@ -171,6 +171,12 @@ atoms = [
         (geo_mean, (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
         (lambda x: geo_mean(x, [1, 1]), (1, 1), [[1, 10]], Constant([math.sqrt(10)])),
         (lambda x: geo_mean(x, [.4, .8, 4.9]), (1, 1), [[.5, 1.8, 17]], Constant([10.04921378316062])),
+
+        (lambda x: pnorm(x, .5), (1, 1), [[1.1, 2, .1]], Constant([7.724231543909264])),
+        (lambda x: pnorm(x, -.4), (1, 1), [[1.1, 2, .1]], Constant([0.02713620334])),
+        (lambda x: pnorm(x, -1), (1, 1), [[1.1, 2, .1]], Constant([0.0876494023904])),
+        (lambda x: pnorm(x, -2.3), (1, 1), [[1.1, 2, .1]], Constant([0.099781528576])),
+
         (lambda_min, (1, 1), [ [[2,0],[0,1]] ], Constant([1])),
         (lambda_min, (1, 1), [ [[5,7],[7,-3]] ], Constant([-7.06225775])),
         (lambda x: lambda_sum_smallest(x, 2), (1, 1), [ [[1, 2, 3], [2,4,5], [3,5,6]] ], Constant([-0.34481428])),

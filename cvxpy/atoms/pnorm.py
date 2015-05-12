@@ -21,8 +21,9 @@ from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-from ..utilities.power_tools import pow_high, gm_constrs
+from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
+from fractions import Fraction
 
 # todo: OK, we've got a couple of (vector and matrix) norms here. maybe we dispatch to a pnorm (vector) atom
 
@@ -82,20 +83,17 @@ class pnorm(Atom):
     def __init__(self, x, p=2, max_denom=1024):
         p_old = p
         if p in ('inf', 'Inf', np.inf):
-            p, w = np.inf, None
-        elif p < 1:
-            raise ValueError("Norm must have p >= 1. {} is an invalid input.".format(p))
+            self.p = np.inf
+        elif p < 0:
+            self.p, _ = pow_neg(p, max_denom)
+        elif 0 < p < 1:
+            self.p, _ = pow_mid(p, max_denom)
         elif p > 1:
-            p, w = pow_high(p, max_denom)
+            self.p, _ = pow_high(p, max_denom)
         elif p == 1:
-            p, w = 1, None
-
-        if p == 1:
-            self.p, self.w = 1, None
-        if p == 2:
-            self.p, self.w = 2, None
+            self.p = 1
         else:
-            self.p, self.w = p, w
+            raise ValueError('Invalid p: {}'.format(p))
 
         super(pnorm, self).__init__(x)
 
@@ -110,6 +108,13 @@ class pnorm(Atom):
         """Returns the p-norm of x.
         """
         values = np.array(values[0]).flatten()
+
+        if self.p < 1 and np.any(values < 0):
+            return -np.inf
+
+        if self.p < 0 and np.any(values == 0):
+            return 0.0
+
         return np.linalg.norm(values, self.p)
 
 
@@ -126,15 +131,22 @@ class pnorm(Atom):
     def func_curvature(self):
         """Default curvature is convex.
         """
-        return u.Curvature.CONVEX
+        if self.p >= 1:
+            return u.Curvature.CONVEX
+        else:
+            return u.Curvature.CONCAVE
 
     def monotonicity(self):
         """Increasing for positive arguments and decreasing for negative.
         """
-        return [u.monotonicity.SIGNED]
+        if self.p >= 1:
+            return [u.monotonicity.SIGNED]
+        else:
+            return [u.monotonicity.INCREASING]
+
 
     def get_data(self):
-        return self.p, self.w
+        return self.p
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
@@ -208,32 +220,66 @@ class pnorm(Atom):
           of a large second-order cone into into several smaller inequalities.
 
         """
-        p, w = data
+        p = data
+        if p != np.inf:
+            p = Fraction(p)
         x = arg_objs[0]
-        t = None  # dummy value so linter won't complain about initialization
-        if p != 1:
-            t = lu.create_var((1, 1))
+
+        # replace x with abs x early on...
 
         if p == 2:
+            t = lu.create_var((1, 1))
             return t, [SOC(t, [x])]
 
-        if p == np.inf:
-            r = lu.promote(t, x.size)
-        else:
-            r = lu.create_var(x.size)
-
-        constraints = [lu.create_geq(lu.sum_expr([x, r])),
-                       lu.create_leq(x, r)]
-
         if p == 1:
-            return lu.sum_entries(r), constraints
+            absx = lu.create_var(x.size)
+            return lu.sum_entries(absx), [lu.create_leq(x, absx), lu.create_geq(lu.sum_expr([x, absx]))]
 
         if p == np.inf:
-            return t, constraints
+            t = lu.create_var((1, 1))
+            t_big = lu.promote(t, x.size)
+            return t, [lu.create_leq(x, t_big), lu.create_geq(lu.sum_expr([x, t_big]))]
 
-        # otherwise do case of general p
-        s = lu.create_var(x.size)
+
+        # note, don't include -inf, since it is just the min of the entries.
+        # note: if p is a power of two, the absolute value does the right thing
+
+        #todo: replace x with absx if we're in the right situation..
+
+
+        if p > 1:
+            t = lu.create_var(x.size)
+
+            absx = lu.create_var(x.size)
+
+            r = lu.create_var((1, 1))
+
+            constraints = [lu.create_leq(x, absx),
+                           lu.create_geq(lu.sum_expr([x, absx])),
+                           lu.create_eq(lu.sum_entries(t), r)]
+
+            constraints += gm_constrs(absx, [t, lu.promote(r, x.size)], (1/p, 1-1/p))
+
+            return r, constraints
+
+        if p < 0:
+            t = lu.create_var(x.size)
+            r = lu.create_var((1, 1))
+            constraints = [lu.create_eq(lu.sum_entries(t), r)]
+            constraints += gm_constrs(lu.promote(r, x.size), [x, t], (-p/(1-p), 1/(1-p)))
+            return r, constraints
+
+        if 0 < p < 1:
+            t = lu.create_var(x.size)
+            r = lu.create_var((1, 1))
+            constraints = [lu.create_eq(lu.sum_entries(t), r)]
+            constraints += gm_constrs(t, [x, lu.promote(r, x.size)], (p, 1-p))
+            return r, constraints
+
+
+        # first, write the whole thing without abs, and then we'll figure it out later
+        # todo: can gm_constrs handle inf and 1 correctly?
+        # if we need abs, just compose first.
+
         # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
-        constraints += gm_constrs(r, [s, lu.promote(t, x.size)], w)
-        constraints += [lu.create_leq(lu.sum_entries(s), t)]
-        return t, constraints
+

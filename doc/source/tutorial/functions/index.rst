@@ -228,7 +228,7 @@ and returns a scalar.
 
        :math:`p \geq 1`
 
-       ``p = 'inf'``
+       or ``p = 'inf'``
      - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
@@ -236,6 +236,16 @@ and returns a scalar.
      - |incr| for :math:`X_{ij} \geq 0`
 
        |decr| for :math:`X_{ij} \leq 0`
+
+   * - :ref:`pnorm(X, p) <pnorm>`
+
+       :math:`p < 1`, :math:`p \neq 0`
+     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
+     - :math:`X \in \mathbf{R}^{m \times n}_+`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
 
    * - quad_form(x, P)
 

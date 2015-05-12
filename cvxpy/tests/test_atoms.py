@@ -133,6 +133,31 @@ class TestAtoms(unittest.TestCase):
         self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
+        atom = pnorm(self.x, p=.5)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=.7)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-.1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-1.3)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
     def test_quad_over_lin(self):
         # Test quad_over_lin DCP.
         atom = quad_over_lin(square(self.x), self.a)
