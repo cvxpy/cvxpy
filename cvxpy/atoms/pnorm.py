@@ -32,13 +32,28 @@ class pnorm(Atom):
     If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
     of the concatenated columns.
 
-    The p-norm is given by
+    For :math:`p \geq 1`, the p-norm is given by
 
     .. math::
 
-        \left(\sum_i |x_i|^p \right)^{1/p} \leq t,
+        \|x\|_p = \left(\sum_i |x_i|^p \right)^{1/p},
 
-    where :math:`p \geq 1`. (Including :math:`p = +\infty`.)
+    with domain :math:`x \in \mathbf{R}^n`.
+
+    For :math:`p < 1,\ p \neq 0`, the p-norm is given by
+
+    .. math::
+
+        \|x\|_p = \left(\sum_i x_i^p \right)^{1/p},
+
+    with domain :math:`x \in \mathbf{R}^n_+`.
+
+    - Note that the "p-norm" is actually a **norm** only when
+      :math:`p \geq 1` or :math:`p = +\infty`. For these cases,
+      it is convex.
+    - The expression is not defined when :math:`p = 0`.
+    - Otherwise, when :math:`p < 1`, the expression is
+      concave, but it is not a true norm.
 
     .. note::
 
@@ -171,18 +186,34 @@ class pnorm(Atom):
 
         Implementation notes.
 
-        For general ``p``, the p-norm is equivalent to the following convex inequalities:
+        - For general :math:`p \geq 1`, the inequality :math:`\|x\|_p \leq t`
+          is equivalent to the following convex inequalities:
 
-        .. math::
+          .. math::
 
-            x_i &\leq r_i\\
-            -x_i &\leq r_i\\
-            r_i &\leq s_i^{1/p} t^{1 - 1/p}\\
-            \sum_i s_i &\leq t,
+              |x_i| &\leq r_i^{1/p} t^{1 - 1/p}\\
+              \sum_i r_i &= t.
 
-        where :math:`p \geq 1`.
+          These inequalities happen to also be correct for :math:`p = +\infty`,
+          if we interpret :math:`1/\infty` as :math:`0`.
 
-        These inequalities are also correct for :math:`p = +\infty` if we interpret :math:`1/\infty` as :math:`0`.
+        - For general :math:`0 < p < 1`, the inequality :math:`\|x\|_p \geq t`
+          is equivalent to the following convex inequalities:
+
+          .. math::
+
+              r_i &\leq x_i^{p} t^{1 - p}\\
+              \sum_i r_i &= t.
+
+        - For general :math:`p < 0`, the inequality :math:`\|x\|_p \geq t`
+          is equivalent to the following convex inequalities:
+
+          .. math::
+
+              t &\leq x_i^{-p/(1-p)} r_i^{1/(1 - p)}\\
+              \sum_i r_i &= t.
+
+
 
 
         Although the inequalities above are correct, for a few special cases, we can represent the p-norm
@@ -194,7 +225,7 @@ class pnorm(Atom):
 
                 x_i &\leq r_i\\
                 -x_i &\leq r_i\\
-                \sum_i r_i &\leq t
+                \sum_i r_i &= t
 
         - For :math:`p = \infty`, we use the representation
 
@@ -203,7 +234,7 @@ class pnorm(Atom):
                 x_i &\leq t\\
                 -x_i &\leq t
 
-          Note that we don't need the :math:`s` variables or the sum inequality.
+          Note that we don't need the :math:`r` variable or the sum inequality.
 
         - For :math:`p = 2`, we use the natural second-order cone representation
 
