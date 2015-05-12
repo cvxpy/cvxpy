@@ -25,11 +25,6 @@ from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
 from fractions import Fraction
 
-# todo: OK, we've got a couple of (vector and matrix) norms here. maybe we dispatch to a pnorm (vector) atom
-
-# todo: make sure (along with power and geo_mean) that we don't make extra variables and constraints if we don't need
-# to, in the case where we have trivial powers like (0, 1, 0)
-
 
 class pnorm(Atom):
     r"""The vector p-norm.
@@ -221,65 +216,46 @@ class pnorm(Atom):
 
         """
         p = data
-        if p != np.inf:
-            p = Fraction(p)
         x = arg_objs[0]
+        t = lu.create_var((1, 1))
+        constraints = []
 
-        # replace x with abs x early on...
-
+        # first, take care of the special cases of p = 2, inf, and 1
         if p == 2:
-            t = lu.create_var((1, 1))
             return t, [SOC(t, [x])]
 
-        if p == 1:
-            absx = lu.create_var(x.size)
-            return lu.sum_entries(absx), [lu.create_leq(x, absx), lu.create_geq(lu.sum_expr([x, absx]))]
-
         if p == np.inf:
-            t = lu.create_var((1, 1))
-            t_big = lu.promote(t, x.size)
-            return t, [lu.create_leq(x, t_big), lu.create_geq(lu.sum_expr([x, t_big]))]
+            t_ = lu.promote(t, x.size)
+            return t, [lu.create_leq(x, t_), lu.create_geq(lu.sum_expr([x, t_]))]
 
-
-        # note, don't include -inf, since it is just the min of the entries.
-        # note: if p is a power of two, the absolute value does the right thing
-
-        #todo: replace x with absx if we're in the right situation..
-
-
-        if p > 1:
-            t = lu.create_var(x.size)
-
+        # we need an absolute value constraint for the symmetric convex branches (p >= 1)
+        # we alias |x| as x from this point forward to make the code pretty :)
+        if p >= 1:
             absx = lu.create_var(x.size)
+            constraints += [lu.create_leq(x, absx), lu.create_geq(lu.sum_expr([x, absx]))]
+            x = absx
 
-            r = lu.create_var((1, 1))
+        if p == 1:
+            return lu.sum_entries(x), constraints
 
-            constraints = [lu.create_leq(x, absx),
-                           lu.create_geq(lu.sum_expr([x, absx])),
-                           lu.create_eq(lu.sum_entries(t), r)]
+        # now, we take care of the remaining convex and concave branches
+        # to create the rational powers, we need a new variable, r, and
+        # the constraint sum(r) == t
+        r = lu.create_var(x.size)
+        t_ = lu.promote(t, x.size)
+        constraints += [lu.create_eq(lu.sum_entries(r), t)]
 
-            constraints += gm_constrs(absx, [t, lu.promote(r, x.size)], (1/p, 1-1/p))
-
-            return r, constraints
-
+        # make p a fraction so that the input weight to gm_constrs
+        # is a nice tuple of fractions.
+        p = Fraction(p)
         if p < 0:
-            t = lu.create_var(x.size)
-            r = lu.create_var((1, 1))
-            constraints = [lu.create_eq(lu.sum_entries(t), r)]
-            constraints += gm_constrs(lu.promote(r, x.size), [x, t], (-p/(1-p), 1/(1-p)))
-            return r, constraints
-
+            constraints += gm_constrs(t_, [x, r],  (-p/(1-p), 1/(1-p)))
         if 0 < p < 1:
-            t = lu.create_var(x.size)
-            r = lu.create_var((1, 1))
-            constraints = [lu.create_eq(lu.sum_entries(t), r)]
-            constraints += gm_constrs(t, [x, lu.promote(r, x.size)], (p, 1-p))
-            return r, constraints
+            constraints += gm_constrs(r,  [x, t_], (p, 1-p))
+        if p > 1:
+            constraints += gm_constrs(x,  [r, t_], (1/p, 1-1/p))
 
-
-        # first, write the whole thing without abs, and then we'll figure it out later
-        # todo: can gm_constrs handle inf and 1 correctly?
-        # if we need abs, just compose first.
+        return t, constraints
 
         # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
 
