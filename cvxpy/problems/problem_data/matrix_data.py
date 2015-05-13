@@ -78,8 +78,9 @@ class MatrixData(object):
                                                  self.sym_data.x_length)
 
         print "Objective:"
-        print self.obj_cache.constraints
-        self._lin_matrix(self.obj_cache, caching=True)
+        print self.obj_cache.objective
+        # self._lin_matrix(self.obj_cache, caching=True)
+        self._cvx_canon_matrix(self.obj_cache)
        
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
@@ -90,16 +91,33 @@ class MatrixData(object):
 
         print "Equality constraints:"
         print self.eq_cache.constraints
-        self._lin_matrix(self.eq_cache, caching=True)
+        # self._lin_matrix(self.eq_cache, caching=True)
+        self._cvx_canon_matrix(self.eq_cache)
+
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
                                                   self.sym_data.x_length)
 
         print "Inequality constraints:"
         print self.ineq_cache.constraints
-        self._lin_matrix(self.ineq_cache, caching=True)
+        # self._lin_matrix(self.ineq_cache, caching=True)
+        self._cvx_canon_matrix(self.ineq_cache)
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
+
+    def _cvx_canon_matrix(self, mat_cache):
+        V, I, J = mat_cache.coo_tup
+
+        import sys
+        sys.path_append('../../../../../src/')
+        import cvxcanon
+
+        # call into CVXCanon.. expects coo_tup lists back
+        new_V, new_I, new_J = cvxcanon.build_matrix(mat_cache.constraints)
+
+        V.extend(new_V)
+        I.extend(new_I)
+        J.extend(new_J)
 
     def _dummy_constr(self):
         """Returns a dummy constraint for the objective.
