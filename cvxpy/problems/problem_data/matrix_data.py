@@ -199,7 +199,7 @@ class MatrixData(object):
         # Combine the cached data with the parameter data.
         #V, I, J = mat_cache.coo_tup
         import sys
-        sys.path.append('/home/paul/EE364B/CVXcanon/src/')
+        sys.path.append('../../EE364B/CVXcanon/src/')
         import canonInterface
         (V, I, J, b) = canonInterface.get_sparse_matrix(mat_cache.constraints)
         Vp, Ip, Jp = param_cache.coo_tup
