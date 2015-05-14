@@ -197,7 +197,11 @@ class MatrixData(object):
         rows, cols = mat_cache.size
         # Create the constraints matrix.
         # Combine the cached data with the parameter data.
-        V, I, J = mat_cache.coo_tup
+        #V, I, J = mat_cache.coo_tup
+        import sys
+        sys.path.append('/home/paul/EE364B/CVXcanon/src/')
+        import canonInterface
+        (V, I, J, b) = canonInterface.get_sparse_matrix(mat_cache.constraints)
         Vp, Ip, Jp = param_cache.coo_tup
         if len(V) + len(Vp) > 0:
             matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
@@ -207,7 +211,7 @@ class MatrixData(object):
         else: # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
-        combo_vec = mat_cache.const_vec + param_cache.const_vec
+        combo_vec = b + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
         return (matrix, -const_vec)
 
