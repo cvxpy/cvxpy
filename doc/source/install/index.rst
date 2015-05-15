@@ -55,13 +55,16 @@ In the future, make sure you have the ``cvxpy_env`` environment activated whenev
 Ubuntu 14.04
 ------------
 
+The following instructions are for installing CVXPY with Python 2.
+To install CVXPY with Python 3, simply install the Python 3 version of all the packages.
+
 1. Make sure ``apt-get`` is up-to-date.
 
   ::
 
       sudo apt-get update
 
-2. Install ``ATLAS`` and ``gfortran`` (needed for ``scs``).
+2. Install ``ATLAS`` and ``gfortran`` (needed for ``SCS``).
 
    ::
 
@@ -97,13 +100,13 @@ Ubuntu 14.04
 
       pip install --user cvxpy
 
-6. Install ``nose``.
+7. Install ``nose``.
 
   ::
 
        sudo apt-get install python-nose
 
-7. Test the installation with ``nose``.
+8. Test the installation with ``nose``.
 
   ::
 
