@@ -14,11 +14,23 @@ Mac OS X
 
    Follow the instructions on the `website`_.
 
-3. Create a new ``conda`` environment for ``cvxpy``. We'll call it ``cvxpy_env`` in these instructions.
+3. Create a new ``conda`` environment for ``cvxpy``.
+We'll call it ``cvxpy_env`` in these instructions.
+You can use either Python 2 or Python 3.
+
+Use Python 2:
 
    ::
 
      conda create -n cvxpy_env python=2 scipy numpy pip nose
+
+
+Use Python 3:
+
+   ::
+
+     conda create -n cvxpy_env python=3 scipy numpy pip nose
+
 
 4. Activate the new ``conda`` environment.
 
