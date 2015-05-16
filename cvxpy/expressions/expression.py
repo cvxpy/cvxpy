@@ -226,6 +226,11 @@ class Expression(u.Canonical):
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
         elif self.is_constant():
+            # TODO HACK catch c.T*x where c is a NumPy 1D array.
+            if self.size[0] == other.size[0] and \
+               self.size[1] != self.size[0] and \
+               isinstance(self, types.constant()) and self.is_1D_array:
+                self = self.T
             return types.mul_expr()(self, other)
         # Having the constant on the left is more efficient.
         elif self.is_scalar() or other.is_scalar():

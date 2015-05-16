@@ -22,6 +22,7 @@ Version 0.2.21 (next release)
 * Made operator overloading work with scipy sparse matrices (with scipy 0.15).
 * Removed Expression shape function.
 * Removed Expression __array__ function.
+* Caught c.T*x where c is a NumPy 1D array.
 
 Version 0.2.20
 --------------
