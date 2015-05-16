@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.pnorm import pnorm
+import numpy as np
 
-from cvxpy.atoms.elementwise.power import power
 
-
-def square(x):
-    return power(x, 2)
+def harmonic_mean(x):
+    return np.prod(x.size)*pnorm(x, -1)

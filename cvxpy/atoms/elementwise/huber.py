@@ -22,8 +22,9 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.atoms.elementwise.square import square
 import numpy as np
+from .power import power
+from fractions import Fraction
 
 class huber(Elementwise):
     """The Huber function
@@ -116,7 +117,7 @@ class huber(Elementwise):
             M = lu.create_const(M.value, (1, 1))
 
         # n**2 + 2*M*|s|
-        n2, constr_sq = square.graph_implementation([n], size)
+        n2, constr_sq = power.graph_implementation([n], size, (2, (Fraction(1, 2), Fraction(1, 2))))
         abs_s, constr_abs = abs.graph_implementation([s], size)
         M_abs_s = lu.mul_expr(M, abs_s, size)
         obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, size)])

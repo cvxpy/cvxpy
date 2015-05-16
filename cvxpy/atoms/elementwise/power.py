@@ -24,11 +24,12 @@ import numpy as np
 from cvxpy.utilities.power_tools import (is_power2, gm_constrs, pow_mid,
                                          pow_high, pow_neg)
 
-# todo: replace sqrt, square, inv, etc with power function. make sure power is using the most efficient representation in these cases
-
 
 class power(Elementwise):
     r""" Elementwise power function :math:`f(x) = x^p`.
+
+    If ``expr`` is a CVXPY expression, then ``expr**p``
+    is equivalent to ``power(expr, p)``.
 
     Specifically, the atom is given by the cases
 
@@ -83,22 +84,22 @@ class power(Elementwise):
         results in an affine atom with no constraint on ``x``.
 
 
-    When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
-    of the function with full domain,
+    - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
+      of the function with full domain,
 
-    .. math::
+      .. math::
 
-        f(x) = \begin{cases} x^p & x \geq 0 \\ 0 & x < 0 \end{cases}
+          f(x) = \begin{cases} x^p & x \geq 0 \\ 0 & x < 0 \end{cases}
 
-    can be formed with the composition ``power(pos(x), p)``.
+      can be formed with the composition ``power(pos(x), p)``.
 
-    The symmetric version with full domain,
+    - The symmetric version with full domain,
 
-    .. math::
+      .. math::
 
-        f(x) = |x|^p
+          f(x) = |x|^p
 
-    can be formed with the composition ``power(abs(x), p)``.
+      can be formed with the composition ``power(abs(x), p)``.
 
 
     Parameters
