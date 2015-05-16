@@ -78,9 +78,9 @@ class MatrixData(object):
                                                  self.sym_data.x_length)
 
         print "Objective:"
-        print self.obj_cache.objective
-        # self._lin_matrix(self.obj_cache, caching=True)
-        self._cvx_canon_matrix(self.obj_cache)
+        #print self.obj_cache.objective
+        self._lin_matrix(self.obj_cache, caching=True)
+        # self._cvx_canon_matrix(self.obj_cache)
        
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
@@ -90,18 +90,18 @@ class MatrixData(object):
                                                 self.sym_data.x_length)
 
         print "Equality constraints:"
-        print self.eq_cache.constraints
-        # self._lin_matrix(self.eq_cache, caching=True)
-        self._cvx_canon_matrix(self.eq_cache)
+        #print self.eq_cache.constraints
+        self._lin_matrix(self.eq_cache, caching=True)
+        #self._cvx_canon_matrix(self.eq_cache)
 
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
                                                   self.sym_data.x_length)
 
         print "Inequality constraints:"
-        print self.ineq_cache.constraints
-        # self._lin_matrix(self.ineq_cache, caching=True)
-        self._cvx_canon_matrix(self.ineq_cache)
+        #print self.ineq_cache.constraints
+        self._lin_matrix(self.ineq_cache, caching=True)
+        #self._cvx_canon_matrix(self.ineq_cache)
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
 
@@ -110,10 +110,10 @@ class MatrixData(object):
 
         import sys
         sys.path_append('../../../../../src/')
-        import cvxcanon
+        import canonInterface
 
         # call into CVXCanon.. expects coo_tup lists back
-        new_V, new_I, new_J = cvxcanon.build_matrix(mat_cache.constraints)
+        (new_V, new_I, new_J, new_b) = canonInterface.get_sparse_matrix(mat_cache.constraints)
 
         V.extend(new_V)
         I.extend(new_I)
@@ -217,7 +217,7 @@ class MatrixData(object):
         # Combine the cached data with the parameter data.
         #V, I, J = mat_cache.coo_tup
         import sys
-        sys.path.append('../../EE364B/CVXcanon/src/')
+        sys.path.append('../../../../src/')
         import canonInterface
         (V, I, J, b) = canonInterface.get_sparse_matrix(mat_cache.constraints)
         Vp, Ip, Jp = param_cache.coo_tup
