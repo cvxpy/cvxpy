@@ -77,10 +77,8 @@ class MatrixData(object):
         self.obj_cache = self._init_matrix_cache(self._dummy_constr(),
                                                  self.sym_data.x_length)
 
-        print "Objective:"
-        #print self.obj_cache.objective
-        self._lin_matrix(self.obj_cache, caching=True)
-        # self._cvx_canon_matrix(self.obj_cache)
+        # self._lin_matrix(self.obj_cache, caching=True)
+        self._cvx_canon_matrix(self.obj_cache)
        
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
@@ -89,27 +87,25 @@ class MatrixData(object):
         self.eq_cache = self._init_matrix_cache(eq_constr,
                                                 self.sym_data.x_length)
 
-        print "Equality constraints:"
-        #print self.eq_cache.constraints
-        self._lin_matrix(self.eq_cache, caching=True)
-        #self._cvx_canon_matrix(self.eq_cache)
+        # self._lin_matrix(self.eq_cache, caching=True)
+        self._cvx_canon_matrix(self.eq_cache)
 
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
                                                   self.sym_data.x_length)
 
-        print "Inequality constraints:"
-        #print self.ineq_cache.constraints
-        self._lin_matrix(self.ineq_cache, caching=True)
-        #self._cvx_canon_matrix(self.ineq_cache)
+        # self._lin_matrix(self.ineq_cache, caching=True)
+        self._cvx_canon_matrix(self.ineq_cache)
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
+
+        print 'PUSSY'
 
     def _cvx_canon_matrix(self, mat_cache):
         V, I, J = mat_cache.coo_tup
 
         import sys
-        sys.path_append('../../../../../src/')
+        sys.path.append('../../../../../src/')
         import canonInterface
 
         # call into CVXCanon.. expects coo_tup lists back
@@ -118,6 +114,9 @@ class MatrixData(object):
         V.extend(new_V)
         I.extend(new_I)
         J.extend(new_J)
+
+        if len(new_I) > 0:
+            mat_cache.const_vec[min(new_I): max(new_I), :] = new_b
 
     def _dummy_constr(self):
         """Returns a dummy constraint for the objective.
@@ -215,11 +214,7 @@ class MatrixData(object):
         rows, cols = mat_cache.size
         # Create the constraints matrix.
         # Combine the cached data with the parameter data.
-        #V, I, J = mat_cache.coo_tup
-        import sys
-        sys.path.append('../../../../src/')
-        import canonInterface
-        (V, I, J, b) = canonInterface.get_sparse_matrix(mat_cache.constraints)
+        V, I, J = mat_cache.coo_tup
         Vp, Ip, Jp = param_cache.coo_tup
         if len(V) + len(Vp) > 0:
             matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
@@ -229,7 +224,7 @@ class MatrixData(object):
         else: # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
-        combo_vec = b + param_cache.const_vec
+        combo_vec = mat_cache.const_vec + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
         return (matrix, -const_vec)
 

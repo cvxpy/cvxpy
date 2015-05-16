@@ -224,11 +224,7 @@ class Problem(u.Canonical):
                 raise Exception("Problem does not follow DCP rules.")
 
         objective, constraints = self.canonicalize()
-	import sys
-	sys.path.append('/home/paul/EE364B/CVXcanon/src/')
-	from build_lin_op_tree import *        
-	build_lin_op_tree(objective)        
-	
+
 	# Choose a solver/check the chosen solver.
         if solver is None:
             solver_name = Solver.choose_solver(constraints)
