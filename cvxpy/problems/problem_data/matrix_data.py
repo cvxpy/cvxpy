@@ -77,8 +77,12 @@ class MatrixData(object):
         self.obj_cache = self._init_matrix_cache(self._dummy_constr(),
                                                  self.sym_data.x_length)
 
-        # self._lin_matrix(self.obj_cache, caching=True)
-        self._cvx_canon_matrix(self.obj_cache)
+        original = True
+
+        if original:
+            self._lin_matrix(self.obj_cache, caching=True)
+        else:
+            self._cvx_canon_matrix(self.obj_cache)
        
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
@@ -87,19 +91,21 @@ class MatrixData(object):
         self.eq_cache = self._init_matrix_cache(eq_constr,
                                                 self.sym_data.x_length)
 
-        # self._lin_matrix(self.eq_cache, caching=True)
-        self._cvx_canon_matrix(self.eq_cache)
+        if original:
+            self._lin_matrix(self.eq_cache, caching=True)
+        else:
+            self._cvx_canon_matrix(self.eq_cache)
 
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
                                                   self.sym_data.x_length)
 
-        # self._lin_matrix(self.ineq_cache, caching=True)
-        self._cvx_canon_matrix(self.ineq_cache)
+        if original:
+            self._lin_matrix(self.ineq_cache, caching=True)
+        else:
+            self._cvx_canon_matrix(self.ineq_cache)
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
-
-        print 'PUSSY'
 
     def _cvx_canon_matrix(self, mat_cache):
         V, I, J = mat_cache.coo_tup
@@ -115,8 +121,10 @@ class MatrixData(object):
         I.extend(new_I)
         J.extend(new_J)
 
-        if len(new_I) > 0:
-            mat_cache.const_vec[min(new_I): max(new_I), :] = new_b
+        # maybe check the bounds by summing over the sizes
+        # in the constraints?
+        if len(new_I) > 0 and new_b.shape[0] > 0:
+            mat_cache.const_vec[min(new_I): max(new_I) + 1, :] += new_b
 
     def _dummy_constr(self):
         """Returns a dummy constraint for the objective.
@@ -186,6 +194,8 @@ class MatrixData(object):
         tuple
             A (matrix, vector) tuple.
         """
+        # from pdb import set_trace as bp
+        # bp()
         vert_offset = 0
         for constr in mat_cache.constraints:
             # Process the constraint if it has a parameter and not caching
@@ -217,15 +227,23 @@ class MatrixData(object):
         V, I, J = mat_cache.coo_tup
         Vp, Ip, Jp = param_cache.coo_tup
         if len(V) + len(Vp) > 0:
+
+            print 'V: ', (V + Vp)
+            print 'I: ', (I + Ip)
+            print 'J: ', (J + Jp)
+
             matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
             # Convert the constraints matrix to the correct type.
             matrix = self.matrix_intf.const_to_matrix(matrix,
                                                       convert_scalars=True)
         else: # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
+
         # Convert 2D ND arrays to 1D
         combo_vec = mat_cache.const_vec + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
+
+        print 'Constant Vector: ', mat_cache.const_vec
         return (matrix, -const_vec)
 
     def _process_constr(self, constr, mat_cache, vert_offset):
