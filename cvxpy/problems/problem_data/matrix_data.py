@@ -22,6 +22,7 @@ import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
+from pdb import set_trace as bp
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -77,12 +78,12 @@ class MatrixData(object):
         self.obj_cache = self._init_matrix_cache(self._dummy_constr(),
                                                  self.sym_data.x_length)
 
-        original = True
+        original = False
 
         if original:
             self._lin_matrix(self.obj_cache, caching=True)
         else:
-            self._cvx_canon_matrix(self.obj_cache)
+            self._cvx_canon_matrix(self.obj_cache, self.sym_data.var_offsets)
        
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
@@ -94,7 +95,7 @@ class MatrixData(object):
         if original:
             self._lin_matrix(self.eq_cache, caching=True)
         else:
-            self._cvx_canon_matrix(self.eq_cache)
+            self._cvx_canon_matrix(self.eq_cache, self.sym_data.var_offsets)
 
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
@@ -103,11 +104,11 @@ class MatrixData(object):
         if original:
             self._lin_matrix(self.ineq_cache, caching=True)
         else:
-            self._cvx_canon_matrix(self.ineq_cache)
+            self._cvx_canon_matrix(self.ineq_cache, self.sym_data.var_offsets)
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
 
-    def _cvx_canon_matrix(self, mat_cache):
+    def _cvx_canon_matrix(self, mat_cache, var_offsets):
         V, I, J = mat_cache.coo_tup
 
         import sys
@@ -115,7 +116,7 @@ class MatrixData(object):
         import canonInterface
 
         # call into CVXCanon.. expects coo_tup lists back
-        (new_V, new_I, new_J, new_b) = canonInterface.get_sparse_matrix(mat_cache.constraints)
+        (new_V, new_I, new_J, new_b) = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
 
         V.extend(new_V)
         I.extend(new_I)
