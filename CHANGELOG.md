@@ -17,12 +17,16 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.21 (next release)
+Version 0.2.22 (next release)
 -----------------------------
+
+Version 0.2.21
+--------------
 * Made operator overloading work with scipy sparse matrices (with scipy 0.15).
 * Removed Expression shape function.
 * Removed Expression __array__ function.
 * Caught c.T*x where c is a NumPy 1D array.
+* Added power.
 
 Version 0.2.20
 --------------
