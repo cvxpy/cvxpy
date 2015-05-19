@@ -19,6 +19,7 @@ Version 1.0 (targets)
 
 Version 0.2.22 (next release)
 -----------------------------
+* Fixed issue where using "is" instead of "==".
 
 Version 0.2.21
 --------------

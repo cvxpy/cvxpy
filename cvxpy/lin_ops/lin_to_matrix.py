@@ -52,7 +52,7 @@ def get_coefficients(lin_op):
         A list of (id, coefficient) tuples.
     """
     # VARIABLE converts to a giant identity matrix.
-    if lin_op.type is lo.VARIABLE:
+    if lin_op.type == lo.VARIABLE:
         coeffs = var_coeffs(lin_op)
     # Constants convert directly to their value.
     elif lin_op.type in CONSTANT_TYPES:
@@ -83,7 +83,7 @@ def get_constant_coeff(lin_op):
     """
     coeffs = get_coefficients(lin_op)
     for id_, coeff in coeffs:
-        if id_ is lo.CONSTANT_ID:
+        if id_ == lo.CONSTANT_ID:
             return coeff
     return None
 
@@ -116,7 +116,7 @@ def const_mat(lin_op):
     -------
     A numerical constant.
     """
-    if lin_op.type is lo.PARAM:
+    if lin_op.type == lo.PARAM:
         coeff = lin_op.data.value
     elif lin_op.type in [lo.SCALAR_CONST, lo.DENSE_CONST, lo.SPARSE_CONST]:
         coeff = lin_op.data

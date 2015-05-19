@@ -518,7 +518,7 @@ def get_expr_vars(operator):
     list
         A list of (var id, var size) pairs.
     """
-    if operator.type is lo.VARIABLE:
+    if operator.type == lo.VARIABLE:
         return [(operator.data, operator.size)]
     else:
         vars_ = []
@@ -539,7 +539,7 @@ def get_expr_params(operator):
     list
         A list of parameter objects.
     """
-    if operator.type is lo.PARAM:
+    if operator.type == lo.PARAM:
         return operator.data.parameters()
     else:
         params = []
