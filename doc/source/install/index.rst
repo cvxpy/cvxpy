@@ -6,50 +6,32 @@ Install Guide
 Mac OS X
 --------
 
+The following instructions assume you already have Python installed.
+CVXPY supports both Python 2 and Python 3.
+
 1. Install the Command Line Tools for Xcode.
 
    Download from the `Apple developer site <http://developer.apple.com/downloads>`_.
 
-2. Install `Anaconda`_.
+2. If you don't have ``pip`` installed, follow the instructions `here <https://pip.pypa.io/en/latest/installing.html>`_ to install it.
 
-   Follow the instructions on the `website`_.
-
-3. Create a new ``conda`` environment for ``cvxpy``.
-We'll call it ``cvxpy_env`` in these instructions.
-You can use either Python 2 or Python 3.
-
-Use Python 2:
+3. Install ``numpy`` with ``pip`` from the command-line.
 
    ::
 
-     conda create -n cvxpy_env python=2 scipy numpy pip nose
+     pip install numpy
 
-
-Use Python 3:
-
-   ::
-
-     conda create -n cvxpy_env python=3 scipy numpy pip nose
-
-
-4. Activate the new ``conda`` environment.
-
-   ::
-
-     source activate cvxpy_env
-
-In the future, make sure you have the ``cvxpy_env`` environment activated whenever you use ``cvxpy``. You know the environment is activated if you see ``(cvxpy_env)`` on the left hand side of your terminal prompt.
-
-5. Install ``cvxpy`` with ``pip`` from the command-line.
+4. Install ``cvxpy`` with ``pip`` from the command-line.
 
    ::
 
        pip install cvxpy
 
-6. Test the installation with ``nose``.
+5. Test the installation with ``nose``.
 
   ::
 
+       pip install nose
        nosetests cvxpy
 
 Ubuntu 14.04
