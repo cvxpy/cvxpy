@@ -24,6 +24,9 @@ import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
 from pdb import set_trace as bp
 
+# Get seetings for switching CVXcanon
+import cvxpy.settings as s
+
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
 
@@ -78,12 +81,13 @@ class MatrixData(object):
         self.obj_cache = self._init_matrix_cache(self._dummy_constr(),
                                                  self.sym_data.x_length)
 
-        original = False
+        if s.USE_CVXCANON:
+            print "Using CVXCANON"
 
-        if original:
-            self._lin_matrix(self.obj_cache, caching=True)
-        else:
+        if s.USE_CVXCANON:
             self._cvx_canon_matrix(self.obj_cache, self.sym_data.var_offsets)
+        else:
+            self._lin_matrix(self.obj_cache, caching=True)
        
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
@@ -92,19 +96,20 @@ class MatrixData(object):
         self.eq_cache = self._init_matrix_cache(eq_constr,
                                                 self.sym_data.x_length)
 
-        if original:
-            self._lin_matrix(self.eq_cache, caching=True)
-        else:
+        if s.USE_CVXCANON:
             self._cvx_canon_matrix(self.eq_cache, self.sym_data.var_offsets)
+        else:
+            self._lin_matrix(self.eq_cache, caching=True)
 
         # Inequality constraints.
         self.ineq_cache = self._init_matrix_cache(ineq_constr,
                                                   self.sym_data.x_length)
 
-        if original:
-            self._lin_matrix(self.ineq_cache, caching=True)
-        else:
+        if s.USE_CVXCANON:
             self._cvx_canon_matrix(self.ineq_cache, self.sym_data.var_offsets)
+        else:
+            self._lin_matrix(self.ineq_cache, caching=True)
+        
         # Nonlinear constraints.
         self.F = self._nonlin_matrix(nonlin_constr)
 
