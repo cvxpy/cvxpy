@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Use CVXcanon or Not
 USE_CVXCANON = True
+TO_PRINT = False
 
 # Constants for operators.
 PLUS = "+"

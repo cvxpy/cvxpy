@@ -70,7 +70,6 @@ class MatrixData(object):
     vec_intf : interface
         The matrix interface to use for creating the constant vector.
     """
-
     def __init__(self, sym_data, matrix_intf, vec_intf, solver):
         self.sym_data = sym_data
         # A dummy constraint for the objective.
@@ -117,7 +116,7 @@ class MatrixData(object):
         V, I, J = mat_cache.coo_tup
 
         import sys
-        sys.path.append('../../../../../src/')
+        sys.path.append('../../src/python')
         import canonInterface
 
         # call into CVXCanon.. expects coo_tup lists back
@@ -234,9 +233,9 @@ class MatrixData(object):
         Vp, Ip, Jp = param_cache.coo_tup
         if len(V) + len(Vp) > 0:
 
-            print 'V: ', (V + Vp)
-            print 'I: ', (I + Ip)
-            print 'J: ', (J + Jp)
+            # print 'V: ', (V + Vp)
+            # print 'I: ', (I + Ip)
+            # print 'J: ', (J + Jp)
 
             matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
             # Convert the constraints matrix to the correct type.
@@ -249,7 +248,7 @@ class MatrixData(object):
         combo_vec = mat_cache.const_vec + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
 
-        print 'Constant Vector: ', mat_cache.const_vec
+        # print 'Constant Vector: ', mat_cache.const_vec
         return (matrix, -const_vec)
 
     def _process_constr(self, constr, mat_cache, vert_offset):
