@@ -24,8 +24,13 @@ import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
 from pdb import set_trace as bp
 
+import sys
+sys.path.append('../../src/python')
+import canonInterface
+
 # Get seetings for switching CVXcanon
 import cvxpy.settings as s
+
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -87,7 +92,7 @@ class MatrixData(object):
             self._cvx_canon_matrix(self.obj_cache, self.sym_data.var_offsets)
         else:
             self._lin_matrix(self.obj_cache, caching=True)
-       
+
         # Separate constraints based on the solver being used.
         constr_types = solver.split_constr(self.sym_data.constr_map)
         eq_constr, ineq_constr, nonlin_constr = constr_types
@@ -113,23 +118,8 @@ class MatrixData(object):
         self.F = self._nonlin_matrix(nonlin_constr)
 
     def _cvx_canon_matrix(self, mat_cache, var_offsets):
-        V, I, J = mat_cache.coo_tup
-
-        import sys
-        sys.path.append('../../src/python')
-
-        import canonInterface
-
         # call into CVXCanon.. expects coo_tup lists back
-        # problemData, new_const_vec = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
-        # # mat_cache.coo_tup = (problemData.V, problemData.I, problemData.J)
-        # V.extend(problemData.V)
-        # I.extend(problemData.I)
-        # J.extend(problemData.J)
         new_V, new_I, new_J, new_const_vec = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
-        # V.extend(new_V)
-        # I.extend(new_I)
-        # J.extend(new_J)
         mat_cache.coo_tup = (new_V, new_I, new_J)
         mat_cache.const_vec[0:, :] += new_const_vec
 
@@ -239,15 +229,16 @@ class MatrixData(object):
             # print 'I: ', (I + Ip)
             # print 'J: ', (J + Jp)
 
-            # matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
-            
-            # assumes no params
-            matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
+            if s.USE_CVXCANON:
+                # assumes no params
+                matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
+            else:
+                matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
 
             # Convert the constraints matrix to the correct type.
             matrix = self.matrix_intf.const_to_matrix(matrix,
                                                       convert_scalars=True)
-        else: # Empty matrix.
+        else:  # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
 
         # Convert 2D ND arrays to 1D
