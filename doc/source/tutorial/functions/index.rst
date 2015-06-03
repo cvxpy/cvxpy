@@ -101,7 +101,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - lamdba_max(X)
+   * - lambda_max(X)
      - :math:`\lambda_{\max}(X)`
      - :math:`X \in \mathbf{S}^n`
      - |unknown| unknown
