@@ -26,7 +26,6 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.utilities.ordered_set import OrderedSet
 import cvxpy.interface as intf
 import cvxopt
 import numpy as np

@@ -20,6 +20,7 @@ Version 1.0 (targets)
 Version 0.2.22 (next release)
 -----------------------------
 * Fixed issue where using "is" instead of "==".
+* Required SCS version 1.0.7 so 1.1.0 can be updated on pip.
 
 Version 0.2.21
 --------------
