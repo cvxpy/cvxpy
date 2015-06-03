@@ -17,8 +17,11 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.22 (next release)
+Version 0.2.23 (next release)
 -----------------------------
+
+Version 0.2.22
+--------------
 * Fixed issue where using "is" instead of "==".
 * Required SCS version 1.0.7 so 1.1.0 can be updated on pip.
 
