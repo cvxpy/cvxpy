@@ -117,19 +117,26 @@ class MatrixData(object):
 
         import sys
         sys.path.append('../../src/python')
+        
         import canonInterface
+        import numpy as np
 
         # call into CVXCanon.. expects coo_tup lists back
-        (new_V, new_I, new_J, new_b) = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
+        # problemData, new_const_vec = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
+        # # mat_cache.coo_tup = (problemData.V, problemData.I, problemData.J)
+        # V.extend(problemData.V)
+        # I.extend(problemData.I)
+        # J.extend(problemData.J)
+        new_V, new_I, new_J, new_const_vec = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
+        # V.extend(new_V)
+        # I.extend(new_I)
+        # J.extend(new_J)
+        mat_cache.coo_tup = (new_V, new_I, new_J)
 
-        V.extend(new_V)
-        I.extend(new_I)
-        J.extend(new_J)
-
-        # maybe check the bounds by summing over the sizes
-        # in the constraints?
-        if len(new_I) > 0 and new_b.shape[0] > 0:
-            mat_cache.const_vec[min(new_I): max(new_I) + 1, :] += new_b
+        # maybe check the bounds by summing over the sizes (the min and max is REALLY SLOW!!)
+        # in the constraints? (double check this is correct)
+        if len(new_I) > 0 and new_const_vec.shape[0] > 0:
+            mat_cache.const_vec[np.min(new_I): np.max(new_I) + 1, :] += new_const_vec
 
     def _dummy_constr(self):
         """Returns a dummy constraint for the objective.
@@ -237,7 +244,11 @@ class MatrixData(object):
             # print 'I: ', (I + Ip)
             # print 'J: ', (J + Jp)
 
-            matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
+            # matrix = sp.coo_matrix((V + Vp, (I + Ip, J + Jp)), (rows, cols))
+            
+            # assumes no params
+            matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
+
             # Convert the constraints matrix to the correct type.
             matrix = self.matrix_intf.const_to_matrix(matrix,
                                                       convert_scalars=True)
