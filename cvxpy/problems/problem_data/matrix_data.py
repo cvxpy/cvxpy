@@ -119,7 +119,7 @@ class MatrixData(object):
 
     def _cvx_canon_matrix(self, mat_cache, var_offsets):
         # call into CVXCanon.. expects coo_tup lists back
-        new_V, new_I, new_J, new_const_vec = canonInterface.get_sparse_matrix(mat_cache.constraints, var_offsets)
+        new_V, new_I, new_J, new_const_vec = canonInterface.get_problem_matrix(mat_cache.constraints, var_offsets)
         mat_cache.coo_tup = (new_V, new_I, new_J)
         mat_cache.const_vec[0:, :] += new_const_vec
 
