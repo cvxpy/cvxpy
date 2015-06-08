@@ -31,7 +31,7 @@ setup(
                       "ecos >= 1.1.1",
                       "scs >= 1.1",
                       "toolz",
-                      "numpy >= 1.9",
+                      "numpy >= 1.8",
                       "scipy >= 0.13"],
     use_2to3=True,
 )
