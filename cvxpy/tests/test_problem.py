@@ -138,7 +138,7 @@ class TestProblem(BaseTest):
         results_dict = scs.solve(data, args["dims"])
         prob = Problem(Minimize(exp(self.a)), [self.a == 0])
         prob.unpack_results(s.SCS, results_dict)
-        self.assertAlmostEqual(self.a.value, 0, places=4)
+        self.assertAlmostEqual(self.a.value, 0, places=3)
         self.assertAlmostEqual(prob.value, 1, places=3)
         self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
