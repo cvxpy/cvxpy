@@ -282,7 +282,7 @@ class TestProblem(BaseTest):
         obj = 0
         def test(self):
             objective, constraints = self.canonicalize()
-            sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
+            sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
             return (len(sym_data.constr_map[s.EQ]),
                     len(sym_data.constr_map[s.LEQ]))
         Problem.register_solve("test", test)

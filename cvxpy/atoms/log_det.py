@@ -23,7 +23,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
-from cvxpy.constraints.semi_definite import SDP
+from cvxpy.constraints.semidefinite import SDP
 import numpy as np
 from numpy import linalg as LA
 

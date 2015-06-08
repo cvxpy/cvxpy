@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variables.variable import Variable
-from cvxpy.constraints.semi_definite import SDP
+from cvxpy.constraints.semidefinite import SDP
 import cvxpy.expressions.types as types
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
@@ -83,7 +83,7 @@ class SemidefUpperTri(Variable):
                                      sparse=True)
         full_mat = lu.mul_expr(fill_coeff, upper_tri, (self.n*self.n, 1))
         full_mat = lu.reshape(full_mat, (self.n, self.n))
-        return (upper_tri, [SDP(full_mat, is_sym=False)])
+        return (upper_tri, [SDP(full_mat, enforce_sym=False)])
 
     def __repr__(self):
         """String to recreate the object.

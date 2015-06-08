@@ -23,5 +23,5 @@ from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.int_constr import IntConstr
 from cvxpy.constraints.leq_constraint import LeqConstraint
 from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.semi_definite import SDP
+from cvxpy.constraints.semidefinite import SDP
 from cvxpy.constraints.soc_elemwise import SOC_Elemwise
