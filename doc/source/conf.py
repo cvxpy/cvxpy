@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # To import sphinx extensions we've put in the repository:
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
-__version__ = "0.2.22"
+__version__ = "0.2.23"
 
 # -- General configuration -----------------------------------------------------
 
