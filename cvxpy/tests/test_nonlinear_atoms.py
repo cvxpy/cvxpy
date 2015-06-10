@@ -168,7 +168,7 @@ class TestNonlinearAtoms(BaseTest):
             p.solve(solver=CVXOPT, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=SCS, verbose=True)
-            self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
+            self.assertItemsAlmostEqual(x.value, n*[1./n], places=2)
 
     def test_key_error(self):
         """Test examples that caused key error.

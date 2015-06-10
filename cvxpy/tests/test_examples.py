@@ -300,7 +300,7 @@ class TestExamples(BaseTest):
         # Solve with SCS.
         prob.solve(solver=SCS)
         print("optimal value with SCS:", prob.value)
-        self.assertAlmostEqual(prob.value, 6, places=3)
+        self.assertAlmostEqual(prob.value, 6, places=2)
 
         if GLPK in installed_solvers():
             # Solve with GLPK.
