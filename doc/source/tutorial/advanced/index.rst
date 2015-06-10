@@ -125,7 +125,7 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface and `GUROBI`_.
 The table below shows the types of problems the solvers can handle.
 
 +------------+----+------+-----+-----+-----+
@@ -138,6 +138,8 @@ The table below shows the types of problems the solvers can handle.
 | `ECOS`_    | X  | X    |     |     |     |
 +------------+----+------+-----+-----+-----+
 | `ECOS_BB`_ | X  | X    |     |     | X   |
++------------+----+------+-----+-----+-----+
+| `GUROBI`_  | X  | X    |     |     | X   |
 +------------+----+------+-----+-----+-----+
 | `CVXOPT`_  | X  | X    | X   | X   |     |
 +------------+----+------+-----+-----+-----+
@@ -186,6 +188,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GLPK_MI)
     print "optimal value with GLPK_MI:", prob.value
 
+    # Solve with GUROBI.
+    prob.solve(solver=GUROBI)
+    print "optimal value with GUROBI:", prob.value
+
 ::
 
     optimal value with ECOS: 5.99999999551
@@ -194,6 +200,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with SCS: 6.00046055789
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
+    optimal value with GUROBI: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -203,7 +210,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS']
+    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -391,3 +398,4 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
+.. _GUROBI: http://www.gurobi.com/

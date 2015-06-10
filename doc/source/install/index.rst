@@ -171,6 +171,14 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
 
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
+
+Install with GUROBI support
+---------------------------
+
+CVXPY supports the GUROBI solver.
+Simply install GUROBI such that you can ``import gurobipy`` in Python.
+See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
