@@ -20,6 +20,10 @@ Version 1.0 (targets)
 Version 0.2.23 (next release)
 -----------------------------
 
+Version 0.2.23
+--------------
+* Made to work with SCS 1.1.3.
+
 Version 0.2.22
 --------------
 * Fixed issue where using "is" instead of "==".
