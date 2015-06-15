@@ -345,18 +345,10 @@ class TestProblem(BaseTest):
         prob_sum = sum([prob1])
         self.assertEqual(len(prob_sum.constraints), 1)
 
+        # Test Minimize + Maximize
         with self.assertRaises(Exception) as cm:
-            prob_bad_sum_1 = prob1 + 0
-        self.assertEqual(str(cm.exception), "Can only add Problem instances.")
-        with self.assertRaises(Exception) as cm:
-            prob_bad_sum_2 = prob3 + Maximize(self.b)
-        self.assertEqual(str(cm.exception), "Can only add Problem instances.")
-        with self.assertRaises(Exception) as cm:
-            prob_bad_sum3 = prob1 + prob3
-        self.assertEqual(str(cm.exception), "Can only add Problems that are all Minimize or Maximize.")
-        with self.assertRaises(Exception) as cm:
-            prob_bad_sum4 = sum([prob1, 0])
-        self.assertEqual(str(cm.exception), "Can only add Problem instances.")
+            prob_bad_sum = prob1 + prob3
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     # Test scalar LP problems.
     def test_scalar_lp(self):

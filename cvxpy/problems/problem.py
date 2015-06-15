@@ -407,7 +407,7 @@ class Problem(u.Canonical):
 
     def __add__(self, other):
         if not isinstance(other, Problem):
-            raise TypeError("Can only add Problem instances.")
+            return NotImplemented
         # Objectives must both be Minimize or Maximize.
         if type(self.objective) is Minimize and type(
             other.objective) is Minimize:
@@ -420,12 +420,10 @@ class Problem(u.Canonical):
                 self.objective.args[0] + other.objective.args[0]),
                            list(set(self.constraints + other.constraints)))
         else:
-            raise TypeError(
-                "Can only add Problems that are all Minimize or Maximize.")
+            raise Exception("Problem does not follow DCP rules.")
 
     def __radd__(self, other):
         if other == 0:
             return self
         else:
-            raise TypeError("Can only add Problem instances.")
-
+            return NotImplemented
