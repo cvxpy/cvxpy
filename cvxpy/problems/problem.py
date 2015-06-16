@@ -408,19 +408,8 @@ class Problem(u.Canonical):
     def __add__(self, other):
         if not isinstance(other, Problem):
             return NotImplemented
-        # Objectives must both be Minimize or Maximize.
-        if type(self.objective) is Minimize and type(
-            other.objective) is Minimize:
-            return Problem(Minimize(
-                self.objective.args[0] + other.objective.args[0]),
-                           list(set(self.constraints + other.constraints)))
-        elif type(self.objective) is Maximize and type(
-            other.objective) is Maximize:
-            return Problem(Maximize(
-                self.objective.args[0] + other.objective.args[0]),
-                           list(set(self.constraints + other.constraints)))
-        else:
-            raise Exception("Problem does not follow DCP rules.")
+        return Problem(self.objective + other.objective,
+                       list(set(self.constraints + other.constraints)))
 
     def __radd__(self, other):
         if other == 0:
