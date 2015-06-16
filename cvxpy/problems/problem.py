@@ -404,3 +404,15 @@ class Problem(u.Canonical):
     def __repr__(self):
         return "Problem(%s, %s)" % (repr(self.objective),
                                     repr(self.constraints))
+
+    def __add__(self, other):
+        if not isinstance(other, Problem):
+            return NotImplemented
+        return Problem(self.objective + other.objective,
+                       list(set(self.constraints + other.constraints)))
+
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return NotImplemented

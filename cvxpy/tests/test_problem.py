@@ -324,6 +324,32 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, 1)
         self.assertAlmostEqual(var.value, 3)
 
+    # Test adding problems
+    def test_add_problems(self):
+        prob1 = Problem(Minimize(self.a), [self.a >= self.b])
+        prob2 = Problem(Minimize(2*self.b), [self.a >= 1, self.b >= 2])
+        prob_minimize = prob1 + prob2
+        self.assertEqual(len(prob_minimize.constraints), 3)
+        self.assertAlmostEqual(prob_minimize.solve(), 6)
+        prob3 = Problem(Maximize(self.a), [self.b <= 1])
+        prob4 = Problem(Maximize(2*self.b), [self.a <= 2])
+        prob_maximize = prob3 + prob4
+        self.assertEqual(len(prob_maximize.constraints), 2)
+        self.assertAlmostEqual(prob_maximize.solve(), 4)
+
+        # Test using sum function
+        prob5 = Problem(Minimize(3*self.a))
+        prob_sum = sum([prob1, prob2, prob5])
+        self.assertEqual(len(prob_sum.constraints), 3)
+        self.assertAlmostEqual(prob_sum.solve(), 12)
+        prob_sum = sum([prob1])
+        self.assertEqual(len(prob_sum.constraints), 1)
+
+        # Test Minimize + Maximize
+        with self.assertRaises(Exception) as cm:
+            prob_bad_sum = prob1 + prob3
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+
     # Test scalar LP problems.
     def test_scalar_lp(self):
         p = Problem(Minimize(3*self.a), [self.a >= 2])

@@ -40,6 +40,21 @@ class Minimize(u.Canonical):
     def __str__(self):
         return ' '.join([self.NAME, self.args[0].name()])
 
+    def __add__(self, other):
+        if not isinstance(other, (Minimize, Maximize)):
+            return NotImplemented
+        # Objectives must both be Minimize.
+        if type(other) is Minimize:
+            return Minimize(self.args[0] + other.args[0])
+        else:
+            raise Exception("Problem does not follow DCP rules.")
+
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return NotImplemented
+
     def canonicalize(self):
         """Pass on the target expression's objective and constraints.
         """
@@ -77,6 +92,15 @@ class Maximize(Minimize):
     """
 
     NAME = "maximize"
+
+    def __add__(self, other):
+        if not isinstance(other, (Minimize, Maximize)):
+            return NotImplemented
+        # Objectives must both be Maximize.
+        if type(other) is Maximize:
+            return Maximize(self.args[0] + other.args[0])
+        else:
+            raise Exception("Problem does not follow DCP rules.")
 
     def canonicalize(self):
         """Negates the target expression's objective.
