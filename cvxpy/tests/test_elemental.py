@@ -20,12 +20,12 @@ class TestSolvers(BaseTest):
         """Tests basic LPs.
         """
         if ELEMENTAL in installed_solvers():
-            # prob = Problem(Minimize(0), [self.x == 2])
-            # prob.solve(verbose=True, solver=ELEMENTAL)
-            # self.assertAlmostEqual(prob.value, 0)
-            # self.assertItemsAlmostEqual(self.x.value, [2, 2])
-
-            prob = Problem(Minimize(sum_entries(self.x)), [self.x >= 2])
+            prob = Problem(Minimize(0), [self.x == 2])
             prob.solve(verbose=True, solver=ELEMENTAL)
             self.assertAlmostEqual(prob.value, 0)
             self.assertItemsAlmostEqual(self.x.value, [2, 2])
+
+            # prob = Problem(Minimize(self.a), [self.a >= 2])
+            # prob.solve(verbose=True, solver=ELEMENTAL)
+            # self.assertAlmostEqual(prob.value, 0)
+            # self.assertItemsAlmostEqual(self.x.value, [2, 2])
