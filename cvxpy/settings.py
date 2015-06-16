@@ -56,8 +56,9 @@ ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
 GUROBI = "GUROBI"
+ELEMENTAL = "ELEMENTAL"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
-           GLPK_MI, SCS, GUROBI]
+           GLPK_MI, SCS, GUROBI, ELEMENTAL]
 
 # Map of constraint types.
 EQ, LEQ, SOC, SOC_EW, SDP, EXP, BOOL, INT = range(8)

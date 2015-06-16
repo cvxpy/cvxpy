@@ -24,9 +24,10 @@ from cvxpy.problems.solvers.glpk_intf import GLPK
 from cvxpy.problems.solvers.glpk_mi_intf import GLPK_MI
 from cvxpy.problems.solvers.scs_intf import SCS
 from cvxpy.problems.solvers.gurobi_intf import GUROBI
+from cvxpy.problems.solvers.elemental_intf import Elemental
 
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
-               GLPK_MI(), SCS(), GUROBI()]
+               GLPK_MI(), SCS(), GUROBI(), Elemental()]
 SOLVERS = {solver.name():solver for solver in solver_intf}
 
 def installed_solvers():

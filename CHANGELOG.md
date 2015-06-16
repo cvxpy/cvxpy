@@ -19,6 +19,8 @@ Version 1.0 (targets)
 
 Version 0.2.23 (next release)
 -----------------------------
+* Added Elemental interface.
+* Can add problems and objectives.
 
 Version 0.2.23
 --------------
