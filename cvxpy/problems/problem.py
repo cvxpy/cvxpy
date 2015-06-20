@@ -372,7 +372,7 @@ class Problem(u.Canonical):
         """
         if len(result_vec) > 0:
             # Cast to desired matrix type.
-            result_vec = intf.DEFAULT_INTERFACE.const_to_matrix(result_vec)
+            result_vec = intf.DEFAULT_INTF.const_to_matrix(result_vec)
         for obj in objects:
             rows, cols = obj.size
             if obj.id in offset_map:
@@ -381,13 +381,13 @@ class Problem(u.Canonical):
                 if (rows, cols) == (1, 1):
                     value = intf.index(result_vec, (offset, 0))
                 else:
-                    value = intf.DEFAULT_INTERFACE.zeros(rows, cols)
-                    intf.DEFAULT_INTERFACE.block_add(value,
+                    value = intf.DEFAULT_INTF.zeros(rows, cols)
+                    intf.DEFAULT_INTF.block_add(value,
                         result_vec[offset:offset + rows*cols],
                         0, 0, rows, cols)
                 offset += rows*cols
             else: # The variable was multiplied by zero.
-                value = intf.DEFAULT_INTERFACE.zeros(rows, cols)
+                value = intf.DEFAULT_INTF.zeros(rows, cols)
             obj.save_value(value)
 
     def __str__(self):

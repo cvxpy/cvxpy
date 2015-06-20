@@ -44,7 +44,7 @@ class TestProblem(unittest.TestCase):
 
     # Overriden method to handle lists and lower accuracy.
     # ECHU: uncommented to ensure that tests pass
-    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
+    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
         try:
             a = list(a)
             b = list(b)

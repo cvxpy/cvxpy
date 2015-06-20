@@ -45,7 +45,7 @@ class TestExpressions(BaseTest):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
-        self.intf = intf.DEFAULT_INTERFACE
+        self.intf = intf.DEFAULT_INTF
 
     # Test the Variable class.
     def test_variable(self):

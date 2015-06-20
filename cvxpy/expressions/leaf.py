@@ -55,7 +55,7 @@ class Leaf(expression.Expression):
             The value converted to the proper matrix type.
         """
         # Convert val to the proper matrix type.
-        val = intf.DEFAULT_INTERFACE.const_to_matrix(val)
+        val = intf.DEFAULT_INTF.const_to_matrix(val)
         size = intf.size(val)
         if size != self.size:
             raise ValueError(

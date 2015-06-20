@@ -59,12 +59,12 @@ class Elemental(Solver):
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """
-        return intf.DEFAULT_SPARSE_INTERFACE
+        return intf.DEFAULT_SPARSE_INTF
 
     def vec_intf(self):
         """The interface for vectors passed to the solver.
         """
-        return intf.DEFAULT_INTERFACE
+        return intf.DEFAULT_INTF
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -168,6 +168,7 @@ class Elemental(Solver):
         """
         import El
         data = self.get_problem_data(objective, constraints, cached_data)
+        El.Initialize()
         worldRank = El.mpi.WorldRank()
         worldSize = El.mpi.WorldSize()
         # Package data.
@@ -176,9 +177,9 @@ class Elemental(Solver):
         b = self.distr_vec(data["b"], El.dTag)
         G = self.distr_mat(data["G"])
         h = self.distr_vec(data["h"], El.dTag)
+        dims = data["dims"]
 
         # Cone information.
-        dims = data["dims"]
         offset = 0
         orders = []
         labels = []
@@ -197,6 +198,7 @@ class Elemental(Solver):
                 firstInds.append(offset)
             cone_count += 1
             offset += cone_len
+
         orders = self.distr_vec(np.array(orders), El.iTag)
         labels = self.distr_vec(np.array(labels), El.iTag)
         firstInds = self.distr_vec(np.array(firstInds), El.iTag)
@@ -206,7 +208,14 @@ class Elemental(Solver):
         y = El.DistMultiVec()
         z = El.DistMultiVec()
         s_var = El.DistMultiVec()
-        El.SOCPAffine(A,G,b,c,h,orders,firstInds,labels,x,y,z,s_var)
+        if verbose:
+            ctrl = El.SOCPAffineCtrl_d()
+            ctrl.mehrotraCtrl.qsdCtrl.progress = True
+            ctrl.mehrotraCtrl.progress = True
+            ctrl.mehrotraCtrl.time = True
+        else:
+            ctrl = None
+        El.SOCPAffine(A,G,b,c,h,orders,firstInds,labels,x,y,z,s_var,ctrl)
         local_c = data['c']
         local_x = self.local_vec(x)
         local_y = self.local_vec(y)

@@ -18,7 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
-from cvxpy.settings import SCS, ECOS, CVXOPT, GLPK, OPTIMAL
+from cvxpy.settings import SCS, ECOS, CVXOPT, GLPK, ELEMENTAL, OPTIMAL
+from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
@@ -36,6 +37,11 @@ from nose.tools import assert_raises
 SOLVER_TO_TOL = {SCS: 1e-1,
                  ECOS: 1e-5,
                  CVXOPT: 1e-4}
+SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT]
+# Test elemental if installed.
+if ELEMENTAL in installed_solvers():
+    SOLVERS_TO_TRY.append(ELEMENTAL)
+    SOLVER_TO_TOL[ELEMENTAL] = 1e-4
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 
@@ -115,16 +121,16 @@ atoms = [
         (pos, (1, 1), [8], Constant([8])),
         (pos, (2, 1), [ [-3,2] ], Constant([0,2])),
         (neg, (2, 1), [ [-3,3] ], Constant([3,0])),
-        #(pow_rat(4,1,1), 4),
-        #(pow_rat(2,2,1), 4),
-        #(pow_rat(4,2,2), 4),
-        #(pow_rat(2,3,1), 8),
-        #(pow_rat(4,3,2), 8),
-        #(pow_rat(4,3,3), 4),
-        #(pow_rat(2,4,1), 16),
-        #(pow_rat(4,4,2), 16),
-        #(pow_rat(8,4,3), 16),
-        #(pow_rat(8,4,4), 8),
+        # (pow_rat(4,1,1), 4),
+        # (pow_rat(2,2,1), 4),
+        # (pow_rat(4,2,2), 4),
+        # (pow_rat(2,3,1), 8),
+        # (pow_rat(4,3,2), 8),
+        # (pow_rat(4,3,3), 4),
+        # (pow_rat(2,4,1), 16),
+        # (pow_rat(4,4,2), 16),
+        # (pow_rat(8,4,3), 16),
+        # (pow_rat(8,4,4), 8),
 
         (lambda x: power(x, 0), (1, 1), [7.45], Constant([1])),
         (lambda x: power(x, 1), (1, 1), [7.45], Constant([7.45])),
@@ -231,7 +237,7 @@ def test_atom():
         for atom, size, args, obj_val in atom_list:
             for row in range(size[0]):
                 for col in range(size[1]):
-                    for solver in [ECOS, SCS, CVXOPT]:
+                    for solver in SOLVERS_TO_TRY:
                         # Atoms with Constant arguments.
                         const_args = [Constant(arg) for arg in args]
                         yield (run_atom,
@@ -255,7 +261,7 @@ def test_atom():
                         parameters = []
                         for expr in args:
                             parameters.append( Parameter(*intf.size(expr)) )
-                            parameters[-1].value = intf.DEFAULT_INTERFACE.const_to_matrix(expr)
+                            parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
                         objective = objective_type(atom(*parameters)[row,col])
                         yield (run_atom,
                                atom,

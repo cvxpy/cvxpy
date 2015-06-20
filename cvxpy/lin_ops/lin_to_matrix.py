@@ -33,7 +33,7 @@ def flatten(matrix):
     matrix :
         The matrix to flatten.
     """
-    np_mat = intf.DEFAULT_INTERFACE
+    np_mat = intf.DEFAULT_INTF
     matrix = np_mat.const_to_matrix(matrix, convert_scalars=True)
     size = intf.size(matrix)
     return np_mat.reshape(matrix, (size[0]*size[1], 1))

@@ -19,8 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
+from cvxpy.problems.problem_data.compr_matrix import compress_matrix
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.kktsolver import get_kktsolver
+import scipy.sparse as sp
+import numpy as np
+import copy
 
 class CVXOPT(Solver):
     """An interface for the CVXOPT solver.
@@ -100,8 +104,12 @@ class CVXOPT(Solver):
         """
         import cvxopt, cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
+        dims = copy.deepcopy(data[s.DIMS])
         # User chosen KKT solver option.
         kktsolver = self.get_kktsolver_opt(solver_opts)
+        # Other KKT solvers cannot have redundant rows.
+        if kktsolver is not None:
+            self.remove_redundant_rows(data, dims)
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
@@ -120,18 +128,18 @@ class CVXOPT(Solver):
 
         try:
             # Target cvxopt clp if nonlinear constraints exist.
-            if data[s.DIMS][s.EXP_DIM]:
+            if dims[s.EXP_DIM]:
                 if kktsolver is None:
                     # Get custom kktsolver.
                     kktsolver = get_kktsolver(data[s.G],
-                                              data[s.DIMS],
+                                              dims,
                                               data[s.A],
                                               data[s.F])
                 results_dict = cvxopt.solvers.cpl(data[s.C],
                                                   data[s.F],
                                                   data[s.G],
                                                   data[s.H],
-                                                  data[s.DIMS],
+                                                  dims,
                                                   data[s.A],
                                                   data[s.B],
                                                   kktsolver=kktsolver)
@@ -139,12 +147,12 @@ class CVXOPT(Solver):
                 if kktsolver is None:
                     # Get custom kktsolver.
                     kktsolver = get_kktsolver(data[s.G],
-                                              data[s.DIMS],
+                                              dims,
                                               data[s.A])
                 results_dict = cvxopt.solvers.conelp(data[s.C],
                                                      data[s.G],
                                                      data[s.H],
-                                                     data[s.DIMS],
+                                                     dims,
                                                      data[s.A],
                                                      data[s.B],
                                                      kktsolver=kktsolver)
@@ -155,6 +163,45 @@ class CVXOPT(Solver):
         # Restore original cvxopt solver options.
         self._restore_solver_options(old_options)
         return self.format_results(results_dict, data, cached_data)
+
+    @staticmethod
+    def remove_redundant_rows(data, dims):
+        # Convert A, b, G, h to scipy sparse matrices and numpy 1D arrays.
+        A = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.A],
+            convert_scalars=True)
+        G = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.G],
+            convert_scalars=True)
+        b = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.B],
+            convert_scalars=True)
+        h = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.H],
+            convert_scalars=True)
+        # Remove obviously redundant rows in A.
+        A, b, P_eq = compress_matrix(A.tocsr(), b)
+        dims[s.EQ_DIM] = b.shape[0]
+        # Remove obviously redundant rows in G's <= constraints.
+        G = G.tocsr()
+        G_leq = G[:dims[s.LEQ_DIM],:]
+        h_leq = h[:dims[s.LEQ_DIM]]
+        G_other = G[dims[s.LEQ_DIM]:,:]
+        h_other = h[dims[s.LEQ_DIM]:]
+        G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
+        dims[s.LEQ_DIM] = h_leq.shape[0]
+        G = sp.vstack([G_leq, G_other])
+        h = np.vstack([h_leq, h_other])
+        # Convert A, b, G, h to CVXOPT matrices.
+        data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(A,
+            convert_scalars=True)
+        data[s.G] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(G,
+            convert_scalars=True)
+        data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(b,
+            convert_scalars=True)
+        data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
+            convert_scalars=True)
+        data["P_eq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_eq,
+            convert_scalars=True)
+        data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
+            convert_scalars=True)
+        print data[s.A]
 
     @staticmethod
     def _restore_solver_options(old_options):

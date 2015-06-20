@@ -470,7 +470,7 @@ class TestProblem(BaseTest):
         assert (self.A.value >= T*self.C.value).all()
 
         # Test variables are dense.
-        self.assertEqual(type(self.A.value), intf.DEFAULT_INTERFACE.TARGET_MATRIX)
+        self.assertEqual(type(self.A.value), intf.DEFAULT_INTF.TARGET_MATRIX)
 
     # Test variable promotion.
     def test_variable_promotion(self):

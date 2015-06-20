@@ -64,12 +64,12 @@ class GUROBI(Solver):
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """
-        return intf.DEFAULT_SPARSE_INTERFACE
+        return intf.DEFAULT_SPARSE_INTF
 
     def vec_intf(self):
         """The interface for vectors passed to the solver.
         """
-        return intf.DEFAULT_INTERFACE
+        return intf.DEFAULT_INTF
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
