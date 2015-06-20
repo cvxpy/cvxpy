@@ -197,8 +197,8 @@ class CVXOPT(Solver):
             convert_scalars=True)
         data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
             convert_scalars=True)
-        # data["P_eq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_eq,
-        #     convert_scalars=True)
+        data["P_eq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_eq,
+            convert_scalars=True)
         data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
             convert_scalars=True)
 
@@ -264,20 +264,20 @@ class CVXOPT(Solver):
             else:
                 new_results[s.INEQ_DUAL] = results_dict['z']
             # Need to multiply duals by P_eq and P_leq.
-            # if "P_eq" in data:
-            #     # Test if all constraints eliminated.
-            #     y = new_results[s.EQ_DUAL]
-            #     if y.size[0] == 0:
-            #         y = 0
-            #     leq_len = data[s.DIMS][s.LEQ_DIM]
-            #     z = new_results[s.INEQ_DUAL][:leq_len]
-            #     if z.size[0] == 0:
-            #         z = 0
-            #     new_results[s.EQ_DUAL] = data["P_eq"].T*y
-            #     P_rows = data["P_leq"].size[1]
-            #     new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
-            #     new_dual = self.vec_intf().zeros(new_len, 1)
-            #     new_dual[:P_rows] = data["P_leq"].T*z
-            #     new_dual[P_rows:] = new_results[s.INEQ_DUAL][leq_len:]
-            #     new_results[s.INEQ_DUAL] = new_dual
+            if "P_eq" in data:
+                # Test if all constraints eliminated.
+                y = new_results[s.EQ_DUAL]
+                if y.size[0] == 0:
+                    y = 0
+                leq_len = data[s.DIMS][s.LEQ_DIM]
+                z = new_results[s.INEQ_DUAL][:leq_len]
+                if z.size[0] == 0:
+                    z = 0
+                new_results[s.EQ_DUAL] = data["P_eq"].T*y
+                P_rows = data["P_leq"].size[1]
+                new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
+                new_dual = self.vec_intf().zeros(new_len, 1)
+                new_dual[:P_rows] = data["P_leq"].T*z
+                new_dual[P_rows:] = new_results[s.INEQ_DUAL][leq_len:]
+                new_results[s.INEQ_DUAL] = new_dual
         return new_results
