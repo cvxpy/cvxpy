@@ -21,6 +21,7 @@ Version 0.2.23 (next release)
 -----------------------------
 * Added Elemental interface.
 * Can add problems and objectives.
+* Basic removal of redundant rows for CVXOPT chol.
 
 Version 0.2.23
 --------------

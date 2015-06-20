@@ -104,12 +104,12 @@ class CVXOPT(Solver):
         """
         import cvxopt, cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
-        dims = copy.deepcopy(data[s.DIMS])
+        data[s.DIMS] = copy.deepcopy(data[s.DIMS])
         # User chosen KKT solver option.
         kktsolver = self.get_kktsolver_opt(solver_opts)
         # Other KKT solvers cannot have redundant rows.
         if kktsolver is not None:
-            self.remove_redundant_rows(data, dims)
+            self.remove_redundant_rows(data, data[s.DIMS])
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
@@ -128,18 +128,18 @@ class CVXOPT(Solver):
 
         try:
             # Target cvxopt clp if nonlinear constraints exist.
-            if dims[s.EXP_DIM]:
+            if data[s.DIMS][s.EXP_DIM]:
                 if kktsolver is None:
                     # Get custom kktsolver.
                     kktsolver = get_kktsolver(data[s.G],
-                                              dims,
+                                              data[s.DIMS],
                                               data[s.A],
                                               data[s.F])
                 results_dict = cvxopt.solvers.cpl(data[s.C],
                                                   data[s.F],
                                                   data[s.G],
                                                   data[s.H],
-                                                  dims,
+                                                  data[s.DIMS],
                                                   data[s.A],
                                                   data[s.B],
                                                   kktsolver=kktsolver)
@@ -147,12 +147,12 @@ class CVXOPT(Solver):
                 if kktsolver is None:
                     # Get custom kktsolver.
                     kktsolver = get_kktsolver(data[s.G],
-                                              dims,
+                                              data[s.DIMS],
                                               data[s.A])
                 results_dict = cvxopt.solvers.conelp(data[s.C],
                                                      data[s.G],
                                                      data[s.H],
-                                                     dims,
+                                                     data[s.DIMS],
                                                      data[s.A],
                                                      data[s.B],
                                                      kktsolver=kktsolver)
@@ -197,11 +197,10 @@ class CVXOPT(Solver):
             convert_scalars=True)
         data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
             convert_scalars=True)
-        data["P_eq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_eq,
-            convert_scalars=True)
+        # data["P_eq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_eq,
+        #     convert_scalars=True)
         data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
             convert_scalars=True)
-        print data[s.A]
 
     @staticmethod
     def _restore_solver_options(old_options):
@@ -264,5 +263,21 @@ class CVXOPT(Solver):
                 new_results[s.INEQ_DUAL] = results_dict['zl']
             else:
                 new_results[s.INEQ_DUAL] = results_dict['z']
-
+            # Need to multiply duals by P_eq and P_leq.
+            # if "P_eq" in data:
+            #     # Test if all constraints eliminated.
+            #     y = new_results[s.EQ_DUAL]
+            #     if y.size[0] == 0:
+            #         y = 0
+            #     leq_len = data[s.DIMS][s.LEQ_DIM]
+            #     z = new_results[s.INEQ_DUAL][:leq_len]
+            #     if z.size[0] == 0:
+            #         z = 0
+            #     new_results[s.EQ_DUAL] = data["P_eq"].T*y
+            #     P_rows = data["P_leq"].size[1]
+            #     new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
+            #     new_dual = self.vec_intf().zeros(new_len, 1)
+            #     new_dual[:P_rows] = data["P_leq"].T*z
+            #     new_dual[P_rows:] = new_results[s.INEQ_DUAL][leq_len:]
+            #     new_results[s.INEQ_DUAL] = new_dual
         return new_results
