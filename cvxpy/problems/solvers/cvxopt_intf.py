@@ -23,6 +23,7 @@ from cvxpy.problems.problem_data.compr_matrix import compress_matrix
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.kktsolver import get_kktsolver
 import scipy.sparse as sp
+import scipy
 import numpy as np
 import copy
 
@@ -106,7 +107,7 @@ class CVXOPT(Solver):
         data = self.get_problem_data(objective, constraints, cached_data)
         data[s.DIMS] = copy.deepcopy(data[s.DIMS])
         # User chosen KKT solver option.
-        kktsolver = self.get_kktsolver_opt(solver_opts)
+        kktsolver = 'chol'#self.get_kktsolver_opt(solver_opts)
         # Other KKT solvers cannot have redundant rows.
         if kktsolver is not None:
             self.remove_redundant_rows(data, data[s.DIMS])
@@ -175,9 +176,33 @@ class CVXOPT(Solver):
             convert_scalars=True)
         h = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.H],
             convert_scalars=True)
-        # Remove obviously redundant rows in A.
-        A, b, P_eq = compress_matrix(A.tocsr(), b)
-        dims[s.EQ_DIM] = b.shape[0]
+        print "before"
+        print A.todense()
+        print b
+        print G.todense()
+        print h
+        # Remove redundant rows in A.
+        if A.shape[0] > 0:
+            # The pivoting improves robustness.
+            Q, R, P = scipy.linalg.qr(A.todense(), pivoting=True)
+            rows_to_keep = []
+            for i in range(R.shape[0]):
+                if np.linalg.norm(R[i,:]) > 1e-10:
+                    rows_to_keep.append(i)
+            R = R[rows_to_keep,:]
+            Q = Q[:, rows_to_keep]
+            # Invert P from col -> var to var -> col.
+            Pinv = np.zeros(P.size, dtype='int')
+            for i in range(P.size):
+                Pinv[P[i]] = i
+            # Rearrage R.
+            R = R[:,Pinv]
+            A = R
+            b = Q.T.dot(b)
+            dims[s.EQ_DIM] = b.shape[0]
+            data["Q"] = intf.CVXOPT_DENSE_INTF.const_to_matrix(Q,
+                convert_scalars=True)
+
         # Remove obviously redundant rows in G's <= constraints.
         G = G.tocsr()
         G_leq = G[:dims[s.LEQ_DIM],:]
@@ -196,8 +221,6 @@ class CVXOPT(Solver):
         data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(b,
             convert_scalars=True)
         data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
-            convert_scalars=True)
-        data["P_eq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_eq,
             convert_scalars=True)
         data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
             convert_scalars=True)
@@ -263,21 +286,26 @@ class CVXOPT(Solver):
                 new_results[s.INEQ_DUAL] = results_dict['zl']
             else:
                 new_results[s.INEQ_DUAL] = results_dict['z']
-            # Need to multiply duals by P_eq and P_leq.
-            if "P_eq" in data:
-                # Test if all constraints eliminated.
+            # Need to multiply duals by Q and P_leq.
+            if "Q" in data:
                 y = new_results[s.EQ_DUAL]
+                # Test if all constraints eliminated.
                 if y.size[0] == 0:
-                    y = 0
+                    new_results[s.EQ_DUAL][:] = 0
+                else:
+                    new_results[s.EQ_DUAL] = data["Q"]*y
+            if "P_leq" in data:
                 leq_len = data[s.DIMS][s.LEQ_DIM]
-                z = new_results[s.INEQ_DUAL][:leq_len]
-                if z.size[0] == 0:
-                    z = 0
-                new_results[s.EQ_DUAL] = data["P_eq"].T*y
                 P_rows = data["P_leq"].size[1]
                 new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
                 new_dual = self.vec_intf().zeros(new_len, 1)
-                new_dual[:P_rows] = data["P_leq"].T*z
+                z = new_results[s.INEQ_DUAL][:leq_len]
+                # Test if all constraints eliminated.
+                if z.size[0] == 0:
+                    new_dual[:P_rows] = 0
+                else:
+                    new_dual[:P_rows] = data["P_leq"].T*z
                 new_dual[P_rows:] = new_results[s.INEQ_DUAL][leq_len:]
                 new_results[s.INEQ_DUAL] = new_dual
+
         return new_results

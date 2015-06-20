@@ -24,6 +24,7 @@ from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
+from cvxpy.expressions.variables.semidef_var import Semidef
 import numpy as np
 from numpy import linalg as LA
 
@@ -113,10 +114,11 @@ class log_det(Atom):
         A = arg_objs[0] # n by n matrix.
         n, _ = A.size
         X = lu.create_var((2*n, 2*n))
+        X, constraints = Semidef(2*n).canonical_form
         Z = lu.create_var((n, n))
         D = lu.create_var((n, 1))
         # Require that X and A are PSD.
-        constraints = [SDP(X), SDP(A)]
+        constraints += [SDP(A)]
         # Fix Z as upper triangular, D as diagonal,
         # and diag(D) as diag(Z).
         Z_lower_tri = lu.upper_tri(lu.transpose(Z))
