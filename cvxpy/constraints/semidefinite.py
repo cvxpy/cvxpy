@@ -21,11 +21,10 @@ import cvxpy.settings as s
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
-from cvxpy.constraints.constraint import Constraint
 import numpy as np
 import scipy.sparse as sp
 
-class SDP(Constraint):
+class SDP(object):
     """
     A semi-definite cone constraint:
         { symmetric A | x.T*A*x >= 0 for all x }
@@ -35,10 +34,12 @@ class SDP(Constraint):
     Attributes:
         A: The matrix variable constrained to be semi-definite.
         enforce_sym: Should symmetry constraints be added?
+        constr_id: The id assigned to the inequality constraint.
     """
-    def __init__(self, A, enforce_sym=True):
+    def __init__(self, A, enforce_sym=True, constr_id=None):
         self.A = A
         self.enforce_sym = enforce_sym
+        self.constr_id = constr_id
         super(SDP, self).__init__()
 
     def __str__(self):
@@ -81,7 +82,10 @@ class SDP(Constraint):
     def __SCS_format(self):
         eq_constr = self._get_eq_constr()
         term = self._scaled_lower_tri()
-        leq_constr = lu.create_geq(term)
+        if self.constr_id is None:
+            leq_constr = lu.create_geq(term)
+        else:
+            leq_constr = lu.create_geq(term, constr_id=self.constr_id)
         return ([eq_constr], [leq_constr])
 
     def _scaled_lower_tri(self):
@@ -125,7 +129,10 @@ class SDP(Constraint):
             (equality constraints, inequality constraints)
         """
         eq_constr = self._get_eq_constr()
-        leq_constr = lu.create_geq(self.A)
+        if self.constr_id is None:
+            leq_constr = lu.create_geq(self.A)
+        else:
+            leq_constr = lu.create_geq(self.A, constr_id=self.constr_id)
         return ([eq_constr], [leq_constr])
 
     def _get_eq_constr(self):

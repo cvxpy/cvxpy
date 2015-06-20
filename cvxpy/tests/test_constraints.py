@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables import Variable
 from cvxpy.constraints.second_order import SOC
 import unittest
+import numpy as np
 
 class TestConstraints(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
@@ -45,8 +46,9 @@ class TestConstraints(unittest.TestCase):
         constr = 2*self.x >= self.x
         self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(2*self.x)))
 
-    # Test the EqConstraint class.
     def test_eq_constraint(self):
+        """Test the EqConstraint class.
+        """
         constr = self.x == self.z
         self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.size, (2,1))
@@ -64,8 +66,9 @@ class TestConstraints(unittest.TestCase):
             (self.x == self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
-    # Test the LeqConstraint class.
     def test_leq_constraint(self):
+        """Test the LeqConstraint class.
+        """
         constr = self.x <= self.z
         self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.size, (2, 1))
@@ -82,6 +85,44 @@ class TestConstraints(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             (self.x <= self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+
+    def test_psd_constraint(self):
+        """Test the PSD constraint <<.
+        """
+        constr = self.A >> self.B
+        self.assertEqual(constr.name(), "A >> B")
+        self.assertEqual(constr.size, (2, 2))
+        # Test value and dual_value.
+        assert constr.dual_value is None
+        assert constr.value is None
+        self.A.save_value(np.matrix("2 -1; 1 2"))
+        self.B.save_value(np.matrix("1 0; 0 1"))
+        assert constr.value
+        self.B.save_value(np.matrix("3 0; 0 3"))
+        assert not constr.value
+
+        with self.assertRaises(Exception) as cm:
+            (self.x >> self.y)
+        self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
+
+    def test_nsd_constraint(self):
+        """Test the PSD constraint <<.
+        """
+        constr = self.A << self.B
+        self.assertEqual(constr.name(), "B >> A")
+        self.assertEqual(constr.size, (2, 2))
+        # Test value and dual_value.
+        assert constr.dual_value is None
+        assert constr.value is None
+        self.B.save_value(np.matrix("2 -1; 1 2"))
+        self.A.save_value(np.matrix("1 0; 0 1"))
+        assert constr.value
+        self.A.save_value(np.matrix("3 0; 0 3"))
+        assert not constr.value
+
+        with self.assertRaises(Exception) as cm:
+            (self.x << self.y)
+        self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
 
     def test_lt(self):
         """Test the < operator.

@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 __version__ = "0.2.23"
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable, Semidef, Bool, Int
+from cvxpy.expressions.variables import Variable, Semidef, Symmetric, Bool, Int
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize

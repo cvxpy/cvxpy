@@ -21,7 +21,7 @@ import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 from cvxpy.error import SolverError
-from cvxpy.constraints import EqConstraint, LeqConstraint
+from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
@@ -270,11 +270,11 @@ class Problem(u.Canonical):
             if s.EQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.EQ_DUAL],
                                        sym_data.constr_map[s.EQ],
-                                       EqConstraint)
+                                       [EqConstraint])
             if s.INEQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.INEQ_DUAL],
                                        sym_data.constr_map[s.LEQ],
-                                       LeqConstraint)
+                                       [LeqConstraint, PSDConstraint])
             # Correct optimal value if the objective was Maximize.
             value = results_dict[s.VALUE]
             self._value = self.objective.primal_to_result(value)
@@ -334,17 +334,17 @@ class Problem(u.Canonical):
         elif status in [s.UNBOUNDED, s.UNBOUNDED_INACCURATE]:
             self._value = self.objective.primal_to_result(-np.inf)
 
-    def _save_dual_values(self, result_vec, constraints, constr_type):
+    def _save_dual_values(self, result_vec, constraints, constr_types):
         """Saves the values of the dual variables.
 
         Parameters
         ----------
-        results_vec : array_like
+        result_vec : array_like
             A vector containing the dual variable values.
         constraints : list
             A list of the LinEqConstr/LinLeqConstr in the problem.
-        constr_type : type
-            EqConstr or LeqConstr
+        constr_types : type
+            A list of constraint types to consider.
         """
         constr_offsets = {}
         offset = 0
@@ -354,7 +354,7 @@ class Problem(u.Canonical):
         active_constraints = []
         for constr in self.constraints:
             # Ignore constraints of the wrong type.
-            if type(constr) == constr_type:
+            if type(constr) in constr_types:
                 active_constraints.append(constr)
         self._save_values(result_vec, active_constraints, constr_offsets)
 
@@ -373,8 +373,10 @@ class Problem(u.Canonical):
         if len(result_vec) > 0:
             # Cast to desired matrix type.
             result_vec = intf.DEFAULT_INTF.const_to_matrix(result_vec)
+        # print result_vec
         for obj in objects:
             rows, cols = obj.size
+            # print type(obj), obj.id, offset_map
             if obj.id in offset_map:
                 offset = offset_map[obj.id]
                 # Handle scalars

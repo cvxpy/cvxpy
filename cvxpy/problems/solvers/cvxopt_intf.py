@@ -138,14 +138,12 @@ class CVXOPT(Solver):
         if not "refinement" in cvxopt.solvers.options:
             cvxopt.solvers.options["refinement"] = 1
 
-        # Target cvxopt clp if nonlinear constraints exist.
-        if data[s.DIMS][s.EXP_DIM]:
-            solver_fn = self.cpl_solve
-        else:
-            solver_fn = self.conelp_solve
-
         try:
-            results_dict = solver_fn(data, kktsolver)
+            # Target cvxopt clp if nonlinear constraints exist.
+            if data[s.DIMS][s.EXP_DIM]:
+                results_dict = self.cpl_solve(data, kktsolver)
+            else:
+                results_dict = self.conelp_solve(data, kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
             results_dict = {"status": "unknown"}
@@ -154,34 +152,7 @@ class CVXOPT(Solver):
         self._restore_solver_options(old_options)
         return self.format_results(results_dict, data, cached_data)
 
-    def robust_solve(self, data, old_data, kktsolver, solver_fn):
-        """Solve the optimization problem, defaulting to the LDL kktsolver.
-
-        Parameters
-        ----------
-        data : dict
-            All the problem data.
-        old_data : dict
-            Data for the robust problem.
-        kktsolver : The kktsolver to use.
-
-        Returns
-        -------
-        dict
-            The solver output.
-
-        Raises
-        ------
-        ValueError
-            If CVXOPT fails.
-        """
-        try:
-            return solver_fn(data, kktsolver)
-        # Try again with the robust solver.
-        except ValueError:
-            return solver_fn(old_data, kktsolver, robust=True)
-
-    def cpl_solve(self, data, kktsolver, robust=False):
+    def cpl_solve(self, data, kktsolver):
         """Solve using the cpl solver.
 
         Parameters
@@ -202,7 +173,7 @@ class CVXOPT(Solver):
             If CVXOPT fails.
         """
         import cvxopt, cvxopt.solvers
-        if robust:
+        if kktsolver == s.ROBUST_KKTSOLVER:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(data[s.G],
                                       data[s.DIMS],
@@ -217,7 +188,7 @@ class CVXOPT(Solver):
                                   data[s.B],
                                   kktsolver=kktsolver)
 
-    def conelp_solve(self, data, kktsolver, robust=False):
+    def conelp_solve(self, data, kktsolver):
         """Solve using the conelp solver.
 
         Parameters
@@ -238,7 +209,7 @@ class CVXOPT(Solver):
             If CVXOPT fails.
         """
         import cvxopt, cvxopt.solvers
-        if robust or kktsolver == s.ROBUST_KKTSOLVER:
+        if kktsolver == s.ROBUST_KKTSOLVER:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(data[s.G],
                                       data[s.DIMS],

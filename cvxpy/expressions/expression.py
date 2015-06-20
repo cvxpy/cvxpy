@@ -21,7 +21,7 @@ import cvxpy.interface as intf
 import cvxpy.utilities as u
 import cvxpy.settings as s
 from cvxpy.utilities import performance_utils as pu
-from cvxpy.constraints import EqConstraint, LeqConstraint
+from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.expressions import types
 import abc
 import numpy as np
@@ -276,6 +276,30 @@ class Expression(u.Canonical):
         """The negation of the expression.
         """
         return types.neg_expr()(self)
+
+    @_cast_other
+    def __rshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(self, other)
+
+    @_cast_other
+    def __rrshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(other, self)
+
+    @_cast_other
+    def __lshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(other, self)
+
+    @_cast_other
+    def __rlshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(self, other)
 
     #needed for python3:
     def __hash__(self):

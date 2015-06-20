@@ -21,7 +21,7 @@ Version 0.2.23 (next release)
 -----------------------------
 * Added Elemental interface.
 * Can add problems and objectives.
-* Basic removal of redundant rows for CVXOPT chol.
+* Basic remove redundant rows for CVXOPT chol. Made 'chol' default kktsolver.
 
 Version 0.2.23
 --------------
