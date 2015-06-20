@@ -105,12 +105,23 @@ class CVXOPT(Solver):
         """
         import cvxopt, cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
+        # Save old data in case need to use robust solver.
+        old_data = {
+                s.DIMS: data[s.DIMS],
+                s.A: data[s.A],
+                s.B: data[s.B],
+                s.G: data[s.G],
+                s.H: data[s.H],
+                s.F: data[s.F],
+            }
         data[s.DIMS] = copy.deepcopy(data[s.DIMS])
         # User chosen KKT solver option.
-        kktsolver = 'chol'#self.get_kktsolver_opt(solver_opts)
-        # Other KKT solvers cannot have redundant rows.
-        if kktsolver is not None:
-            self.remove_redundant_rows(data, data[s.DIMS])
+        kktsolver = self.get_kktsolver_opt(solver_opts)
+        # Cannot have redundant rows unless using robust LDL kktsolver.
+        if kktsolver != s.ROBUST_KKTSOLVER:
+            # Will detect infeasibility.
+            if self.remove_redundant_rows(data) == s.INFEASIBLE:
+                return {s.STATUS: s.INFEASIBLE}
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
@@ -127,36 +138,14 @@ class CVXOPT(Solver):
         if not "refinement" in cvxopt.solvers.options:
             cvxopt.solvers.options["refinement"] = 1
 
+        # Target cvxopt clp if nonlinear constraints exist.
+        if data[s.DIMS][s.EXP_DIM]:
+            solver_fn = self.cpl_solve
+        else:
+            solver_fn = self.conelp_solve
+
         try:
-            # Target cvxopt clp if nonlinear constraints exist.
-            if data[s.DIMS][s.EXP_DIM]:
-                if kktsolver is None:
-                    # Get custom kktsolver.
-                    kktsolver = get_kktsolver(data[s.G],
-                                              data[s.DIMS],
-                                              data[s.A],
-                                              data[s.F])
-                results_dict = cvxopt.solvers.cpl(data[s.C],
-                                                  data[s.F],
-                                                  data[s.G],
-                                                  data[s.H],
-                                                  data[s.DIMS],
-                                                  data[s.A],
-                                                  data[s.B],
-                                                  kktsolver=kktsolver)
-            else:
-                if kktsolver is None:
-                    # Get custom kktsolver.
-                    kktsolver = get_kktsolver(data[s.G],
-                                              data[s.DIMS],
-                                              data[s.A])
-                results_dict = cvxopt.solvers.conelp(data[s.C],
-                                                     data[s.G],
-                                                     data[s.H],
-                                                     data[s.DIMS],
-                                                     data[s.A],
-                                                     data[s.B],
-                                                     kktsolver=kktsolver)
+            results_dict = solver_fn(data, kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
             results_dict = {"status": "unknown"}
@@ -165,8 +154,118 @@ class CVXOPT(Solver):
         self._restore_solver_options(old_options)
         return self.format_results(results_dict, data, cached_data)
 
+    def robust_solve(self, data, old_data, kktsolver, solver_fn):
+        """Solve the optimization problem, defaulting to the LDL kktsolver.
+
+        Parameters
+        ----------
+        data : dict
+            All the problem data.
+        old_data : dict
+            Data for the robust problem.
+        kktsolver : The kktsolver to use.
+
+        Returns
+        -------
+        dict
+            The solver output.
+
+        Raises
+        ------
+        ValueError
+            If CVXOPT fails.
+        """
+        try:
+            return solver_fn(data, kktsolver)
+        # Try again with the robust solver.
+        except ValueError:
+            return solver_fn(old_data, kktsolver, robust=True)
+
+    def cpl_solve(self, data, kktsolver, robust=False):
+        """Solve using the cpl solver.
+
+        Parameters
+        ----------
+        data : dict
+            All the problem data.
+        kktsolver : The kktsolver to use.
+        robust : Use the robust kktsolver?
+
+        Returns
+        -------
+        dict
+            The solver output.
+
+        Raises
+        ------
+        ValueError
+            If CVXOPT fails.
+        """
+        import cvxopt, cvxopt.solvers
+        if robust:
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(data[s.G],
+                                      data[s.DIMS],
+                                      data[s.A],
+                                      data[s.F])
+        return cvxopt.solvers.cpl(data[s.C],
+                                  data[s.F],
+                                  data[s.G],
+                                  data[s.H],
+                                  data[s.DIMS],
+                                  data[s.A],
+                                  data[s.B],
+                                  kktsolver=kktsolver)
+
+    def conelp_solve(self, data, kktsolver, robust=False):
+        """Solve using the conelp solver.
+
+        Parameters
+        ----------
+        data : dict
+            All the problem data.
+        kktsolver : The kktsolver to use.
+        robust : Use the robust kktsolver?
+
+        Returns
+        -------
+        dict
+            The solver output.
+
+        Raises
+        ------
+        ValueError
+            If CVXOPT fails.
+        """
+        import cvxopt, cvxopt.solvers
+        if robust or kktsolver == s.ROBUST_KKTSOLVER:
+            # Get custom kktsolver.
+            kktsolver = get_kktsolver(data[s.G],
+                                      data[s.DIMS],
+                                      data[s.A])
+        return cvxopt.solvers.conelp(data[s.C],
+                                     data[s.G],
+                                     data[s.H],
+                                     data[s.DIMS],
+                                     data[s.A],
+                                     data[s.B],
+                                     kktsolver=kktsolver)
+
     @staticmethod
-    def remove_redundant_rows(data, dims):
+    def remove_redundant_rows(data):
+        """Remove redundant constraints from A and G.
+
+        Parameters
+        ----------
+        data : dict
+            All the problem data.
+
+        Returns
+        -------
+        str
+            A status indicating if infeasibility was detected.
+        """
+        dims = data[s.DIMS]
         # Convert A, b, G, h to scipy sparse matrices and numpy 1D arrays.
         A = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.A],
             convert_scalars=True)
@@ -176,11 +275,6 @@ class CVXOPT(Solver):
             convert_scalars=True)
         h = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.H],
             convert_scalars=True)
-        print "before"
-        print A.todense()
-        print b
-        print G.todense()
-        print h
         # Remove redundant rows in A.
         if A.shape[0] > 0:
             # The pivoting improves robustness.
@@ -198,7 +292,12 @@ class CVXOPT(Solver):
             # Rearrage R.
             R = R[:,Pinv]
             A = R
+            b_old = b
             b = Q.T.dot(b)
+            # If b is not in the range of Q,
+            # the problem is infeasible.
+            if not np.allclose(b_old, Q.dot(b)):
+                return s.INFEASIBLE
             dims[s.EQ_DIM] = b.shape[0]
             data["Q"] = intf.CVXOPT_DENSE_INTF.const_to_matrix(Q,
                 convert_scalars=True)
@@ -224,6 +323,7 @@ class CVXOPT(Solver):
             convert_scalars=True)
         data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
             convert_scalars=True)
+        return s.OPTIMAL
 
     @staticmethod
     def _restore_solver_options(old_options):
@@ -254,7 +354,7 @@ class CVXOPT(Solver):
             kktsolver = solver_opts["kktsolver"]
             del solver_opts["kktsolver"]
         else:
-            kktsolver = None
+            kktsolver = 'chol'
         return kktsolver
 
     def format_results(self, results_dict, data, cached_data):
@@ -291,7 +391,8 @@ class CVXOPT(Solver):
                 y = new_results[s.EQ_DUAL]
                 # Test if all constraints eliminated.
                 if y.size[0] == 0:
-                    new_results[s.EQ_DUAL][:] = 0
+                    dual_len = data["Q"].size[0]
+                    new_results[s.EQ_DUAL] = self.vec_intf().zeros(dual_len, 1)
                 else:
                     new_results[s.EQ_DUAL] = data["Q"]*y
             if "P_leq" in data:

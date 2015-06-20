@@ -664,30 +664,35 @@ class TestProblem(BaseTest):
 
     # Test recovery of dual variables.
     def test_dual_variables(self):
-        p = Problem(Minimize( norm1(self.x + self.z) ),
-            [self.x >= [2,3],
-             [[1,2],[3,4]]*self.z == [-1,-4],
-             norm2(self.x + self.z) <= 100])
-        result = p.solve()
-        self.assertAlmostEqual(result, 4)
-        self.assertItemsAlmostEqual(self.x.value, [4,3])
-        self.assertItemsAlmostEqual(self.z.value, [-4,1])
-        # Dual values
-        self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1])
-        self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5])
-        self.assertAlmostEqual(p.constraints[2].dual_value, 0)
+        for solver in [s.ECOS, s.SCS, s.CVXOPT]:
+            if solver == s.SCS:
+                acc = 1
+            else:
+                acc = 5
+            p = Problem(Minimize( norm1(self.x + self.z) ),
+                [self.x >= [2,3],
+                 [[1,2],[3,4]]*self.z == [-1,-4],
+                 norm2(self.x + self.z) <= 100])
+            result = p.solve(solver=solver)
+            self.assertAlmostEqual(result, 4, places=acc)
+            self.assertItemsAlmostEqual(self.x.value, [4,3], places=acc)
+            self.assertItemsAlmostEqual(self.z.value, [-4,1], places=acc)
+            # Dual values
+            self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1], places=acc)
+            self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5], places=acc)
+            self.assertAlmostEqual(p.constraints[2].dual_value, 0, places=acc)
 
-        T = matrix(2, (2, 3))
-        c = matrix([3,4])
-        p = Problem(Minimize(1),
-            [self.A >= T*self.C,
-             self.A == self.B,
-             self.C == T.T])
-        result = p.solve()
-        # Dual values
-        self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0])
-        self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0])
-        self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0])
+            T = matrix(2, (2, 3))
+            c = matrix([3,4])
+            p = Problem(Minimize(1),
+                [self.A >= T*self.C,
+                 self.A == self.B,
+                 self.C == T.T])
+            result = p.solve(solver=solver)
+            # Dual values
+            self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0], places=acc)
+            self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0], places=acc)
+            self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0], places=acc)
 
     # Test problems with indexing.
     def test_indexing(self):
