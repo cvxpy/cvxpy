@@ -25,10 +25,10 @@ print result
 # a_arr[a_arr < prob] = 0
 
 # a_arr_sp = spmatrix(a_arr[a_arr.nonzero()[0],
-# 						  a_arr.nonzero()[1]],
-# 					a_arr.nonzero()[0],
-# 					a_arr.nonzero()[1],
-# 					size=(m, n))
+#                           a_arr.nonzero()[1]],
+#                     a_arr.nonzero()[0],
+#                     a_arr.nonzero()[1],
+#                     size=(m, n))
 
 # W = cp.Variable(n, n)
 # constraints = []

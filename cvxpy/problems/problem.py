@@ -373,10 +373,10 @@ class Problem(u.Canonical):
         if len(result_vec) > 0:
             # Cast to desired matrix type.
             result_vec = intf.DEFAULT_INTF.const_to_matrix(result_vec)
-        # print result_vec
+        print result_vec
         for obj in objects:
+            print type(obj), obj.size, obj.id
             rows, cols = obj.size
-            # print type(obj), obj.id, offset_map
             if obj.id in offset_map:
                 offset = offset_map[obj.id]
                 # Handle scalars

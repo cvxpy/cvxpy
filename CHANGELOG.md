@@ -22,6 +22,7 @@ Version 0.2.23 (next release)
 * Added Elemental interface.
 * Can add problems and objectives.
 * Basic remove redundant rows for CVXOPT chol. Made 'chol' default kktsolver.
+* Added symmetric variables and positive definite inequalities (<<, >>).
 
 Version 0.2.23
 --------------

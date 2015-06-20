@@ -21,10 +21,11 @@ import cvxpy.settings as s
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
+from cvxpy.constraints.constraint import Constraint
 import numpy as np
 import scipy.sparse as sp
 
-class SDP(object):
+class SDP(Constraint):
     """
     A semi-definite cone constraint:
         { symmetric A | x.T*A*x >= 0 for all x }
@@ -39,8 +40,7 @@ class SDP(object):
     def __init__(self, A, enforce_sym=True, constr_id=None):
         self.A = A
         self.enforce_sym = enforce_sym
-        self.constr_id = constr_id
-        super(SDP, self).__init__()
+        super(SDP, self).__init__(constr_id)
 
     def __str__(self):
         return "SDP(%s)" % self.A
