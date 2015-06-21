@@ -51,5 +51,12 @@ class TestSolvers(BaseTest):
 
             x = Variable()
             prob = Problem(Minimize(power(x, 1.34)), [x == 7.45])
-            prob.solve(solver=ELEMENTAL, verbose=True)
+            prob.solve(solver=ELEMENTAL, verbose=False)
             self.assertAlmostEqual(prob.value, 14.746515290825071, places=4)
+
+            x = Variable(2, 2)
+            expr = inv_pos(x)
+            prob = Problem(Minimize(expr[0,0]), [x == [[1,2],[3,4]] ])
+            prob.solve(solver=ELEMENTAL, verbose=False)
+            # Constant([[1,1.0/2],[1.0/3,1.0/4]])),
+            self.assertAlmostEqual(prob.value, 1)

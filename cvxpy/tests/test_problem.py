@@ -1282,7 +1282,6 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual,
             places=3)
 
-
     def test_geo_mean(self):
         import numpy as np
 

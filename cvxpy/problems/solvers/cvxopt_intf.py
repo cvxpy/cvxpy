@@ -284,7 +284,13 @@ class CVXOPT(Solver):
             dims[s.LEQ_DIM] = h_leq.shape[0]
             data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
                 convert_scalars=True)
-            G = sp.vstack([G_leq, G_other])
+            # Scipy 13 can't stack empty arrays.
+            if G_leq.size[0] > 0 and G_other.size[0] > 0:
+                G = sp.vstack([G_leq, G_other])
+            elif G_leq.size[0] > 0:
+                G = G_leq
+            else:
+                G = G_other
             h = np.vstack([h_leq, h_other])
         # Convert A, b, G, h to CVXOPT matrices.
         data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(A,
