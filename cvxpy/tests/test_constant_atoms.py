@@ -18,7 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
-from cvxpy.settings import SCS, ECOS, CVXOPT, GLPK, ELEMENTAL, OPTIMAL
+from cvxpy.settings import (SCS, ECOS, CVXOPT, GLPK, ELEMENTAL,
+    OPTIMAL, ROBUST_KKTSOLVER)
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
@@ -34,16 +35,19 @@ import numpy.linalg as LA
 import math
 from nose.tools import assert_raises
 
+ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-1,
                  ECOS: 1e-5,
-                 CVXOPT: 1e-4}
-SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT]
+                 CVXOPT: 1e-4,
+                 ROBUST_CVXOPT: 1e-4}
+SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
 # Test elemental if installed.
 if ELEMENTAL in installed_solvers():
     SOLVERS_TO_TRY.append(ELEMENTAL)
     SOLVER_TO_TOL[ELEMENTAL] = 1e-4
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
+v_np = np.matrix([-1.,2,-2]).T
 
 # Atom, solver pairs known to fail.
 KNOWN_SOLVER_ERRORS = [(lambda_min, SCS),
@@ -197,6 +201,8 @@ def check_solver(prob, solver_name):
     """Can the solver solve the problem?
     """
     objective, constraints = prob.canonicalize()
+    if solver_name == ROBUST_CVXOPT:
+        solver_name = CVXOPT
     solver = SOLVERS[solver_name]
     try:
         solver.validate_solver(constraints)
@@ -212,7 +218,10 @@ def run_atom(atom, problem, obj_val, solver):
     if check_solver(problem, solver):
         print("solver", solver)
         tolerance = SOLVER_TO_TOL[solver]
-        result = problem.solve(solver=solver, verbose=True)
+        if solver == ROBUST_CVXOPT:
+            result = problem.solve(solver=CVXOPT, verbose=True, kktsolver=ROBUST_KKTSOLVER)
+        else:
+            result = problem.solve(solver=solver, verbose=True)
         if problem.status is OPTIMAL:
             print(result)
             print(obj_val)

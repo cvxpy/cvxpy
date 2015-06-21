@@ -274,15 +274,18 @@ class CVXOPT(Solver):
                 convert_scalars=True)
 
         # Remove obviously redundant rows in G's <= constraints.
-        G = G.tocsr()
-        G_leq = G[:dims[s.LEQ_DIM],:]
-        h_leq = h[:dims[s.LEQ_DIM]]
-        G_other = G[dims[s.LEQ_DIM]:,:]
-        h_other = h[dims[s.LEQ_DIM]:]
-        G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
-        dims[s.LEQ_DIM] = h_leq.shape[0]
-        G = sp.vstack([G_leq, G_other])
-        h = np.vstack([h_leq, h_other])
+        if dims[s.LEQ_DIM] > 0:
+            G = G.tocsr()
+            G_leq = G[:dims[s.LEQ_DIM],:]
+            h_leq = h[:dims[s.LEQ_DIM]]
+            G_other = G[dims[s.LEQ_DIM]:,:]
+            h_other = h[dims[s.LEQ_DIM]:]
+            G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
+            dims[s.LEQ_DIM] = h_leq.shape[0]
+            data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
+                convert_scalars=True)
+            G = sp.vstack([G_leq, G_other])
+            h = np.vstack([h_leq, h_other])
         # Convert A, b, G, h to CVXOPT matrices.
         data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(A,
             convert_scalars=True)
@@ -291,8 +294,6 @@ class CVXOPT(Solver):
         data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(b,
             convert_scalars=True)
         data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
-            convert_scalars=True)
-        data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
             convert_scalars=True)
         return s.OPTIMAL
 

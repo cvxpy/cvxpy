@@ -65,7 +65,7 @@ class SDP(Constraint):
             new_eq_constr, new_leq_constr = self.__SCS_format
         else:
             raise SolverError(
-                "Solver does not support postive semidefinite cone."
+                "Solver does not support positive semidefinite cone."
             )
 
         if self.enforce_sym:

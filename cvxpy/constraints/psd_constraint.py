@@ -34,7 +34,6 @@ class PSDConstraint(LeqConstraint):
                 "Non-square matrix in positive definite constraint."
             )
         super(PSDConstraint, self).__init__(lh_exp, rh_exp)
-        print self.id
 
     def is_dcp(self):
         """Both sides must be affine.
@@ -69,6 +68,5 @@ class PSDConstraint(LeqConstraint):
         half = lu.create_const(0.5, (1,1))
         symm = lu.mul_expr(half, lu.sum_expr([obj, lu.transpose(obj)]),
                            obj.size)
-        print self.id
         dual_holder = SDP(symm, enforce_sym=False, constr_id=self.id)
         return (None, constraints + [dual_holder])

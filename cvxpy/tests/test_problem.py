@@ -1201,39 +1201,60 @@ class TestProblem(BaseTest):
     def test_psd_constraints(self):
         """Test positive definite constraints.
         """
-        # C = Variable(3, 3)
-        # obj = Maximize(C[0, 2])
-        # constraints = [diag(C) == 1,
-        #                C[0, 1] == 0.6,
-        #                C[1, 2] == -0.3,
-        #                C == C.T,
-        #                C >> 0]
-        # prob = Problem(obj, constraints)
-        # result = prob.solve()
-        # self.assertAlmostEqual(result, 0.583151)
+        C = Variable(3, 3)
+        obj = Maximize(C[0, 2])
+        constraints = [diag(C) == 1,
+                       C[0, 1] == 0.6,
+                       C[1, 2] == -0.3,
+                       C == C.T,
+                       C >> 0]
+        prob = Problem(obj, constraints)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 0.583151)
 
-        # C = Variable(2, 2)
-        # obj = Maximize(C[0, 1])
-        # constraints = [C == 1, C >> [[2,0], [0, 2]]]
-        # prob = Problem(obj, constraints)
-        # result = prob.solve()
-        # self.assertEqual(prob.status, s.INFEASIBLE)
+        C = Variable(2, 2)
+        obj = Maximize(C[0, 1])
+        constraints = [C == 1, C >> [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
 
-        # C = Symmetric(2, 2)
-        # obj = Minimize(C[0, 0])
-        # constraints = [C << [[2,0], [0, 2]]]
-        # prob = Problem(obj, constraints)
-        # result = prob.solve(solver=s.CVXOPT)
-        # self.assertEqual(prob.status, s.UNBOUNDED)
+        C = Symmetric(2, 2)
+        obj = Minimize(C[0, 0])
+        constraints = [C << [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.CVXOPT)
+        self.assertEqual(prob.status, s.UNBOUNDED)
 
+
+    def test_psd_duals(self):
+        """Test the duals of PSD constraints.
+        """
+        # Test the dual values with cvxopt.
+        C = Symmetric(2, 2)
+        obj = Maximize(C[0, 0])
+        constraints = [C << [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.CVXOPT)
+        self.assertAlmostEqual(result, 2)
+
+        psd_constr_dual = constraints[0].dual_value
+        C = Symmetric(2, 2)
+        X = Semidef(2)
+        obj = Maximize(C[0, 0])
+        constraints = [X == [[2,0], [0, 2]] - C]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.CVXOPT)
+        self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
+
+        # Test the dual values with SCS.
         C = Symmetric(2, 2)
         obj = Maximize(C[0, 0])
         constraints = [C << [[2,0], [0, 2]]]
         prob = Problem(obj, constraints)
         result = prob.solve(solver=s.SCS)
-        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(result, 2, places=4)
 
-        # Test the dual values.
         psd_constr_dual = constraints[0].dual_value
         C = Symmetric(2, 2)
         X = Semidef(2)
@@ -1241,8 +1262,6 @@ class TestProblem(BaseTest):
         constraints = [X == [[2,0], [0, 2]] - C]
         prob = Problem(obj, constraints)
         result = prob.solve(solver=s.SCS)
-        print psd_constr_dual
-        print constraints[0].dual_value
         self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
     def test_geo_mean(self):

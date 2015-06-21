@@ -44,6 +44,7 @@ from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 
+from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conv import conv
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.hstack import hstack

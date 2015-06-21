@@ -23,8 +23,9 @@ from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import numpy as np
 import unittest
+from cvxpy.tests.base_test import BaseTest
 
-class TestAtoms(unittest.TestCase):
+class TestAtoms(BaseTest):
     """ Unit tests for the atoms module. """
     def setUp(self):
         self.a = Variable(name='a')
@@ -495,3 +496,14 @@ class TestAtoms(unittest.TestCase):
             lambda_sum_smallest(Variable(2,2), 2.4)
         self.assertEqual(str(cm.exception),
             "Second argument must be a positive integer.")
+
+    def test_bmat(self):
+        """Test the bmat atom.
+        """
+        v_np = np.ones((3,1))
+        expr = bmat([[v_np,v_np],[[0,0], [1,2]]])
+        self.assertEquals(expr.size, (5,2))
+        const = np.bmat([[v_np,v_np],
+                        [np.zeros((2,1)), np.mat([1,2]).T]])
+        self.assertItemsAlmostEqual(expr.value, const)
+
