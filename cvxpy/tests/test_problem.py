@@ -1264,6 +1264,25 @@ class TestProblem(BaseTest):
         result = prob.solve(solver=s.SCS)
         self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
+        # Test dual values with SCS that have off-diagonal entries.
+        C = Symmetric(2, 2)
+        obj = Maximize(C[0, 1] + C[1, 0])
+        constraints = [C << [[2,0], [0, 2]], C >= 0]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.SCS)
+        self.assertAlmostEqual(result, 4, places=3)
+
+        psd_constr_dual = constraints[0].dual_value
+        C = Symmetric(2, 2)
+        X = Semidef(2)
+        obj = Maximize(C[0, 1] + C[1, 0])
+        constraints = [X == [[2,0], [0, 2]] - C, C >= 0]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.SCS)
+        self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual,
+            places=3)
+
+
     def test_geo_mean(self):
         import numpy as np
 
