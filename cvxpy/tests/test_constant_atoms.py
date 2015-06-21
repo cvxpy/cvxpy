@@ -72,6 +72,8 @@ atoms = [
             Constant([[1,1.0/2],[1.0/3,1.0/4]])),
         (kl_div, (1, 1), [math.e, 1], Constant([1])),
         (kl_div, (1, 1), [math.e, math.e], Constant([0])),
+        (lambda x: kron(np.matrix("1 2; 3 4"), x), (4, 4), [np.matrix("5 6; 7 8")],
+            Constant(np.kron(np.matrix("1 2; 3 4").A, np.matrix("5 6; 7 8").A))),
         (lambda_max, (1, 1), [ [[2,0],[0,1]] ], Constant([2])),
         (lambda_max, (1, 1), [ [[5,7],[7,-3]] ], Constant([9.06225775])),
         (lambda x: lambda_sum_largest(x, 2), (1, 1), [ [[1, 2, 3], [2,4,5], [3,5,6]] ], Constant([11.51572947])),

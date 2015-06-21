@@ -23,35 +23,31 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
-class conv(AffAtom):
-    """ 1D discrete convolution of two vectors.
+class kron(AffAtom):
+    """Kronecker product.
     """
     # TODO work with right hand constant.
     def __init__(self, lh_expr, rh_expr):
-        super(conv, self).__init__(lh_expr, rh_expr)
+        super(kron, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        """Convolve the two values.
+        """Kronecker product of the two values.
         """
-        # Convert values to 1D.
-        values = list(map(intf.from_2D_to_1D, values))
-        return np.convolve(values[0], values[1])
+        return np.kron(values[0], values[1])
 
     def validate_arguments(self):
         """Checks that both arguments are vectors, and the first is constant.
         """
-        if not self.args[0].is_vector() or not self.args[1].is_vector():
-            raise TypeError("The arguments to conv must resolve to vectors." )
         if not self.args[0].is_constant():
-            raise TypeError("The first argument to conv must be constant.")
+            raise TypeError("The first argument to kron must be constant.")
 
     def shape_from_args(self):
         """The sum of the argument dimensions - 1.
         """
-        lh_length = self.args[0].size[0]
-        rh_length = self.args[1].size[0]
-        return u.Shape(lh_length + rh_length - 1, 1)
+        rows = self.args[0].size[0]*self.args[1].size[0]
+        cols = self.args[0].size[1]*self.args[1].size[1]
+        return u.Shape(rows, cols)
 
     def sign_from_args(self):
         """Same as times.
@@ -60,12 +56,12 @@ class conv(AffAtom):
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
-        """Convolve two vectors.
+        """Kronecker product of two matrices.
 
         Parameters
         ----------
         arg_objs : list
-            LinExpr for each argument.
+            LinOp for each argument.
         size : tuple
             The size of the resulting expression.
         data :
@@ -76,4 +72,4 @@ class conv(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.conv(arg_objs[0], arg_objs[1], size), [])
+        return (lu.kron(arg_objs[0], arg_objs[1], size), [])

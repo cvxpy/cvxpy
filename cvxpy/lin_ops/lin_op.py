@@ -77,6 +77,9 @@ UPPER_TRI = "upper_tri"
 # The 1D discrete convolution of two vectors.
 # Data: LinOp evaluating to the left hand term.
 CONV = "conv"
+# The Kronecker product of two matrices.
+# Data: LinOp evaluating to the left hand term.
+KRON = "kron"
 # Horizontally concatenating operators.
 # Data: None
 HSTACK = "hstack"

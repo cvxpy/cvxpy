@@ -507,3 +507,38 @@ class TestAtoms(BaseTest):
                         [np.zeros((2,1)), np.mat([1,2]).T]])
         self.assertItemsAlmostEqual(expr.value, const)
 
+    def test_conv(self):
+        """Test the conv atom.
+        """
+        a = np.ones((3,1))
+        b = Parameter(2, sign='positive')
+        expr = conv(a, b)
+        assert expr.is_positive()
+        self.assertEqual(expr.size, (4, 1))
+        b = Parameter(2, sign='negative')
+        expr = conv(a, b)
+        assert expr.is_negative()
+        with self.assertRaises(Exception) as cm:
+            conv(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "The first argument to conv must be constant.")
+        with self.assertRaises(Exception) as cm:
+            conv([[0,1],[0,1]], self.x)
+        self.assertEqual(str(cm.exception),
+            "The arguments to conv must resolve to vectors." )
+
+    def test_kron(self):
+        """Test the kron atom.
+        """
+        a = np.ones((3,2))
+        b = Parameter(2, sign='positive')
+        expr = kron(a, b)
+        assert expr.is_positive()
+        self.assertEqual(expr.size, (6, 2))
+        b = Parameter(2, sign='negative')
+        expr = kron(a, b)
+        assert expr.is_negative()
+        with self.assertRaises(Exception) as cm:
+            kron(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "The first argument to kron must be constant.")

@@ -24,6 +24,7 @@ Version 0.2.23 (next release)
 * Basic remove redundant rows for CVXOPT chol. Made 'chol' default kktsolver.
 * Added symmetric variables and positive definite inequalities (<<, >>).
 * Added bmat atom for making block matrices.
+* Added kron.
 
 Version 0.2.23
 --------------

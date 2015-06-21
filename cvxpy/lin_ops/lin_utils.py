@@ -212,6 +212,23 @@ def mul_elemwise(lh_op, rh_op):
     """
     return lo.LinOp(lo.MUL_ELEM, lh_op.size, [rh_op], lh_op)
 
+def kron(lh_op, rh_op, size):
+    """Kronecker product of two matrices.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the product.
+    rh_op : LinOp
+        The right-hand operator in the product.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the Kronecker product.
+    """
+    return lo.LinOp(lo.KRON, size, [rh_op], lh_op)
+
 def div_expr(lh_op, rh_op):
     """Divide one linear operator by another.
 

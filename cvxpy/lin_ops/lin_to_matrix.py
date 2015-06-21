@@ -363,7 +363,7 @@ def diag_vec_mat(lin_op):
 
     Returns
     -------
-    SciPy CSC matrix
+    list of SciPy CSC matrix
         The matrix representing placing a vector on a diagonal.
     """
     rows, _ = lin_op.size
@@ -452,7 +452,7 @@ def conv_mat(lin_op):
 
     Returns
     -------
-    list of NumPy matrix
+    list of NumPy matrices
         The matrix representing the convolution operation.
     """
     constant = const_mat(lin_op.data)
@@ -471,6 +471,36 @@ def conv_mat(lin_op):
     coeff = sp_la.toeplitz(toeplitz_col, toeplitz_row)
 
     return [np.matrix(coeff)]
+
+def kron_mat(lin_op):
+    """Returns the coefficient matrix for KRON linear op.
+
+    Parameters
+    ----------
+    lin_op : LinOp
+        The conv linear op.
+
+    Returns
+    -------
+    list of SciPy CSC matrix
+        The matrix representing the Kronecker product.
+    """
+    constant = const_mat(lin_op.data)
+    lh_rows, lh_cols = constant.shape
+    rh_rows, rh_cols = lin_op.args[0].size
+    # Stack sections for each column of the output.
+    col_blocks = []
+    for j in range(lh_cols):
+        # Vertically stack A_{ij}Identity.
+        blocks = []
+        for i in range(lh_rows):
+            blocks.append(constant[i, j]*sp.eye(rh_rows))
+        column = sp.vstack(blocks)
+        # Make block diagonal matrix by repeating column.
+        col_blocks.append( sp.block_diag(rh_cols*[column]) )
+    coeff = sp.vstack(col_blocks).tocsc()
+
+    return [coeff]
 
 def stack_mats(lin_op, vertical):
     """Returns the coefficient matrices for VSTACK or HSTACK linear op.
@@ -538,6 +568,7 @@ TYPE_TO_FUNC = {
     lo.DIAG_MAT: diag_mat_mat,
     lo.UPPER_TRI: upper_tri_mat,
     lo.CONV: conv_mat,
+    lo.KRON: kron_mat,
     lo.HSTACK: lambda lin_op: stack_mats(lin_op, False),
     lo.VSTACK: lambda lin_op: stack_mats(lin_op, True),
 }
