@@ -48,7 +48,7 @@ make a feature request on the `CVXPY Github issue tracker <https://github.com/cv
 
 What are the differences between CVXPY's solvers?
 -------------------------------------------------
-The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and ease of installation.
+The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
 See the "Solve method options" section in :ref:`Advanced Features <advanced>` for details.
 
 Can I use NumPy functions on CVXPY objects?
@@ -61,7 +61,7 @@ Can I use SciPy sparse matrices with CVXPY?
 -------------------------------------------
 Yes, though you need to be careful.
 SciPy sparse matrices do not support operator overloading to the extent needed by CVXPY.
-See `this Github issue <https://github.com/scipy/scipy/issues/4819>`_.
+(See `this Github issue <https://github.com/scipy/scipy/issues/4819>`_ for details.)
 You can wrap a SciPy sparse matrix as a CVXPY constant, however, and then use it normally with CVXPY:
 
 .. code:: python
@@ -82,7 +82,7 @@ See :ref:`Advanced Features <advanced>`.
 How do I create a variable that has multiple special properties, such as boolean and symmetric?
 ---------------------------------------------------------------------------------------------------
 Create one variable with each desired property, and then set them all equal by adding equality constraints.
-`CVXPY 1.0 <TODO>`_ will have a more elegant solution.
+`CVXPY 1.0 <https://github.com/cvxgrp/cvxpy/issues/199>`_ will have a more elegant solution.
 
 How do I create complex variables?
 ----------------------------------

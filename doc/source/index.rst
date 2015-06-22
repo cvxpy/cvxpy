@@ -8,6 +8,8 @@ Welcome to CVXPY
 
 **Join the** `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_ **for the best CVXPY support!**
 
+**CVXPY 1.0 is under development**. **There will be some** `changes to the user interface <https://github.com/cvxgrp/cvxpy/issues/199>`_.
+
 CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
