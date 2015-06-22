@@ -52,7 +52,7 @@ The solvers support different classes of problems and occupy different points on
 See the "Solve method options" section in :ref:`Advanced Features <advanced>` for details.
 
 What do I do if I get "RuntimeError: maximum recursion depth exceeded"?
------------------------------------------------------------------------------------
+------------------------------------------------------------------------
 See `this thread <https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I>`_ on the mailing list.
 
 Can I use NumPy functions on CVXPY objects?
