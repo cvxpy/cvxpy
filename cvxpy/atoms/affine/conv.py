@@ -42,9 +42,9 @@ class conv(AffAtom):
         """Checks that both arguments are vectors, and the first is constant.
         """
         if not self.args[0].is_vector() or not self.args[1].is_vector():
-            raise TypeError("The arguments to conv must resolve to vectors." )
+            raise ValueError("The arguments to conv must resolve to vectors." )
         if not self.args[0].is_constant():
-            raise TypeError("The first argument to conv must be constant.")
+            raise ValueError("The first argument to conv must be constant.")
 
     def shape_from_args(self):
         """The sum of the argument dimensions - 1.

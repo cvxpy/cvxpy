@@ -21,3 +21,8 @@ class SolverError(Exception):
     """Error thrown when a solver encounters an error solving a problem.
     """
     pass
+
+class DCPError(Exception):
+    """Error thrown for DCP violations.
+    """
+    pass

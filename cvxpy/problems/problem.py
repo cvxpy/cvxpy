@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
-from cvxpy.error import SolverError
+from cvxpy.error import SolverError, DCPError
 from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
@@ -49,7 +49,7 @@ class Problem(u.Canonical):
             constraints = []
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
-            raise TypeError("Problem objective must be Minimize or Maximize.")
+            raise DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self.objective = objective
         self.constraints = constraints
@@ -221,7 +221,7 @@ class Problem(u.Canonical):
                 print ("Problem does not follow DCP rules. "
                        "Solving a convex relaxation.")
             else:
-                raise Exception("Problem does not follow DCP rules.")
+                raise DCPError("Problem does not follow DCP rules.")
 
         objective, constraints = self.canonicalize()
         # Choose a solver/check the chosen solver.

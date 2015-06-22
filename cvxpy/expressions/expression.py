@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.error import DCPError
 import cvxpy.interface as intf
 import cvxpy.utilities as u
 import cvxpy.settings as s
@@ -222,7 +223,7 @@ class Expression(u.Canonical):
         # Cannot multiply two non-constant expressions.
         if not self.is_constant() and \
            not other.is_constant():
-            raise TypeError("Cannot multiply two non-constants.")
+            raise DCPError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
         elif self.is_constant():

@@ -427,21 +427,21 @@ scalars, which are promoted.
    * - log1p(x)
      - :math:`\log(x+1)`
      - :math:`x > -1`
-     - sign(x)
+     - same as x
      - |concave| concave
      - |incr| incr.
 
    * - max_elemwise(x1, |_| ..., |_| xk)
      - :math:`\max \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
-     - max(sign(xi))
+     - :math:`\max(\mathrm{sign}(x_1))`
      - |convex| convex
      - |incr| incr.
 
    * - min_elemwise(x1, |_| ..., |_| xk)
      - :math:`\min \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
-     - min(sign(xi))
+     - :math:`\min(\mathrm{sign}(x_1))`
      - |concave| concave
      - |incr| incr.
 
@@ -450,7 +450,7 @@ scalars, which are promoted.
        :math:`c \in \mathbf{R}`
      - c*x
      - :math:`x \in\mathbf{R}`
-     - sign(c*x)
+     - :math:`\mathrm{sign}(cx)`
      - |affine| affine
      - depends |_| on |_| c
 
@@ -572,7 +572,7 @@ and returns a vector or matrix.
        :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
      - :math:`x\in \mathbf{R}^n`
-     - depends |_| on |_| c, |_| x
+     - :math:`\mathrm{sign}\left(c_{1}x_{1}\right)`
      - |affine| affine
      - depends |_| on |_| c
 
@@ -591,11 +591,20 @@ and returns a vector or matrix.
      - |incr| incr.
 
    * - hstack(X1, |_| ..., |_| Xk)
-     - :math:`\left[\begin{matrix}X_1  \cdots    X_k\end{matrix}\right]`
-     - :math:`X_i \in\mathbf{R}^{m \times n_i}`
-     - sign(sum([x1, |_| ..., |_| xk]))
+     - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
+     - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
+     - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
+
+   * - kron(C, X)
+
+       :math:`C\in\mathbf{R}^{p \times q}`
+     - :math:`\left[\begin{matrix}C_{11}X & \cdots & C_{1q}X \\ \vdots  &        & \vdots \\ C_{p1}X &  \cdots      & C_{pq}X     \end{matrix}\right]`
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - :math:`\mathrm{sign}\left(C_{11}X_{11}\right)`
+     - |affine| affine
+     - depends |_| on C
 
    * - reshape(X, |_| n', |_| m')
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
@@ -614,9 +623,9 @@ and returns a vector or matrix.
      - |incr| incr.
 
    * - vstack(X1, |_| ..., |_| Xk)
-     - :math:`\left[\begin{matrix}X_1  \\ \vdots  \\X_k\end{matrix}\right]`
-     - :math:`X_i \in\mathbf{R}^{m_i \times n}`
-     - sign(sum([x1, |_| ..., |_| xk]))
+     - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
+     - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
+     - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 

@@ -40,7 +40,7 @@ class kron(AffAtom):
         """Checks that both arguments are vectors, and the first is constant.
         """
         if not self.args[0].is_constant():
-            raise TypeError("The first argument to kron must be constant.")
+            raise ValueError("The first argument to kron must be constant.")
 
     def shape_from_args(self):
         """The sum of the argument dimensions - 1.

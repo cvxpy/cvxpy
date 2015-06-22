@@ -50,7 +50,10 @@ The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that 
 Semidefinite matrices
 ----------------------
 
-Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs). You can do this in CVXPY using the ``Semidef`` constructor. ``Semidef(n)`` constructs an ``n`` by ``n`` variable constrained to be positive semidefinite. For example,
+Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs).
+You can do this in CVXPY in two ways.
+The first way is to use
+``Semidef(n)`` to create an ``n`` by ``n`` variable constrained to be symmetric and positive semidefinite. For example,
 
 .. code:: python
 
@@ -61,22 +64,31 @@ Many convex optimization problems involve constraining matrices to be positive o
     # a normal CVXPY variable.
     obj = Minimize(norm(X) + sum_entries(X))
 
-The following code shows how to use ``Semidef`` to constrain matrix expressions to be positive or negative semidefinite:
+The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
+If ``X`` and ``Y`` are ``n`` by ``n`` variables,
+the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`z \in \mathcal{R}^n`.
+The constraint does not require that ``X`` and ``Y`` be symmetric.
+
+The following code shows how to to constrain square matrix expressions to be positive or negative
+semidefinite (but not necessarily symmetric).
+You cannot apply the ``>>`` and ``<<`` operators to non-square matrices.
 
 .. code:: python
 
     # expr1 must be positive semidefinite.
-    constr1 = (expr1 == Semidef(n))
+    constr1 = (expr1 >> 0)
 
     # expr2 must be negative semidefinite.
-    constr2 = (expr2 == -Semidef(n))
+    constr2 = (expr2 << 0)
 
-To constrain a matrix expression to be symmetric (but not necessarily positive or negative semidefinite), simply write
+To constrain a matrix expression to be symmetric, simply write
 
 .. code:: python
 
     # expr must be symmetric.
     constr = (expr == expr.T)
+
+You can also use ``Symmetric(n)`` to create an ``n`` by ``n`` variable constrained to be symmetric.
 
 .. _mip:
 
@@ -340,7 +352,9 @@ Here's the complete list of solver options.
     number of iterative refinement steps after solving KKT system (default: 1).
 
 ``'kktsolver'``
-    The KKT solver used. The default is a regularized LDL solver. The "chol" solver is faster but requires that A and [A; G] be full rank.
+    The KKT solver used. The default, "chol", does a Cholesky factorization with preprocessing to make A and [A; G] full rank.
+    The "robust" solver does an LDL factorization without preprocessing.
+    It is slower, but more robust.
 
 `SCS`_ options:
 
