@@ -51,6 +51,10 @@ What are the differences between CVXPY's solvers?
 The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
 See the "Solve method options" section in :ref:`Advanced Features <advanced>` for details.
 
+What do I do if I get "RuntimeError: maximum recursion depth exceeded"?
+-----------------------------------------------------------------------------------
+See `this thread <https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I>`_ on the mailing list.
+
 Can I use NumPy functions on CVXPY objects?
 -------------------------------------------
 No, you can only use CVXPY functions on CVXPY objects.
