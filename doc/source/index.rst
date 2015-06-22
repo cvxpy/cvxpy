@@ -47,6 +47,7 @@ CVXPY was designed and implemented by Steven Diamond, with input from Stephen Bo
 CVXPY was inspired by the MATLAB package `CVX <http://cvxr.com/cvx/>`_. See the book `Convex Optimization <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe for general background on convex optimization.
 
 CVXPY relies on the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_.
+Additional solvers are supported, but must be installed separately.
 
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
