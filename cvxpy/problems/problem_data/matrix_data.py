@@ -28,7 +28,7 @@ import sys
 sys.path.append('../../src/python')
 import canonInterface
 
-# Get seetings for switching CVXcanon
+# Get settings for switching CVXcanon
 import cvxpy.settings as s
 
 
@@ -224,11 +224,6 @@ class MatrixData(object):
         V, I, J = mat_cache.coo_tup
         Vp, Ip, Jp = param_cache.coo_tup
         if len(V) + len(Vp) > 0:
-
-            # print 'V: ', (V + Vp)
-            # print 'I: ', (I + Ip)
-            # print 'J: ', (J + Jp)
-
             if s.USE_CVXCANON:
                 # assumes no params
                 matrix = sp.coo_matrix((V, (I, J)), (rows, cols))
@@ -245,7 +240,6 @@ class MatrixData(object):
         combo_vec = mat_cache.const_vec + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
 
-        # print 'Constant Vector: ', mat_cache.const_vec
         return (matrix, -const_vec)
 
     def _process_constr(self, constr, mat_cache, vert_offset):
