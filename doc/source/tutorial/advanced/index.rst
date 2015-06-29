@@ -137,26 +137,28 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface and `GUROBI`_.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `GUROBI`_, and `Elemental`_.
 The table below shows the types of problems the solvers can handle.
 
-+------------+----+------+-----+-----+-----+
-|            | LP | SOCP | SDP | EXP | MIP |
-+============+====+======+=====+=====+=====+
-| `GLPK`_    | X  |      |     |     |     |
-+------------+----+------+-----+-----+-----+
-| `GLPK_MI`_ | X  |      |     |     | X   |
-+------------+----+------+-----+-----+-----+
-| `ECOS`_    | X  | X    |     |     |     |
-+------------+----+------+-----+-----+-----+
-| `ECOS_BB`_ | X  | X    |     |     | X   |
-+------------+----+------+-----+-----+-----+
-| `GUROBI`_  | X  | X    |     |     | X   |
-+------------+----+------+-----+-----+-----+
-| `CVXOPT`_  | X  | X    | X   | X   |     |
-+------------+----+------+-----+-----+-----+
-| `SCS`_     | X  | X    | X   | X   |     |
-+------------+----+------+-----+-----+-----+
++--------------+----+------+-----+-----+-----+
+|              | LP | SOCP | SDP | EXP | MIP |
++==============+====+======+=====+=====+=====+
+| `GLPK`_      | X  |      |     |     |     |
++--------------+----+------+-----+-----+-----+
+| `GLPK_MI`_   | X  |      |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `Elemental`_ | X  | X    |     |     |     |
++--------------+----+------+-----+-----+-----+
+| `ECOS`_      | X  | X    |     |     |     |
++--------------+----+------+-----+-----+-----+
+| `ECOS_BB`_   | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `GUROBI`_    | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `CVXOPT`_    | X  | X    | X   | X   |     |
++--------------+----+------+-----+-----+-----+
+| `SCS`_       | X  | X    | X   | X   |     |
++--------------+----+------+-----+-----+-----+
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -204,6 +206,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GUROBI)
     print "optimal value with GUROBI:", prob.value
 
+    # Solve with Elemental.
+    prob.solve(solver=ELEMENTAL)
+    print "optimal value with Elemental:", prob.value
+
 ::
 
     optimal value with ECOS: 5.99999999551
@@ -213,6 +219,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
+    optimal value with Elemental: 6.0000044085242727
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -222,7 +229,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI']
+    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -413,3 +420,4 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
+.. _Elemental: http://libelemental.org/

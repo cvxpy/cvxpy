@@ -17,8 +17,11 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.23 (next release)
+Version 0.2.25 (next release)
 -----------------------------
+
+Version 0.2.24
+--------------
 * Added Elemental interface.
 * Can add problems and objectives.
 * Basic remove redundant rows for CVXOPT chol. Made 'chol' default kktsolver.

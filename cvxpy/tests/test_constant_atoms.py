@@ -36,10 +36,10 @@ import math
 from nose.tools import assert_raises
 
 ROBUST_CVXOPT = "robust_cvxopt"
-SOLVER_TO_TOL = {SCS: 1e-1,
-                 ECOS: 1e-5,
-                 CVXOPT: 1e-4,
-                 ROBUST_CVXOPT: 1e-4}
+SOLVER_TO_TOL = {SCS: 1e-2,
+                 ECOS: 1e-7,
+                 CVXOPT: 1e-7,
+                 ROBUST_CVXOPT: 1e-7}
 SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
 # Test elemental if installed.
 if ELEMENTAL in installed_solvers():
@@ -50,9 +50,7 @@ v = cvxopt.matrix([-1,2,-2], tc='d')
 v_np = np.matrix([-1.,2,-2]).T
 
 # Atom, solver pairs known to fail.
-KNOWN_SOLVER_ERRORS = [(lambda_min, SCS),
-                       (lambda_max, SCS),
-]
+KNOWN_SOLVER_ERRORS = []
 
 atoms = [
     ([
@@ -163,7 +161,7 @@ atoms = [
                [ [[20, 8, 5, 2],
                   [8, 16, 2, 4],
                   [5, 2, 5, 2],
-                  [2, 4, 2, 4]] ], Constant([7.7424])),
+                  [2, 4, 2, 4]] ], Constant([7.7424020218157814])),
         (geo_mean, (1, 1), [[4, 1]], Constant([2])),
         (geo_mean, (1, 1), [[0.01, 7]], Constant([0.2645751311064591])),
         (geo_mean, (1, 1), [[63, 7]], Constant([21])),
@@ -221,13 +219,13 @@ def run_atom(atom, problem, obj_val, solver):
         print("solver", solver)
         tolerance = SOLVER_TO_TOL[solver]
         if solver == ROBUST_CVXOPT:
-            result = problem.solve(solver=CVXOPT, verbose=True, kktsolver=ROBUST_KKTSOLVER)
+            result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
         else:
             result = problem.solve(solver=solver, verbose=True)
         if problem.status is OPTIMAL:
             print(result)
             print(obj_val)
-            assert( -tolerance <= result - obj_val <= tolerance )
+            assert( -tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance )
         else:
             assert (atom, solver) in KNOWN_SOLVER_ERRORS
 

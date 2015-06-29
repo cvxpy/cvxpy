@@ -179,6 +179,13 @@ CVXPY supports the GUROBI solver.
 Simply install GUROBI such that you can ``import gurobipy`` in Python.
 See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
 
+Install with Elemental support
+------------------------------
+
+CVXPY supports the Elemental solver.
+Simply install Elemental such that you can ``import El`` in Python.
+See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools

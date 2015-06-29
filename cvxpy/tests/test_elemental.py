@@ -47,16 +47,23 @@ class TestSolvers(BaseTest):
 
             # data['c'], data['b'], data['h'], data['A'], data['G']
             prob.solve(verbose=False, solver=ELEMENTAL)
-            self.assertAlmostEqual(prob.value, 7.724231543909264, places=4)
+            self.assertAlmostEqual(prob.value, 7.724231543909264, places=3)
 
             x = Variable()
             prob = Problem(Minimize(power(x, 1.34)), [x == 7.45])
             prob.solve(solver=ELEMENTAL, verbose=False)
-            self.assertAlmostEqual(prob.value, 14.746515290825071, places=4)
+            self.assertAlmostEqual(prob.value, 14.746515290825071, places=3)
 
             x = Variable(2, 2)
             expr = inv_pos(x)
-            prob = Problem(Minimize(expr[0,0]), [x == [[1,2],[3,4]] ])
+            prob = Problem(Minimize(expr[1,0]), [x == [[1,2],[3,4]] ])
             prob.solve(solver=ELEMENTAL, verbose=False)
             # Constant([[1,1.0/2],[1.0/3,1.0/4]])),
-            self.assertAlmostEqual(prob.value, 1)
+            self.assertAlmostEqual(prob.value, 0.5)
+
+            x = Variable(2, 2)
+            expr = sqrt(x)
+            constr = [x  == [[2,4],[16,1]] ]
+            # Constant([[1.414213562373095,2],[4,1]])),
+            prob = Problem(Maximize(expr[0,0]), constr)
+            prob.solve(solver=ELEMENTAL, verbose=False)
