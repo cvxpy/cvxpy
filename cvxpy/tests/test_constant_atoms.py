@@ -221,7 +221,7 @@ def run_atom(atom, problem, obj_val, solver):
         if solver == ROBUST_CVXOPT:
             result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
         else:
-            result = problem.solve(solver=solver, verbose=True)
+            result = problem.solve(solver=solver, verbose=False)
         if problem.status is OPTIMAL:
             print(result)
             print(obj_val)
