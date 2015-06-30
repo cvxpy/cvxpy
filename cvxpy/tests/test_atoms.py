@@ -16,8 +16,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
-import sys # TODO: temp
-sys.path.insert(1, '/Users/alnurali/shared_code/cvxpy/cvxpy') # TODO: temp
 
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable, NonNegative
@@ -611,6 +609,3 @@ class TestAtoms(BaseTest):
         p.solve()
         self.assertAlmostEqual(p.value,8)
         self.assertAlmostEqual(x.value,3)
-
-if __name__ == "__main__":
-    unittest.main()
