@@ -29,7 +29,7 @@ class ECOS(Solver):
     LP_CAPABLE = True
     SOCP_CAPABLE = True
     SDP_CAPABLE = False
-    EXP_CAPABLE = False
+    EXP_CAPABLE = True
     MIP_CAPABLE = False
 
     # EXITCODES from ECOS
@@ -117,6 +117,7 @@ class ECOS(Solver):
         """
         import ecos
         data = self.get_problem_data(objective, constraints, cached_data)
+        data[s.DIMS]['e'] = data[s.DIMS][s.EXP_DIM]
         results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
