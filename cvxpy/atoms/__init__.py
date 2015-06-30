@@ -43,6 +43,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
+from cvxpy.atoms.partial_optimize import partial_optimize
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conv import conv
