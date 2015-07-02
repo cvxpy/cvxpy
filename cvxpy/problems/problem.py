@@ -224,8 +224,7 @@ class Problem(u.Canonical):
                 raise Exception("Problem does not follow DCP rules.")
 
         objective, constraints = self.canonicalize()
-
-	# Choose a solver/check the chosen solver.
+        # Choose a solver/check the chosen solver.
         if solver is None:
             solver_name = Solver.choose_solver(constraints)
             solver = SOLVERS[solver_name]
@@ -235,7 +234,7 @@ class Problem(u.Canonical):
         else:
             raise SolverError("Unknown solver.")
 
-	sym_data = solver.get_sym_data(objective, constraints,
+        sym_data = solver.get_sym_data(objective, constraints,
                                        self._cached_data)
         # Presolve couldn't solve the problem.
         if sym_data.presolve_status is None:
