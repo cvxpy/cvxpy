@@ -231,11 +231,9 @@ class MatrixData(object):
                                                       convert_scalars=True)
         else:  # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
-
         # Convert 2D ND arrays to 1D
         combo_vec = mat_cache.const_vec + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
-
         return (matrix, -const_vec)
 
     def _process_constr(self, constr, mat_cache, vert_offset):
