@@ -22,13 +22,9 @@ import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
 import scipy.sparse as sp
-from pdb import set_trace as bp
 
-import sys
-sys.path.append('../../src/python')
+# New imports needed to use CVXcanon
 import canonInterface
-
-# Get settings for switching CVXcanon
 import cvxpy.settings as s
 
 
