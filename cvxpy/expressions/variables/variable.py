@@ -83,3 +83,12 @@ class Variable(Leaf):
         """String to recreate the object.
         """
         return "Variable(%d, %d)" % self.size
+
+    def __deepcopy__(self, memo):
+        """
+        For the purposes of computing an expectation, a deep copy of an Expression should deep copy "everything",
+        except for the Variables, which should be shallow copied because otherwise in a sample average approximation,
+        we will have introduced multiple copies of the same variable over (and over) again, which we (of course) don't
+        want.
+        """
+        return self

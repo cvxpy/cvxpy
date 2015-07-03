@@ -18,11 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variables import Variable, NonNegative
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import numpy as np
 import unittest
+from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
 
 class TestAtoms(BaseTest):
@@ -542,3 +543,69 @@ class TestAtoms(BaseTest):
             kron(self.x, -1)
         self.assertEqual(str(cm.exception),
             "The first argument to kron must be constant.")
+
+    # Test the partial_optimize atom.
+    def test_partial_optimize_eval_1norm(self):
+        # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
+        dims = 3
+        x, t = Variable(dims), Variable(dims)
+        xval = [-5]*dims
+        p1 = Problem(Minimize(sum_entries(t)), [-t<=xval, xval<=t])
+        p1.solve()
+
+        # Minimize the 1-norm via partial_optimize.
+        p2 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
+        g = partial_optimize(p2, [t], [x])
+        p3 = Problem(Minimize(g(xval)), [])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_min_1norm(self):
+        # Minimize the 1-norm in the usual way
+        dims = 3
+        x, t = Variable(dims), Variable(dims)
+        p1 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
+
+        # Minimize the 1-norm via partial_optimize
+        g = partial_optimize(p1, [t], [x])
+        p2 = Problem(Minimize(g(x)), [])
+        p2.solve()
+
+        p1.solve()
+        self.assertAlmostEqual(p1.value, p2.value)
+
+    def test_partial_optimize_simple_problem(self):
+        x, y = Variable(1), Variable(1)
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x+y), [x+y>=3, y>=4, x>=5])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=3, y>=4])
+        g = partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g(x)), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_numeric_fn(self):
+        x,y = Variable(1), Variable(1)
+        xval = 4
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(y), [xval+y>=3])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=3])
+        g = partial_optimize(p2, [y], [x])
+        result = g(x).numeric([xval])
+        self.assertAlmostEqual(result, p1.value)
+
+    # Test the NonNegative Variable class.
+    def test_nonnegative_variable(self):
+        x = NonNegative()
+        p = Problem(Minimize(5+x),[x>=3])
+        p.solve()
+        self.assertAlmostEqual(p.value,8)
+        self.assertAlmostEqual(x.value,3)

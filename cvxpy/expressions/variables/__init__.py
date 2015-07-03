@@ -22,3 +22,4 @@ from cvxpy.expressions.variables.int_var import Int
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.expressions.variables.semidef_var import Semidef
 from cvxpy.expressions.variables.symmetric import Symmetric
+from cvxpy.expressions.variables.nonneg import NonNegative
