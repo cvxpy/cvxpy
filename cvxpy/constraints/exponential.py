@@ -76,12 +76,18 @@ class ExpCone(NonlinearConstraint):
         """
         if solver.name() == s.CVXOPT:
             eq_constr += self.__CVXOPT_format[0]
-        elif solver.name() in [s.SCS, s.ECOS]:
+        elif solver.name() == s.SCS:
             leq_constr += self.__SCS_format[1]
+        elif solver.name() == s.ECOS:
+            leq_constr += self.__ECOS_format[1]
         else:
             raise SolverError("Solver does not support exponential cone.")
         # Update dims.
         dims[s.EXP_DIM] += self.size[0]*self.size[1]
+
+    @pu.lazyprop
+    def __ECOS_format(self):
+        return ([], format_elemwise([self.x, self.z, self.y]))
 
     @pu.lazyprop
     def __SCS_format(self):

@@ -51,7 +51,7 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=4)
+            super(TestProblem, self).assertAlmostEqual(a,b,places=3)
 
     def test_large_sum(self):
         """Test large number of variables summed.
