@@ -46,34 +46,6 @@ class TestSCS(BaseTest):
     def assertAlmostEqual(self, a, b, places=2):
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 
-    # def test_log(self):
-    #     """ Test that minimize -sum(log(x)) s.t. x <= 1 yields 0.
-
-    #         Rewritten by hand.
-
-    #         neg_log_func implements
-
-    #             t1 - log(t2) <= 0
-
-    #         Implemented as
-
-    #             minimize [-1,-1,0,0] * [t1; t2]
-    #                 t1 - log(t2) <= 0
-    #                 [0 0 -1 0;
-    #                  0 0 0 -1] * [t1; t2] <= [-1; -1]
-    #     """
-    #     F = cvxlog.neg_log_func(2)
-    #     h = cvxopt.matrix([1.,1.])
-    #     G = cvxopt.spmatrix([1.,1.], [0,1], [2,3], (2,4), tc='d')
-    #     sol = cvxopt.solver.cpl(cvxopt.matrix([-1.0,-1.0,0,0]), F, G, h)
-
-    #     self.assertEqual(sol['status'], 'optimal')
-    #     self.assertAlmostEqual(sol['x'][0], 0.)
-    #     self.assertAlmostEqual(sol['x'][1], 0.)
-    #     self.assertAlmostEqual(sol['x'][2], 1.)
-    #     self.assertAlmostEqual(sol['x'][3], 1.)
-    #     self.assertAlmostEqual(sol['primal objective'], 0.0)
-
     def test_log_problem(self):
         # Log in objective.
         obj = Maximize(sum_entries(log(self.x)))
