@@ -21,6 +21,7 @@ setup(
               'cvxpy.problems.problem_data',
               'cvxpy.problems.solvers',
               'cvxpy.tests',
+              'cvxpy.transforms',
               'cvxpy.utilities'],
     package_dir={'cvxpy': 'cvxpy'},
         url='http://github.com/cvxgrp/cvxpy/',

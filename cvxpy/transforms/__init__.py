@@ -17,9 +17,4 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variables.bool_var import Bool
-from cvxpy.expressions.variables.int_var import Int
-from cvxpy.expressions.variables.variable import Variable
-from cvxpy.expressions.variables.semidef_var import Semidef
-from cvxpy.expressions.variables.symmetric import Symmetric
-from cvxpy.expressions.variables.nonneg import NonNegative
+from cvxpy.transforms.partial_optimize import partial_optimize
