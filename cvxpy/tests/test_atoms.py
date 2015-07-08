@@ -613,7 +613,6 @@ class TestAtoms(BaseTest):
         g = partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()
-        print p3.value
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self):
@@ -627,6 +626,7 @@ class TestAtoms(BaseTest):
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3])
         g = partial_optimize(p2, [y], [x])
+        x.value = xval
         result = g.value
         self.assertAlmostEqual(result, p1.value)
 
