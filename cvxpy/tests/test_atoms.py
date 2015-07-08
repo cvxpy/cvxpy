@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
+from cvxpy.transforms import *
 from cvxpy.expressions.variables import Variable, NonNegative
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
@@ -556,9 +557,35 @@ class TestAtoms(BaseTest):
         # Minimize the 1-norm via partial_optimize.
         p2 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
         g = partial_optimize(p2, [t], [x])
-        p3 = Problem(Minimize(g(xval)), [])
+        p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
+
+        # Try leaving out args.
+
+        # Minimize the 1-norm via partial_optimize.
+        g = partial_optimize(p2, opt_vars=[t])
+        p3 = Problem(Minimize(g), [x == xval])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+        # Minimize the 1-norm via partial_optimize.
+        g = partial_optimize(p2, dont_opt_vars=[x])
+        p3 = Problem(Minimize(g), [x == xval])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+        with self.assertRaises(Exception) as cm:
+            g = partial_optimize(p2)
+        self.assertEqual(str(cm.exception),
+            "partial_optimize called with neither opt_vars nor dont_opt_vars.")
+
+        with self.assertRaises(Exception) as cm:
+            g = partial_optimize(p2, [], [x])
+        self.assertEqual(str(cm.exception),
+            ("If opt_vars and new_opt_vars are both specified, "
+             "they must contain all variables in the problem.")
+        )
 
     def test_partial_optimize_min_1norm(self):
         # Minimize the 1-norm in the usual way
@@ -568,7 +595,7 @@ class TestAtoms(BaseTest):
 
         # Minimize the 1-norm via partial_optimize
         g = partial_optimize(p1, [t], [x])
-        p2 = Problem(Minimize(g(x)), [])
+        p2 = Problem(Minimize(g))
         p2.solve()
 
         p1.solve()
@@ -584,8 +611,9 @@ class TestAtoms(BaseTest):
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3, y>=4])
         g = partial_optimize(p2, [y], [x])
-        p3 = Problem(Minimize(x+g(x)), [x>=5])
+        p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()
+        print p3.value
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self):
@@ -599,7 +627,7 @@ class TestAtoms(BaseTest):
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3])
         g = partial_optimize(p2, [y], [x])
-        result = g(x).numeric([xval])
+        result = g.value
         self.assertAlmostEqual(result, p1.value)
 
     # Test the NonNegative Variable class.
