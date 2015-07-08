@@ -615,6 +615,23 @@ class TestAtoms(BaseTest):
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
+    def test_partial_optimize_params(self):
+        """Test partial optimize with parameters.
+        """
+        x, y = Variable(1), Variable(1)
+        gamma = Parameter()
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x+y), [x+y>=gamma, y>=4, x>=5])
+        gamma.value = 3
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=gamma, y>=4])
+        g = partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
     def test_partial_optimize_numeric_fn(self):
         x,y = Variable(1), Variable(1)
         xval = 4
