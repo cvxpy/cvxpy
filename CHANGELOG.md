@@ -19,6 +19,8 @@ Version 1.0 (targets)
 
 Version 0.2.25 (next release)
 -----------------------------
+* Added NonNegative variables.
+* Added partial_optimize as first transform.
 
 Version 0.2.24
 --------------
