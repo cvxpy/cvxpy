@@ -173,6 +173,10 @@ atoms = [
         (harmonic_mean, (1, 1), [[2.5, 2.5, 2.5, 2.5]], Constant([2.5])),
         (harmonic_mean, (1, 1), [[0, 1, 2]], Constant([0])),
 
+        (lambda x: diff(x, 0), (3, 1), [[1, 2, 3]], Constant([ [1,2,3] ])),
+        (lambda x: diff(x, 1), (2, 1), [[1, 2, 3]], Constant([ [1,1] ])),
+        # (diff, (1, 1), [[1.1, 2.3]], Constant([1.2])),
+
         (lambda x: pnorm(x, .5), (1, 1), [[1.1, 2, .1]], Constant([7.724231543909264])),
         (lambda x: pnorm(x, -.4), (1, 1), [[1.1, 2, .1]], Constant([0.02713620334])),
         (lambda x: pnorm(x, -1), (1, 1), [[1.1, 2, .1]], Constant([0.0876494023904])),
