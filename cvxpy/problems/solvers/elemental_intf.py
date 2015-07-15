@@ -183,17 +183,14 @@ class Elemental(Solver):
         offset = 0
         orders = []
         firstInds = []
-        cone_count = 0
         for i in range(dims[s.LEQ_DIM]):
             orders.append(1)
             firstInds.append(offset)
-            cone_count += 1
             offset += 1
         for cone_len in dims[s.SOC_DIM]:
             for i in range(cone_len):
                 orders.append(cone_len)
                 firstInds.append(offset)
-            cone_count += 1
             offset += cone_len
 
         orders = self.distr_vec(np.array(orders), El.iTag)
