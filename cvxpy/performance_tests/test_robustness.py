@@ -43,7 +43,6 @@ class TestProblem(unittest.TestCase):
         self.C = Variable(3,2,name='C')
 
     # Overriden method to handle lists and lower accuracy.
-    # ECHU: uncommented to ensure that tests pass
     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
         try:
             a = list(a)
