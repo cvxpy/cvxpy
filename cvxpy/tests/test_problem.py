@@ -102,7 +102,7 @@ class TestProblem(BaseTest):
         """Test get_problem_data method.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
+            Problem(Maximize(Bool())).get_problem_data(s.ECOS)
         self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
 
         data = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
@@ -1044,7 +1044,7 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Minimize(-log(self.a))).solve(solver=s.ECOS)
+            Problem(Minimize(Bool())).solve(solver=s.ECOS)
         self.assertEqual(str(cm.exception),
             "The solver ECOS cannot solve the problem.")
 
