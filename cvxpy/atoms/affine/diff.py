@@ -1,4 +1,4 @@
-import numpy as np
+from cvxpy.expressions.expression import Expression
 
 def diff(x, k=1):
     """ Vector of kth order differences.
@@ -16,24 +16,14 @@ def diff(x, k=1):
 
     diff(x, 0) returns the vector x unchanged
     """
-    if isinstance(x, np.ndarray):
-        if len(x.shape) == 1:
-            pass
-        elif len(x.shape) == 2:
-            n = x.shape[1]
-        else:
-            raise ValueError('x must be 1d array')
+    x = Expression.cast_to_const(x)
+    m, n = x.size
 
-        m = len(x)
-    else:
-        m, n = x.size
     try:
         assert 0 <= k < m
         assert n == 1
     except:
         raise ValueError('Must have k >= 0 and x must be a 1D vector with < k elements')
-
-    print m, n, k
 
     d = x
     for i in range(k):
