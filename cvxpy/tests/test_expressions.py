@@ -554,6 +554,9 @@ class TestExpressions(BaseTest):
         x = Variable(2)
         self.assertEquals(x[::-1].size, (2, 1))
 
+        x = Variable(100, name="x")
+        self.assertEquals("x[:-1, 0]", str(x[:-1]))
+
     def test_logical_indices(self):
         """Test indexing with logical arrays.
         """

@@ -35,7 +35,7 @@ def validate_key(key, shape):
         Error: Index/slice out of bounds.
     """
     rows, cols = shape.size
-    # Change single indexes for vectors into double indices.
+    # Change single indices for vectors into double indices.
     if not isinstance(key, tuple):
         if rows == 1:
             key = (slice(0, 1, None), key)
@@ -98,7 +98,7 @@ def slice_to_str(slc):
     if is_single_index(slc):
         return str(slc.start)
     endpoints = [none_to_empty(val) for val in (slc.start, slc.stop)]
-    if slc.step != 1:
+    if slc.step is not None and slc.step != 1:
         return "%s:%s:%s" % (endpoints[0], endpoints[1], slc.step)
     else:
         return "%s:%s" % (endpoints[0], endpoints[1])
@@ -118,8 +118,9 @@ def is_single_index(slc):
         step = 1
     else:
         step = slc.step
-    return slc.stop is not None and \
-    slc.start + step >= slc.stop
+    return slc.start is not None and \
+           slc.stop is not None and \
+           slc.start + step >= slc.stop
 
 def size(key, shape):
     """Finds the dimensions of a sliced expression.
