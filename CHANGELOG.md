@@ -21,6 +21,7 @@ Version 0.2.25 (next release)
 -----------------------------
 * Added NonNegative variables.
 * Added partial_optimize as first transform.
+* Require ECOS 2.0.
 
 Version 0.2.24
 --------------

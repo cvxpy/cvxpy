@@ -102,7 +102,7 @@ class TestProblem(BaseTest):
         """Test get_problem_data method.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
+            Problem(Maximize(Bool())).get_problem_data(s.ECOS)
         self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
 
         data = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
@@ -176,18 +176,18 @@ class TestProblem(BaseTest):
                 # condition in setting CVXOPT solver options.
                 if solver in ["GLPK", "GLPK_MI"]:
                     continue
-                # if solver == "GLPK":
-                #     # GLPK's stdout is separate from python,
-                #     # so we have to do this.
-                #     # Note: This probably breaks (badly) on Windows.
-                #     import os
-                #     import tempfile
+                if solver == "ELEMENTAL":
+                    # ELEMENTAL's stdout is separate from python,
+                    # so we have to do this.
+                    # Note: This probably breaks (badly) on Windows.
+                    import os
+                    import tempfile
 
-                #     stdout_fd = 1
-                #     tmp_handle = tempfile.TemporaryFile(bufsize = 0)
-                #     os.dup2(tmp_handle.fileno(), stdout_fd)
-                # else:
-                sys.stdout = StringIO() # capture output
+                    stdout_fd = 1
+                    tmp_handle = tempfile.TemporaryFile(bufsize = 0)
+                    os.dup2(tmp_handle.fileno(), stdout_fd)
+                else:
+                    sys.stdout = StringIO() # capture output
 
                 p = Problem(Minimize(self.a + self.x[0]),
                                      [self.a >= 2, self.x >= 2])
@@ -198,14 +198,14 @@ class TestProblem(BaseTest):
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
-                # if solver == "GLPK":
-                #     # GLPK's stdout is separate from python,
-                #     # so we have to do this.
-                #     tmp_handle.seek(0)
-                #     out = tmp_handle.read()
-                #     tmp_handle.close()
-                # else:
-                out = sys.stdout.getvalue() # release output
+                if solver == "ELEMENTAL":
+                    # ELEMENTAL's stdout is separate from python,
+                    # so we have to do this.
+                    tmp_handle.seek(0)
+                    out = tmp_handle.read()
+                    tmp_handle.close()
+                else:
+                    out = sys.stdout.getvalue() # release output
 
                 outputs[verbose].append((out, solver))
         # ####
@@ -1044,7 +1044,7 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Minimize(-log(self.a))).solve(solver=s.ECOS)
+            Problem(Minimize(Bool())).solve(solver=s.ECOS)
         self.assertEqual(str(cm.exception),
             "The solver ECOS cannot solve the problem.")
 

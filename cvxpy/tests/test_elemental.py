@@ -67,3 +67,10 @@ class TestSolvers(BaseTest):
             # Constant([[1.414213562373095,2],[4,1]])),
             prob = Problem(Maximize(expr[0,0]), constr)
             prob.solve(solver=ELEMENTAL, verbose=False)
+
+            x = Variable(2, 3)
+            expr = mixed_norm(x,1,1)
+            constr = [x == [[1,2],[3,4],[5,6]] ]
+            prob = Problem(Minimize(expr), constr)
+            prob.solve(solver=ELEMENTAL, verbose=True)
+            self.assertAlmostEqual(prob.value, 21)
