@@ -212,6 +212,23 @@ def mul_elemwise(lh_op, rh_op):
     """
     return lo.LinOp(lo.MUL_ELEM, lh_op.size, [rh_op], lh_op)
 
+def kron(lh_op, rh_op, size):
+    """Kronecker product of two matrices.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the product.
+    rh_op : LinOp
+        The right-hand operator in the product.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the Kronecker product.
+    """
+    return lo.LinOp(lo.KRON, size, [rh_op], lh_op)
+
 def div_expr(lh_op, rh_op):
     """Divide one linear operator by another.
 
@@ -518,7 +535,7 @@ def get_expr_vars(operator):
     list
         A list of (var id, var size) pairs.
     """
-    if operator.type is lo.VARIABLE:
+    if operator.type == lo.VARIABLE:
         return [(operator.data, operator.size)]
     else:
         vars_ = []
@@ -539,7 +556,7 @@ def get_expr_params(operator):
     list
         A list of parameter objects.
     """
-    if operator.type is lo.PARAM:
+    if operator.type == lo.PARAM:
         return operator.data.parameters()
     else:
         params = []

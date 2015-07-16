@@ -20,8 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
-from cvxpy.error import SolverError
-from cvxpy.constraints import EqConstraint, LeqConstraint
+from cvxpy.error import SolverError, DCPError
+from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
@@ -49,7 +49,7 @@ class Problem(u.Canonical):
             constraints = []
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
-            raise TypeError("Problem objective must be Minimize or Maximize.")
+            raise DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self.objective = objective
         self.constraints = constraints
@@ -221,7 +221,7 @@ class Problem(u.Canonical):
                 print ("Problem does not follow DCP rules. "
                        "Solving a convex relaxation.")
             else:
-                raise Exception("Problem does not follow DCP rules.")
+                raise DCPError("Problem does not follow DCP rules.")
 
         objective, constraints = self.canonicalize()
         # Choose a solver/check the chosen solver.
@@ -270,11 +270,11 @@ class Problem(u.Canonical):
             if s.EQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.EQ_DUAL],
                                        sym_data.constr_map[s.EQ],
-                                       EqConstraint)
+                                       [EqConstraint])
             if s.INEQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.INEQ_DUAL],
                                        sym_data.constr_map[s.LEQ],
-                                       LeqConstraint)
+                                       [LeqConstraint, PSDConstraint])
             # Correct optimal value if the objective was Maximize.
             value = results_dict[s.VALUE]
             self._value = self.objective.primal_to_result(value)
@@ -334,17 +334,17 @@ class Problem(u.Canonical):
         elif status in [s.UNBOUNDED, s.UNBOUNDED_INACCURATE]:
             self._value = self.objective.primal_to_result(-np.inf)
 
-    def _save_dual_values(self, result_vec, constraints, constr_type):
+    def _save_dual_values(self, result_vec, constraints, constr_types):
         """Saves the values of the dual variables.
 
         Parameters
         ----------
-        results_vec : array_like
+        result_vec : array_like
             A vector containing the dual variable values.
         constraints : list
             A list of the LinEqConstr/LinLeqConstr in the problem.
-        constr_type : type
-            EqConstr or LeqConstr
+        constr_types : type
+            A list of constraint types to consider.
         """
         constr_offsets = {}
         offset = 0
@@ -354,7 +354,7 @@ class Problem(u.Canonical):
         active_constraints = []
         for constr in self.constraints:
             # Ignore constraints of the wrong type.
-            if type(constr) == constr_type:
+            if type(constr) in constr_types:
                 active_constraints.append(constr)
         self._save_values(result_vec, active_constraints, constr_offsets)
 
@@ -372,7 +372,7 @@ class Problem(u.Canonical):
         """
         if len(result_vec) > 0:
             # Cast to desired matrix type.
-            result_vec = intf.DEFAULT_INTERFACE.const_to_matrix(result_vec)
+            result_vec = intf.DEFAULT_INTF.const_to_matrix(result_vec)
         for obj in objects:
             rows, cols = obj.size
             if obj.id in offset_map:
@@ -381,13 +381,13 @@ class Problem(u.Canonical):
                 if (rows, cols) == (1, 1):
                     value = intf.index(result_vec, (offset, 0))
                 else:
-                    value = intf.DEFAULT_INTERFACE.zeros(rows, cols)
-                    intf.DEFAULT_INTERFACE.block_add(value,
+                    value = intf.DEFAULT_INTF.zeros(rows, cols)
+                    intf.DEFAULT_INTF.block_add(value,
                         result_vec[offset:offset + rows*cols],
                         0, 0, rows, cols)
                 offset += rows*cols
             else: # The variable was multiplied by zero.
-                value = intf.DEFAULT_INTERFACE.zeros(rows, cols)
+                value = intf.DEFAULT_INTF.zeros(rows, cols)
             obj.save_value(value)
 
     def __str__(self):
@@ -404,3 +404,15 @@ class Problem(u.Canonical):
     def __repr__(self):
         return "Problem(%s, %s)" % (repr(self.objective),
                                     repr(self.constraints))
+
+    def __add__(self, other):
+        if not isinstance(other, Problem):
+            return NotImplemented
+        return Problem(self.objective + other.objective,
+                       list(set(self.constraints + other.constraints)))
+
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return NotImplemented

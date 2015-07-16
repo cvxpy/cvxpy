@@ -300,7 +300,7 @@ class TestExamples(BaseTest):
         # Solve with SCS.
         prob.solve(solver=SCS)
         print("optimal value with SCS:", prob.value)
-        self.assertAlmostEqual(prob.value, 6, places=3)
+        self.assertAlmostEqual(prob.value, 6, places=2)
 
         if GLPK in installed_solvers():
             # Solve with GLPK.
@@ -633,6 +633,23 @@ class TestExamples(BaseTest):
                                    data["dims"], data["A"], data["b"])
         # Unpack raw solver output.
         prob.unpack_results(ECOS, solver_output)
+
+    def test_log_sum_exp(self):
+        """Test log_sum_exp function that failed in Github issue.
+        """
+        import cvxpy as cp
+        import numpy as np
+        np.random.seed(1)
+        m = 5
+        n = 2
+        X = np.matrix(np.ones((m,n)))
+        w = cp.Variable(n)
+
+        expr2 = [cp.log_sum_exp(cp.vstack(0, X[i,:]*w)) for i in range(m)]
+        expr3 = sum(expr2)
+        obj = cp.Minimize(expr3)
+        p = cp.Problem(obj)
+        p.solve(solver=SCS, max_iters=1)
 
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):

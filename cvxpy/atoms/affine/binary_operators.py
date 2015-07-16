@@ -38,9 +38,9 @@ class BinaryOperator(AffAtom):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
     def name(self):
-        return ' '.join([self.args[0].name(),
+        return ' '.join([str(self.args[0].name()),
                          self.OP_NAME,
-                         self.args[1].name()])
+                         str(self.args[1].name())])
 
     # Applies the binary operator to the values.
     def numeric(self, values):
@@ -53,7 +53,8 @@ class BinaryOperator(AffAtom):
 
     # Validate the dimensions.
     def validate_arguments(self):
-        self.OP_FUNC(self.args[0].shape, self.args[1].shape)
+        self.OP_FUNC(self.args[0]._dcp_attr.shape,
+                     self.args[1]._dcp_attr.shape)
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"

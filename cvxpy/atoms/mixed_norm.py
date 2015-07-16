@@ -40,9 +40,9 @@ def mixed_norm(X, p=2, q=1):
         An Expression representing the mixed norm.
     """
     X = Expression.cast_to_const(X)
-    
+
     # inner norms
-    vecnorms = [ norm(X[i, :], p) for i in range(X.shape.rows) ]
+    vecnorms = [ norm(X[i, :], p) for i in range(X.size[0]) ]
 
     # outer norm
     return norm(hstack(*vecnorms), q)

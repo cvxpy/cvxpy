@@ -21,7 +21,7 @@ from fractions import Fraction
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.expressions.variables import Variable, Semidef, Bool
+from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.solvers.utilities import SOLVERS, installed_solvers
@@ -102,7 +102,7 @@ class TestProblem(BaseTest):
         """Test get_problem_data method.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
+            Problem(Maximize(Bool())).get_problem_data(s.ECOS)
         self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
 
         data = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
@@ -138,7 +138,7 @@ class TestProblem(BaseTest):
         results_dict = scs.solve(data, args["dims"])
         prob = Problem(Minimize(exp(self.a)), [self.a == 0])
         prob.unpack_results(s.SCS, results_dict)
-        self.assertAlmostEqual(self.a.value, 0, places=4)
+        self.assertAlmostEqual(self.a.value, 0, places=3)
         self.assertAlmostEqual(prob.value, 1, places=3)
         self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
@@ -176,18 +176,18 @@ class TestProblem(BaseTest):
                 # condition in setting CVXOPT solver options.
                 if solver in ["GLPK", "GLPK_MI"]:
                     continue
-                # if solver == "GLPK":
-                #     # GLPK's stdout is separate from python,
-                #     # so we have to do this.
-                #     # Note: This probably breaks (badly) on Windows.
-                #     import os
-                #     import tempfile
+                if solver == "ELEMENTAL":
+                    # ELEMENTAL's stdout is separate from python,
+                    # so we have to do this.
+                    # Note: This probably breaks (badly) on Windows.
+                    import os
+                    import tempfile
 
-                #     stdout_fd = 1
-                #     tmp_handle = tempfile.TemporaryFile(bufsize = 0)
-                #     os.dup2(tmp_handle.fileno(), stdout_fd)
-                # else:
-                sys.stdout = StringIO() # capture output
+                    stdout_fd = 1
+                    tmp_handle = tempfile.TemporaryFile(bufsize = 0)
+                    os.dup2(tmp_handle.fileno(), stdout_fd)
+                else:
+                    sys.stdout = StringIO() # capture output
 
                 p = Problem(Minimize(self.a + self.x[0]),
                                      [self.a >= 2, self.x >= 2])
@@ -198,14 +198,14 @@ class TestProblem(BaseTest):
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
-                # if solver == "GLPK":
-                #     # GLPK's stdout is separate from python,
-                #     # so we have to do this.
-                #     tmp_handle.seek(0)
-                #     out = tmp_handle.read()
-                #     tmp_handle.close()
-                # else:
-                out = sys.stdout.getvalue() # release output
+                if solver == "ELEMENTAL":
+                    # ELEMENTAL's stdout is separate from python,
+                    # so we have to do this.
+                    tmp_handle.seek(0)
+                    out = tmp_handle.read()
+                    tmp_handle.close()
+                else:
+                    out = sys.stdout.getvalue() # release output
 
                 outputs[verbose].append((out, solver))
         # ####
@@ -282,7 +282,7 @@ class TestProblem(BaseTest):
         obj = 0
         def test(self):
             objective, constraints = self.canonicalize()
-            sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
+            sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
             return (len(sym_data.constr_map[s.EQ]),
                     len(sym_data.constr_map[s.LEQ]))
         Problem.register_solve("test", test)
@@ -323,6 +323,32 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 4.0)
         self.assertAlmostEqual(self.a.value, 1)
         self.assertAlmostEqual(var.value, 3)
+
+    # Test adding problems
+    def test_add_problems(self):
+        prob1 = Problem(Minimize(self.a), [self.a >= self.b])
+        prob2 = Problem(Minimize(2*self.b), [self.a >= 1, self.b >= 2])
+        prob_minimize = prob1 + prob2
+        self.assertEqual(len(prob_minimize.constraints), 3)
+        self.assertAlmostEqual(prob_minimize.solve(), 6)
+        prob3 = Problem(Maximize(self.a), [self.b <= 1])
+        prob4 = Problem(Maximize(2*self.b), [self.a <= 2])
+        prob_maximize = prob3 + prob4
+        self.assertEqual(len(prob_maximize.constraints), 2)
+        self.assertAlmostEqual(prob_maximize.solve(), 4)
+
+        # Test using sum function
+        prob5 = Problem(Minimize(3*self.a))
+        prob_sum = sum([prob1, prob2, prob5])
+        self.assertEqual(len(prob_sum.constraints), 3)
+        self.assertAlmostEqual(prob_sum.solve(), 12)
+        prob_sum = sum([prob1])
+        self.assertEqual(len(prob_sum.constraints), 1)
+
+        # Test Minimize + Maximize
+        with self.assertRaises(Exception) as cm:
+            prob_bad_sum = prob1 + prob3
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     # Test scalar LP problems.
     def test_scalar_lp(self):
@@ -444,7 +470,7 @@ class TestProblem(BaseTest):
         assert (self.A.value >= T*self.C.value).all()
 
         # Test variables are dense.
-        self.assertEqual(type(self.A.value), intf.DEFAULT_INTERFACE.TARGET_MATRIX)
+        self.assertEqual(type(self.A.value), intf.DEFAULT_INTF.TARGET_MATRIX)
 
     # Test variable promotion.
     def test_variable_promotion(self):
@@ -638,30 +664,35 @@ class TestProblem(BaseTest):
 
     # Test recovery of dual variables.
     def test_dual_variables(self):
-        p = Problem(Minimize( norm1(self.x + self.z) ),
-            [self.x >= [2,3],
-             [[1,2],[3,4]]*self.z == [-1,-4],
-             norm2(self.x + self.z) <= 100])
-        result = p.solve()
-        self.assertAlmostEqual(result, 4)
-        self.assertItemsAlmostEqual(self.x.value, [4,3])
-        self.assertItemsAlmostEqual(self.z.value, [-4,1])
-        # Dual values
-        self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1])
-        self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5])
-        self.assertAlmostEqual(p.constraints[2].dual_value, 0)
+        for solver in [s.ECOS, s.SCS, s.CVXOPT]:
+            if solver == s.SCS:
+                acc = 1
+            else:
+                acc = 5
+            p = Problem(Minimize( norm1(self.x + self.z) ),
+                [self.x >= [2,3],
+                 [[1,2],[3,4]]*self.z == [-1,-4],
+                 norm2(self.x + self.z) <= 100])
+            result = p.solve(solver=solver)
+            self.assertAlmostEqual(result, 4, places=acc)
+            self.assertItemsAlmostEqual(self.x.value, [4,3], places=acc)
+            self.assertItemsAlmostEqual(self.z.value, [-4,1], places=acc)
+            # Dual values
+            self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1], places=acc)
+            self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5], places=acc)
+            self.assertAlmostEqual(p.constraints[2].dual_value, 0, places=acc)
 
-        T = matrix(2, (2, 3))
-        c = matrix([3,4])
-        p = Problem(Minimize(1),
-            [self.A >= T*self.C,
-             self.A == self.B,
-             self.C == T.T])
-        result = p.solve()
-        # Dual values
-        self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0])
-        self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0])
-        self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0])
+            T = matrix(2, (2, 3))
+            c = matrix([3,4])
+            p = Problem(Minimize(1),
+                [self.A >= T*self.C,
+                 self.A == self.B,
+                 self.C == T.T])
+            result = p.solve(solver=solver)
+            # Dual values
+            self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0], places=acc)
+            self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0], places=acc)
+            self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0], places=acc)
 
     # Test problems with indexing.
     def test_indexing(self):
@@ -1013,7 +1044,7 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Minimize(-log(self.a))).solve(solver=s.ECOS)
+            Problem(Minimize(Bool())).solve(solver=s.ECOS)
         self.assertEqual(str(cm.exception),
             "The solver ECOS cannot solve the problem.")
 
@@ -1167,6 +1198,90 @@ class TestProblem(BaseTest):
         prob.solve()
         self.assertAlmostEqual(prob.value, 1)
 
+    def test_psd_constraints(self):
+        """Test positive definite constraints.
+        """
+        C = Variable(3, 3)
+        obj = Maximize(C[0, 2])
+        constraints = [diag(C) == 1,
+                       C[0, 1] == 0.6,
+                       C[1, 2] == -0.3,
+                       C == C.T,
+                       C >> 0]
+        prob = Problem(obj, constraints)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 0.583151)
+
+        C = Variable(2, 2)
+        obj = Maximize(C[0, 1])
+        constraints = [C == 1, C >> [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+
+        C = Symmetric(2, 2)
+        obj = Minimize(C[0, 0])
+        constraints = [C << [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.CVXOPT)
+        self.assertEqual(prob.status, s.UNBOUNDED)
+
+
+    def test_psd_duals(self):
+        """Test the duals of PSD constraints.
+        """
+        # Test the dual values with cvxopt.
+        C = Symmetric(2, 2)
+        obj = Maximize(C[0, 0])
+        constraints = [C << [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.CVXOPT)
+        self.assertAlmostEqual(result, 2)
+
+        psd_constr_dual = constraints[0].dual_value
+        C = Symmetric(2, 2)
+        X = Semidef(2)
+        obj = Maximize(C[0, 0])
+        constraints = [X == [[2,0], [0, 2]] - C]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.CVXOPT)
+        self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
+
+        # Test the dual values with SCS.
+        C = Symmetric(2, 2)
+        obj = Maximize(C[0, 0])
+        constraints = [C << [[2,0], [0, 2]]]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.SCS)
+        self.assertAlmostEqual(result, 2, places=4)
+
+        psd_constr_dual = constraints[0].dual_value
+        C = Symmetric(2, 2)
+        X = Semidef(2)
+        obj = Maximize(C[0, 0])
+        constraints = [X == [[2,0], [0, 2]] - C]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.SCS)
+        self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
+
+        # Test dual values with SCS that have off-diagonal entries.
+        C = Symmetric(2, 2)
+        obj = Maximize(C[0, 1] + C[1, 0])
+        constraints = [C << [[2,0], [0, 2]], C >= 0]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.SCS)
+        self.assertAlmostEqual(result, 4, places=3)
+
+        psd_constr_dual = constraints[0].dual_value
+        C = Symmetric(2, 2)
+        X = Semidef(2)
+        obj = Maximize(C[0, 1] + C[1, 0])
+        constraints = [X == [[2,0], [0, 2]] - C, C >= 0]
+        prob = Problem(obj, constraints)
+        result = prob.solve(solver=s.SCS)
+        self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual,
+            places=3)
+
     def test_geo_mean(self):
         import numpy as np
 
@@ -1221,3 +1336,57 @@ class TestProblem(BaseTest):
         self.assertTrue(np.allclose(prob.value, geo_mean(list(x), p).value))
         self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
         self.assertTrue(np.allclose(x, x_true, 1e-3))
+
+    def test_pnorm(self):
+        import numpy as np
+
+        x = Variable(3, name='x')
+
+        a = np.array([1.0, 2, 3])
+
+        # todo: add -1, .5, .3, -2.3 and testing positivity constraints
+
+        for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
+            prob = Problem(Minimize(pnorm(x, p=p)), [x.T*a >= 1])
+            prob.solve()
+
+            # formula is true for any a >= 0 with p > 1
+            if p == np.inf:
+                x_true = np.ones_like(a)/sum(a)
+            elif p == 1:
+                # only works for the particular a = [1,2,3]
+                x_true = np.array([0, 0, 1.0/3])
+            else:
+                x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))
+
+            x_alg = np.array(x.value).flatten()
+            self.assertTrue(np.allclose(x_alg, x_true, 1e-3), 'p = {}'.format(p))
+            self.assertTrue(np.allclose(prob.value, np.linalg.norm(x_alg, p)))
+            self.assertTrue(np.allclose(np.linalg.norm(x_alg, p), pnorm(x_alg, p).value))
+
+    def test_pnorm_concave(self):
+        import numpy as np
+
+        x = Variable(3, name='x')
+
+        # test positivity constraints
+        a = np.array([-1.0, 2, 3])
+        for p in (-1, .5, .3, -2.3):
+            prob = Problem(Minimize(sum_entries(abs(x-a))), [pnorm(x, p) >= 0])
+            prob.solve()
+
+            self.assertTrue(np.allclose(prob.value, 1))
+
+        a = np.array([1.0, 2, 3])
+        for p in (-1, .5, .3, -2.3):
+            prob = Problem(Minimize(sum_entries(abs(x-a))), [pnorm(x, p) >= 0])
+            prob.solve()
+
+            self.assertTrue(np.allclose(prob.value, 0))
+
+    def test_power(self):
+        x = Variable()
+        prob = Problem(Minimize(power(x, 1.7) + power(x, -2.3) - power(x, .45)))
+        prob.solve()
+        x = x.value
+        self.assertTrue(__builtins__['abs'](1.7*x**.7 - 2.3*x**-3.3 - .45*x**-.55) <= 1e-3)

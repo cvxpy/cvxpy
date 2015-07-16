@@ -22,7 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
-from cvxpy.constraints.semi_definite import SDP
+from cvxpy.constraints.semidefinite import SDP
 import scipy.sparse as sp
 from numpy import linalg as LA
 
@@ -91,6 +91,7 @@ class sigma_max(Atom):
                        0, n, n, n+m)
         # X[n:n+m, n:n+m] == I_m*t
         prom_t = lu.promote(t, (m, 1))
+        # prom_t = lu.promote(lu.create_const(1, (1,1)), (m, 1))
         index.block_eq(X, lu.diag_vec(prom_t), constraints,
                        n, n+m, n, n+m)
         # Add SDP constraint.

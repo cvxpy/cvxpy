@@ -45,7 +45,7 @@ class TestExpressions(BaseTest):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
-        self.intf = intf.DEFAULT_INTERFACE
+        self.intf = intf.DEFAULT_INTF
 
     # Test the Variable class.
     def test_variable(self):
@@ -179,23 +179,14 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2, 1))")
 
-    # def test_1D_array(self):
-    #     """Test NumPy 1D arrays as constants.
-    #     """
-    #     c = np.array([1,2])
-    #     p = Parameter(2)
-
-    #     with warnings.catch_warnings(record=True) as w:
-    #         # Cause all warnings to always be triggered.
-    #         warnings.simplefilter("always")
-    #         # Trigger a warning.
-    #         Constant(c)
-    #         self.x + c
-    #         p.value = c
-    #         # Verify some things
-    #         self.assertEqual(len(w), 3)
-    #         for warning in w:
-    #             self.assertEqual(str(warning.message), "NumPy 1D arrays are treated as column vectors.")
+    def test_1D_array(self):
+        """Test NumPy 1D arrays as constants.
+        """
+        c = np.array([1,2])
+        p = Parameter(2)
+        p.value = [1,1]
+        self.assertEquals((c*p).value, 3)
+        self.assertEqual((c*self.x).size, (1,1))
 
     # Test the Parameter class.
     def test_parameters(self):
@@ -575,12 +566,6 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, u.Curvature.CONCAVE_KEY)
         exp = self.x**-1
         self.assertEqual(exp.curvature, u.Curvature.CONVEX_KEY)
-        with self.assertRaises(Exception) as cm:
-            (self.x**3)
-        self.assertEqual(str(cm.exception), "Invalid power: 3.")
-        with self.assertRaises(Exception) as cm:
-            (self.x**self.x)
-        self.assertEqual(str(cm.exception), "Power must be a numeric scalar.")
 
     def test_sum(self):
         """Test built-in sum. Not good usage.

@@ -142,8 +142,8 @@ class SymData(object):
                     # For equality constraint, coeff must be zero.
                     # For inequality (i.e. <= 0) constraint,
                     # coeff must be negative.
-                    if key is s.EQ and not sign.is_zero() or \
-                        key is s.LEQ and not sign.is_negative():
+                    if key == s.EQ and not sign.is_zero() or \
+                        key == s.LEQ and not sign.is_negative():
                         return s.INFEASIBLE
                 else:
                     new_constraints.append(constr)

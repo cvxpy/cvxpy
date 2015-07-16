@@ -29,7 +29,7 @@ class ECOS(Solver):
     LP_CAPABLE = True
     SOCP_CAPABLE = True
     SDP_CAPABLE = False
-    EXP_CAPABLE = False
+    EXP_CAPABLE = True
     MIP_CAPABLE = False
 
     # EXITCODES from ECOS
@@ -69,12 +69,12 @@ class ECOS(Solver):
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """
-        return intf.DEFAULT_SPARSE_INTERFACE
+        return intf.DEFAULT_SPARSE_INTF
 
     def vec_intf(self):
         """The interface for vectors passed to the solver.
         """
-        return intf.DEFAULT_INTERFACE
+        return intf.DEFAULT_INTF
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -117,6 +117,7 @@ class ECOS(Solver):
         """
         import ecos
         data = self.get_problem_data(objective, constraints, cached_data)
+        data[s.DIMS]['e'] = data[s.DIMS][s.EXP_DIM]
         results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,

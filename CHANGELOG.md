@@ -3,10 +3,8 @@ Version 1.0 (targets)
 * TODO add FAQ with info about solver errors, DCP errors, adding an objective in a for loop, dot product with numpy ND arrays.
 * TODO change *args to lists.
 * TODO change OPTIMAL to SOLVED?
-* TODO change SDP to only set upper triag == lower triag.
 * TODO separate out parts of DCPAttr and refactor so universal rules used for affine atoms.
 * TODO change size to size[0]*size[1] and shape to size.
-* TODO add integer/boolean variables.
 * TODO return 2D arrays instead of matrices.
 * TODO add sets and domains for Parameters/Variables that affect DCP properties.
 * TODO PSD parameters?
@@ -16,12 +14,40 @@ Version 1.0 (targets)
 * TODO make upper_tri_to_full atom?
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
-* TODO redo tree_mat so it uses SMs (and doesn't compress the left hand side of A*x into a matrix).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.21 (next release)
+Version 0.2.25 (next release)
 -----------------------------
+* Added NonNegative variables.
+* Added partial_optimize as first transform.
+* Require ECOS 2.0.
+
+Version 0.2.24
+--------------
+* Added Elemental interface.
+* Can add problems and objectives.
+* Basic remove redundant rows for CVXOPT chol. Made 'chol' default kktsolver.
+* Added symmetric variables and positive definite inequalities (<<, >>).
+* Added bmat atom for making block matrices.
+* Added kron.
+
+Version 0.2.23
+--------------
+* Made to work with SCS 1.1.3.
+
+Version 0.2.22
+--------------
+* Fixed issue where using "is" instead of "==".
+* Required SCS version 1.0.7 so 1.1.0 can be updated on pip.
+
+Version 0.2.21
+--------------
+* Made operator overloading work with scipy sparse matrices (with scipy 0.15).
+* Removed Expression shape function.
+* Removed Expression __array__ function.
+* Caught c.T*x where c is a NumPy 1D array.
+* Added power.
 
 Version 0.2.20
 --------------

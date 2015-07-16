@@ -12,7 +12,7 @@ Operators
 ---------
 
 The infix operators ``+, -, *, /`` are treated as functions. ``+`` and
-``-`` are certainly affine functions. ``*`` and ``/`` are affine in
+``-`` are affine functions. ``*`` and ``/`` are affine in
 CVXPY because ``expr1*expr2`` is allowed only when one of the
 expressions is constant and ``expr1/expr2`` is allowed only when
 ``expr2`` is a scalar constant.
@@ -36,6 +36,13 @@ Transpose
 
 The transpose of any expression can be obtained using the syntax
 ``expr.T``. Transpose is an affine function.
+
+Power
+^^^^^
+
+For any CVXPY expression ``expr``,
+the power operator ``expr**p`` is equivalent to
+the function ``power(expr, p)``.
 
 Scalar functions
 ----------------
@@ -66,14 +73,21 @@ and returns a scalar.
    * - :ref:`geo_mean(x) <geo_mean>`
 
        :ref:`geo_mean(x, p) <geo_mean>`
-     - :math:`x_1^{1/n} \cdots x_n^{1/n}`
-
-       :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
-     - :math:`x \in \mathbf{R}^n_{+}`
 
        :math:`p \in \mathbf{R}^n_{+}`
 
        :math:`p \neq 0`
+     - :math:`x_1^{1/n} \cdots x_n^{1/n}`
+
+       :math:`\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}`
+     - :math:`x \in \mathbf{R}^n_{+}`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
+   * - harmonic_mean(x)
+     - :math:`\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}`
+     - :math:`x \in \mathbf{R}^n_{+}`
      - |positive| positive
      - |concave| concave
      - |incr| incr.
@@ -87,7 +101,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - lamdba_max(X)
+   * - lambda_max(X)
      - :math:`\lambda_{\max}(X)`
      - :math:`X \in \mathbf{S}^n`
      - |unknown| unknown
@@ -102,19 +116,19 @@ and returns a scalar.
      - None
 
    * - lambda_sum_largest(X, |_| k)
+
+       :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
-
-       :math:`k \in \{1,2,\ldots\}`
      - |unknown| unknown
      - |convex| convex
      - None
 
    * - lambda_sum_smallest(X, |_| k)
+
+       :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
      - :math:`X \in\mathbf{S}^{n}`
-
-       :math:`k \in \{1,2,\ldots\}`
      - |unknown| unknown
      - |concave| concave
      - None
@@ -128,7 +142,7 @@ and returns a scalar.
 
    * - log_sum_exp(X)
      - :math:`\log \left(\sum_{ij}e^{X_{ij}}\right)`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |unknown| unknown
      - |convex| convex
      - |incr| incr.
@@ -144,14 +158,14 @@ and returns a scalar.
 
    * - max_entries(X)
      - :math:`\max_{ij}\left\{ X_{ij}\right\}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |convex| convex
      - |incr| incr.
 
    * - min_entries(X)
      - :math:`\min_{ij}\left\{ X_{ij}\right\}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |concave| concave
      - |incr| incr.
@@ -176,7 +190,7 @@ and returns a scalar.
 
    * - norm(X, "fro")
      - :math:`\sqrt{\sum_{ij}X_{ij}^2 }`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -185,7 +199,7 @@ and returns a scalar.
 
    * - norm(X, 1)
      - :math:`\sum_{ij}\lvert X_{ij} \rvert`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -194,7 +208,7 @@ and returns a scalar.
 
    * - norm(X, "inf")
      - :math:`\max_{ij} \{\lvert X_{ij} \rvert\}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -203,7 +217,7 @@ and returns a scalar.
 
    * - norm(X, "nuc")
      - :math:`\mathrm{tr}\left(\left(X^T X\right)^{1/2}\right)`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - None
@@ -212,18 +226,41 @@ and returns a scalar.
 
        norm(X, 2)
      - :math:`\sqrt{\lambda_{\max}\left(X^T X\right)}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - None
 
+   * - :ref:`pnorm(X, p) <pnorm>`
+
+       :math:`p \geq 1`
+
+       or ``p = 'inf'``
+     - :math:`\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`X_{ij} \geq 0`
+
+       |decr| for :math:`X_{ij} \leq 0`
+
+   * - :ref:`pnorm(X, p) <pnorm>`
+
+       :math:`p < 1`, :math:`p \neq 0`
+     - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
+     - :math:`X \in \mathbf{R}^{m \times n}_+`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
+
    * - quad_form(x, P)
 
-       P constant
+       constant :math:`P \in \mathbf{S}^n_+`
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`
 
-       :math:`P \in \mathbf{S}^n_+`
+
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`x_i \geq 0`
@@ -232,11 +269,9 @@ and returns a scalar.
 
    * - quad_form(x, P)
 
-       P constant
+       constant :math:`P \in \mathbf{S}^n_-`
      - :math:`x^T P x`
      - :math:`x \in \mathbf{R}^n`
-
-       :math:`P \in \mathbf{S}^n_-`
      - |negative| negative
      - |concave| concave
      - |decr| for :math:`x_i \geq 0`
@@ -245,11 +280,9 @@ and returns a scalar.
 
    * - quad_form(c, X)
 
-       c constant
+       constant :math:`c \in \mathbf{R}^n`
      - :math:`c^T X c`
-     - :math:`c \in \mathbf{R}^n`
-
-       :math:`X \in\mathbf{R}^{n \times n}`
+     - :math:`X \in\mathbf{R}^{n \times n}`
      - depends |_| on |_| c, |_| X
      - |affine| affine
      - depends |_| on |_| c
@@ -269,32 +302,32 @@ and returns a scalar.
 
    * - sum_entries(X)
      - :math:`\sum_{ij}X_{ij}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
    * - sum_largest(X, k)
-     - :math:`\text{sum of } k\text{ largest }X_{ij}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
 
-       :math:`k \in \{1,2,\ldots\}`
+       :math:`k = 1,2,\ldots`
+     - :math:`\text{sum of } k\text{ largest }X_{ij}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |convex| convex
      - |incr| incr.
 
    * - sum_smallest(X, k)
-     - :math:`\text{sum of } k\text{ smallest }X_{ij}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
 
-       :math:`k \in \{1,2,\ldots\}`
+       :math:`k = 1,2,\ldots`
+     - :math:`\text{sum of } k\text{ smallest }X_{ij}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |concave| concave
      - |incr| incr.
 
    * - sum_squares(X)
      - :math:`\sum_{ij}X_{ij}^2`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`X_{ij} \geq 0`
@@ -367,10 +400,10 @@ scalars, which are promoted.
      - |incr| incr.
 
    * - huber(x, M=1)
-     - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
-     - :math:`x \in \mathbf{R}`
 
        :math:`M \geq 0`
+     - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
+     - :math:`x \in \mathbf{R}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`x \geq 0`
@@ -394,30 +427,30 @@ scalars, which are promoted.
    * - log1p(x)
      - :math:`\log(x+1)`
      - :math:`x > -1`
-     - sign(x)
+     - same as x
      - |concave| concave
      - |incr| incr.
 
    * - max_elemwise(x1, |_| ..., |_| xk)
      - :math:`\max \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
-     - max(sign(xi))
+     - :math:`\max(\mathrm{sign}(x_1))`
      - |convex| convex
      - |incr| incr.
 
    * - min_elemwise(x1, |_| ..., |_| xk)
      - :math:`\min \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
-     - min(sign(xi))
+     - :math:`\min(\mathrm{sign}(x_1))`
      - |concave| concave
      - |incr| incr.
 
    * - mul_elemwise(c, |_| x)
 
-       c constant
+       :math:`c \in \mathbf{R}`
      - c*x
-     - :math:`c,x \in\mathbf{R}`
-     - sign(c*x)
+     - :math:`x \in\mathbf{R}`
+     - :math:`\mathrm{sign}(cx)`
      - |affine| affine
      - depends |_| on |_| c
 
@@ -435,11 +468,64 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
+   * - :ref:`power(x, 0) <power>`
+     - :math:`1`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - constant
+     - |_|
+
+   * - :ref:`power(x, 1) <power>`
+     - :math:`x`
+     - :math:`x \in \mathbf{R}`
+     - same as x
+     - |affine| affine
+     - |incr| incr.
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p = 2, 4, 8, \ldots`
+     - :math:`x^p`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+
+       |decr| for :math:`x \leq 0`
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p < 0`
+     - :math:`x^p`
+     - :math:`x > 0`
+     - |positive| positive
+     - |convex| convex
+     - |decr| decr.
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`0 < p < 1`
+     - :math:`x^p`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |concave| concave
+     - |incr| incr.
+
+   * - :ref:`power(x, p) <power>`
+
+       :math:`p > 1,\ p \neq 2, 4, 8, \ldots`
+
+     - :math:`x^p`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+
    * - scalene(x, alpha, beta)
 
-       alpha >= 0
+       :math:`\text{alpha} \geq 0`
 
-       beta >= 0
+       :math:`\text{beta} \geq 0`
      - :math:`\alpha\mathrm{pos}(x)+ \beta\mathrm{neg}(x)`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
@@ -483,12 +569,10 @@ and returns a vector or matrix.
 
    * - conv(c, x)
 
-       c constant
+       :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
-     - :math:`c\in\mathbf{R}^m`
-
-       :math:`x\in \mathbf{R}^n`
-     - depends |_| on |_| c, |_| x
+     - :math:`x\in \mathbf{R}^n`
+     - :math:`\mathrm{sign}\left(c_{1}x_{1}\right)`
      - |affine| affine
      - depends |_| on |_| c
 
@@ -507,32 +591,41 @@ and returns a vector or matrix.
      - |incr| incr.
 
    * - hstack(X1, |_| ..., |_| Xk)
-     - :math:`\left[\begin{matrix}X_1  \cdots    X_k\end{matrix}\right]`
-     - :math:`X_i \in\mathbf{R}^{n \times m_i}`
-     - sign(sum([x1, |_| ..., |_| xk]))
+     - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
+     - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
+     - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
-   * - reshape(X, |_| n', |_| m')
-     - :math:`X' \in\mathbf{R}^{n' \times m'}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+   * - kron(C, X)
 
-       :math:`n'm' = nm`
+       :math:`C\in\mathbf{R}^{p \times q}`
+     - :math:`\left[\begin{matrix}C_{11}X & \cdots & C_{1q}X \\ \vdots  &        & \vdots \\ C_{p1}X &  \cdots      & C_{pq}X     \end{matrix}\right]`
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - :math:`\mathrm{sign}\left(C_{11}X_{11}\right)`
+     - |affine| affine
+     - depends |_| on C
+
+   * - reshape(X, |_| n', |_| m')
+     - :math:`X' \in\mathbf{R}^{m' \times n'}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
+
+       :math:`m'n' = mn`
      - same as X
      - |affine| affine
      - |incr| incr.
 
    * - vec(X)
-     - :math:`x' \in\mathbf{R}^{nm}`
-     - :math:`X \in\mathbf{R}^{n \times m}`
+     - :math:`x' \in\mathbf{R}^{mn}`
+     - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
    * - vstack(X1, |_| ..., |_| Xk)
-     - :math:`\left[\begin{matrix}X_1  \\ \vdots  \\X_k\end{matrix}\right]`
-     - :math:`X_i \in\mathbf{R}^{n_i \times m}`
-     - sign(sum([x1, |_| ..., |_| xk]))
+     - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
+     - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
+     - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
@@ -543,11 +636,11 @@ The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
 :math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
 
 The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
-Formally, :math:`x'_i = X_{i \bmod{n}, \left \lfloor{i/n}\right \rfloor }`.
+Formally, :math:`x'_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`X'` of ``reshape(X, n', m')`` is the matrix :math:`X` cast into an :math:`n' \times m'` matrix.
+The output :math:`X'` of ``reshape(X, m', n')`` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`X'` in column-major order.
-Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{n'j + i}`.
+Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{m'j + i}`.
 
 .. |positive| image:: functions_files/positive.svg
               :width: 15px

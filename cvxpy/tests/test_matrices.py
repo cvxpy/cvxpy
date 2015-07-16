@@ -67,6 +67,10 @@ class TestMatrices(unittest.TestCase):
         # Matrix
         A = numpy.arange(8).reshape((4,2))
         self.assertExpression(A*self.x, (4,1))
+        # PSD inequalities.
+        A = numpy.ones((2,2))
+        self.assertExpression(A << self.A, (2,2))
+        self.assertExpression(A >> self.A, (2,2))
 
     # Test numpy matrices
     def test_numpy_matrices(self):
@@ -84,6 +88,10 @@ class TestMatrices(unittest.TestCase):
         A = numpy.matrix( numpy.arange(8).reshape((4,2)) )
         self.assertExpression(A*self.x, (4,1))
         self.assertExpression( (A.T*A) * self.x, (2,1))
+        # PSD inequalities.
+        A = numpy.matrix(numpy.ones((2,2)))
+        self.assertExpression(A << self.A, (2,2))
+        self.assertExpression(A >> self.A, (2,2))
 
     def test_numpy_scalars(self):
         """Test numpy scalars."""
@@ -97,6 +105,9 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(v <= self.x, (2,1))
         self.assertExpression(self.x == v, (2,1))
         self.assertExpression(v == self.x, (2,1))
+        # PSD inequalities.
+        self.assertExpression(v << self.A, (2,2))
+        self.assertExpression(v >> self.A, (2,2))
 
     # def test_cvxopt_matrices(self):
     #     """Test cvxopt dense matrices.
@@ -150,7 +161,7 @@ class TestMatrices(unittest.TestCase):
     #     self.assertExpression(B * var, (4, 2))
     #     self.assertExpression(var - A, (4, 2))
     #     self.assertExpression(A - A - var, (4, 2))
-    #     self.assertExpression(var <= A, (4, 2))
-    #     self.assertExpression(A <= var, (4, 2))
-    #     self.assertExpression(var == A, (4, 2))
-    #     self.assertExpression(A == var, (4, 2))
+    #     # self.assertExpression(var <= A, (4, 2))
+    #     # self.assertExpression(A <= var, (4, 2))
+    #     # self.assertExpression(var == A, (4, 2))
+    #     # self.assertExpression(A == var, (4, 2))

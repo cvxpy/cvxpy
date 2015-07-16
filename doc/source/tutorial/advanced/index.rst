@@ -50,7 +50,10 @@ The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that 
 Semidefinite matrices
 ----------------------
 
-Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs). You can do this in CVXPY using the ``Semidef`` constructor. ``Semidef(n)`` constructs an ``n`` by ``n`` variable constrained to be positive semidefinite. For example,
+Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs).
+You can do this in CVXPY in two ways.
+The first way is to use
+``Semidef(n)`` to create an ``n`` by ``n`` variable constrained to be symmetric and positive semidefinite. For example,
 
 .. code:: python
 
@@ -61,22 +64,31 @@ Many convex optimization problems involve constraining matrices to be positive o
     # a normal CVXPY variable.
     obj = Minimize(norm(X) + sum_entries(X))
 
-The following code shows how to use ``Semidef`` to constrain matrix expressions to be positive or negative semidefinite:
+The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
+If ``X`` and ``Y`` are ``n`` by ``n`` variables,
+the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`z \in \mathcal{R}^n`.
+The constraint does not require that ``X`` and ``Y`` be symmetric.
+
+The following code shows how to to constrain square matrix expressions to be positive or negative
+semidefinite (but not necessarily symmetric).
+You cannot apply the ``>>`` and ``<<`` operators to non-square matrices.
 
 .. code:: python
 
     # expr1 must be positive semidefinite.
-    constr1 = (expr1 == Semidef(n))
+    constr1 = (expr1 >> 0)
 
     # expr2 must be negative semidefinite.
-    constr2 = (expr2 == -Semidef(n))
+    constr2 = (expr2 << 0)
 
-To constrain a matrix expression to be symmetric (but not necessarily positive or negative semidefinite), simply write
+To constrain a matrix expression to be symmetric, simply write
 
 .. code:: python
 
     # expr must be symmetric.
     constr = (expr == expr.T)
+
+You can also use ``Symmetric(n)`` to create an ``n`` by ``n`` variable constrained to be symmetric.
 
 .. _mip:
 
@@ -125,24 +137,28 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `GUROBI`_, and `Elemental`_.
 The table below shows the types of problems the solvers can handle.
 
-+------------+----+------+-----+-----+-----+
-|            | LP | SOCP | SDP | EXP | MIP |
-+============+====+======+=====+=====+=====+
-| `GLPK`_    | X  |      |     |     |     |
-+------------+----+------+-----+-----+-----+
-| `GLPK_MI`_ | X  |      |     |     | X   |
-+------------+----+------+-----+-----+-----+
-| `ECOS`_    | X  | X    |     |     |     |
-+------------+----+------+-----+-----+-----+
-| `ECOS_BB`_ | X  | X    |     |     | X   |
-+------------+----+------+-----+-----+-----+
-| `CVXOPT`_  | X  | X    | X   | X   |     |
-+------------+----+------+-----+-----+-----+
-| `SCS`_     | X  | X    | X   | X   |     |
-+------------+----+------+-----+-----+-----+
++--------------+----+------+-----+-----+-----+
+|              | LP | SOCP | SDP | EXP | MIP |
++==============+====+======+=====+=====+=====+
+| `GLPK`_      | X  |      |     |     |     |
++--------------+----+------+-----+-----+-----+
+| `GLPK_MI`_   | X  |      |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `Elemental`_ | X  | X    |     |     |     |
++--------------+----+------+-----+-----+-----+
+| `ECOS`_      | X  | X    |     |     |     |
++--------------+----+------+-----+-----+-----+
+| `ECOS_BB`_   | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `GUROBI`_    | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `CVXOPT`_    | X  | X    | X   | X   |     |
++--------------+----+------+-----+-----+-----+
+| `SCS`_       | X  | X    | X   | X   |     |
++--------------+----+------+-----+-----+-----+
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -186,6 +202,14 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GLPK_MI)
     print "optimal value with GLPK_MI:", prob.value
 
+    # Solve with GUROBI.
+    prob.solve(solver=GUROBI)
+    print "optimal value with GUROBI:", prob.value
+
+    # Solve with Elemental.
+    prob.solve(solver=ELEMENTAL)
+    print "optimal value with Elemental:", prob.value
+
 ::
 
     optimal value with ECOS: 5.99999999551
@@ -194,6 +218,8 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with SCS: 6.00046055789
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
+    optimal value with GUROBI: 6.0
+    optimal value with Elemental: 6.0000044085242727
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -203,7 +229,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS']
+    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -333,7 +359,9 @@ Here's the complete list of solver options.
     number of iterative refinement steps after solving KKT system (default: 1).
 
 ``'kktsolver'``
-    The KKT solver used. The default is a regularized LDL solver. The "chol" solver is faster but requires that A and [A; G] be full rank.
+    The KKT solver used. The default, "chol", does a Cholesky factorization with preprocessing to make A and [A; G] full rank.
+    The "robust" solver does an LDL factorization without preprocessing.
+    It is slower, but more robust.
 
 `SCS`_ options:
 
@@ -391,3 +419,5 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
+.. _GUROBI: http://www.gurobi.com/
+.. _Elemental: http://libelemental.org/

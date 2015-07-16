@@ -43,15 +43,14 @@ class TestProblem(unittest.TestCase):
         self.C = Variable(3,2,name='C')
 
     # Overriden method to handle lists and lower accuracy.
-    # ECHU: uncommented to ensure that tests pass
-    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTERFACE):
+    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
         try:
             a = list(a)
             b = list(b)
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=4)
+            super(TestProblem, self).assertAlmostEqual(a,b,places=3)
 
     def test_large_sum(self):
         """Test large number of variables summed.

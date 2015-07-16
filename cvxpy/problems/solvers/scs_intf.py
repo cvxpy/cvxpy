@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
+import numpy as np
 
 class SCS(ECOS):
     """An interface for the SCS solver.
@@ -137,10 +138,41 @@ class SCS(ECOS):
             primal_val = results_dict["info"]["pobj"]
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict["x"]
-            new_results[s.EQ_DUAL] = results_dict["y"][0:dims[s.EQ_DIM]]
-            new_results[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM]:]
+            new_results[s.EQ_DUAL] = results_dict["y"][:dims[s.EQ_DIM]]
+            y = results_dict["y"][dims[s.EQ_DIM]:]
+            old_sdp_sizes = sum([n*(n+1)//2 for n in dims[s.SDP_DIM]])
+            new_sdp_sizes = sum([n*n for n in dims[s.SDP_DIM]])
+            y_true = np.zeros(y.shape[0] + (new_sdp_sizes - old_sdp_sizes))
+            y_offset = dims[s.LEQ_DIM] + sum([n for n in dims[s.SOC_DIM]])
+            y_true_offset = y_offset
+            y_true[:y_true_offset] = y[:y_offset]
+            # Expand SDP duals from lower triangular to full matrix,
+            # scaling off diagonal entries by 1/sqrt(2).
+            for n in dims[s.SDP_DIM]:
+                tri = y[y_offset:y_offset+n*(n+1)//2]
+                y_true[y_true_offset:y_true_offset+n*n] = self.tri_to_full(tri, n)
+                y_true_offset += n*n
+                y_offset += n*(n+1)//2
+            y_true[y_true_offset:] = y[y_offset:]
+            new_results[s.INEQ_DUAL] = y_true
         else:
             # No result to save.
             solver_cache.prev_result = None
 
         return new_results
+
+    @staticmethod
+    def tri_to_full(lower_tri, n):
+        """Expands n*(n+1)//2 lower triangular to full matrix,
+        with off-diagonal entries scaled by 1/sqrt(2).
+        """
+        full = np.zeros((n,n))
+        for col in range(n):
+            for row in range(col, n):
+                idx = row - col + n*(n+1)//2 - (n-col)*(n-col+1)//2
+                if row != col:
+                    full[row, col] = lower_tri[idx]/np.sqrt(2)
+                    full[col, row] = lower_tri[idx]/np.sqrt(2)
+                else:
+                    full[row, col] = lower_tri[idx]
+        return np.reshape(full, n*n, order='F')

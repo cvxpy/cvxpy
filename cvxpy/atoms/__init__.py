@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.kl_div import kl_div
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
@@ -34,6 +35,7 @@ from cvxpy.atoms.norm2 import norm2
 from cvxpy.atoms.norm_inf import normInf
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
+from cvxpy.atoms.pnorm import pnorm
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max
@@ -42,9 +44,11 @@ from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 
+from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conv import conv
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.kron import kron
 from cvxpy.atoms.affine.mul_elemwise import mul_elemwise
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum_entries import sum_entries
@@ -64,6 +68,7 @@ from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 from cvxpy.atoms.elementwise.min_elemwise import min_elemwise
 from cvxpy.atoms.elementwise.neg import neg
 from cvxpy.atoms.elementwise.pos import pos
+from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square

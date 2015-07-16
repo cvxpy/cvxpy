@@ -18,14 +18,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable
+from cvxpy.transforms import *
+from cvxpy.expressions.variables import Variable, NonNegative
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
-import cvxpy.interface.matrix_utilities as intf
 import numpy as np
 import unittest
+from cvxpy import Problem, Minimize
+from cvxpy.tests.base_test import BaseTest
 
-class TestAtoms(unittest.TestCase):
+class TestAtoms(BaseTest):
     """ Unit tests for the atoms module. """
     def setUp(self):
         self.a = Variable(name='a')
@@ -36,13 +38,6 @@ class TestAtoms(unittest.TestCase):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
-
-    # Test the norm wrapper.
-    def test_norm(self):
-        with self.assertRaises(Exception) as cm:
-            norm(self.C, 3)
-        self.assertEqual(str(cm.exception),
-            "Invalid value 3 for p.")
 
     # Test the normInf class.
     def test_normInf(self):
@@ -71,14 +66,104 @@ class TestAtoms(unittest.TestCase):
         exp = self.x+self.y
         atom = norm2(exp)
         # self.assertEquals(atom.name(), "norm2(x + y)")
-        self.assertEquals(atom.size, (1,1))
+        self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(norm2(atom).curvature, u.Curvature.CONVEX_KEY)
         self.assertEquals(norm2(-atom).curvature, u.Curvature.CONVEX_KEY)
 
+    # Test the power class.
+    def test_power(self):
+        from fractions import Fraction
+
+        for size in (1, 1), (3, 1), (2, 3):
+            x = Variable(*size)
+            y = Variable(*size)
+            exp = x + y
+
+            for p in 0, 1, 2, 3, 2.7, .67, -1, -2.3, Fraction(4, 5):
+                atom = power(exp, p)
+
+                self.assertEquals(atom.size, size)
+
+                if p > 1 or p < 0:
+                    self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+                elif p == 1:
+                    self.assertEquals(atom.curvature, u.Curvature.AFFINE_KEY)
+                elif p == 0:
+                    self.assertEquals(atom.curvature, u.Curvature.CONSTANT_KEY)
+                else:
+                    self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+
+                if p != 1:
+                    self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
     # Test the geo_mean class.
     def test_geo_mean(self):
         atom = geo_mean(self.x)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+    # Test the geo_mean class.
+    def test_harmonic_mean(self):
+        atom = harmonic_mean(self.x)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+    # Test the geo_mean class.
+    def test_pnorm(self):
+        atom = pnorm(self.x, p=1.5)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=2)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p='inf')
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p='Inf')
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=np.inf)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONVEX_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=.5)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=.7)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-.1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-1)
+        self.assertEquals(atom.size, (1, 1))
+        self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
+        self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        atom = pnorm(self.x, p=-1.3)
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
@@ -413,3 +498,159 @@ class TestAtoms(unittest.TestCase):
             lambda_sum_smallest(Variable(2,2), 2.4)
         self.assertEqual(str(cm.exception),
             "Second argument must be a positive integer.")
+
+    def test_bmat(self):
+        """Test the bmat atom.
+        """
+        v_np = np.ones((3,1))
+        expr = bmat([[v_np,v_np],[[0,0], [1,2]]])
+        self.assertEquals(expr.size, (5,2))
+        const = np.bmat([[v_np,v_np],
+                        [np.zeros((2,1)), np.mat([1,2]).T]])
+        self.assertItemsAlmostEqual(expr.value, const)
+
+    def test_conv(self):
+        """Test the conv atom.
+        """
+        a = np.ones((3,1))
+        b = Parameter(2, sign='positive')
+        expr = conv(a, b)
+        assert expr.is_positive()
+        self.assertEqual(expr.size, (4, 1))
+        b = Parameter(2, sign='negative')
+        expr = conv(a, b)
+        assert expr.is_negative()
+        with self.assertRaises(Exception) as cm:
+            conv(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "The first argument to conv must be constant.")
+        with self.assertRaises(Exception) as cm:
+            conv([[0,1],[0,1]], self.x)
+        self.assertEqual(str(cm.exception),
+            "The arguments to conv must resolve to vectors." )
+
+    def test_kron(self):
+        """Test the kron atom.
+        """
+        a = np.ones((3,2))
+        b = Parameter(2, sign='positive')
+        expr = kron(a, b)
+        assert expr.is_positive()
+        self.assertEqual(expr.size, (6, 2))
+        b = Parameter(2, sign='negative')
+        expr = kron(a, b)
+        assert expr.is_negative()
+        with self.assertRaises(Exception) as cm:
+            kron(self.x, -1)
+        self.assertEqual(str(cm.exception),
+            "The first argument to kron must be constant.")
+
+    # Test the partial_optimize atom.
+    def test_partial_optimize_eval_1norm(self):
+        # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
+        dims = 3
+        x, t = Variable(dims), Variable(dims)
+        xval = [-5]*dims
+        p1 = Problem(Minimize(sum_entries(t)), [-t<=xval, xval<=t])
+        p1.solve()
+
+        # Minimize the 1-norm via partial_optimize.
+        p2 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
+        g = partial_optimize(p2, [t], [x])
+        p3 = Problem(Minimize(g), [x == xval])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+        # Try leaving out args.
+
+        # Minimize the 1-norm via partial_optimize.
+        g = partial_optimize(p2, opt_vars=[t])
+        p3 = Problem(Minimize(g), [x == xval])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+        # Minimize the 1-norm via partial_optimize.
+        g = partial_optimize(p2, dont_opt_vars=[x])
+        p3 = Problem(Minimize(g), [x == xval])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+        with self.assertRaises(Exception) as cm:
+            g = partial_optimize(p2)
+        self.assertEqual(str(cm.exception),
+            "partial_optimize called with neither opt_vars nor dont_opt_vars.")
+
+        with self.assertRaises(Exception) as cm:
+            g = partial_optimize(p2, [], [x])
+        self.assertEqual(str(cm.exception),
+            ("If opt_vars and new_opt_vars are both specified, "
+             "they must contain all variables in the problem.")
+        )
+
+    def test_partial_optimize_min_1norm(self):
+        # Minimize the 1-norm in the usual way
+        dims = 3
+        x, t = Variable(dims), Variable(dims)
+        p1 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
+
+        # Minimize the 1-norm via partial_optimize
+        g = partial_optimize(p1, [t], [x])
+        p2 = Problem(Minimize(g))
+        p2.solve()
+
+        p1.solve()
+        self.assertAlmostEqual(p1.value, p2.value)
+
+    def test_partial_optimize_simple_problem(self):
+        x, y = Variable(1), Variable(1)
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x+y), [x+y>=3, y>=4, x>=5])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=3, y>=4])
+        g = partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_params(self):
+        """Test partial optimize with parameters.
+        """
+        x, y = Variable(1), Variable(1)
+        gamma = Parameter()
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x+y), [x+y>=gamma, y>=4, x>=5])
+        gamma.value = 3
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=gamma, y>=4])
+        g = partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_numeric_fn(self):
+        x,y = Variable(1), Variable(1)
+        xval = 4
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(y), [xval+y>=3])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=3])
+        g = partial_optimize(p2, [y], [x])
+        x.value = xval
+        result = g.value
+        self.assertAlmostEqual(result, p1.value)
+
+    # Test the NonNegative Variable class.
+    def test_nonnegative_variable(self):
+        x = NonNegative()
+        p = Problem(Minimize(5+x),[x>=3])
+        p.solve()
+        self.assertAlmostEqual(p.value,8)
+        self.assertAlmostEqual(x.value,3)

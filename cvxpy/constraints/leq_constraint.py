@@ -26,9 +26,7 @@ class LeqConstraint(u.Canonical, Constraint):
     TOLERANCE = 1e-4
     def __init__(self, lh_exp, rh_exp):
         self.args = [lh_exp, rh_exp]
-        self.args[0] = lh_exp
-        self.rh_exp = rh_exp
-        self._expr = self.args[0] - self.rh_exp
+        self._expr = lh_exp - rh_exp
         self._dual_value = None
         super(LeqConstraint, self).__init__()
 
@@ -39,9 +37,9 @@ class LeqConstraint(u.Canonical, Constraint):
         return self.constr_id
 
     def name(self):
-        return ' '.join([str(self.args[0]),
+        return ' '.join([str(self.args[0].name()),
                          self.OP_NAME,
-                         str(self.args[1])])
+                         str(self.args[1].name())])
 
     def __str__(self):
         """Returns a string showing the mathematical constraint.

@@ -90,8 +90,8 @@ class Solver(object):
         # If mixed integer constraints, use ECOS_BB.
         elif constr_map[s.BOOL] or constr_map[s.INT]:
             return s.ECOS_BB
-        # If SDP or EXP, defaults to CVXOPT.
-        elif constr_map[s.SDP] or constr_map[s.EXP]:
+        # If SDP, defaults to CVXOPT.
+        elif constr_map[s.SDP]:
             return s.CVXOPT
         # Otherwise use ECOS.
         else:

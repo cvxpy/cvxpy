@@ -273,7 +273,7 @@ class MatrixData(object):
                     # Block is a numpy matrix or
                     # scipy CSC sparse matrix.
                     if not intf.is_sparse(block):
-                        block = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(
+                        block = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
                             block
                         )
                     block = block.tocoo()

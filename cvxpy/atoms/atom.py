@@ -171,7 +171,7 @@ class Atom(Expression):
         # Catch the case when the expression is known to be
         # zero through DCP analysis.
         if self.is_zero():
-            result = intf.DEFAULT_INTERFACE.zeros(*self.size)
+            result = intf.DEFAULT_INTF.zeros(*self.size)
         else:
             arg_values = []
             for arg in self.args:
@@ -196,9 +196,9 @@ class Atom(Expression):
     @staticmethod
     def numpy_numeric(numeric_func):
         def new_numeric(self, values):
-            interface = intf.DEFAULT_INTERFACE
+            interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)
                       for v in values]
             result = numeric_func(self, values)
-            return intf.DEFAULT_INTERFACE.const_to_matrix(result)
+            return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric

@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.error import DCPError
 import cvxpy.interface as intf
 import cvxpy.utilities as u
 import cvxpy.settings as s
 from cvxpy.utilities import performance_utils as pu
-from cvxpy.constraints import EqConstraint, LeqConstraint
+from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.expressions import types
 import abc
 import numpy as np
@@ -51,11 +52,6 @@ class Expression(u.Canonical):
 
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
-
-    def __array__(self):
-        """Prevents Numpy == from iterating over the Expression.
-        """
-        return np.array([s.NP_EQUAL_STR], dtype="object")
 
     @abc.abstractmethod
     def value(self):
@@ -146,18 +142,11 @@ class Expression(u.Canonical):
         """
         return self._dcp_attr.sign.is_negative()
 
-    # The shape of the expression, an object.
-    @property
-    def shape(self):
-        """ Returns the shape of the expression.
-        """
-        return self._dcp_attr.shape
-
     @property
     def size(self):
         """ Returns the (row, col) dimensions of the expression.
         """
-        return self.shape.size
+        return self._dcp_attr.shape.size
 
     def is_scalar(self):
         """Is the expression a scalar?
@@ -194,16 +183,7 @@ class Expression(u.Canonical):
     def __pow__(self, power):
         """The power operator.
         """
-        if not np.isscalar(power):
-            raise TypeError("Power must be a numeric scalar.")
-        elif power == 2:
-            return types.square()(self)
-        elif power == 0.5:
-            return types.sqrt()(self)
-        elif power == -1:
-            return types.inv_pos()(self)
-        else:
-            raise ValueError("Invalid power: %d." % power)
+        return types.power()(self, power)
 
     # Arithmetic operators.
     @staticmethod
@@ -243,10 +223,15 @@ class Expression(u.Canonical):
         # Cannot multiply two non-constant expressions.
         if not self.is_constant() and \
            not other.is_constant():
-            raise TypeError("Cannot multiply two non-constants.")
+            raise DCPError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
         elif self.is_constant():
+            # TODO HACK catch c.T*x where c is a NumPy 1D array.
+            if self.size[0] == other.size[0] and \
+               self.size[1] != self.size[0] and \
+               isinstance(self, types.constant()) and self.is_1D_array:
+                self = self.T
             return types.mul_expr()(self, other)
         # Having the constant on the left is more efficient.
         elif self.is_scalar() or other.is_scalar():
@@ -292,6 +277,30 @@ class Expression(u.Canonical):
         """The negation of the expression.
         """
         return types.neg_expr()(self)
+
+    @_cast_other
+    def __rshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(self, other)
+
+    @_cast_other
+    def __rrshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(other, self)
+
+    @_cast_other
+    def __lshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(other, self)
+
+    @_cast_other
+    def __rlshift__(self, other):
+        """Positive definite inequality.
+        """
+        return PSDConstraint(self, other)
 
     #needed for python3:
     def __hash__(self):

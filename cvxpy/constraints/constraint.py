@@ -21,19 +21,22 @@ import cvxpy.lin_ops.lin_utils as lu
 import abc
 
 class Constraint(object):
-	"""Abstract super class for constraints.
+    """Abstract super class for constraints.
 
-	TODO rationalize constraint classes. Make lin_op versions
-	of SOC, SDP, etc.
+    TODO rationalize constraint classes. Make lin_op versions
+    of SOC, SDP, etc.
 
-	Attributes
+    Attributes
     ----------
     constr_id : int
         A unique id for the constraint.
-	"""
+    """
 
-	__metaclass__ = abc.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
-	def __init__(self):
-		self.constr_id = lu.get_id()
-		super(Constraint, self).__init__()
+    def __init__(self, constr_id=None):
+        if constr_id is None:
+            self.constr_id = lu.get_id()
+        else:
+            self.constr_id = constr_id
+        super(Constraint, self).__init__()

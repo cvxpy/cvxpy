@@ -205,8 +205,7 @@ Currently the following types may be used as constants:
 
 -  Numpy ndarrays
 -  Numpy matrices
--  CVXOPT dense matrices
--  CVXOPT sparse matrices
+-  SciPy sparse matrices
 
 Here's an example of a CVXPY problem with vectors and matrices:
 

@@ -22,18 +22,24 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
 class Constant(Leaf):
     """
     A constant, either matrix or scalar.
     """
     def __init__(self, value):
+        # TODO HACK.
+        # A fix for c.T*x where c is a 1D array.
+        self.is_1D_array = False
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
-            self._value = intf.DEFAULT_SPARSE_INTERFACE.const_to_matrix(value)
+            self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(value)
             self._sparse = True
         else:
-            self._value = intf.DEFAULT_INTERFACE.const_to_matrix(value)
+            if isinstance(value, np.ndarray) and len(value.shape) == 1:
+                self.is_1D_array = True
+            self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
         self.init_dcp_attr()
