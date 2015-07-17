@@ -44,7 +44,7 @@ SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
 # Test elemental if installed.
 if ELEMENTAL in installed_solvers():
     SOLVERS_TO_TRY.append(ELEMENTAL)
-    SOLVER_TO_TOL[ELEMENTAL] = 1e-4
+    SOLVER_TO_TOL[ELEMENTAL] = 1e-7
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 v_np = np.matrix([-1.,2,-2]).T

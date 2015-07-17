@@ -72,5 +72,5 @@ class TestSolvers(BaseTest):
             expr = mixed_norm(x,1,1)
             constr = [x == [[1,2],[3,4],[5,6]] ]
             prob = Problem(Minimize(expr), constr)
-            prob.solve(solver=ELEMENTAL, verbose=True)
+            prob.solve(solver=ELEMENTAL, verbose=False)
             self.assertAlmostEqual(prob.value, 21)
