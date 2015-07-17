@@ -604,7 +604,7 @@ and returns a vector or matrix.
        :math:`k \in 0,1,2,\ldots`
      - vector of kth order differences
      - :math:`x \in\mathbf{R}^{n}`
-     - same as X
+     - same as x
      - |affine| affine
      - |incr| incr.
 
