@@ -182,25 +182,18 @@ class Elemental(Solver):
         # Cone information.
         offset = 0
         orders = []
-        labels = []
         firstInds = []
-        cone_count = 0
         for i in range(dims[s.LEQ_DIM]):
             orders.append(1)
-            labels.append(cone_count)
             firstInds.append(offset)
-            cone_count += 1
             offset += 1
         for cone_len in dims[s.SOC_DIM]:
             for i in range(cone_len):
                 orders.append(cone_len)
-                labels.append(cone_count)
                 firstInds.append(offset)
-            cone_count += 1
             offset += cone_len
 
         orders = self.distr_vec(np.array(orders), El.iTag)
-        labels = self.distr_vec(np.array(labels), El.iTag)
         firstInds = self.distr_vec(np.array(firstInds), El.iTag)
 
         # Initialize empty vectors for solutions.
@@ -215,7 +208,7 @@ class Elemental(Solver):
             ctrl.mehrotraCtrl.time = True
         else:
             ctrl = None
-        El.SOCPAffine(A,G,b,c,h,orders,firstInds,labels,x,y,z,s_var,ctrl)
+        El.SOCPAffine(A,G,b,c,h,orders,firstInds,x,y,z,s_var,ctrl)
         local_c = data['c']
         local_x = self.local_vec(x)
         local_y = self.local_vec(y)

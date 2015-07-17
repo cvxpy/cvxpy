@@ -17,10 +17,15 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.25 (next release)
+Version 0.2.26 (next release)
 -----------------------------
+* Fixed bug with printing slices.
+
+Version 0.2.25
+--------------
 * Added NonNegative variables.
 * Added partial_optimize as first transform.
+* Require ECOS 2.0.
 
 Version 0.2.24
 --------------

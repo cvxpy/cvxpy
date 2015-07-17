@@ -12,6 +12,22 @@ Basic Examples
 
 - `Total variation in-painting <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
+- `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
+
+- `SVM classifier with regularization <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/SVM.ipynb>`_
+
+- `Portfolio optimization <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
+
+- `Worst-case risk analysis <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb>`_
+
+- `Optimal advertising <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_advertising.ipynb>`_
+
+- `Huber regression <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
+
+- `Quantile regression <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/quantile_regression.ipynb>`_
+
+- `Model fitting <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
+
 .. _applications:
 
 Advanced Examples
