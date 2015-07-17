@@ -599,6 +599,15 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
+   * - diff(x, k=1)
+
+       :math:`k \in 0,1,2,\ldots`
+     - vector of kth order differences
+     - :math:`x \in\mathbf{R}^{n}`
+     - same as x
+     - |affine| affine
+     - |incr| incr.
+
    * - hstack(X1, |_| ..., |_| Xk)
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
