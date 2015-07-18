@@ -34,17 +34,8 @@ class Elemental(Solver):
     MIP_CAPABLE = False
 
     # Map of Elemental status to CVXPY status.
-    STATUS_MAP = {0: s.OPTIMAL,
-                  1: s.INFEASIBLE,
-                  2: s.UNBOUNDED,
-                  10: s.OPTIMAL_INACCURATE,
-                  11: s.INFEASIBLE_INACCURATE,
-                  12: s.UNBOUNDED_INACCURATE,
-                  -1: s.SOLVER_ERROR,
-                  -2: s.SOLVER_ERROR,
-                  -3: s.SOLVER_ERROR,
-                  -4: s.SOLVER_ERROR,
-                  -7: s.SOLVER_ERROR}
+    # TODO
+    STATUS_MAP = {0: s.OPTIMAL}
 
     def import_solver(self):
         """Imports the solver.
@@ -135,6 +126,7 @@ class Elemental(Solver):
         local_mat = local_mat.tocoo()
         mat = El.DistSparseMatrix()
         mat.Resize(*local_mat.shape)
+        mat.Reserve(len(local_mat.data))
         for val, i, j in zip(local_mat.data,
                              local_mat.row.astype(int),
                              local_mat.col.astype(int)):
