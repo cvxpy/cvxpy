@@ -178,9 +178,10 @@ class MatrixData(object):
                 self.sym_data.var_offsets,
                 constr_offsets
             )
-            const_vec = self.vec_intf.const_to_matrix(const_vec,
+            # Convert the constant offset to the correct data type.
+            conv_vec = self.vec_intf.const_to_matrix(const_vec,
                 convert_scalars=True)
-            mat_cache.const_vec += const_vec
+            mat_cache.const_vec[:const_vec.size] += conv_vec
             for i, vals in enumerate([V, I, J]):
                 mat_cache.coo_tup[i].extend(vals)
 

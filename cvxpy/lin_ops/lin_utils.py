@@ -629,4 +629,10 @@ def replace_params_with_consts(expr):
         new_args = []
         for arg in expr.args:
             new_args.append(replace_params_with_consts(arg))
-        return lo.LinOp(expr.type, expr.size, new_args, expr.data)
+        # Data could also be a parameter.
+        if isinstance(expr.data, lo.LinOp) and expr.data.type == lo.PARAM:
+            data_lin_op = expr.data
+            data = create_const(data_lin_op.data.value, data_lin_op.size)
+        else:
+            data = expr.data
+        return lo.LinOp(expr.type, expr.size, new_args, data)
