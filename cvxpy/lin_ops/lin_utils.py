@@ -566,3 +566,67 @@ def get_expr_params(operator):
         if isinstance(operator.data, lo.LinOp):
             params += get_expr_params(operator.data)
         return params
+
+def copy_constr(constr, func):
+    """Creates a copy of the constraint modified according to func.
+
+    Parameters
+    ----------
+    constr : LinConstraint
+        The constraint to modify.
+    func : function
+        Function to modify the constraint expression.
+
+    Returns
+    -------
+    LinConstraint
+        A copy of the constraint with the specified changes.
+    """
+    expr = func(constr.expr)
+    return type(constr)(expr, constr.constr_id, constr.size)
+
+def replace_new_vars(expr, id_to_new_var):
+    """Replaces the given variables in the expression.
+
+    Parameters
+    ----------
+    expr : LinOp
+        The expression to replace variables in.
+    id_to_new_var : dict
+        A map of id to new variable.
+
+    Returns
+    -------
+    LinOp
+        An LinOp identical to expr, but with the given variables replaced.
+    """
+    if expr.type == lo.VARIABLE and expr.data in id_to_new_var:
+        return id_to_new_var[expr.data]
+    else:
+        new_args = []
+        for arg in expr.args:
+            new_args.append(
+                replace_new_vars(arg, id_to_new_var)
+            )
+        return lo.LinOp(expr.type, expr.size, new_args, expr.data)
+
+def replace_params_with_consts(expr):
+    """Replaces parameters with constant nodes.
+
+    Parameters
+    ----------
+    expr : LinOp
+        The expression to replace parameters in.
+
+    Returns
+    -------
+    LinOp
+        An LinOp identical to expr, but with the parameters replaced.
+    """
+    if expr.type == lo.PARAM:
+        return create_const(expr.data.value, expr.size)
+    else:
+        new_args = []
+        for arg in expr.args:
+            new_args.append(replace_params_with_consts(arg))
+        return lo.LinOp(expr.type, expr.size, new_args, expr.data)

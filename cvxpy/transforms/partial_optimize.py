@@ -141,32 +141,6 @@ class PartialProblem(Expression):
             var.value = old_vals[var.id]
         return result
 
-    @staticmethod
-    def _replace_new_vars(expr, id_to_new_var):
-        """Replaces the given variables in the expression.
-
-        Parameters
-        ----------
-        expr : LinOp
-            The expression to replace variables in.
-        id_to_new_var : dict
-            A map of id to new variable.
-
-        Returns
-        -------
-        LinOp
-            An LinOp identical to expr, but with the given variables replaced.
-        """
-        if expr.type == lo.VARIABLE and expr.data in id_to_new_var:
-            return id_to_new_var[expr.data]
-        else:
-            new_args = []
-            for arg in expr.args:
-                new_args.append(
-                    PartialProblem._replace_new_vars(arg, id_to_new_var)
-                )
-            return lo.LinOp(expr.type, expr.size, new_args, expr.data)
-
     def canonicalize(self):
         """Returns the graph implementation of the object.
 
@@ -178,9 +152,11 @@ class PartialProblem(Expression):
         """
         id_to_new_var = {v.id:lu.create_var(v.size) for v in self.opt_vars}
         obj, constr = self.args[0].canonical_form
-        obj = self._replace_new_vars(obj, id_to_new_var)
+        obj = lu.replace_new_vars(obj, id_to_new_var)
         new_constr = []
         for con in constr:
-            expr = self._replace_new_vars(con.expr, id_to_new_var)
-            new_constr += [type(con)(expr, con.constr_id, con.size)]
+            new_constr += [
+                lu.copy_constr(con,
+                    lambda x: lu.replace_new_vars(x, id_to_new_var))
+            ]
         return obj, new_constr
