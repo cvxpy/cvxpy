@@ -30,8 +30,8 @@ class MOSEK(Solver):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    SDP_CAPABLE = False #for now only SOCP
-    EXP_CAPABLE = True
+    SDP_CAPABLE = False # for now only SOCP
+    EXP_CAPABLE = False
     MIP_CAPABLE = False
 
     def import_solver(self):
@@ -94,17 +94,17 @@ class MOSEK(Solver):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         import mosek
-        env = mosek.Env() 
-        task = env.Task(0,0) 
+        env = mosek.Env()
+        task = env.Task(0,0)
 
         if verbose:
-            # Define a stream printer to grab output from MOSEK 
-            def streamprinter(text): 
+            # Define a stream printer to grab output from MOSEK
+            def streamprinter(text):
                 import sys
-                sys.stdout.write(text) 
-                sys.stdout.flush() 
-            env.set_Stream(mosek.streamtype.log, streamprinter) 
-            task.set_Stream(mosek.streamtype.log, streamprinter) 
+                sys.stdout.write(text)
+                sys.stdout.flush()
+            env.set_Stream(mosek.streamtype.log, streamprinter)
+            task.set_Stream(mosek.streamtype.log, streamprinter)
 
         data = self.get_problem_data(objective, constraints, cached_data)
 
@@ -122,7 +122,7 @@ class MOSEK(Solver):
         # objective
         task.appendvars(numvar)
         task.putclist(np.arange(len(c)), c)
-        task.putvarboundlist(np.arange(numvar, dtype=int), 
+        task.putvarboundlist(np.arange(numvar, dtype=int),
                              [mosek.boundkey.fr]*numvar,
                              np.zeros(numvar),
                              np.zeros(numvar))
@@ -134,17 +134,17 @@ class MOSEK(Solver):
         else:
             constraints_matrix = A if A.shape[0] else G
         coefficients = np.concatenate([b, h])
-        
+
         row,col,el = sp.find(constraints_matrix)
         task.putaijlist(row,col,el)
 
         type_constraint = [mosek.boundkey.fx] * len(b)
-        type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM] 
+        type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
         type_constraint += [mosek.boundkey.fx] * (sum(dims[s.SOC_DIM]))
-        
-        task.putconboundlist(np.arange(numcon, dtype=int), 
+
+        task.putconboundlist(np.arange(numcon, dtype=int),
                              type_constraint,
-                             coefficients, 
+                             coefficients,
                              coefficients)
 
         # cones
@@ -152,24 +152,24 @@ class MOSEK(Solver):
         current_con_index = len(b) + dims[s.LEQ_DIM]
 
         for size_cone in dims['q']:
-            row,col,el = sp.find(sp.eye(size_cone)) 
+            row,col,el = sp.find(sp.eye(size_cone))
             row += current_con_index
             col += current_var_index
             task.putaijlist(row,col,el) # add a identity for each cone
             # add a cone constraint
-            task.appendcone(mosek.conetype.quad, 
+            task.appendcone(mosek.conetype.quad,
                             0.0, #unused
-                            np.arange(current_var_index, 
-                                      current_var_index + size_cone))             
+                            np.arange(current_var_index,
+                                      current_var_index + size_cone))
             current_con_index += size_cone
             current_var_index += size_cone
 
         # solve
         task.putobjsense(mosek.objsense.minimize)
-        task.optimize() 
+        task.optimize()
 
         if verbose:
-            task.solutionsummary(mosek.streamtype.msg) 
+            task.solutionsummary(mosek.streamtype.msg)
 
         return self.format_results(task, data, cached_data)
 
@@ -204,23 +204,23 @@ class MOSEK(Solver):
                       mosek.solsta.unknown: s.SOLVER_ERROR}
 
         prosta = task.getprosta(mosek.soltype.itr) #unused
-        solsta = task.getsolsta(mosek.soltype.itr) 
+        solsta = task.getsolsta(mosek.soltype.itr)
 
         result_dict = {s.STATUS: STATUS_MAP[solsta]}
 
         if result_dict[s.STATUS] in s.SOLUTION_PRESENT:
             # get primal variables values
             result_dict[s.PRIMAL] = np.zeros(task.getnumvar(), dtype=np.float)
-            task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL]) 
+            task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL])
             # get obj value
             result_dict[s.VALUE] = task.getprimalobj(mosek.soltype.itr) + \
                                    data[s.OFFSET]
-            # get dual 
+            # get dual
             y = np.zeros(task.getnumcon(), dtype=np.float)
-            task.gety(mosek.soltype.itr, y) 
+            task.gety(mosek.soltype.itr, y)
             # it appears signs are inverted
-            result_dict[s.EQ_DUAL] = -y[:len(data[s.B])] 
+            result_dict[s.EQ_DUAL] = -y[:len(data[s.B])]
             result_dict[s.INEQ_DUAL] = \
                 -y[len(data[s.B]):len(data[s.B])+data[s.DIMS][s.LEQ_DIM]]
 
-        return result_dict        
+        return result_dict

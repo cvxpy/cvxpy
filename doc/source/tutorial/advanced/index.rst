@@ -137,7 +137,7 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `GUROBI`_, and `Elemental`_.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `MOSEK`_, `GUROBI`_, and `Elemental`_.
 The table below shows the types of problems the solvers can handle.
 
 +--------------+----+------+-----+-----+-----+
@@ -154,6 +154,8 @@ The table below shows the types of problems the solvers can handle.
 | `ECOS_BB`_   | X  | X    |     |     | X   |
 +--------------+----+------+-----+-----+-----+
 | `GUROBI`_    | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `MOSEK`_     | X  | X    |     |     |     |
 +--------------+----+------+-----+-----+-----+
 | `CVXOPT`_    | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
@@ -206,6 +208,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GUROBI)
     print "optimal value with GUROBI:", prob.value
 
+    # Solve with MOSEK.
+    prob.solve(solver=MOSEK)
+    print "optimal value with MOSEK:", prob.value
+
     # Solve with Elemental.
     prob.solve(solver=ELEMENTAL)
     print "optimal value with Elemental:", prob.value
@@ -219,6 +225,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
+    optimal value with MOSEK: 6.0
     optimal value with Elemental: 6.0000044085242727
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
@@ -229,7 +236,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
+    ['CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -420,4 +427,5 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
+.. _MOSEK: https://www.mosek.com/
 .. _Elemental: http://libelemental.org/

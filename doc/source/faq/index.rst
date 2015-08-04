@@ -19,6 +19,16 @@ The book `Convex Optimization <http://web.stanford.edu/~boyd/cvxbook/>`_ by Boyd
 To learn more about disciplined convex programming,
 visit the `DCP tutorial website <http://dcp.stanford.edu/>`_.
 
+How do I know which version of CVXPY I'm using?
+-----------------------------------------------
+To check which version of CVXPY you have installed,
+run the following code snippet in the Python prompt:
+
+.. code:: python
+
+  import cvxpy
+  print cvxpy.__version__
+
 What do I do if I get a ``DCPError`` exception?
 -----------------------------------------------
 The problems you solve in CVXPY must follow the rules of disciplined convex programming (DCP).

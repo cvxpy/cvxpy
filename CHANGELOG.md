@@ -20,6 +20,7 @@ Version 1.0 (targets)
 Version 0.2.26 (next release)
 -----------------------------
 * Fixed bug with printing slices.
+* Added MOSEK SOCP interface thanks to Enzo.
 
 Version 0.2.25
 --------------
