@@ -100,6 +100,7 @@ class MOSEK(Solver):
         if verbose:
             # Define a stream printer to grab output from MOSEK 
             def streamprinter(text): 
+                import sys
                 sys.stdout.write(text) 
                 sys.stdout.flush() 
             env.set_Stream(mosek.streamtype.log, streamprinter) 
