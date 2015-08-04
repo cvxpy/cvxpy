@@ -72,9 +72,8 @@ class mul_elemwise(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # Promote arguments if necessary.
-        for i, arg in enumerate(arg_objs):
-            if arg.size != size:
-                arg_objs[i] = lu.promote(arg, size)
-
-        return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])
+        # One of the arguments is a scalar, so we can use normal multiplication.
+        if arg_objs[0].size != arg_objs[1].size:
+            return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
+        else:
+            return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])

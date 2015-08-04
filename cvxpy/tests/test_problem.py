@@ -1390,3 +1390,29 @@ class TestProblem(BaseTest):
         prob.solve()
         x = x.value
         self.assertTrue(__builtins__['abs'](1.7*x**.7 - 2.3*x**-3.3 - .45*x**-.55) <= 1e-3)
+
+    def test_mul_elemwise(self):
+        """Test a problem with mul_elemwise by a scalar.
+        """
+        import numpy as np
+        T = 10
+        J = 20
+        rvec = np.random.randn(T, J)
+        dy = np.random.randn(2*T, 1)
+        theta = Variable(J)
+
+        delta=1e-3
+        loglambda = rvec*theta #rvec: TxJ regressor matrix, theta: (Jx1) cvx variable
+        a= mul_elemwise(dy[0:T],loglambda) # size(Tx1)
+        b1= exp(loglambda)
+        b2=mul_elemwise(delta,b1)
+        cost= -a + b1
+
+        cost= -a + b2 #size (Tx1)
+        prob = Problem(Minimize(sum_entries(cost)))
+        prob.solve(solver=s.SCS)
+
+        obj = Minimize(sum_entries(mul_elemwise(2, self.x)))
+        prob = Problem(obj, [self.x == 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 8)
