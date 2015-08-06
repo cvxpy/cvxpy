@@ -21,6 +21,7 @@ Version 0.2.26 (next release)
 -----------------------------
 * Fixed bug with printing slices.
 * Added MOSEK SOCP interface thanks to Enzo.
+* Fixed bug with mul_elemwise by scalar.
 
 Version 0.2.25
 --------------
