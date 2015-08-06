@@ -416,3 +416,10 @@ class Problem(u.Canonical):
             return self
         else:
             return NotImplemented
+
+    def __mul__(self, other):
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return Problem(self.objective * other, self.constraints)
+
+    __rmul__ = __mul__
