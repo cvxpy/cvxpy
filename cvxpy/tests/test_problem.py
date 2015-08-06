@@ -350,6 +350,15 @@ class TestProblem(BaseTest):
             prob_bad_sum = prob1 + prob3
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
+    # Test problem multiplication by scalar
+    def test_mul_problems(self):
+        prob1 = Problem(Minimize(cvxpy.pow(self.a)), [self.a >= 2])
+        answer = prob1.solve()
+        factors = [0, 1, 2.3, -4.321]
+        for f in factors:
+            self.assertAlmostEqual((f * prob1).solve(), f * answer)
+            self.assertAlmostEqual((prob1 * f).solve(), f * answer)
+
     # Test scalar LP problems.
     def test_scalar_lp(self):
         p = Problem(Minimize(3*self.a), [self.a >= 2])

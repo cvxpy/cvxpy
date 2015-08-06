@@ -55,6 +55,17 @@ class Minimize(u.Canonical):
         else:
             return NotImplemented
 
+    def __mul__(self, other):
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        # If negative, reverse the direction of objective
+        if (type(self) == Maximize) == (other < 0.0):
+            return Minimize(self.args[0] * other)
+        else:
+            return Maximize(self.args[0] * other)
+
+    __rmul__ = __mul__
+
     def canonicalize(self):
         """Pass on the target expression's objective and constraints.
         """
