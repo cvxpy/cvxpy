@@ -405,6 +405,9 @@ class Problem(u.Canonical):
         return "Problem(%s, %s)" % (repr(self.objective),
                                     repr(self.constraints))
 
+    def __neg__(self):
+        return Problem(-self.objective, self.constraints)
+
     def __add__(self, other):
         if not isinstance(other, Problem):
             return NotImplemented
@@ -417,9 +420,26 @@ class Problem(u.Canonical):
         else:
             return NotImplemented
 
+    def __sub__(self, other):
+        if not isinstance(other, Problem):
+            return NotImplemented
+        return Problem(self.objective - other.objective,
+                       list(set(self.constraints + other.constraints)))
+
+    def __rsub__(self, other):
+        if other == 0:
+            return -self
+        else:
+            return NotImplemented
+
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
             return NotImplemented
         return Problem(self.objective * other, self.constraints)
 
     __rmul__ = __mul__
+
+    def __div__(self, other):
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return Problem(self.objective * (1.0/other), self.constraints)
