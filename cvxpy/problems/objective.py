@@ -88,6 +88,11 @@ class Minimize(u.Canonical):
             return NotImplemented
         return self * (1.0/other)
 
+    def __truediv__(self, other):
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return self * (1.0/other)
+
     def canonicalize(self):
         """Pass on the target expression's objective and constraints.
         """
