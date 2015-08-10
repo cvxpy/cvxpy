@@ -40,6 +40,11 @@ class Minimize(u.Canonical):
     def __str__(self):
         return ' '.join([self.NAME, self.args[0].name()])
 
+    def __neg__(self):
+        if (type(self) == Maximize):
+            return Minimize(-self.args[0])
+        return Maximize(-self.args[0])
+
     def __add__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
             return NotImplemented
@@ -54,6 +59,34 @@ class Minimize(u.Canonical):
             return self
         else:
             return NotImplemented
+
+    def __sub__(self, other):
+        if not isinstance(other, (Minimize, Maximize)):
+            return NotImplemented
+        # Objectives must opposites
+        return self + (-other)
+
+    def __rsub__(self, other):
+        if other == 0:
+            return -self
+        else:
+            return NotImplemented
+
+    def __mul__(self, other):
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        # If negative, reverse the direction of objective
+        if (type(self) == Maximize) == (other < 0.0):
+            return Minimize(self.args[0] * other)
+        else:
+            return Maximize(self.args[0] * other)
+
+    __rmul__ = __mul__
+
+    def __div__(self, other):
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return self * (1.0/other)
 
     def canonicalize(self):
         """Pass on the target expression's objective and constraints.

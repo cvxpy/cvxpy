@@ -350,6 +350,36 @@ class TestProblem(BaseTest):
             prob_bad_sum = prob1 + prob3
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
+    # Test problem multiplication by scalar
+    def test_mul_problems(self):
+        prob1 = Problem(Minimize(pow(self.a, 2)), [self.a >= 2])
+        answer = prob1.solve()
+        factors = [0, 1, 2.3, -4.321]
+        for f in factors:
+            self.assertAlmostEqual((f * prob1).solve(), f * answer)
+            self.assertAlmostEqual((prob1 * f).solve(), f * answer)
+
+    # Test problem linear combinations
+    def test_lin_combination_problems(self):
+        prob1 = Problem(Minimize(self.a), [self.a >= self.b])
+        prob2 = Problem(Minimize(2*self.b), [self.a >= 1, self.b >= 2])
+        prob3 = Problem(Maximize(-pow(self.b + self.a, 2)), [self.b >= 3])
+    
+        # simple addition and multiplication
+        combo1 = prob1 + 2 * prob2
+        combo1_ref = Problem(Minimize(self.a + 4 * self.b), [self.a >= self.b, self.a >= 1, self.b >= 2])
+        self.assertAlmostEqual(combo1.solve(), combo1_ref.solve())
+
+        # division and subtraction
+        combo2 = prob1 - prob3/2
+        combo2_ref = Problem(Minimize(self.a + pow(self.b + self.a, 2)/2), [self.b >= 3, self.a >= self.b])
+        self.assertAlmostEqual(combo2.solve(), combo2_ref.solve())
+
+        # multiplication with 0 (prob2's constraints should still hold)
+        combo3 = prob1 + 0 * prob2 - 3 * prob3
+        combo3_ref = Problem(Minimize(self.a + 3 * pow(self.b + self.a, 2)), [self.a >= self.b, self.a >= 1, self.b >= 3])
+        self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
+
     # Test scalar LP problems.
     def test_scalar_lp(self):
         p = Problem(Minimize(3*self.a), [self.a >= 2])
