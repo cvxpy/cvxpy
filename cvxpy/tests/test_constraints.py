@@ -66,6 +66,19 @@ class TestConstraints(unittest.TestCase):
             (self.x == self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
+        # Test copy with args=None
+        copy = constr.copy()
+        self.assertTrue(type(copy) is type(constr))
+        # A new object is constructed, so copy.args == constr.args but copy.args
+        # is not constr.args.
+        self.assertEqual(copy.args, constr.args)
+        self.assertFalse(copy.args is constr.args)
+        # Test copy with new args
+        copy = constr.copy(args=[self.A, self.B])
+        self.assertTrue(type(copy) is type(constr))
+        self.assertTrue(copy.args[0] is self.A)
+        self.assertTrue(copy.args[1] is self.B)
+
     def test_leq_constraint(self):
         """Test the LeqConstraint class.
         """
@@ -86,6 +99,20 @@ class TestConstraints(unittest.TestCase):
             (self.x <= self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
+        # Test copy with args=None
+        copy = constr.copy()
+        self.assertTrue(type(copy) is type(constr))
+        # A new object is constructed, so copy.args == constr.args but copy.args
+        # is not constr.args.
+        self.assertEqual(copy.args, constr.args)
+        self.assertFalse(copy.args is constr.args)
+        # Test copy with new args
+        copy = constr.copy(args=[self.A, self.B])
+        self.assertTrue(type(copy) is type(constr))
+        self.assertTrue(copy.args[0] is self.A)
+        self.assertTrue(copy.args[1] is self.B)
+
+
     def test_psd_constraint(self):
         """Test the PSD constraint <<.
         """
@@ -104,6 +131,20 @@ class TestConstraints(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             (self.x >> self.y)
         self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
+
+        # Test copy with args=None
+        copy = constr.copy()
+        self.assertTrue(type(copy) is type(constr))
+        # A new object is constructed, so copy.args == constr.args but copy.args
+        # is not constr.args.
+        self.assertEqual(copy.args, constr.args)
+        self.assertFalse(copy.args is constr.args)
+        # Test copy with new args
+        copy = constr.copy(args=[self.B, self.A])
+        self.assertTrue(type(copy) is type(constr))
+        self.assertTrue(copy.args[0] is self.B)
+        self.assertTrue(copy.args[1] is self.A)
+
 
     def test_nsd_constraint(self):
         """Test the PSD constraint <<.
