@@ -125,7 +125,7 @@ class pnorm(Atom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        return np.linalg.norm(values, self.p)
+        return np.linalg.norm(values, float(self.p))
 
 
     def shape_from_args(self):
