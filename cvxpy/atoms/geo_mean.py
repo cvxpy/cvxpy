@@ -236,7 +236,7 @@ class geo_mean(Atom):
         values = np.array(values[0]).flatten()
         val = 1.0
         for x, p in zip(values, self.w):
-            val *= x**p
+            val *= x**float(p)
         return val
 
     def name(self):
