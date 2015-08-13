@@ -106,6 +106,23 @@ class LeqConstraint(u.Canonical, Constraint):
         """
         return self._expr.parameters()
 
+    def copy(self, args=None):
+        """Returns a shallow copy of the constraint.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the constraint. If args=None, use the
+            current args of the atom.
+
+        Returns
+        -------
+        Constraint
+        """
+        if args is None:
+            args = self.args
+        return type(self)(*args)
+
     @property
     def value(self):
         """Does the constraint hold?

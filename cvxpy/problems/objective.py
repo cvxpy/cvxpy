@@ -75,6 +75,23 @@ class Minimize(u.Canonical):
         """
         return self.args[0].is_convex()
 
+    def copy(self, args=None):
+        """Returns a shallow copy of the objective.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the objective. If args=None, use the
+            current args of the objective.
+
+        Returns
+        -------
+        Objective
+        """
+        if args is None:
+            args = self.args
+        return type(self)(*args)
+
     @property
     def value(self):
         """The value of the objective expression.

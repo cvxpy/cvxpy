@@ -59,6 +59,28 @@ class AddExpression(AffAtom):
     def numeric(self, values):
         return reduce(op.add, values)
 
+    # As __init__ takes in the arg_groups instead of args, we need a special
+    # copy() function.
+    def copy(self, args=None):
+        """Returns a shallow copy of the AddExpression atom.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the atom. If args=None, use the
+            current args of the atom.
+
+        Returns
+        -------
+        AddExpression atom
+        """
+        if args is None:
+            args = self.args
+        # Avoid calling __init__() directly as we do not have the args_groups.
+        copy = type(self).__new__(type(self))
+        super(type(copy), copy).__init__(*args)
+        return copy
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Sum the linear expressions.

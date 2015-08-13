@@ -50,6 +50,26 @@ class index(AffAtom):
         """
         return self.key
 
+    # As get_data(self) returns a tuple, the function atom.copy() is confused.
+    # We have to implement another copy() function here.
+    def copy(self, args=None):
+        """Returns a shallow copy of the index atom.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the atom. If args=None, use the
+            current args of the atom.
+
+        Returns
+        -------
+        Index atom
+        """
+        if args is None:
+            args = self.args
+        data = [self.get_data()]
+        return type(self)(*(args + data))
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Index/slice into the expression.

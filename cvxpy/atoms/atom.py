@@ -122,11 +122,36 @@ class Atom(Expression):
                                                                 data)
             return (graph_obj, constraints + graph_constr)
 
-
     def get_data(self):
         """Returns special info required for graph implementation.
         """
         return None
+
+    def copy(self, args=None):
+        """Returns a shallow copy of the atom.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the atom. If args=None, use the
+            current args of the atom.
+
+        Returns
+        -------
+        Atom
+        """
+        if args is None:
+            args = self.args
+        data = self.get_data()
+        if data is not None:
+            # data is either a tuple or a single object
+            if isinstance(data, tuple):
+                data = list(data)
+            else:
+                data = [data]
+            return type(self)(*(args + data))
+        else:
+            return type(self)(*args)
 
     @abc.abstractmethod
     def graph_implementation(self, arg_objs, size, data=None):
