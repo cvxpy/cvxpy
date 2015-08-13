@@ -24,6 +24,7 @@ from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.affine.sum_entries import sum_entries
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
+from scipy.misc import logsumexp
 
 class log_sum_exp(Atom):
     """:math:`\log\sum_i e^{x_i}`
@@ -32,23 +33,25 @@ class log_sum_exp(Atom):
     def __init__(self, x):
         super(log_sum_exp, self).__init__(x)
 
-    # Evaluates e^x elementwise, sums, and takes the log.
     @Atom.numpy_numeric
     def numeric(self, values):
-        exp_mat = np.exp(values[0])
-        exp_sum = exp_mat.sum(axis = 1).sum(axis = 0)
-        return np.log(exp_sum)
+        """Evaluates e^x elementwise, sums, and takes the log.
+        """
+        return logsumexp(values[0])
 
-    # Resolves to a scalar.
     def shape_from_args(self):
+        """Resolves to a scalar.
+        """
         return u.Shape(1, 1)
 
-    # Always unknown.
     def sign_from_args(self):
+        """Always unknown.
+        """
         return u.Sign.UNKNOWN
 
-    # Default curvature.
     def func_curvature(self):
+        """Default curvature.
+        """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
