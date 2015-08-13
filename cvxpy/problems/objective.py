@@ -86,7 +86,7 @@ class Minimize(u.Canonical):
 
         Returns
         -------
-        Constraint
+        Objective
         """
         if args is None:
             args = self.args
