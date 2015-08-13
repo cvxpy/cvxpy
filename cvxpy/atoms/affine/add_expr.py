@@ -33,6 +33,7 @@ class AddExpression(AffAtom):
 
     def __init__(self, arg_groups):
         # For efficiency group args as sums.
+        self._arg_groups = arg_groups
         super(AddExpression, self).__init__(*arg_groups)
         self.args = []
         for group in arg_groups:
@@ -74,10 +75,10 @@ class AddExpression(AffAtom):
         AddExpression atom
         """
         if args is None:
-            args = self.args
-        # Avoid calling __init__() directly as we do not have the args_groups.
+            args = self._arg_groups
+        # Takes advantage of _arg_groups if present for efficiency.
         copy = type(self).__new__(type(self))
-        super(type(copy), copy).__init__(*args)
+        copy.__init__(args)
         return copy
 
     @staticmethod
