@@ -444,7 +444,4 @@ class Problem(u.Canonical):
             return NotImplemented
         return Problem(self.objective * (1.0/other), self.constraints)
 
-    def __truediv__(self, other):
-        if not isinstance(other, (int, float)):
-            return NotImplemented
-        return Problem(self.objective * (1.0/other), self.constraints)
+    __truediv__ = __div__
