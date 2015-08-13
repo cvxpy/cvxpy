@@ -150,7 +150,7 @@ class power(Elementwise):
         if self.p == 0:
             return np.ones(self.size)
         else:
-            return np.power(values[0], self.p)
+            return np.power(values[0], float(self.p))
 
     def sign_from_args(self):
         if self.p == 1:
