@@ -33,7 +33,6 @@ class AddExpression(AffAtom):
 
     def __init__(self, arg_groups):
         # For efficiency group args as sums.
-        self._arg_groups = arg_groups
         super(AddExpression, self).__init__(*arg_groups)
         self.args = []
         for group in arg_groups:
