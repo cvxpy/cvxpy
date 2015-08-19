@@ -21,7 +21,9 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_to_matrix as op2mat
+import functools
 import scipy.sparse as sp
+
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -39,6 +41,7 @@ class MatrixCache(object):
     size : tuple
         The (rows, cols) dimensions of the matrix.
     """
+
     def __init__(self, coo_tup, const_vec, constraints, x_length):
         self.coo_tup = coo_tup
         self.const_vec = const_vec
@@ -166,7 +169,7 @@ class MatrixData(object):
             has_param = len(lu.get_expr_params(constr.expr)) > 0
             if (has_param and not caching) or (not has_param and caching):
                 self._process_constr(constr, mat_cache, vert_offset)
-            vert_offset += constr.size[0]*constr.size[1]
+            vert_offset += constr.size[0] * constr.size[1]
 
     def _cache_to_matrix(self, mat_cache):
         """Converts the cached representation of the constraints matrix.
@@ -194,7 +197,7 @@ class MatrixData(object):
             # Convert the constraints matrix to the correct type.
             matrix = self.matrix_intf.const_to_matrix(matrix,
                                                       convert_scalars=True)
-        else: # Empty matrix.
+        else:  # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
         combo_vec = mat_cache.const_vec + param_cache.const_vec
@@ -217,15 +220,13 @@ class MatrixData(object):
         coeffs = op2mat.get_coefficients(constr.expr)
         for id_, block in coeffs:
             vert_start = vert_offset
-            vert_end = vert_start + constr.size[0]*constr.size[1]
+            vert_end = vert_start + constr.size[0] * constr.size[1]
             if id_ is lo.CONSTANT_ID:
                 # Flatten the block.
                 block = self.vec_intf.const_to_matrix(block)
                 block_size = intf.size(block)
                 block = self.vec_intf.reshape(
-                    block,
-                    (block_size[0]*block_size[1], 1)
-                )
+                    block, (block_size[0] * block_size[1], 1))
                 mat_cache.const_vec[vert_start:vert_end, :] += block
             else:
                 horiz_offset = self.sym_data.var_offsets[id_]
@@ -238,9 +239,7 @@ class MatrixData(object):
                     # Block is a numpy matrix or
                     # scipy CSC sparse matrix.
                     if not intf.is_sparse(block):
-                        block = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
-                            block
-                        )
+                        block = intf.DEFAULT_SPARSE_INTF.const_to_matrix(block)
                     block = block.tocoo()
                     V.extend(block.data)
                     I.extend(block.row + vert_start)
@@ -268,39 +267,42 @@ class MatrixData(object):
         for constr in nonlin_constr:
             constr.place_x0(big_x, var_offsets, self.vec_intf)
 
-        def F(x=None, z=None):
-            """Oracle for function value, gradient, and Hessian.
-            """
-            if x is None:
-                return rows, big_x
-            big_f = self.vec_intf.zeros(rows, 1)
-            big_Df = self.matrix_intf.zeros(rows, cols)
-            if z:
-                big_H = self.matrix_intf.zeros(cols, cols)
+        return functools.partial(_F, nonlin_constr, rows, cols, var_offsets,
+                                 big_x, self.vec_intf, self.matrix_intf)
 
-            offset = 0
-            for constr in nonlin_constr:
-                constr_entries = constr.size[0]*constr.size[1]
-                local_x = constr.extract_variables(x, var_offsets,
-                                                   self.vec_intf)
-                if z:
-                    f, Df, H = constr.f(local_x,
-                                        z[offset:offset + constr_entries])
-                else:
-                    result = constr.f(local_x)
-                    if result:
-                        f, Df = result
-                    else:
-                        return None
-                big_f[offset:offset + constr_entries] = f
-                constr.place_Df(big_Df, Df, var_offsets,
-                                offset, self.matrix_intf)
-                if z:
-                    constr.place_H(big_H, H, var_offsets,
-                                   self.matrix_intf)
-                offset += constr_entries
 
-            if z is None:
-                return big_f, big_Df
-            return big_f, big_Df, big_H
-        return F
+# Only used by MatrixCache._nonlin_matrix() through functools.partial(). We
+# write this as an separate (unbound) method to allow pickling.
+def _F(nonlin_constr, rows, cols, var_offsets, big_x, vec_intf, matrix_intf,
+       x=None,
+       z=None):
+    """Oracle for function value, gradient, and Hessian.
+    """
+    if x is None:
+        return rows, big_x
+    big_f = vec_intf.zeros(rows, 1)
+    big_Df = matrix_intf.zeros(rows, cols)
+    if z:
+        big_H = matrix_intf.zeros(cols, cols)
+
+    offset = 0
+    for constr in nonlin_constr:
+        constr_entries = constr.size[0] * constr.size[1]
+        local_x = constr.extract_variables(x, var_offsets, vec_intf)
+        if z:
+            f, Df, H = constr.f(local_x, z[offset:offset + constr_entries])
+        else:
+            result = constr.f(local_x)
+            if result:
+                f, Df = result
+            else:
+                return None
+        big_f[offset:offset + constr_entries] = f
+        constr.place_Df(big_Df, Df, var_offsets, offset, matrix_intf)
+        if z:
+            constr.place_H(big_H, H, var_offsets, matrix_intf)
+        offset += constr_entries
+
+    if z is None:
+        return big_f, big_Df
+    return big_f, big_Df, big_H
