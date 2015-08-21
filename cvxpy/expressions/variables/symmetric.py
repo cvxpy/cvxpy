@@ -29,7 +29,7 @@ def Symmetric(n, name=None):
     """
     var = SymmetricUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))
-    return types.reshape()(fill_mat*var, n, n)
+    return types.reshape()(fill_mat*var, int(n), int(n))
 
 def upper_tri_to_full(n):
     """Returns a coefficient matrix to create a symmetric matrix.
