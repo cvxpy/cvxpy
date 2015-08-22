@@ -23,6 +23,7 @@ Version 0.2.26 (next release)
 * Added MOSEK SOCP interface thanks to Enzo.
 * Fixed bug with mul_elemwise by scalar.
 * Fixed compatibility issue with power atom and new NumPy.
+* Fixed Windows compatibility issue.
 
 Version 0.2.25
 --------------
