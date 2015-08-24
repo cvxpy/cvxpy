@@ -134,6 +134,7 @@ CVXPY has the following dependencies:
 * Python 2.7 or Python 3.4
 * `setuptools`_ >= 1.4
 * `toolz`_
+* `multiprocess`_
 * `CVXOPT`_ >= 1.1.6
 * `ECOS`_ >= 2
 * `SCS`_ >= 1.0.1
@@ -143,11 +144,10 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `ECOS`_, `CVXOPT`_, `SCS`_, and `toolz`_.
-`NumPy`_ and `SciPy`_ will need to be installed manually.
-You may also need to install `Swig`_ to build `CVXcanon`_.
-Once you’ve
-installed `NumPy`_, `SciPy`_, and `Swig`_, installing CVXPY from source is simple:
+CVXPY automatically installs `ECOS`_, `CVXOPT`_, `SCS`_, `toolz`_, and
+`multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually. You
+may also need to install `Swig`_ to build `CVXcanon`_. Once you’ve installed
+`NumPy`_, `SciPy`_, and `Swig`_, installing CVXPY from source is simple:
 
 1. Clone the `CVXPY git repository`_.
 2. Navigate to the top-level of the cloned directory and run
@@ -192,6 +192,7 @@ See the `Elemental <http://libelemental.org/>`_ website for installation instruc
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _multiprocess: https://github.com/uqfoundation/multiprocess/
 .. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos

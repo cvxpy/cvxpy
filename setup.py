@@ -31,6 +31,7 @@ setup(
     install_requires=["cvxopt >= 1.1.6",
                       "ecos >= 2",
                       "scs >= 1.1.3",
+                      "multiprocess",
                       "toolz",
                       "numpy >= 1.8",
                       "scipy >= 0.13",

@@ -20,15 +20,25 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
+from cvxpy.expressions import types
 from cvxpy.error import SolverError, DCPError
 from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.utilities import performance_utils as pu
 
-import warnings
+import itertools
+import multiprocess as multiprocessing
 import numpy as np
+from scipy.sparse import dok_matrix, csgraph
+from collections import namedtuple
+
+# Used by pool.map to send solve result back.
+SolveResult = namedtuple(
+    'SolveResult', ['opt_value', 'status', 'primal_values', 'dual_values'])
+
 
 class Problem(u.Canonical):
     """A convex optimization problem.
@@ -187,8 +197,75 @@ class Problem(u.Canonical):
         return SOLVERS[solver].get_problem_data(objective, constraints,
                                                 self._cached_data)
 
-    def _solve(self, solver=None, ignore_dcp=False,
-               warm_start=False, verbose=False, **kwargs):
+    @pu.lazyprop
+    def _separable_problems(self):
+        """Return a list of separable problems whose sum is the original one.
+        """
+        # obj_terms contains the terms in the objective functions. We have to
+        # deal with the special case where the objective function is not a sum.
+        if isinstance(self.objective.args[0], types.add_expr()):
+            obj_terms = self.objective.args[0].args
+        else:
+            obj_terms = [self.objective.args[0]]
+        # Remove constant terms, which will be appended to the first separable
+        # problem.
+        constant_terms = [term for term in obj_terms if term.is_constant()]
+        obj_terms = [term for term in obj_terms if not term.is_constant()]
+
+        constraints = self.constraints
+        num_obj_terms = len(obj_terms)
+        num_terms = len(obj_terms) + len(constraints)
+
+        # Objective terms and constraints are indexed from 0 to num_terms - 1.
+        var_sets = [frozenset(func.variables())
+                    for func in obj_terms + constraints]
+        all_vars = frozenset().union(*var_sets)
+
+        adj_matrix = dok_matrix((num_terms, num_terms), dtype=bool)
+        for var in all_vars:
+            # Find all functions that contain this variable
+            term_ids = [i for i, var_set in enumerate(var_sets)
+                        if var in var_set]
+            # Add an edge between any two objetive terms/constraints sharing
+            # this variable.
+            if len(term_ids) > 1:
+                for pair in itertools.permutations(term_ids, 2):
+                    adj_matrix[pair[0], pair[1]] = True
+        num_components, labels = csgraph.connected_components(adj_matrix,
+                                                              directed=False)
+
+        # After splitting, construct subproblems from appropriate objective
+        # terms and constraints.
+        term_ids_per_subproblem = [[] for _ in range(num_components)]
+        for i, label in enumerate(labels):
+            term_ids_per_subproblem[label].append(i)
+        problem_list = []
+        for index in range(num_components):
+            terms = [obj_terms[i] for i in term_ids_per_subproblem[index]
+                     if i < num_obj_terms]
+            # If we just call sum, we'll have an extra 0 in the objective.
+            obj = sum(terms[1:], terms[0]) if terms else 0
+            constrs = [constraints[i - num_obj_terms]
+                       for i in term_ids_per_subproblem[index]
+                       if i >= num_obj_terms]
+            problem_list.append(Problem(type(self.objective)(obj), constrs))
+        # Append constant terms to the first separable problem.
+        if constant_terms:
+            # Avoid adding an extra 0 in the objective
+            sum_constant_terms = sum(constant_terms[1:], constant_terms[0])
+            if problem_list:
+                problem_list[0].objective.args[0] += sum_constant_terms
+            else:
+                problem_list.append(Problem(type(
+                    self.objective)(sum_constant_terms)))
+        return problem_list
+
+    def _solve(self,
+               solver=None,
+               ignore_dcp=False,
+               warm_start=False,
+               verbose=False,
+               parallel=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -205,6 +282,8 @@ class Problem(u.Canonical):
             Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        parallel : bool, optional
+            If problem is separable, solve in parallel.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -218,10 +297,55 @@ class Problem(u.Canonical):
         """
         if not self.is_dcp():
             if ignore_dcp:
-                print ("Problem does not follow DCP rules. "
-                       "Solving a convex relaxation.")
+                print("Problem does not follow DCP rules. "
+                      "Solving a convex relaxation.")
             else:
                 raise DCPError("Problem does not follow DCP rules.")
+
+        if parallel and len(self._separable_problems) > 1:
+
+            def _solve_problem(problem):
+                """Solve a problem and then return the optimal value, status,
+                primal values, and dual values.
+                """
+                opt_value = problem.solve(solver=solver,
+                                          ignore_dcp=ignore_dcp,
+                                          warm_start=warm_start,
+                                          verbose=verbose,
+                                          parallel=False, **kwargs)
+                status = problem.status
+                primal_values = [var.value for var in problem.variables()]
+                dual_values = [constr.dual_value
+                               for constr in problem.constraints]
+                return SolveResult(opt_value, status, primal_values,
+                                   dual_values)
+
+            pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+            solve_results = pool.map(_solve_problem, self._separable_problems)
+            pool.close()
+            pool.join()
+            statuses = {solve_result.status for solve_result in solve_results}
+            # Check if at least one subproblem is infeasible for inaccurate
+            for status in s.INF_OR_UNB:
+                if status in statuses:
+                    self._handle_no_solution(status)
+                    break
+            else:
+                for subproblem, solve_result in zip(
+                    self._separable_problems, solve_results):
+                    for var, primal_value in zip(subproblem.variables(),
+                                                 solve_result.primal_values):
+                        var.save_value(primal_value)
+                    for constr, dual_value in zip(
+                        subproblem.constraints, solve_results):
+                        constr.save_value(dual_value)
+                self._value = sum(solve_result.opt_value
+                                  for solve_result in solve_results)
+                if s.OPTIMAL_INACCURATE in statuses:
+                    self._status = s.OPTIMAL_INACCURATE
+                else:
+                    self._status = s.OPTIMAL
+            return self._value
 
         objective, constraints = self.canonicalize()
         # Choose a solver/check the chosen solver.
@@ -239,8 +363,8 @@ class Problem(u.Canonical):
         # Presolve couldn't solve the problem.
         if sym_data.presolve_status is None:
             results_dict = solver.solve(objective, constraints,
-                                        self._cached_data,
-                                        warm_start, verbose, kwargs)
+                                        self._cached_data, warm_start, verbose,
+                                        kwargs)
         # Presolve determined problem was unbounded or infeasible.
         else:
             results_dict = {s.STATUS: sym_data.presolve_status}
@@ -284,8 +408,7 @@ class Problem(u.Canonical):
         # Solver failed to solve.
         else:
             raise SolverError(
-                "Solver '%s' failed. Try another solver." % solver.name()
-            )
+                "Solver '%s' failed. Try another solver." % solver.name())
         self._status = results_dict[s.STATUS]
 
     def unpack_results(self, solver_name, results_dict):
@@ -350,7 +473,7 @@ class Problem(u.Canonical):
         offset = 0
         for constr in constraints:
             constr_offsets[constr.constr_id] = offset
-            offset += constr.size[0]*constr.size[1]
+            offset += constr.size[0] * constr.size[1]
         active_constraints = []
         for constr in self.constraints:
             # Ignore constraints of the wrong type.
@@ -382,11 +505,11 @@ class Problem(u.Canonical):
                     value = intf.index(result_vec, (offset, 0))
                 else:
                     value = intf.DEFAULT_INTF.zeros(rows, cols)
-                    intf.DEFAULT_INTF.block_add(value,
-                        result_vec[offset:offset + rows*cols],
-                        0, 0, rows, cols)
-                offset += rows*cols
-            else: # The variable was multiplied by zero.
+                    intf.DEFAULT_INTF.block_add(
+                        value, result_vec[offset:offset + rows * cols], 0, 0,
+                        rows, cols)
+                offset += rows * cols
+            else:  # The variable was multiplied by zero.
                 value = intf.DEFAULT_INTF.zeros(rows, cols)
             obj.save_value(value)
 
@@ -398,7 +521,7 @@ class Problem(u.Canonical):
             lines = [str(self.objective),
                      subject_to + str(self.constraints[0])]
             for constr in self.constraints[1:]:
-                lines += [len(subject_to)*" " + str(constr)]
+                lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
 
     def __repr__(self):
@@ -442,6 +565,6 @@ class Problem(u.Canonical):
     def __div__(self, other):
         if not isinstance(other, (int, float)):
             return NotImplemented
-        return Problem(self.objective * (1.0/other), self.constraints)
+        return Problem(self.objective * (1.0 / other), self.constraints)
 
     __truediv__ = __div__

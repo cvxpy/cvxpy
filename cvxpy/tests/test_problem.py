@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from fractions import Fraction
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.constants import Constant, Parameter, CallbackParam
 from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
@@ -379,6 +379,40 @@ class TestProblem(BaseTest):
         combo3 = prob1 + 0 * prob2 - 3 * prob3
         combo3_ref = Problem(Minimize(self.a + 3 * pow(self.b + self.a, 2)), [self.a >= self.b, self.a >= 1, self.b >= 3])
         self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
+
+    # Test pickling solved problems using dill.
+    def test_pickling(self):
+        import dill as pickle
+        p = CallbackParam(lambda: self.b.value)
+        problem = Problem(Minimize(square(self.a) + p))
+        self.b.value = 2
+        # This will fail if the CallbackParam is not pickleable
+        pickle.dumps(problem, pickle.HIGHEST_PROTOCOL)
+
+    # Test solving problems in parallel.
+    def test_solve_parallel(self):
+        p = Parameter()
+        problem = Problem(Minimize(square(self.a) + square(self.b) + p),
+                          [self.b >= 2, self.a >= 1])
+        p.value = 1
+        # The constant p should not be a separate problem, but rather added to
+        # the first separable problem.
+        self.assertTrue(len(problem._separable_problems) == 2)
+        # Ensure that parallel solver still works after repeated calls
+        for _ in range(2):
+            result = problem.solve(parallel=True)
+            self.assertAlmostEqual(result, 6.0)
+            self.assertEqual(problem.status, s.OPTIMAL)
+            self.assertAlmostEqual(self.a.value, 1)
+            self.assertAlmostEqual(self.b.value, 2)
+            self.a.value = 0
+            self.b.value = 0
+        # Ensure that parallel solver works with options.
+        result = problem.solve(parallel=True, verbose=True, warm_start=True)
+        self.assertAlmostEqual(result, 6.0)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertAlmostEqual(self.a.value, 1)
+        self.assertAlmostEqual(self.b.value, 2)
 
     # Test scalar LP problems.
     def test_scalar_lp(self):
