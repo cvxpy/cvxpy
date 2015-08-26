@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy
 from cvxpy.atoms import *
-from cvxpy.transforms import *
 from cvxpy.expressions.variables import Variable, NonNegative
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
@@ -675,7 +675,7 @@ class TestAtoms(BaseTest):
 
         # Minimize the 1-norm via partial_optimize.
         p2 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
-        g = partial_optimize(p2, [t], [x])
+        g = cvxpy.partial_optimize(p2, [t], [x])
         p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
@@ -683,24 +683,24 @@ class TestAtoms(BaseTest):
         # Try leaving out args.
 
         # Minimize the 1-norm via partial_optimize.
-        g = partial_optimize(p2, opt_vars=[t])
+        g = cvxpy.partial_optimize(p2, opt_vars=[t])
         p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
         # Minimize the 1-norm via partial_optimize.
-        g = partial_optimize(p2, dont_opt_vars=[x])
+        g = cvxpy.partial_optimize(p2, dont_opt_vars=[x])
         p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
         with self.assertRaises(Exception) as cm:
-            g = partial_optimize(p2)
+            g = cvxpy.partial_optimize(p2)
         self.assertEqual(str(cm.exception),
             "partial_optimize called with neither opt_vars nor dont_opt_vars.")
 
         with self.assertRaises(Exception) as cm:
-            g = partial_optimize(p2, [], [x])
+            g = cvxpy.partial_optimize(p2, [], [x])
         self.assertEqual(str(cm.exception),
             ("If opt_vars and new_opt_vars are both specified, "
              "they must contain all variables in the problem.")
@@ -713,7 +713,7 @@ class TestAtoms(BaseTest):
         p1 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
 
         # Minimize the 1-norm via partial_optimize
-        g = partial_optimize(p1, [t], [x])
+        g = cvxpy.partial_optimize(p1, [t], [x])
         p2 = Problem(Minimize(g))
         p2.solve()
 
@@ -729,7 +729,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3, y>=4])
-        g = partial_optimize(p2, [y], [x])
+        g = cvxpy.partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
@@ -746,7 +746,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=gamma, y>=4])
-        g = partial_optimize(p2, [y], [x])
+        g = cvxpy.partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
@@ -761,7 +761,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3])
-        g = partial_optimize(p2, [y], [x])
+        g = cvxpy.partial_optimize(p2, [y], [x])
         x.value = xval
         result = g.value
         self.assertAlmostEqual(result, p1.value)

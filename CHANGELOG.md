@@ -17,8 +17,16 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.26 (next release)
+Version 0.2.28 (next release)
 -----------------------------
+
+
+Version 0.2.27
+--------------
+* Put partial_optimize in cvxpy namespace.
+
+Version 0.2.26
+--------------
 * Fixed bug with printing slices.
 * Added MOSEK SOCP interface thanks to Enzo.
 * Fixed bug with mul_elemwise by scalar.
