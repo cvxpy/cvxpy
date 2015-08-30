@@ -68,7 +68,7 @@ class sum_largest(Atom):
     def get_data(self):
         """Returns the parameter k.
         """
-        return self.k
+        return [self.k]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -92,7 +92,7 @@ class sum_largest(Atom):
         # s.t. x <= t + q
         #      0 <= t
         x = arg_objs[0]
-        k = lu.create_const(data, (1, 1))
+        k = lu.create_const(data[0], (1, 1))
         q = lu.create_var((1, 1))
         t = lu.create_var(x.size)
         sum_t, constr = sum_entries.graph_implementation([t], (1, 1))

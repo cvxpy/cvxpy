@@ -19,7 +19,7 @@ Version 1.0 (targets)
 
 Version 0.2.28 (next release)
 -----------------------------
-
+* Fixed bug with partial_optimize not working for nonlinear constraints.
 
 Version 0.2.27
 --------------

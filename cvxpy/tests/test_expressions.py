@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variables import Variable, Semidef
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
@@ -580,3 +580,32 @@ class TestExpressions(BaseTest):
         self.x.value = [1, 2]
         expr = sum(self.x)
         self.assertEquals(expr.value, 3)
+
+    def test_var_copy(self):
+        """Test the copy function for variable types.
+        """
+        x = Variable(3, 4, name="x")
+        y = x.copy()
+        self.assertEquals(y.size, (3, 4))
+        self.assertEquals(y.name(), "x")
+
+        x = Semidef(5, name="x")
+        y = x.copy()
+        self.assertEquals(y.size, (5, 5))
+
+    def test_param_copy(self):
+        """Test the copy function for Parameters.
+        """
+        x = Parameter(3, 4, name="x", sign="positive")
+        y = x.copy()
+        self.assertEquals(y.size, (3, 4))
+        self.assertEquals(y.name(), "x")
+        self.assertEquals(y.sign, "POSITIVE")
+
+    def test_constant_copy(self):
+        """Test the copy function for Constants.
+        """
+        x = Constant(2)
+        y = x.copy()
+        self.assertEquals(y.size, (1, 1))
+        self.assertEquals(y.value, 2)

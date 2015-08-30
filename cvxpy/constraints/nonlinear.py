@@ -40,13 +40,15 @@ class NonlinearConstraint(Constraint):
         self.x_size = (rows*cols, 1)
         super(NonlinearConstraint, self).__init__()
 
-    # Returns the variables involved in the function
-    # in order, i.e. f(vars_) = f(vstack(variables))
     def variables(self):
+        """Returns the variables involved in the function
+           in order, i.e. f(vars_) = f(vstack(variables))
+        """
         return self.vars_
 
-    # Place x0 = f() in the vector of all variables.
     def place_x0(self, big_x, var_offsets, interface):
+        """Place x0 = f() in the vector of all variables.
+        """
         m, x0 = self.f()
         offset = 0
         for var in self.variables():
@@ -56,8 +58,9 @@ class NonlinearConstraint(Constraint):
                                 0, var_size, 1)
             offset += var_size
 
-    # Place Df in the gradient of all functions.
     def place_Df(self, big_Df, Df, var_offsets, vert_offset, interface):
+        """Place Df in the gradient of all functions.
+        """
         horiz_offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
@@ -67,8 +70,9 @@ class NonlinearConstraint(Constraint):
                                 self.size[0]*self.size[1], var_size)
             horiz_offset += var_size
 
-    # Place H in the Hessian of all functions.
     def place_H(self, big_H, H, var_offsets, interface):
+        """Place H in the Hessian of all functions.
+        """
         offset = 0
         for var in self.variables():
             var_size = var.size[0]*var.size[1]
@@ -78,8 +82,9 @@ class NonlinearConstraint(Constraint):
                                 var_size, var_size)
             offset += var_size
 
-    # Extract the function variables from the vector x of all variables.
     def extract_variables(self, x, var_offsets, interface):
+        """Extract the function variables from the vector x of all variables.
+        """
         local_x = interface.zeros(*self.x_size)
         offset = 0
         for var in self.variables():

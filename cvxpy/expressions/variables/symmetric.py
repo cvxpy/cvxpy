@@ -74,6 +74,11 @@ class SymmetricUpperTri(Variable):
         self.n = n
         super(SymmetricUpperTri, self).__init__(n*(n+1)//2, 1, name)
 
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.n, self.name]
+
     def canonicalize(self):
         upper_tri = lu.create_var((self.size[0], 1), self.id)
         return (upper_tri, [])

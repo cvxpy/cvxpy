@@ -156,7 +156,7 @@ class pnorm(Atom):
 
 
     def get_data(self):
-        return self.p
+        return [self.p]
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
@@ -246,7 +246,7 @@ class pnorm(Atom):
           of a large second-order cone into into several smaller inequalities.
 
         """
-        p = data
+        p = data[0]
         x = arg_objs[0]
         t = lu.create_var((1, 1))
         constraints = []

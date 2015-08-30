@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable, NonNegative
+from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import numpy as np
@@ -539,13 +539,12 @@ class TestAtoms(BaseTest):
         self.assertEqual(copy.args, atom.args)
         self.assertFalse(copy.args is atom.args)
         # As get_data() returns a Constant, we have to check the value
-        self.assertEqual(copy.get_data().value, atom.get_data().value)
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
         # Test copy with new args
         copy = atom.copy(args=[self.y])
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
-        self.assertEqual(copy.get_data().value, atom.get_data().value)
-
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
 
     def test_sum_largest(self):
         """Test the sum_largest atom and related atoms.
@@ -729,6 +728,34 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3, y>=4])
+        g = cvxpy.partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_special_var(self):
+        x, y = Bool(1), Int(1)
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x+y), [x+y>=3, y>=4, x>=5])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=3, y>=4])
+        g = cvxpy.partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_special_constr(self):
+        x, y = Variable(1), Variable(1)
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x + exp(y)), [x+y>=3, y>=4, x>=5])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(exp(y)), [x+y>=3, y>=4])
         g = cvxpy.partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()

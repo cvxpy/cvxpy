@@ -76,7 +76,7 @@ class huber(Elementwise):
     def get_data(self):
         """Returns the parameter M.
         """
-        return self.M
+        return [self.M]
 
     def validate_arguments(self):
         """Checks that M >= 0 and is constant.
@@ -106,7 +106,7 @@ class huber(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        M = data
+        M = data[0]
         x = arg_objs[0]
         n = lu.create_var(size)
         s = lu.create_var(size)

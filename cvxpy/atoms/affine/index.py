@@ -48,27 +48,7 @@ class index(AffAtom):
     def get_data(self):
         """Returns the (row slice, column slice).
         """
-        return self.key
-
-    # As get_data(self) returns a tuple, the function atom.copy() is confused.
-    # We have to implement another copy() function here.
-    def copy(self, args=None):
-        """Returns a shallow copy of the index atom.
-
-        Parameters
-        ----------
-        args : list, optional
-            The arguments to reconstruct the atom. If args=None, use the
-            current args of the atom.
-
-        Returns
-        -------
-        Index atom
-        """
-        if args is None:
-            args = self.args
-        data = [self.get_data()]
-        return type(self)(*(args + data))
+        return [self.key]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -88,7 +68,7 @@ class index(AffAtom):
         tuple
             (LinOp, [constraints])
         """
-        obj = lu.index(arg_objs[0], size, data)
+        obj = lu.index(arg_objs[0], size, data[0])
         return (obj, [])
 
     @staticmethod
@@ -110,7 +90,7 @@ class index(AffAtom):
                ku.index_to_slice(col))
         idx, idx_constr = index.graph_implementation([matrix],
                                                      (1, 1),
-                                                     key)
+                                                     [key])
         constraints += idx_constr
         return idx
 
@@ -139,7 +119,7 @@ class index(AffAtom):
         cols = col_end - col_start
         slc, idx_constr = index.graph_implementation([matrix],
                                                      (rows, cols),
-                                                     key)
+                                                     [key])
         constraints += idx_constr
         return slc
 
@@ -174,5 +154,5 @@ class index(AffAtom):
         assert block.size == (rows, cols)
         slc, idx_constr = index.graph_implementation([matrix],
                                                      (rows, cols),
-                                                     key)
+                                                     [key])
         constraints += [lu.create_eq(slc, block)] + idx_constr

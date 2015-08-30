@@ -188,7 +188,7 @@ class power(Elementwise):
         pass
 
     def get_data(self):
-        return self.p, self.w
+        return [self.p, self.w]
 
     def copy(self, args=None):
         """Returns a shallow copy of the power atom.

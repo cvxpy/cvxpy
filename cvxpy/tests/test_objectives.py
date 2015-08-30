@@ -69,8 +69,6 @@ class TestObjectives(unittest.TestCase):
         self.assertTrue(type(copy) is type(obj))
         self.assertTrue(copy.args[0].args[0] is self.z)
 
-
-
     # Test the Maximize class.
     def test_maximize(self):
         exp = self.x + self.z
@@ -97,9 +95,6 @@ class TestObjectives(unittest.TestCase):
         copy = obj.copy(args=[-square(self.x)])
         self.assertTrue(type(copy) is type(obj))
         self.assertTrue(copy.args[0].args[0].args[0] is self.x)
-
-
-
 
     # Test is_dcp for Minimize and Maximize
     def test_is_dcp(self):
