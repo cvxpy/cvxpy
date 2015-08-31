@@ -6,4 +6,5 @@ scipy
 numpy
 ecos
 scs
+cvxopt
 recommonmark

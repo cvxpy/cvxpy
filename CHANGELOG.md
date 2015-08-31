@@ -17,8 +17,12 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.28 (next release)
+Version 0.2.29 (next release)
 -----------------------------
+
+
+Version 0.2.28
+--------------
 * Fixed bug with partial_optimize not working for nonlinear constraints.
 
 Version 0.2.27
