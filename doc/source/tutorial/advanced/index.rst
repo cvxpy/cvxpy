@@ -68,11 +68,10 @@ The second way is to create a positive semidefinite cone constraint using the ``
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,
 the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`z \in \mathcal{R}^n`.
 The constraint does not require that ``X`` and ``Y`` be symmetric.
-Both sides of a postive semidefinite cone constraint must be affine.
+Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
 The following code shows how to to constrain square matrix expressions to be positive or negative
 semidefinite (but not necessarily symmetric).
-You cannot apply the ``>>`` and ``<<`` operators to non-square matrices.
 
 .. code:: python
 
