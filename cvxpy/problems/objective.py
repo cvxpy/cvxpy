@@ -41,8 +41,6 @@ class Minimize(u.Canonical):
         return ' '.join([self.NAME, self.args[0].name()])
 
     def __neg__(self):
-        if (type(self) == Maximize):
-            return Minimize(-self.args[0])
         return Maximize(-self.args[0])
 
     def __add__(self, other):
@@ -127,6 +125,9 @@ class Maximize(Minimize):
     """
 
     NAME = "maximize"
+
+    def __neg__(self):
+        return Minimize(-self.args[0])
 
     def __add__(self, other):
         if not isinstance(other, (Minimize, Maximize)):

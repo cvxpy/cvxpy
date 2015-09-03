@@ -70,7 +70,7 @@ the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`
 The constraint does not require that ``X`` and ``Y`` be symmetric.
 Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
-The following code shows how to to constrain square matrix expressions to be positive or negative
+The following code shows how to to constrain matrix expressions to be positive or negative
 semidefinite (but not necessarily symmetric).
 
 .. code:: python
@@ -112,6 +112,65 @@ The following code shows the ``Bool`` and ``Int`` constructors in action:
 
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
+
+Problem arithmetic
+------------------
+
+For convenience, arithmetic operations have been overloaded for
+problems and objectives.
+The rules for adding and multiplying objectives are given below:
+
+.. code:: python
+
+    # Addition.
+
+    Minimize(expr1) + Minimize(expr2) == Minimize(expr1 + expr2)
+
+    Maximize(expr1) + Maximize(expr2) == Maximize(expr1 + expr2)
+
+    Minimize(expr1) + Maximize(expr2) # Not allowed.
+
+    # Multiplication (alpha is a positive scalar).
+
+    alpha*Minimize(expr) == Minimize(alpha*expr)
+
+    alpha*Maximize(expr) == Maximize(alpha*expr)
+
+    -alpha*Minimize(expr) == Maximize(-alpha*expr)
+
+    -alpha*Maximize(expr) == Minimize(-alpha*expr)
+
+The rules for adding and multiplying problems are equally straightforward:
+
+.. code:: python
+
+    # Addition.
+
+    prob1 + prob2 == Problem(prob1.objective + prob2.objective,
+                             prob1.constraints + prob2.constraints)
+
+    # Multiplication (alpha is any scalar).
+
+    alpha*prob == Problem(alpha*prob.objective, prob.constraints)
+
+Problem arithmetic is useful because it allows you to write a problem as a
+sum of smaller problems.
+
+.. Given the optimization problems :math:`p_1,\ldots,p_n` where each
+.. :math:`p_i` is of the form
+
+.. :math:`\begin{array}{ll}
+.. \mbox{minimize}  &f_i(x) \\
+.. \mbox{subject to} &x \in \mathcal C_i
+.. \end{array}`
+
+.. the weighted sum `\sum_{i=1}^n \alpha_i p_i` is the problem
+
+.. :math:`\begin{array}{ll}
+.. \mbox{minimize}  &\sum_{i=1}^n \alpha_i f_i(x) \\
+.. \mbox{subject to} &x \in \cap_{i=1}^n \mathcal C_i
+.. \end{array}`
+
 
 Solve method options
 --------------------
