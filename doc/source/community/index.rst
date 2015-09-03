@@ -9,4 +9,4 @@ The `cvxpy <https://groups.google.com/forum/#!forum/cvxpy>`_ mailing list is for
 
 We use GitHub to track our source code and for tracking and discussing `issues <https://github.com/cvxgrp/cvxpy/issues>`_. The open issues are a rough list of what needs to be done in developing CVXPY.
 
-TEST123
+TESTING 123

@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.norm import norm
-from cvxpy.atoms.elementwise.square import square
+from cvxpy.atoms.quad_over_lin import quad_over_lin
 
 def sum_squares(expr):
     """The sum of the squares of the entries.
@@ -33,4 +33,4 @@ def sum_squares(expr):
     Expression
         An expression representing the sum of squares.
     """
-    return square(norm(expr, "fro"))
+    return quad_over_lin(expr, 1)
