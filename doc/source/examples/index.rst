@@ -28,12 +28,9 @@ Basic Examples
 
 - `Model fitting <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
 
-.. _advanced-python:
-
-Advanced Python
----------------
-
 - `Object-oriented convex optimization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb>`_
+
+- `Method of multipliers <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb>`_
 
 .. _applications:
 
