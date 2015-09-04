@@ -380,15 +380,6 @@ class TestProblem(BaseTest):
         combo3_ref = Problem(Minimize(self.a + 3 * pow(self.b + self.a, 2)), [self.a >= self.b, self.a >= 1, self.b >= 3])
         self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
 
-    # Test pickling solved problems using dill.
-    def test_pickling(self):
-        import dill as pickle
-        p = CallbackParam(lambda: self.b.value)
-        problem = Problem(Minimize(square(self.a) + p))
-        self.b.value = 2
-        # This will fail if the CallbackParam is not pickleable
-        pickle.dumps(problem, pickle.HIGHEST_PROTOCOL)
-
     # Test solving problems in parallel.
     def test_solve_parallel(self):
         p = Parameter()
