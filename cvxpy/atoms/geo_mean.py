@@ -236,7 +236,7 @@ class geo_mean(Atom):
         values = np.array(values[0]).flatten()
         val = 1.0
         for x, p in zip(values, self.w):
-            val *= x**p
+            val *= x**float(p)
         return val
 
     def name(self):
@@ -265,7 +265,33 @@ class geo_mean(Atom):
         pass
 
     def get_data(self):
-        return self.w, self.w_dyad, self.tree
+        return [self.w, self.w_dyad, self.tree]
+
+    def copy(self, args=None):
+        """Returns a shallow copy of the geo_mean atom.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the atom. If args=None, use the
+            current args of the atom.
+
+        Returns
+        -------
+        geo_mean atom
+        """
+        if args is None:
+            args = self.args
+        # Avoid calling __init__() directly as we do not have p and max_denom.
+        copy = type(self).__new__(type(self))
+        super(type(self), copy).__init__(*args)
+        # Emulate __init__()
+        copy.w, copy.w_dyad, copy.tree = self.get_data()
+        copy.approx_error = self.approx_error
+        copy.cone_lb = self.cone_lb
+        copy.cone_num_over = self.cone_num_over
+        copy.cone_num = self.cone_num
+        return copy
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

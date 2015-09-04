@@ -55,6 +55,11 @@ class reshape(AffAtom):
         """
         return u.Shape(self.rows, self.cols)
 
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.rows, self.cols]
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Convolve two vectors.

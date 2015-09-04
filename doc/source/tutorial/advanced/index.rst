@@ -68,10 +68,10 @@ The second way is to create a positive semidefinite cone constraint using the ``
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,
 the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`z \in \mathcal{R}^n`.
 The constraint does not require that ``X`` and ``Y`` be symmetric.
+Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
-The following code shows how to to constrain square matrix expressions to be positive or negative
+The following code shows how to to constrain matrix expressions to be positive or negative
 semidefinite (but not necessarily symmetric).
-You cannot apply the ``>>`` and ``<<`` operators to non-square matrices.
 
 .. code:: python
 
@@ -113,6 +113,65 @@ The following code shows the ``Bool`` and ``Int`` constructors in action:
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
 
+Problem arithmetic
+------------------
+
+For convenience, arithmetic operations have been overloaded for
+problems and objectives.
+The rules for adding and multiplying objectives are given below:
+
+.. code:: python
+
+    # Addition.
+
+    Minimize(expr1) + Minimize(expr2) == Minimize(expr1 + expr2)
+
+    Maximize(expr1) + Maximize(expr2) == Maximize(expr1 + expr2)
+
+    Minimize(expr1) + Maximize(expr2) # Not allowed.
+
+    # Multiplication (alpha is a positive scalar).
+
+    alpha*Minimize(expr) == Minimize(alpha*expr)
+
+    alpha*Maximize(expr) == Maximize(alpha*expr)
+
+    -alpha*Minimize(expr) == Maximize(-alpha*expr)
+
+    -alpha*Maximize(expr) == Minimize(-alpha*expr)
+
+The rules for adding and multiplying problems are equally straightforward:
+
+.. code:: python
+
+    # Addition.
+
+    prob1 + prob2 == Problem(prob1.objective + prob2.objective,
+                             prob1.constraints + prob2.constraints)
+
+    # Multiplication (alpha is any scalar).
+
+    alpha*prob == Problem(alpha*prob.objective, prob.constraints)
+
+Problem arithmetic is useful because it allows you to write a problem as a
+sum of smaller problems.
+
+.. Given the optimization problems :math:`p_1,\ldots,p_n` where each
+.. :math:`p_i` is of the form
+
+.. :math:`\begin{array}{ll}
+.. \mbox{minimize}  &f_i(x) \\
+.. \mbox{subject to} &x \in \mathcal C_i
+.. \end{array}`
+
+.. the weighted sum `\sum_{i=1}^n \alpha_i p_i` is the problem
+
+.. :math:`\begin{array}{ll}
+.. \mbox{minimize}  &\sum_{i=1}^n \alpha_i f_i(x) \\
+.. \mbox{subject to} &x \in \cap_{i=1}^n \mathcal C_i
+.. \end{array}`
+
+
 Solve method options
 --------------------
 
@@ -137,7 +196,7 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `GUROBI`_, and `Elemental`_.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `MOSEK`_, `GUROBI`_, and `Elemental`_.
 The table below shows the types of problems the solvers can handle.
 
 +--------------+----+------+-----+-----+-----+
@@ -149,11 +208,13 @@ The table below shows the types of problems the solvers can handle.
 +--------------+----+------+-----+-----+-----+
 | `Elemental`_ | X  | X    |     |     |     |
 +--------------+----+------+-----+-----+-----+
-| `ECOS`_      | X  | X    |     |     |     |
+| `ECOS`_      | X  | X    |     | X   |     |
 +--------------+----+------+-----+-----+-----+
-| `ECOS_BB`_   | X  | X    |     |     | X   |
+| `ECOS_BB`_   | X  | X    |     | X   | X   |
 +--------------+----+------+-----+-----+-----+
 | `GUROBI`_    | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
+| `MOSEK`_     | X  | X    |     |     |     |
 +--------------+----+------+-----+-----+-----+
 | `CVXOPT`_    | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
@@ -206,6 +267,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=GUROBI)
     print "optimal value with GUROBI:", prob.value
 
+    # Solve with MOSEK.
+    prob.solve(solver=MOSEK)
+    print "optimal value with MOSEK:", prob.value
+
     # Solve with Elemental.
     prob.solve(solver=ELEMENTAL)
     print "optimal value with Elemental:", prob.value
@@ -219,6 +284,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
+    optimal value with MOSEK: 6.0
     optimal value with Elemental: 6.0000044085242727
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
@@ -229,7 +295,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
+    ['CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -420,4 +486,5 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
+.. _MOSEK: https://www.mosek.com/
 .. _Elemental: http://libelemental.org/

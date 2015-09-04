@@ -122,12 +122,6 @@ class Atom(Expression):
                                                                 data)
             return (graph_obj, constraints + graph_constr)
 
-
-    def get_data(self):
-        """Returns special info required for graph implementation.
-        """
-        return None
-
     @abc.abstractmethod
     def graph_implementation(self, arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.

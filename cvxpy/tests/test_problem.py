@@ -102,7 +102,7 @@ class TestProblem(BaseTest):
         """Test get_problem_data method.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Maximize(exp(self.a))).get_problem_data(s.ECOS)
+            Problem(Maximize(Bool())).get_problem_data(s.ECOS)
         self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
 
         data = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
@@ -176,18 +176,18 @@ class TestProblem(BaseTest):
                 # condition in setting CVXOPT solver options.
                 if solver in ["GLPK", "GLPK_MI"]:
                     continue
-                # if solver == "GLPK":
-                #     # GLPK's stdout is separate from python,
-                #     # so we have to do this.
-                #     # Note: This probably breaks (badly) on Windows.
-                #     import os
-                #     import tempfile
+                if solver == "ELEMENTAL":
+                    # ELEMENTAL's stdout is separate from python,
+                    # so we have to do this.
+                    # Note: This probably breaks (badly) on Windows.
+                    import os
+                    import tempfile
 
-                #     stdout_fd = 1
-                #     tmp_handle = tempfile.TemporaryFile(bufsize = 0)
-                #     os.dup2(tmp_handle.fileno(), stdout_fd)
-                # else:
-                sys.stdout = StringIO() # capture output
+                    stdout_fd = 1
+                    tmp_handle = tempfile.TemporaryFile(bufsize = 0)
+                    os.dup2(tmp_handle.fileno(), stdout_fd)
+                else:
+                    sys.stdout = StringIO() # capture output
 
                 p = Problem(Minimize(self.a + self.x[0]),
                                      [self.a >= 2, self.x >= 2])
@@ -198,14 +198,14 @@ class TestProblem(BaseTest):
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
-                # if solver == "GLPK":
-                #     # GLPK's stdout is separate from python,
-                #     # so we have to do this.
-                #     tmp_handle.seek(0)
-                #     out = tmp_handle.read()
-                #     tmp_handle.close()
-                # else:
-                out = sys.stdout.getvalue() # release output
+                if solver == "ELEMENTAL":
+                    # ELEMENTAL's stdout is separate from python,
+                    # so we have to do this.
+                    tmp_handle.seek(0)
+                    out = tmp_handle.read()
+                    tmp_handle.close()
+                else:
+                    out = sys.stdout.getvalue() # release output
 
                 outputs[verbose].append((out, solver))
         # ####
@@ -349,6 +349,36 @@ class TestProblem(BaseTest):
         with self.assertRaises(Exception) as cm:
             prob_bad_sum = prob1 + prob3
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+
+    # Test problem multiplication by scalar
+    def test_mul_problems(self):
+        prob1 = Problem(Minimize(pow(self.a, 2)), [self.a >= 2])
+        answer = prob1.solve()
+        factors = [0, 1, 2.3, -4.321]
+        for f in factors:
+            self.assertAlmostEqual((f * prob1).solve(), f * answer)
+            self.assertAlmostEqual((prob1 * f).solve(), f * answer)
+
+    # Test problem linear combinations
+    def test_lin_combination_problems(self):
+        prob1 = Problem(Minimize(self.a), [self.a >= self.b])
+        prob2 = Problem(Minimize(2*self.b), [self.a >= 1, self.b >= 2])
+        prob3 = Problem(Maximize(-pow(self.b + self.a, 2)), [self.b >= 3])
+    
+        # simple addition and multiplication
+        combo1 = prob1 + 2 * prob2
+        combo1_ref = Problem(Minimize(self.a + 4 * self.b), [self.a >= self.b, self.a >= 1, self.b >= 2])
+        self.assertAlmostEqual(combo1.solve(), combo1_ref.solve())
+
+        # division and subtraction
+        combo2 = prob1 - prob3/2
+        combo2_ref = Problem(Minimize(self.a + pow(self.b + self.a, 2)/2), [self.b >= 3, self.a >= self.b])
+        self.assertAlmostEqual(combo2.solve(), combo2_ref.solve())
+
+        # multiplication with 0 (prob2's constraints should still hold)
+        combo3 = prob1 + 0 * prob2 - 3 * prob3
+        combo3_ref = Problem(Minimize(self.a + 3 * pow(self.b + self.a, 2)), [self.a >= self.b, self.a >= 1, self.b >= 3])
+        self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
 
     # Test scalar LP problems.
     def test_scalar_lp(self):
@@ -1044,7 +1074,7 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(Exception) as cm:
-            Problem(Minimize(-log(self.a))).solve(solver=s.ECOS)
+            Problem(Minimize(Bool())).solve(solver=s.ECOS)
         self.assertEqual(str(cm.exception),
             "The solver ECOS cannot solve the problem.")
 
@@ -1390,3 +1420,29 @@ class TestProblem(BaseTest):
         prob.solve()
         x = x.value
         self.assertTrue(__builtins__['abs'](1.7*x**.7 - 2.3*x**-3.3 - .45*x**-.55) <= 1e-3)
+
+    def test_mul_elemwise(self):
+        """Test a problem with mul_elemwise by a scalar.
+        """
+        import numpy as np
+        T = 10
+        J = 20
+        rvec = np.random.randn(T, J)
+        dy = np.random.randn(2*T, 1)
+        theta = Variable(J)
+
+        delta=1e-3
+        loglambda = rvec*theta #rvec: TxJ regressor matrix, theta: (Jx1) cvx variable
+        a= mul_elemwise(dy[0:T],loglambda) # size(Tx1)
+        b1= exp(loglambda)
+        b2=mul_elemwise(delta,b1)
+        cost= -a + b1
+
+        cost= -a + b2 #size (Tx1)
+        prob = Problem(Minimize(sum_entries(cost)))
+        prob.solve(solver=s.SCS)
+
+        obj = Minimize(sum_entries(mul_elemwise(2, self.x)))
+        prob = Problem(obj, [self.x == 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 8)

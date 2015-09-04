@@ -39,9 +39,15 @@ class Parameter(Leaf):
             self._name = name
         self.init_dcp_attr()
         # Initialize with value if provided.
+        self._value = None
         if value is not None:
             self.value = value
         super(Parameter, self).__init__()
+
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self._rows, self._cols, self._name, self.sign_str, self.value]
 
     def name(self):
         return self._name

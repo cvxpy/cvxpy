@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy
 from cvxpy.atoms import *
-from cvxpy.transforms import *
-from cvxpy.expressions.variables import Variable, NonNegative
+from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import numpy as np
@@ -38,6 +38,24 @@ class TestAtoms(BaseTest):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
+
+    def test_add_expr_copy(self):
+        """Test the copy function for AddExpresion class.
+        """
+        atom = self.x + self.y
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        self.assertEqual(copy.get_data(), atom.get_data())
+        # Test copy with new args
+        copy = atom.copy(args=[self.A, self.B])
+        self.assertTrue(type(copy) is type(atom))
+        self.assertTrue(copy.args[0] is self.A)
+        self.assertTrue(copy.args[1] is self.B)
+        self.assertEqual(copy.get_data(), atom.get_data())
 
     # Test the normInf class.
     def test_normInf(self):
@@ -97,21 +115,50 @@ class TestAtoms(BaseTest):
                 if p != 1:
                     self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
+                # Test copy with args=None
+                copy = atom.copy()
+                self.assertTrue(type(copy) is type(atom))
+                # A new object is constructed, so copy.args == atom.args but copy.args
+                # is not atom.args.
+                self.assertEqual(copy.args, atom.args)
+                self.assertFalse(copy.args is atom.args)
+                self.assertEqual(copy.get_data(), atom.get_data())
+                # Test copy with new args
+                copy = atom.copy(args=[self.y])
+                self.assertTrue(type(copy) is type(atom))
+                self.assertTrue(copy.args[0] is self.y)
+                self.assertEqual(copy.get_data(), atom.get_data())
+
+
     # Test the geo_mean class.
     def test_geo_mean(self):
         atom = geo_mean(self.x)
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+        # Test copy with args=None
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        self.assertEqual(copy.get_data(), atom.get_data())
+        # Test copy with new args
+        copy = atom.copy(args=[self.y])
+        self.assertTrue(type(copy) is type(atom))
+        self.assertTrue(copy.args[0] is self.y)
+        self.assertEqual(copy.get_data(), atom.get_data())
 
-    # Test the geo_mean class.
+
+    # Test the harmonic_mean class.
     def test_harmonic_mean(self):
         atom = harmonic_mean(self.x)
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
 
-    # Test the geo_mean class.
+    # Test the pnorm class.
     def test_pnorm(self):
         atom = pnorm(self.x, p=1.5)
         self.assertEquals(atom.size, (1, 1))
@@ -167,6 +214,21 @@ class TestAtoms(BaseTest):
         self.assertEquals(atom.size, (1, 1))
         self.assertEquals(atom.curvature, u.Curvature.CONCAVE_KEY)
         self.assertEquals(atom.sign, u.Sign.POSITIVE_KEY)
+
+        # Test copy with args=None
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        self.assertEqual(copy.get_data(), atom.get_data())
+        # Test copy with new args
+        copy = atom.copy(args=[self.y])
+        self.assertTrue(type(copy) is type(atom))
+        self.assertTrue(copy.args[0] is self.y)
+        self.assertEqual(copy.get_data(), atom.get_data())
+
 
     def test_quad_over_lin(self):
         # Test quad_over_lin DCP.
@@ -468,6 +530,22 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
             "M must be a non-negative scalar constant.")
 
+        # Test copy with args=None
+        atom = huber(self.x, 2)
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        # As get_data() returns a Constant, we have to check the value
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+        # Test copy with new args
+        copy = atom.copy(args=[self.y])
+        self.assertTrue(type(copy) is type(atom))
+        self.assertTrue(copy.args[0] is self.y)
+        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
+
     def test_sum_largest(self):
         """Test the sum_largest atom and related atoms.
         """
@@ -486,6 +564,25 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
             "Second argument must be a positive integer.")
 
+        # Test copy with args=None
+        atom = sum_largest(self.x, 2)
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        self.assertEqual(copy.get_data(), atom.get_data())
+        # Test copy with new args
+        copy = atom.copy(args=[self.y])
+        self.assertTrue(type(copy) is type(atom))
+        self.assertTrue(copy.args[0] is self.y)
+        self.assertEqual(copy.get_data(), atom.get_data())
+        # Test copy with lambda_sum_largest, which is in fact an AddExpression
+        atom = lambda_sum_largest(Variable(2, 2), 2)
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+
     def test_sum_smallest(self):
         """Test the sum_smallest atom and related atoms.
         """
@@ -498,6 +595,27 @@ class TestAtoms(BaseTest):
             lambda_sum_smallest(Variable(2,2), 2.4)
         self.assertEqual(str(cm.exception),
             "Second argument must be a positive integer.")
+
+    def test_index(self):
+        """Test the copy function for index.
+        """
+        # Test copy with args=None
+        size = (5, 4)
+        A = Variable(*size)
+        atom = A[0:2, 0:1]
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        self.assertEqual(copy.get_data(), atom.get_data())
+        # Test copy with new args
+        B = Variable(4, 5)
+        copy = atom.copy(args=[B])
+        self.assertTrue(type(copy) is type(atom))
+        self.assertTrue(copy.args[0] is B)
+        self.assertEqual(copy.get_data(), atom.get_data())
 
     def test_bmat(self):
         """Test the bmat atom.
@@ -556,7 +674,7 @@ class TestAtoms(BaseTest):
 
         # Minimize the 1-norm via partial_optimize.
         p2 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
-        g = partial_optimize(p2, [t], [x])
+        g = cvxpy.partial_optimize(p2, [t], [x])
         p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
@@ -564,24 +682,24 @@ class TestAtoms(BaseTest):
         # Try leaving out args.
 
         # Minimize the 1-norm via partial_optimize.
-        g = partial_optimize(p2, opt_vars=[t])
+        g = cvxpy.partial_optimize(p2, opt_vars=[t])
         p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
         # Minimize the 1-norm via partial_optimize.
-        g = partial_optimize(p2, dont_opt_vars=[x])
+        g = cvxpy.partial_optimize(p2, dont_opt_vars=[x])
         p3 = Problem(Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
         with self.assertRaises(Exception) as cm:
-            g = partial_optimize(p2)
+            g = cvxpy.partial_optimize(p2)
         self.assertEqual(str(cm.exception),
             "partial_optimize called with neither opt_vars nor dont_opt_vars.")
 
         with self.assertRaises(Exception) as cm:
-            g = partial_optimize(p2, [], [x])
+            g = cvxpy.partial_optimize(p2, [], [x])
         self.assertEqual(str(cm.exception),
             ("If opt_vars and new_opt_vars are both specified, "
              "they must contain all variables in the problem.")
@@ -594,7 +712,7 @@ class TestAtoms(BaseTest):
         p1 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
 
         # Minimize the 1-norm via partial_optimize
-        g = partial_optimize(p1, [t], [x])
+        g = cvxpy.partial_optimize(p1, [t], [x])
         p2 = Problem(Minimize(g))
         p2.solve()
 
@@ -610,7 +728,35 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3, y>=4])
-        g = partial_optimize(p2, [y], [x])
+        g = cvxpy.partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_special_var(self):
+        x, y = Bool(1), Int(1)
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x+y), [x+y>=3, y>=4, x>=5])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(y), [x+y>=3, y>=4])
+        g = cvxpy.partial_optimize(p2, [y], [x])
+        p3 = Problem(Minimize(x+g), [x>=5])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, p3.value)
+
+    def test_partial_optimize_special_constr(self):
+        x, y = Variable(1), Variable(1)
+
+        # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
+        p1 = Problem(Minimize(x + exp(y)), [x+y>=3, y>=4, x>=5])
+        p1.solve()
+
+        # Solve the two-stage problem via partial_optimize
+        p2 = Problem(Minimize(exp(y)), [x+y>=3, y>=4])
+        g = cvxpy.partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
@@ -627,7 +773,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=gamma, y>=4])
-        g = partial_optimize(p2, [y], [x])
+        g = cvxpy.partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x>=5])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
@@ -642,7 +788,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y>=3])
-        g = partial_optimize(p2, [y], [x])
+        g = cvxpy.partial_optimize(p2, [y], [x])
         x.value = xval
         result = g.value
         self.assertAlmostEqual(result, p1.value)

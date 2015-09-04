@@ -269,7 +269,7 @@ class CVXOPT(Solver):
             # the problem is infeasible.
             if not np.allclose(b_old, Q.dot(b)):
                 return s.INFEASIBLE
-            dims[s.EQ_DIM] = b.shape[0]
+            dims[s.EQ_DIM] = int(b.shape[0])
             data["Q"] = intf.CVXOPT_DENSE_INTF.const_to_matrix(Q,
                 convert_scalars=True)
 
@@ -281,7 +281,7 @@ class CVXOPT(Solver):
             G_other = G[dims[s.LEQ_DIM]:,:]
             h_other = h[dims[s.LEQ_DIM]:]
             G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
-            dims[s.LEQ_DIM] = h_leq.shape[0]
+            dims[s.LEQ_DIM] = int(h_leq.shape[0])
             data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
                 convert_scalars=True)
             # Scipy 0.13 can't stack empty arrays.

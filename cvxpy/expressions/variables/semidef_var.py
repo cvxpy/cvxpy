@@ -38,6 +38,11 @@ class SemidefUpperTri(Variable):
         self.n = n
         super(SemidefUpperTri, self).__init__(n*(n+1)//2, 1, name)
 
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.n, self.name]
+
     def canonicalize(self):
         """Variable must be semidefinite and symmetric.
         """

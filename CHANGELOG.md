@@ -17,10 +17,31 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.25 (next release)
+Version 0.2.29 (next release)
 -----------------------------
+
+
+Version 0.2.28
+--------------
+* Fixed bug with partial_optimize not working for nonlinear constraints.
+
+Version 0.2.27
+--------------
+* Put partial_optimize in cvxpy namespace.
+
+Version 0.2.26
+--------------
+* Fixed bug with printing slices.
+* Added MOSEK SOCP interface thanks to Enzo.
+* Fixed bug with mul_elemwise by scalar.
+* Fixed compatibility issue with power atom and new NumPy.
+* Fixed Windows compatibility issue.
+
+Version 0.2.25
+--------------
 * Added NonNegative variables.
 * Added partial_optimize as first transform.
+* Require ECOS 2.0.
 
 Version 0.2.24
 --------------

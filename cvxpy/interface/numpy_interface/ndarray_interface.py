@@ -59,11 +59,17 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Return the dimensions of the matrix.
     def size(self, matrix):
+        # Scalars.
+        if len(matrix.shape) == 0:
+            return (1, 1)
         # 1D arrays are treated as column vectors.
-        if len(matrix.shape) == 1:
-            return (matrix.size, 1)
+        elif len(matrix.shape) == 1:
+            return (int(matrix.size), 1)
+        # 2D arrays.
         else:
-            return matrix.shape
+            rows = int(matrix.shape[0])
+            cols = int(matrix.shape[1])
+            return (rows, cols)
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
@@ -71,7 +77,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
-        return numpy.zeros((rows,cols), dtype='float64') + value
+        return numpy.zeros((rows, cols), dtype='float64') + value
 
     def reshape(self, matrix, size):
         return numpy.reshape(matrix, size, order='F')

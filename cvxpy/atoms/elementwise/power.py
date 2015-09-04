@@ -150,7 +150,7 @@ class power(Elementwise):
         if self.p == 0:
             return np.ones(self.size)
         else:
-            return np.power(values[0], self.p)
+            return np.power(values[0], float(self.p))
 
     def sign_from_args(self):
         if self.p == 1:
@@ -188,7 +188,30 @@ class power(Elementwise):
         pass
 
     def get_data(self):
-        return self.p, self.w
+        return [self.p, self.w]
+
+    def copy(self, args=None):
+        """Returns a shallow copy of the power atom.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the atom. If args=None, use the
+            current args of the atom.
+
+        Returns
+        -------
+        power atom
+        """
+        if args is None:
+            args = self.args
+        # Avoid calling __init__() directly as we do not have p and max_denom.
+        copy = type(self).__new__(type(self))
+        # Emulate __init__()
+        copy.p, copy.w = self.get_data()
+        copy.approx_error = self.approx_error
+        super(type(self), copy).__init__(*args)
+        return copy
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

@@ -48,6 +48,11 @@ class Constant(Leaf):
     def name(self):
         return str(self.value)
 
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.value]
+
     @property
     def value(self):
         return self._value

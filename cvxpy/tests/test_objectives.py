@@ -57,6 +57,18 @@ class TestObjectives(unittest.TestCase):
         self.assertEqual(str(cm.exception),
             "The 'minimize' objective must resolve to a scalar.")
 
+        # Test copy with args=None
+        copy = obj.copy()
+        self.assertTrue(type(copy) is type(obj))
+        # A new object is constructed, so copy.args == obj.args but copy.args
+        # is not obj.args.
+        self.assertEqual(copy.args, obj.args)
+        self.assertFalse(copy.args is obj.args)
+        # Test copy with new args
+        copy = obj.copy(args=[square(self.z)])
+        self.assertTrue(type(copy) is type(obj))
+        self.assertTrue(copy.args[0].args[0] is self.z)
+
     # Test the Maximize class.
     def test_maximize(self):
         exp = self.x + self.z
@@ -71,6 +83,18 @@ class TestObjectives(unittest.TestCase):
             Maximize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
             "The 'maximize' objective must resolve to a scalar.")
+
+        # Test copy with args=None
+        copy = obj.copy()
+        self.assertTrue(type(copy) is type(obj))
+        # A new object is constructed, so copy.args == obj.args but copy.args
+        # is not obj.args.
+        self.assertEqual(copy.args, obj.args)
+        self.assertFalse(copy.args is obj.args)
+        # Test copy with new args
+        copy = obj.copy(args=[-square(self.x)])
+        self.assertTrue(type(copy) is type(obj))
+        self.assertTrue(copy.args[0].args[0].args[0] is self.x)
 
     # Test is_dcp for Minimize and Maximize
     def test_is_dcp(self):

@@ -567,6 +567,15 @@ and returns a vector or matrix.
      - Curvature |_|
      - Monotonicity
 
+   * - bmat([[X11, |_| ...,  |_| X1q],
+       ...,
+       [Xp1, |_| ..., |_| Xpq]])
+     - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
+     - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
+     - :math:`\mathrm{sign}\left(\sum_{ij} X^{(i,j)}_{11}\right)`
+     - |affine| affine
+     - |incr| incr.
+
    * - conv(c, x)
 
        :math:`c\in\mathbf{R}^m`
@@ -587,6 +596,15 @@ and returns a vector or matrix.
      - :math:`\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - same as X
+     - |affine| affine
+     - |incr| incr.
+
+   * - diff(x, k=1)
+
+       :math:`k \in 0,1,2,\ldots`
+     - vector of kth order differences
+     - :math:`x \in\mathbf{R}^{n}`
+     - same as x
      - |affine| affine
      - |incr| incr.
 
@@ -632,6 +650,10 @@ and returns a vector or matrix.
 
 Clarifications
 ^^^^^^^^^^^^^^
+The input to ``bmat`` is a list of lists of CVXPY expressions.
+It constructs a block matrix.
+The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
+
 The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
 :math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
 

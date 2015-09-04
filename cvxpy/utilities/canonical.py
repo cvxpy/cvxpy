@@ -62,3 +62,35 @@ class Canonical(object):
             A list of Parameter objects.
         """
         return NotImplemented
+
+    def copy(self, args=None):
+        """Returns a shallow copy of the object.
+
+        Used to reconstruct an object tree.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the object. If args=None, use the
+            current args of the object.
+
+        Returns
+        -------
+        Expression
+        """
+        if args is None:
+            args = self.args
+        data = self.get_data()
+        if data is not None:
+            return type(self)(*(args + data))
+        else:
+            return type(self)(*args)
+
+    def get_data(self):
+        """Returns info needed to reconstruct the object besides the args.
+
+        Returns
+        -------
+        list
+        """
+        return None

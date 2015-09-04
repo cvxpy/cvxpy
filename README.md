@@ -1,4 +1,4 @@
-CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy)
+CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy) [![Downloads](https://img.shields.io/pypi/dm/cvxpy.svg)](https://pypi.python.org/pypi/cvxpy)
 =====================
 **Join the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy) for the best CVXPY support!**
 

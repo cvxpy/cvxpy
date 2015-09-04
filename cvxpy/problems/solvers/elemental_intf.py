@@ -34,17 +34,8 @@ class Elemental(Solver):
     MIP_CAPABLE = False
 
     # Map of Elemental status to CVXPY status.
-    STATUS_MAP = {0: s.OPTIMAL,
-                  1: s.INFEASIBLE,
-                  2: s.UNBOUNDED,
-                  10: s.OPTIMAL_INACCURATE,
-                  11: s.INFEASIBLE_INACCURATE,
-                  12: s.UNBOUNDED_INACCURATE,
-                  -1: s.SOLVER_ERROR,
-                  -2: s.SOLVER_ERROR,
-                  -3: s.SOLVER_ERROR,
-                  -4: s.SOLVER_ERROR,
-                  -7: s.SOLVER_ERROR}
+    # TODO
+    STATUS_MAP = {0: s.OPTIMAL}
 
     def import_solver(self):
         """Imports the solver.
@@ -135,6 +126,7 @@ class Elemental(Solver):
         local_mat = local_mat.tocoo()
         mat = El.DistSparseMatrix()
         mat.Resize(*local_mat.shape)
+        mat.Reserve(len(local_mat.data))
         for val, i, j in zip(local_mat.data,
                              local_mat.row.astype(int),
                              local_mat.col.astype(int)):
@@ -182,25 +174,18 @@ class Elemental(Solver):
         # Cone information.
         offset = 0
         orders = []
-        labels = []
         firstInds = []
-        cone_count = 0
         for i in range(dims[s.LEQ_DIM]):
             orders.append(1)
-            labels.append(cone_count)
             firstInds.append(offset)
-            cone_count += 1
             offset += 1
         for cone_len in dims[s.SOC_DIM]:
             for i in range(cone_len):
                 orders.append(cone_len)
-                labels.append(cone_count)
                 firstInds.append(offset)
-            cone_count += 1
             offset += cone_len
 
         orders = self.distr_vec(np.array(orders), El.iTag)
-        labels = self.distr_vec(np.array(labels), El.iTag)
         firstInds = self.distr_vec(np.array(firstInds), El.iTag)
 
         # Initialize empty vectors for solutions.
@@ -215,7 +200,7 @@ class Elemental(Solver):
             ctrl.mehrotraCtrl.time = True
         else:
             ctrl = None
-        El.SOCPAffine(A,G,b,c,h,orders,firstInds,labels,x,y,z,s_var,ctrl)
+        El.SOCPAffine(A,G,b,c,h,orders,firstInds,x,y,z,s_var,ctrl)
         local_c = data['c']
         local_x = self.local_vec(x)
         local_y = self.local_vec(y)

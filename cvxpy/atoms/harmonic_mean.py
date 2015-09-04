@@ -19,7 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.pnorm import pnorm
 import numpy as np
+from cvxpy.expressions.expression import Expression
 
 
 def harmonic_mean(x):
+    x = Expression.cast_to_const(x)
     return np.prod(x.size)*pnorm(x, -1)

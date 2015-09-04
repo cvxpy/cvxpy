@@ -44,7 +44,7 @@ SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
 # Test elemental if installed.
 if ELEMENTAL in installed_solvers():
     SOLVERS_TO_TRY.append(ELEMENTAL)
-    SOLVER_TO_TOL[ELEMENTAL] = 1e-4
+    SOLVER_TO_TOL[ELEMENTAL] = 1e-7
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 v_np = np.matrix([-1.,2,-2]).T
@@ -172,6 +172,14 @@ atoms = [
         (harmonic_mean, (1, 1), [[1, 2, 3]], Constant([1.6363636363636365])),
         (harmonic_mean, (1, 1), [[2.5, 2.5, 2.5, 2.5]], Constant([2.5])),
         (harmonic_mean, (1, 1), [[0, 1, 2]], Constant([0])),
+
+        (lambda x: diff(x, 0), (3, 1), [[1, 2, 3]], Constant([ 1,2,3 ])),
+        (diff, (2, 1), [[1, 2, 3]], Constant([ 1,1 ])),
+        (diff, (1, 1), [[1.1, 2.3]], Constant([1.2])),
+        (lambda x: diff(x, 2), (1, 1), [[1, 2, 3]], Constant([ 0 ])),
+        (diff, (3, 1), [[2.1, 1, 4.5, -.1]], Constant([ -1.1, 3.5, -4.6 ])),
+        (lambda x: diff(x, 2), (2, 1), [[2.1, 1, 4.5, -.1]], Constant([ 4.6, -8.1 ])),
+
 
         (lambda x: pnorm(x, .5), (1, 1), [[1.1, 2, .1]], Constant([7.724231543909264])),
         (lambda x: pnorm(x, -.4), (1, 1), [[1.1, 2, .1]], Constant([0.02713620334])),

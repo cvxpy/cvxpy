@@ -46,6 +46,11 @@ class Variable(Leaf):
                                    u.Curvature.AFFINE,
                                    u.Shape(self._rows, self._cols))
 
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self._rows, self._cols, self._name]
+
     def name(self):
         return self._name
 

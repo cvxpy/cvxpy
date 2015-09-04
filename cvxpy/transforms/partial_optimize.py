@@ -83,9 +83,19 @@ class PartialProblem(Expression):
     def __init__(self, prob, opt_vars, dont_opt_vars):
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
-        self.args = [prob]
+        # Replace the opt_vars in prob with new variables.
+        id_to_new_var = {var.id:var.copy() for var in self.opt_vars}
+        new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
+        new_constrs = [self._replace_new_vars(con, id_to_new_var)
+                       for con in prob.constraints]
+        self.args = [Problem(new_obj, new_constrs)]
         self.init_dcp_attr()
         super(PartialProblem, self).__init__()
+
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.opt_vars, self.dont_opt_vars]
 
     def init_dcp_attr(self):
         """Determines the curvature, sign, and shape from the arguments.
@@ -134,12 +144,42 @@ class PartialProblem(Expression):
                 return None
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(type(self.args[0].objective)(self), fix_vars)
+        prob = Problem(self.args[0].objective.copy(self), fix_vars)
         result = prob.solve()
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]
         return result
+
+    @staticmethod
+    def _replace_new_vars(obj, id_to_new_var):
+        """Replaces the given variables in the object.
+
+        Parameters
+        ----------
+        obj : Object
+            The object to replace variables in.
+        id_to_new_var : dict
+            A map of id to new variable.
+
+        Returns
+        -------
+        Object
+            An object identical to obj, but with the given variables replaced.
+        """
+        if isinstance(obj, Variable) and obj.id in id_to_new_var:
+            return id_to_new_var[obj.id]
+        # Leaves outside of optimized variables are preserved.
+        elif len(obj.args) == 0:
+            return obj
+        # Parent nodes are copied.
+        else:
+            new_args = []
+            for arg in obj.args:
+                new_args.append(
+                    PartialProblem._replace_new_vars(arg, id_to_new_var)
+                )
+            return obj.copy(new_args)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -150,13 +190,4 @@ class PartialProblem(Expression):
         -------
             A tuple of (affine expression, [constraints]).
         """
-        id_to_new_var = {v.id:lu.create_var(v.size) for v in self.opt_vars}
-        obj, constr = self.args[0].canonical_form
-        obj = lu.replace_new_vars(obj, id_to_new_var)
-        new_constr = []
-        for con in constr:
-            new_constr += [
-                lu.copy_constr(con,
-                    lambda x: lu.replace_new_vars(x, id_to_new_var))
-            ]
-        return obj, new_constr
+        return self.args[0].canonical_form
