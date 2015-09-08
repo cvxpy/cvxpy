@@ -779,7 +779,7 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self):
-        x,y = Variable(1), Variable(1)
+        x, y = Variable(1), Variable(1)
         xval = 4
 
         # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
@@ -792,6 +792,21 @@ class TestAtoms(BaseTest):
         x.value = xval
         result = g.value
         self.assertAlmostEqual(result, p1.value)
+
+    def test_partial_optimize_stacked(self):
+        # Minimize the 1-norm in the usual way
+        dims = 3
+        x, t = Variable(dims), Variable(dims)
+        p1 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
+
+        # Minimize the 1-norm via partial_optimize
+        g = cvxpy.partial_optimize(p1, [t], [x])
+        g2 = cvxpy.partial_optimize(Problem(Minimize(g)), [x])
+        p2 = Problem(Minimize(g2))
+        p2.solve()
+
+        p1.solve()
+        self.assertAlmostEqual(p1.value, p2.value)
 
     # Test the NonNegative Variable class.
     def test_nonnegative_variable(self):

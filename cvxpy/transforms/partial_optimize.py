@@ -83,12 +83,13 @@ class PartialProblem(Expression):
     def __init__(self, prob, opt_vars, dont_opt_vars):
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
+        self.args = [prob]
         # Replace the opt_vars in prob with new variables.
         id_to_new_var = {var.id:var.copy() for var in self.opt_vars}
         new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
         new_constrs = [self._replace_new_vars(con, id_to_new_var)
                        for con in prob.constraints]
-        self.args = [Problem(new_obj, new_constrs)]
+        self._prob = Problem(new_obj, new_constrs)
         self.init_dcp_attr()
         super(PartialProblem, self).__init__()
 
@@ -172,6 +173,18 @@ class PartialProblem(Expression):
         # Leaves outside of optimized variables are preserved.
         elif len(obj.args) == 0:
             return obj
+        elif isinstance(obj, PartialProblem):
+            prob = obj.args[0]
+            new_obj = PartialProblem._replace_new_vars(prob.objective,
+                id_to_new_var)
+            new_constr = []
+            for constr in prob.constraints:
+                new_constr.append(
+                    PartialProblem._replace_new_vars(constr,
+                                            id_to_new_var)
+                )
+            new_args = [Problem(new_obj, new_constr)]
+            return obj.copy(new_args)
         # Parent nodes are copied.
         else:
             new_args = []
@@ -190,4 +203,4 @@ class PartialProblem(Expression):
         -------
             A tuple of (affine expression, [constraints]).
         """
-        return self.args[0].canonical_form
+        return self._prob.canonical_form
