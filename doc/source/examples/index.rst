@@ -35,6 +35,8 @@ Advanced Examples
 
 - `Object-oriented convex optimization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb>`_
 
+- `Consensus optimization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/consensus_opt.ipynb>`_
+
 - `Method of multipliers <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb>`_
 
 .. _applications:
