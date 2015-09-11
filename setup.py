@@ -29,7 +29,7 @@ setup(
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization problems in Python.',
     install_requires=["cvxopt >= 1.1.6",
-                      "ecos >= 2",
+                      "ecos >= 2.0.4",
                       "scs >= 1.1.3",
                       "toolz",
                       "numpy >= 1.8",
