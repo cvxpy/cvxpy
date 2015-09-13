@@ -7,6 +7,8 @@
 set -e
 
 sudo apt-get update -qq
+# Required for CVXcanon.
+sudo apt-get install swig
 if [[ "$INSTALL_ATLAS" == "true" ]]; then
     #sudo apt-get install -qq libatlas-base-dev
     sudo apt-get install -qq libatlas-base-dev gfortran
