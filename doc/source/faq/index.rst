@@ -61,9 +61,18 @@ What are the differences between CVXPY's solvers?
 The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
 See the "Solve method options" section in :ref:`Advanced Features <advanced>` for details.
 
+What do I do if I get "Exception: Cannot evaluate the truth value of a constraint"?
+-----------------------------------------------------------------------------------
+This error likely means you are chaining constraints (e.g., writing an
+expression like ``0 <= x <= 1``) or using the built-in Python ``max`` and ``min``
+functions on CVXPY expressions.
+It is not possible for CVXPY to correctly handle these use cases,
+so CVXPY throws an (admittedly cryptic) exception.
+
 What do I do if I get "RuntimeError: maximum recursion depth exceeded"?
 ------------------------------------------------------------------------
-See `this thread <https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I>`_ on the mailing list.
+See `this thread <https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I>`_
+on the mailing list.
 
 Can I use NumPy functions on CVXPY objects?
 -------------------------------------------
