@@ -19,7 +19,7 @@ Version 1.0 (targets)
 
 Version 0.2.29 (next release)
 -----------------------------
-
+* Added CVXcanon integration.
 
 Version 0.2.28
 --------------
