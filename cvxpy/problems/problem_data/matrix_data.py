@@ -53,7 +53,6 @@ class MatrixCache(object):
         """
         self.param_coo_tup = ([], [], [])
 
-
 class MatrixData(object):
     """The matrices for the conic form convex optimization problem.
 
