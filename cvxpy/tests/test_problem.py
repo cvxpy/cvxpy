@@ -364,7 +364,7 @@ class TestProblem(BaseTest):
         prob1 = Problem(Minimize(self.a), [self.a >= self.b])
         prob2 = Problem(Minimize(2*self.b), [self.a >= 1, self.b >= 2])
         prob3 = Problem(Maximize(-pow(self.b + self.a, 2)), [self.b >= 3])
-    
+
         # simple addition and multiplication
         combo1 = prob1 + 2 * prob2
         combo1_ref = Problem(Minimize(self.a + 4 * self.b), [self.a >= self.b, self.a >= 1, self.b >= 2])
@@ -1173,7 +1173,7 @@ class TestProblem(BaseTest):
         """
         x = Variable()
         obj = Maximize(sqrt(x))
-        prob = Problem(obj)
+        prob = Problem(obj, [Constant(2) <= 2])
         data = prob.get_problem_data(s.ECOS)
         A = data["A"]
         G = data["G"]

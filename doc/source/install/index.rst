@@ -135,16 +135,19 @@ CVXPY has the following dependencies:
 * `setuptools`_ >= 1.4
 * `toolz`_
 * `CVXOPT`_ >= 1.1.6
-* `ECOS`_ >= 1.0.3
+* `ECOS`_ >= 2
 * `SCS`_ >= 1.0.1
 * `NumPy`_ >= 1.8
 * `SciPy`_ >= 0.13
+* `CVXcanon`_ >= 0.0.17
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
 CVXPY automatically installs `ECOS`_, `CVXOPT`_, `SCS`_, and `toolz`_.
-`NumPy`_ and `SciPy`_ will need to be installed manually. Once you’ve
-installed `NumPy`_ and `SciPy`_, installing CVXPY from source is simple:
+`NumPy`_ and `SciPy`_ will need to be installed manually.
+You may also need to install `Swig`_ to build `CVXcanon`_.
+Once you’ve
+installed `NumPy`_, `SciPy`_, and `Swig`_, installing CVXPY from source is simple:
 
 1. Clone the `CVXPY git repository`_.
 2. Navigate to the top-level of the cloned directory and run
@@ -197,3 +200,5 @@ See the `Elemental <http://libelemental.org/>`_ website for installation instruc
 .. _SciPy: http://www.scipy.org/
 .. _Nose: http://nose.readthedocs.org
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
+.. _CVXcanon: https://github.com/jacklzhu/CVXcanon
+.. _Swig: http://www.swig.org/
