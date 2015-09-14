@@ -21,6 +21,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
+import canonInterface
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -51,6 +52,7 @@ class MatrixCache(object):
         """Clear old parameter data.
         """
         self.param_coo_tup = ([], [], [])
+
 
 class MatrixData(object):
     """The matrices for the conic form convex optimization problem.
@@ -151,20 +153,36 @@ class MatrixData(object):
             The cached version of the matrix-vector pair.
         caching : bool
             Is the data being cached?
-
-        Returns
-        -------
-        tuple
-            A (matrix, vector) tuple.
         """
+        active_constr = []
+        constr_offsets = []
         vert_offset = 0
         for constr in mat_cache.constraints:
             # Process the constraint if it has a parameter and not caching
             # or it doesn't have a parameter and caching.
             has_param = len(lu.get_expr_params(constr.expr)) > 0
             if (has_param and not caching) or (not has_param and caching):
-                self._process_constr(constr, mat_cache, vert_offset)
+                # If parameterized, convert the parameters into constant nodes.
+                if has_param:
+                    constr = lu.copy_constr(constr,
+                        lu.replace_params_with_consts)
+                active_constr.append(constr)
+                constr_offsets.append(vert_offset)
             vert_offset += constr.size[0]*constr.size[1]
+        # Convert the constraints into a matrix and vector offset
+        # and add them to the matrix cache.
+        if len(active_constr) > 0:
+            V, I, J, const_vec = canonInterface.get_problem_matrix(
+                active_constr,
+                self.sym_data.var_offsets,
+                constr_offsets
+            )
+            # Convert the constant offset to the correct data type.
+            conv_vec = self.vec_intf.const_to_matrix(const_vec,
+                convert_scalars=True)
+            mat_cache.const_vec[:const_vec.size] += conv_vec
+            for i, vals in enumerate([V, I, J]):
+                mat_cache.coo_tup[i].extend(vals)
 
     def _cache_to_matrix(self, mat_cache):
         """Converts the cached representation of the constraints matrix.
@@ -198,51 +216,6 @@ class MatrixData(object):
         combo_vec = mat_cache.const_vec + param_cache.const_vec
         const_vec = intf.from_2D_to_1D(combo_vec)
         return (matrix, -const_vec)
-
-    def _process_constr(self, constr, mat_cache, vert_offset):
-        """Extract the coefficients from a constraint.
-
-        Parameters
-        ----------
-        constr : LinConstr
-            The linear constraint to process.
-        mat_cache : MatrixCache
-            The cached version of the matrix-vector pair.
-        vert_offset : int
-            The row offset of the constraint.
-        """
-        V, I, J = mat_cache.coo_tup
-        coeffs = op2mat.get_coefficients(constr.expr)
-        for id_, block in coeffs:
-            vert_start = vert_offset
-            vert_end = vert_start + constr.size[0]*constr.size[1]
-            if id_ is lo.CONSTANT_ID:
-                # Flatten the block.
-                block = self.vec_intf.const_to_matrix(block)
-                block_size = intf.size(block)
-                block = self.vec_intf.reshape(
-                    block,
-                    (block_size[0]*block_size[1], 1)
-                )
-                mat_cache.const_vec[vert_start:vert_end, :] += block
-            else:
-                horiz_offset = self.sym_data.var_offsets[id_]
-                if intf.is_scalar(block):
-                    block = intf.scalar_value(block)
-                    V.append(block)
-                    I.append(vert_start)
-                    J.append(horiz_offset)
-                else:
-                    # Block is a numpy matrix or
-                    # scipy CSC sparse matrix.
-                    if not intf.is_sparse(block):
-                        block = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
-                            block
-                        )
-                    block = block.tocoo()
-                    V.extend(block.data)
-                    I.extend(block.row + vert_start)
-                    J.extend(block.col + horiz_offset)
 
     def _nonlin_matrix(self, nonlin_constr):
         """Returns an oracle for the nonlinear constraints.
