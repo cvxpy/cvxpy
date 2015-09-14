@@ -21,10 +21,10 @@ import cvxpy.settings as s
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
-import cvxpy.lin_ops.lin_to_matrix as op2mat
 from cvxpy.constraints import SOC, SDP, ExpCone, BoolConstr, IntConstr
 from toolz.itertoolz import unique
 from collections import OrderedDict
+import canonInterface
 
 class SymData(object):
     """The symbolic info for the conic form convex optimization problem.
@@ -137,7 +137,7 @@ class SymData(object):
             for constr in constr_map[key]:
                 vars_ = lu.get_expr_vars(constr.expr)
                 if len(vars_) == 0 and not lu.get_expr_params(constr.expr):
-                    coeff = op2mat.get_constant_coeff(constr.expr)
+                    V, I, J, coeff = canonInterface.get_problem_matrix([constr])
                     sign = intf.sign(coeff)
                     # For equality constraint, coeff must be zero.
                     # For inequality (i.e. <= 0) constraint,

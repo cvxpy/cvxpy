@@ -1173,7 +1173,7 @@ class TestProblem(BaseTest):
         """
         x = Variable()
         obj = Maximize(sqrt(x))
-        prob = Problem(obj)
+        prob = Problem(obj, [Constant(2) <= 2])
         data = prob.get_problem_data(s.ECOS)
         A = data["A"]
         G = data["G"]
