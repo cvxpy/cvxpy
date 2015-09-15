@@ -7,7 +7,10 @@ subject to x in {0, 1}^n
 
 from cvxpy import *
 import numpy
-from Queue import PriorityQueue
+try:
+    from Queue import PriorityQueue
+except:
+    from queue import PriorityQueue
 
 # Problem data.
 m = 25

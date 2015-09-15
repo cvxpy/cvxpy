@@ -18,7 +18,7 @@ Version 1.0 (targets)
 * TODO add logistic_loss
 
 Version 0.3.1 (next release)
------------------------------
+----------------------------
 
 Version 0.3.0
 -------------
