@@ -17,8 +17,11 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add logistic_loss
 
-Version 0.2.29 (next release)
+Version 0.3.1 (next release)
 -----------------------------
+
+Version 0.3.0
+-------------
 * Added CVXcanon integration.
 
 Version 0.2.28
