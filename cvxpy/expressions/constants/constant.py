@@ -46,7 +46,13 @@ class Constant(Leaf):
         super(Constant, self).__init__()
 
     def name(self):
-        return str(self.value)
+        """The value as a string.
+        """
+        # Reduce from a 1x1 matrix to a scalar.
+        if self.is_scalar():
+            return str(self.value[0,0])
+        else:
+            return str(self.value)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.

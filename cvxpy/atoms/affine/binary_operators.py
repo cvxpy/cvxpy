@@ -42,23 +42,35 @@ class BinaryOperator(AffAtom):
                          self.OP_NAME,
                          str(self.args[1].name())])
 
-    # Applies the binary operator to the values.
     def numeric(self, values):
+        """Applies the binary operator to the values.
+        """
         return reduce(self.OP_FUNC, values)
 
-    # Sets the sign, curvature, and shape.
     def init_dcp_attr(self):
+        """Sets the sign, curvature, and shape.
+        """
         self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
                                       self.args[1]._dcp_attr)
 
-    # Validate the dimensions.
     def validate_arguments(self):
+        """Validate the dimensions.
+        """
         self.OP_FUNC(self.args[0]._dcp_attr.shape,
                      self.args[1]._dcp_attr.shape)
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
+
+    @AffAtom.numpy_numeric
+    def numeric(self, values):
+        """Multiply the two values.
+        """
+        if values[0].shape == (1,1) or values[1].shape == (1,1):
+            return super(MulExpression, self).numeric(values)
+        else:
+            return np.dot(values[0], values[1])
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

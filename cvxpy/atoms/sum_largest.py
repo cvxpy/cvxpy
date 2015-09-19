@@ -41,7 +41,7 @@ class sum_largest(Atom):
     def numeric(self, values):
         """Returns the sum of the k largest entries of the matrix.
         """
-        value = intf.from_2D_to_1D(values[0].flatten().T)
+        value = values[0].flatten()
         indices = np.argsort(-value)[:int(self.k)]
         return value[indices].sum()
 

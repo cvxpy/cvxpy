@@ -117,6 +117,9 @@ class TestInterfaces(BaseTest):
         self.assertEquals(interface.size(mat), (3,1))
         mat = interface.const_to_matrix([1,2])
         self.assertEquals(interface.size(mat), (2,1))
+        mat = np.array([1,2,3])
+        mat = interface.const_to_matrix(mat)
+        self.assertEquals(mat.shape, (3,1))
         # CVXOPT sparse conversion
         tmp = intf.get_matrix_interface(cvxopt.spmatrix).const_to_matrix([1,2,3])
         mat = interface.const_to_matrix(tmp)

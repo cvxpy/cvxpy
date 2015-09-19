@@ -51,7 +51,11 @@ class NDArrayInterface(base.BaseMatrixInterface):
             value = value.A
         elif isinstance(value, numpy.matrix):
             value = value.A
-        return numpy.atleast_2d(value)
+        elif isinstance(value, numpy.ndarray) and len(value.shape) == 1:
+            value = numpy.atleast_2d(value).T
+        else:
+            value = numpy.atleast_2d(value)
+        return value
 
     # Return an identity matrix.
     def identity(self, size):
