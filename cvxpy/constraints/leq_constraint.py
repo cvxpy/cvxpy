@@ -118,6 +118,19 @@ class LeqConstraint(u.Canonical, Constraint):
             return None
         else:
             return self._expr.value <= self.TOLERANCE
+    
+    @property
+    def violation(self):
+        """How much is this constraint off by?
+        
+        Returns
+        -------
+        float
+        """
+        if self._expr.value is None:
+            return None
+        else:
+            return max(self._expr.value, 0)
 
     # The value of the dual variable.
     @property

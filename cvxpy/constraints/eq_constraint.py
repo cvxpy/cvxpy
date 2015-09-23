@@ -39,6 +39,19 @@ class EqConstraint(LeqConstraint):
         else:
             return abs(self._expr.value) <= self.TOLERANCE
 
+    @property
+    def violation(self):
+        """How much is this constraint off by?
+        
+        Returns
+        -------
+        float
+        """
+        if self._expr.value is None:
+            return None
+        else:
+            return abs(self._expr.value)
+
     def canonicalize(self):
         """Returns the graph implementation of the object.
 
