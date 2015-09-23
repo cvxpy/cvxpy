@@ -94,6 +94,12 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             a.value = [2, 1]
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Variable value.")
+
+        # Test assigning None.
+        a.value = 1
+        a.value = None
+        assert a.value is None
+
         # Vector variable.
         x = Variable(2)
         x.value = [2, 1]
@@ -219,6 +225,11 @@ class TestExpressions(BaseTest):
         # Initialize a parameter with a value.
         p = Parameter(value=10)
         self.assertEqual(p.value, 10)
+
+        # Test assigning None.
+        p.value = 10
+        p.value = None
+        assert p.value is None
 
         with self.assertRaises(Exception) as cm:
             p = Parameter(2, 1, sign="negative", value=[2,1])

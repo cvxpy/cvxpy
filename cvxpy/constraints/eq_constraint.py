@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.constraints.leq_constraint import LeqConstraint
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
 class EqConstraint(LeqConstraint):
     OP_NAME = "=="
@@ -37,20 +38,20 @@ class EqConstraint(LeqConstraint):
         if self._expr.value is None:
             return None
         else:
-            return abs(self._expr.value) <= self.TOLERANCE
+            return np.all(np.abs(self._expr.value) <= self.TOLERANCE)
 
     @property
     def violation(self):
         """How much is this constraint off by?
-        
+
         Returns
         -------
-        float
+        NumPy matrix
         """
         if self._expr.value is None:
             return None
         else:
-            return abs(self._expr.value)
+            return np.abs(self._expr.value)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

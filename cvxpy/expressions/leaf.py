@@ -54,20 +54,21 @@ class Leaf(expression.Expression):
         numeric type
             The value converted to the proper matrix type.
         """
-        # Convert val to the proper matrix type.
-        val = intf.DEFAULT_INTF.const_to_matrix(val)
-        size = intf.size(val)
-        if size != self.size:
-            raise ValueError(
-                "Invalid dimensions (%s, %s) for %s value." %
-                (size[0], size[1], self.__class__.__name__)
-            )
-        # All signs are valid if sign is unknown.
-        # Otherwise value sign must match declared sign.
-        sign = intf.sign(val)
-        if self.is_positive() and not sign.is_positive() or \
-           self.is_negative() and not sign.is_negative():
-            raise ValueError(
-                "Invalid sign for %s value." % self.__class__.__name__
-            )
+        if val is not None:
+            # Convert val to the proper matrix type.
+            val = intf.DEFAULT_INTF.const_to_matrix(val)
+            size = intf.size(val)
+            if size != self.size:
+                raise ValueError(
+                    "Invalid dimensions (%s, %s) for %s value." %
+                    (size[0], size[1], self.__class__.__name__)
+                )
+            # All signs are valid if sign is unknown.
+            # Otherwise value sign must match declared sign.
+            sign = intf.sign(val)
+            if self.is_positive() and not sign.is_positive() or \
+               self.is_negative() and not sign.is_negative():
+                raise ValueError(
+                    "Invalid sign for %s value." % self.__class__.__name__
+                )
         return val
