@@ -1,7 +1,10 @@
 from cvxpy import *
 from mixed_integer import *
 import random
+import numpy as np
 
+random.seed(1)
+np.random.seed(1)
 # 3-SAT problem solved with non-convex ADMM
 # TODO initialize z's at 0.5
 EPSILON = 1e-8
@@ -50,8 +53,10 @@ best_rho = 0
 for i in range(MAX_ITER):
     p = Problem(Minimize(0), constraints)
     rho = random.random()
+    print rho
     result = p.solve(method="admm", rho=rho,
                      iterations=2, solver=ECOS)
+    print result
 
     # Store the result.
     values = [vars[i].value for i in range(VARIABLES)]

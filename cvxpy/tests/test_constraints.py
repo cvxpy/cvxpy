@@ -107,7 +107,6 @@ class TestConstraints(BaseTest):
         self.x.value = [2,1]
         self.z.value = [2,0]
         assert not constr.value
-        print constr.violation
         self.assertItemsAlmostEqual(constr.violation, [0,1])
 
         self.z.value = [2,2]
