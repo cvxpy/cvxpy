@@ -36,7 +36,7 @@ class logistic(Elementwise):
     def numeric(self, values):
         """Evaluates e^x elementwise, adds 1, and takes the log.
         """
-        return np.log(1 + np.exp(values[0]))
+        return np.logaddexp(0, values[0])
 
     def sign_from_args(self):
         """Always positive.
