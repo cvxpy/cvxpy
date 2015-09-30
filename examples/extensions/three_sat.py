@@ -3,6 +3,9 @@ from mixed_integer import *
 import random
 import numpy as np
 
+# TODO this is wrong because Boolean.u and Boolean.z aren't reset
+# between iterations.
+
 random.seed(1)
 np.random.seed(1)
 # 3-SAT problem solved with non-convex ADMM

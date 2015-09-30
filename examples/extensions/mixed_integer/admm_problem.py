@@ -39,7 +39,7 @@ def admm(self, rho=0.5, iterations=5, *args, **kwargs):
         print "relaxation", result
         for idx, var in enumerate(noncvx_vars):
             var.z.value = var.round(var.value + var.u.value)
-            print idx, var.z.value, var.value, var.u.value
+            # print idx, var.z.value, var.value, var.u.value
             var.u.value += var.value - var.z.value
     return polish(self, noncvx_vars, *args, **kwargs)
 
