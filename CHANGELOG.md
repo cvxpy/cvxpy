@@ -15,11 +15,15 @@ Version 1.0 (targets)
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
-* TODO add logistic_loss
 
-Version 0.3.1 (next release)
+Version 0.3.2 (next release)
 ----------------------------
-* TODO
+
+Version 0.3.1
+-------------
+* Fixed Gurobi interface.
+* Removed failing test that expected CVXOPT solver failure.
+* Added logistic function.
 
 Version 0.3.0
 -------------
