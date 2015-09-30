@@ -76,6 +76,13 @@ atoms = [
         (lambda_max, (1, 1), [ [[5,7],[7,-3]] ], Constant([9.06225775])),
         (lambda x: lambda_sum_largest(x, 2), (1, 1), [ [[1, 2, 3], [2,4,5], [3,5,6]] ], Constant([11.51572947])),
         (log_sum_exp, (1, 1), [ [[5, 7], [0, -3]] ], Constant([7.1277708268])),
+        (logistic, (2, 2),
+         [
+             [[math.log(5), math.log(7)],
+              [0,           math.log(0.3)]] ],
+         Constant(
+             [[math.log(6), math.log(8)],
+              [math.log(2), math.log(1.3)]])),
         (matrix_frac, (1, 1), [ [1, 2, 3],
                             [[1, 0, 0],
                              [0, 1, 0],

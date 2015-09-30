@@ -65,6 +65,7 @@ from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.log1p import log1p
+from cvxpy.atoms.elementwise.logistic import logistic
 from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 from cvxpy.atoms.elementwise.min_elemwise import min_elemwise
 from cvxpy.atoms.elementwise.neg import neg
@@ -73,4 +74,3 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
-
