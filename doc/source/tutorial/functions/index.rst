@@ -63,13 +63,6 @@ and returns a scalar.
      - Curvature |_|
      - Monotonicity
 
-   * - entr(X)
-     - :math:`\sum_{ij}-X_{ij} \log (X_{ij})`
-     - :math:`X_{ij} > 0`
-     - |unknown| unknown
-     - |concave| concave
-     - None
-
    * - :ref:`geo_mean(x) <geo_mean>`
 
        :ref:`geo_mean(x, p) <geo_mean>`
@@ -91,15 +84,6 @@ and returns a scalar.
      - |positive| positive
      - |concave| concave
      - |incr| incr.
-
-   * - kl_div(X, Y)
-     - :math:`\sum_{ij} X_{ij} \log(X_{ij}/Y_{ij}) -X_{ij}+Y_{ij}`
-     - :math:`X_{ij} > 0`
-
-       :math:`Y_{ij} > 0`
-     - |positive| positive
-     - |convex| convex
-     - None
 
    * - lambda_max(X)
      - :math:`\lambda_{\max}(X)`
@@ -392,6 +376,13 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
+   * - entr(x)
+     - :math:`-x \log (x)`
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |concave| concave
+     - None
+
    * - exp(x)
      - :math:`e^x`
      - :math:`x \in \mathbf{R}`
@@ -416,6 +407,15 @@ scalars, which are promoted.
      - |positive| positive
      - |convex| convex
      - |decr| decr.
+
+   * - kl_div(x, y)
+     - :math:`x \log(x/y) - x + y`
+     - :math:`x > 0`
+
+       :math:`y > 0`
+     - |positive| positive
+     - |convex| convex
+     - None
 
    * - log(x)
      - :math:`\log(x)`
