@@ -19,6 +19,10 @@ Version 1.0 (targets)
 Version 0.3.2 (next release)
 ----------------------------
 
+Version 0.3.2
+-------------
+* Requires CVXcanon 0.0.21
+
 Version 0.3.1
 -------------
 * Fixed Gurobi interface.
