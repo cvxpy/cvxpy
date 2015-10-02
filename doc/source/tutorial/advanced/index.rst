@@ -446,6 +446,10 @@ Here's the complete list of solver options.
 ``'use_indirect'``
     whether to use indirect solver for KKT sytem (instead of direct) (default: False).
 
+``'warm_start'``
+    whether to initialize the solver with the previous solution (default: False).
+    The use case for warm start is solving the same problem for multiple values of a parameter.
+
 Getting the standard form
 -------------------------
 
