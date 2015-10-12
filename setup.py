@@ -35,6 +35,6 @@ setup(
                       "toolz",
                       "numpy >= 1.8",
                       "scipy >= 0.13",
-                      "CVXcanon >= 0.0.21"],
+                      "CVXcanon >= 0.0.22"],
     use_2to3=True,
 )
