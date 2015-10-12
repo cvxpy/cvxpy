@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from fractions import Fraction
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.constants import Constant, Parameter, CallbackParam
+from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem

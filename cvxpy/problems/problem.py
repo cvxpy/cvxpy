@@ -229,8 +229,8 @@ class Problem(u.Canonical):
             # Add an edge between any two objetive terms/constraints sharing
             # this variable.
             if len(term_ids) > 1:
-                for pair in itertools.permutations(term_ids, 2):
-                    adj_matrix[pair[0], pair[1]] = True
+                for i, j in itertools.combinations(term_ids, 2):
+                    adj_matrix[i, j] = adj_matrix[j, i] = True
         num_components, labels = csgraph.connected_components(adj_matrix,
                                                               directed=False)
 
@@ -248,7 +248,7 @@ class Problem(u.Canonical):
             constrs = [constraints[i - num_obj_terms]
                        for i in term_ids_per_subproblem[index]
                        if i >= num_obj_terms]
-            problem_list.append(Problem(type(self.objective)(obj), constrs))
+            problem_list.append(Problem(self.objective.copy(obj), constrs))
         # Append constant terms to the first separable problem.
         if constant_terms:
             # Avoid adding an extra 0 in the objective
@@ -256,8 +256,8 @@ class Problem(u.Canonical):
             if problem_list:
                 problem_list[0].objective.args[0] += sum_constant_terms
             else:
-                problem_list.append(Problem(type(
-                    self.objective)(sum_constant_terms)))
+                problem_list.append(Problem(self.objective.copy(
+                    sum_constant_terms)))
         return problem_list
 
     def _solve(self,
@@ -303,49 +303,8 @@ class Problem(u.Canonical):
                 raise DCPError("Problem does not follow DCP rules.")
 
         if parallel and len(self._separable_problems) > 1:
-
-            def _solve_problem(problem):
-                """Solve a problem and then return the optimal value, status,
-                primal values, and dual values.
-                """
-                opt_value = problem.solve(solver=solver,
-                                          ignore_dcp=ignore_dcp,
-                                          warm_start=warm_start,
-                                          verbose=verbose,
-                                          parallel=False, **kwargs)
-                status = problem.status
-                primal_values = [var.value for var in problem.variables()]
-                dual_values = [constr.dual_value
-                               for constr in problem.constraints]
-                return SolveResult(opt_value, status, primal_values,
-                                   dual_values)
-
-            pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-            solve_results = pool.map(_solve_problem, self._separable_problems)
-            pool.close()
-            pool.join()
-            statuses = {solve_result.status for solve_result in solve_results}
-            # Check if at least one subproblem is infeasible for inaccurate
-            for status in s.INF_OR_UNB:
-                if status in statuses:
-                    self._handle_no_solution(status)
-                    break
-            else:
-                for subproblem, solve_result in zip(
-                    self._separable_problems, solve_results):
-                    for var, primal_value in zip(subproblem.variables(),
-                                                 solve_result.primal_values):
-                        var.save_value(primal_value)
-                    for constr, dual_value in zip(
-                        subproblem.constraints, solve_results):
-                        constr.save_value(dual_value)
-                self._value = sum(solve_result.opt_value
-                                  for solve_result in solve_results)
-                if s.OPTIMAL_INACCURATE in statuses:
-                    self._status = s.OPTIMAL_INACCURATE
-                else:
-                    self._status = s.OPTIMAL
-            return self._value
+            return self._parallel_solve(solver, ignore_dcp, warm_start,
+                                        verbose, **kwargs)
 
         objective, constraints = self.canonicalize()
         # Choose a solver/check the chosen solver.
@@ -371,6 +330,52 @@ class Problem(u.Canonical):
 
         self._update_problem_state(results_dict, sym_data, solver)
         return self.value
+
+    def _parallel_solve(self,
+                        solver=None,
+                        ignore_dcp=False,
+                        warm_start=False,
+                        verbose=False, **kwargs):
+        def _solve_problem(problem):
+            """Solve a problem and then return the optimal value, status,
+            primal values, and dual values.
+            """
+            opt_value = problem.solve(solver=solver,
+                                      ignore_dcp=ignore_dcp,
+                                      warm_start=warm_start,
+                                      verbose=verbose,
+                                      parallel=False, **kwargs)
+            status = problem.status
+            primal_values = [var.value for var in problem.variables()]
+            dual_values = [constr.dual_value for constr in problem.constraints]
+            return SolveResult(opt_value, status, primal_values, dual_values)
+
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+        solve_results = pool.map(_solve_problem, self._separable_problems)
+        pool.close()
+        pool.join()
+        statuses = {solve_result.status for solve_result in solve_results}
+        # Check if at least one subproblem is infeasible or inaccurate
+        for status in s.INF_OR_UNB:
+            if status in statuses:
+                self._handle_no_solution(status)
+                break
+        else:
+            for subproblem, solve_result in zip(self._separable_problems,
+                                                solve_results):
+                for var, primal_value in zip(subproblem.variables(),
+                                             solve_result.primal_values):
+                    var.save_value(primal_value)
+                for constr, dual_value in zip(subproblem.constraints,
+                                              solve_results):
+                    constr.save_value(dual_value)
+            self._value = sum(solve_result.opt_value
+                              for solve_result in solve_results)
+            if s.OPTIMAL_INACCURATE in statuses:
+                self._status = s.OPTIMAL_INACCURATE
+            else:
+                self._status = s.OPTIMAL
+        return self._value
 
     def _update_problem_state(self, results_dict, sym_data, solver):
         """Updates the problem state given the solver results.
