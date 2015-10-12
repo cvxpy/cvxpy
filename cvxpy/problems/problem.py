@@ -20,20 +20,24 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
-from cvxpy.expressions import types
 from cvxpy.error import SolverError, DCPError
 from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.problems.problem_data.problem_data import ProblemData
-from cvxpy.utilities import performance_utils as pu
+# Only need to import cvxpy.transform.get_separable_problems, but this creates
+# a circular import (cvxpy.transforms imports Problem). Hence we need to import
+# cvxpy here.
+import cvxpy
 
-import itertools
 import multiprocess as multiprocessing
 import numpy as np
-from scipy.sparse import dok_matrix, csgraph
 from collections import namedtuple
+
+# Used in self._cached_data to check if problem's objective or constraints have
+# changed.
+CachedProblem = namedtuple('CachedProblem', ['objective', 'constraints'])
 
 # Used by pool.map to send solve result back.
 SolveResult = namedtuple(
@@ -68,12 +72,15 @@ class Problem(u.Canonical):
         # Cached processed data for each solver.
         self._cached_data = {}
         self._reset_cache()
+        # List of separable (sub)problems
+        self._separable_problems = None
 
     def _reset_cache(self):
         """Resets the cached data.
         """
         for solver_name in SOLVERS.keys():
             self._cached_data[solver_name] = ProblemData()
+        self._cached_data[s.PARALLEL] = CachedProblem(None, None)
 
     @property
     def value(self):
@@ -197,69 +204,6 @@ class Problem(u.Canonical):
         return SOLVERS[solver].get_problem_data(objective, constraints,
                                                 self._cached_data)
 
-    @pu.lazyprop
-    def _separable_problems(self):
-        """Return a list of separable problems whose sum is the original one.
-        """
-        # obj_terms contains the terms in the objective functions. We have to
-        # deal with the special case where the objective function is not a sum.
-        if isinstance(self.objective.args[0], types.add_expr()):
-            obj_terms = self.objective.args[0].args
-        else:
-            obj_terms = [self.objective.args[0]]
-        # Remove constant terms, which will be appended to the first separable
-        # problem.
-        constant_terms = [term for term in obj_terms if term.is_constant()]
-        obj_terms = [term for term in obj_terms if not term.is_constant()]
-
-        constraints = self.constraints
-        num_obj_terms = len(obj_terms)
-        num_terms = len(obj_terms) + len(constraints)
-
-        # Objective terms and constraints are indexed from 0 to num_terms - 1.
-        var_sets = [frozenset(func.variables())
-                    for func in obj_terms + constraints]
-        all_vars = frozenset().union(*var_sets)
-
-        adj_matrix = dok_matrix((num_terms, num_terms), dtype=bool)
-        for var in all_vars:
-            # Find all functions that contain this variable
-            term_ids = [i for i, var_set in enumerate(var_sets)
-                        if var in var_set]
-            # Add an edge between any two objetive terms/constraints sharing
-            # this variable.
-            if len(term_ids) > 1:
-                for i, j in itertools.combinations(term_ids, 2):
-                    adj_matrix[i, j] = adj_matrix[j, i] = True
-        num_components, labels = csgraph.connected_components(adj_matrix,
-                                                              directed=False)
-
-        # After splitting, construct subproblems from appropriate objective
-        # terms and constraints.
-        term_ids_per_subproblem = [[] for _ in range(num_components)]
-        for i, label in enumerate(labels):
-            term_ids_per_subproblem[label].append(i)
-        problem_list = []
-        for index in range(num_components):
-            terms = [obj_terms[i] for i in term_ids_per_subproblem[index]
-                     if i < num_obj_terms]
-            # If we just call sum, we'll have an extra 0 in the objective.
-            obj = sum(terms[1:], terms[0]) if terms else 0
-            constrs = [constraints[i - num_obj_terms]
-                       for i in term_ids_per_subproblem[index]
-                       if i >= num_obj_terms]
-            problem_list.append(Problem(self.objective.copy(obj), constrs))
-        # Append constant terms to the first separable problem.
-        if constant_terms:
-            # Avoid adding an extra 0 in the objective
-            sum_constant_terms = sum(constant_terms[1:], constant_terms[0])
-            if problem_list:
-                problem_list[0].objective.args[0] += sum_constant_terms
-            else:
-                problem_list.append(Problem(self.objective.copy(
-                    sum_constant_terms)))
-        return problem_list
-
     def _solve(self,
                solver=None,
                ignore_dcp=False,
@@ -302,11 +246,20 @@ class Problem(u.Canonical):
             else:
                 raise DCPError("Problem does not follow DCP rules.")
 
-        if parallel and len(self._separable_problems) > 1:
-            return self._parallel_solve(solver, ignore_dcp, warm_start,
-                                        verbose, **kwargs)
-
         objective, constraints = self.canonicalize()
+
+        # Solve in parallel
+        if parallel:
+            # Check if the objective or constraint has changed
+            if (objective != self._cached_data[s.PARALLEL].objective or
+                constraints != self._cached_data[s.PARALLEL].constraints):
+                self._separable_problems = cvxpy.transforms.get_separable_problems(self)
+                self._cached_data[s.PARALLEL] = CachedProblem(objective,
+                                                              constraints)
+            if len(self._separable_problems) > 1:
+                return self._parallel_solve(solver, ignore_dcp, warm_start,
+                                            verbose, **kwargs)
+
         # Choose a solver/check the chosen solver.
         if solver is None:
             solver_name = Solver.choose_solver(constraints)
@@ -336,6 +289,33 @@ class Problem(u.Canonical):
                         ignore_dcp=False,
                         warm_start=False,
                         verbose=False, **kwargs):
+        """Solves a DCP compliant optimization problem in parallel.
+
+        Saves the values of primal and dual variables in the variable
+        and constraint objects, respectively.
+
+        Parameters
+        ----------
+        solver : str, optional
+            The solver to use. Defaults to ECOS.
+        ignore_dcp : bool, optional
+            Overrides the default of raising an exception if the problem is not
+            DCP.
+        warm_start : bool, optional
+            Should the previous solver result be used to warm start?
+        verbose : bool, optional
+            Overrides the default of hiding solver output.
+        kwargs : dict, optional
+            A dict of options that will be passed to the specific solver.
+            In general, these options will override any default settings
+            imposed by cvxpy.
+
+        Returns
+        -------
+        float
+            The optimal value for the problem, or a string indicating
+            why the problem could not be solved.
+        """
         def _solve_problem(problem):
             """Solve a problem and then return the optimal value, status,
             primal values, and dual values.

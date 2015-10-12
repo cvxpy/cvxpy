@@ -386,9 +386,6 @@ class TestProblem(BaseTest):
         problem = Problem(Minimize(square(self.a) + square(self.b) + p),
                           [self.b >= 2, self.a >= 1])
         p.value = 1
-        # The constant p should not be a separate problem, but rather added to
-        # the first separable problem.
-        self.assertTrue(len(problem._separable_problems) == 2)
         # Ensure that parallel solver still works after repeated calls
         for _ in range(2):
             result = problem.solve(parallel=True)
@@ -398,9 +395,21 @@ class TestProblem(BaseTest):
             self.assertAlmostEqual(self.b.value, 2)
             self.a.value = 0
             self.b.value = 0
+        # The constant p should not be a separate problem, but rather added to
+        # the first separable problem.
+        self.assertTrue(len(problem._separable_problems) == 2)
+
         # Ensure that parallel solver works with options.
         result = problem.solve(parallel=True, verbose=True, warm_start=True)
         self.assertAlmostEqual(result, 6.0)
+        self.assertEqual(problem.status, s.OPTIMAL)
+        self.assertAlmostEqual(self.a.value, 1)
+        self.assertAlmostEqual(self.b.value, 2)
+
+        # Ensure that parallel solver works when problem changes.
+        problem.objective = Minimize(square(self.a) + square(self.b))
+        result = problem.solve(parallel=True)
+        self.assertAlmostEqual(result, 5.0)
         self.assertEqual(problem.status, s.OPTIMAL)
         self.assertAlmostEqual(self.a.value, 1)
         self.assertAlmostEqual(self.b.value, 2)
