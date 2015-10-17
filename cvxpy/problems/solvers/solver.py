@@ -283,7 +283,7 @@ class Solver(object):
     def is_mip(data):
         """Is the problem a mixed integer program?
         """
-        return len(data[s.BOOL_IDX]) > 0 or len(data[s.BOOL_IDX]) > 0
+        return len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0
 
     @staticmethod
     def _noncvx_id_to_idx(dims, var_offsets, var_sizes):

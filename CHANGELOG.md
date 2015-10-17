@@ -16,7 +16,7 @@ Version 1.0 (targets)
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 
-Version 0.3.2 (next release)
+Version 0.3.3 (next release)
 ----------------------------
 
 Version 0.3.2
