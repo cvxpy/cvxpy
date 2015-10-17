@@ -30,7 +30,7 @@ class MOSEK(Solver):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    SDP_CAPABLE = False # for now only SOCP
+    SDP_CAPABLE = True
     EXP_CAPABLE = False
     MIP_CAPABLE = False
 
@@ -117,7 +117,8 @@ class MOSEK(Solver):
 
         # size of problem
         numvar = len(c) + sum(dims[s.SOC_DIM])
-        numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM])
+        numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM]) + \
+            sum([el**2 for el in dims[s.SDP_DIM]])
 
         # objective
         task.appendvars(numvar)
@@ -126,6 +127,10 @@ class MOSEK(Solver):
                              [mosek.boundkey.fr]*numvar,
                              np.zeros(numvar),
                              np.zeros(numvar))
+
+        # SDP variables
+        if sum(dims[s.SDP_DIM]) > 0:
+            task.appendbarvars(dims[s.SDP_DIM]) 
 
         # linear equality and linear inequality constraints
         task.appendcons(numcon)
@@ -151,7 +156,7 @@ class MOSEK(Solver):
         current_var_index = len(c)
         current_con_index = len(b) + dims[s.LEQ_DIM]
 
-        for size_cone in dims['q']:
+        for size_cone in dims[s.SOC_DIM]:
             row,col,el = sp.find(sp.eye(size_cone))
             row += current_con_index
             col += current_var_index
@@ -163,6 +168,19 @@ class MOSEK(Solver):
                                       current_var_index + size_cone))
             current_con_index += size_cone
             current_var_index += size_cone
+
+        #SDP
+        for num_sdp_var, size_matrix in enumerate(dims[s.SDP_DIM]):
+            for i_sdp_matrix in range(size_matrix):
+                for j_sdp_matrix in range(size_matrix):
+                    syma = task.appendsparsesymmat(size_matrix,  
+                                             [max(i_sdp_matrix, j_sdp_matrix)],  
+                                             [min(i_sdp_matrix, j_sdp_matrix)],  
+                                [1. if (i_sdp_matrix == j_sdp_matrix) else .5])
+                    task.putbaraij(current_con_index, 
+                                   num_sdp_var, 
+                                   [syma], [1.0]) 
+                    current_con_index += 1
 
         # solve
         task.putobjsense(mosek.objsense.minimize)
