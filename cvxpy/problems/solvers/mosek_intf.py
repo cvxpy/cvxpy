@@ -139,7 +139,7 @@ class MOSEK(Solver):
 
         # SDP variables
         if sum(dims[s.SDP_DIM]) > 0:
-            task.appendbarvars(dims[s.SDP_DIM]) 
+            task.appendbarvars(dims[s.SDP_DIM])
 
         # linear equality and linear inequality constraints
         task.appendcons(numcon)
@@ -183,13 +183,13 @@ class MOSEK(Solver):
         for num_sdp_var, size_matrix in enumerate(dims[s.SDP_DIM]):
             for i_sdp_matrix in range(size_matrix):
                 for j_sdp_matrix in range(size_matrix):
-                    task.putbaraij(current_con_index, 
-                                   num_sdp_var, 
-                                   [task.appendsparsesymmat(size_matrix,  
-                                             [max(i_sdp_matrix, j_sdp_matrix)],  
-                                             [min(i_sdp_matrix, j_sdp_matrix)],  
-                            [1. if (i_sdp_matrix == j_sdp_matrix) else .5])], 
-                                   [1.0]) 
+                    task.putbaraij(current_con_index,
+                                   num_sdp_var,
+                                   [task.appendsparsesymmat(size_matrix,
+                                             [max(i_sdp_matrix, j_sdp_matrix)],
+                                             [min(i_sdp_matrix, j_sdp_matrix)],
+                            [1. if (i_sdp_matrix == j_sdp_matrix) else .5])],
+                                   [1.0])
                     current_con_index += 1
 
         # solve
