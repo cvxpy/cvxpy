@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Tests atoms by calling them with a constant value.
 from cvxpy.settings import (SCS, ECOS, CVXOPT, GLPK, ELEMENTAL,
-    OPTIMAL, ROBUST_KKTSOLVER)
+    OPTIMAL, OPTIMAL_INACCURATE, ROBUST_KKTSOLVER, MOSEK)
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
@@ -45,6 +45,11 @@ SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
 if ELEMENTAL in installed_solvers():
     SOLVERS_TO_TRY.append(ELEMENTAL)
     SOLVER_TO_TOL[ELEMENTAL] = 1e-7
+
+# Test MOSEK if installed.
+if MOSEK in installed_solvers():
+    SOLVERS_TO_TRY.append(MOSEK)
+    SOLVER_TO_TOL[MOSEK] = 1e-6
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 v_np = np.matrix([-1.,2,-2]).T
@@ -238,7 +243,7 @@ def run_atom(atom, problem, obj_val, solver):
             result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
         else:
             result = problem.solve(solver=solver, verbose=False)
-        if problem.status is OPTIMAL:
+        if problem.status in [OPTIMAL, OPTIMAL_INACCURATE]:
             print(result)
             print(obj_val)
             assert( -tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance )
