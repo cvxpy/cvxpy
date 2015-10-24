@@ -44,6 +44,8 @@ class Atom(Expression):
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self.init_dcp_attr()
+        # Saved canonical form.
+        self._canon_cache = None
 
     # Returns the string representation of the function call.
     def name(self):
@@ -96,31 +98,82 @@ class Atom(Expression):
             arg_curvatures.append(arg_curv)
         return reduce(lambda x,y: x+y, arg_curvatures)
 
-    # Represent the atom as an affine objective and affine/basic SOC constraints.
     def canonicalize(self):
-        # Constant atoms are treated as a leaf.
-        if self.is_constant():
-            # Parameterized expressions are evaluated later.
-            if self.parameters():
-                rows, cols = self.size
-                param = CallbackParam(lambda: self.value, rows, cols)
-                return param.canonical_form
-            # Non-parameterized expressions are evaluated immediately.
-            else:
-                return Constant(self.value).canonical_form
-        else:
-            arg_objs = []
-            constraints = []
-            for arg in self.args:
-                obj, constr = arg.canonical_form
-                arg_objs.append(obj)
+        """Represent the atom as an affine objective and cone constraints.
+
+           Uses stacks because recursion fails with large expression trees.
+        """
+        node_stack = [(self, False)]
+        arg_stack = []
+        constraints = []
+        while len(node_stack) > 0:
+            node, visited = node_stack.pop()
+            # Non-atoms don't have graph_implementation.
+            if not isinstance(node, Atom):
+                obj, constr = node.canonical_form
                 constraints += constr
-            # Special info required by the graph implementation.
-            data = self.get_data()
-            graph_obj, graph_constr = self.graph_implementation(arg_objs,
-                                                                self.size,
-                                                                data)
-            return (graph_obj, constraints + graph_constr)
+                arg_stack.append(obj)
+            # Canonical form already computed.
+            elif node._canon_cache is not None:
+                print node
+                print node._canon_cache
+                constraints += node._canon_cache[1]
+                arg_stack.append(node._canon_cache[0])
+            # Constant atoms are treated as a leaf.
+            elif node.is_constant():
+                # Parameterized expressions are evaluated later.
+                if node.parameters():
+                    rows, cols = node.size
+                    # Default parameter needed to save node in lambda.
+                    param = CallbackParam(lambda node=node: node.value,
+                                          rows, cols)
+                    obj, constr = param.canonical_form
+                # Non-parameterized expressions are evaluated immediately.
+                else:
+                    obj, constr = Constant(node.value).canonical_form
+                constraints += constr
+                arg_stack.append(obj)
+                # Save canonical form.
+                node._canon_cache = (obj, constr)
+            # If not visited, add node as visited and all children as
+            # not visited.
+            elif not visited:
+                node_stack.append((node, True))
+                for arg in node.args:
+                    node_stack.append((arg, False))
+            # If visited, pop arguments off arg_stack and evaluate.
+            # Then add obj to arg_stack.
+            else:
+                arg_objs = []
+                for arg in node.args:
+                    arg_objs.append(arg_stack.pop())
+                # Special info required by the graph implementation.
+                data = node.get_data()
+                graph_obj, graph_constr = node.graph_implementation(arg_objs,
+                                                                    node.size,
+                                                                    data)
+                constraints += graph_constr
+                arg_stack.append(graph_obj)
+                # Save canonical form.
+                saved_constr = graph_constr
+                for arg in node.args:
+                    saved_constr += arg.canonical_form[1]
+                node._canon_cache = (graph_obj, saved_constr)
+
+        return arg_stack[0], constraints
+
+    # Implement here to override default lazy caching.
+    @property
+    def canonical_form(self):
+        """The graph implementation of the object stored as a property.
+
+        Returns:
+            A tuple of (affine expression, [constraints]).
+        """
+        if self._canon_cache is not None:
+            return self._canon_cache
+        else:
+            return self.canonicalize()
 
     @abc.abstractmethod
     def graph_implementation(self, arg_objs, size, data=None):
