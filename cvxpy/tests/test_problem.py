@@ -189,15 +189,13 @@ class TestProblem(BaseTest):
                 else:
                     sys.stdout = StringIO() # capture output
 
-                param = Parameter()
-                param.value = 0
-                p = Problem(Minimize(self.a + self.x[0] + param),
+                p = Problem(Minimize(self.a + self.x[0]),
                                      [self.a >= 2, self.x >= 2])
                 if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
                 p.solve(verbose=verbose, solver=solver)
                 if SOLVERS[solver].EXP_CAPABLE:
-                    p = Problem(Minimize(self.a + param), [log(self.a) >= 2])
+                    p = Problem(Minimize(self.a), [log(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
                 if solver == "ELEMENTAL":
@@ -284,7 +282,6 @@ class TestProblem(BaseTest):
         obj = 0
         def test(self):
             objective, constraints = self.canonicalize()
-            print objective, constraints
             sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
             return (len(sym_data.constr_map[s.EQ]),
                     len(sym_data.constr_map[s.LEQ]))
@@ -380,8 +377,7 @@ class TestProblem(BaseTest):
 
         # multiplication with 0 (prob2's constraints should still hold)
         combo3 = prob1 + 0 * prob2 - 3 * prob3
-        combo3_ref = Problem(Minimize(self.a + 3 * pow(self.b + self.a, 2)),
-            [self.a >= self.b, self.a >= 1, self.b >= 3, self.b >= 2])
+        combo3_ref = Problem(Minimize(self.a + 3 * pow(self.b + self.a, 2)), [self.a >= self.b, self.a >= 1, self.b >= 3])
         self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
 
     # Test scalar LP problems.

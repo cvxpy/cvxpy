@@ -195,6 +195,7 @@ class Elemental(Solver):
         s_var = El.DistMultiVec()
         if verbose:
             ctrl = El.SOCPAffineCtrl_d()
+            ctrl.mehrotraCtrl.qsdCtrl.progress = True
             ctrl.mehrotraCtrl.progress = True
             ctrl.mehrotraCtrl.time = True
         else:

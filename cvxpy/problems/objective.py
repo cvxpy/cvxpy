@@ -75,9 +75,9 @@ class Minimize(u.Canonical):
             return NotImplemented
         # If negative, reverse the direction of objective
         if (type(self) == Maximize) == (other < 0.0):
-            return Minimize(other * self.args[0])
+            return Minimize(self.args[0] * other)
         else:
-            return Maximize(other * self.args[0])
+            return Maximize(self.args[0] * other)
 
     __rmul__ = __mul__
 

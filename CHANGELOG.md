@@ -1,5 +1,6 @@
 Version 1.0 (targets)
 ---------------------
+* TODO add FAQ with info about solver errors, DCP errors, adding an objective in a for loop, dot product with numpy ND arrays.
 * TODO change *args to lists.
 * TODO change OPTIMAL to SOLVED?
 * TODO separate out parts of DCPAttr and refactor so universal rules used for affine atoms.
@@ -14,12 +15,9 @@ Version 1.0 (targets)
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
-* TODO remove solvers as dependencies.
-* TODO add warnings for missing solver or solver with too low version number.
 
 Version 0.3.3 (next release)
 ----------------------------
-* Made canonicalization iterative rather than recursive.
 
 Version 0.3.2
 -------------
