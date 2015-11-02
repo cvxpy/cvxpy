@@ -754,9 +754,12 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
 
-    def test_non_int32_index(self):
+    def test_non_python_int_index(self):
         """Test problems that have special types as indices.
         """
+        import sys
+        if sys.version_info > (3,):
+            long = int
         # Test with long indices.
         cost = self.x[0:long(2)][0]
         p = Problem(Minimize(cost), [self.x == 1])
