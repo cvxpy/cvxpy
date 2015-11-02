@@ -60,13 +60,26 @@ def format_slice(key_val, dim):
         A slice with a start and step.
     """
     if isinstance(key_val, slice):
+        key_val = slice(to_int(key_val.start),
+                        to_int(key_val.stop),
+                        to_int(key_val.step))
         return key_val
     else:
+        # Convert to int.
+        key_val = to_int(key_val)
         key_val = wrap_neg_index(key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)
         else:
             raise IndexError("Index/slice out of bounds.")
+
+def to_int(val):
+    """Convert everything but None to an int.
+    """
+    if val is None:
+        return val
+    else:
+        return int(val)
 
 def wrap_neg_index(index, dim):
     """Converts a negative index into a positive index.

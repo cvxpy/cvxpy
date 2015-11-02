@@ -15,9 +15,11 @@ Version 1.0 (targets)
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
+* TODO add informative errors for single constraint in problem instead of list, etc.
 
 Version 0.3.3 (next release)
 ----------------------------
+* Converted indices and slices to ints always.
 
 Version 0.3.2
 -------------

@@ -754,6 +754,30 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
 
+    def test_non_int32_index(self):
+        """Test problems that have special types as indices.
+        """
+        # Test with long indices.
+        cost = self.x[0:long(2)][0]
+        p = Problem(Minimize(cost), [self.x == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.x.value, [1,1])
+
+        # Test with numpy64 indices.
+        cost = self.x[0:numpy.int64(2)][0]
+        p = Problem(Minimize(cost), [self.x == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.x.value, [1,1])
+
+        # Test with float.
+        cost = self.x[numpy.float32(0)]
+        p = Problem(Minimize(cost), [self.x == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.x.value, [1,1])
+
     # Test problems with slicing.
     def test_slicing(self):
         p = Problem(Maximize(sum_entries(self.C)), [self.C[1:3,:] <= 2, self.C[0,:] == 1])
