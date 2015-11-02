@@ -759,9 +759,11 @@ class TestProblem(BaseTest):
         """
         import sys
         if sys.version_info > (3,):
-            long = int
+            my_long = int
+        else:
+            my_long = long
         # Test with long indices.
-        cost = self.x[0:long(2)][0]
+        cost = self.x[0:my_long(2)][0]
         p = Problem(Minimize(cost), [self.x == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
