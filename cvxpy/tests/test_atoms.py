@@ -283,23 +283,49 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
             "The arguments to matrix_frac have incompatible dimensions.")
 
-    def test_max_entries_sign(self):
-        """Test sign for max_entries.
+    def test_max_entries(self):
+        """Test max_entries.
         """
-        # One arg.
+        # One arg, test sign.
         self.assertEquals(max_entries(1).sign, u.Sign.POSITIVE_KEY)
         self.assertEquals(max_entries(-2).sign, u.Sign.NEGATIVE_KEY)
         self.assertEquals(max_entries(Variable()).sign, u.Sign.UNKNOWN_KEY)
         self.assertEquals(max_entries(0).sign, u.Sign.ZERO_KEY)
 
-    def test_min_entries_sign(self):
-        """Test sign for min_entries.
+        # Test with axis argument.
+        self.assertEquals(max_entries(Variable(2), axis=0).size, (1, 1))
+        self.assertEquals(max_entries(Variable(2), axis=1).size, (2, 1))
+        self.assertEquals(max_entries(Variable(2,3), axis=0).size, (1, 3))
+        self.assertEquals(max_entries(Variable(2,3), axis=1).size, (2, 1))
+
+        # Invalid axis.
+        with self.assertRaises(Exception) as cm:
+            max_entries(self.x, axis=4)
+        self.assertEqual(str(cm.exception),
+                    "Invalid argument for axis.")
+
+
+    def test_min_entries(self):
+        """Test min_entries.
         """
-        # One arg.
+        # One arg, test sign.
         self.assertEquals(min_entries(1).sign, u.Sign.POSITIVE_KEY)
         self.assertEquals(min_entries(-2).sign, u.Sign.NEGATIVE_KEY)
         self.assertEquals(min_entries(Variable()).sign, u.Sign.UNKNOWN_KEY)
         self.assertEquals(min_entries(0).sign, u.Sign.ZERO_KEY)
+
+        # Test with axis argument.
+        self.assertEquals(min_entries(Variable(2), axis=0).size, (1, 1))
+        self.assertEquals(min_entries(Variable(2), axis=1).size, (2, 1))
+        self.assertEquals(min_entries(Variable(2,3), axis=0).size, (1, 3))
+        self.assertEquals(min_entries(Variable(2,3), axis=1).size, (2, 1))
+
+        # Invalid axis.
+        with self.assertRaises(Exception) as cm:
+            min_entries(self.x, axis=4)
+        self.assertEqual(str(cm.exception),
+                    "Invalid argument for axis.")
+
 
     # Test sign logic for max_elemwise.
     def test_max_elemwise_sign(self):
@@ -367,6 +393,18 @@ class TestAtoms(BaseTest):
         # Mixed curvature.
         mat = np.mat("1 -1")
         self.assertEquals(sum_entries(mat*square(Variable(2))).curvature, u.Curvature.UNKNOWN_KEY)
+
+        # Test with axis argument.
+        self.assertEquals(sum_entries(Variable(2), axis=0).size, (1, 1))
+        self.assertEquals(sum_entries(Variable(2), axis=1).size, (2, 1))
+        self.assertEquals(sum_entries(Variable(2,3), axis=0).size, (1, 3))
+        self.assertEquals(sum_entries(Variable(2,3), axis=1).size, (2, 1))
+
+        # Invalid axis.
+        with self.assertRaises(Exception) as cm:
+            sum_entries(self.x, axis=4)
+        self.assertEqual(str(cm.exception),
+                    "Invalid argument for axis.")
 
 
     def test_mul_elemwise(self):

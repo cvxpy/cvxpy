@@ -18,25 +18,22 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
-class max_entries(Atom):
+class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
-    def __init__(self, x):
-        super(max_entries, self).__init__(x)
+    def __init__(self, x, axis=None):
+        super(max_entries, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the largest entry in x.
         """
-        return values[0].max()
-
-    def shape_from_args(self):
-        """Resolves to a scalar.
-        """
-        return u.Shape(1, 1)
+        return values[0].max(axis=self.axis)
 
     def sign_from_args(self):
         """Has the same sign as the argument.
@@ -71,8 +68,20 @@ class max_entries(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = arg_objs[0]
-        t = lu.create_var((1, 1))
-        promoted_t = lu.promote(t, x.size)
-        constraints = [lu.create_leq(x, promoted_t)]
+        axis = data[0]
+        if axis is None:
+            t = lu.create_var((1, 1))
+            promoted_t = lu.promote(t, arg_objs[0].size)
+        elif axis == 0:
+            t = lu.create_var((1, arg_objs[0].size[1]))
+            const_size = (arg_objs[0].size[0], 1)
+            ones = lu.create_const(np.ones(const_size), const_size)
+            promoted_t = lu.mul_expr(ones, t, arg_objs[0].size)
+        else: # axis == 1
+            t = lu.create_var((arg_objs[0].size[0], 1))
+            const_size = (1, arg_objs[0].size[1])
+            ones = lu.create_const(np.ones(const_size), const_size)
+            promoted_t = lu.rmul_expr(t, ones, arg_objs[0].size)
+
+        constraints = [lu.create_leq(arg_objs[0], promoted_t)]
         return (t, constraints)

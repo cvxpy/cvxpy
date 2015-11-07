@@ -95,9 +95,9 @@ class sum_largest(Atom):
         k = lu.create_const(data[0], (1, 1))
         q = lu.create_var((1, 1))
         t = lu.create_var(x.size)
-        sum_t, constr = sum_entries.graph_implementation([t], (1, 1))
+        sum_t = lu.sum_entries(t)
         obj = lu.sum_expr([sum_t, lu.mul_expr(k, q, (1, 1))])
         prom_q = lu.promote(q, x.size)
-        constr.append( lu.create_leq(x, lu.sum_expr([t, prom_q])) )
-        constr.append( lu.create_geq(t) )
+        constr = [lu.create_leq(x, lu.sum_expr([t, prom_q])),
+                  lu.create_geq(t)]
         return (obj, constr)

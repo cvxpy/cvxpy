@@ -134,8 +134,8 @@ class MOSEK(Solver):
         task.putclist(np.arange(len(c)), c)
         task.putvarboundlist(np.arange(numvar, dtype=int),
                              [mosek.boundkey.fr]*numvar,
-                             np.zeros(numvar),
-                             np.zeros(numvar))
+                              np.zeros(numvar),
+                              np.zeros(numvar))
 
         # SDP variables
         if sum(dims[s.SDP_DIM]) > 0:

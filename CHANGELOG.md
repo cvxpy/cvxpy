@@ -20,6 +20,7 @@ Version 1.0 (targets)
 Version 0.3.3 (next release)
 ----------------------------
 * Converted indices and slices to ints always.
+* Adding axis argument to *_entries atoms.
 
 Version 0.3.2
 -------------
