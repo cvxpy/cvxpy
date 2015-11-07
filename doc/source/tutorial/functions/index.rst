@@ -337,12 +337,31 @@ and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_no
 
 The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
 
-The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums the columns of a matrix variable:
+The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
 
 .. code:: python
 
-    X = Variable(100, 100)
-    col_sum = sum([X[:, i] for i in range(X.size[1])])
+    expr_list = [expr1, expr2, expr3]
+    expr_sum = sum(expr_list)
+
+
+Functions along an axis
+-----------------------
+
+The functions ``sum_entries``, ``max_entries``, and ``min_entries`` can be
+applied along an axis.
+Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
+applies ``func`` to each column, returning a 1 by ``n`` expression.
+The syntax ``func(expr, axis=1)`` applies ``func`` to each row,
+returning an ``m`` by 1 expression. For example, the following code sums
+along the columns and rows of a matrix variable:
+
+.. code:: python
+
+    X = Variable(5, 4)
+    col_sums = sum_entries(X, axis=0) # Has size (1, 4)
+    row_sums = sum_entries(X, axis=1) # Has size (5, 1)
+
 
 .. _elementwise:
 
