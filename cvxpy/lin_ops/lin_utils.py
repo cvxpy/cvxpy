@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
+import numpy as np
 
 # Utility functions for dealing with LinOp.
 
@@ -103,6 +104,8 @@ def create_const(value, size, sparse=False):
     # Check if scalar.
     if size == (1, 1):
         op_type = lo.SCALAR_CONST
+        if not np.isscalar(value):
+            value = value[0,0]
     # Check if sparse.
     elif sparse:
         op_type = lo.SPARSE_CONST

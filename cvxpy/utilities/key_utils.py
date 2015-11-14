@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # Utility functions to handle indexing/slicing into an expression.
 
 import numpy as np
+import numbers
 
 def validate_key(key, shape):
     """Check if the key is a valid index.
@@ -156,3 +157,21 @@ def to_str(key):
     """Converts a key (i.e. two slices) into a string.
     """
     return (slice_to_str(key[0]), slice_to_str(key[1]))
+
+def is_special_slice(key):
+    """Does the key contain a list, ndarray, or logical ndarray?
+    """
+    # Key is either a tuple of row, column keys or a single row key.
+    if isinstance(key, tuple):
+        if len(key) > 2:
+            raise IndexError("Invalid index/slice.")
+        key_elems = [key[0], key[1]]
+    else:
+        key_elems = [key]
+
+    # Slices and int-like numbers are fine.
+    for elem in key_elems:
+        if not (isinstance(elem, (numbers.Number, slice)) or np.isscalar(elem)):
+            return True
+
+    return False

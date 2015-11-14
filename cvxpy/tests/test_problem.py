@@ -174,7 +174,7 @@ class TestProblem(BaseTest):
             for solver in installed_solvers():
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in ["GLPK", "GLPK_MI"]:
+                if solver in ["GLPK", "GLPK_MI", "MOSEK"]:
                     continue
                 if solver == "ELEMENTAL":
                     # ELEMENTAL's stdout is separate from python,
@@ -193,9 +193,14 @@ class TestProblem(BaseTest):
                                      [self.a >= 2, self.x >= 2])
                 if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
-                p.solve(verbose=verbose, solver=solver)
+                    p.solve(verbose=verbose, solver=solver)
+
                 if SOLVERS[solver].EXP_CAPABLE:
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
+                    p.solve(verbose=verbose, solver=solver)
+
+                if SOLVERS[solver].SDP_CAPABLE:
+                    p = Problem(Minimize(self.a), [lambda_min(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
                 if solver == "ELEMENTAL":

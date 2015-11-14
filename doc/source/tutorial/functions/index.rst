@@ -31,6 +31,11 @@ slicing syntax. For example, ``expr[i:j:k, r]`` selects every kth
 element in column r of ``expr``, starting at row i and ending at row
 j-1.
 
+CVXPY supports advanced indexing using lists of indices or boolean arrays.
+The semantics are the same as NumPy
+(see `NumPy advanced indexing <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html#advanced-indexing>`_).
+Any time NumPy would return a 1D array, CVXPY returns a column vector.
+
 Transpose
 ^^^^^^^^^
 
