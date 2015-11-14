@@ -33,7 +33,7 @@ setup(
                       "scs >= 1.1.3",
                       "toolz",
                       "numpy >= 1.9",
-                      "scipy >= 0.16",
+                      "scipy >= 0.15",
                       "CVXcanon >= 0.0.21"],
     use_2to3=True,
 )
