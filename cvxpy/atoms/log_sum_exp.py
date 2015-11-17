@@ -81,8 +81,8 @@ class log_sum_exp(Atom):
         prom_t = lu.promote(t, x.size)
         expr = lu.sub_expr(x, prom_t)
         obj, constraints = exp.graph_implementation([expr], x.size)
-        obj, constr = sum_entries.graph_implementation([obj], (1, 1))
+        obj = lu.sum_entries(obj)
         # obj <= 1
         one = lu.create_const(1, (1, 1))
-        constraints += constr + [lu.create_leq(obj, one)]
+        constraints += [lu.create_leq(obj, one)]
         return (t, constraints)

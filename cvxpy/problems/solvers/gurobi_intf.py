@@ -261,16 +261,11 @@ class GUROBI(Solver):
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
+        results_dict = {}
         try:
             model.optimize()
-            results_dict = {
-                "model": model,
-                "variables": variables,
-                "gur_constrs": gur_constrs,
-                "status": self.STATUS_MAP.get(model.Status, "unknown"),
-                "primal objective": model.ObjVal,
-                "x": np.array([v.X for v in variables]),
-            }
+            results_dict["primal objective"] = model.ObjVal
+            results_dict["x"] = np.array([v.X for v in variables])
 
             # Only add duals if not a MIP.
             # Not sure why we need to negate the following,
@@ -286,11 +281,14 @@ class GUROBI(Solver):
                     else:
                         vals.append(0)
                 results_dict["y"] = -np.array(vals)
+        except:
+            pass
 
-        except gurobipy.GurobiError:
-            results_dict = {
-                "status": s.SOLVER_ERROR
-            }
+        results_dict["model"] = model
+        results_dict["variables"] = variables
+        results_dict["gur_constrs"] = gur_constrs
+        results_dict["status"] = self.STATUS_MAP.get(model.Status,
+                                                     s.SOLVER_ERROR)
 
         return self.format_results(results_dict, data, cached_data)
 

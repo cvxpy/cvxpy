@@ -31,6 +31,11 @@ slicing syntax. For example, ``expr[i:j:k, r]`` selects every kth
 element in column r of ``expr``, starting at row i and ending at row
 j-1.
 
+CVXPY supports advanced indexing using lists of indices or boolean arrays.
+The semantics are the same as NumPy
+(see `NumPy advanced indexing <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html#advanced-indexing>`_).
+Any time NumPy would return a 1D array, CVXPY returns a column vector.
+
 Transpose
 ^^^^^^^^^
 
@@ -63,13 +68,6 @@ and returns a scalar.
      - Curvature |_|
      - Monotonicity
 
-   * - entr(X)
-     - :math:`\sum_{ij}-X_{ij} \log (X_{ij})`
-     - :math:`X_{ij} > 0`
-     - |unknown| unknown
-     - |concave| concave
-     - None
-
    * - :ref:`geo_mean(x) <geo_mean>`
 
        :ref:`geo_mean(x, p) <geo_mean>`
@@ -91,15 +89,6 @@ and returns a scalar.
      - |positive| positive
      - |concave| concave
      - |incr| incr.
-
-   * - kl_div(X, Y)
-     - :math:`\sum_{ij} X_{ij} \log(X_{ij}/Y_{ij}) -X_{ij}+Y_{ij}`
-     - :math:`X_{ij} > 0`
-
-       :math:`Y_{ij} > 0`
-     - |positive| positive
-     - |convex| convex
-     - None
 
    * - lambda_max(X)
      - :math:`\lambda_{\max}(X)`
@@ -353,12 +342,31 @@ and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_no
 
 The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
 
-The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums the columns of a matrix variable:
+The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
 
 .. code:: python
 
-    X = Variable(100, 100)
-    col_sum = sum([X[:, i] for i in range(X.size[1])])
+    expr_list = [expr1, expr2, expr3]
+    expr_sum = sum(expr_list)
+
+
+Functions along an axis
+-----------------------
+
+The functions ``sum_entries``, ``max_entries``, and ``min_entries`` can be
+applied along an axis.
+Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
+applies ``func`` to each column, returning a 1 by ``n`` expression.
+The syntax ``func(expr, axis=1)`` applies ``func`` to each row,
+returning an ``m`` by 1 expression. For example, the following code sums
+along the columns and rows of a matrix variable:
+
+.. code:: python
+
+    X = Variable(5, 4)
+    col_sums = sum_entries(X, axis=0) # Has size (1, 4)
+    row_sums = sum_entries(X, axis=1) # Has size (5, 1)
+
 
 .. _elementwise:
 
@@ -392,6 +400,13 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
+   * - entr(x)
+     - :math:`-x \log (x)`
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |concave| concave
+     - None
+
    * - exp(x)
      - :math:`e^x`
      - :math:`x \in \mathbf{R}`
@@ -416,6 +431,15 @@ scalars, which are promoted.
      - |positive| positive
      - |convex| convex
      - |decr| decr.
+
+   * - kl_div(x, y)
+     - :math:`x \log(x/y) - x + y`
+     - :math:`x > 0`
+
+       :math:`y > 0`
+     - |positive| positive
+     - |convex| convex
+     - None
 
    * - log(x)
      - :math:`\log(x)`

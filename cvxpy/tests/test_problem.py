@@ -174,7 +174,7 @@ class TestProblem(BaseTest):
             for solver in installed_solvers():
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in ["GLPK", "GLPK_MI"]:
+                if solver in ["GLPK", "GLPK_MI", "MOSEK"]:
                     continue
                 if solver == "ELEMENTAL":
                     # ELEMENTAL's stdout is separate from python,
@@ -193,9 +193,14 @@ class TestProblem(BaseTest):
                                      [self.a >= 2, self.x >= 2])
                 if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
-                p.solve(verbose=verbose, solver=solver)
+                    p.solve(verbose=verbose, solver=solver)
+
                 if SOLVERS[solver].EXP_CAPABLE:
                     p = Problem(Minimize(self.a), [log(self.a) >= 2])
+                    p.solve(verbose=verbose, solver=solver)
+
+                if SOLVERS[solver].SDP_CAPABLE:
+                    p = Problem(Minimize(self.a), [lambda_min(self.a) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
                 if solver == "ELEMENTAL":
@@ -753,6 +758,35 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
+
+    def test_non_python_int_index(self):
+        """Test problems that have special types as indices.
+        """
+        import sys
+        if sys.version_info > (3,):
+            my_long = int
+        else:
+            my_long = long
+        # Test with long indices.
+        cost = self.x[0:my_long(2)][0]
+        p = Problem(Minimize(cost), [self.x == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.x.value, [1,1])
+
+        # Test with numpy64 indices.
+        cost = self.x[0:numpy.int64(2)][0]
+        p = Problem(Minimize(cost), [self.x == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.x.value, [1,1])
+
+        # Test with float.
+        cost = self.x[numpy.float32(0)]
+        p = Problem(Minimize(cost), [self.x == 1])
+        result = p.solve()
+        self.assertAlmostEqual(result, 1)
+        self.assertItemsAlmostEqual(self.x.value, [1,1])
 
     # Test problems with slicing.
     def test_slicing(self):

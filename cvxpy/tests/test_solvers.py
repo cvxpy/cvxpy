@@ -16,17 +16,18 @@ class TestSolvers(BaseTest):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
-    def test_solver_errors(self):
-        """Tests that solver errors throw an exception.
-        """
-        # For some reason CVXOPT can't handle this problem.
-        expr = 500*self.a + square(self.a)
-        prob = Problem(Minimize(expr))
+    # TODO this works on some machines.
+    # def test_solver_errors(self):
+    #     """Tests that solver errors throw an exception.
+    #     """
+    #     # For some reason CVXOPT can't handle this problem.
+    #     expr = 500*self.a + square(self.a)
+    #     prob = Problem(Minimize(expr))
 
-        with self.assertRaises(Exception) as cm:
-            prob.solve(solver=CVXOPT)
-        self.assertEqual(str(cm.exception),
-            "Solver 'CVXOPT' failed. Try another solver.")
+    #     with self.assertRaises(Exception) as cm:
+    #         prob.solve(solver=CVXOPT)
+    #     self.assertEqual(str(cm.exception),
+    #         "Solver 'CVXOPT' failed. Try another solver.")
 
     def test_ecos_options(self):
         """Test that all the ECOS solver options work.

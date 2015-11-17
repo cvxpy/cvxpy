@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cvxpy',
-    version='0.3.0',
+    version='0.3.4',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     packages=['cvxpy',
@@ -32,8 +32,8 @@ setup(
                       "ecos >= 2",
                       "scs >= 1.1.3",
                       "toolz",
-                      "numpy >= 1.8",
-                      "scipy >= 0.13",
-                      "CVXcanon >= 0.0.17"],
+                      "numpy >= 1.9",
+                      "scipy >= 0.15",
+                      "CVXcanon >= 0.0.21"],
     use_2to3=True,
 )

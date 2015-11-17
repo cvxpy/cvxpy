@@ -19,10 +19,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.variables import Variable
 from cvxpy.constraints.second_order import SOC
-import unittest
+from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
-class TestConstraints(unittest.TestCase):
+class TestConstraints(BaseTest):
     """ Unit tests for the expression/expression module. """
     def setUp(self):
         self.a = Variable(name='a')
@@ -62,6 +62,15 @@ class TestConstraints(unittest.TestCase):
         self.x.save_value(3)
         assert not constr.value
 
+        self.x.value = [2,1]
+        self.z.value = [2,2]
+        assert not constr.value
+        self.assertItemsAlmostEqual(constr.violation, [0,1])
+
+        self.z.value = [2,1]
+        assert constr.value
+        self.assertItemsAlmostEqual(constr.violation, [0,0])
+
         with self.assertRaises(Exception) as cm:
             (self.x == self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
@@ -95,6 +104,15 @@ class TestConstraints(unittest.TestCase):
         assert not constr.value
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
 
+        self.x.value = [2,1]
+        self.z.value = [2,0]
+        assert not constr.value
+        self.assertItemsAlmostEqual(constr.violation, [0,1])
+
+        self.z.value = [2,2]
+        assert constr.value
+        self.assertItemsAlmostEqual(constr.violation, [0,0])
+
         with self.assertRaises(Exception) as cm:
             (self.x <= self.y)
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
@@ -125,8 +143,11 @@ class TestConstraints(unittest.TestCase):
         self.A.save_value(np.matrix("2 -1; 1 2"))
         self.B.save_value(np.matrix("1 0; 0 1"))
         assert constr.value
+        self.assertAlmostEqual(constr.violation, 0)
+
         self.B.save_value(np.matrix("3 0; 0 3"))
         assert not constr.value
+        self.assertAlmostEqual(constr.violation, 1)
 
         with self.assertRaises(Exception) as cm:
             (self.x >> self.y)

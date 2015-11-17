@@ -2,7 +2,6 @@ Version 1.0 (targets)
 ---------------------
 * TODO add FAQ with info about solver errors, DCP errors, adding an objective in a for loop, dot product with numpy ND arrays.
 * TODO change *args to lists.
-* TODO change OPTIMAL to SOLVED?
 * TODO separate out parts of DCPAttr and refactor so universal rules used for affine atoms.
 * TODO change size to size[0]*size[1] and shape to size.
 * TODO return 2D arrays instead of matrices.
@@ -15,10 +14,31 @@ Version 1.0 (targets)
 * TODO parameterize upper_tri (so takes elems above kth diagonal).
 * TODO replace norm with vecnorm and norm (for matrices) (see how numpy does it).
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
-* TODO add logistic_loss
+* TODO add informative errors for single constraint in problem instead of list, etc.
+* TODO sort out norms. i.e. norm(X, 1) is wrong.
+* TODO support more axis operations (norm, log_sum_exp, sum_squares)
 
-Version 0.3.1 (next release)
+Version 0.3.5 (next release)
 ----------------------------
+
+Version 0.3.4
+-------------
+* Added indexing with boolean ndarrays and lists of indices.
+
+Version 0.3.3
+-------------
+* Converted indices and slices to ints always.
+* Adding axis argument to *_entries atoms.
+
+Version 0.3.2
+-------------
+* Requires CVXcanon 0.0.21
+
+Version 0.3.1
+-------------
+* Fixed Gurobi interface.
+* Removed failing test that expected CVXOPT solver failure.
+* Added logistic function.
 
 Version 0.3.0
 -------------

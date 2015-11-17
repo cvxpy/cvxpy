@@ -1,6 +1,6 @@
 package:
   name: cvxpy
-  version: 0.3.0
+  version: 0.3.4
 
 build:
   number: 0

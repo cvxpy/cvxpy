@@ -35,7 +35,7 @@ def gm(t, x, y):
 def gm_constrs(t, x_list, p):
     """ Form the internal CXVPY constraints to form the weighted geometric mean t <= x^p.
 
-    t <= x[1]^p[1] * x[1]^p[1] * ... * x[n]^p[n]
+    t <= x[0]^p[0] * x[1]^p[1] * ... * x[n]^p[n]
 
     where x and t can either be scalar or matrix variables.
 

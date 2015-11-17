@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.constraint import Constraint
+import numpy as np
 
 class LeqConstraint(u.Canonical, Constraint):
     OP_NAME = "<="
@@ -117,7 +118,20 @@ class LeqConstraint(u.Canonical, Constraint):
         if self._expr.value is None:
             return None
         else:
-            return self._expr.value <= self.TOLERANCE
+            return np.all(self._expr.value <= self.TOLERANCE)
+
+    @property
+    def violation(self):
+        """How much is this constraint off by?
+
+        Returns
+        -------
+        NumPy matrix
+        """
+        if self._expr.value is None:
+            return None
+        else:
+            return np.maximum(self._expr.value, 0)
 
     # The value of the dual variable.
     @property

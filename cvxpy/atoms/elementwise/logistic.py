@@ -17,37 +17,38 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.atoms.elementwise.exp import exp
 import numpy as np
 
-class max_entries(AxisAtom):
-    """:math:`\max_{i,j}\{X_{i,j}\}`.
-    """
-    def __init__(self, x, axis=None):
-        super(max_entries, self).__init__(x, axis=axis)
+class logistic(Elementwise):
+    """:math:`\log(1 + e^{x})`
 
-    @Atom.numpy_numeric
+    This is a special case of log(sum(exp)) that is evaluates to a vector rather
+    than to a scalar which is useful for logistic regression.
+    """
+    def __init__(self, x):
+        super(logistic, self).__init__(x)
+
+    @Elementwise.numpy_numeric
     def numeric(self, values):
-        """Returns the largest entry in x.
+        """Evaluates e^x elementwise, adds 1, and takes the log.
         """
-        return values[0].max(axis=self.axis)
+        return np.logaddexp(0, values[0])
 
     def sign_from_args(self):
-        """Has the same sign as the argument.
+        """Always positive.
         """
-        return self.args[0]._dcp_attr.sign
+        return u.Sign.POSITIVE
 
     def func_curvature(self):
-        """Default curvature is convex.
+        """Default curvature.
         """
         return u.Curvature.CONVEX
 
     def monotonicity(self):
-        """Increasing in its arguments.
-        """
         return [u.monotonicity.INCREASING]
 
     @staticmethod
@@ -68,20 +69,14 @@ class max_entries(AxisAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        axis = data[0]
-        if axis is None:
-            t = lu.create_var((1, 1))
-            promoted_t = lu.promote(t, arg_objs[0].size)
-        elif axis == 0:
-            t = lu.create_var((1, arg_objs[0].size[1]))
-            const_size = (arg_objs[0].size[0], 1)
-            ones = lu.create_const(np.ones(const_size), const_size)
-            promoted_t = lu.mul_expr(ones, t, arg_objs[0].size)
-        else: # axis == 1
-            t = lu.create_var((arg_objs[0].size[0], 1))
-            const_size = (1, arg_objs[0].size[1])
-            ones = lu.create_const(np.ones(const_size), const_size)
-            promoted_t = lu.rmul_expr(t, ones, arg_objs[0].size)
+        x = arg_objs[0]
+        t = lu.create_var(size)
 
-        constraints = [lu.create_leq(arg_objs[0], promoted_t)]
-        return (t, constraints)
+        # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1
+        obj0, constr0 = exp.graph_implementation([lu.neg_expr(t)], size)
+        obj1, constr1 = exp.graph_implementation([lu.sub_expr(x, t)], size)
+        lhs = lu.sum_expr([obj0, obj1])
+        ones = lu.create_const(np.mat(np.ones(size)), size)
+        constr = constr0 + constr1 + [lu.create_leq(lhs, ones)]
+
+        return (t, constr)

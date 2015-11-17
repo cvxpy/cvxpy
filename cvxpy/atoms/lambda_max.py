@@ -34,13 +34,13 @@ class lambda_max(Atom):
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns the smallest eigenvalue of A.
+        """Returns the largest eigenvalue of A.
 
         Requires that A be symmetric.
         """
         if not (values[0].T == values[0]).all():
             raise ValueError("lambda_max called on a non-symmetric matrix.")
-        lo = hi = self.size[0]
+        lo = hi = self.args[0].size[0]-1
         return LA.eigvalsh(values[0], eigvals=(lo, hi))
 
     def shape_from_args(self):

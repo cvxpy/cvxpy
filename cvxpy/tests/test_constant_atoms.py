@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Tests atoms by calling them with a constant value.
 from cvxpy.settings import (SCS, ECOS, CVXOPT, GLPK, ELEMENTAL,
-    OPTIMAL, ROBUST_KKTSOLVER)
+    OPTIMAL, OPTIMAL_INACCURATE, ROBUST_KKTSOLVER, MOSEK)
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
@@ -45,6 +45,11 @@ SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
 if ELEMENTAL in installed_solvers():
     SOLVERS_TO_TRY.append(ELEMENTAL)
     SOLVER_TO_TOL[ELEMENTAL] = 1e-7
+
+# Test MOSEK if installed.
+if MOSEK in installed_solvers():
+    SOLVERS_TO_TRY.append(MOSEK)
+    SOLVER_TO_TOL[MOSEK] = 1e-6
 
 v = cvxopt.matrix([-1,2,-2], tc='d')
 v_np = np.matrix([-1.,2,-2]).T
@@ -73,9 +78,17 @@ atoms = [
         (lambda x: kron(np.matrix("1 2; 3 4"), x), (4, 4), [np.matrix("5 6; 7 8")],
             Constant(np.kron(np.matrix("1 2; 3 4").A, np.matrix("5 6; 7 8").A))),
         (lambda_max, (1, 1), [ [[2,0],[0,1]] ], Constant([2])),
+        (lambda_max, (1, 1), [ [[2,0,0],[0,3,0],[0,0,1]] ], Constant([3])),
         (lambda_max, (1, 1), [ [[5,7],[7,-3]] ], Constant([9.06225775])),
         (lambda x: lambda_sum_largest(x, 2), (1, 1), [ [[1, 2, 3], [2,4,5], [3,5,6]] ], Constant([11.51572947])),
         (log_sum_exp, (1, 1), [ [[5, 7], [0, -3]] ], Constant([7.1277708268])),
+        (logistic, (2, 2),
+         [
+             [[math.log(5), math.log(7)],
+              [0,           math.log(0.3)]] ],
+         Constant(
+             [[math.log(6), math.log(8)],
+              [math.log(2), math.log(1.3)]])),
         (matrix_frac, (1, 1), [ [1, 2, 3],
                             [[1, 0, 0],
                              [0, 1, 0],
@@ -89,6 +102,8 @@ atoms = [
             Constant([[5,4],[0,2]])),
         (max_entries, (1, 1), [ [[-5,2],[-3,1]] ], Constant([2])),
         (max_entries, (1, 1), [ [-5,-10] ], Constant([-5])),
+        (lambda x: max_entries(x, axis=0), (1, 2), [ [[-5,2],[-3,1]] ], Constant([2, 1]).T),
+        (lambda x: max_entries(x, axis=1), (2, 1), [ [[-5,2],[-3,1]] ], Constant([-3, 2])),
         (lambda x: norm(x, 2), (1, 1), [v], Constant([3])),
         (lambda x: norm(x, "fro"), (1, 1), [ [[-1, 2],[3, -4]] ],
             Constant([5.47722557])),
@@ -139,6 +154,9 @@ atoms = [
         (lambda x: norm(x, 2), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([22.368559552680377])),
         (lambda x: scalene(x, 2, 3), (2, 2), [ [[-5,2],[-3,1]] ], Constant([[15,4],[9,2]])),
         (square, (2, 2), [ [[-5,2],[-3,1]] ], Constant([[25,4],[9,1]])),
+        (sum_entries, (1,1), [ [[-5,2],[-3,1]] ], Constant(-5)),
+        (lambda x: sum_entries(x, axis=0), (1,2), [ [[-5,2],[-3,1]] ], Constant([[-3], [-2]])),
+        (lambda x: sum_entries(x, axis=1), (2,1), [ [[-5,2],[-3,1]] ], Constant([-8, 3])),
         (lambda x: (x + Constant(0))**2, (2, 2), [ [[-5,2],[-3,1]] ], Constant([[25,4],[9,1]])),
         (lambda x: sum_largest(x, 3), (1, 1), [ [1,2,3,4,5] ], Constant([5+4+3])),
         (lambda x: sum_largest(x, 3), (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([9+10+11])),
@@ -152,6 +170,11 @@ atoms = [
             Constant([LA.norm([7, -1, -8, 2, -10, 7])])),
         (tv, (1, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([4*math.sqrt(10)])),
         (upper_tri, (3, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([6, 9, 10])),
+        # Advanced indexing.
+        (lambda x: x[[1,2], [0,2]], (2, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([4, 11])),
+        (lambda x: x[[1,2]], (2, 1), [ [[3,4,5],[6,7,8]] ], Constant([[4,5], [7,8]])),
+        (lambda x: x[np.array([[3,4,5],[6,7,8]]).T % 2 == 0], (2, 1), [ [[3,4,5],[6,7,8]] ],
+                     Constant([6,4,8])),
     ], Minimize),
     ([
         (entr, (2, 2), [ [[1, math.e],[math.e**2, 1.0/math.e]] ],
@@ -230,7 +253,7 @@ def run_atom(atom, problem, obj_val, solver):
             result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
         else:
             result = problem.solve(solver=solver, verbose=False)
-        if problem.status is OPTIMAL:
+        if problem.status in [OPTIMAL, OPTIMAL_INACCURATE]:
             print(result)
             print(obj_val)
             assert( -tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance )

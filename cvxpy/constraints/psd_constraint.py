@@ -52,8 +52,23 @@ class PSDConstraint(LeqConstraint):
             return None
         else:
             mat = self._expr.value
-            w,_ = np.linalg.eig(mat + mat.T)
-            return w.min() >= -self.TOLERANCE
+            w, _ = np.linalg.eig(mat + mat.T)
+            return w.min()/2 >= -self.TOLERANCE
+
+    @property
+    def violation(self):
+        """How much is this constraint off by?
+
+        Returns
+        -------
+        float
+        """
+        if self._expr.value is None:
+            return None
+        else:
+            mat = self._expr.value
+            w, _ = np.linalg.eig(mat + mat.T)
+            return -min(w.min()/2, 0)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

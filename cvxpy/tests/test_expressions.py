@@ -94,6 +94,12 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             a.value = [2, 1]
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Variable value.")
+
+        # Test assigning None.
+        a.value = 1
+        a.value = None
+        assert a.value is None
+
         # Vector variable.
         x = Variable(2)
         x.value = [2, 1]
@@ -219,6 +225,11 @@ class TestExpressions(BaseTest):
         # Initialize a parameter with a value.
         p = Parameter(value=10)
         self.assertEqual(p.value, 10)
+
+        # Test assigning None.
+        p.value = 10
+        p.value = None
+        assert p.value is None
 
         with self.assertRaises(Exception) as cm:
             p = Parameter(2, 1, sign="negative", value=[2,1])
@@ -558,9 +569,111 @@ class TestExpressions(BaseTest):
         self.assertEquals("x[:-1, 0]", str(x[:-1]))
 
     def test_logical_indices(self):
-        """Test indexing with logical arrays.
+        """Test indexing with boolean arrays.
         """
-        pass
+        A = np.array([[1,2,3,4], [5, 6, 7, 8], [9,10,11,12]])
+        C = Constant(A)
+
+        # Boolean array.
+        expr = C[A <= 2]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[A <= 2], expr.value)
+
+        expr = C[A % 2 == 0]
+        self.assertEquals(expr.size, (6, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[A % 2 == 0], expr.value)
+
+        # Boolean array for rows, index for columns.
+        expr = C[np.array([True,False,True]), 3]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[np.array([True,False,True]), 3], expr.value)
+
+        # Index for row, boolean array for columns.
+        expr = C[1, np.array([True,False,False,True])]
+        self.assertEquals(expr.size, (2,1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[1, np.array([True,False,False,True])],
+            expr.value)
+
+        # Boolean array for rows, slice for columns.
+        expr = C[np.array([True,True,True]), 1:3]
+        self.assertEquals(expr.size, (3, 2))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[np.array([True,True,True]), 1:3], expr.value)
+
+        # Slice for row, boolean array for columns.
+        expr = C[1:-1, np.array([True,False,True, True])]
+        self.assertEquals(expr.size, (1, 3))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[1:-1, np.array([True,False,True, True])],
+            expr.value)
+
+        # Boolean arrays for rows and columns.
+        # Not sure what this does.
+        expr = C[np.array([True,True, True]),
+                 np.array([True,False,True, True])]
+        self.assertEquals(expr.size, (3, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[np.array([True,True, True]),
+                 np.array([True,False,True, True])], expr.value)
+
+    def test_selector_list_indices(self):
+        """Test indexing with lists/ndarrays of indices.
+        """
+        A = np.array([[1,2,3,4], [5, 6, 7, 8], [9,10,11,12]])
+        C = Constant(A)
+
+        # List for rows.
+        expr = C[[1,2]]
+        self.assertEquals(expr.size, (2, 4))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[[1,2]], expr.value)
+
+        # List for rows, index for columns.
+        expr = C[[0,2], 3]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[[0,2],3], expr.value)
+
+        # Index for row, list for columns.
+        expr = C[1, [0,2]]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[1, [0,2]], expr.value)
+
+        # List for rows, slice for columns.
+        expr = C[[0,2], 1:3]
+        self.assertEquals(expr.size, (2, 2))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[[0,2],1:3], expr.value)
+
+        # Slice for row, list for columns.
+        expr = C[1:-1, [0,2]]
+        self.assertEquals(expr.size, (1, 2))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[1:-1, [0,2]], expr.value)
+
+        # Lists for rows and columns.
+        expr = C[[0,1], [1,3]]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[[0,1], [1,3]], expr.value)
+
+        # Ndarray for rows, list for columns.
+        expr = C[np.array([0,1]), [1,3]]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[np.array([0,1]), [1,3]], expr.value)
+
+        # Ndarrays for rows and columns.
+        expr = C[np.array([0,1]), np.array([1,3])]
+        self.assertEquals(expr.size, (2, 1))
+        self.assertEquals(expr.sign, u.Sign.POSITIVE_KEY)
+        self.assertItemsAlmostEqual(A[np.array([0,1]), np.array([1,3])],
+            expr.value)
 
     def test_powers(self):
         exp = self.x**2
