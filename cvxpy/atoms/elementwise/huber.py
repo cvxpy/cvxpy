@@ -22,7 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.abs import abs
-import numpy as np
+import scipy.special
 from .power import power
 from fractions import Fraction
 
@@ -47,16 +47,7 @@ class huber(Elementwise):
     def numeric(self, values):
         """Returns the huber function applied elementwise to x.
         """
-        x = values[0]
-        output = np.zeros(x.shape)
-        M = self.M.value
-        for row in range(x.shape[0]):
-            for col in range(x.shape[1]):
-                if np.abs(x[row, col]) <= M:
-                    output[row, col] = np.square(x[row, col])
-                else:
-                    output[row, col] = 2*M*np.abs(x[row, col]) - M**2
-        return output
+        return 2*scipy.special.huber(self.M.value, values[0])
 
     def sign_from_args(self):
         """Always positive.

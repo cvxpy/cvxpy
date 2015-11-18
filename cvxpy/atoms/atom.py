@@ -174,11 +174,13 @@ class Atom(Expression):
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,
                 # so it isn't None.
-                if arg.value is None and not self.is_constant():
+                arg_val = arg.value
+                if arg_val is None and not self.is_constant():
                     return None
                 else:
-                    arg_values.append(arg.value)
+                    arg_values.append(arg_val)
             result = self.numeric(arg_values)
+
         # Reduce to a scalar if possible.
         if intf.size(result) == (1, 1):
             return intf.scalar_value(result)
@@ -191,7 +193,7 @@ class Atom(Expression):
     def numpy_numeric(numeric_func):
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
-            values = [interface.const_to_matrix(v, convert_scalars=True)
+            values = [interface.const_to_matrix(v, convert_scalars=False)
                       for v in values]
             result = numeric_func(self, values)
             return intf.DEFAULT_INTF.const_to_matrix(result)

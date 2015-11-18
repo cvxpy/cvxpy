@@ -21,6 +21,7 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.reshape import reshape
+import cvxpy.interface as intf
 import cvxpy.utilities as u
 from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
@@ -43,7 +44,11 @@ class index(AffAtom):
     # Returns the index/slice into the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        return values[0][self.key]
+        if self.args[0].is_scalar():
+            return values[0]
+        else:
+            val = intf.from_1D_to_2D(values[0])
+            return val[self.key]
 
     def shape_from_args(self):
         """Returns the shape of the index expression.
