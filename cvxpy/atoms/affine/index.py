@@ -44,11 +44,7 @@ class index(AffAtom):
     # Returns the index/slice into the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        if self.args[0].is_scalar():
-            return values[0]
-        else:
-            val = intf.from_1D_to_2D(values[0])
-            return val[self.key]
+        return values[0][self.key]
 
     def shape_from_args(self):
         """Returns the shape of the index expression.

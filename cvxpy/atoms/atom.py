@@ -193,7 +193,7 @@ class Atom(Expression):
     def numpy_numeric(numeric_func):
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
-            values = [interface.const_to_matrix(v, convert_scalars=False)
+            values = [interface.const_to_matrix(v, convert_scalars=True)
                       for v in values]
             result = numeric_func(self, values)
             return intf.DEFAULT_INTF.const_to_matrix(result)
