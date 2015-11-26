@@ -61,6 +61,9 @@ MOSEK = "MOSEK"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, ELEMENTAL, MOSEK]
 
+# Parallel (meta) solver
+PARALLEL = "parallel"
+
 # Robust CVXOPT LDL KKT solver.
 ROBUST_KKTSOLVER = "robust"
 
