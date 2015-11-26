@@ -26,9 +26,23 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.problems.problem_data.problem_data import ProblemData
+# Only need to import cvxpy.transform.get_separable_problems, but this creates
+# a circular import (cvxpy.transforms imports Problem). Hence we need to import
+# cvxpy here.
+import cvxpy
 
-import warnings
+import multiprocess as multiprocessing
 import numpy as np
+from collections import namedtuple
+
+# Used in self._cached_data to check if problem's objective or constraints have
+# changed.
+CachedProblem = namedtuple('CachedProblem', ['objective', 'constraints'])
+
+# Used by pool.map to send solve result back.
+SolveResult = namedtuple(
+    'SolveResult', ['opt_value', 'status', 'primal_values', 'dual_values'])
+
 
 class Problem(u.Canonical):
     """A convex optimization problem.
@@ -58,12 +72,15 @@ class Problem(u.Canonical):
         # Cached processed data for each solver.
         self._cached_data = {}
         self._reset_cache()
+        # List of separable (sub)problems
+        self._separable_problems = None
 
     def _reset_cache(self):
         """Resets the cached data.
         """
         for solver_name in SOLVERS.keys():
             self._cached_data[solver_name] = ProblemData()
+        self._cached_data[s.PARALLEL] = CachedProblem(None, None)
 
     @property
     def value(self):
@@ -187,9 +204,92 @@ class Problem(u.Canonical):
         return SOLVERS[solver].get_problem_data(objective, constraints,
                                                 self._cached_data)
 
-    def _solve(self, solver=None, ignore_dcp=False,
-               warm_start=False, verbose=False, **kwargs):
+    def _solve(self,
+               solver=None,
+               ignore_dcp=False,
+               warm_start=False,
+               verbose=False,
+               parallel=False, **kwargs):
         """Solves a DCP compliant optimization problem.
+
+        Saves the values of primal and dual variables in the variable
+        and constraint objects, respectively.
+
+        Parameters
+        ----------
+        solver : str, optional
+            The solver to use. Defaults to ECOS.
+        ignore_dcp : bool, optional
+            Overrides the default of raising an exception if the problem is not
+            DCP.
+        warm_start : bool, optional
+            Should the previous solver result be used to warm start?
+        verbose : bool, optional
+            Overrides the default of hiding solver output.
+        parallel : bool, optional
+            If problem is separable, solve in parallel.
+        kwargs : dict, optional
+            A dict of options that will be passed to the specific solver.
+            In general, these options will override any default settings
+            imposed by cvxpy.
+
+        Returns
+        -------
+        float
+            The optimal value for the problem, or a string indicating
+            why the problem could not be solved.
+        """
+        if not self.is_dcp():
+            if ignore_dcp:
+                print("Problem does not follow DCP rules. "
+                      "Solving a convex relaxation.")
+            else:
+                raise DCPError("Problem does not follow DCP rules.")
+
+        objective, constraints = self.canonicalize()
+
+        # Solve in parallel
+        if parallel:
+            # Check if the objective or constraint has changed
+            if (objective != self._cached_data[s.PARALLEL].objective or
+                constraints != self._cached_data[s.PARALLEL].constraints):
+                self._separable_problems = cvxpy.transforms.get_separable_problems(self)
+                self._cached_data[s.PARALLEL] = CachedProblem(objective,
+                                                              constraints)
+            if len(self._separable_problems) > 1:
+                return self._parallel_solve(solver, ignore_dcp, warm_start,
+                                            verbose, **kwargs)
+
+        # Choose a solver/check the chosen solver.
+        if solver is None:
+            solver_name = Solver.choose_solver(constraints)
+            solver = SOLVERS[solver_name]
+        elif solver in SOLVERS:
+            solver = SOLVERS[solver]
+            solver.validate_solver(constraints)
+        else:
+            raise SolverError("Unknown solver.")
+
+        sym_data = solver.get_sym_data(objective, constraints,
+                                       self._cached_data)
+        # Presolve couldn't solve the problem.
+        if sym_data.presolve_status is None:
+            results_dict = solver.solve(objective, constraints,
+                                        self._cached_data, warm_start, verbose,
+                                        kwargs)
+        # Presolve determined problem was unbounded or infeasible.
+        else:
+            results_dict = {s.STATUS: sym_data.presolve_status}
+
+        self._update_problem_state(results_dict, sym_data, solver)
+        return self.value
+
+    def _parallel_solve(self,
+                        solver=None,
+                        ignore_dcp=False,
+                        warm_start=False,
+                        verbose=False, **kwargs):
+        """Solves a DCP compliant optimization problem in parallel.
 
         Saves the values of primal and dual variables in the variable
         and constraint objects, respectively.
@@ -216,37 +316,46 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-        if not self.is_dcp():
-            if ignore_dcp:
-                print ("Problem does not follow DCP rules. "
-                       "Solving a convex relaxation.")
+        def _solve_problem(problem):
+            """Solve a problem and then return the optimal value, status,
+            primal values, and dual values.
+            """
+            opt_value = problem.solve(solver=solver,
+                                      ignore_dcp=ignore_dcp,
+                                      warm_start=warm_start,
+                                      verbose=verbose,
+                                      parallel=False, **kwargs)
+            status = problem.status
+            primal_values = [var.value for var in problem.variables()]
+            dual_values = [constr.dual_value for constr in problem.constraints]
+            return SolveResult(opt_value, status, primal_values, dual_values)
+
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+        solve_results = pool.map(_solve_problem, self._separable_problems)
+        pool.close()
+        pool.join()
+        statuses = {solve_result.status for solve_result in solve_results}
+        # Check if at least one subproblem is infeasible or inaccurate
+        for status in s.INF_OR_UNB:
+            if status in statuses:
+                self._handle_no_solution(status)
+                break
+        else:
+            for subproblem, solve_result in zip(self._separable_problems,
+                                                solve_results):
+                for var, primal_value in zip(subproblem.variables(),
+                                             solve_result.primal_values):
+                    var.save_value(primal_value)
+                for constr, dual_value in zip(subproblem.constraints,
+                                              solve_results):
+                    constr.save_value(dual_value)
+            self._value = sum(solve_result.opt_value
+                              for solve_result in solve_results)
+            if s.OPTIMAL_INACCURATE in statuses:
+                self._status = s.OPTIMAL_INACCURATE
             else:
-                raise DCPError("Problem does not follow DCP rules.")
-
-        objective, constraints = self.canonicalize()
-        # Choose a solver/check the chosen solver.
-        if solver is None:
-            solver_name = Solver.choose_solver(constraints)
-            solver = SOLVERS[solver_name]
-        elif solver in SOLVERS:
-            solver = SOLVERS[solver]
-            solver.validate_solver(constraints)
-        else:
-            raise SolverError("Unknown solver.")
-
-        sym_data = solver.get_sym_data(objective, constraints,
-                                       self._cached_data)
-        # Presolve couldn't solve the problem.
-        if sym_data.presolve_status is None:
-            results_dict = solver.solve(objective, constraints,
-                                        self._cached_data,
-                                        warm_start, verbose, kwargs)
-        # Presolve determined problem was unbounded or infeasible.
-        else:
-            results_dict = {s.STATUS: sym_data.presolve_status}
-
-        self._update_problem_state(results_dict, sym_data, solver)
-        return self.value
+                self._status = s.OPTIMAL
+        return self._value
 
     def _update_problem_state(self, results_dict, sym_data, solver):
         """Updates the problem state given the solver results.
@@ -284,8 +393,7 @@ class Problem(u.Canonical):
         # Solver failed to solve.
         else:
             raise SolverError(
-                "Solver '%s' failed. Try another solver." % solver.name()
-            )
+                "Solver '%s' failed. Try another solver." % solver.name())
         self._status = results_dict[s.STATUS]
 
     def unpack_results(self, solver_name, results_dict):
@@ -350,7 +458,7 @@ class Problem(u.Canonical):
         offset = 0
         for constr in constraints:
             constr_offsets[constr.constr_id] = offset
-            offset += constr.size[0]*constr.size[1]
+            offset += constr.size[0] * constr.size[1]
         active_constraints = []
         for constr in self.constraints:
             # Ignore constraints of the wrong type.
@@ -382,11 +490,11 @@ class Problem(u.Canonical):
                     value = intf.index(result_vec, (offset, 0))
                 else:
                     value = intf.DEFAULT_INTF.zeros(rows, cols)
-                    intf.DEFAULT_INTF.block_add(value,
-                        result_vec[offset:offset + rows*cols],
-                        0, 0, rows, cols)
-                offset += rows*cols
-            else: # The variable was multiplied by zero.
+                    intf.DEFAULT_INTF.block_add(
+                        value, result_vec[offset:offset + rows * cols], 0, 0,
+                        rows, cols)
+                offset += rows * cols
+            else:  # The variable was multiplied by zero.
                 value = intf.DEFAULT_INTF.zeros(rows, cols)
             obj.save_value(value)
 
@@ -398,7 +506,7 @@ class Problem(u.Canonical):
             lines = [str(self.objective),
                      subject_to + str(self.constraints[0])]
             for constr in self.constraints[1:]:
-                lines += [len(subject_to)*" " + str(constr)]
+                lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
 
     def __repr__(self):
@@ -442,6 +550,6 @@ class Problem(u.Canonical):
     def __div__(self, other):
         if not isinstance(other, (int, float)):
             return NotImplemented
-        return Problem(self.objective * (1.0/other), self.constraints)
+        return Problem(self.objective * (1.0 / other), self.constraints)
 
     __truediv__ = __div__

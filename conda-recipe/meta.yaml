@@ -13,6 +13,7 @@ requirements:
     - python
     - numpy
     - scipy
+    - multiprocess
     - toolz
     - scs
     - ecos
@@ -23,6 +24,7 @@ requirements:
     - numpy
     - scipy
     - cvxopt
+    - multiprocess
     - toolz
     - ecos
     - scs

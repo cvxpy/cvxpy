@@ -31,9 +31,10 @@ setup(
     install_requires=["cvxopt >= 1.1.6",
                       "ecos >= 2",
                       "scs >= 1.1.3",
+                      "multiprocess",
                       "toolz",
                       "numpy >= 1.9",
                       "scipy >= 0.15",
-                      "CVXcanon >= 0.0.21"],
+                      "CVXcanon >= 0.0.22"],
     use_2to3=True,
 )
