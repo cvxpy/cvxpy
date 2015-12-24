@@ -97,13 +97,18 @@ To install CVXPY with Python 3, simply install the Python 3 version of all the p
 Windows
 -------
 
-Here is a step-by-step guide to installing CVXPY on a Windows machine.
+There are two ways to install CVXPY on Windows.
+One method uses Python(x,y), while the other uses Anaconda.
+Follow the Python(x,y) method unless you have a strong preference for Anaconda.
+
+Windows with Python(x,y)
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. If you have Python installed already, it's probably a good idea to remove it first. (Sorry!)
 
-2. Download the latest version of Python(x,y).
+2. Download the latest version of `Python(x,y) <https://python-xy.github.io/downloads.html>`_.
 
-3. Install Python(x,y). When prompted to select optional components, make sure to check cvxopt and cvxpy, as shown below.
+3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
 
   .. image:: files/windows1.png
       :scale: 100%
@@ -111,15 +116,39 @@ Here is a step-by-step guide to installing CVXPY on a Windows machine.
   .. image:: files/windows2.png
       :scale: 49%
 
-4. To test the cvxpy installation,
+4. To test the CVXPY installation,
 open Python(x,y) and launch the interactive console (highlighted button in the picture).
 This will bring up a console.
 
   .. image:: files/windows4.png
       :scale: 100%
 
-5. From the console, run "nosetests cvxpy".
+5. From the console, run ``nosetests cvxpy``.
 If all the tests pass, your installation was successful.
+
+
+Windows with Anaconda
+^^^^^^^^^^^^^^^^^^^^^
+
+1. Download and install the latest version of `Anaconda <https://www.continuum.io/downloads>`_.
+
+2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
+
+3. Open the Anaconda prompt and install CVXOPT by running the following command:
+
+  ::
+
+      conda install -c https://conda.anaconda.org/omnia cvxopt
+
+4. Install CVXPY from the Anaconda prompt by running the following command:
+
+  ::
+
+      pip install cvxpy
+
+The above method will not install SCS properly.
+If you run ``nosetests cvxpy`` many of the tests will fail because SCS is not installed.
+However, CVXPY will work so long as you don't use the SCS solver.
 
 Other Platforms
 ---------------
