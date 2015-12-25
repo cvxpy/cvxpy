@@ -115,6 +115,12 @@ class CVXOPT(Solver):
                 s.F: data[s.F],
             }
         data[s.DIMS] = copy.deepcopy(data[s.DIMS])
+        # Convert all longs to ints.
+        for key,val in data[s.DIMS].items():
+            if isinstance(val, list):
+                data[s.DIMS][key] = [int(v) for v in val]
+            else:
+                data[s.DIMS][key] = int(val)
         # User chosen KKT solver option.
         kktsolver = self.get_kktsolver_opt(solver_opts)
         # Cannot have redundant rows unless using robust LDL kktsolver.

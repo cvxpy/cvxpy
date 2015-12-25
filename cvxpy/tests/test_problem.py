@@ -491,13 +491,13 @@ class TestProblem(BaseTest):
 
     # Test vector LP problems.
     def test_vector_lp(self):
-        c = matrix([1,2])
+        c = Constant(matrix([1,2])).value
         p = Problem(Minimize(c.T*self.x), [self.x >= c])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
         self.assertItemsAlmostEqual(self.x.value, [1,2])
 
-        A = matrix([[3,5],[1,2]])
+        A = Constant(matrix([[3,5],[1,2]])).value
         I = Constant([[1,0],[0,1]])
         p = Problem(Minimize(c.T*self.x + self.a),
             [A*self.x >= [-1,1],
@@ -514,7 +514,7 @@ class TestProblem(BaseTest):
     def test_ecos_noineq(self):
         """Test ECOS with no inequality constraints.
         """
-        T = matrix(1, (2, 2))
+        T = Constant(matrix(1, (2, 2))).value
         p = Problem(Minimize(1), [self.A == T])
         result = p.solve(solver=s.ECOS)
         self.assertAlmostEqual(result, 1)
@@ -522,14 +522,14 @@ class TestProblem(BaseTest):
 
     # Test matrix LP problems.
     def test_matrix_lp(self):
-        T = matrix(1, (2, 2))
+        T = Constant(matrix(1, (2, 2))).value
         p = Problem(Minimize(1), [self.A == T])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, T)
 
-        T = matrix(2,(2,3))
-        c = matrix([3,4])
+        T = Constant(matrix(2,(2,3))).value
+        c = Constant(matrix([3,4])).value
         p = Problem(Minimize(1), [self.A >= T*self.C,
             self.A == self.B, self.C == T.T])
         result = p.solve()

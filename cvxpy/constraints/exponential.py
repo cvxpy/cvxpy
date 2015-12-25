@@ -53,7 +53,7 @@ class ExpCone(NonlinearConstraint):
         self.x = x
         self.y = y
         self.z = z
-        self.size = self.x.size
+        self.size = (int(self.x.size[0]), int(self.x.size[1]))
         super(ExpCone, self).__init__(self._solver_hook,
                                       [self.x, self.y, self.z])
 

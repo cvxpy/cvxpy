@@ -231,8 +231,8 @@ class MatrixData(object):
         -------
         Oracle function.
         """
-        rows = sum([c.size[0] * c.size[1] for c in nonlin_constr])
-        cols = self.sym_data.x_length
+        rows = int(sum([c.size[0] * c.size[1] for c in nonlin_constr]))
+        cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
         big_x = self.vec_intf.zeros(cols, 1)

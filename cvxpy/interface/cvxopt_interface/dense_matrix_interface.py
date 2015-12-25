@@ -44,7 +44,9 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
             A matrix of type self.target_matrix or a scalar.
         """
         if sp.issparse(value):
-            value = value.todense()
+            value = value.todense().astype('float64')
+        elif isinstance(value, (np.ndarray, np.matrix)):
+            value = value.astype('float64')
         return cvxopt.matrix(value, tc='d')
 
     # Return an identity matrix.
