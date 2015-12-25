@@ -140,15 +140,20 @@ Windows with Anaconda
 
       conda install -c https://conda.anaconda.org/omnia cvxopt
 
+4. Install SCS from the Anaconda prompt by running the following command:
+
+  ::
+
+      conda install -c https://conda.anaconda.org/omnia scs
+
 4. Install CVXPY from the Anaconda prompt by running the following command:
 
   ::
 
       pip install cvxpy
 
-The above method will not install SCS properly.
-If you run ``nosetests cvxpy`` many of the tests will fail because SCS is not installed.
-However, CVXPY will work so long as you don't use the SCS solver.
+5. From the console, run ``nosetests cvxpy``.
+If all the tests pass, your installation was successful.
 
 Other Platforms
 ---------------
