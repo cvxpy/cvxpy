@@ -156,4 +156,5 @@ class ExpCone(NonlinearConstraint):
                     [0.0, -1.0/z[i], y[i]/(z[i]**2)],
                 ])
             big_H[i:3*entries:entries, i:3*entries:entries] = scaling[i]*H
+
         return f, Df, big_H
