@@ -517,7 +517,9 @@ class Problem(u.Canonical):
         return Problem(-self.objective, self.constraints)
 
     def __add__(self, other):
-        if not isinstance(other, Problem):
+        if other == 0:
+            return self
+        elif not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective + other.objective,
                        list(set(self.constraints + other.constraints)))
