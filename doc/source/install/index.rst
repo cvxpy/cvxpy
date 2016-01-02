@@ -98,34 +98,8 @@ Windows
 -------
 
 There are two ways to install CVXPY on Windows.
-One method uses Python(x,y), while the other uses Anaconda.
-Follow the Python(x,y) method unless you have a strong preference for Anaconda.
-
-Windows with Python(x,y)
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-1. If you have Python installed already, it's probably a good idea to remove it first. (Sorry!)
-
-2. Download the latest version of `Python(x,y) <https://python-xy.github.io/downloads.html>`_.
-
-3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
-
-  .. image:: files/windows1.png
-      :scale: 100%
-
-  .. image:: files/windows2.png
-      :scale: 49%
-
-4. To test the CVXPY installation,
-open Python(x,y) and launch the interactive console (highlighted button in the picture).
-This will bring up a console.
-
-  .. image:: files/windows4.png
-      :scale: 100%
-
-5. From the console, run ``nosetests cvxpy``.
-If all the tests pass, your installation was successful.
-
+One method uses Anaconda, while the other uses Python(x,y).
+Follow the Anaconda method unless you have a preference for Python(x,y).
 
 Windows with Anaconda
 ^^^^^^^^^^^^^^^^^^^^^
@@ -151,6 +125,32 @@ Windows with Anaconda
   ::
 
       pip install cvxpy
+
+5. From the console, run ``nosetests cvxpy``.
+If all the tests pass, your installation was successful.
+
+
+Windows with Python(x,y)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. If you have Python installed already, it's probably a good idea to remove it first. (Sorry!)
+
+2. Download the latest version of `Python(x,y) <https://python-xy.github.io/downloads.html>`_.
+
+3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
+
+  .. image:: files/windows1.png
+      :scale: 100%
+
+  .. image:: files/windows2.png
+      :scale: 49%
+
+4. To test the CVXPY installation,
+open Python(x,y) and launch the interactive console (highlighted button in the picture).
+This will bring up a console.
+
+  .. image:: files/windows4.png
+      :scale: 100%
 
 5. From the console, run ``nosetests cvxpy``.
 If all the tests pass, your installation was successful.
