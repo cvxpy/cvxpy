@@ -3,7 +3,7 @@
 Examples
 ========
 
-These examples show many different ways to use CVXPY. The :ref:`basic` section shows how to solve some common optimization problems in CVXPY. The :ref:`applications` section contains more complex examples aimed at experts in convex optimization.
+These examples show many different ways to use CVXPY. The :ref:`basic` section shows how to solve some common optimization problems in CVXPY. The :ref:`advanced-python` and :ref:`applications` sections contains more complex examples aimed at experts in convex optimization.
 
 .. _basic:
 
