@@ -15,4 +15,5 @@ Use the following BibTeX citation:
       journal      = {Journal of Machine Learning Research},
       note         = {To appear},
       url          = {http://stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf},
+      year         = {2016},
     }
