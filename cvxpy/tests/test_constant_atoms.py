@@ -28,6 +28,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.error import SolverError
 import cvxpy.interface as intf
 import cvxopt
 import numpy as np
@@ -54,8 +55,16 @@ if MOSEK in installed_solvers():
 v = cvxopt.matrix([-1,2,-2], tc='d')
 v_np = np.matrix([-1.,2,-2]).T
 
+# Defined here to be used in KNOWN_SOLVER_ERRORS
+log_sum_exp_axis_0 = lambda x: log_sum_exp(x, axis=0)
+log_sum_exp_axis_1 = lambda x: log_sum_exp(x, axis=1)
+
 # Atom, solver pairs known to fail.
-KNOWN_SOLVER_ERRORS = []
+KNOWN_SOLVER_ERRORS = [
+    # See https://github.com/cvxgrp/cvxpy/issues/249
+    (log_sum_exp_axis_0, CVXOPT),
+    (log_sum_exp_axis_1, CVXOPT),
+]
 
 atoms = [
     ([
@@ -82,6 +91,8 @@ atoms = [
         (lambda_max, (1, 1), [ [[5,7],[7,-3]] ], Constant([9.06225775])),
         (lambda x: lambda_sum_largest(x, 2), (1, 1), [ [[1, 2, 3], [2,4,5], [3,5,6]] ], Constant([11.51572947])),
         (log_sum_exp, (1, 1), [ [[5, 7], [0, -3]] ], Constant([7.1277708268])),
+        (log_sum_exp_axis_0, (1,2), [ [[5, 7], [0, -3]] ], Constant([7.12692801, 0.04858735]).T),
+        (log_sum_exp_axis_1, (2,1), [ [[5, 7], [0, -3]] ], Constant([5.00671535, 7.0000454])),
         (logistic, (2, 2),
          [
              [[math.log(5), math.log(7)],
@@ -249,10 +260,17 @@ def run_atom(atom, problem, obj_val, solver):
     if check_solver(problem, solver):
         print("solver", solver)
         tolerance = SOLVER_TO_TOL[solver]
-        if solver == ROBUST_CVXOPT:
-            result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
-        else:
-            result = problem.solve(solver=solver, verbose=False)
+
+        try:
+            if solver == ROBUST_CVXOPT:
+                result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
+            else:
+                result = problem.solve(solver=solver, verbose=True)
+        except SolverError as e:
+            if (atom, solver) in KNOWN_SOLVER_ERRORS:
+                return
+            raise e
+
         if problem.status in [OPTIMAL, OPTIMAL_INACCURATE]:
             print(result)
             print(obj_val)
