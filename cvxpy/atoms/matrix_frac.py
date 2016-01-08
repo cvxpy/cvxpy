@@ -27,33 +27,29 @@ import scipy.sparse as sp
 from numpy import linalg as LA
 
 class matrix_frac(Atom):
-    """ x.T*P^-1*x """
-    def __init__(self, x, P):
-        super(matrix_frac, self).__init__(x, P)
+    """ tr X.T*P^-1*X """
+    def __init__(self, X, P):
+        super(matrix_frac, self).__init__(X, P)
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns x.T*P^-1*x.
+        """Returns tr X.T*P^-1*X.
         """
         # TODO raise error if not invertible?
-        x = values[0]
+        X = values[0]
         P = values[1]
-        return x.T.dot(LA.inv(P)).dot(x)
+        return (X.T.dot(LA.inv(P)).dot(X)).trace()
 
     def validate_arguments(self):
         """Checks that the dimensions of x and P match.
         """
-        x = self.args[0]
+        X = self.args[0]
         P = self.args[1]
         if P.size[0] != P.size[1]:
             raise ValueError(
                 "The second argument to matrix_frac must be a square matrix."
             )
-        elif x.size[1] != 1:
-            raise ValueError(
-                "The first argument to matrix_frac must be a column vector."
-            )
-        elif x.size[0] != P.size[0]:
+        elif X.size[0] != P.size[0]:
             raise ValueError(
                 "The arguments to matrix_frac have incompatible dimensions."
             )
@@ -96,22 +92,22 @@ class matrix_frac(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = arg_objs[0]
+        X = arg_objs[0] # n by m matrix.
         P = arg_objs[1] # n by n matrix.
-        n, _ = P.size
-        # Create a matrix with Schur complement t - x.T*P^-1*x.
-        M = lu.create_var((n + 1, n + 1))
-        t = lu.create_var((1, 1))
+        n, m = X.size
+        # Create a matrix with Schur complement T - X.T*P^-1*X.
+        M = lu.create_var((n + m, n + m))
+        T = lu.create_var((m, m))
         constraints = []
         # Fix M using the fact that P must be affine by the DCP rules.
         # M[0:n, 0:n] == P.
         index.block_eq(M, P, constraints,
                        0, n, 0, n)
-        # M[0:n, n:n+1] == x
-        index.block_eq(M, x, constraints,
-                       0, n, n, n+1)
-        # M[n:n+1, n:n+1] == t
-        index.block_eq(M, t, constraints,
-                       n, n+1, n, n+1)
+        # M[0:n, n:n+m] == X
+        index.block_eq(M, X, constraints,
+                       0, n, n, n+m)
+        # M[n:n+m, n:n+m] == T
+        index.block_eq(M, T, constraints,
+                       n, n+m, n, n+m)
         # Add SDP constraint.
-        return (t, constraints + [SDP(M)])
+        return (lu.trace(T), constraints + [SDP(M)])

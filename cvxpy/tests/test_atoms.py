@@ -274,11 +274,6 @@ class TestAtoms(BaseTest):
             "The second argument to matrix_frac must be a square matrix.")
 
         with self.assertRaises(Exception) as cm:
-            matrix_frac(self.A, self.A)
-        self.assertEqual(str(cm.exception),
-            "The first argument to matrix_frac must be a column vector.")
-
-        with self.assertRaises(Exception) as cm:
             matrix_frac(Variable(3), self.A)
         self.assertEqual(str(cm.exception),
             "The arguments to matrix_frac have incompatible dimensions.")
