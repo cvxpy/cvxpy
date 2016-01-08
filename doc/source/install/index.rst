@@ -3,6 +3,8 @@
 Install Guide
 =============
 
+**To update CVXPY, first update NumPy and SciPy separately. Simply running** ``pip install --upgrade cvxpy`` **can cause errors, especially if you're using Anaconda.**
+
 Mac OS X
 --------
 

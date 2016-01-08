@@ -129,10 +129,11 @@ Use the following BibTeX citation:
 
 ::
 
-    @misc{cvxpy,
-      author       = {Steven Diamond and Eric Chu and Stephen Boyd},
-      title        = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization, version 0.2},
-      howpublished = {\url{http://cvxpy.org/}},
-      month        = may,
-      year         = 2014
+    @article{cvxpy,
+      author       = {Steven Diamond and Stephen Boyd},
+      title        = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization},
+      journal      = {Journal of Machine Learning Research},
+      note         = {To appear},
+      url          = {http://stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf},
+      year         = {2016},
     }
