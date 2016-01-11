@@ -26,9 +26,11 @@ from cvxpy.problems.solvers.scs_intf import SCS
 from cvxpy.problems.solvers.gurobi_intf import GUROBI
 from cvxpy.problems.solvers.elemental_intf import Elemental
 from cvxpy.problems.solvers.mosek_intf import MOSEK
+from cvxpy.problems.solvers.julia_opt_intf import JuliaOpt
 
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
-               GLPK_MI(), SCS(), GUROBI(), Elemental(), MOSEK()]
+               GLPK_MI(), SCS(), GUROBI(), Elemental(), MOSEK(),
+               JuliaOpt()]
 SOLVERS = {solver.name():solver for solver in solver_intf}
 
 def installed_solvers():

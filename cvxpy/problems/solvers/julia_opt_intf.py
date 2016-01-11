@@ -33,8 +33,8 @@ class JuliaOpt(ECOS):
     MIP_CAPABLE = True
 
     # Map of JuliaOpt status to CVXPY status.
-    STATUS_MAP = {"Solved": s.OPTIMAL,
-                  "Solved/Inaccurate": s.OPTIMAL_INACCURATE,
+    STATUS_MAP = {"Optimal": s.OPTIMAL,
+                  "Optimal/Inaccurate": s.OPTIMAL_INACCURATE,
                   "Unbounded": s.UNBOUNDED,
                   "Unbounded/Inaccurate": s.UNBOUNDED_INACCURATE,
                   "Infeasible": s.INFEASIBLE,
@@ -99,27 +99,34 @@ class JuliaOpt(ECOS):
         solver_opts["verbose"] = verbose
         # Description of variables.
         var_len = data[s.C].size
-        types = np.ndarray([cmpb.MPBFREECONE]*var_len)
-        lengths = np.ones(var_len)
+        types = [cmpb.MPBFREECONE]
+        lengths = [var_len]
         indices = np.arange(var_len)
-        varcones = cmpb.MPBCones(types, lengths, indices)
+        var_cones = cmpb.MPBCones(types, lengths, indices)
         # Description of cone constraints.
         constr_len = data[s.B].size
         dims = data[s.DIMS]
-        types = [cmpb.MPBZEROCONE]*dims[s.EQ_DIM]
-        types += [cmpb.MPBNONPOSCONE]*dims[s.LEQ_DIM]
-        lengths = [1]*(dims[s.EQ_DIM] + dims[s.LEQ_DIM])
+        types = [cmpb.MPBZEROCONE, cmpb.MPBNONNEGCONE]
+        lengths = [dims[s.EQ_DIM], dims[s.LEQ_DIM]]
         for soc_len in dims[s.SOC_DIM]:
             types.append(cmpb.MPBSOC)
             lengths.append(soc_len)
         types += [cmpb.MPBEXPPRIMAL]*dims[s.EXP_DIM]
         lengths += [3]*dims[s.EXP_DIM]
         indices = np.arange(constr_len)
-        varcones = cmpb.MPBCones(types, lengths, indices)
+        constr_cones = cmpb.MPBCones(types, lengths, indices)
         # Create solver object.
-        model = MPBModel(solver_opts["package"], solver_opts["solver_str"],
-                 data[s.C], data[s.A], data[s.B], constrcones, varcones)
-        results_dict = cmpb.solve(scs_args, data[s.DIMS], **solver_opts)
+        Acoo = data[s.A].tocoo()
+        model = cmpb.MPBModel(solver_opts["package"], solver_opts["solver_str"],
+                 data[s.C], Acoo, data[s.B], constr_cones, var_cones)
+        # Solve problem.
+        model.optimize()
+        # Collect results.
+        results_dict = {}
+        results_dict["status"] = model.getstatus()
+        results_dict["pobj"] = model.getproperty("objval")
+        results_dict["x"] = model.getsolution()
+        results_dict["y"] = model.getdual()
         return self.format_results(results_dict, data, cached_data)
 
     def format_results(self, results_dict, data, cached_data):
@@ -141,10 +148,10 @@ class JuliaOpt(ECOS):
         """
         dims = data[s.DIMS]
         new_results = {}
-        status = self.STATUS_MAP[results_dict["info"]["status"]]
+        status = self.STATUS_MAP[results_dict["status"]]
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
-            primal_val = results_dict["info"]["pobj"]
+            primal_val = results_dict["pobj"]
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict["x"]
             new_results[s.EQ_DUAL] = results_dict["y"][:dims[s.EQ_DIM]]
