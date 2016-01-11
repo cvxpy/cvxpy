@@ -129,7 +129,7 @@ class TestSolvers(BaseTest):
             int_var = Int()
             prob = Problem(Minimize(norm(self.x, 1)),
                         [self.x == bool_var, bool_var == 0])
-            prob.solve(solver = GLPK_MI)
+            prob.solve(solver = GLPK_MI, verbose=True)
             self.assertAlmostEqual(prob.value, 0)
             self.assertAlmostEqual(bool_var.value, 0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
@@ -143,7 +143,7 @@ class TestSolvers(BaseTest):
                             int_var == 3*bool_var,
                             int_var == 3]
             prob = Problem(objective, constraints)
-            prob.solve(solver = GLPK_MI)
+            prob.solve(solver = GLPK_MI, verbose=True)
             self.assertAlmostEqual(prob.value, -9)
             self.assertAlmostEqual(int_var.value, 3)
             self.assertAlmostEqual(bool_var.value, 1)
