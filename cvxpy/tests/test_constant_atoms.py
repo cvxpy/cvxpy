@@ -147,6 +147,8 @@ atoms = [
         (pnorm, (1, 1), [[1, 2, 3]], Constant([3.7416573867739413])),
         (lambda x: pnorm(x, 1), (1, 1), [[1.1, 2, -3]], Constant([6.1])),
         (lambda x: pnorm(x, 2), (1, 1), [[1.1, 2, -3]], Constant([3.7696153649941531])),
+        (lambda x: pnorm(x, 2, axis=0), (1, 2), [ [[1,2],[3,4]] ], Constant([math.sqrt(5), 5.]).T),
+        (lambda x: pnorm(x, 2, axis=1), (2, 1), [ [[1,2],[4,5]] ], Constant([math.sqrt(17), math.sqrt(29)])),
         (lambda x: pnorm(x, 'inf'), (1, 1), [[1.1, 2, -3]], Constant([3])),
         (lambda x: pnorm(x, 3), (1, 1), [[1.1, 2, -3]], Constant([3.3120161866074733])),
         (lambda x: pnorm(x, 5.6), (1, 1), [[1.1, 2, -3]], Constant([3.0548953718931089])),

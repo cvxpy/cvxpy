@@ -18,15 +18,17 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.soc_elemwise import SOC_Elemwise
 from fractions import Fraction
 
 
-class pnorm(Atom):
+class pnorm(AxisAtom):
     r"""The vector p-norm.
 
     If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
@@ -85,12 +87,15 @@ class pnorm(Atom):
     max_denom : int
         The maximum denominator considered in forming a rational approximation for ``p``.
 
+    axis : 0 or 1
+           The axis to apply the norm to.
+
     Returns
     -------
     Expression
         An Expression representing the norm.
     """
-    def __init__(self, x, p=2, max_denom=1024):
+    def __init__(self, x, p=2, axis=None, max_denom=1024):
         p_old = p
         if p in ('inf', 'Inf', np.inf):
             self.p = np.inf
@@ -105,7 +110,7 @@ class pnorm(Atom):
         else:
             raise ValueError('Invalid p: {}'.format(p))
 
-        super(pnorm, self).__init__(x)
+        super(pnorm, self).__init__(x, axis=axis)
 
         if self.p == np.inf:
             self.approx_error = 0
@@ -117,7 +122,11 @@ class pnorm(Atom):
     def numeric(self, values):
         """Returns the p-norm of x.
         """
-        values = np.array(values[0]).flatten()
+
+        if self.axis is None:
+            values = np.array(values[0]).flatten()
+        else:
+            values = np.array(values[0])
 
         if self.p < 1 and np.any(values < 0):
             return -np.inf
@@ -125,13 +134,13 @@ class pnorm(Atom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        return np.linalg.norm(values, float(self.p))
+        return np.linalg.norm(values, float(self.p), axis=self.axis, keepdims=True)
 
-
-    def shape_from_args(self):
-        """Resolves to a scalar.
-        """
-        return u.Shape(1, 1)
+    def validate_arguments(self):
+        super(pnorm, self).validate_arguments()
+        if self.axis is not None and self.p != 2:
+            raise ValueError(
+                "The axis parameter is only supported for p=2.")
 
     def sign_from_args(self):
         """Always positive.
@@ -156,7 +165,7 @@ class pnorm(Atom):
 
 
     def get_data(self):
-        return [self.p]
+        return [self.p, self.axis]
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
@@ -247,13 +256,29 @@ class pnorm(Atom):
 
         """
         p = data[0]
+        axis = data[1]
         x = arg_objs[0]
         t = lu.create_var((1, 1))
         constraints = []
 
         # first, take care of the special cases of p = 2, inf, and 1
         if p == 2:
-            return t, [SOC(t, [x])]
+            if axis is None:
+                return t, [SOC(t, [x])]
+
+            elif axis == 0:
+                size = (1, x.size[1])
+                t = lu.create_var(size)
+                return t, [SOC_Elemwise(
+                    t, [lu.index(x, size, (slice(i, i+1), slice(0, x.size[1])))
+                        for i in range(x.size[0])])]
+
+            else:  # axis == 1
+                size = (x.size[0], 1)
+                t = lu.create_var(size)
+                return t, [SOC_Elemwise(
+                    t, [lu.index(x, size, (slice(0, x.size[0]), slice(i, i+1)))
+                        for i in xrange(x.size[1])])]
 
         if p == np.inf:
             t_ = lu.promote(t, x.size)
@@ -289,4 +314,3 @@ class pnorm(Atom):
         return t, constraints
 
         # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
-
