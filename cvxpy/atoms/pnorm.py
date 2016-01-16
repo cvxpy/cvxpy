@@ -288,7 +288,7 @@ class pnorm(AxisAtom):
                 t = lu.create_var(size)
                 return t, [SOC_Elemwise(
                     t, [lu.index(x, size, (slice(0, x.size[0]), slice(i, i+1)))
-                        for i in xrange(x.size[1])])]
+                        for i in range(x.size[1])])]
 
         if p == np.inf:
             t_ = lu.promote(t, x.size)
