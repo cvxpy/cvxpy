@@ -134,7 +134,17 @@ class pnorm(AxisAtom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        return np.linalg.norm(values, float(self.p), axis=self.axis, keepdims=True)
+        retval = np.linalg.norm(values, float(self.p), axis=self.axis)
+
+        # NOTE: workaround for NumPy <=1.9 and no keepdims for norm()
+        if self.axis is not None:
+            if self.axis == 0:
+                retval = np.reshape(retval, (1, self.args[0].size[1]))
+            else:  # self.axis == 1:
+                retval = np.reshape(retval, (self.args[0].size[0], 1))
+
+        return retval
+
 
     def validate_arguments(self):
         super(pnorm, self).validate_arguments()
