@@ -84,7 +84,7 @@ Can I use SciPy sparse matrices with CVXPY?
 -------------------------------------------
 Yes, though you need to be careful.
 SciPy sparse matrices do not support operator overloading to the extent needed by CVXPY.
-(See `this Github issue <https://github.com/scipy/scipy/issues/4819>`_ for details.)
+(See `this Github issue <https://github.com/scipy/scipy/issues/4819>`__ for details.)
 You can wrap a SciPy sparse matrix as a CVXPY constant, however, and then use it normally with CVXPY:
 
 .. code:: python
@@ -110,13 +110,13 @@ Create one variable with each desired property, and then set them all equal by a
 How do I create complex variables?
 ----------------------------------
 You must represent complex variables using real variables,
-as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/191>`_.
+as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/191>`__.
 We hope to add complex variables soon.
 
 How do I create variables with more than 2 dimensions?
 ------------------------------------------------------
 You must mimic the extra dimensions using a dict,
-as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/198>`_.
+as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/198>`__.
 
 How does CVXPY work?
 --------------------

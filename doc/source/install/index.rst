@@ -11,6 +11,11 @@ Mac OS X
 The following instructions assume you already have Python installed.
 CVXPY supports both Python 2 and Python 3.
 
+We recommend using `Anaconda`_  rather than the Python that comes with the Mac
+and installing NumPy and SciPy through `Anaconda`_ (i.e., ``conda install numpy scipy``).
+But it is not necessary to have `Anaconda`_ to install CVXPY,
+and the instructions below assume you do not have `Anaconda`_.
+
 1. Install the Command Line Tools for Xcode.
 
    Download from the `Apple developer site <http://developer.apple.com/downloads>`_.
@@ -41,6 +46,10 @@ Ubuntu 14.04
 
 The following instructions are for installing CVXPY with Python 2.
 To install CVXPY with Python 3, simply install the Python 3 version of all the packages.
+
+We recommend using `Anaconda`_  and installing NumPy and SciPy through `Anaconda`_ (i.e., ``conda install numpy scipy``).
+But it is not necessary to have `Anaconda`_ to install CVXPY,
+and the instructions below assume you do not have `Anaconda`_.
 
 1. Make sure ``apt-get`` is up-to-date.
 
@@ -132,7 +141,7 @@ If all the tests pass, your installation was successful.
 Windows with Anaconda
 ^^^^^^^^^^^^^^^^^^^^^
 
-1. Download and install the latest version of `Anaconda <https://www.continuum.io/downloads>`_.
+1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_.
 
 2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
 
