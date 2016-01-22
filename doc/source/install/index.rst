@@ -12,7 +12,7 @@ The following instructions assume you already have Python installed.
 CVXPY supports both Python 2 and Python 3.
 
 We recommend using `Anaconda`_  rather than the Python that comes with the Mac
-and installing NumPy and SciPy through `Anaconda`_ (i.e., ``conda install numpy scipy``).
+and installing NumPy and SciPy through `Anaconda`_ (i.e., ``conda install pip numpy scipy``).
 But it is not necessary to have `Anaconda`_ to install CVXPY,
 and the instructions below assume you do not have `Anaconda`_.
 
@@ -47,7 +47,7 @@ Ubuntu 14.04
 The following instructions are for installing CVXPY with Python 2.
 To install CVXPY with Python 3, simply install the Python 3 version of all the packages.
 
-We recommend using `Anaconda`_  and installing NumPy and SciPy through `Anaconda`_ (i.e., ``conda install numpy scipy``).
+We recommend using `Anaconda`_  and installing NumPy and SciPy through `Anaconda`_ (i.e., ``conda install pip numpy scipy``).
 But it is not necessary to have `Anaconda`_ to install CVXPY,
 and the instructions below assume you do not have `Anaconda`_.
 
