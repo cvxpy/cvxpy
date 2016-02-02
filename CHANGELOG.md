@@ -18,8 +18,12 @@ Version 1.0 (targets)
 * TODO sort out norms. i.e. norm(X, 1) is wrong.
 * TODO support more axis operations (norm, log_sum_exp, sum_squares)
 
-Version 0.3.6 (next release)
+Version 0.3.7 (next release)
 ----------------------------
+
+Version 0.3.6
+-------------
+* Fixed bug with DCP attributes of partial optimize.
 
 Version 0.3.5
 -------------

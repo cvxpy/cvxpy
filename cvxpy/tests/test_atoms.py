@@ -696,6 +696,21 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
             "The first argument to kron must be constant.")
 
+    def test_partial_optimize_dcp(self):
+        """Test DCP properties of partial optimize.
+        """
+        # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
+        dims = 3
+        x, t = Variable(dims), Variable(dims)
+        xval = [-5]*dims
+        p2 = Problem(cvxpy.Minimize(sum_entries(t)), [-t<=x, x<=t])
+        g = cvxpy.partial_optimize(p2, [t], [x])
+        self.assertEquals(g.curvature, u.Curvature.CONVEX_KEY)
+
+        p2 = Problem(cvxpy.Maximize(sum_entries(t)), [-t<=x, x<=t])
+        g = cvxpy.partial_optimize(p2, [t], [x])
+        self.assertEquals(g.curvature, u.Curvature.CONCAVE_KEY)
+
     # Test the partial_optimize atom.
     def test_partial_optimize_eval_1norm(self):
         # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
