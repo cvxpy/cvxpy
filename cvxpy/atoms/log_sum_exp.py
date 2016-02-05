@@ -89,7 +89,7 @@ class log_sum_exp(AxisAtom):
             expr = lu.sub_expr(x, prom_t)
             obj, constraints = exp.graph_implementation([expr], x.size)
 
-            const_size = (1, x.size[1])
+            const_size = (1, x.size[0])
             ones = lu.create_const(np.ones(const_size), const_size)
             obj = lu.mul_expr(ones, obj, size)
 
@@ -100,10 +100,11 @@ class log_sum_exp(AxisAtom):
             expr = lu.sub_expr(x, prom_t)
             obj, constraints = exp.graph_implementation([expr], x.size)
 
-            const_size = (x.size[0], 1)
+            const_size = (x.size[1], 1)
             ones = lu.create_const(np.ones(const_size), const_size)
             obj = lu.rmul_expr(obj, ones, size)
 
         ones = lu.create_const(np.ones(size), size)
         constraints += [lu.create_leq(obj, ones)]
+
         return (t, constraints)
