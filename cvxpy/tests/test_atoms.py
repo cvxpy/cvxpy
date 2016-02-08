@@ -717,27 +717,35 @@ class TestAtoms(BaseTest):
         dims = 3
         x, t = Variable(dims), Variable(dims)
         xval = [-5]*dims
-        p1 = Problem(Minimize(sum_entries(t)), [-t<=xval, xval<=t])
+        p1 = Problem(cvxpy.Minimize(sum_entries(t)), [-t<=xval, xval<=t])
         p1.solve()
 
         # Minimize the 1-norm via partial_optimize.
-        p2 = Problem(Minimize(sum_entries(t)), [-t<=x, x<=t])
+        p2 = Problem(cvxpy.Minimize(sum_entries(t)), [-t<=x, x<=t])
         g = cvxpy.partial_optimize(p2, [t], [x])
-        p3 = Problem(Minimize(g), [x == xval])
+        p3 = Problem(cvxpy.Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
+
+        # Minimize the 1-norm using maximize.
+        p2 = Problem(cvxpy.Maximize(sum_entries(-t)), [-t<=x, x<=t])
+        g = cvxpy.partial_optimize(p2, opt_vars=[t])
+        p3 = Problem(cvxpy.Maximize(g), [x == xval])
+        p3.solve()
+        self.assertAlmostEqual(p1.value, -p3.value)
 
         # Try leaving out args.
 
         # Minimize the 1-norm via partial_optimize.
+        p2 = Problem(cvxpy.Minimize(sum_entries(t)), [-t<=x, x<=t])
         g = cvxpy.partial_optimize(p2, opt_vars=[t])
-        p3 = Problem(Minimize(g), [x == xval])
+        p3 = Problem(cvxpy.Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
         # Minimize the 1-norm via partial_optimize.
         g = cvxpy.partial_optimize(p2, dont_opt_vars=[x])
-        p3 = Problem(Minimize(g), [x == xval])
+        p3 = Problem(cvxpy.Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 

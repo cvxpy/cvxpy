@@ -18,8 +18,12 @@ Version 1.0 (targets)
 * TODO sort out norms. i.e. norm(X, 1) is wrong.
 * TODO support more axis operations (norm, log_sum_exp, sum_squares)
 
-Version 0.3.7 (next release)
+Version 0.3.8 (next release)
 ----------------------------
+
+Version 0.3.7
+-------------
+* Fixed bug where partial optimize didn't work with maximize objective.
 
 Version 0.3.6
 -------------

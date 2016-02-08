@@ -203,4 +203,9 @@ class PartialProblem(Expression):
         -------
             A tuple of (affine expression, [constraints]).
         """
-        return self._prob.canonical_form
+        # Canonical form for objective and problem switches from minimize
+        # to maximize.
+        obj, constrs = self._prob.objective.args[0].canonical_form
+        for cons in self._prob.constraints:
+            constrs += cons.canonical_form[1]
+        return (obj, constrs)
