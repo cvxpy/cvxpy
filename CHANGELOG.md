@@ -24,6 +24,7 @@ Version 0.3.8 (next release)
 Version 0.3.7
 -------------
 * Fixed bug where partial optimize didn't work with maximize objective.
+* log_sum_exp axis now works for rectangular matrices.
 
 Version 0.3.6
 -------------
