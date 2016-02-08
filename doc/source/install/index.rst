@@ -235,6 +235,12 @@ CVXPY supports the Elemental solver.
 Simply install Elemental such that you can ``import El`` in Python.
 See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
 
+Install with Cbc (Clp, Cgl) support
+-----------------------------------
+CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
+Simply install cylp (you will need the Cbc sources which includes Cgl; available `here <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
+See the `cylp <http://mpy.github.io/CyLPdoc/>`_ documentation for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
