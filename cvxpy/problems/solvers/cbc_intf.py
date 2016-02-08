@@ -169,67 +169,83 @@ class CBC(Solver):
                 cbcModel.logLevel = 0
 
             # Add cuts if desired
-            if "GomoryCuts" in solver_opts:
+            if "GomoryCuts" in solver_opts["solver_opts"]:
+                print 'add gomory'
                 from cylp.cy.CyCgl import CyCglGomory
                 gom = CyCglGomory()
                 cbcModel.addCutGenerator(gom, name="Gomory")
-            if "MIRCuts" in solver_opts:
+            if "MIRCuts" in solver_opts["solver_opts"]:
+                print 'add mir'
                 from cylp.cy.CyCgl import CyCglMixedIntegerRounding
                 mir = CyCglMixedIntegerRounding()
                 cbcModel.addCutGenerator(mir, name="MIR")
-            if "MIRCuts2" in solver_opts:
+            if "MIRCuts2" in solver_opts["solver_opts"]:
+                print 'add mir2'
                 from cylp.cy.CyCgl import CyCglMixedIntegerRounding2
                 mir = CyCglMixedIntegerRounding2()
                 cbcModel.addCutGenerator(mir, name="MIR2")
-            if "TwoMIRCuts" in solver_opts:
+            if "TwoMIRCuts" in solver_opts["solver_opts"]:
+                print 'add 2mir'
                 from cylp.cy.CyCgl import CyCglTwomir
                 mir = CyCglTwomir()
                 cbcModel.addCutGenerator(mir, name="Two-MIR")
-            if "ResidualCapacityCuts" in solver_opts:
+            if "ResidualCapacityCuts" in solver_opts["solver_opts"]:
+                print 'add rescap'
                 from cylp.cy.CyCgl import CyCglResidualCapacity
                 rca = CyCglResidualCapacity()
-                cbcModel.addCutGenerator(rca, name="ResidualCapacity") 
-            if "KnapsackCuts" in solver_opts:
+                cbcModel.addCutGenerator(rca, name="ResidualCapacity")
+            if "KnapsackCuts" in solver_opts["solver_opts"]:
+                print 'add kanpsack'
                 from cylp.cy.CyCgl import CyCglKnapsackCover
                 kna = CyCglKnapsackCover()
                 cbcModel.addCutGenerator(kna, name="Knapsack")
-            if "FlowCoverCuts" in solver_opts:
+            if "FlowCoverCuts" in solver_opts["solver_opts"]:
+                print 'add flow-cover'
                 from cylp.cy.CyCgl import CyCglFlowCover
                 flo = CyCglFlowCover()
                 cbcModel.addCutGenerator(flo, name="FlowCover")
-            if "CliqueCuts" in solver_opts:
+            if "CliqueCuts" in solver_opts["solver_opts"]:
+                print 'add clique'
                 from cylp.cy.CyCgl import CyCglClique
                 cli = CyCglClique()
                 cbcModel.addCutGenerator(cli, name="Clique")
-            if "LiftProjectCuts" in solver_opts:
+            if "LiftProjectCuts" in solver_opts["solver_opts"]:
+                print 'add lift'
                 from cylp.cy.CyCgl import CyCglLiftAndProject
                 lap = CyCglLiftAndProject()
                 cbcModel.addCutGenerator(lap, name="Lift-and-Project")
-            if "AllDifferentCuts" in solver_opts:
+            if "AllDifferentCuts" in solver_opts["solver_opts"]:
+                print 'add alldiff'
                 from cylp.cy.CyCgl import CyCglAllDifferent
                 ald = CyCglLiftAndProject()
                 cbcModel.addCutGenerator(ald, name="AllDifferent")
-            if "OddHoleCuts" in solver_opts:
+            if "OddHoleCuts" in solver_opts["solver_opts"]:
+                print 'add oddhole'
                 from cylp.cy.CyCgl import CyCglOddHole
                 odh = CyCglOddHole()
                 cbcModel.addCutGenerator(odh, name="OddHole")
-            if "RedSplitCuts" in solver_opts:
+            if "RedSplitCuts" in solver_opts["solver_opts"]:
+                print 'add redsplit'
                 from cylp.cy.CyCgl import CyCglRedSplit
                 res = CyCglRedSplit()
                 cbcModel.addCutGenerator(res, name="RedSplit")
-            if "LandPCuts" in solver_opts:
+            if "LandPCuts" in solver_opts["solver_opts"]:
+                print 'add landp'
                 from cylp.cy.CyCgl import CyCglLandP
                 lnp = CyCglLandP()
                 cbcModel.addCutGenerator(lnp, name="LandP")
-            if "PreProcessCuts" in solver_opts:
+            if "PreProcessCuts" in solver_opts["solver_opts"]:
+                print 'add preprocess'
                 from cylp.cy.CyCgl import CyCglPreProcess
                 pre = CyCglPreProcess()
                 cbcModel.addCutGenerator(pre, name="PreProcess")
-            if "ProbingCuts" in solver_opts:
+            if "ProbingCuts" in solver_opts["solver_opts"]:
+                print 'add probing'
                 from cylp.cy.CyCgl import CyCglProbing
                 pro = CyCglProbing()
                 cbcModel.addCutGenerator(pro, name="Probing")
-            if "CyCglSimpleRoundingCuts" in solver_opts:
+            if "SimpleRoundingCuts" in solver_opts["solver_opts"]:
+                print 'add simple rounding'
                 from cylp.cy.CyCgl import CyCglSimpleRounding
                 sro = CyCglSimpleRounding()
                 cbcModel.addCutGenerator(sro, name="SimpleRounding")
