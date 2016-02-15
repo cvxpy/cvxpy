@@ -1,6 +1,10 @@
 Google Summer of Code Ideas Page
 ================================
 
+CVXPY is accepting applications from Google Summer of Code students!
+We look forward to working with students who enjoy coding and math.
+This page gives information about CVXPY and describes posssible summer projects.
+
 About CVXPY
 -----------
 CVXPY is a domain-specific language for convex optimization embedded in
