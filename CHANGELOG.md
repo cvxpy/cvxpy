@@ -20,6 +20,7 @@ Version 1.0 (targets)
 
 Version 0.3.8 (next release)
 ----------------------------
+* TODO test and fix updating constraints.
 
 Version 0.3.7
 -------------

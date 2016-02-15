@@ -3,7 +3,9 @@
 Install Guide
 =============
 
-**To update CVXPY, first update NumPy and SciPy separately. Simply running** ``pip install --upgrade cvxpy`` **can cause errors, especially if you're using Anaconda.**
+**To update CVXPY, first update NumPy and SciPy separately.
+Then run** ``pip uninstall cvxpy; pip install cvxpy``.
+**Simply running** ``pip install --upgrade cvxpy`` **can cause errors, especially if you're using Anaconda.**
 
 Mac OS X
 --------
@@ -191,9 +193,10 @@ CVXPY has the following dependencies:
 To test the CVXPY installation, you additionally need `Nose`_.
 
 CVXPY automatically installs `ECOS`_, `CVXOPT`_, `SCS`_, `toolz`_, and
-`multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually. You
-may also need to install `Swig`_ to build `CVXcanon`_. Once you’ve installed
-`NumPy`_, `SciPy`_, and `Swig`_, installing CVXPY from source is simple:
+`multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually.
+You may also wish to install `Swig`_ to build `CVXcanon`_ from source.
+Once you’ve installed
+`NumPy`_ and `SciPy`_, installing CVXPY from source is simple:
 
 1. Clone the `CVXPY git repository`_.
 2. Navigate to the top-level of the cloned directory and run
