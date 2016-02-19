@@ -20,3 +20,7 @@ script: bash continuous_integration/test_script.sh
 after_success:
     - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
 cache: apt
+addons:
+  apt:
+    packages:
+    - gfortran
