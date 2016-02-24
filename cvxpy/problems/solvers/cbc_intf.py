@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import importlib
 import cvxpy.interface as intf
 import cvxpy.settings as s
 import numpy as np
@@ -45,6 +46,23 @@ class CBC(Solver):
                      'stopped by event handler (virtual int ' \
                                     'ClpEventHandler::event())': s.SOLVER_ERROR}
 
+    SUPPORTED_CUT_GENERATORS = {"GomoryCuts": "CyCglGomory",
+                                "MIRCuts": "CyCglMixedIntegerRounding",
+                                "MIRCuts2": "CyCglMixedIntegerRounding2",
+                                "TwoMIRCuts": "CyCglTwomir",
+                                "ResidualCapacityCuts": "CyCglResidualCapacity",
+                                "KnapsackCuts": "CyCglKnapsackCover",
+                                "FlowCoverCuts": "CyCglFlowCover",
+                                "CliqueCuts": "CyCglClique",
+                                "LiftProjectCuts": "CyCglLiftAndProject",
+                                "AllDifferentCuts": "CyCglAllDifferent",
+                                "OddHoleCuts": "CyCglOddHole",
+                                "RedSplitCuts": "CyCglRedSplit",
+                                "LandPCuts": "CyCglLandP",
+                                "PreProcessCuts": "CyCglPreProcess",
+                                "ProbingCuts": "CyCglProbing",
+                                "SimpleRoundingCuts": "CyCglSimpleRounding"}
+
     def name(self):
         """The name of the solver.
         """
@@ -53,18 +71,7 @@ class CBC(Solver):
     def import_solver(self):
         """Imports the solver.
         """
-        # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
-        from cylp.py.modeling.CyLPModel import CyLPArray
-        # Import cut-generator tools of cylp
-        from cylp.cy.CyCgl import CyCglGomory, CyCglMixedIntegerRounding
-        from cylp.cy.CyCgl import CyCglMixedIntegerRounding2, CyCglResidualCapacity
-        from cylp.cy.CyCgl import CyCglKnapsackCover, CyCglFlowCover
-        from cylp.cy.CyCgl import CyCglClique, CyCglTwomir
-        from cylp.cy.CyCgl import CyCglLiftAndProject, CyCglAllDifferent
-        from cylp.cy.CyCgl import CyCglOddHole, CyCglRedSplit
-        from cylp.cy.CyCgl import CyCglLandP
-        from cylp.cy.CyCgl import CyCglPreProcess, CyCglProbing, CyCglSimpleRounding
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -168,73 +175,16 @@ class CBC(Solver):
             if not verbose:
                 cbcModel.logLevel = 0
 
-            # Add cuts if desired
-            if "solver_opts" in solver_opts:
-                if "GomoryCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglGomory
-                    gom = CyCglGomory()
-                    cbcModel.addCutGenerator(gom, name="Gomory")
-                if "MIRCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglMixedIntegerRounding
-                    mir = CyCglMixedIntegerRounding()
-                    cbcModel.addCutGenerator(mir, name="MIR")
-                if "MIRCuts2" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglMixedIntegerRounding2
-                    mir = CyCglMixedIntegerRounding2()
-                    cbcModel.addCutGenerator(mir, name="MIR2")
-                if "TwoMIRCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglTwomir
-                    mir = CyCglTwomir()
-                    cbcModel.addCutGenerator(mir, name="Two-MIR")
-                if "ResidualCapacityCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglResidualCapacity
-                    rca = CyCglResidualCapacity()
-                    cbcModel.addCutGenerator(rca, name="ResidualCapacity")
-                if "KnapsackCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglKnapsackCover
-                    kna = CyCglKnapsackCover()
-                    cbcModel.addCutGenerator(kna, name="Knapsack")
-                if "FlowCoverCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglFlowCover
-                    flo = CyCglFlowCover()
-                    cbcModel.addCutGenerator(flo, name="FlowCover")
-                if "CliqueCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglClique
-                    cli = CyCglClique()
-                    cbcModel.addCutGenerator(cli, name="Clique")
-                if "LiftProjectCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglLiftAndProject
-                    lap = CyCglLiftAndProject()
-                    cbcModel.addCutGenerator(lap, name="Lift-and-Project")
-                if "AllDifferentCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglAllDifferent
-                    ald = CyCglLiftAndProject()
-                    cbcModel.addCutGenerator(ald, name="AllDifferent")
-                if "OddHoleCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglOddHole
-                    odh = CyCglOddHole()
-                    cbcModel.addCutGenerator(odh, name="OddHole")
-                if "RedSplitCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglRedSplit
-                    res = CyCglRedSplit()
-                    cbcModel.addCutGenerator(res, name="RedSplit")
-                if "LandPCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglLandP
-                    lnp = CyCglLandP()
-                    cbcModel.addCutGenerator(lnp, name="LandP")
-                if "PreProcessCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglPreProcess
-                    pre = CyCglPreProcess()
-                    cbcModel.addCutGenerator(pre, name="PreProcess")
-                if "ProbingCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglProbing
-                    pro = CyCglProbing()
-                    cbcModel.addCutGenerator(pro, name="Probing")
-                if "SimpleRoundingCuts" in solver_opts["solver_opts"]:
-                    from cylp.cy.CyCgl import CyCglSimpleRounding
-                    sro = CyCglSimpleRounding()
-                    cbcModel.addCutGenerator(sro, name="SimpleRounding")
-            status = cbcModel.branchAndBound()  # solve
+            # Add cut-generators (optional)
+            for cut_name, cut_func in self.SUPPORTED_CUT_GENERATORS.iteritems():
+                if cut_name in solver_opts and solver_opts[cut_name]:
+                    module = importlib.import_module("cylp.cy.CyCgl")
+                    funcToCall = getattr(module, cut_func)
+                    cut_gen = funcToCall()
+                    cbcModel.addCutGenerator(cut_gen, name=cut_name)
+
+            # solve
+            status = cbcModel.branchAndBound()
         else:
             if not verbose:
                 model.logLevel = 0
