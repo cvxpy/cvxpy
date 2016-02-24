@@ -459,63 +459,17 @@ Here's the complete list of solver options.
 
 `CBC`_ options:
 
-Cut-Generation through `CGL`_
+Cut-generation through `CGL`_
 
-General remark: these Cut-Generators will generate noisy output even if ``'verbose=False'`` 
+General remarks:
+    - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
+    - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
 
-``'GomoryCuts'``
-    activate Gomory Cut-Generator
+The following cut-generators are available:
+    ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
 
-``'MIRCuts'``
-    activate Cut-Generator
-
-``'MIRCuts2'``
-    activate Cut-Generator
-
-``'TwoMIRCuts'``
-    activate Cut-Generator
-
-``'ResidualCapacityCuts'``
-    activate Cut-Generator
-
-``'KnapsackCuts'``
-    activate Cut-Generator
-
-``'FlowCoverCuts'``
-    activate Cut-Generator
-
-``'CliqueCuts'``
-    activate Cut-Generator
-
-``'LiftProjectCuts'``
-    activate Cut-Generator
-
-``'AllDifferentCuts'``
-    activate Cut-Generator
-
-``'OddHoleCuts'``
-    activate Cut-Generator
-
-``'RedSplitCuts'``
-    activate Cut-Generator
-
-    Warning: crashes on tsp_mip example!
-
-``'LandPCuts'``
-    activate Cut-Generator
-
-    Warning: crashes on tsp_mip example!
-
-``'PreProcessCuts'``
-    activate Cut-Generator
-
-    Warning: crashes on tsp_mip example!
-
-``'ProbingCuts'``
-    activate Cut-Generator
-
-``'SimpleRoundingCuts'``
-    activate Cut-Generator
+``'CutGenName'``
+    if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
 
 Getting the standard form
 -------------------------
