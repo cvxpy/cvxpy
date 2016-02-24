@@ -46,6 +46,27 @@ if [[ "$DISTRIB" == "conda" ]]; then
         CVXOPT_GLPK_LIB_DIR=/home/travis/glpk-4.55/lib
         CVXOPT_GLPK_INC_DIR=/home/travis/glpk-4.55/include
         pip install cvxopt
+
+        # Install CBC
+        cd $PWD
+        wget http://www.coin-or.org/download/source/Cbc/Cbc-2.9.7.tgz
+        tar -zxvf Cbc-2.9.7.tgz
+        cd Cbc-2.9.7
+        sudo ./configure
+        sudo make
+        sudo make install
+        cd ..
+
+        export COIN_INSTALL_DIR=/home/travis/Cbc-2.9.7
+        export LD_LIBRARY_PATH=/home/travis/Cbc-2.9.7/lib:$LD_LIBRARY_PATH
+
+        # sudo apt-get install coinor-libcbc-dev coinor-libcbc0 coinor-libcbc-doc
+
+        # Install cyLP -> which is needed for CBC-interface
+        git clone -b py3 https://github.com/jjhelmus/CyLP.git  # use custom-branch because of py3
+        cd CyLP
+        python setup.py install
+        cd ..
     fi
 
     if [[ "$INSTALL_MKL" == "true" ]]; then
