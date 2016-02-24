@@ -165,8 +165,7 @@ class CBC(Solver):
                 model += 0 <= x[i] <= 1
 
         # Objective
-        c_ = CyLPArray(c)
-        model.objective = c_ * x
+        model.objective = c
 
         # Build model & solve
         status = None
