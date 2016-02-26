@@ -476,6 +476,13 @@ scalars, which are promoted.
      - |concave| concave
      - |incr| incr.
 
+   * - logistic(x)
+     - :math:`\log(1 + e^{x})`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+
    * - max_elemwise(x1, |_| ..., |_| xk)
      - :math:`\max \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
