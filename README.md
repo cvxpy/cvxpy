@@ -1,5 +1,9 @@
-CVXPY [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy) [![Downloads](https://img.shields.io/pypi/dm/cvxpy.svg)](https://pypi.python.org/pypi/cvxpy)
+CVXPY
 =====================
+[![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy)
+[![Build Status](https://ci.appveyor.com/api/projects/status/78aatn417av1ul5u?svg=true)](https://ci.appveyor.com/project/echu/ecos-python)
+[![Downloads](https://img.shields.io/pypi/dm/cvxpy.svg)](https://pypi.python.org/pypi/cvxpy)
+
 **Join the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy) for the best CVXPY support!**
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
