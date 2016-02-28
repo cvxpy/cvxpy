@@ -9,11 +9,11 @@ environment:
           # See: http://stackoverflow.com/a/13751649/163740
           CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
           CONDA_CHANNELS: "omnia groakat mlgill"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon toolz multiprocess"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon toolz"
 
     matrix:
           - PYTHON_VERSION: "2.7"
-          - PYTHON_VERSION: "3.4"
+          # - PYTHON_VERSION: "3.4"
 
 platform:
     - x64
