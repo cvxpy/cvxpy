@@ -19,6 +19,7 @@ requirements:
     - ecos
     - cvxopt
     - setuptools
+    - cvxcanon
   run:
     - python
     - numpy
@@ -28,6 +29,7 @@ requirements:
     - toolz
     - ecos
     - scs
+    - cvxcanon
 test:
   requires:
     - setuptools
