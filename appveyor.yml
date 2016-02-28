@@ -9,7 +9,7 @@ environment:
           # See: http://stackoverflow.com/a/13751649/163740
           CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
           CONDA_CHANNELS: "omnia"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon multiprocess dill"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon dill"
 
     matrix:
           - PYTHON_VERSION: "2.7"
