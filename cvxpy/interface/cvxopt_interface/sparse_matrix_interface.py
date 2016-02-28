@@ -47,9 +47,9 @@ class SparseMatrixInterface(DenseMatrixInterface):
         # Convert scipy sparse matrices to coo form first.
         elif sp.issparse(value):
             value = value.tocoo()
-            V = value.data.astype('float64')
-            I = value.row
-            J = value.col
+            V = cvxopt.matrix(value.data, tc='d')
+            I = cvxopt.matrix(value.row, tc='i')
+            J = cvxopt.matrix(value.col, tc='i')
             return cvxopt.spmatrix(V, I, J, value.shape, tc='d')
         else: # Lists.
             return cvxopt.sparse(value, tc='d')
