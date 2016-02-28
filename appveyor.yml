@@ -23,14 +23,16 @@ install:
     #- ps: (new-object net.webclient).DownloadFile($env:CONDA_URL, 'C:\miniconda.exe')
     #- C:\msvc2008.exe /passive /norestart /Log "C:\install.log"
     #- ps: msiexec /i C:\msvc2008.exe /quiet /qn /norestart /log install.log
-    - ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:\get-pip.py')
+    - ps: (new-object net.webclient).DownloadFile('https://bootstrap.pypa.io/get-pip.py', 'C:\get-pip.py')
     - python C:\get-pip.py
-    - C:\Python34\Scripts\pip.exe install conda
-    - C:\Python34\Scripts\conda.exe init
-    - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose pip
-    - C:\Python34\envs\testenv\Scripts\activate.exe
+    - C:\Python27\Scripts\pip.exe install conda
+    - C:\Python27\Scripts\conda.exe init
+    - C:\Python27\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose pip
+    - C:\Python27\envs\testenv\Scripts\activate.exe
+    - C:\Python27\envs\testenv\Scripts\conda.exe install -c https://conda.anaconda.org/omnia cvxopt
+    - C:\Python27\envs\testenv\Scripts\conda.exe install -c https://conda.anaconda.org/omnia scs
     # - C:\Python34\Scripts\pip.exe install ecos
-    - C:\Python34\envs\testenv\Scripts\pip.exe install ecos
+    # - C:\Python27\envs\testenv\Scripts\pip.exe install ecos
     # - C:\Python34\envs\testenv\Scripts\pip.exe install scs
 
 build_script:
