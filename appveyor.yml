@@ -1,21 +1,6 @@
 # Attempts to install ECOS in Python 2.7 and Python 3.3 on both 64- and
 # 32-bit Windows.
 environment:
-    # PYVER: 2.7
-    #matrix:
-        # - platform: x64
-        #   PYVER: 2.7
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86_64.exe
-        # - platform: x64
-        #   PYVER: 3.3
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86_64.exe
-        # - platform: x86
-        #   PYVER: 2.7
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
-        # - platform: x86
-        #   PYVER: 3.3
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
-
     global:
           PYTHON: "C:\\conda"
           MINICONDA_VERSION: "latest"
@@ -24,7 +9,7 @@ environment:
           # See: http://stackoverflow.com/a/13751649/163740
           CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
           CONDA_CHANNELS: "omnia"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon"
 
     matrix:
           - PYTHON_VERSION: "2.7"

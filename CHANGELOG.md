@@ -16,11 +16,17 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add informative errors for single constraint in problem instead of list, etc.
 * TODO sort out norms. i.e. norm(X, 1) is wrong.
-* TODO support more axis operations (norm, log_sum_exp, sum_squares)
+* TODO support more axis operations (norm, log_sum_exp, sum_squares).
+* TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
 
-Version 0.3.8 (next release)
+Version 0.3.9 (next release)
 ----------------------------
 * TODO test and fix updating constraints.
+
+Version 0.3.8
+-------------
+* Fixed bug with cvxopt solver on windows (conversion from scipy to cvxopt sparse
+matrix failed).
 
 Version 0.3.7
 -------------

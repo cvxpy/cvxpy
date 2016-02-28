@@ -1299,7 +1299,7 @@ class TestProblem(BaseTest):
     def test_change_constraints(self):
         """Test interaction of caching with changing constraints.
         """
-        prob = Problem(Minimize(self.a), [self.a == 2])
+        prob = Problem(Minimize(self.a), [self.a == 2, self.a >= 1])
         prob.solve()
         self.assertAlmostEqual(prob.value, 2)
 
