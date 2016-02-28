@@ -8,8 +8,8 @@ environment:
           # /E:ON and /V:ON options are not enabled in the batch script intepreter
           # See: http://stackoverflow.com/a/13751649/163740
           CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
-          CONDA_CHANNELS: "omnia"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon dill"
+          CONDA_CHANNELS: "omnia groakat mlgill"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon toolz multiprocess"
 
     matrix:
           - PYTHON_VERSION: "2.7"

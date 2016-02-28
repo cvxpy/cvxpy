@@ -1,3 +1,5 @@
+# conda build conda-recipe -c omnia -c groakat -c mlgill
+
 package:
   name: cvxpy
   version: 0.3.7
@@ -13,7 +15,7 @@ requirements:
     - python
     - numpy
     - scipy
-    - dill
+    - multiprocess
     - toolz
     - scs
     - ecos
@@ -25,7 +27,7 @@ requirements:
     - numpy
     - scipy
     - cvxopt
-    - dill
+    - multiprocess
     - toolz
     - ecos
     - scs
