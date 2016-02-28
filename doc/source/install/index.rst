@@ -205,6 +205,27 @@ Once you’ve installed
 
        python setup.py install
 
+Install with Elemental support
+------------------------------
+
+CVXPY supports the Elemental solver.
+Simply install Elemental such that you can ``import El`` in Python.
+See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
+
+Install with GUROBI support
+---------------------------
+
+CVXPY supports the GUROBI solver.
+Simply install GUROBI such that you can ``import gurobipy`` in Python.
+See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
+
+Install with MOSEK support
+---------------------------
+
+CVXPY supports the MOSEK solver.
+Simply install MOSEK such that you can ``import mosek`` in Python.
+See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
+
 Install with GLPK support
 -------------------------
 
@@ -222,21 +243,6 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
       pip install cvxopt
 
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
-
-
-Install with GUROBI support
----------------------------
-
-CVXPY supports the GUROBI solver.
-Simply install GUROBI such that you can ``import gurobipy`` in Python.
-See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
-
-Install with Elemental support
-------------------------------
-
-CVXPY supports the Elemental solver.
-Simply install Elemental such that you can ``import El`` in Python.
-See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
