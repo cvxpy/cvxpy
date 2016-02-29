@@ -133,13 +133,18 @@ class TestSolvers(BaseTest):
     def test_options(self):
         """Test that all the CBC solver options work.
         """
-        prob = Problem(Minimize(norm(self.x, 1)), [self.x == Bool(2)])
-        for i in range(2):
-            # Some cut-generators seem to be buggy for now -> set to false
-            prob.solve(solver=CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
-                       MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
-                       KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True, 
-                       LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
-                       RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False, 
-                       ProbingCuts=True, SimpleRoundingCuts=True)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+        if CBC in installed_solvers():
+            prob = Problem(Minimize(norm(self.x, 1)), [self.x == Bool(2)])
+            for i in range(2):
+                # Some cut-generators seem to be buggy for now -> set to false
+                prob.solve(solver=CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
+                    MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
+                    KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True, 
+                    LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
+                    RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False, 
+                    ProbingCuts=True, SimpleRoundingCuts=True)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob.solve(solver=CBC)
+                self.assertEqual(str(cm.exception), "The solver %s is not installed." % CBC)

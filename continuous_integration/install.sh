@@ -48,7 +48,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
         pip install cvxopt
 
         # Install CBC
-        cd $PWD
+        oldpath="$PWD"
+        cd /home/travis
         wget http://www.coin-or.org/download/source/Cbc/Cbc-2.9.7.tgz
         tar -zxvf Cbc-2.9.7.tgz
         cd Cbc-2.9.7
@@ -67,6 +68,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd CyLP
         python setup.py install
         cd ..
+
+        cd "$oldpath"
     fi
 
     if [[ "$INSTALL_MKL" == "true" ]]; then
