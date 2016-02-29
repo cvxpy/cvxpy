@@ -121,7 +121,7 @@ class TestSolvers(BaseTest):
             X = Bool(n)
             prob = Problem(Maximize(sum_entries(mul_elemwise([i[1] for i in coeffs], X))),
                            [sum_entries(mul_elemwise([i[2] for i in coeffs], X)) <= c])
-            prob.solve(verbose=True, solver=CBC)
+            prob.solve(verbose=False, solver=CBC)
             self.assertAlmostEqual(prob.value, z)  # objective
         else:
             with self.assertRaises(Exception) as cm:

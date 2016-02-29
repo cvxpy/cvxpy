@@ -245,20 +245,6 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
 
-Install with GUROBI support
----------------------------
-
-CVXPY supports the GUROBI solver.
-Simply install GUROBI such that you can ``import gurobipy`` in Python.
-See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
-
-Install with Elemental support
-------------------------------
-
-CVXPY supports the Elemental solver.
-Simply install Elemental such that you can ``import El`` in Python.
-See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
-
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
 CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
