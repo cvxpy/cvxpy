@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import importlib
-import six
 import cvxpy.interface as intf
 import cvxpy.settings as s
 import numpy as np
@@ -176,7 +175,7 @@ class CBC(Solver):
                 cbcModel.logLevel = 0
 
             # Add cut-generators (optional)
-            for cut_name, cut_func in six.iteritems(self.SUPPORTED_CUT_GENERATORS):
+            for cut_name, cut_func in self.SUPPORTED_CUT_GENERATORS.iteritems():
                 if cut_name in solver_opts and solver_opts[cut_name]:
                     module = importlib.import_module("cylp.cy.CyCgl")
                     funcToCall = getattr(module, cut_func)
