@@ -33,9 +33,9 @@ setup(
                       "scs >= 1.1.3",
                       "multiprocess",
                       "toolz",
+                      "six",
                       "numpy >= 1.9",
                       "scipy >= 0.15",
                       "CVXcanon >= 0.0.22"],
     use_2to3=True,
-    use_2to3_fixers=['lib2to3.fixes.fix_dict'],
 )
