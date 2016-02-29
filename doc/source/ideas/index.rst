@@ -1,5 +1,5 @@
-Google Summer of Code Ideas Page
-================================
+Google Summer of Code
+=====================
 
 CVXPY is accepting applications from Google Summer of Code students!
 We look forward to working with students who enjoy coding and math.

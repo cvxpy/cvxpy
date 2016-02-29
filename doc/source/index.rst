@@ -89,3 +89,8 @@ Additional solvers are supported, but must be installed separately.
    :hidden:
 
    related_projects/index
+
+.. toctree::
+   :hidden:
+
+   ideas/index
