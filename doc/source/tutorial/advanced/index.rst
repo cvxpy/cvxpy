@@ -196,12 +196,14 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `MOSEK`_, `GUROBI`_, and `Elemental`_.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `CBC`_, `MOSEK`_, `GUROBI`_, and `Elemental`_.
 The table below shows the types of problems the solvers can handle.
 
 +--------------+----+------+-----+-----+-----+
 |              | LP | SOCP | SDP | EXP | MIP |
 +==============+====+======+=====+=====+=====+
+| `CBC`_       | X  |      |     |     | X   |
++--------------+----+------+-----+-----+-----+
 | `GLPK`_      | X  |      |     |     |     |
 +--------------+----+------+-----+-----+-----+
 | `GLPK_MI`_   | X  |      |     |     | X   |
@@ -275,6 +277,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=ELEMENTAL)
     print "optimal value with Elemental:", prob.value
 
+    # Solve with CBC.
+    prob.solve(solver=CBC)
+    print "optimal value with CBC:", prob.value
+
 ::
 
     optimal value with ECOS: 5.99999999551
@@ -286,6 +292,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GUROBI: 6.0
     optimal value with MOSEK: 6.0
     optimal value with Elemental: 6.0000044085242727
+    optimal value with CBC: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -295,7 +302,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -328,7 +335,7 @@ All the solvers can print out information about their progress while solving the
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `ECOS`_, `ECOS_BB`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -450,6 +457,20 @@ Here's the complete list of solver options.
     whether to initialize the solver with the previous solution (default: False).
     The use case for warm start is solving the same problem for multiple values of a parameter.
 
+`CBC`_ options:
+
+Cut-generation through `CGL`_
+
+General remarks:
+    - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
+    - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+
+The following cut-generators are available:
+    ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+
+``'CutGenName'``
+    if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+
 Getting the standard form
 -------------------------
 
@@ -492,3 +513,5 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
 .. _Elemental: http://libelemental.org/
+.. _CBC: https://projects.coin-or.org/Cbc
+.. _CGL: https://projects.coin-or.org/Cgl
