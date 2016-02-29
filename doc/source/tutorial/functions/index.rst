@@ -330,6 +330,27 @@ and returns a scalar.
      - |affine| affine
      - |incr| incr.
 
+   * - tv(x)
+     - :math:`\sum_{i}|x_{i+1} - x_i|`
+     - :math:`x \in \mathbf{R}^n`
+     - |positive| positive
+     - |convex| convex
+     - None
+
+   * - tv(X)
+     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
+   * - tv(X1,...,Xk)
+     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2`
+     - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
 Clarifications
 ^^^^^^^^^^^^^^
 
@@ -453,6 +474,13 @@ scalars, which are promoted.
      - :math:`x > -1`
      - same as x
      - |concave| concave
+     - |incr| incr.
+
+   * - logistic(x)
+     - :math:`\log(1 + e^{x})`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
      - |incr| incr.
 
    * - max_elemwise(x1, |_| ..., |_| xk)

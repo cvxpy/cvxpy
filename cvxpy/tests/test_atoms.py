@@ -822,6 +822,7 @@ class TestAtoms(BaseTest):
         """
         x, y = Variable(1), Variable(1)
         gamma = Parameter()
+
         # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y>=gamma, y>=4, x>=5])
         gamma.value = 3

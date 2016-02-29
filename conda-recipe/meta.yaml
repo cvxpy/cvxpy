@@ -1,6 +1,8 @@
+# conda build conda-recipe -c omnia -c groakat -c mlgill
+# conda install -c omnia -c stevend2 -c groakat -c mlgill cvxpy
 package:
   name: cvxpy
-  version: 0.3.6
+  version: 0.3.7
 
 build:
   number: 0
@@ -19,15 +21,17 @@ requirements:
     - ecos
     - cvxopt
     - setuptools
+    - cvxcanon
   run:
     - python
     - numpy
     - scipy
-    - cvxopt
     - multiprocess
     - toolz
-    - ecos
     - scs
+    - ecos
+    - cvxopt
+    - cvxcanon
 test:
   requires:
     - setuptools

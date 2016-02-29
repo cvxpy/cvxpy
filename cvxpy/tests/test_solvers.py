@@ -398,6 +398,34 @@ class TestSolvers(BaseTest):
                 prob.solve(solver = MOSEK)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % MOSEK)
 
+    def test_mosek_sdp(self):
+        """Make sure Mosek's dual result matches other solvers
+        """
+        # TODO: should work with PSDConstraint (>>, <<).
+        if MOSEK in installed_solvers():
+            import numpy as np
+            import cvxpy as cvx
+            # Test optimality gap for equilibration.
+            m = 3
+            n = 3
+            Art = np.random.randn(n,n)
+            A = Art.T.dot(Art)
+            Ainv = np.linalg.inv(A)
+
+            t = Variable()
+            Z = Variable(n,n)
+            d = Variable(n)
+            D = diag(d)
+            constr = [Art*D*Art.T - np.eye(n) == Semidef(n), Semidef(n) == t*np.eye(n) - Art*D*Art.T, d >= 0]
+            prob = Problem(Minimize(t), constr)
+            prob.solve(solver=MOSEK)
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver = MOSEK)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % MOSEK)
+
+
     def test_gurobi_warm_start(self):
         """Make sure that warm starting Gurobi behaves as expected
            Note: This only checks output, not whether or not Gurobi is warm starting internally
