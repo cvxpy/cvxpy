@@ -244,6 +244,13 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
 
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
+
+Install with Cbc (Clp, Cgl) support
+-----------------------------------
+CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
+Simply install cylp (you will need the Cbc sources which includes Cgl; available `here <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
+See the `cylp <http://mpy.github.io/CyLPdoc/>`_ documentation for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
