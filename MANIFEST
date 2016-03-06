@@ -69,6 +69,7 @@ cvxpy/problems/objective.py
 cvxpy/problems/problem.py
 cvxpy/tests/__init__.py
 cvxpy/tests/base_test.py
+cvxpy/tests/interpreter_tests.py
 cvxpy/tests/test_atoms.py
 cvxpy/tests/test_coefficients.py
 cvxpy/tests/test_constant_atoms.py
