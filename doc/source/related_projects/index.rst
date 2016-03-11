@@ -19,6 +19,8 @@ Modeling frameworks
 
 - `CVXcanon <https://github.com/cvxgrp/CVXcanon>`_ is a C++ package that factors out the common operations that modeling languages like CVXPY, CVX, and Convex.jl perform.
 
+- `GPkit <https://gpkit.readthedocs.org/en/latest/>`_ is a Python package for defining and manipulating geometric programming (GP) models.
+
 - `PICOS <http://picos.zib.de/>`_ is a user-friendly python interface to many linear and conic optimization solvers.
 
 Solvers
