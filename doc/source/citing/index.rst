@@ -14,6 +14,6 @@ Use the following BibTeX citation:
       title        = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization},
       journal      = {Journal of Machine Learning Research},
       note         = {To appear},
-      url          = {http://stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf},
+      url          = {http://arxiv.org/pdf/1603.00943v1.pdf},
       year         = {2016},
     }

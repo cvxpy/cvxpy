@@ -22,6 +22,7 @@ Version 1.0 (targets)
 Version 0.3.9 (next release)
 ----------------------------
 * TODO test and fix updating constraints.
+* Fixed bug in diag with row vectors.
 
 Version 0.3.8
 -------------

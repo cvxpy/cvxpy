@@ -502,6 +502,11 @@ class TestAtoms(BaseTest):
         self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
         self.assertEquals(expr.size, (2, 1))
 
+        expr = diag(self.x.T)
+        self.assertEquals(expr.sign, u.Sign.UNKNOWN_KEY)
+        self.assertEquals(expr.curvature, u.Curvature.AFFINE_KEY)
+        self.assertEquals(expr.size, (2, 2))
+
         with self.assertRaises(Exception) as cm:
             diag(self.C)
         self.assertEqual(str(cm.exception),
