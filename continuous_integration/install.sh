@@ -29,7 +29,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION cvxopt
     source activate testenv
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
