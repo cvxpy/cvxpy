@@ -2,6 +2,8 @@ language: python
 virtualenv:
   system_site_packages: true
 env:
+  global:
+    - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.3
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.9" SCIPY_VERSION="0.16"
