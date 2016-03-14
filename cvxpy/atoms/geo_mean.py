@@ -313,7 +313,11 @@ class geo_mean(Atom):
         """
         w, w_dyad, tree = data
         t = lu.create_var((1, 1))
-        x_list = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))]
+
+        if arg_objs[0].size[1] == 1:
+            x_list = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))]
+        if arg_objs[0].size[0] == 1:
+            x_list = [index.get_index(arg_objs[0], [], 0, i) for i in range(len(w))]
 
         #todo: catch cases where we have (0, 0, 1)?
         #todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1), should this behavior match with what we do in power?

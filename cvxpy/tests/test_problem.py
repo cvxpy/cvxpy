@@ -1446,6 +1446,27 @@ class TestProblem(BaseTest):
         self.assertTrue(np.allclose(prob.value, short_geo_mean(x, p)))
         self.assertTrue(np.allclose(x, x_true, 1e-3))
 
+        # the following 3 tests check vstack and hstack input to geo_mean
+        # the following 3 formulations should be equivalent
+        n = 5
+        x_true = np.ones(n)
+        x = Variable(n)
+
+        Problem(Maximize(geo_mean(x)), [x <= 1]).solve()
+        xval = np.array(x.value).flatten()
+        self.assertTrue(np.allclose(xval, x_true, 1e-3))
+
+        y = vstack(*[x[i] for i in range(n)])
+        Problem(Maximize(geo_mean(y)), [x <= 1]).solve()
+        xval = np.array(x.value).flatten()
+        self.assertTrue(np.allclose(xval, x_true, 1e-3))
+
+        y = hstack(*[x[i] for i in range(n)])
+        Problem(Maximize(geo_mean(y)), [x <= 1]).solve()
+        xval = np.array(x.value).flatten()
+        self.assertTrue(np.allclose(xval, x_true, 1e-3))
+
+
     def test_pnorm(self):
         import numpy as np
 
