@@ -147,6 +147,7 @@ class power(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
+        # TODO throw error if negative and power doesn't handle that.
         if self.p == 0:
             return np.ones(self.size)
         else:
