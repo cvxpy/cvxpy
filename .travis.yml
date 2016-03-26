@@ -28,6 +28,3 @@ addons:
     packages:
     - gfortran
     - libgfortran3
-    - libatlas-base-dev
-    -  liblapack-dev
-    - libatlas-dev
