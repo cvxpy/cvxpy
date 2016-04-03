@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
+from cvxpy.error import DCPError
 import unittest
 
 class TestObjectives(unittest.TestCase):
@@ -103,3 +104,34 @@ class TestObjectives(unittest.TestCase):
 
         self.assertEqual(Maximize(normInf(self.x)).is_dcp(), False)
         self.assertEqual(Maximize(-normInf(self.x)).is_dcp(), True)
+
+    def test_add_problems(self):
+        """Test adding objectives.
+        """
+        expr1 = self.x**2
+        expr2 = (self.x)**(-1)
+        alpha = 2
+
+        # Addition.
+
+        assert ( Minimize(expr1) + Minimize(expr2) ).is_dcp()
+
+        assert ( Maximize(-expr1) + Maximize(-expr2) ).is_dcp()
+
+        # Test Minimize + Maximize
+        with self.assertRaises(DCPError) as cm:
+            Minimize(expr1) + Maximize(-expr2)
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+
+        assert ( Minimize(expr1) - Maximize(-expr2) ).is_dcp()
+
+
+        # Multiplication (alpha is a positive scalar).
+
+        assert ( alpha*Minimize(expr1) ).is_dcp()
+
+        assert ( alpha*Maximize(-expr1) ).is_dcp()
+
+        assert ( -alpha*Maximize(-expr1) ).is_dcp()
+
+        assert ( -alpha*Maximize(-expr1) ).is_dcp()

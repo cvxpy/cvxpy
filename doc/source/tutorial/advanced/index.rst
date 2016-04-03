@@ -70,7 +70,7 @@ the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`
 The constraint does not require that ``X`` and ``Y`` be symmetric.
 Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
-The following code shows how to to constrain matrix expressions to be positive or negative
+The following code shows how to constrain matrix expressions to be positive or negative
 semidefinite (but not necessarily symmetric).
 
 .. code:: python
@@ -118,17 +118,21 @@ Problem arithmetic
 
 For convenience, arithmetic operations have been overloaded for
 problems and objectives.
-The rules for adding and multiplying objectives are given below:
+Problem arithmetic is useful because it allows you to write a problem as a
+sum of smaller problems.
+The rules for adding, subtracting, and multiplying objectives are given below.
 
 .. code:: python
 
-    # Addition.
+    # Addition and subtraction.
 
     Minimize(expr1) + Minimize(expr2) == Minimize(expr1 + expr2)
 
     Maximize(expr1) + Maximize(expr2) == Maximize(expr1 + expr2)
 
     Minimize(expr1) + Maximize(expr2) # Not allowed.
+
+    Minimize(expr1) - Maximize(expr2) == Minimize(expr1 - expr2)
 
     # Multiplication (alpha is a positive scalar).
 
@@ -144,17 +148,22 @@ The rules for adding and multiplying problems are equally straightforward:
 
 .. code:: python
 
-    # Addition.
+    # Addition and subtraction.
 
     prob1 + prob2 == Problem(prob1.objective + prob2.objective,
+                             prob1.constraints + prob2.constraints)
+
+    prob1 - prob2 == Problem(prob1.objective - prob2.objective,
                              prob1.constraints + prob2.constraints)
 
     # Multiplication (alpha is any scalar).
 
     alpha*prob == Problem(alpha*prob.objective, prob.constraints)
 
-Problem arithmetic is useful because it allows you to write a problem as a
-sum of smaller problems.
+Note that the ``+`` operator concatenates lists of constraints,
+since this is the default behavior for Python lists.
+The in-place operators ``+=``, ``-=``, and ``*=`` are also supported for
+objectives and problems and follow the same rules as above.
 
 .. Given the optimization problems :math:`p_1,\ldots,p_n` where each
 .. :math:`p_i` is of the form
@@ -170,7 +179,6 @@ sum of smaller problems.
 .. \mbox{minimize}  &\sum_{i=1}^n \alpha_i f_i(x) \\
 .. \mbox{subject to} &x \in \cap_{i=1}^n \mathcal C_i
 .. \end{array}`
-
 
 Solve method options
 --------------------

@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.utilities as u
+from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 
@@ -50,7 +51,7 @@ class Minimize(u.Canonical):
         if type(other) is Minimize:
             return Minimize(self.args[0] + other.args[0])
         else:
-            raise Exception("Problem does not follow DCP rules.")
+            raise DCPError("Problem does not follow DCP rules.")
 
     def __radd__(self, other):
         if other == 0:

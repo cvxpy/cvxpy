@@ -28,6 +28,7 @@ from cvxpy.problems.solvers.utilities import SOLVERS, installed_solvers
 from cvxpy.problems.problem_data.sym_data import SymData
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.error import DCPError
 from cvxpy.tests.base_test import BaseTest
 from cvxopt import matrix
 from numpy import linalg as LA
@@ -351,7 +352,7 @@ class TestProblem(BaseTest):
         self.assertEqual(len(prob_sum.constraints), 1)
 
         # Test Minimize + Maximize
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(DCPError) as cm:
             prob_bad_sum = prob1 + prob3
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 

@@ -21,6 +21,7 @@ Version 1.0 (targets)
 
 Version 0.3.9 (next release)
 ----------------------------
+* TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
 * Fixed bug in diag with row vectors.
 

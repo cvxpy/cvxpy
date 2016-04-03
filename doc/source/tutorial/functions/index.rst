@@ -603,7 +603,7 @@ scalars, which are promoted.
        |decr| for :math:`x \leq 0`
 
 
-Vector/Matrix functions
+Vector/matrix functions
 -----------------------
 
 A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
