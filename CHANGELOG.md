@@ -19,11 +19,15 @@ Version 1.0 (targets)
 * TODO support more axis operations (norm, log_sum_exp, sum_squares).
 * TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
 
-Version 0.3.9 (next release)
+Version 0.3.10 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
+
+Version 0.3.9
+-------------
 * Fixed bug in diag with row vectors.
+* Fixed kl_div to be elementwise.
 
 Version 0.3.8
 -------------

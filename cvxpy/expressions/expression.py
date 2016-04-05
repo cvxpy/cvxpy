@@ -257,7 +257,7 @@ class Expression(u.Canonical):
         if other.is_constant() and other.is_scalar():
             return types.div_expr()(self, other)
         else:
-            raise TypeError("Can only divide by a scalar constant.")
+            raise DCPError("Can only divide by a scalar constant.")
 
     @_cast_other
     def __rdiv__(self, other):
