@@ -102,8 +102,6 @@ class max_elemwise(Elementwise):
         t = lu.create_var(size)
         constraints = []
         for obj in arg_objs:
-            # Promote obj.
-            if obj.size != size:
-                obj = lu.promote(obj, size)
+            obj = Elementwise._promote(obj, size)
             constraints.append(lu.create_leq(obj, t))
         return (t, constraints)

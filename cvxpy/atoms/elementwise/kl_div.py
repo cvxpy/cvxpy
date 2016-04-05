@@ -19,29 +19,24 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
-class kl_div(Atom):
+class kl_div(Elementwise):
     """:math:`x\log(x/y) - x + y`
 
     """
     def __init__(self, x, y):
         super(kl_div, self).__init__(x, y)
 
-    @Atom.numpy_numeric
+    @Elementwise.numpy_numeric
     def numeric(self, values):
         x = values[0]
         y = values[1]
         #TODO return inf outside the domain
         return xlogy(x, x/y) - x + y
-
-    def shape_from_args(self):
-        """Resolves to a scalar.
-        """
-        return u.Shape(1, 1)
 
     def sign_from_args(self):
         """Always positive.
@@ -57,12 +52,6 @@ class kl_div(Atom):
         """Neither increasing nor decreasing.
         """
         return len(self.args)*[u.monotonicity.NONMONOTONIC]
-
-    def validate_arguments(self):
-        """Check dimensions of arguments.
-        """
-        if not self.args[0].is_scalar() or not self.args[1].is_scalar():
-            raise ValueError("The arguments to kl_div must resolve to scalars.")
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -82,9 +71,9 @@ class kl_div(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = arg_objs[0]
-        y = arg_objs[1]
-        t = lu.create_var((1, 1))
+        x = Elementwise._promote(arg_objs[0], size)
+        y = Elementwise._promote(arg_objs[1], size)
+        t = lu.create_var(size)
         constraints = [ExpCone(t, x, y),
                        lu.create_geq(y)] # 0 <= y
         # -t - x + y

@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 import abc
 from cvxpy.atoms.atom import Atom
+import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 if sys.version_info >= (3, 0):
     from functools import reduce
@@ -42,3 +43,24 @@ class Elementwise(Atom):
         shape = self.args[0]._dcp_attr.shape
         for arg in self.args[1:]:
             shape = shape + arg._dcp_attr.shape
+
+    @staticmethod
+    def _promote(arg, size):
+        """Promotes the lin op if necessary.
+
+        Parameters
+        ----------
+        arg : LinOp
+            LinOp to promote.
+        size : tuple
+            The size desired.
+
+        Returns
+        -------
+        tuple
+            Promoted LinOp.
+        """
+        if arg.size != size:
+            return lu.promote(arg, size)
+        else:
+            return arg
