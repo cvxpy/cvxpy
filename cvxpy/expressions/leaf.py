@@ -72,3 +72,8 @@ class Leaf(expression.Expression):
                     "Invalid sign for %s value." % self.__class__.__name__
                 )
         return val
+
+    def is_quadratic(self):
+        """Always quadratic.
+        """
+        return True

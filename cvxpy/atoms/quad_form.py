@@ -22,6 +22,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
 from .norm import norm
 from .elementwise.square import square
+from .sum_squares import sum_squares
 from scipy import linalg as LA
 import numpy as np
 
@@ -101,6 +102,7 @@ def quad_form(x, P):
             msg = "P is not symmetric."
             raise CvxPyDomainError(msg)
         sgn, scale, M = _decomp_quad(P)
+        #return sgn * scale * sum_squares(Constant(M.T) * x)
         return sgn * scale * square(norm(Constant(M.T) * x))
     else:
         raise Exception("At least one argument to quad_form must be constant.")

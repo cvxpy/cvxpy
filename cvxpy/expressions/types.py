@@ -34,6 +34,10 @@ def rmul_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.RMulExpression
 
+def mul_affines_expr():
+    from cvxpy.atoms.affine import binary_operators
+    return binary_operators.MulAffinesExpression
+
 def div_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.DivExpression

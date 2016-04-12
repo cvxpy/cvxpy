@@ -74,6 +74,11 @@ class matrix_frac(Atom):
         """
         return len(self.args)*[u.monotonicity.NONMONOTONIC]
 
+    def is_quadratic(self):
+        """Quadratic if P is constant.
+        """
+        return self.args[1].is_constant()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.

@@ -41,3 +41,7 @@ class AffAtom(Atom):
     # Doesn't matter for affine atoms.
     def monotonicity(self):
         return len(self.args)*[u.monotonicity.INCREASING]
+
+    # Affine atoms are all quadratic.
+    def is_quadratic(self):
+        return True
