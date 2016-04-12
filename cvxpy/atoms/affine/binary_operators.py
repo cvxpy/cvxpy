@@ -112,6 +112,12 @@ class RMulExpression(MulExpression):
             arg_objs[0] = lu.diag_vec(arg)
         return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
 
+class MulAffinesExpression(BinaryOperator):
+    """Product of two affine expressions.
+    """
+    OP_NAME = "*"
+    OP_FUNC = op.mul
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__

@@ -54,6 +54,12 @@ class mul_elemwise(AffAtom):
             self.args[1]._dcp_attr,
         )
 
+    def is_quadratic(self):
+        """Always quadratic.
+        """
+        #return self.args[1].is_quadratic()
+        return True
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Multiply the expressions elementwise.

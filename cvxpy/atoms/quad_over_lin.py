@@ -63,6 +63,11 @@ class quad_over_lin(Atom):
         if not self.args[1].is_scalar():
             raise ValueError("The second argument to quad_over_lin must be a scalar.")
 
+    def is_quadratic(self):
+        """Quadratic if y is constant.
+        """
+        return self.args[1].is_constant()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.

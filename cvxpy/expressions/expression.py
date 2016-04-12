@@ -120,6 +120,12 @@ class Expression(u.Canonical):
         """
         return self._dcp_attr.curvature.is_dcp()
 
+    def is_quadratic(self):
+        """Is the expression quadratic?
+        """
+        # Defaults to false
+        return False
+
     # Sign properties.
 
     @property
@@ -224,24 +230,28 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """The product of two expressions.
         """
-        # Cannot multiply two non-constant expressions.
-        if not self.is_constant() and \
-           not other.is_constant():
-            raise DCPError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
-        elif self.is_constant():
+        if self.is_constant():
             # TODO HACK catch c.T*x where c is a NumPy 1D array.
             if self.size[0] == other.size[0] and \
                self.size[1] != self.size[0] and \
                isinstance(self, types.constant()) and self.is_1D_array:
                 self = self.T
             return types.mul_expr()(self, other)
-        # Having the constant on the left is more efficient.
-        elif self.is_scalar() or other.is_scalar():
-            return types.mul_expr()(other, self)
+        elif other.is_constant():
+            # Having the constant on the left is more efficient.
+            if self.is_scalar() or other.is_scalar():
+                return types.mul_expr()(other, self)
+            else:
+                return types.rmul_expr()(self, other)
+        # When both expressions are not constant
+        # Allow affine * affine but raise DCPError otherwise
+        # Cannot multiply two non-constant expressions.
+        elif self.is_affine() and other.is_affine():
+            return types.mul_affines_expr()(self, other)
         else:
-            return types.rmul_expr()(self, other)
+            raise DCPError("Cannot multiply two non-constants.")
 
     @_cast_other
     def __truediv__(self, other):
