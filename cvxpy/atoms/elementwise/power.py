@@ -154,36 +154,57 @@ class power(Elementwise):
             return np.power(values[0], float(self.p))
 
     def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
         if self.p == 1:
-            # same sign as input
-            return self.args[0]._dcp_attr.sign
+            # Same as input.
+            return (self.args[0].is_positive(), self.args[0].is_negative())
         else:
-            return u.Sign.POSITIVE
+            # Always positive.
+            return (True, False)
 
-    def func_curvature(self):
-        if self.p == 0:
-            return u.Curvature.CONSTANT
-        elif self.p == 1:
-            return u.Curvature.AFFINE
-        elif self.p < 0 or self.p > 1:
-            return u.Curvature.CONVEX
-        elif 0 < self.p < 1:
-            return u.Curvature.CONCAVE
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        # p == 0 is affine here.
+        return self.p <= 0 or self.p >= 1
 
-    def monotonicity(self):
-        if self.p == 0:
-            return [u.monotonicity.INCREASING]
-        if self.p == 1:
-            return [u.monotonicity.INCREASING]
-        if self.p < 0:
-            return [u.monotonicity.DECREASING]
-        if 0 < self.p < 1:
-            return [u.monotonicity.INCREASING]
-        if self.p > 1:
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        # p == 0 is affine here.
+        return 0 <= self.p <= 1
+
+    def is_constant(self):
+        """Is the expression constant?
+        """
+        return self.p == 0 or super(power, self).is_constant()
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        if 0 <= self.p <= 1:
+            return True
+        elif self.p > 1:
             if is_power2(self.p):
-                return [u.monotonicity.SIGNED]
+                return self.args[idx].is_positive()
             else:
-                return [u.monotonicity.INCREASING]
+                return True
+        else:
+            return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        if self.p <= 0:
+            return True
+        elif self.p > 1:
+            if is_power2(self.p):
+                return self.args[idx].is_negative()
+            else:
+                return False
+        else:
+            return False
 
     def validate_arguments(self):
         pass

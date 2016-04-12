@@ -23,6 +23,9 @@ Version 0.3.10 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
+* TODO make curvature, sign recursive and affine == convex + concave || constant.
+Will fix bug where change constant matrix after the fact.
+Constant is separate (check if no variables).
 
 Version 0.3.9
 -------------

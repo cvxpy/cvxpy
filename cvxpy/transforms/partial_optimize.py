@@ -90,7 +90,6 @@ class PartialProblem(Expression):
         new_constrs = [self._replace_new_vars(con, id_to_new_var)
                        for con in prob.constraints]
         self._prob = Problem(new_obj, new_constrs)
-        self.init_dcp_attr()
         super(PartialProblem, self).__init__()
 
     def get_data(self):
@@ -98,23 +97,31 @@ class PartialProblem(Expression):
         """
         return [self.opt_vars, self.dont_opt_vars]
 
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
+    def is_convex(self):
+        """Is the expression convex?
         """
-        sign = self.args[0].objective.args[0]._dcp_attr.sign
-        if type(self.args[0].objective) == Minimize:
-            curvature = u.curvature.Curvature.CONVEX
-        elif type(self.args[0].objective) == Maximize:
-            curvature = u.curvature.Curvature.CONCAVE
-        else:
-            raise Exception(
-                ("You called partial_optimize with a Problem object that "
-                 "contains neither a Minimize nor a Maximize statement; "
-                 "this is not supported.")
-            )
-        self._dcp_attr = u.DCPAttr(sign,
-                                   curvature,
-                                   u.Shape(1, 1))
+        return type(self.args[0].objective) == Minimize
+
+    def is_concave(self):
+        """Is the expression concave?
+        """
+        return type(self.args[0].objective) == Maximize
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self.args[0].objective.args[0].is_positive()
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self.args[0].objective.args[0].is_negative()
+
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return (1, 1)
 
     def name(self):
         """Returns the string representation of the expression.

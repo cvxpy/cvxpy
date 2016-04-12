@@ -38,7 +38,7 @@ class log1p(log):
     def sign_from_args(self):
         """The same sign as the argument.
         """
-        return self.args[0]._dcp_attr.sign
+        return (self.args[0].is_positive(), self.args[0].is_negative())
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

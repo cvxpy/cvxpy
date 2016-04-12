@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 
@@ -33,11 +32,11 @@ class transpose(AffAtom):
     def numeric(self, values):
         return values[0].T
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """Returns the shape of the transpose expression.
         """
         rows, cols = self.args[0].size
-        return u.Shape(cols, rows)
+        return (cols, rows)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

@@ -46,13 +46,25 @@ class mul_elemwise(AffAtom):
             raise ValueError( ("The first argument to mul_elemwise must "
                                "be constant.") )
 
-    def init_dcp_attr(self):
-        """Sets the sign, curvature, and shape.
+    def size_from_args(self):
+        """The sum of the argument dimensions - 1.
         """
-        self._dcp_attr = u.DCPAttr.mul_elemwise(
-            self.args[0]._dcp_attr,
-            self.args[1]._dcp_attr,
-        )
+        return u.shape.sum_shapes([arg.size for arg in self.args])
+
+    def sign_from_args(self):
+        """Same as times.
+        """
+        return u.sign.mul_sign(self.args[0], self.args[1])
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[0].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[0].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

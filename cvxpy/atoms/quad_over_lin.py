@@ -37,25 +37,36 @@ class quad_over_lin(Atom):
         """
         return np.square(values[0]).sum()/values[1]
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
         """
-        return u.Shape(1,1)
+        return (1, 1)
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Increasing for positive x and decreasing for negative.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.SIGNED, u.monotonicity.DECREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return (idx == 0) and self.args[idx].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return ((idx == 0) and self.args[idx].is_negative()) or (idx == 1)
 
     def validate_arguments(self):
         """Check dimensions of arguments.

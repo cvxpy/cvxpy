@@ -34,7 +34,7 @@ class index(AffAtom):
     # key - the index/slicing key (i.e. expr[key[0],key[1]]).
     def __init__(self, expr, key):
         # Format and validate key.
-        self.key = ku.validate_key(key, expr._dcp_attr.shape)
+        self.key = ku.validate_key(key, expr.size)
         super(index, self).__init__(expr)
 
     # The string representation of the atom.
@@ -46,10 +46,10 @@ class index(AffAtom):
     def numeric(self, values):
         return values[0][self.key]
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """Returns the shape of the index expression.
         """
-        return u.Shape(*ku.size(self.key, self.args[0]._dcp_attr.shape))
+        return ku.size(self.key, self.args[0].size)
 
     def get_data(self):
         """Returns the (row slice, column slice).

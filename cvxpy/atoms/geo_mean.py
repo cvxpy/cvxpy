@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
-import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 import numpy as np
@@ -247,17 +245,36 @@ class geo_mean(Atom):
     def pretty_tree(self):
         print(prettydict(self.tree))
 
-    def shape_from_args(self):
-        return u.Shape(1, 1)
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return (1, 1)
 
     def sign_from_args(self):
-        return u.Sign.POSITIVE
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        return u.Curvature.CONCAVE
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return False
 
-    def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return True
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     def validate_arguments(self):
         # since correctly validating arguments with this function is tricky,

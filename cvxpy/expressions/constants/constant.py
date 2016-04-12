@@ -42,7 +42,8 @@ class Constant(Leaf):
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
-        self.init_dcp_attr()
+        self._size = intf.size(self.value)
+        self._is_pos, self._is_neg = intf.sign(self.value)
         super(Constant, self).__init__()
 
     def name(self):
@@ -57,11 +58,21 @@ class Constant(Leaf):
     def value(self):
         return self._value
 
-    # Return the DCP attributes of the constant.
-    def init_dcp_attr(self):
-        shape = u.Shape(*intf.size(self.value))
-        sign = intf.sign(self.value)
-        self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return self._size
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self._is_pos
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self._is_neg
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

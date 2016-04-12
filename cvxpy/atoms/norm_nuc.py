@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
@@ -36,25 +35,35 @@ class normNuc(Atom):
         """
         return scipy.linalg.svdvals(values[0]).sum()
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
         """
-        return u.Shape(1, 1)
+        return (1, 1)
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Neither increasing nor decreasing.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.NONMONOTONIC]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

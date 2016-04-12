@@ -36,16 +36,31 @@ class log(Elementwise):
         """
         return np.log(values[0])
 
-    # Always unknown.
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # Always unknown.
+        return (False, False)
 
-    # Default curvature.
-    def func_curvature(self):
-        return u.Curvature.CONCAVE
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return False
 
-    def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return True
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

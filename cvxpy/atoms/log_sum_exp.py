@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
@@ -41,17 +40,29 @@ class log_sum_exp(AxisAtom):
         return logsumexp(values[0], axis=self.axis, keepdims=True)
 
     def sign_from_args(self):
-        """Always unknown.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.UNKNOWN
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

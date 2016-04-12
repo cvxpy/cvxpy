@@ -33,9 +33,12 @@ class NonNegative(Variable):
     def __repr__(self):
         return "NonNegative(%d, %d)" % self.size
 
-    def init_dcp_attr(self):
-        """Override.
+    def is_positive(self):
+        """Is the expression positive?
         """
-        self._dcp_attr = utils.DCPAttr(utils.Sign.POSITIVE,
-                                       utils.Curvature.AFFINE,
-                                       utils.Shape(self._rows, self._cols))
+        return True
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return False

@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 import abc
 from cvxpy.atoms.atom import Atom
+import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 if sys.version_info >= (3, 0):
@@ -30,19 +31,17 @@ class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
 
-    def shape_from_args(self):
-        """Shape is the same as the sum of the arguments.
+    def size_from_args(self):
+        """Size is the same as the sum of the arguments.
         """
-        return reduce(op.add, [arg._dcp_attr.shape for arg in self.args])
+        return u.shape.sum_shapes([arg.size for arg in self.args])
 
     def validate_arguments(self):
         """
         Verify that all the shapes are the same
         or can be promoted.
         """
-        shape = self.args[0]._dcp_attr.shape
-        for arg in self.args[1:]:
-            shape = shape + arg._dcp_attr.shape
+        u.shape.sum_shapes([arg.size for arg in self.args])
 
     @staticmethod
     def _promote(arg, size):

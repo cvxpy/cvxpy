@@ -26,6 +26,7 @@ from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
 import sys
+from toolz.functoolz import memoize
 if sys.version_info >= (3, 0):
     from functools import reduce
 
@@ -43,61 +44,102 @@ class Atom(Expression):
         # Convert raw values to Constants.
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
-        self.init_dcp_attr()
+        self._size = self.size_from_args()
 
-    # Returns the string representation of the function call.
     def name(self):
+        """Returns the string representation of the function call.
+        """
         return "%s(%s)" % (self.__class__.__name__,
                            ", ".join([arg.name() for arg in self.args]))
 
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
-        """
-        # Initialize _shape. Raises an error for invalid argument sizes.
-        shape = self.shape_from_args()
-        sign = self.sign_from_args()
-        curvature = Atom.dcp_curvature(self.func_curvature(),
-                                       self.args,
-                                       self.monotonicity())
-        self._dcp_attr = u.DCPAttr(sign, curvature, shape)
-
-    # Returns argument curvatures as a list.
-    def argument_curvatures(self):
-        return [arg.curvature for arg in self.args]
-
-    # Raises an error if the arguments are invalid.
     def validate_arguments(self):
+        """Raises an error if the arguments are invalid.
+        """
         pass
 
-    # The curvature of the atom if all arguments conformed to DCP.
-    # Alternatively, the curvature of the atom's function.
     @abc.abstractmethod
-    def func_curvature(self):
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
         return NotImplemented
 
-    # Returns a list with the monotonicity in each argument.
-    # monotonicity can depend on the sign of the argument.
+    @property
+    def size(self):
+        return self._size
+
     @abc.abstractmethod
-    def monotonicity(self):
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
         return NotImplemented
 
-    # Applies DCP composition rules to determine curvature in each argument.
-    # The overall curvature is the sum of the argument curvatures.
-    @staticmethod
-    def dcp_curvature(curvature, args, monotonicities):
-        if len(args) != len(monotonicities):
-            raise Exception('The number of args be'
-                            ' equal to the number of monotonicities.')
-        arg_curvatures = []
-        for arg, monotonicity in zip(args, monotonicities):
-            arg_curv = u.monotonicity.dcp_curvature(monotonicity, curvature,
-                                                    arg._dcp_attr.sign,
-                                                    arg._dcp_attr.curvature)
-            arg_curvatures.append(arg_curv)
-        return reduce(lambda x,y: x+y, arg_curvatures)
+    @memoize
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self.sign_from_args()[0]
 
-    # Represent the atom as an affine objective and affine/basic SOC constraints.
+    @memoize
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self.sign_from_args()[1]
+
+    @abc.abstractmethod
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return NotImplemented
+
+    @memoize
+    def is_convex(self):
+        """Is the expression convex?
+        """
+        # Applies DCP composition rule.
+        if not self.is_atom_convex():
+            return False
+        for idx, arg in enumerate(self.args):
+            if not (arg.is_affine() or \
+                    (arg.is_convex() and self.is_incr(idx)) or \
+                    (arg.is_concave() and self.is_decr(idx))):
+                return False
+        return True
+
+    @memoize
+    def is_concave(self):
+        """Is the expression concave?
+        """
+        # Applies DCP composition rule.
+        if not self.is_atom_concave():
+            return False
+        for idx, arg in enumerate(self.args):
+            if not (arg.is_affine() or \
+                    (arg.is_concave() and self.is_incr(idx)) or \
+                    (arg.is_convex() and self.is_decr(idx))):
+                return False
+        return True
+
     def canonicalize(self):
+        """Represent the atom as an affine objective and conic constraints.
+        """
         # Constant atoms are treated as a leaf.
         if self.is_constant():
             # Parameterized expressions are evaluated later.
@@ -187,10 +229,11 @@ class Atom(Expression):
         else:
             return result
 
-    # Wraps an atom's numeric function that requires numpy ndarrays as input.
-    # Ensures both inputs and outputs are the correct matrix types.
     @staticmethod
     def numpy_numeric(numeric_func):
+        """Wraps an atom's numeric function that requires numpy ndarrays as input.
+           Ensures both inputs and outputs are the correct matrix types.
+        """
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)

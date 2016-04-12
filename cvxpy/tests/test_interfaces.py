@@ -35,11 +35,11 @@ class TestInterfaces(BaseTest):
         """Test sign for a given interface.
         """
         mat = interface.const_to_matrix([[1,2,3,4],[3,4,5,6]])
-        self.assertEquals(intf.sign(mat), Sign.POSITIVE)
-        self.assertEquals(intf.sign(-mat), Sign.NEGATIVE)
-        self.assertEquals(intf.sign(0*mat), Sign.ZERO)
+        self.assertEquals(intf.sign(mat), (True, False)) # Positive.
+        self.assertEquals(intf.sign(-mat), (False, True)) # Negative.
+        self.assertEquals(intf.sign(0*mat), (True, True)) # Zero.
         mat = interface.const_to_matrix([[-1,2,3,4],[3,4,5,6]])
-        self.assertEquals(intf.sign(mat), Sign.UNKNOWN)
+        self.assertEquals(intf.sign(mat), (False, False)) # Unknown.
 
     # Test cvxopt dense interface.
     def test_cvxopt_dense(self):

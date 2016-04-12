@@ -36,15 +36,23 @@ class Variable(Leaf):
         else:
             self._name = name
         self.primal_value = None
-        self.init_dcp_attr()
         super(Variable, self).__init__()
 
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
+    def is_positive(self):
+        """Is the expression positive?
         """
-        self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
-                                   u.Curvature.AFFINE,
-                                   u.Shape(self._rows, self._cols))
+        return False
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return False
+
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return (self._rows, self._cols)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.

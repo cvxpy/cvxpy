@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
@@ -153,26 +152,30 @@ class pnorm(AxisAtom):
                 "The axis parameter is only supported for p=2.")
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        if self.p >= 1:
-            return u.Curvature.CONVEX
-        else:
-            return u.Curvature.CONCAVE
+        return self.p >= 1
 
-    def monotonicity(self):
-        """Increasing for positive arguments and decreasing for negative.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        if self.p >= 1:
-            return [u.monotonicity.SIGNED]
-        else:
-            return [u.monotonicity.INCREASING]
+        return self.p < 1
 
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.p < 1 or (self.p >= 1 and self.args[0].is_positive())
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.p >= 1 and self.args[0].is_negative()
 
     def get_data(self):
         return [self.p, self.axis]

@@ -39,19 +39,30 @@ class norm2_elemwise(Elementwise):
         return LA.norm(mat_3D, axis=2)
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Increasing for positive arguments and decreasing for negative.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return len(self.args)*[u.monotonicity.SIGNED]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[idx].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[idx].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

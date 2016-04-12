@@ -19,6 +19,5 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.pnorm import pnorm
 
-
-def normInf(x):
-    return pnorm(x, 'inf')
+def normInf(x, axis=None):
+    return pnorm(x, 'inf', axis)

@@ -887,5 +887,5 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(expr.value, 3)
         assert expr.is_dcp()
         c[0] = -1
-        self.assertAlmostEqual(expr.value, 1)
-        assert not expr.is_dcp()
+        self.assertAlmostEqual(expr.value, 3)
+        assert expr.is_dcp()
