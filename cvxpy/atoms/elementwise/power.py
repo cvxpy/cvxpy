@@ -188,7 +188,14 @@ class power(Elementwise):
     def is_quadratic(self):
         """Quadratic if p is 0, 1, or 2.
         """
-        return self.p in [0, 1, 2]
+        if self.p == 0:
+            return True
+        elif self.p == 1:
+            return self.args[0].is_quadratic()
+        elif self.p == 2:
+            return self.args[0].is_affine()
+        else:
+            return False
 
     def validate_arguments(self):
         pass

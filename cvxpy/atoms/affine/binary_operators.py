@@ -60,6 +60,9 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+    def is_quadratic(self):
+        return self.args[1].is_quadratic()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Multiply the linear expressions.
@@ -87,6 +90,9 @@ class MulExpression(BinaryOperator):
 class RMulExpression(MulExpression):
     """Multiplication by a constant on the right.
     """
+
+    def is_quadratic(self):
+        return self.args[0].is_quadratic()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -118,9 +124,15 @@ class MulAffinesExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+    def is_quadratic(self):
+        return self.args[0].is_affine() and self.args[1].is_affine()
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
+
+    def is_quadratic(self):
+        return self.args[0].is_quadratic() and self.args[1].is_constant()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

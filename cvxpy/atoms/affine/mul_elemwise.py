@@ -55,10 +55,9 @@ class mul_elemwise(AffAtom):
         )
 
     def is_quadratic(self):
-        """Always quadratic.
+        """Quadratic if x is quadratic.
         """
-        #return self.args[1].is_quadratic()
-        return True
+        return self.args[1].is_quadratic()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
