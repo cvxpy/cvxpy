@@ -877,3 +877,15 @@ class TestAtoms(BaseTest):
         p.solve()
         self.assertAlmostEqual(p.value,8)
         self.assertAlmostEqual(x.value,3)
+
+    def test_change_const(self):
+        """Test whether changing an array constant breaks DCP.
+        """
+        c = np.array([1,2])
+        expr = c.T*square(self.x)
+        self.x.value = [1,1]
+        self.assertAlmostEqual(expr.value, 3)
+        assert expr.is_dcp()
+        c[0] = -1
+        self.assertAlmostEqual(expr.value, 1)
+        assert not expr.is_dcp()
