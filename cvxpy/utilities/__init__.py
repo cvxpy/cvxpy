@@ -18,8 +18,5 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.utilities.canonical import Canonical
-from cvxpy.utilities.curvature import Curvature
-from cvxpy.utilities.dcp_attr import DCPAttr
-import cvxpy.utilities.monotonicity
-from cvxpy.utilities.sign import Sign
-from cvxpy.utilities.shape import Shape
+import shape
+import sign

@@ -114,28 +114,34 @@ class Atom(Expression):
         """Is the expression convex?
         """
         # Applies DCP composition rule.
-        if not self.is_atom_convex():
+        if self.is_constant():
+            return True
+        elif self.is_atom_convex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_affine() or \
+                        (arg.is_convex() and self.is_incr(idx)) or \
+                        (arg.is_concave() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
             return False
-        for idx, arg in enumerate(self.args):
-            if not (arg.is_affine() or \
-                    (arg.is_convex() and self.is_incr(idx)) or \
-                    (arg.is_concave() and self.is_decr(idx))):
-                return False
-        return True
 
     @memoize
     def is_concave(self):
         """Is the expression concave?
         """
         # Applies DCP composition rule.
-        if not self.is_atom_concave():
+        if self.is_constant():
+            return True
+        elif self.is_atom_concave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_affine() or \
+                        (arg.is_concave() and self.is_incr(idx)) or \
+                        (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
             return False
-        for idx, arg in enumerate(self.args):
-            if not (arg.is_affine() or \
-                    (arg.is_concave() and self.is_incr(idx)) or \
-                    (arg.is_convex() and self.is_decr(idx))):
-                return False
-        return True
 
     def canonicalize(self):
         """Represent the atom as an affine objective and conic constraints.

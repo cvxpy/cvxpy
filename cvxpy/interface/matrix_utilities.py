@@ -22,7 +22,6 @@ from cvxpy.interface import numpy_interface as np_intf
 import scipy.sparse as sp
 import numbers
 import numpy as np
-from cvxpy.utilities.sign import Sign
 import cvxopt
 
 # A mapping of class to interface.

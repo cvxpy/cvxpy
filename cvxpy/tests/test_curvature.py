@@ -17,56 +17,70 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.utilities import Curvature
-from cvxpy.utilities import Sign
+from cvxpy import log
+from cvxpy import Constant, Variable, Parameter
+import cvxpy.settings as s
 from nose.tools import assert_equals
 
 class TestCurvature(object):
     """ Unit tests for the expression/curvature class. """
+    @classmethod
+    def setup_class(self):
+        self.cvx = Variable()**2
+        self.ccv = Variable()**0.5
+        self.aff = Variable()
+        self.const = Constant(5)
+        self.unknown_curv = log(Variable()**3)
+
+        self.pos = Constant(1)
+        self.neg = Constant(-1)
+        self.zero = Constant(0)
+        self.unknown_sign = Parameter()
+
     def test_add(self):
-        assert_equals(Curvature.CONSTANT + Curvature.CONVEX, Curvature.CONVEX)
-        assert_equals(Curvature.UNKNOWN + Curvature.CONCAVE, Curvature.UNKNOWN)
-        assert_equals(Curvature.CONVEX + Curvature.CONCAVE, Curvature.UNKNOWN)
-        assert_equals(Curvature.CONVEX + Curvature.CONVEX, Curvature.CONVEX)
-        assert_equals(Curvature.AFFINE + Curvature.CONCAVE, Curvature.CONCAVE)
+        assert_equals( (self.const + self.cvx).curvature, self.cvx.curvature)
+        assert_equals( (self.unknown_curv + self.ccv).curvature, self.unknown_curv.curvature)
+        assert_equals( (self.cvx + self.ccv).curvature, self.unknown_curv.curvature)
+        assert_equals( (self.cvx + self.cvx).curvature, self.cvx.curvature)
+        assert_equals( (self.aff + self.ccv).curvature, self.ccv.curvature)
 
     def test_sub(self):
-        assert_equals(Curvature.CONSTANT - Curvature.CONVEX, Curvature.CONCAVE)
-        assert_equals(Curvature.UNKNOWN - Curvature.CONCAVE, Curvature.UNKNOWN)
-        assert_equals(Curvature.CONVEX - Curvature.CONCAVE, Curvature.CONVEX)
-        assert_equals(Curvature.CONVEX - Curvature.CONVEX, Curvature.UNKNOWN)
-        assert_equals(Curvature.AFFINE - Curvature.CONCAVE, Curvature.CONVEX)
+        assert_equals( (self.const - self.cvx).curvature, self.ccv.curvature)
+        assert_equals( (self.unknown_curv - self.ccv).curvature, self.unknown_curv.curvature)
+        assert_equals( (self.cvx - self.ccv).curvature, self.cvx.curvature)
+        assert_equals( (self.cvx - self.cvx).curvature, self.unknown_curv.curvature)
+        assert_equals( (self.aff - self.ccv).curvature, self.cvx.curvature)
 
     def test_sign_mult(self):
-        assert_equals(Curvature.sign_mul(Sign.ZERO, Curvature.CONVEX), Curvature.CONSTANT)
-        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, Curvature.CONVEX), Curvature.CONCAVE)
-        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, Curvature.CONCAVE), Curvature.CONVEX)
-        assert_equals(Curvature.sign_mul(Sign.NEGATIVE, Curvature.UNKNOWN), Curvature.UNKNOWN)
-        assert_equals(Curvature.sign_mul(Sign.POSITIVE, Curvature.AFFINE), Curvature.AFFINE)
-        assert_equals(Curvature.sign_mul(Sign.POSITIVE, Curvature.CONCAVE), Curvature.CONCAVE)
-        assert_equals(Curvature.sign_mul(Sign.UNKNOWN, Curvature.CONSTANT), Curvature.CONSTANT)
-        assert_equals(Curvature.sign_mul(Sign.UNKNOWN, Curvature.CONCAVE), Curvature.UNKNOWN)
+        assert_equals( (self.zero* self.cvx).curvature, self.const.curvature)
+        assert_equals( (self.neg*self.cvx).curvature, self.ccv.curvature)
+        assert_equals( (self.neg*self.ccv).curvature, self.cvx.curvature)
+        assert_equals( (self.neg*self.unknown_curv).curvature, self.unknown_curv.curvature)
+        assert_equals( (self.pos*self.aff).curvature, self.aff.curvature)
+        assert_equals( (self.pos*self.ccv).curvature, self.ccv.curvature)
+        assert_equals( (self.unknown_sign*self.const).curvature, self.const.curvature)
+        assert_equals( (self.unknown_sign*self.ccv).curvature, self.unknown_curv.curvature)
 
     def test_neg(self):
-        assert_equals(-Curvature.CONVEX, Curvature.CONCAVE)
-        assert_equals(-Curvature.AFFINE, Curvature.AFFINE)
+        assert_equals( (-self.cvx).curvature, self.ccv.curvature)
+        assert_equals( (-self.aff).curvature, self.aff.curvature)
 
     # Tests the is_affine, is_convex, and is_concave methods
     def test_is_curvature(self):
-        assert Curvature.CONSTANT.is_affine()
-        assert Curvature.AFFINE.is_affine()
-        assert not Curvature.CONVEX.is_affine()
-        assert not Curvature.CONCAVE.is_affine()
-        assert not Curvature.UNKNOWN.is_affine()
+        assert self.const.is_affine()
+        assert self.aff.is_affine()
+        assert not self.cvx.is_affine()
+        assert not self.ccv.is_affine()
+        assert not self.unknown_curv.is_affine()
 
-        assert Curvature.CONSTANT.is_convex()
-        assert Curvature.AFFINE.is_convex()
-        assert Curvature.CONVEX.is_convex()
-        assert not Curvature.CONCAVE.is_convex()
-        assert not Curvature.UNKNOWN.is_convex()
+        assert self.const.is_convex()
+        assert self.aff.is_convex()
+        assert self.cvx.is_convex()
+        assert not self.ccv.is_convex()
+        assert not self.unknown_curv.is_convex()
 
-        assert Curvature.CONSTANT.is_concave()
-        assert Curvature.AFFINE.is_concave()
-        assert not Curvature.CONVEX.is_concave()
-        assert Curvature.CONCAVE.is_concave()
-        assert not Curvature.UNKNOWN.is_concave()
+        assert self.const.is_concave()
+        assert self.aff.is_concave()
+        assert not self.cvx.is_concave()
+        assert self.ccv.is_concave()
+        assert not self.unknown_curv.is_concave()

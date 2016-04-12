@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.interface as intf
-from cvxpy.utilities import Sign
 import numpy as np
 import scipy.sparse as sp
 import cvxopt
