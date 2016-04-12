@@ -9,9 +9,13 @@ We list here the optimization packages most relevant to CVXPY users.
 Modeling frameworks
 -------------------
 
-- `cvxstoc <http://alnurali.github.io/cvxstoc/>`_ is a CVXPY extension that makes it easy to code and solve stochastic optimization problems, i.e., convex optimization problems that involve random variables.
+- `DCCP <https://github.com/cvxgrp/dccp>`_ is a CVXPY extension for modeling and solving difference of convex problems.
 
 - `NCVX <https://github.com/cvxgrp/ncvx>`_ is a CVXPY extension for modeling and solving problems with convex objectives and decision variables from a nonconvex set.
+
+- `cvxstoc <http://alnurali.github.io/cvxstoc/>`_ is a CVXPY extension that makes it easy to code and solve stochastic optimization problems, i.e., convex optimization problems that involve random variables.
+
+- `SnapVX <http://snap.stanford.edu/snapvx/>`_ is a Python-based convex optimization solver for problems defined on graphs.
 
 - `CVX <http://cvxr.com/cvx/>`_ is a MATLAB-embedded modeling language for convex optimization problems. CVXPY is based on CVX.
 
