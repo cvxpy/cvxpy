@@ -23,7 +23,7 @@ Version 0.3.10 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
-* Made curvature, sign recursive and affine == convex + concave || constant.
+* Made curvature, sign recursive and affine == convex + concave || constant. Eliminated old DCPAttr system. Memoized important info.
 
 Version 0.3.9
 -------------

@@ -59,6 +59,17 @@ class Constant(Leaf):
         return self._value
 
     @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        return {}
+
+    @property
     def size(self):
         """Returns the (row, col) dimensions of the expression.
         """

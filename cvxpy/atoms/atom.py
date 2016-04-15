@@ -25,6 +25,8 @@ from ..expressions.constants import Constant, CallbackParam
 from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
+import numpy as np
+import scipy.sparse as sp
 import sys
 from toolz.functoolz import memoize
 if sys.version_info >= (3, 0):
@@ -234,6 +236,82 @@ class Atom(Expression):
             return intf.scalar_value(result)
         else:
             return result
+
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+        None indicates variable values unknown or outside domain.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        # Short-circuit if known to be constant.
+        if self.is_constant():
+            return {}
+
+        # Returns None if variable values not supplied.
+        arg_values = []
+        for arg in self.args:
+            if arg.value is None and not self.is_constant():
+                return None
+            else:
+                arg_values.append(arg.value)
+
+        # A list of gradients w.r.t. arguments
+        grad_self = self._grad(arg_values)
+        # The Chain rule.
+        result = {}
+        for idx, arg in enumerate(self.args):
+            # Derivatie w.r.t. constant is zero, so can ignore.
+            if not self.args[idx].is_constant():
+                # A dictionary of gradients w.r.t. variables
+                # Partial argument / Partial x.
+                grad_arg = self.args[idx].grad
+                for key in grad_arg:
+                    # None indicates gradient is not defined.
+                    if grad_arg[key] is None or grad_self[idx] is None:
+                        result[key] = None
+                    else:
+                        D = grad_arg[key]*grad_self[idx]
+                        # Convert 1x1 matrices to scalars.
+                        if not np.isscalar(D) and D.shape == (1,1):
+                            D = D[0,0]
+
+                        if key in result:
+                            result[key] += D
+                        else:
+                            result[key] = D
+
+        return result
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        # TODO make gradient required for all atoms.
+        return NotImplemented
+
+    @property
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
+        """
+        return self._domain() + [con for arg in self.args for con in arg.domain]
+
+    def _domain(self):
+        """Returns constraints describing the domain of the atom.
+        """
+        # Default is no constraints.
+        return []
 
     @staticmethod
     def numpy_numeric(numeric_func):

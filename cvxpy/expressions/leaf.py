@@ -51,6 +51,14 @@ class Leaf(expression.Expression):
         """
         return True
 
+    @property
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
+        """
+        # Default is full domain.
+        return []
+
     def _validate_value(self, val):
         """Check that the value satisfies the leaf's symbolic attributes.
 

@@ -54,12 +54,31 @@ class Expression(u.Canonical):
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 
-    @abc.abstractmethod
+    @abc.abstractproperty
     def value(self):
         """Returns the numeric value of the expression.
 
         Returns:
             A numpy matrix or a scalar.
+        """
+        return NotImplemented
+
+    @abc.abstractproperty
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix.
+            None if a variable value is missing.
+        """
+        return NotImplemented
+
+    @abc.abstractproperty
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
         """
         return NotImplemented
 
@@ -322,7 +341,7 @@ class Expression(u.Canonical):
         """
         return PSDConstraint(self, other)
 
-    #needed for python3:
+    # Needed for Python3:
     def __hash__(self):
         return id(self)
 

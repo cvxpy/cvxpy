@@ -83,6 +83,11 @@ class log_det(Atom):
         """
         return False
 
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[0] >> 0]
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
