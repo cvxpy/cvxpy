@@ -43,11 +43,11 @@ and the instructions below assume you do not have `Anaconda`_.
        pip install nose
        nosetests cvxpy
 
-Ubuntu 14.04
-------------
+Ubuntu 14.04+
+-------------
 
 The following instructions are for installing CVXPY with Python 2.
-To install CVXPY with Python 3, simply install the Python 3 version of all the packages.
+To install CVXPY with Python 3, simply install the Python 3 version of all the packages (e.g., ``python3-dev``, ``python3-pip``).
 
 We recommend using `Anaconda`_  and installing pip, nose, NumPy, SciPy, and CVXOPT through `Anaconda`_ (i.e., ``conda install pip nose numpy scipy cvxopt``).
 But it is not necessary to have `Anaconda`_ to install CVXPY,
@@ -117,9 +117,9 @@ Installation with Python(x,y) is less likely to have problems.
 Windows with Python(x,y)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. If you have Python installed already, it's probably a good idea to remove it first. (Sorry!)
+1. If you have Python installed already, it's probably a good idea to remove it first.
 
-2. Download the latest version of `Python(x,y) <https://python-xy.github.io/downloads.html>`_.
+2. Download the `latest version of Python(x,y) <https://python-xy.github.io/downloads.html>`_.
 
 3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
 
@@ -133,7 +133,7 @@ Windows with Python(x,y)
 open Python(x,y) and launch the interactive console (highlighted button in the picture).
 This will bring up a console.
 
-  .. image:: files/windows4.png
+  .. image:: files/windows3.png
       :scale: 100%
 
 5. From the console, run ``nosetests cvxpy``.
