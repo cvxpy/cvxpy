@@ -76,11 +76,14 @@ class AffAtom(Atom):
         var_offsets = {}
         offset = 0
         for idx, arg in enumerate(self.args):
-            fake_args += [lu.create_var(arg.size, idx)]
-            var_offsets[idx] = offset
-            offset += arg.size[0]*arg.size[1]
+            if arg.is_constant():
+                fake_args += [lu.create_const(arg.value, arg.size)]
+            else:
+                fake_args += [lu.create_var(arg.size, idx)]
+                var_offsets[idx] = offset
+                offset += arg.size[0]*arg.size[1]
         fake_expr, _ = self.graph_implementation(fake_args, self.size,
-                                              self.get_data())
+                                                 self.get_data())
         # Get the matrix representation of the function.
         V, I, J, _ = canonInterface.get_problem_matrix(
             [lu.create_eq(fake_expr)],
@@ -92,8 +95,9 @@ class AffAtom(Atom):
         # Break up into per argument matrices.
         grad_list = []
         start = 0
-        for idx, arg in enumerate(self.args):
-            stop = start + arg.size[0]*arg.size[1]
-            grad_list += [stacked_grad[start:stop,:]]
-            start = stop
+        for arg in self.args:
+            if not arg.is_constant():
+                stop = start + arg.size[0]*arg.size[1]
+                grad_list += [stacked_grad[start:stop,:]]
+                start = stop
         return grad_list

@@ -81,7 +81,7 @@ class log(Elementwise):
             return [None]
         else:
             grad_vals = 1.0/values[0]
-            return [Elementwise.elemwise_grad_to_diag(grad_vals, rows, cols)]
+            return [log.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self):
         """Returns constraints describing the domain of the node.

@@ -263,26 +263,26 @@ class Atom(Expression):
         grad_self = self._grad(arg_values)
         # The Chain rule.
         result = {}
-        for idx, arg in enumerate(self.args):
-            # Derivatie w.r.t. constant is zero, so can ignore.
-            if not self.args[idx].is_constant():
-                # A dictionary of gradients w.r.t. variables
-                # Partial argument / Partial x.
-                grad_arg = self.args[idx].grad
-                for key in grad_arg:
-                    # None indicates gradient is not defined.
-                    if grad_arg[key] is None or grad_self[idx] is None:
-                        result[key] = None
-                    else:
-                        D = grad_arg[key]*grad_self[idx]
-                        # Convert 1x1 matrices to scalars.
-                        if not np.isscalar(D) and D.shape == (1,1):
-                            D = D[0,0]
+        # Derivative w.r.t. constant is zero, so can ignore.
+        non_constants = [arg for arg in self.args if not arg.is_constant()]
+        for idx, arg in enumerate(non_constants):
+            # A dictionary of gradients w.r.t. variables
+            # Partial argument / Partial x.
+            grad_arg = arg.grad
+            for key in grad_arg:
+                # None indicates gradient is not defined.
+                if grad_arg[key] is None or grad_self[idx] is None:
+                    result[key] = None
+                else:
+                    D = grad_arg[key]*grad_self[idx]
+                    # Convert 1x1 matrices to scalars.
+                    if not np.isscalar(D) and D.shape == (1,1):
+                        D = D[0,0]
 
-                        if key in result:
-                            result[key] += D
-                        else:
-                            result[key] = D
+                    if key in result:
+                        result[key] += D
+                    else:
+                        result[key] = D
 
         return result
 
