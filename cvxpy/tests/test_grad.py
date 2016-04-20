@@ -41,6 +41,44 @@ class TestGrad(BaseTest):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
+    def test_linearize(self):
+        """Test linearize method.
+        """
+        # Affine.
+        expr = (2*self.x - 5)[0]
+        self.x.value = [1,2]
+        lin_expr = expr.linearize()
+        self.x.value = [55,22]
+        self.assertAlmostEquals(lin_expr.value, expr.value)
+        self.x.value = [-1,-5]
+        self.assertAlmostEquals(lin_expr.value, expr.value)
+
+        # Convex.
+        expr = (self.A)**2 + 5
+
+        with self.assertRaises(Exception) as cm:
+            expr.linearize()
+        self.assertEqual(str(cm.exception),
+            "Cannot linearize non-affine expression with missing variable values.")
+
+        self.A.value = [[1,2],[3,4]]
+        lin_expr = expr.linearize()
+        manual = expr.value + 2*reshape(diag(vec(self.A)).value*vec(self.A - self.A.value), 2, 2)
+        self.assertItemsAlmostEqual(lin_expr.value, expr.value)
+        self.A.value = [[-5,-5],[8.2,4.4]]
+        assert (lin_expr.value <= expr.value).all()
+        self.assertItemsAlmostEqual(lin_expr.value, manual.value)
+
+        # Concave.
+        expr = log(self.x)/2
+        self.x.value = [1,2]
+        lin_expr = expr.linearize()
+        manual = expr.value + diag(0.5*self.x**-1).value*(self.x - self.x.value)
+        self.assertItemsAlmostEqual(lin_expr.value, expr.value)
+        self.x.value = [3,4.4]
+        assert (lin_expr.value >= expr.value).all()
+        self.assertItemsAlmostEqual(lin_expr.value, manual.value)
+
     def test_log(self):
         """Test domain for log.
         """
@@ -377,6 +415,14 @@ class TestGrad(BaseTest):
         expr = -self.a
         self.a.value = 2
         self.assertAlmostEquals(expr.grad[self.a], -1)
+
+        expr = 2*self.a
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], 2)
+
+        expr = self.a/2
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], 0.5)
 
         expr = -(self.x)
         self.x.value = [3,4]
