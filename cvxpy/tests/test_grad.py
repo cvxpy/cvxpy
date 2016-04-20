@@ -173,6 +173,8 @@ class TestGrad(BaseTest):
         self.assertAlmostEqual(expr.grad[self.a],[-2.5])
 
     def test_sigma_max(self):
+        """Test sigma_max.
+        """
         expr = sigma_max(self.A)
         self.A.value = [[1,0],[0,2]]
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[0,0,0,1])
@@ -181,9 +183,19 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1,0,0,0])
 
     def test_sum_largest(self):
+        """Test sum_largest.
+        """
         expr = sum_largest(self.A,2)
         self.A.value = [[1,2],[3,0.5]]
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0,1,1,0])
+
+    def test_abs(self):
+        """Test abs.
+        """
+        expr = abs(self.A)
+        self.A.value = [[1,2],[-1,0]]
+        val = np.zeros((4,4)) + np.diag([1,1,-1,0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
 
     def test_linearize(self):
         """Test linearize method.
