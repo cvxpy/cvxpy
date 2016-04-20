@@ -35,10 +35,54 @@ class TestDomain(BaseTest):
 
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
+        self.z = Variable(3, name='z')
 
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
+
+    def test_geo_mean(self):
+        """Test domain for geo_mean
+        """
+        dom = geo_mean(self.x).domain
+        prob = Problem(Minimize(sum_entries(self.x)), dom)
+        prob.solve()
+        self.assertAlmostEqual(prob.value,0)
+
+        dom = geo_mean(self.x,[0,2]).domain
+        dom.append(self.x>=-1)
+        prob = Problem(Minimize(sum_entries(self.x)), dom)
+        prob.solve()
+        self.assertItemsAlmostEqual(self.x.value,[-1,-1])
+
+        dom = geo_mean(self.z,[0,1,1]).domain
+        dom.append(self.z>=-1)
+        prob = Problem(Minimize(sum_entries(self.z)), dom)
+        prob.solve()
+        self.assertItemsAlmostEqual(self.z.value,[-1,0,0])
+
+    def test_quad_over_lin(self):
+        """Test domain for quad_over_lin
+        """
+        dom = quad_over_lin(self.x,self.a).domain
+        Problem(Minimize(self.a),dom).solve()
+        self.assertAlmostEqual(self.a.value,0)
+
+    def test_lambda_max(self):
+        """Test domain for lambda_max
+        """
+        dom = lambda_max(self.A).domain
+        A0 = [[1,2],[3,4]]
+        Problem(Minimize(norm2(self.A-A0)),dom).solve()
+        self.assertItemsAlmostEqual(self.A.value,np.matrix([[1,2.5],[2.5,4]]))
+
+    def test_pnorm(self):
+        """ Test domain for pnorm.
+        """
+        dom = pnorm(self.a,-0.5).domain
+        prob = Problem(Minimize(self.a), dom)
+        prob.solve()
+        self.assertAlmostEqual(prob.value, 0)
 
     def test_log(self):
         """Test domain for log.
@@ -70,6 +114,14 @@ class TestDomain(BaseTest):
         """Test domain for log_det.
         """
         dom = log_det(self.A + np.eye(2)).domain
+        prob = Problem(Minimize(sum_entries(diag(self.A))), dom)
+        prob.solve(solver=cvxpy.SCS)
+        self.assertAlmostEquals(prob.value, -2, places=3)
+
+    def test_matrix_frac(self):
+        """Test domain for matrix_frac.
+        """
+        dom = matrix_frac(self.x,self.A + np.eye(2)).domain
         prob = Problem(Minimize(sum_entries(diag(self.A))), dom)
         prob.solve(solver=cvxpy.SCS)
         self.assertAlmostEquals(prob.value, -2, places=3)

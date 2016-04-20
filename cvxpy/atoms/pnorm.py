@@ -25,6 +25,7 @@ from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.soc_elemwise import SOC_Elemwise
 from fractions import Fraction
+import scipy as scipy
 
 
 class pnorm(AxisAtom):
@@ -184,6 +185,48 @@ class pnorm(AxisAtom):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p)
+    def _domain(self):
+        if self.p < 1 and self.p != 0:
+            return [self.args[0] >= 0]
+        else:
+            return []
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        value = np.matrix(values[0])
+        if self.p < 1 and np.any(value <= 0):
+            return [None]
+        if self.p == 1:
+            D = (1+(value>0)-1) - (1+(value<0)-1)
+            D = np.reshape(np.transpose(D),(rows,1))
+            D = scipy.sparse.csc_matrix(D).toarray()
+            return [D]
+        denominator = np.linalg.norm(value, float(self.p))
+        denominator = np.power(denominator, self.p - 1)
+        D = np.zeros((rows,1))
+        if denominator == 0:
+            if self.p>=1:
+                D = scipy.sparse.csc_matrix(D).toarray()
+                return [D]
+            else:
+                return [None]
+        else:
+            nominator = np.power(value, self.p - 1)
+            frac = np.divide(nominator, denominator)
+            D = np.reshape(np.transpose(frac),(rows,1))
+            D = scipy.sparse.csc_matrix(D).toarray()
+            return [D]
+
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

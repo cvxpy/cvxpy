@@ -23,6 +23,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.second_order import SOC
 import numpy as np
 import scipy.sparse as sp
+import scipy as scipy
 
 class quad_over_lin(Atom):
     """ :math:`(sum_{ij}X^2_{ij})/y`
@@ -36,6 +37,22 @@ class quad_over_lin(Atom):
         """Returns the sum of the entries of x squared over y.
         """
         return np.square(values[0]).sum()/values[1]
+
+    def _domain(self):
+        return [self.args[1] > 0]
+
+    def _grad(self, values):
+        X = values[0]
+        y = values[1]
+        if y<=0:
+            return [None,None]
+        else:
+            Dy = -np.square(X).sum()/np.square(y)
+            Dy = scipy.sparse.csc_matrix(Dy).toarray()
+            DX = 2.0*X/y
+            DX = np.reshape(DX, (self.args[0].size[0]*self.args[0].size[1],1))
+            DX = scipy.sparse.csc_matrix(DX).toarray()
+            return[DX,Dy]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

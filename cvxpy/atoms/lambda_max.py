@@ -23,6 +23,8 @@ from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from scipy import linalg as LA
+import numpy as np
+import scipy as scipy
 
 class lambda_max(Atom):
     """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
@@ -41,6 +43,19 @@ class lambda_max(Atom):
             raise ValueError("lambda_max called on a non-symmetric matrix.")
         lo = hi = self.args[0].size[0]-1
         return LA.eigvalsh(values[0], eigvals=(lo, hi))
+
+    def _domain(self):
+        return [self.args[0].T == self.args[0]]
+
+    def _grad(self, values):
+        w, v = LA.eigh(values[0])
+        d = w==w[-1]
+        d = np.diag(d)
+        D = np.dot(np.dot(v,d),np.transpose(v))
+        D = np.reshape(np.transpose(D),(len(w)*len(w),1))
+        D = scipy.sparse.csc_matrix(D).toarray()
+        return [D]
+
 
     def validate_arguments(self):
         """Verify that the argument A is square.

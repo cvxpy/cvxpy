@@ -22,6 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.sum_entries import sum_entries
 import numpy as np
+from scipy.sparse import csc_matrix
 
 class sum_largest(Atom):
     """Sum of the largest k values in the matrix X.
@@ -43,6 +44,13 @@ class sum_largest(Atom):
         value = intf.from_2D_to_1D(values[0].flatten().T)
         indices = np.argsort(-value)[:int(self.k)]
         return value[indices].sum()
+
+    def _grad(self, values):
+        value = intf.from_2D_to_1D(values[0].flatten().T)
+        indices = np.argsort(-value)[:int(self.k)]
+        D = csc_matrix((self.args[0].size[0]*self.args[0].size[1], 1), dtype=np.int8).toarray()
+        D[indices]=1
+        return [D]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

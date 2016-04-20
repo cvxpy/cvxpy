@@ -21,7 +21,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 import numpy as np
 import numbers
-
+import scipy as scipy
 
 from ..utilities.power_tools import fracify, decompose, approx_error, lower_bound, over_bound, prettydict, gm, gm_constrs
 import cvxpy.lin_ops.lin_utils as lu
@@ -236,6 +236,32 @@ class geo_mean(Atom):
         for x, p in zip(values, self.w):
             val *= x**float(p)
         return val
+
+    def _domain(self):
+        dom = []
+        if not np.sum([w_i>0 for w_i in self.w]) == 1:
+            for idx, w_i in enumerate(self.w):
+                if w_i>0:
+                    dom.append(self.args[0][idx]>=0)
+        return dom
+
+    def _grad(self, values):
+        x = values[0]
+        D = np.zeros((len(x),1))
+        if np.sum([w_i>0 for w_i in self.w]) == 1: # only one nonzero weight
+            D = 1+(np.matrix(self.w)>0)-1
+            D = np.reshape(D,(len(x),1))
+            D = scipy.sparse.csc_matrix(D).toarray()
+            return [D]
+        for i in range(len(D)):
+            if not self.w[i]==0:
+                if x[i] <=0:
+                    return [None]
+                else:
+                    D[i] = self.w[i]/x[i]*self.numeric(values)
+        D = scipy.sparse.csc_matrix(D).toarray()
+        return [D]
+
 
     def name(self):
         return "%s(%s, (%s))" % (self.__class__.__name__,

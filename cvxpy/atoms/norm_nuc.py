@@ -23,6 +23,8 @@ from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 import scipy.linalg
+import numpy as np
+import scipy as scipy
 
 class normNuc(Atom):
     """ Sum of the singular values. """
@@ -34,6 +36,14 @@ class normNuc(Atom):
         """Returns the nuclear norm (i.e. the sum of the singular values) of A.
         """
         return scipy.linalg.svdvals(values[0]).sum()
+
+    def _grad(self, values):
+        U, s, V = np.linalg.svd(values[0])
+        ds = np.eye(len(s))
+        D = np.dot(np.dot(U,ds),V)
+        D = np.reshape(D,(self.args[0].size[0]*self.args[0].size[1],1))
+        D = scipy.sparse.csc_matrix(D).toarray()
+        return [D]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

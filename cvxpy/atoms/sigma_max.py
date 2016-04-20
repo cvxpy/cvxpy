@@ -24,6 +24,8 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 import scipy.sparse as sp
 from numpy import linalg as LA
+import numpy as np
+import scipy as scipy
 
 class sigma_max(Atom):
     """ Maximum singular value. """
@@ -35,6 +37,14 @@ class sigma_max(Atom):
         """Returns the largest singular value of A.
         """
         return LA.norm(values[0], 2)
+
+    def _grad(self,values):
+        U, s, V = LA.svd(values[0])
+        ds = s==s[0]
+        D = np.dot(np.dot(U,np.diag(ds)),V)
+        D = np.reshape(D,(self.args[0].size[0]*self.args[0].size[1],1))
+        D = scipy.sparse.csc_matrix(D).toarray()
+        return [D]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
