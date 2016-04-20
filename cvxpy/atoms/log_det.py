@@ -26,7 +26,7 @@ from cvxpy.constraints.semidefinite import SDP
 from cvxpy.expressions.variables.semidef_var import Semidef
 import numpy as np
 from numpy import linalg as LA
-import scipy as scipy
+import scipy.sparse as sp
 
 class log_det(Atom):
     """:math:`\log\det A`
@@ -94,18 +94,17 @@ class log_det(Atom):
 
         Returns:
             A list of SciPy CSC sparse matrices or None.
-            gradient(x) = (x^{-1}).^T
         """
-        eigen_val = LA.eigvals(values[0])
+        X = np.matrix(values[0])
+        eigen_val = LA.eigvals(X)
         rows = self.args[0].size[0]*self.args[0].size[1]
-        if np.min(eigen_val)>0:
-            D = np.linalg.inv(np.matrix(values[0]))
-            D = np.reshape(D,(rows,1))
-            D = scipy.sparse.csc_matrix(D).toarray()
-            return [D]
+        if np.min(eigen_val) > 0:
+            # Grad: X^{-1}.T
+            D = np.linalg.inv(X).T
+            return [sp.csc_matrix(D.A.ravel(order='F')).T]
+        # Outside domain.
         else:
             return [None]
-
 
     def _domain(self):
         """Returns constraints describing the domain of the node.

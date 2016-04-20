@@ -22,7 +22,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.sum_entries import sum_entries
 import numpy as np
-from scipy.sparse import csc_matrix
+import scipy.sparse as sp
 
 class sum_largest(Atom):
     """Sum of the largest k values in the matrix X.
@@ -46,11 +46,22 @@ class sum_largest(Atom):
         return value[indices].sum()
 
     def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        # Grad: 1 for each of k largest indices.
         value = intf.from_2D_to_1D(values[0].flatten().T)
         indices = np.argsort(-value)[:int(self.k)]
-        D = csc_matrix((self.args[0].size[0]*self.args[0].size[1], 1), dtype=np.int8).toarray()
-        D[indices]=1
-        return [D]
+        D = np.zeros((self.args[0].size[0]*self.args[0].size[1], 1))
+        D[indices] = 1
+        return [sp.csc_matrix(D)]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

@@ -25,7 +25,6 @@ from cvxpy.constraints.semidefinite import SDP
 import scipy.sparse as sp
 from numpy import linalg as LA
 import numpy as np
-import scipy as scipy
 
 class sigma_max(Atom):
     """ Maximum singular value. """
@@ -39,12 +38,22 @@ class sigma_max(Atom):
         return LA.norm(values[0], 2)
 
     def _grad(self,values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        # Grad: U diag(e_1) V.T
         U, s, V = LA.svd(values[0])
-        ds = s==s[0]
-        D = np.dot(np.dot(U,np.diag(ds)),V)
-        D = np.reshape(D,(self.args[0].size[0]*self.args[0].size[1],1))
-        D = scipy.sparse.csc_matrix(D).toarray()
-        return [D]
+        ds = np.zeros(len(s))
+        ds[0] = 1
+        D = U.dot(np.diag(ds)).dot(V)
+        return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

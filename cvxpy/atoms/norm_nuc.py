@@ -24,7 +24,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 import scipy.linalg
 import numpy as np
-import scipy as scipy
+import scipy.sparse as sp
 
 class normNuc(Atom):
     """ Sum of the singular values. """
@@ -38,12 +38,20 @@ class normNuc(Atom):
         return scipy.linalg.svdvals(values[0]).sum()
 
     def _grad(self, values):
-        U, s, V = np.linalg.svd(values[0])
-        ds = np.eye(len(s))
-        D = np.dot(np.dot(U,ds),V)
-        D = np.reshape(D,(self.args[0].size[0]*self.args[0].size[1],1))
-        D = scipy.sparse.csc_matrix(D).toarray()
-        return [D]
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        # Grad UV^T
+        U, _, V = np.linalg.svd(values[0])
+        D = U.dot(V)
+        return [sp.csc_matrix(D.A.ravel(order='F')).T]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

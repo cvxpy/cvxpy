@@ -38,7 +38,8 @@ def norm(x, p=2, axis=None):
         An Expression representing the norm.
     """
     x = Expression.cast_to_const(x)
-    if p == 1:
+    # Norms for scalars same as absolute value.
+    if p == 1 or x.is_scalar():
         return pnorm(x, 1, axis)
     elif p == "inf":
         return pnorm(x, 'inf', axis)

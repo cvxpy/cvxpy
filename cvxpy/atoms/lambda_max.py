@@ -24,7 +24,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from scipy import linalg as LA
 import numpy as np
-import scipy as scipy
+import scipy.sparse as sp
 
 class lambda_max(Atom):
     """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
@@ -45,17 +45,27 @@ class lambda_max(Atom):
         return LA.eigvalsh(values[0], eigvals=(lo, hi))
 
     def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
         return [self.args[0].T == self.args[0]]
 
     def _grad(self, values):
-        w, v = LA.eigh(values[0])
-        d = w==w[-1]
-        d = np.diag(d)
-        D = np.dot(np.dot(v,d),np.transpose(v))
-        D = np.reshape(np.transpose(D),(len(w)*len(w),1))
-        D = scipy.sparse.csc_matrix(D).toarray()
-        return [D]
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        w, v = LA.eigh(values[0])
+        d = np.zeros(w.size)
+        d[-1] = 1
+        d = np.diag(d)
+        D = v.dot(d).dot(v.T)
+        return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def validate_arguments(self):
         """Verify that the argument A is square.

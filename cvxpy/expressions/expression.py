@@ -82,33 +82,6 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
-    def linearize(self):
-        """Returns the tangent approximation to the expression.
-
-        Gives an elementwise lower (upper) bound for convex (concave)
-        expressions. No guarantees for non-DCP expressions.
-
-        Returns:
-            An affine expression.
-        """
-        if self.is_affine():
-            return self
-        else:
-            tangent = self.value
-            if tangent is None:
-                raise ValueError(
-          "Cannot linearize non-affine expression with missing variable values."
-                )
-            grad_map = self.grad
-            for var in self.variables():
-                grad_term = Expression.cast_to_const(grad_map[var])
-                if var.is_matrix():
-                    flattened = grad_term*types.vec()(var - var.value)
-                    tangent = tangent + types.reshape()(flattened, *self.size)
-                else:
-                    tangent = tangent + grad_term*(var - var.value)
-            return tangent
-
     def __str__(self):
         """Returns a string showing the mathematical expression.
         """
