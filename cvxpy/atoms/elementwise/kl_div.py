@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import division
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.constraints.exponential import ExpCone
@@ -62,6 +63,36 @@ class kl_div(Elementwise):
         """Is the composition non-increasing in argument idx?
         """
         return False
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        if np.min(values[0]) <= 0 or np.min(values[1]) <= 0:
+            # Non-differentiable.
+            return [None, None]
+        else:
+            div = values[0]/values[1]
+            grad_vals = [np.log(div), 1 - div]
+            grad_list = []
+            for idx in range(len(values)):
+                rows = self.args[idx].size[0]*self.args[idx].size[1]
+                cols = self.size[0]*self.size[1]
+                grad_list += [kl_div.elemwise_grad_to_diag(grad_vals[idx],
+                                                           rows, cols)]
+            return grad_list
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[0] >= 0, self.args[1] >= 0]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

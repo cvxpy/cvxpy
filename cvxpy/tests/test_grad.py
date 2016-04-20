@@ -68,6 +68,282 @@ class TestGrad(BaseTest):
         val = np.zeros((4,4)) + np.diag([1,1/2,1/3,1/4])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
 
+    def test_log1p(self):
+        """Test domain for log1p.
+        """
+        expr = log1p(self.a)
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], 1.0/3)
+
+        self.a.value = 3
+        self.assertAlmostEquals(expr.grad[self.a], 1.0/4)
+
+        self.a.value = -1
+        self.assertAlmostEquals(expr.grad[self.a], None)
+
+        expr = log1p(self.x)
+        self.x.value = [3,4]
+        val = np.zeros((2,2)) + np.diag([1/4,1/5])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = log1p(self.x)
+        self.x.value = [-1e-9-1,4]
+        self.assertAlmostEqual(expr.grad[self.x], None)
+
+        expr = log1p(self.A)
+        self.A.value = [[1,2], [3,4]]
+        val = np.zeros((4,4)) + np.diag([1/2,1/3,1/4,1/5])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+
+    def test_entr(self):
+        """Test domain for entr.
+        """
+        expr = entr(self.a)
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], -np.log(2) - 1)
+
+        self.a.value = 3
+        self.assertAlmostEquals(expr.grad[self.a], -(np.log(3) + 1))
+
+        self.a.value = -1
+        self.assertAlmostEquals(expr.grad[self.a], None)
+
+        expr = entr(self.x)
+        self.x.value = [3,4]
+        val = np.zeros((2,2)) + np.diag(-(np.log([3,4]) + 1))
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = entr(self.x)
+        self.x.value = [-1e-9,4]
+        self.assertAlmostEqual(expr.grad[self.x], None)
+
+        expr = entr(self.A)
+        self.A.value = [[1,2], [3,4]]
+        val = np.zeros((4,4)) + np.diag(-(np.log([1,2,3,4]) + 1))
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+
+
+    def test_exp(self):
+        """Test domain for exp.
+        """
+        expr = exp(self.a)
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], np.exp(2))
+
+        self.a.value = 3
+        self.assertAlmostEquals(expr.grad[self.a], np.exp(3))
+
+        self.a.value = -1
+        self.assertAlmostEquals(expr.grad[self.a], np.exp(-1))
+
+        expr = exp(self.x)
+        self.x.value = [3,4]
+        val = np.zeros((2,2)) + np.diag(np.exp([3,4]))
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = exp(self.x)
+        self.x.value = [-1e-9,4]
+        val = np.zeros((2,2)) + np.diag(np.exp([-1e-9,4]))
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = exp(self.A)
+        self.A.value = [[1,2], [3,4]]
+        val = np.zeros((4,4)) + np.diag(np.exp([1,2,3,4]))
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+
+    def test_logistic(self):
+        """Test domain for logistic.
+        """
+        expr = logistic(self.a)
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], np.exp(2)/(1+np.exp(2)))
+
+        self.a.value = 3
+        self.assertAlmostEquals(expr.grad[self.a], np.exp(3)/(1+np.exp(3)))
+
+        self.a.value = -1
+        self.assertAlmostEquals(expr.grad[self.a], np.exp(-1)/(1+np.exp(-1)))
+
+        expr = logistic(self.x)
+        self.x.value = [3,4]
+        val = np.zeros((2,2)) + np.diag(np.exp([3,4])/(1+np.exp([3,4])))
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = logistic(self.x)
+        self.x.value = [-1e-9,4]
+        val = np.zeros((2,2)) + np.diag(np.exp([-1e-9,4])/(1+np.exp([-1e-9,4])))
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = logistic(self.A)
+        self.A.value = [[1,2], [3,4]]
+        val = np.zeros((4,4)) + np.diag(np.exp([1,2,3,4])/(1+np.exp([1,2,3,4])))
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+
+    def test_huber(self):
+        """Test domain for huber.
+        """
+        expr = huber(self.a)
+        self.a.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], 2)
+
+        expr = huber(self.a, M=2)
+        self.a.value = 3
+        self.assertAlmostEquals(expr.grad[self.a], 4)
+
+        self.a.value = -1
+        self.assertAlmostEquals(expr.grad[self.a], -2)
+
+        expr = huber(self.x)
+        self.x.value = [3,4]
+        val = np.zeros((2,2)) + np.diag([2, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = huber(self.x)
+        self.x.value = [-1e-9,4]
+        val = np.zeros((2,2)) + np.diag([0,2])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = huber(self.A, M=3)
+        self.A.value = [[1,2], [3,4]]
+        val = np.zeros((4,4)) + np.diag([2,4,6,6])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+
+    def test_kl_div(self):
+        """Test domain for kl_div.
+        """
+        b = Variable()
+        expr = kl_div(self.a, b)
+        self.a.value = 2
+        b.value = 4
+        self.assertAlmostEquals(expr.grad[self.a], np.log(2/4))
+        self.assertAlmostEquals(expr.grad[b], 1 - (2/4))
+
+        self.a.value = 3
+        b.value = 0
+        self.assertAlmostEquals(expr.grad[self.a], None)
+        self.assertAlmostEquals(expr.grad[b], None)
+
+        self.a.value = -1
+        b.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], None)
+        self.assertAlmostEquals(expr.grad[b], None)
+
+        y = Variable(2)
+        expr = kl_div(self.x, y)
+        self.x.value = [3,4]
+        y.value = [5, 8]
+        val = np.zeros((2,2)) + np.diag(np.log([3,4]) - np.log([5, 8]))
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        val = np.zeros((2,2)) + np.diag([1 - 3/5, 1 - 4/8])
+        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+
+        expr = kl_div(self.x, y)
+        self.x.value = [-1e-9,4]
+        y.value = [1, 2]
+        self.assertAlmostEqual(expr.grad[self.x], None)
+        self.assertAlmostEqual(expr.grad[y], None)
+
+        expr = kl_div(self.A, self.B)
+        self.A.value = [[1,2], [3,4]]
+        self.B.value = [[5,1], [3.5,2.3]]
+        div = (self.A.value/self.B.value).A.ravel(order='F')
+        val = np.zeros((4,4)) + np.diag(np.log(div))
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        val = np.zeros((4,4)) + np.diag(1 - div)
+        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
+
+    def test_max_elemwise(self):
+        """Test domain for max_elemwise.
+        """
+        b = Variable()
+        expr = max_elemwise(self.a, b)
+        self.a.value = 2
+        b.value = 4
+        self.assertAlmostEquals(expr.grad[self.a], 0)
+        self.assertAlmostEquals(expr.grad[b], 1)
+
+        self.a.value = 3
+        b.value = 0
+        self.assertAlmostEquals(expr.grad[self.a], 1)
+        self.assertAlmostEquals(expr.grad[b], 0)
+
+        self.a.value = -1
+        b.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], 0)
+        self.assertAlmostEquals(expr.grad[b], 1)
+
+        y = Variable(2)
+        expr = max_elemwise(self.x, y)
+        self.x.value = [3,4]
+        y.value = [5, -5]
+        val = np.zeros((2,2)) + np.diag([0,1])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        val = np.zeros((2,2)) + np.diag([1,0])
+        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+
+        expr = max_elemwise(self.x, y)
+        self.x.value = [-1e-9,4]
+        y.value = [1, 4]
+        val = np.zeros((2,2)) + np.diag([0,1])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        val = np.zeros((2,2)) + np.diag([1,1])
+        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+
+        expr = max_elemwise(self.A, self.B)
+        self.A.value = [[1,2], [3,4]]
+        self.B.value = [[5,1], [3,2.3]]
+        div = (self.A.value/self.B.value).A.ravel(order='F')
+        val = np.zeros((4,4)) + np.diag([0,1,1,1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        val = np.zeros((4,4)) + np.diag([1,0,1,0])
+        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
+
+    def test_min_elemwise(self):
+        """Test domain for min_elemwise.
+        """
+        b = Variable()
+        expr = min_elemwise(self.a, b)
+        self.a.value = 2
+        b.value = 4
+        self.assertAlmostEquals(expr.grad[self.a], 1)
+        self.assertAlmostEquals(expr.grad[b], 0)
+
+        self.a.value = 3
+        b.value = 0
+        self.assertAlmostEquals(expr.grad[self.a], 0)
+        self.assertAlmostEquals(expr.grad[b], 1)
+
+        self.a.value = -1
+        b.value = 2
+        self.assertAlmostEquals(expr.grad[self.a], 1)
+        self.assertAlmostEquals(expr.grad[b], 0)
+
+        y = Variable(2)
+        expr = min_elemwise(self.x, y)
+        self.x.value = [3,4]
+        y.value = [5, -5]
+        val = np.zeros((2,2)) + np.diag([1,0])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        val = np.zeros((2,2)) + np.diag([0,1])
+        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+
+        expr = min_elemwise(self.x, y)
+        self.x.value = [-1e-9,4]
+        y.value = [1, 4]
+        val = np.zeros((2,2)) + np.diag([1,1])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        val = np.zeros((2,2)) + np.diag([0,1])
+        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+
+        expr = min_elemwise(self.A, self.B)
+        self.A.value = [[1,2], [3,4]]
+        self.B.value = [[5,1], [3,2.3]]
+        div = (self.A.value/self.B.value).A.ravel(order='F')
+        val = np.zeros((4,4)) + np.diag([1,0,1,0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        val = np.zeros((4,4)) + np.diag([0,1,1,1])
+        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
+
     def test_power(self):
         """Test domain for power.
         """

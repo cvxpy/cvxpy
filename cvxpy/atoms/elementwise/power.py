@@ -232,7 +232,7 @@ class power(Elementwise):
                 values[0] = np.maximum(values[0], 0)
 
         grad_vals = self.p*np.power(values[0], self.p-1)
-        return [Elementwise.elemwise_grad_to_diag(grad_vals, rows, cols)]
+        return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self):
         """Returns constraints describing the domain of the node.

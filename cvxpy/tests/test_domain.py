@@ -47,6 +47,29 @@ class TestDomain(BaseTest):
         Problem(Minimize(self.a), dom).solve()
         self.assertAlmostEquals(self.a.value, 0)
 
+    def test_log1p(self):
+        """Test domain for log1p.
+        """
+        dom = log1p(self.a).domain
+        Problem(Minimize(self.a), dom).solve()
+        self.assertAlmostEquals(self.a.value, -1)
+
+    def test_entr(self):
+        """Test domain for entr.
+        """
+        dom = entr(self.a).domain
+        Problem(Minimize(self.a), dom).solve()
+        self.assertAlmostEquals(self.a.value, 0)
+
+    def test_kl_div(self):
+        """Test domain for kl_div.
+        """
+        b = Variable()
+        dom = kl_div(self.a, b).domain
+        Problem(Minimize(self.a + b), dom).solve()
+        self.assertAlmostEquals(self.a.value, 0)
+        self.assertAlmostEquals(b.value, 0)
+
     def test_power(self):
         """Test domain for power.
         """
