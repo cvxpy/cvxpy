@@ -177,11 +177,11 @@ class TestGrad(BaseTest):
         """
         expr = max_entries(self.x)
         self.x.value = [2,1]
-        self.assertItemsAlmostEqual(expr.grad[self.x],[1,0])
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(),[1,0])
 
         expr = max_entries(self.A)
         self.A.value = np.matrix([[1,2],[4,3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A],[0,1,0,0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[0,1,0,0])
 
         expr = max_entries(self.A,axis = 0)
         self.A.value = np.matrix([[1,2],[4,3]])
@@ -208,7 +208,7 @@ class TestGrad(BaseTest):
         expr = sum_largest(self.A,2)
 
         self.A.value = [[4,3],[2,1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A],[1,0,1,0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[1,0,1,0])
 
         self.A.value = [[1,2],[3,0.5]]
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0,1,1,0])

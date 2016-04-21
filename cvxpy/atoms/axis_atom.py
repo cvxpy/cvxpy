@@ -61,7 +61,7 @@ class AxisAtom(Atom):
         if self.axis == None:
             value = np.reshape(values[0].T,(m*n,1))
             D = self._column_grad(value)
-            D = scipy.sparse.csc_matrix(D).toarray()
+            D = scipy.sparse.csc_matrix(D)
         else:
             if self.axis == 0: # function apply to each column
                 D = scipy.sparse.csc_matrix((m*n,n),dtype = np.float)
