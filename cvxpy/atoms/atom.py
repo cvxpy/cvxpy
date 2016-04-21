@@ -26,7 +26,6 @@ from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
 import numpy as np
-import scipy.sparse as sp
 import sys
 from toolz.functoolz import memoize
 if sys.version_info >= (3, 0):
@@ -247,15 +246,15 @@ class Atom(Expression):
         Returns:
             A map of variable to SciPy CSC sparse matrix or None.
         """
-        # Short-circuit if known to be constant.
+        # Short-circuit to all zeros if known to be constant.
         if self.is_constant():
-            return {}
+            return u.grad.constant_grad(self)
 
         # Returns None if variable values not supplied.
         arg_values = []
         for arg in self.args:
-            if arg.value is None and not self.is_constant():
-                return None
+            if arg.value is None:
+                return u.grad.error_grad(self)
             else:
                 arg_values.append(arg.value)
 

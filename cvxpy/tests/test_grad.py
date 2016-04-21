@@ -27,7 +27,7 @@ import cvxpy.utilities as u
 from cvxpy.transforms import linearize
 import numpy as np
 import unittest
-from cvxpy import Problem, Minimize
+from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 
 class TestGrad(BaseTest):
@@ -619,6 +619,58 @@ class TestGrad(BaseTest):
         self.A.value = [[1,-2], [3,4]]
         val = np.zeros((4,4)) + np.diag([2,-4,6,8])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+
+        # Constant.
+        expr = (self.a)**0
+        self.assertAlmostEquals(expr.grad[self.a], 0)
+
+        expr = (self.x)**0
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), np.zeros((2,2)))
+
+    def test_partial_problem(self):
+        """Test grad for partial minimization/maximization problems.
+        """
+        for obj in [Minimize((self.a)**-1), Maximize(entr(self.a))]:
+            prob = Problem(obj, [self.x + self.a >= [5,8]])
+            # Optimize over nothing.
+            expr = cvxpy.partial_optimize(prob, dont_opt_vars=[self.x, self.a])
+            self.a.value = None
+            self.x.value = None
+            grad = expr.grad
+            self.assertAlmostEquals(grad[self.a], None)
+            self.assertAlmostEquals(grad[self.x], None)
+            # Outside domain.
+            self.a.value = 1.0
+            self.x.value = [5,5]
+            grad = expr.grad
+            self.assertAlmostEquals(grad[self.a], None)
+            self.assertAlmostEquals(grad[self.x], None)
+
+            self.a.value = 1
+            self.x.value = [10,10]
+            grad = expr.grad
+            self.assertAlmostEquals(grad[self.a], obj.args[0].grad[self.a])
+            self.assertItemsAlmostEqual(grad[self.x].todense(), [0,0,0,0])
+
+            # Optimize over x.
+            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x])
+            self.a.value = 1
+            grad = expr.grad
+            self.assertAlmostEquals(grad[self.a], obj.args[0].grad[self.a] + 0)
+
+            # Optimize over a.
+            fix_prob = Problem(obj, [self.x + self.a >= [5,8], self.x == 0])
+            fix_prob.solve()
+            dual_val = fix_prob.constraints[0].dual_variable.value
+            expr = cvxpy.partial_optimize(prob, opt_vars=[self.a])
+            self.x.value = [0,0]
+            grad = expr.grad
+            self.assertItemsAlmostEqual(grad[self.x].todense(), dual_val)
+
+            # Optimize over x and a.
+            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x, self.a])
+            grad = expr.grad
+            self.assertAlmostEqual(grad, {})
 
     def test_affine(self):
         """Test grad for affine atoms.
