@@ -203,28 +203,41 @@ class pnorm(AxisAtom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray matrix or None.
+        """
         rows = self.args[0].size[0]*self.args[0].size[1]
-        value = np.matrix(values[0])
+        value = np.matrix(value)
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
-            return [None]
+            return None
         D_null = sp.csc_matrix((rows, 1), dtype='float64')
         if self.p == 1:
             D_null += (value > 0)
             D_null -= (value < 0)
-            return [sp.csc_matrix(D_null.A.ravel(order='F')).T]
+            return sp.csc_matrix(D_null.A.ravel(order='F')).T
         denominator = np.linalg.norm(value, float(self.p))
         denominator = np.power(denominator, self.p - 1)
         # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
             if self.p >= 1:
-                return [D_null]
+                return D_null
             else:
-                return [None]
+                return None
         else:
             nominator = np.power(value, self.p - 1)
             frac = np.divide(nominator, denominator)
-            return [sp.csc_matrix(frac.A.ravel(order='F')).T]
+            return np.reshape(frac.A, (frac.size, 1))
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
