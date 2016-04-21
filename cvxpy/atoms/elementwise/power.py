@@ -23,6 +23,7 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 from cvxpy.utilities.power_tools import (is_power2, gm_constrs, pow_mid,
                                          pow_high, pow_neg)
+import scipy.sparse as sp
 
 
 class power(Elementwise):
