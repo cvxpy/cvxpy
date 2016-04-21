@@ -127,6 +127,10 @@ class MulAffinesExpression(BinaryOperator):
     def is_quadratic(self):
         return self.args[0].is_affine() and self.args[1].is_affine()
 
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        return NotImplemented
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__

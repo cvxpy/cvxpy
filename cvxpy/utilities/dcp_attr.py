@@ -81,8 +81,10 @@ class DCPAttr(object):
         sign = self.sign * other.sign
         if self.curvature.is_constant():
             curvature = Curvature.sign_mul(self.sign, other.curvature)
-        else:
+        elif other.curvature.is_constant():
             curvature = Curvature.sign_mul(other.sign, self.curvature)
+        else:
+            curvature = Curvature.UNKNOWN
         return DCPAttr(sign, curvature, shape)
 
     @staticmethod
