@@ -21,12 +21,11 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
+import scipy.sparse as sp
+from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.soc_elemwise import SOC_Elemwise
 from fractions import Fraction
-import scipy as scipy
-
 
 class pnorm(AxisAtom):
     r"""The vector p-norm.
@@ -186,6 +185,8 @@ class pnorm(AxisAtom):
                                self.args[0].name(),
                                self.p)
     def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
         if self.p < 1 and self.p != 0:
             return [self.args[0] >= 0]
         else:
@@ -204,29 +205,26 @@ class pnorm(AxisAtom):
         """
         rows = self.args[0].size[0]*self.args[0].size[1]
         value = np.matrix(values[0])
+        # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return [None]
+        D_null = sp.csc_matrix((rows, 1), dtype='float64')
         if self.p == 1:
-            D = (1+(value>0)-1) - (1+(value<0)-1)
-            D = np.reshape(np.transpose(D),(rows,1))
-            D = scipy.sparse.csc_matrix(D).toarray()
-            return [D]
+            D_null += (value > 0)
+            D_null -= (value < 0)
+            return [sp.csc_matrix(D_null.A.ravel(order='F')).T]
         denominator = np.linalg.norm(value, float(self.p))
         denominator = np.power(denominator, self.p - 1)
-        D = np.zeros((rows,1))
+        # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
-            if self.p>=1:
-                D = scipy.sparse.csc_matrix(D).toarray()
-                return [D]
+            if self.p >= 1:
+                return [D_null]
             else:
                 return [None]
         else:
             nominator = np.power(value, self.p - 1)
             frac = np.divide(nominator, denominator)
-            D = np.reshape(np.transpose(frac),(rows,1))
-            D = scipy.sparse.csc_matrix(D).toarray()
-            return [D]
-
+            return [sp.csc_matrix(frac.A.ravel(order='F')).T]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

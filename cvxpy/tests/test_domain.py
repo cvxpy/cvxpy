@@ -49,11 +49,12 @@ class TestDomain(BaseTest):
         prob.solve()
         self.assertAlmostEqual(prob.value,0)
 
+        # No special case for only one weight.
         dom = geo_mean(self.x,[0,2]).domain
         dom.append(self.x>=-1)
         prob = Problem(Minimize(sum_entries(self.x)), dom)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value,[-1,-1])
+        self.assertItemsAlmostEqual(self.x.value,[-1,0])
 
         dom = geo_mean(self.z,[0,1,1]).domain
         dom.append(self.z>=-1)

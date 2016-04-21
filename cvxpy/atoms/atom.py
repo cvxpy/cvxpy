@@ -286,6 +286,7 @@ class Atom(Expression):
 
         return result
 
+    @abc.abstractmethod
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -297,7 +298,6 @@ class Atom(Expression):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # TODO make gradient required for all atoms.
         return NotImplemented
 
     @property
