@@ -172,6 +172,26 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.y].todense(),[1,2])
         self.assertAlmostEqual(expr.grad[self.a],[-2.5])
 
+    def test_max_entries(self):
+        """Test gradient for max_entries
+        """
+        expr = max_entries(self.x)
+        self.x.value = [2,1]
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(),[1,0])
+
+        expr = max_entries(self.A)
+        self.A.value = np.matrix([[1,2],[4,3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[0,1,0,0])
+
+        expr = max_entries(self.A,axis = 0)
+        self.A.value = np.matrix([[1,2],[4,3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),np.matrix([[0,0],[1,0],[0,0],[0,1]]))
+
+        expr = max_entries(self.A,axis = 1)
+        self.A.value = np.matrix([[1,2],[4,3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),np.matrix([[0,0],[0,1],[1,0],[0,0]]))
+
+
     def test_sigma_max(self):
         """Test sigma_max.
         """
@@ -186,6 +206,10 @@ class TestGrad(BaseTest):
         """Test sum_largest.
         """
         expr = sum_largest(self.A,2)
+
+        self.A.value = [[4,3],[2,1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[1,0,1,0])
+
         self.A.value = [[1,2],[3,0.5]]
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0,1,1,0])
 

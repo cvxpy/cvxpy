@@ -21,6 +21,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+import scipy.sparse as sp
 
 class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
@@ -33,6 +34,18 @@ class max_entries(AxisAtom):
         """Returns the largest entry in x.
         """
         return values[0].max(axis=self.axis)
+
+    def _grad(self, values):
+        return self._axis_grad(values)
+
+    def _column_grad(self,value):
+        """ max entries for an n vector
+        returns an n vector
+        """
+        # Grad: 1 for each of the largest indices.
+        max_val = value.max()
+        D = value == max_val
+        return D
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
