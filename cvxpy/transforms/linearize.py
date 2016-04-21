@@ -41,6 +41,8 @@ def linearize(expr):
             )
         grad_map = expr.grad
         for var in expr.variables():
+            if grad_map[var] is None:
+                raise ValueError("Linearization not defined at current point.")
             if var.is_matrix():
                 flattened = grad_map[var]*vec(var - var.value)
                 tangent = tangent + reshape(flattened, *expr.size)
