@@ -231,7 +231,7 @@ class power(Elementwise):
                 # Round up to zero.
                 values[0] = np.maximum(values[0], 0)
 
-        grad_vals = self.p*np.power(values[0], self.p-1)
+        grad_vals = float(self.p)*np.power(values[0], self.p-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self):

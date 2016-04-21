@@ -25,7 +25,7 @@ from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import numpy as np
 import unittest
-from cvxpy import Problem, Minimize
+from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 
 class TestDomain(BaseTest):
@@ -40,6 +40,40 @@ class TestDomain(BaseTest):
         self.A = Variable(2,2,name='A')
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
+
+    def test_partial_problem(self):
+        """Test domain for partial minimization/maximization problems.
+        """
+        for obj in [Minimize((self.a)**-1), Maximize(log(self.a))]:
+            prob = Problem(obj, [self.x  + self.a >= [5,8]])
+            # Optimize over nothing.
+            expr = cvxpy.partial_optimize(prob, dont_opt_vars=[self.x, self.a])
+            dom = expr.domain
+            constr = [self.a >= -100, self.x >= 0]
+            prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
+            prob.solve()
+            self.assertAlmostEqual(prob.value, 13)
+            assert self.a.value >= 0
+            assert np.all( (self.x  + self.a - [5,8]).value >= -1e-3)
+
+            # Optimize over x.
+            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x])
+            dom = expr.domain
+            constr = [self.a >= -100, self.x >= 0]
+            prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
+            prob.solve()
+            self.assertAlmostEqual(prob.value, 0)
+            assert self.a.value >= 0
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Optimize over x and a.
+            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x, self.a])
+            dom = expr.domain
+            constr = [self.a >= -100, self.x >= 0]
+            prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
+            prob.solve()
+            self.assertAlmostEqual(self.a.value, -100)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_geo_mean(self):
         """Test domain for geo_mean
