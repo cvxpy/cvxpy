@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.atom import Atom
 import cvxpy.interface as intf
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.sum_entries import sum_entries
 import numpy as np
@@ -45,25 +44,36 @@ class sum_largest(Atom):
         indices = np.argsort(-value)[:int(self.k)]
         return value[indices].sum()
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
         """
-        return u.Shape(1, 1)
+        return (1, 1)
 
     def sign_from_args(self):
-        """Same as the argument.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return self.args[0]._dcp_attr.sign
+        # Same as argument.
+        return (self.args[0].is_positive(), self.args[0].is_negative())
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Always increasing.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.INCREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     def get_data(self):
         """Returns the parameter k.

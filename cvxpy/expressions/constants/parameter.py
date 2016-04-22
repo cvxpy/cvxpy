@@ -32,12 +32,11 @@ class Parameter(Leaf):
         self.id = lu.get_id()
         self._rows = rows
         self._cols = cols
-        self.sign_str = sign
+        self._sign_str = sign
         if name is None:
             self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
         else:
             self._name = name
-        self.init_dcp_attr()
         # Initialize with value if provided.
         self._value = None
         if value is not None:
@@ -47,15 +46,26 @@ class Parameter(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._rows, self._cols, self._name, self.sign_str, self.value]
+        return [self._rows, self._cols, self._name, self._sign_str, self.value]
 
     def name(self):
         return self._name
 
-    def init_dcp_attr(self):
-        shape = u.Shape(self._rows, self._cols)
-        sign = u.Sign(self.sign_str)
-        self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return (self._rows, self._cols)
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self._sign_str == s.ZERO or self._sign_str.upper() == s.POSITIVE
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self._sign_str == s.ZERO or self._sign_str.upper() == s.NEGATIVE
 
     # Getter and setter for parameter value.
     @property

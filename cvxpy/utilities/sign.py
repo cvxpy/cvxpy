@@ -17,143 +17,37 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-class Sign(object):
-    """Sign of convex optimization expressions.
+def sum_signs(exprs):
+    """Give the sign resulting from summing a list of expressions.
 
-    Attributes:
-        sign_str: A string representation of the sign.
+    Args:
+        shapes: A list of sign (is pos, is neg) tuples.
+
+    Returns:
+        The sign (is pos, is neg) of the sum.
     """
-    POSITIVE_KEY = 'POSITIVE'
-    NEGATIVE_KEY = 'NEGATIVE'
-    UNKNOWN_KEY = 'UNKNOWN'
-    ZERO_KEY = 'ZERO'
+    is_pos = all([expr.is_positive() for expr in exprs])
+    is_neg = all([expr.is_negative() for expr in exprs])
+    return (is_pos, is_neg)
 
-    # List of valid sign strings.
-    SIGN_STRINGS = [POSITIVE_KEY, NEGATIVE_KEY, UNKNOWN_KEY, ZERO_KEY]
+def mul_sign(lh_expr, rh_expr):
+    """Give the sign resulting from multiplying two expressions.
 
-    def __init__(self, sign_str):
-        sign_str = sign_str.upper()
-        if sign_str in Sign.SIGN_STRINGS:
-            self.sign_str = sign_str
-        else:
-            raise ValueError("'%s' is not a valid sign name." % str(sign_str))
+    Args:
+        lh_expr: An expression.
+        rh_expr: An expression.
 
-    @staticmethod
-    def val_to_sign(val):
-        """Converts a number to a sign.
-
-        Args:
-            val: A scalar.
-
-        Returns:
-            The Sign of val.
-        """
-        if val > 0:
-            return Sign.POSITIVE
-        elif val == 0:
-            return Sign.ZERO
-        else:
-            return Sign.NEGATIVE
-
-    def is_zero(self):
-        """Is the expression all zero?
-        """
-        return self == Sign.ZERO
-
-    def is_positive(self):
-        """Is the expression positive?
-        """
-        return self.is_zero() or self == Sign.POSITIVE
-
-    def is_negative(self):
-        """Is the expression negative?
-        """
-        return self.is_zero() or self == Sign.NEGATIVE
-
-    def is_unknown(self):
-        """Is the expression sign unknown?
-        """
-        return self == Sign.UNKNOWN
-
-    # Arithmetic operators
-    def __add__(self, other):
-        """Handles the logic of adding signs.
-
-        Cases:
-            ZERO + ANYTHING = ANYTHING
-            UNKNOWN + ANYTHING = UNKNOWN
-            POSITIVE + NEGATIVE = UNKNOWN
-            SAME + SAME = SAME
-
-        Args:
-            self: The Sign of the left-hand summand.
-            other: The Sign of the right-hand summand.
-
-        Returns:
-            The Sign of the sum.
-        """
-        if self.is_zero():
-            return other
-        elif self == Sign.POSITIVE and other.is_positive():
-            return self
-        elif self == Sign.NEGATIVE and other.is_negative():
-            return self
-        else:
-            return Sign.UNKNOWN
-
-    def __sub__(self, other):
-        return self + -other
-
-    def __mul__(self, other):
-        """Handles logic of multiplying signs.
-
-        Cases:
-            ZERO * ANYTHING = ZERO
-            UNKNOWN * NON-ZERO = UNKNOWN
-            POSITIVE * NEGATIVE = NEGATIVE
-            POSITIVE * POSITIVE = POSITIVE
-            NEGATIVE * NEGATIVE = POSITIVE
-
-        Args:
-            self: The Sign of the left-hand multiplier.
-            other: The Sign of the right-hand multiplier.
-
-        Returns:
-            The Sign of the product.
-        """
-        if self == Sign.ZERO or other == Sign.ZERO:
-            return Sign.ZERO
-        elif self == Sign.UNKNOWN or other == Sign.UNKNOWN:
-            return Sign.UNKNOWN
-        elif self != other:
-            return Sign.NEGATIVE
-        else:
-            return Sign.POSITIVE
-
-    def __neg__(self):
-        """Equivalent to NEGATIVE * self.
-        """
-        return self * Sign.NEGATIVE
-
-    def __eq__(self, other):
-        """Checks equality of arguments' attributes.
-        """
-        return self.sign_str == other.sign_str
-
-    def __ne__(self, other):
-        """Checks equality of arguments' attributes.
-        """
-        return not (self.sign_str == other.sign_str)
-
-    # To string methods.
-    def __repr__(self):
-        return "Sign('%s')" % self.sign_str
-
-    def __str__(self):
-        return self.sign_str
-
-# Class constants for all sign types.
-Sign.POSITIVE = Sign(Sign.POSITIVE_KEY)
-Sign.NEGATIVE = Sign(Sign.NEGATIVE_KEY)
-Sign.ZERO = Sign(Sign.ZERO_KEY)
-Sign.UNKNOWN = Sign(Sign.UNKNOWN_KEY)
+    Returns:
+        The sign (is pos, is neg) of the product.
+    """
+    # ZERO * ANYTHING == ZERO
+    # POSITIVE * POSITIVE == POSITIVE
+    # NEGATIVE * POSITIVE == NEGATIVE
+    # NEGATIVE * NEGATIVE == POSITIVE
+    is_pos = (lh_expr.is_zero() or rh_expr.is_zero()) or \
+             (lh_expr.is_positive() and rh_expr.is_positive()) or \
+             (lh_expr.is_negative() and rh_expr.is_negative())
+    is_neg = (lh_expr.is_zero() or rh_expr.is_zero()) or \
+             (lh_expr.is_positive() and rh_expr.is_negative()) or \
+             (lh_expr.is_negative() and rh_expr.is_positive())
+    return (is_pos, is_neg)

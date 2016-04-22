@@ -17,107 +17,40 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-class Shape(object):
-    """ Represents the dimensions of a matrix.
+def sum_shapes(shapes):
+    """Give the shape resulting from summing a list of shapes.
 
-    Attributes:
-        rows: The number of rows.
-        cols: The number of columns.
+    Args:
+        shapes: A list of (row, col) tuples.
+
+    Returns:
+        The shape (row, col) shape of the sum.
     """
+    rows = max([shape[0] for shape in shapes])
+    cols = max([shape[1] for shape in shapes])
+    # Validate shapes.
+    for shape in shapes:
+        if not shape == (1, 1) and shape != (rows, cols):
+            raise ValueError(
+                "Incompatible dimensions" + len(shapes)*" %s" % tuple(shapes))
+    return (rows, cols)
 
-    def __init__(self, rows, cols):
-        self.rows = rows
-        self.cols = cols
-        super(Shape, self).__init__()
+def mul_shapes(lh_shape, rh_shape):
+    """Give the shape resulting from multiplying two shapes.
 
-    @property
-    def size(self):
-        """Getter for (rows, cols)
-        """
-        return (self.rows, self.cols)
+    Args:
+        lh_shape: A (row, col) tuple.
+        rh_shape: A (row, col) tuple.
 
-    def __add__(self, other):
-        """Determines the shape of two matrices added together.
-
-        The expression's sizes must match unless one is a scalar,
-        in which case it is promoted to the size of the other.
-
-        Args:
-            self: The shape of the left-hand matrix.
-            other: The shape of the right-hand matrix.
-
-        Returns:
-            The shape of the matrix sum.
-
-        Raises:
-            Error: Incompatible dimensions.
-        """
-        if self.size == (1, 1):
-            return other
-        elif other.size == (1, 1):
-            return self
-        elif self.size == other.size:
-            return self
-        else:
-            raise ValueError("Incompatible dimensions %s %s" % (self, other))
-
-    def __sub__(self, other):
-        """Same as add.
-        """
-        return self + other
-
-    def __mul__(self, other):
-        """Determines the shape of two matrices multiplied together.
-
-        The left-hand columns must match the right-hand rows, unless
-        one side is a scalar.
-
-        Args:
-            self: The shape of the left-hand matrix.
-            other: The shape of the right-hand matrix.
-
-        Returns:
-            The shape of the matrix product.
-
-        Raises:
-            Error: Incompatible dimensions.
-        """
-        if self.size == (1, 1):
-            return other
-        elif other.size == (1, 1):
-            return self
-        elif self.cols == other.rows:
-            return Shape(self.rows, other.cols)
-        else:
-            raise ValueError("Incompatible dimensions %s %s" % (self, other))
-
-    def __div__(self, other):
-        """Determines the shape of a matrix divided by a scalar.
-
-        Args:
-            self: The shape of the left-hand matrix.
-            other: The shape of the right-hand scalar.
-
-        Returns:
-            The shape of the matrix division.
-        """
-        return self
-
-    def __truediv__(self, other):
-        """Determines the shape of a matrix divided by a scalar.
-
-        Args:
-            self: The shape of the left-hand matrix.
-            other: The shape of the right-hand scalar.
-
-        Returns:
-            The shape of the matrix division.
-        """
-        return self
-
-    def __str__(self):
-        return "(%s, %s)" % (self.rows, self.cols)
-
-    def __repr__(self):
-        return "Shape(%s, %s)" % (self.rows, self.cols)
-
+    Returns:
+        The shape (row, col) shape of the product.
+    """
+    if lh_shape == (1, 1):
+        return rh_shape
+    elif rh_shape == (1, 1):
+        return lh_shape
+    else:
+        if lh_shape[1] != rh_shape[0]:
+            raise ValueError("Incompatible dimensions %s %s" % (
+                lh_shape, rh_shape))
+        return (lh_shape[0], rh_shape[1])

@@ -41,8 +41,18 @@ class Leaf(expression.Expression):
         """
         return []
 
+    def is_convex(self):
+        """Is the expression convex?
+        """
+        return True
+
+    def is_concave(self):
+        """Is the expression concave?
+        """
+        return True
+
     def _validate_value(self, val):
-        """Check that the value satisfies the parameter's symbolic attributes.
+        """Check that the value satisfies the leaf's symbolic attributes.
 
         Parameters
         ----------
@@ -65,9 +75,9 @@ class Leaf(expression.Expression):
                 )
             # All signs are valid if sign is unknown.
             # Otherwise value sign must match declared sign.
-            sign = intf.sign(val)
-            if self.is_positive() and not sign.is_positive() or \
-               self.is_negative() and not sign.is_negative():
+            pos_val, neg_val = intf.sign(val)
+            if self.is_positive() and not pos_val or \
+               self.is_negative() and not neg_val:
                 raise ValueError(
                     "Invalid sign for %s value." % self.__class__.__name__
                 )

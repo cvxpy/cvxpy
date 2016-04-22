@@ -50,10 +50,10 @@ class reshape(AffAtom):
                 "Invalid reshape dimensions (%i, %i)." % (self.rows, self.cols)
             )
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """Returns the shape from the rows, cols arguments.
         """
-        return u.Shape(self.rows, self.cols)
+        return (self.rows, self.cols)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.

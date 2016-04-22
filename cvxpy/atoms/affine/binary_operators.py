@@ -21,6 +21,7 @@ from __future__ import division
 import sys
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+import cvxpy.utilities as u
 import cvxpy.interface as intf
 from cvxpy.expressions.constants import Constant
 import cvxpy.lin_ops.lin_utils as lu
@@ -42,26 +43,43 @@ class BinaryOperator(AffAtom):
                          self.OP_NAME,
                          str(self.args[1].name())])
 
-    # Applies the binary operator to the values.
     def numeric(self, values):
+        """Applies the binary operator to the values.
+        """
         return reduce(self.OP_FUNC, values)
 
-    # Sets the sign, curvature, and shape.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
-                                      self.args[1]._dcp_attr)
-
-    # Validate the dimensions.
-    def validate_arguments(self):
-        self.OP_FUNC(self.args[0]._dcp_attr.shape,
-                     self.args[1]._dcp_attr.shape)
+    def sign_from_args(self):
+        """Default to rules for times.
+        """
+        return u.sign.mul_sign(self.args[0], self.args[1])
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+
     def is_quadratic(self):
         return self.args[1].is_quadratic()
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[0].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[0].is_negative()
+
+    def validate_arguments(self):
+        """Validates the dimensions.
+        """
+        u.shape.mul_shapes(self.args[0].size, self.args[1].size)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -93,6 +111,16 @@ class RMulExpression(MulExpression):
 
     def is_quadratic(self):
         return self.args[0].is_quadratic()
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[1].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[1].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -135,8 +163,25 @@ class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
 
+
     def is_quadratic(self):
         return self.args[0].is_quadratic() and self.args[1].is_constant()
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return self.args[0].size
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[1].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[1].is_negative()
+
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.elementwise.log import log
@@ -48,26 +47,41 @@ class log_det(Atom):
         else:
             return -np.inf
 
-    # Resolves to a scalar.
-    def shape_from_args(self):
-        return u.Shape(1,1)
-
-    # Always positive.
-    def sign_from_args(self):
-        return u.Sign.UNKNOWN
-
     # Any argument size is valid.
     def validate_arguments(self):
         n, m = self.args[0].size
         if n != m:
             raise TypeError("The argument to log_det must be a square matrix." )
 
-    # Default curvature.
-    def func_curvature(self):
-        return u.Curvature.CONCAVE
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return (1, 1)
 
-    def monotonicity(self):
-        return [u.monotonicity.NONMONOTONIC]
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        return (True, False)
+
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return False
+
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return True
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

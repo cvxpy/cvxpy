@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions import types
@@ -35,16 +34,31 @@ class abs(Elementwise):
     def numeric(self, values):
         return np.absolute(values[0])
 
-    # Always positive.
     def sign_from_args(self):
-        return u.Sign.POSITIVE
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # Always positive.
+        return (True, False)
 
-    # Default curvature.
-    def func_curvature(self):
-        return u.Curvature.CONVEX
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return True
 
-    def monotonicity(self):
-        return [u.monotonicity.SIGNED]
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[idx].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[idx].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

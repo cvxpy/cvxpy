@@ -28,16 +28,30 @@ if sys.version_info >= (3, 0):
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta
-    # The curvature of the atom if all arguments conformed to DCP.
-    def func_curvature(self):
-        return u.Curvature.AFFINE
 
     def sign_from_args(self):
         """By default, the sign is the most general of all the argument signs.
         """
-        arg_signs = [arg._dcp_attr.sign for arg in self.args]
-        return reduce(op.add, arg_signs)
+        return u.sign.sum_signs([arg for arg in self.args])
 
-    # Doesn't matter for affine atoms.
-    def monotonicity(self):
-        return len(self.args)*[u.monotonicity.INCREASING]
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return True
+
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return True
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        # Defaults to increasing.
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        # Defaults to increasing.
+        return False

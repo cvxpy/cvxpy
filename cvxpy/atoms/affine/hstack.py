@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.index import index
@@ -31,10 +30,10 @@ class hstack(AffAtom):
         return np.hstack(values)
 
     # The shape is the common height and the sum of the widths.
-    def shape_from_args(self):
+    def size_from_args(self):
         cols = sum(arg.size[1] for arg in self.args)
         rows = self.args[0].size[0]
-        return u.Shape(rows, cols)
+        return (rows, cols)
 
     # All arguments must have the same height.
     def validate_arguments(self):
@@ -62,13 +61,3 @@ class hstack(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.hstack(arg_objs, size), [])
-        # X = lu.create_var(size)
-        # constraints = []
-        # # Create an equality constraint for each arg.
-        # offset = 0
-        # for arg in arg_objs:
-        #     index.block_eq(X, arg, constraints,
-        #                    0, size[0],
-        #                    offset, arg.size[1] + offset)
-        #     offset += arg.size[1]
-        # return (X, constraints)

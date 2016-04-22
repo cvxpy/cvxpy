@@ -102,3 +102,13 @@ F = "F"
 DIMS = "dims"
 BOOL_IDX = "bool_vars_idx"
 INT_IDX = "int_vars_idx"
+
+# Keys for curvature and sign.
+CONSTANT = "CONSTANT"
+AFFINE = "AFFINE"
+CONVEX = "CONVEX"
+CONCAVE = "CONCAVE"
+ZERO = "ZERO"
+POSITIVE = "POSITIVE"
+NEGATIVE = "NEGATIVE"
+UNKNOWN = "UNKNOWN"

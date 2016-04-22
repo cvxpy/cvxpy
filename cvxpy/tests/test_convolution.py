@@ -21,8 +21,6 @@ from cvxpy import *
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import cvxpy.problems.iterative as iterative
-from cvxpy.utilities import Curvature
-from cvxpy.utilities import Sign
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 

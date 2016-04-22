@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 
 class AxisAtom(Atom):
@@ -32,15 +31,15 @@ class AxisAtom(Atom):
         self.axis = axis
         super(AxisAtom, self).__init__(expr)
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """Depends on axis.
         """
         if self.axis is None:
-            return u.Shape(1, 1)
+            return (1, 1)
         elif self.axis == 0:
-            return u.Shape(1, self.args[0].size[1])
+            return (1, self.args[0].size[1])
         else: # axis == 1.
-            return u.Shape(self.args[0].size[0], 1)
+            return (self.args[0].size[0], 1)
 
     def get_data(self):
         """Returns the axis being summed.

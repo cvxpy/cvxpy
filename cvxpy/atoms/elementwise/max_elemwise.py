@@ -18,8 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
-
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
@@ -41,45 +39,38 @@ class max_elemwise(Elementwise):
         return reduce(np.maximum, values)
 
     def sign_from_args(self):
-        """Determins the sign of max_elemwise from the arguments' signs.
-
-        Reduces the list of argument signs according to the following rules:
-            POSITIVE, ANYTHING = POSITIVE
-            ZERO, UNKNOWN = POSITIVE
-            ZERO, ZERO = ZERO
-            ZERO, NEGATIVE = ZERO
-            UNKNOWN, NEGATIVE = UNKNOWN
-            NEGATIVE, NEGATIVE = NEGATIVE
-
-        Returns
-        -------
-        Sign
-            The Sign of the expression.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        arg_signs = [arg._dcp_attr.sign for arg in self.args]
-        if u.Sign.POSITIVE in arg_signs:
-            max_sign = u.Sign.POSITIVE
-        elif u.Sign.ZERO in arg_signs:
-            if u.Sign.UNKNOWN in arg_signs:
-                max_sign = u.Sign.POSITIVE
-            else:
-                max_sign = u.Sign.ZERO
-        elif u.Sign.UNKNOWN in arg_signs:
-            max_sign = u.Sign.UNKNOWN
-        else:
-            max_sign = u.Sign.NEGATIVE
+        # Reduces the list of argument signs according to the following rules:
+        #     POSITIVE, ANYTHING = POSITIVE
+        #     ZERO, UNKNOWN = POSITIVE
+        #     ZERO, ZERO = ZERO
+        #     ZERO, NEGATIVE = ZERO
+        #     UNKNOWN, NEGATIVE = UNKNOWN
+        #     NEGATIVE, NEGATIVE = NEGATIVE
+        is_pos = any([arg.is_positive() for arg in self.args])
+        is_neg = all([arg.is_negative() for arg in self.args])
+        return (is_pos, is_neg)
 
-        return max_sign
-
-    def func_curvature(self):
-        """The function's default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """The function is increasing in each argument.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return len(self.args)*[u.monotonicity.INCREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

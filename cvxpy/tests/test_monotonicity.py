@@ -17,98 +17,73 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.utilities import Curvature, Sign
-import cvxpy.utilities.monotonicity as m
+import cvxpy as cvx
+import cvxpy.settings as s
 from nose.tools import *
 
 class TestMonotonicity(object):
     """ Unit tests for the utilities/monotonicity class. """
     # Test application of DCP composition rules to determine curvature.
     def test_dcp_curvature(self):
-        assert_equals(m.dcp_curvature(m.INCREASING,
-                                      Curvature.AFFINE,
-                                                 Sign.POSITIVE,
-                                                 Curvature.CONVEX),
-                      Curvature.CONVEX)
-        assert_equals(m.dcp_curvature(m.NONMONOTONIC, Curvature.AFFINE,
-                                                   Sign.POSITIVE,
-                                                   Curvature.AFFINE),
-                    Curvature.AFFINE)
-        assert_equals(m.dcp_curvature(m.DECREASING, Curvature.UNKNOWN,
-                                                 Sign.POSITIVE,
-                                                 Curvature.CONSTANT),
-                      Curvature.CONSTANT)
+      expr = 1 + cvx.exp(cvx.Variable())
+      assert_equals(expr.curvature, s.CONVEX)
 
-        assert_equals(m.dcp_curvature(m.INCREASING, Curvature.CONVEX,
-                                                            Sign.POSITIVE,
-                                                            Curvature.CONVEX),
-                       Curvature.CONVEX)
-        assert_equals(m.dcp_curvature(m.DECREASING, Curvature.CONVEX,
-                                                            Sign.POSITIVE,
-                                                            Curvature.CONCAVE),
-                       Curvature.CONVEX)
+      expr = cvx.Parameter()*cvx.NonNegative()
+      assert_equals(expr.curvature, s.AFFINE)
 
-        assert_equals(m.dcp_curvature(m.INCREASING, Curvature.CONCAVE,
-                                                            Sign.POSITIVE,
-                                                            Curvature.CONCAVE),
-                      Curvature.CONCAVE)
-        assert_equals(m.dcp_curvature(m.DECREASING, Curvature.CONCAVE,
-                                                            Sign.POSITIVE,
-                                                            Curvature.CONVEX),
-                      Curvature.CONCAVE)
+      f = lambda x: x**2 + x**0.5
+      expr = f(cvx.Constant(2))
+      assert_equals(expr.curvature, s.CONSTANT)
 
-        assert_equals(m.dcp_curvature(m.INCREASING, Curvature.CONCAVE,
-                                                            Sign.POSITIVE,
-                                                            Curvature.CONVEX),
-                      Curvature.UNKNOWN)
-        assert_equals(m.dcp_curvature(m.NONMONOTONIC, Curvature.CONCAVE,
-                                                              Sign.POSITIVE,
-                                                              Curvature.AFFINE),
-                      Curvature.CONCAVE)
+      expr = cvx.exp(cvx.Variable())**2
+      assert_equals(expr.curvature, s.CONVEX)
 
-        assert_equals(m.dcp_curvature(m.NONMONOTONIC, Curvature.CONSTANT,
-                                                              Sign.POSITIVE,
-                                                              Curvature.UNKNOWN),
-                      Curvature.UNKNOWN)
+      expr = 1 - cvx.sqrt(cvx.Variable())
+      assert_equals(expr.curvature, s.CONVEX)
+
+      expr = cvx.log( cvx.sqrt(cvx.Variable()) )
+      assert_equals(expr.curvature, s.CONCAVE)
+
+      expr = -( cvx.exp(cvx.Variable()) )**2
+      assert_equals(expr.curvature, s.CONCAVE)
+
+      expr = cvx.log( cvx.exp(cvx.Variable()) )
+      assert_equals(expr.is_dcp(), False)
+
+      expr = cvx.entr( cvx.NonNegative() )
+      assert_equals(expr.curvature, s.CONCAVE)
+
+      expr = ( (cvx.Variable()**2)**0.5 )**0
+      assert_equals(expr.curvature, s.CONSTANT)
 
     # Test DCP composition rules with signed monotonicity.
     def test_signed_curvature(self):
         # Convex argument.
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.POSITIVE,
-                                                        Curvature.CONVEX),
-                      Curvature.CONVEX)
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.NEGATIVE,
-                                                        Curvature.CONVEX),
-                      Curvature.UNKNOWN)
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.UNKNOWN,
-                                                        Curvature.CONVEX),
-                      Curvature.UNKNOWN)
+        expr = cvx.abs(1 + cvx.exp(cvx.Variable()) )
+        assert_equals(expr.curvature, s.CONVEX)
+
+        expr = cvx.abs( -cvx.entr(cvx.Variable()) )
+        assert_equals(expr.curvature, s.UNKNOWN)
+
+        expr = cvx.abs( -cvx.log(cvx.Variable()) )
+        assert_equals(expr.curvature, s.UNKNOWN)
+
         # Concave argument.
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.POSITIVE,
-                                                        Curvature.CONCAVE),
-                      Curvature.UNKNOWN)
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.NEGATIVE,
-                                                        Curvature.CONCAVE),
-                      Curvature.CONVEX)
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.UNKNOWN,
-                                                        Curvature.CONCAVE),
-                      Curvature.UNKNOWN)
+        expr = cvx.abs( cvx.log(cvx.Variable()) )
+        assert_equals(expr.curvature, s.UNKNOWN)
+
+        expr = cvx.abs( -cvx.square(cvx.Variable()) )
+        assert_equals(expr.curvature, s.CONVEX)
+
+        expr = cvx.abs( cvx.entr(cvx.Variable()) )
+        assert_equals(expr.curvature, s.UNKNOWN)
+
         # Affine argument.
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.POSITIVE,
-                                                        Curvature.AFFINE),
-                      Curvature.CONVEX)
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.NEGATIVE,
-                                                        Curvature.AFFINE),
-                      Curvature.CONVEX)
-        assert_equals(m.dcp_curvature(m.SIGNED, Curvature.CONVEX,
-                                                        Sign.UNKNOWN,
-                                                        Curvature.AFFINE),
-                      Curvature.CONVEX)
+        expr = cvx.abs( cvx.NonNegative() )
+        assert_equals(expr.curvature, s.CONVEX)
+
+        expr = cvx.abs( -cvx.NonNegative() )
+        assert_equals(expr.curvature, s.CONVEX)
+
+        expr = cvx.abs( cvx.Variable() )
+        assert_equals(expr.curvature, s.CONVEX)

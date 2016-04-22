@@ -138,12 +138,12 @@ class SymData(object):
                 vars_ = lu.get_expr_vars(constr.expr)
                 if len(vars_) == 0 and not lu.get_expr_params(constr.expr):
                     V, I, J, coeff = canonInterface.get_problem_matrix([constr])
-                    sign = intf.sign(coeff)
+                    is_pos, is_neg = intf.sign(coeff)
                     # For equality constraint, coeff must be zero.
                     # For inequality (i.e. <= 0) constraint,
                     # coeff must be negative.
-                    if key == s.EQ and not sign.is_zero() or \
-                        key == s.LEQ and not sign.is_negative():
+                    if key == s.EQ and not (is_pos and is_neg) or \
+                        key == s.LEQ and not is_neg:
                         return s.INFEASIBLE
                 else:
                     new_constraints.append(constr)

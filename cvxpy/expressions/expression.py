@@ -18,8 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.error import DCPError
-import cvxpy.interface as intf
 import cvxpy.utilities as u
+import cvxpy.interface as intf
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
 from cvxpy.utilities import performance_utils as pu
@@ -81,44 +81,50 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
-    @abc.abstractmethod
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
-        """
-        return NotImplemented
-
     # Curvature properties.
 
     @property
     def curvature(self):
         """ Returns the curvature of the expression.
         """
-        return str(self._dcp_attr.curvature)
+        if self.is_constant():
+            curvature_str = s.CONSTANT
+        elif self.is_affine():
+            curvature_str = s.AFFINE
+        elif self.is_convex():
+            curvature_str = s.CONVEX
+        elif self.is_concave():
+            curvature_str = s.CONCAVE
+        else:
+            curvature_str = s.UNKNOWN
+        return curvature_str
 
     def is_constant(self):
         """Is the expression constant?
         """
-        return self._dcp_attr.curvature.is_constant()
+        return len(self.variables()) == 0 or self.is_zero()
 
     def is_affine(self):
         """Is the expression affine?
         """
-        return self._dcp_attr.curvature.is_affine()
+        return self.is_constant() or (self.is_convex() and self.is_concave())
 
+    @abc.abstractmethod
     def is_convex(self):
         """Is the expression convex?
         """
-        return self._dcp_attr.curvature.is_convex()
+        return NotImplemented
 
+    @abc.abstractmethod
     def is_concave(self):
         """Is the expression concave?
         """
-        return self._dcp_attr.curvature.is_concave()
+        return NotImplemented
 
     def is_dcp(self):
         """Is the expression DCP compliant? (i.e., no unknown curvatures).
         """
-        return self._dcp_attr.curvature.is_dcp()
+        return self.is_convex() or self.is_concave()
 
     def is_quadratic(self):
         """Is the expression quadratic?
@@ -130,30 +136,40 @@ class Expression(u.Canonical):
 
     @property
     def sign(self):
-        """ Returns the sign of the expression.
+        """Returns the sign of the expression.
         """
-        return str(self._dcp_attr.sign)
+        if self.is_zero():
+            sign_str = s.ZERO
+        elif self.is_positive():
+            sign_str = s.POSITIVE
+        elif self.is_negative():
+            sign_str = s.NEGATIVE
+        else:
+            sign_str = s.UNKNOWN
+        return sign_str
 
     def is_zero(self):
         """Is the expression all zero?
         """
-        return self._dcp_attr.sign.is_zero()
+        return self.is_positive() and self.is_negative()
 
+    @abc.abstractmethod
     def is_positive(self):
         """Is the expression positive?
         """
-        return self._dcp_attr.sign.is_positive()
+        return NotImplemented
 
+    @abc.abstractmethod
     def is_negative(self):
         """Is the expression negative?
         """
-        return self._dcp_attr.sign.is_negative()
+        return NotImplemented
 
-    @property
+    @abc.abstractproperty
     def size(self):
-        """ Returns the (row, col) dimensions of the expression.
+        """Returns the (row, col) dimensions of the expression.
         """
-        return self._dcp_attr.shape.size
+        return NotImplemented
 
     def is_scalar(self):
         """Is the expression a scalar?

@@ -22,7 +22,6 @@ from cvxpy.interface import numpy_interface as np_intf
 import scipy.sparse as sp
 import numbers
 import numpy as np
-from cvxpy.utilities.sign import Sign
 import cvxopt
 
 # A mapping of class to interface.
@@ -110,8 +109,11 @@ def scalar_value(constant):
 
 # Return the collective sign of the matrix entries.
 def sign(constant):
+    """Return (is positive, is negative).
+    """
     if isinstance(constant, numbers.Number):
-        return Sign.val_to_sign(constant)
+        max_val = constant
+        min_val = constant
     elif isinstance(constant, cvxopt.spmatrix):
         max_val = max(constant.V)
         min_val = min(constant.V)
@@ -122,9 +124,7 @@ def sign(constant):
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         max_val = mat.max()
         min_val = mat.min()
-    max_sign = Sign.val_to_sign(max_val)
-    min_sign = Sign.val_to_sign(min_val)
-    return max_sign + min_sign
+    return (min_val >= 0, max_val <= 0)
 
 # Get the value at the given index.
 def index(constant, key):

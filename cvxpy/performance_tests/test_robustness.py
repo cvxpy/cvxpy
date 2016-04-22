@@ -84,3 +84,16 @@ class TestProblem(unittest.TestCase):
         obj = at.norm(X, "nuc") + at.norm(X-a,'fro')
         p = Problem(Minimize(obj))
         p.solve(solver="SCS")
+
+    def test_large_sdp(self):
+        """Test for bug where large SDP caused integer overflow in CVXcanon.
+        """
+        SHAPE = (256, 256)
+        rows = SHAPE[0]
+        cols = SHAPE[1]
+        X = Variable(*SHAPE)
+        Z = Variable(rows+cols, rows+cols)
+        prob = Problem(Minimize(0.5*at.trace(Z)),
+            [X[0,0] >= 1, Z[0:rows,rows:rows+cols] == X, Z >> 0, Z == Z.T])
+        prob.solve(solver="SCS")
+        self.assertAlmostEqual(prob.value, 1.0)
