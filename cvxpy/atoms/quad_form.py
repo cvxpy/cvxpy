@@ -77,6 +77,7 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
         cond = factor[t] * np.finfo(t).eps
     scaled_abs_w = abs_w / scale
     mask = scaled_abs_w > cond
+    # TODO: allow indefinite quad_form
     if np.any(w[mask] * sgn < 0):
         msg = 'P has both positive and negative eigenvalues.'
         raise CvxPyDomainError(msg)

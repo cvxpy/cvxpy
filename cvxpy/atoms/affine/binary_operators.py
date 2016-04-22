@@ -155,6 +155,31 @@ class MulAffinesExpression(BinaryOperator):
     def is_quadratic(self):
         return self.args[0].is_affine() and self.args[1].is_affine()
 
+    def is_atom_convex(self):
+        """Affine times affine is not convex
+        """
+        return False
+
+    def is_atom_concave(self):
+        """Affine times affine is not concave
+        """
+        return False
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         return NotImplemented

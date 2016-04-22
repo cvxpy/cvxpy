@@ -84,6 +84,6 @@ class Leaf(expression.Expression):
         return val
 
     def is_quadratic(self):
-        """Always quadratic.
+        """Leaf nodes are always quadratic.
         """
         return True

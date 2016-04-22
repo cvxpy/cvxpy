@@ -55,3 +55,7 @@ class AffAtom(Atom):
         """
         # Defaults to increasing.
         return False
+
+    def is_quadratic(self):
+        return all([arg.is_quadratic() for arg in self.args])
+    
