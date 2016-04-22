@@ -68,6 +68,37 @@ class TestGrad(BaseTest):
         self.x.value = [0,0]
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [0,0])
 
+        expr = pnorm(self.A,2)
+        self.A.value = np.matrix([[2,-2],[2,2]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[0.5,0.5,-0.5,0.5])
+
+        expr = pnorm(self.A,2,axis=0)
+        self.A.value = np.matrix([[3,-3],[4,4]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),np.matrix([[0.6,0],[0.8,0],[0,-0.6],[0,0.8]]))
+
+        expr = pnorm(self.A,2,axis=1)
+        self.A.value = np.matrix([[3,-4],[4,3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),np.matrix([[0.6,0],[0,0.8],[-0.8,0],[0,0.6]]))
+
+        expr = pnorm(self.A,0.5)
+        self.A.value = np.matrix([[3,-4],[4,3]])
+        self.assertAlmostEqual(expr.grad[self.A],None)
+
+    def test_log_sum_exp(self):
+        expr = log_sum_exp(self.x)
+        self.x.value = [0,1]
+        e = np.exp(1)
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(),[1.0/(1+e),e/(1+e)])
+
+        expr = log_sum_exp(self.A)
+        self.A.value = np.matrix([[0,1],[-1,0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),[1.0/(2+e+1.0/e),1.0/e/(2+e+1.0/e),e/(2+e+1.0/e),1.0/(2+e+1.0/e)])
+
+        expr = log_sum_exp(self.A,axis=0)
+        self.A.value = np.matrix([[0,1],[-1,0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),
+                                    np.transpose(np.matrix([[1.0/(1+1.0/e),1.0/e/(1+1.0/e),0,0],[0,0,e/(1+e),1.0/(1+e)]])))
+
 
     def test_geo_mean(self):
         """Test gradient for geo_mean

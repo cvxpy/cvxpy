@@ -39,6 +39,35 @@ class log_sum_exp(AxisAtom):
         """
         return logsumexp(values[0], axis=self.axis, keepdims=True)
 
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray or None.
+        """
+        denom = np.exp(logsumexp(value, axis=None, keepdims=True))
+        nom = np.exp(value)
+        D = nom/denom
+        return D
+
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
