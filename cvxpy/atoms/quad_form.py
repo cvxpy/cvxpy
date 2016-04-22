@@ -102,7 +102,6 @@ def quad_form(x, P):
             msg = "P is not symmetric."
             raise CvxPyDomainError(msg)
         sgn, scale, M = _decomp_quad(P)
-        #return sgn * scale * sum_squares(Constant(M.T) * x)
-        return sgn * scale * square(norm(Constant(M.T) * x))
+        return sgn * scale * sum_squares(Constant(M.T) * x)
     else:
         raise Exception("At least one argument to quad_form must be constant.")

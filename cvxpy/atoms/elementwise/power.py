@@ -186,8 +186,6 @@ class power(Elementwise):
                 return [u.monotonicity.INCREASING]
 
     def is_quadratic(self):
-        """Quadratic if p is 0, 1, or 2.
-        """
         if self.p == 0:
             return True
         elif self.p == 1:

@@ -336,7 +336,7 @@ class TestExpressions(BaseTest):
 
         # Affine times affine is okay
         q = self.A * self.B
-        self.assertEqual(q.is_quadratic(), True)
+        self.assertTrue(q.is_quadratic())
         
         # Nonaffine times nonconstant raises error
         with self.assertRaises(Exception) as cm:
