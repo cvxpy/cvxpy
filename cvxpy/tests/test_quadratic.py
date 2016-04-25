@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import quad_form, quad_over_lin, matrix_frac
+from cvxpy.atoms import quad_form, quad_over_lin, matrix_frac, sum_squares, norm, max_entries
+from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable
@@ -110,3 +111,52 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
         self.assertFalse(s.is_dcp())
+
+    def test_sum_squares(self):
+        X = Variable(5, 4)
+        P = np.asmatrix(np.random.randn(3, 5))
+        Q = np.asmatrix(np.random.randn(4, 7))
+        M = np.asmatrix(np.random.randn(3, 7))
+        
+        y = P*X*Q + M
+        self.assertFalse(y.is_constant())
+        self.assertTrue(y.is_affine())
+        self.assertTrue(y.is_quadratic())
+        self.assertTrue(y.is_dcp())
+
+        s = sum_squares(y)
+        self.assertFalse(s.is_constant())
+        self.assertFalse(s.is_affine())
+        self.assertTrue(s.is_quadratic())
+        self.assertTrue(s.is_dcp())
+
+        # Frobenius norm squared is indeed quadratic
+        # but can't show quadraticity using recursive rules
+        t = norm(y, 'fro')**2
+        self.assertFalse(t.is_constant())
+        self.assertFalse(t.is_affine())
+        self.assertFalse(t.is_quadratic())
+        self.assertTrue(t.is_dcp())
+
+
+    def test_indefinite_quadratic(self):
+        x = Variable()
+        y = Variable()
+        z = Variable()
+        s = (x+y)**2 - y*z - z*z
+        self.assertFalse(s.is_dcp())
+        self.assertTrue(s.is_quadratic())
+
+    def test_non_quadratic(self):
+        x = Variable()
+        y = Variable()
+        z = Variable()
+        with self.assertRaises(Exception) as cm:
+            (x*y*z).is_quadratic()
+        self.assertEqual(str(cm.exception), "Cannot multiply two non-constants.")
+
+        s = max_entries(vstack(x, y, z))**2
+        self.assertFalse(s.is_quadratic())
+        
+        t = max_entries(vstack(x**2, power(y, 2), z))
+        self.assertFalse(t.is_quadratic())
