@@ -25,11 +25,13 @@ def linearize(expr):
     Gives an elementwise lower (upper) bound for convex (concave)
     expressions. No guarantees for non-DCP expressions.
 
+    Returns None if cannot be linearized.
+
     Args:
         expr: An expression.
 
     Returns:
-        An affine expression.
+        An affine expression or None.
     """
     if expr.is_affine():
         return expr
@@ -42,10 +44,14 @@ def linearize(expr):
         grad_map = expr.grad
         for var in expr.variables():
             if grad_map[var] is None:
-                raise ValueError("Linearization not defined at current point.")
-            if var.is_matrix():
+                return None
+            elif var.is_matrix():
                 flattened = grad_map[var]*vec(var - var.value)
                 tangent = tangent + reshape(flattened, *expr.size)
             else:
-                tangent = tangent + grad_map[var]*(var - var.value)
+                if var.is_matrix():
+                    flattened = grad_map[var].T*vec(var - var.value)
+                    tangent = tangent + reshape(flattened, *expr.size)
+                else:
+                    tangent = tangent + grad_map[var].T*(var - var.value)
         return tangent
