@@ -143,9 +143,14 @@ class TestExpressions(BaseTest):
         x = Variable()
         y = Variable()
         z = Variable()
-        s = (x+y)**2 - y*z - z*z
-        self.assertFalse(s.is_dcp())
+
+        s = y*z
         self.assertTrue(s.is_quadratic())
+        self.assertFalse(s.is_dcp())
+
+        t = (x+y)**2 - s - z*z
+        self.assertTrue(t.is_quadratic())
+        self.assertFalse(t.is_dcp())
 
     def test_non_quadratic(self):
         x = Variable()

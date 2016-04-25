@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.error import DCPError
+import warnings
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 import cvxpy.utilities.key_utils as ku
@@ -265,6 +266,7 @@ class Expression(u.Canonical):
         # Allow affine * affine but raise DCPError otherwise
         # Cannot multiply two non-constant expressions.
         elif self.is_affine() and other.is_affine():
+            warnings.warn("Forming a nonconvex expression (affine)*(affine).")
             return types.mul_affines_expr()(self, other)
         else:
             raise DCPError("Cannot multiply two non-constants.")
