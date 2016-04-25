@@ -267,9 +267,9 @@ class Expression(u.Canonical):
         # Cannot multiply two non-constant expressions.
         elif self.is_affine() and other.is_affine():
             warnings.warn("Forming a nonconvex expression (affine)*(affine).")
-            return types.mul_affines_expr()(self, other)
+            return types.affine_prod_expr()(self, other)
         else:
-            raise DCPError("Cannot multiply two non-constants.")
+            raise DCPError("Cannot multiply %s and %s." % (self.curvature, other.curvature))
 
     @_cast_other
     def __truediv__(self, other):

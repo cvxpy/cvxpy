@@ -58,9 +58,6 @@ class MulExpression(BinaryOperator):
     OP_FUNC = op.mul
 
 
-    def is_quadratic(self):
-        return self.args[1].is_quadratic()
-
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
         """
@@ -109,9 +106,6 @@ class RMulExpression(MulExpression):
     """Multiplication by a constant on the right.
     """
 
-    def is_quadratic(self):
-        return self.args[0].is_quadratic()
-
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
@@ -146,43 +140,6 @@ class RMulExpression(MulExpression):
             arg_objs[0] = lu.diag_vec(arg)
         return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
 
-class MulAffinesExpression(BinaryOperator):
-    """Product of two affine expressions.
-    """
-    OP_NAME = "*"
-    OP_FUNC = op.mul
-
-    def is_quadratic(self):
-        return self.args[0].is_affine() and self.args[1].is_affine()
-
-    def is_atom_convex(self):
-        """Affine times affine is not convex
-        """
-        return False
-
-    def is_atom_concave(self):
-        """Affine times affine is not concave
-        """
-        return False
-
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
-        """
-        return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
-
-    def is_incr(self, idx):
-        """Is the composition non-decreasing in argument idx?
-        """
-        return False
-
-    def is_decr(self, idx):
-        """Is the composition non-increasing in argument idx?
-        """
-        return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
-        return NotImplemented
 
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
