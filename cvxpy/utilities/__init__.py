@@ -18,6 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.utilities.canonical import Canonical
-import grad
-import shape
-import sign
+from . import grad
+from . import shape
+from . import sign
