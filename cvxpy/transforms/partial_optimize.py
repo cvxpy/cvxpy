@@ -102,12 +102,14 @@ class PartialProblem(Expression):
     def is_convex(self):
         """Is the expression convex?
         """
-        return type(self.args[0].objective) == Minimize
+        return self.args[0].is_dcp() and \
+               type(self.args[0].objective) == Minimize
 
     def is_concave(self):
         """Is the expression concave?
         """
-        return type(self.args[0].objective) == Maximize
+        return self.args[0].is_dcp() and \
+               type(self.args[0].objective) == Maximize
 
     def is_positive(self):
         """Is the expression positive?

@@ -717,6 +717,11 @@ class TestAtoms(BaseTest):
         g = cvxpy.partial_optimize(p2, [t], [x])
         self.assertEquals(g.curvature, s.CONCAVE)
 
+        p2 = Problem(cvxpy.Maximize(square(t[0])), [-t<=x, x<=t])
+        g = cvxpy.partial_optimize(p2, [t], [x])
+        self.assertEquals(g.is_convex(), False)
+        self.assertEquals(g.is_concave(), False)
+
     # Test the partial_optimize atom.
     def test_partial_optimize_eval_1norm(self):
         # Evaluate the 1-norm in the usual way (i.e., in epigraph form).

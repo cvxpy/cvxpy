@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import reshape, vec
+from cvxpy.expressions.constants import Constant
 
 def linearize(expr):
     """Returns the tangent approximation to the expression.
@@ -46,12 +47,8 @@ def linearize(expr):
             if grad_map[var] is None:
                 return None
             elif var.is_matrix():
-                flattened = grad_map[var]*vec(var - var.value)
+                flattened = Constant(grad_map[var]).T*vec(var - var.value)
                 tangent = tangent + reshape(flattened, *expr.size)
             else:
-                if var.is_matrix():
-                    flattened = grad_map[var].T*vec(var - var.value)
-                    tangent = tangent + reshape(flattened, *expr.size)
-                else:
-                    tangent = tangent + grad_map[var].T*(var - var.value)
+                tangent = tangent + Constant(grad_map[var]).T*(var - var.value)
         return tangent
