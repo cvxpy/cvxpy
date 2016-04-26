@@ -23,6 +23,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.second_order import SOC
 import numpy as np
 import scipy.sparse as sp
+import scipy as scipy
 
 class quad_over_lin(Atom):
     """ :math:`(sum_{ij}X^2_{ij})/y`
@@ -36,6 +37,36 @@ class quad_over_lin(Atom):
         """Returns the sum of the entries of x squared over y.
         """
         return np.square(values[0]).sum()/values[1]
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        # y > 0.
+        return [self.args[1] >= 0]
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        X = values[0]
+        y = values[1]
+        if y <= 0:
+            return [None, None]
+        else:
+            # DX = 2X/y, Dy = -||X||^2_2/y^2
+            Dy = -np.square(X).sum()/np.square(y)
+            Dy = sp.csc_matrix(Dy)
+            DX = 2.0*X/y
+            DX = np.reshape(DX, (self.args[0].size[0]*self.args[0].size[1], 1))
+            DX = scipy.sparse.csc_matrix(DX)
+            return [DX, Dy]
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

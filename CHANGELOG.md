@@ -18,12 +18,14 @@ Version 1.0 (targets)
 * TODO sort out norms. i.e. norm(X, 1) is wrong.
 * TODO support more axis operations (norm, log_sum_exp, sum_squares).
 * TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
+* TODO change reshape to take size tuple argument.
 
 Version 0.3.10 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
-* Made curvature, sign recursive and affine == convex + concave || constant.
+* TODO improve error message when solving with missing parameter values.
+* Made curvature, sign recursive and affine == convex + concave || constant. Eliminated old DCPAttr system. Memoized important info.
 
 Version 0.3.9
 -------------

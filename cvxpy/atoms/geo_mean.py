@@ -20,8 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 import numpy as np
+import scipy.sparse as sp
 import numbers
-
 
 from ..utilities.power_tools import fracify, decompose, approx_error, lower_bound, over_bound, prettydict, gm, gm_constrs
 import cvxpy.lin_ops.lin_utils as lu
@@ -236,6 +236,35 @@ class geo_mean(Atom):
         for x, p in zip(values, self.w):
             val *= x**float(p)
         return val
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        # No special case when only one non-zero weight.
+        selection = np.array([w_i > 0 for w_i in self.w])
+        return [self.args[0][selection > 0] >= 0]
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        x = np.matrix(values[0])
+        # No special case when only one non-zero weight.
+        w_arr = np.array([float(w_i) for w_i in self.w])
+        # Outside domain.
+        if np.any(x[w_arr > 0] <= 0):
+            return [None]
+        else:
+            D = w_arr/x.A.ravel(order='F')*self.numeric(values)
+            return [sp.csc_matrix(D).T]
+
 
     def name(self):
         return "%s(%s, (%s))" % (self.__class__.__name__,

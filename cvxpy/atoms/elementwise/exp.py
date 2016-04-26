@@ -60,6 +60,22 @@ class exp(Elementwise):
         """
         return False
 
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        grad_vals = np.exp(values[0])
+        return [exp.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.

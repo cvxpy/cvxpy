@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops.lin_op as lo
@@ -24,6 +25,7 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.expression import Expression
+from cvxpy.atoms import trace
 import copy
 
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
@@ -100,12 +102,14 @@ class PartialProblem(Expression):
     def is_convex(self):
         """Is the expression convex?
         """
-        return type(self.args[0].objective) == Minimize
+        return self.args[0].is_dcp() and \
+               type(self.args[0].objective) == Minimize
 
     def is_concave(self):
         """Is the expression concave?
         """
-        return type(self.args[0].objective) == Maximize
+        return self.args[0].is_dcp() and \
+               type(self.args[0].objective) == Maximize
 
     def is_positive(self):
         """Is the expression positive?
@@ -137,6 +141,66 @@ class PartialProblem(Expression):
         """Returns the parameters in the problem.
         """
         return self.args[0].parameters()
+
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+        None indicates variable values unknown or outside domain.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        # Subgrad of g(y) = min f_0(x,y)
+        #                   s.t. f_i(x,y) <= 0, i = 1,..,p
+        #                        h_i(x,y) == 0, i = 1,...,q
+        # Given by Df_0(x^*,y) + \sum_i Df_i(x^*,y) \lambda^*_i
+        #          + \sum_i Dh_i(x^*,y) \nu^*_i
+        # where x^*, \lambda^*_i, \nu^*_i are optimal primal/dual variables.
+        # Add PSD constraints in same way.
+
+        # Short circuit for constant.
+        if self.is_constant():
+            return u.grad.constant_grad(self)
+
+        old_vals = {var.id:var.value for var in self.variables()}
+        fix_vars = []
+        for var in self.variables():
+            if var.value is None:
+                return u.grad.error_grad(self)
+            else:
+                fix_vars += [var == var.value]
+        obj_arg = self._prob.objective.args[0]
+        prob = Problem(self.args[0].objective.copy(obj_arg),
+                       fix_vars + self._prob.constraints)
+        prob.solve()
+        # Compute gradient.
+        if prob.status in s.SOLUTION_PRESENT:
+            sign = self.is_convex() - self.is_concave()
+            # Form Lagrangian.
+            lagr = self._prob.objective.args[0]
+            for constr in self._prob.constraints:
+                # TODO: better way to get constraint expressions.
+                lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
+                lagr += trace(lagr_multiplier.T*constr._expr)
+            grad_map = lagr.grad
+            result = {var:grad_map[var] for var in self.variables()}
+        else: # Unbounded, infeasible, or solver error.
+            result = u.grad.error_grad(self)
+        # Restore the original values to the variables.
+        for var in self.variables():
+            var.value = old_vals[var.id]
+        return result
+
+    @property
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
+        """
+        # Variables optimized over are replaced in self._prob.
+        obj_expr = self._prob.objective.args[0]
+        return self._prob.constraints + obj_expr.domain
 
     @property
     def value(self):

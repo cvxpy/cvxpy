@@ -22,6 +22,7 @@ from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.abs import abs
 import scipy.special
+import numpy as np
 from .power import power
 from fractions import Fraction
 
@@ -85,6 +86,23 @@ class huber(Elementwise):
         if not (self.M.is_positive() and self.M.is_constant() \
                 and self.M.is_scalar()):
             raise ValueError("M must be a non-negative scalar constant.")
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        min_val = np.minimum(np.abs(values[0]), self.M.value)
+        grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
+        return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

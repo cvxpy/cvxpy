@@ -717,6 +717,11 @@ class TestAtoms(BaseTest):
         g = cvxpy.partial_optimize(p2, [t], [x])
         self.assertEqual(g.curvature, s.CONCAVE)
 
+        p2 = Problem(cvxpy.Maximize(square(t[0])), [-t<=x, x<=t])
+        g = cvxpy.partial_optimize(p2, [t], [x])
+        self.assertEquals(g.is_convex(), False)
+        self.assertEquals(g.is_concave(), False)
+
     # Test the partial_optimize atom.
     def test_partial_optimize_eval_1norm(self):
         # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
@@ -850,11 +855,27 @@ class TestAtoms(BaseTest):
         p1.solve()
 
         # Solve the two-stage problem via partial_optimize
-        p2 = Problem(Minimize(y), [x+y>=3])
+        constr = [y >= -100]
+        p2 = Problem(Minimize(y), [x+y>=3] + constr)
         g = cvxpy.partial_optimize(p2, [y], [x])
         x.value = xval
+        y.value = 42
+        constr[0].dual_variable.value = 42
         result = g.value
         self.assertAlmostEqual(result, p1.value)
+        self.assertAlmostEqual(y.value, 42)
+        self.assertAlmostEqual(constr[0].dual_value, 42)
+
+        # No variables optimized over.
+        p2 = Problem(Minimize(y), [x+y>=3])
+        g = cvxpy.partial_optimize(p2, [], [x,y])
+        x.value = xval
+        y.value = 42
+        p2.constraints[0].dual_variable.value = 42
+        result = g.value
+        self.assertAlmostEqual(result, y.value)
+        self.assertAlmostEqual(y.value, 42)
+        self.assertAlmostEqual(p2.constraints[0].dual_value, 42)
 
     def test_partial_optimize_stacked(self):
         # Minimize the 1-norm in the usual way

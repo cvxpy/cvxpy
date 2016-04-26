@@ -21,6 +21,7 @@ from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import operator as op
 import numpy as np
+import scipy.sparse as sp
 
 class affine_prod(Atom):
     """Product of two affine expressions.
@@ -79,6 +80,39 @@ class affine_prod(Atom):
         """Is the expression quadratic?
         """
         return True
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return []
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        X = values[0]
+        Y = values[1]
+
+        DX_rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.args[0].size[0]*self.args[1].size[1]
+
+        # DX = [diag(Y11), diag(Y12), ...]
+        #      [diag(Y21), diag(Y22), ...]
+        #      [   ...        ...     ...]
+        DX = sp.dok_matrix((DX_rows, cols))
+        for k in range(self.args[0].size[0]):
+            DX[k::self.args[0].size[0], k::self.args[0].size[0]] = Y
+        DX = sp.csc_matrix(DX)
+        DY = sp.block_diag([X.T for k in range(self.args[1].size[1])], 'csc')
+
+        return [DX, DY]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

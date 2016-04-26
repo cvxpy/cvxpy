@@ -23,6 +23,7 @@ from cvxpy.expressions import types
 from cvxpy.expressions.variables import Variable
 from .elementwise import Elementwise
 import numpy as np
+import scipy.sparse as sp
 
 class abs(Elementwise):
     """ Elementwise absolute value """
@@ -59,6 +60,25 @@ class abs(Elementwise):
         """Is the composition non-increasing in argument idx?
         """
         return self.args[idx].is_negative()
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        # Grad: +1 if positive, -1 if negative.
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        D = np.matrix(np.zeros(self.args[0].size))
+        D += (values[0] > 0)
+        D -= (values[0] < 0)
+        return [abs.elemwise_grad_to_diag(D, rows, cols)]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

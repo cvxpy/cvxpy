@@ -19,9 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
-from cvxpy.atoms.elementwise.norm2_elemwise import norm2_elemwise
-from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.reshape import reshape
 
 def tv(value, *args):
     """Total variation of a vector, matrix, or list of matrices.
@@ -58,4 +58,6 @@ def tv(value, *args):
                 mat[0:rows-1, 1:cols] - mat[0:rows-1, 0:cols-1],
                 mat[1:rows, 0:cols-1] - mat[0:rows-1, 0:cols-1],
             ]
-        return sum_entries(norm2_elemwise(*diffs))
+        length = diffs[0].size[0]*diffs[1].size[1]
+        stacked = vstack(*[reshape(diff, 1, length) for diff in diffs])
+        return sum_entries(norm(stacked, p='fro', axis=0))

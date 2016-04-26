@@ -21,6 +21,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+import scipy.sparse as sp
 
 class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
@@ -33,6 +34,37 @@ class max_entries(AxisAtom):
         """Returns the largest entry in x.
         """
         return values[0].max(axis=self.axis)
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray or None.
+        """
+        # Grad: 1 for a largest index.
+        value = np.matrix(value).A.ravel(order='F')
+        idx = np.argmax(value)
+        D = np.zeros((value.size, 1))
+        D[idx] = 1
+        return D
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

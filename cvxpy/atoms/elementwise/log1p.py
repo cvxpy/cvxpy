@@ -40,6 +40,32 @@ class log1p(log):
         """
         return (self.args[0].is_positive(), self.args[0].is_negative())
 
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        # Outside domain or on boundary.
+        if np.min(values[0]) <= -1:
+            # Non-differentiable.
+            return [None]
+        else:
+            grad_vals = 1.0/(values[0]+1)
+            return [log1p.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[0] >= -1]
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.

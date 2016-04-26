@@ -23,6 +23,7 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 from cvxpy.utilities.power_tools import (is_power2, gm_constrs, pow_mid,
                                          pow_high, pow_neg)
+import scipy.sparse as sp
 
 
 class power(Elementwise):
@@ -215,6 +216,43 @@ class power(Elementwise):
             return self.args[0].is_affine()
         else:
             return False
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        if self.p == 0:
+            # All zeros.
+            return [sp.csc_matrix((rows, cols), dtype='float64')]
+        # Outside domain or on boundary.
+        if not is_power2(self.p) and np.min(values[0]) <= 0:
+            if self.p < 1:
+                # Non-differentiable.
+                return [None]
+            else:
+                # Round up to zero.
+                values[0] = np.maximum(values[0], 0)
+
+        grad_vals = float(self.p)*np.power(values[0], float(self.p)-1)
+        return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        if (self.p < 1 and not self.p == 0) or \
+           (self.p > 1 and not is_power2(self.p)):
+            return [self.args[0] >= 0]
+        else:
+            return []
 
     def validate_arguments(self):
         pass
