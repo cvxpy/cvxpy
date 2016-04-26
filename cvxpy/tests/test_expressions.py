@@ -62,8 +62,8 @@ class TestExpressions(BaseTest):
         self.assertEqual(x.canonical_form[0].size, (2,1))
         self.assertEqual(x.canonical_form[1], [])
 
-        self.assertEquals(repr(self.x), "Variable(2, 1)")
-        self.assertEquals(repr(self.A), "Variable(2, 2)")
+        self.assertEqual(repr(self.x), "Variable(2, 1)")
+        self.assertEqual(repr(self.A), "Variable(2, 2)")
 
         # # Scalar variable
         # coeff = self.a.coefficients()
@@ -112,23 +112,23 @@ class TestExpressions(BaseTest):
     # Test tranposing variables.
     def test_transpose_variable(self):
         var = self.a.T
-        self.assertEquals(var.name(), "a")
-        self.assertEquals(var.size, (1,1))
+        self.assertEqual(var.name(), "a")
+        self.assertEqual(var.size, (1,1))
 
         self.a.save_value(2)
-        self.assertEquals(var.value, 2)
+        self.assertEqual(var.value, 2)
 
         var = self.x.T
-        self.assertEquals(var.name(), "x.T")
-        self.assertEquals(var.size, (1,2))
+        self.assertEqual(var.name(), "x.T")
+        self.assertEqual(var.size, (1,2))
 
         self.x.save_value( matrix([1,2]) )
-        self.assertEquals(var.value[0,0], 1)
-        self.assertEquals(var.value[0,1], 2)
+        self.assertEqual(var.value[0,0], 1)
+        self.assertEqual(var.value[0,1], 2)
 
         var = self.C.T
-        self.assertEquals(var.name(), "C.T")
-        self.assertEquals(var.size, (2,3))
+        self.assertEqual(var.name(), "C.T")
+        self.assertEqual(var.size, (2,3))
 
         # coeffs = var.canonical_form[0].coefficients()
         # mat = coeffs.values()[0][0]
@@ -136,12 +136,12 @@ class TestExpressions(BaseTest):
         # self.assertEqual(mat[1,3], 1)
 
         index = var[1,0]
-        self.assertEquals(index.name(), "C.T[1, 0]")
-        self.assertEquals(index.size, (1,1))
+        self.assertEqual(index.name(), "C.T[1, 0]")
+        self.assertEqual(index.size, (1,1))
 
         var = self.x.T.T
-        self.assertEquals(var.name(), "x.T.T")
-        self.assertEquals(var.size, (2,1))
+        self.assertEqual(var.name(), "x.T.T")
+        self.assertEqual(var.size, (2,1))
 
     # Test the Constant class.
     def test_constants(self):
@@ -191,7 +191,7 @@ class TestExpressions(BaseTest):
         c = np.array([1,2])
         p = Parameter(2)
         p.value = [1,1]
-        self.assertEquals((c*p).value, 3)
+        self.assertEqual((c*p).value, 3)
         self.assertEqual((c*self.x).size, (1,1))
 
     # Test the Parameter class.
@@ -384,16 +384,16 @@ class TestExpressions(BaseTest):
         p = Parameter(sign="positive")
         exp = 2/p
         p.value = 2
-        self.assertEquals(exp.value, 1)
+        self.assertEqual(exp.value, 1)
 
         rho = Parameter(sign="positive")
         rho.value = 1
 
-        self.assertEquals(rho.sign, s.POSITIVE)
-        self.assertEquals(Constant(2).sign, s.POSITIVE)
-        self.assertEquals((Constant(2)/Constant(2)).sign, s.POSITIVE)
-        self.assertEquals((Constant(2)*rho).sign, s.POSITIVE)
-        self.assertEquals((rho/2).sign, s.POSITIVE)
+        self.assertEqual(rho.sign, s.POSITIVE)
+        self.assertEqual(Constant(2).sign, s.POSITIVE)
+        self.assertEqual((Constant(2)/Constant(2)).sign, s.POSITIVE)
+        self.assertEqual((Constant(2)*rho).sign, s.POSITIVE)
+        self.assertEqual((rho/2).sign, s.POSITIVE)
 
     # Test the NegExpression class.
     def test_neg_expression(self):
@@ -446,7 +446,7 @@ class TestExpressions(BaseTest):
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         assert exp.is_affine()
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
         # coeff = exp.canonical_form[0].coefficients()[self.x][0]
         # self.assertEqual(coeff[0,1], 1)
         self.assertEqual(exp.value, None)
@@ -454,7 +454,7 @@ class TestExpressions(BaseTest):
         exp = self.x[1,0].T
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         with self.assertRaises(Exception) as cm:
             (self.x[2,0])
@@ -462,20 +462,20 @@ class TestExpressions(BaseTest):
 
         # Slicing
         exp = self.C[0:2,1]
-        # self.assertEquals(exp.name(), "C[0:2,1]")
-        self.assertEquals(exp.size, (2,1))
+        # self.assertEqual(exp.name(), "C[0:2,1]")
+        self.assertEqual(exp.size, (2,1))
         exp = self.C[0:,0:2]
-        # self.assertEquals(exp.name(), "C[0:,0:2]")
-        self.assertEquals(exp.size, (3,2))
+        # self.assertEqual(exp.name(), "C[0:,0:2]")
+        self.assertEqual(exp.size, (3,2))
         exp = self.C[0::2,0::2]
-        # self.assertEquals(exp.name(), "C[0::2,0::2]")
-        self.assertEquals(exp.size, (2,1))
+        # self.assertEqual(exp.name(), "C[0::2,0::2]")
+        self.assertEqual(exp.size, (2,1))
         exp = self.C[:3,:1:2]
-        # self.assertEquals(exp.name(), "C[0:3,0]")
-        self.assertEquals(exp.size, (3,1))
+        # self.assertEqual(exp.name(), "C[0:3,0]")
+        self.assertEqual(exp.size, (3,1))
         exp = self.C[0:,0]
-        # self.assertEquals(exp.name(), "C[0:,0]")
-        self.assertEquals(exp.size, (3,1))
+        # self.assertEqual(exp.name(), "C[0:,0]")
+        self.assertEqual(exp.size, (3,1))
 
         c = Constant([[1,-2],[0,4]])
         exp = c[1, 1]
@@ -483,90 +483,90 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.UNKNOWN)
         self.assertEqual(c[0,1].sign, s.UNKNOWN)
         self.assertEqual(c[1,0].sign, s.UNKNOWN)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
         self.assertEqual(exp.value, 4)
 
         c = Constant([[1,-2,3],[0,4,5],[7,8,9]])
         exp = c[0:3,0:4:2]
         self.assertEqual(exp.curvature, s.CONSTANT)
         assert exp.is_constant()
-        self.assertEquals(exp.size, (3,2))
+        self.assertEqual(exp.size, (3,2))
         self.assertEqual(exp[0,1].value, 7)
 
         # Slice of transpose
         exp = self.C.T[0:2,1]
-        self.assertEquals(exp.size, (2,1))
+        self.assertEqual(exp.size, (2,1))
 
         # Arithmetic expression indexing
         exp = (self.x + self.z)[1,0]
         # self.assertEqual(exp.name(), "x[1,0] + z[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         exp = (self.x + self.a)[1,0]
         # self.assertEqual(exp.name(), "x[1,0] + a")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         exp = (self.x - self.z)[1,0]
         # self.assertEqual(exp.name(), "x[1,0] - z[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         exp = (self.x - self.a)[1,0]
         # self.assertEqual(exp.name(), "x[1,0] - a")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         exp = (-self.x)[1,0]
         # self.assertEqual(exp.name(), "-x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.x)[1,0]
         # self.assertEqual(exp.name(), "[[2], [4]] * x[0:,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
         c = Constant([[1,2],[3,4]])
         exp = (c*self.a)[1,0]
         # self.assertEqual(exp.name(), "2 * a")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEquals(exp.size, (1,1))
+        self.assertEqual(exp.size, (1,1))
 
     def test_neg_indices(self):
         """Test negative indices.
         """
         c = Constant([[1,2],[3,4]])
         exp = c[-1, -1]
-        self.assertEquals(exp.value, 4)
-        self.assertEquals(exp.size, (1, 1))
-        self.assertEquals(exp.curvature, s.CONSTANT)
+        self.assertEqual(exp.value, 4)
+        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.curvature, s.CONSTANT)
 
         c = Constant([1,2,3,4])
         exp = c[1:-1]
         self.assertItemsAlmostEqual(exp.value, [2, 3])
-        self.assertEquals(exp.size, (2, 1))
-        self.assertEquals(exp.curvature, s.CONSTANT)
+        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.curvature, s.CONSTANT)
 
         c = Constant([1,2,3,4])
         exp = c[::-1]
         self.assertItemsAlmostEqual(exp.value, [4, 3, 2, 1])
-        self.assertEquals(exp.size, (4, 1))
-        self.assertEquals(exp.curvature, s.CONSTANT)
+        self.assertEqual(exp.size, (4, 1))
+        self.assertEqual(exp.curvature, s.CONSTANT)
 
         x = Variable(4)
         Problem(Minimize(0), [x[::-1] == c]).solve()
         self.assertItemsAlmostEqual(x.value, [4, 3, 2, 1])
-        self.assertEquals(x[::-1].size, (4, 1))
+        self.assertEqual(x[::-1].size, (4, 1))
 
         x = Variable(2)
-        self.assertEquals(x[::-1].size, (2, 1))
+        self.assertEqual(x[::-1].size, (2, 1))
 
         x = Variable(100, name="x")
-        self.assertEquals("x[:-1, 0]", str(x[:-1]))
+        self.assertEqual("x[:-1, 0]", str(x[:-1]))
 
     def test_logical_indices(self):
         """Test indexing with boolean arrays.
@@ -576,38 +576,38 @@ class TestExpressions(BaseTest):
 
         # Boolean array.
         expr = C[A <= 2]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[A <= 2], expr.value)
 
         expr = C[A % 2 == 0]
-        self.assertEquals(expr.size, (6, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (6, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[A % 2 == 0], expr.value)
 
         # Boolean array for rows, index for columns.
         expr = C[np.array([True,False,True]), 3]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([True,False,True]), 3], expr.value)
 
         # Index for row, boolean array for columns.
         expr = C[1, np.array([True,False,False,True])]
-        self.assertEquals(expr.size, (2,1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2,1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1, np.array([True,False,False,True])],
             expr.value)
 
         # Boolean array for rows, slice for columns.
         expr = C[np.array([True,True,True]), 1:3]
-        self.assertEquals(expr.size, (3, 2))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (3, 2))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([True,True,True]), 1:3], expr.value)
 
         # Slice for row, boolean array for columns.
         expr = C[1:-1, np.array([True,False,True, True])]
-        self.assertEquals(expr.size, (1, 3))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (1, 3))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1:-1, np.array([True,False,True, True])],
             expr.value)
 
@@ -615,8 +615,8 @@ class TestExpressions(BaseTest):
         # Not sure what this does.
         expr = C[np.array([True,True, True]),
                  np.array([True,False,True, True])]
-        self.assertEquals(expr.size, (3, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (3, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([True,True, True]),
                  np.array([True,False,True, True])], expr.value)
 
@@ -628,50 +628,50 @@ class TestExpressions(BaseTest):
 
         # List for rows.
         expr = C[[1,2]]
-        self.assertEquals(expr.size, (2, 4))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 4))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[1,2]], expr.value)
 
         # List for rows, index for columns.
         expr = C[[0,2], 3]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[0,2],3], expr.value)
 
         # Index for row, list for columns.
         expr = C[1, [0,2]]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1, [0,2]], expr.value)
 
         # List for rows, slice for columns.
         expr = C[[0,2], 1:3]
-        self.assertEquals(expr.size, (2, 2))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 2))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[0,2],1:3], expr.value)
 
         # Slice for row, list for columns.
         expr = C[1:-1, [0,2]]
-        self.assertEquals(expr.size, (1, 2))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (1, 2))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1:-1, [0,2]], expr.value)
 
         # Lists for rows and columns.
         expr = C[[0,1], [1,3]]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[0,1], [1,3]], expr.value)
 
         # Ndarray for rows, list for columns.
         expr = C[np.array([0,1]), [1,3]]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([0,1]), [1,3]], expr.value)
 
         # Ndarrays for rows and columns.
         expr = C[np.array([0,1]), np.array([1,3])]
-        self.assertEquals(expr.size, (2, 1))
-        self.assertEquals(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([0,1]), np.array([1,3])],
             expr.value)
 
@@ -688,37 +688,37 @@ class TestExpressions(BaseTest):
         """
         self.a.value = 1
         expr = sum(self.a)
-        self.assertEquals(expr.value, 1)
+        self.assertEqual(expr.value, 1)
 
         self.x.value = [1, 2]
         expr = sum(self.x)
-        self.assertEquals(expr.value, 3)
+        self.assertEqual(expr.value, 3)
 
     def test_var_copy(self):
         """Test the copy function for variable types.
         """
         x = Variable(3, 4, name="x")
         y = x.copy()
-        self.assertEquals(y.size, (3, 4))
-        self.assertEquals(y.name(), "x")
+        self.assertEqual(y.size, (3, 4))
+        self.assertEqual(y.name(), "x")
 
         x = Semidef(5, name="x")
         y = x.copy()
-        self.assertEquals(y.size, (5, 5))
+        self.assertEqual(y.size, (5, 5))
 
     def test_param_copy(self):
         """Test the copy function for Parameters.
         """
         x = Parameter(3, 4, name="x", sign="positive")
         y = x.copy()
-        self.assertEquals(y.size, (3, 4))
-        self.assertEquals(y.name(), "x")
-        self.assertEquals(y.sign, "POSITIVE")
+        self.assertEqual(y.size, (3, 4))
+        self.assertEqual(y.name(), "x")
+        self.assertEqual(y.sign, "POSITIVE")
 
     def test_constant_copy(self):
         """Test the copy function for Constants.
         """
         x = Constant(2)
         y = x.copy()
-        self.assertEquals(y.size, (1, 1))
-        self.assertEquals(y.value, 2)
+        self.assertEqual(y.size, (1, 1))
+        self.assertEqual(y.value, 2)
