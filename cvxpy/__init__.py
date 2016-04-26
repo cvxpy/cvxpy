@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__version__ = "0.3.9"
+__version__ = "0.4.0"
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import (Variable, Semidef, Symmetric, Bool,
 Int, NonNegative)
