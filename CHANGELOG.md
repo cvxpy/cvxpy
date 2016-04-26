@@ -20,11 +20,15 @@ Version 1.0 (targets)
 * TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
 * TODO change reshape to take size tuple argument.
 
-Version 0.3.10 (next release)
+Version 0.4.1 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
 * TODO improve error message when solving with missing parameter values.
+
+Version 0.4.0
+-------------
+* Added domains and gradients.
 * Made curvature, sign recursive and affine == convex + concave || constant. Eliminated old DCPAttr system. Memoized important info.
 
 Version 0.3.9
