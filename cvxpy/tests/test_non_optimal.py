@@ -62,7 +62,7 @@ class TestNonOptimal(BaseTest):
         x = Variable(5)
         prob = Problem(Maximize(sum_entries(sqrt(x))), [x <= 0])
         result = prob.solve(solver=SCS)
-        self.assertEquals(prob.status, OPTIMAL_INACCURATE)
+        self.assertEqual(prob.status, OPTIMAL_INACCURATE)
         assert result is not None
 
     # def test_socp(self):

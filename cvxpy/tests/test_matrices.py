@@ -37,7 +37,7 @@ class TestMatrices(unittest.TestCase):
         """Asserts that expr is an Expression with dimension size.
         """
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)
-        self.assertEquals(expr.size, size)
+        self.assertEqual(expr.size, size)
 
     def setUp(self):
         self.a = Variable(name='a')
@@ -147,7 +147,7 @@ class TestMatrices(unittest.TestCase):
         key = (slice(0, 1, None), slice(None, None, None))
         Aidx = intf.index(A, (slice(0, 2, None), slice(None, None, None)))
         Aidx = intf.index(Aidx, key)
-        self.assertEquals(Aidx.shape, (1, 2))
+        self.assertEqual(Aidx.shape, (1, 2))
         self.assertEqual(Aidx[0,0], 1)
         self.assertEqual(Aidx[0,1], 0)
 

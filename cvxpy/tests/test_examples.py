@@ -113,7 +113,7 @@ class TestExamples(BaseTest):
         r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
         dual_result = -0.5*q_lam.T.dot(P_lam).dot(q_lam) + r_lam
         print(dual_result.shape)
-        self.assertEquals(intf.size(dual_result), (1,1))
+        self.assertEqual(intf.size(dual_result), (1,1))
 
     # Tests examples from the README.
     def test_readme_examples(self):
@@ -466,7 +466,7 @@ class TestExamples(BaseTest):
         print("status:", prob.status)
         print("optimal value", prob.value)
 
-        self.assertEquals(prob.status, INFEASIBLE)
+        self.assertEqual(prob.status, INFEASIBLE)
         self.assertAlmostEqual(prob.value, np.inf)
 
         # An unbounded problem.
@@ -475,7 +475,7 @@ class TestExamples(BaseTest):
         print("status:", prob.status)
         print("optimal value", prob.value)
 
-        self.assertEquals(prob.status, UNBOUNDED)
+        self.assertEqual(prob.status, UNBOUNDED)
         self.assertAlmostEqual(prob.value, -np.inf)
 
         ########################################
