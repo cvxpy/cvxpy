@@ -21,11 +21,11 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
+import scipy.sparse as sp
+from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.soc_elemwise import SOC_Elemwise
+from cvxpy.constraints.soc_axis import SOC_Axis
 from fractions import Fraction
-
 
 class pnorm(AxisAtom):
     r"""The vector p-norm.
@@ -184,6 +184,60 @@ class pnorm(AxisAtom):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p)
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        if self.p < 1 and self.p != 0:
+            return [self.args[0] >= 0]
+        else:
+            return []
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray matrix or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        value = np.matrix(value)
+        # Outside domain.
+        if self.p < 1 and np.any(value <= 0):
+            return None
+        D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        if self.p == 1:
+            D_null += (value > 0)
+            D_null -= (value < 0)
+            return sp.csc_matrix(D_null.A.ravel(order='F')).T
+        denominator = np.linalg.norm(value, float(self.p))
+        denominator = np.power(denominator, self.p - 1)
+        # Subgrad is 0 when denom is 0 (or undefined).
+        if denominator == 0:
+            if self.p >= 1:
+                return D_null
+            else:
+                return None
+        else:
+            nominator = np.power(value, self.p - 1)
+            frac = np.divide(nominator, denominator)
+            return np.reshape(frac.A, (frac.size, 1))
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -279,19 +333,10 @@ class pnorm(AxisAtom):
             if axis is None:
                 return t, [SOC(t, [x])]
 
-            elif axis == 0:
-                size = (1, x.size[1])
+            else:
                 t = lu.create_var(size)
-                return t, [SOC_Elemwise(
-                    t, [lu.index(x, size, (slice(i, i+1), slice(0, x.size[1])))
-                        for i in range(x.size[0])])]
-
-            else:  # axis == 1
-                size = (x.size[0], 1)
-                t = lu.create_var(size)
-                return t, [SOC_Elemwise(
-                    t, [lu.index(x, size, (slice(0, x.size[0]), slice(i, i+1)))
-                        for i in range(x.size[1])])]
+                return t, [SOC_Axis(lu.reshape(t, (t.size[0]*t.size[1], 1)),
+                                    x, axis)]
 
         if p == np.inf:
             t_ = lu.promote(t, x.size)

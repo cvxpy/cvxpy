@@ -79,7 +79,6 @@ class SymData(object):
         constr_map = {s.EQ: [],
                       s.LEQ: [],
                       s.SOC: [],
-                      s.SOC_EW: [],
                       s.SDP: [],
                       s.EXP: [],
                       s.BOOL: [],

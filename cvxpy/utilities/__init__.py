@@ -18,5 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .canonical import Canonical
+from . import grad
 from . import shape
 from . import sign

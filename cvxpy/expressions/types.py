@@ -18,13 +18,17 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Utility functions to solve circular imports.
+def add_expr():
+    from cvxpy.atoms.affine import add_expr
+    return add_expr.AddExpression
+
 def constant():
     from cvxpy.expressions import constants
     return constants.Constant
 
-def add_expr():
-    from cvxpy.atoms.affine import add_expr
-    return add_expr.AddExpression
+def index():
+    from cvxpy.atoms.affine import index
+    return index.index
 
 def mul_expr():
     from cvxpy.atoms.affine import binary_operators
@@ -42,9 +46,9 @@ def neg_expr():
     from cvxpy.atoms.affine import unary_operators
     return unary_operators.NegExpression
 
-def index():
-    from cvxpy.atoms.affine import index
-    return index.index
+def power():
+    from cvxpy.atoms.elementwise import power
+    return power.power
 
 def reshape():
     from cvxpy.atoms.affine import reshape
@@ -54,6 +58,6 @@ def transpose():
     from cvxpy.atoms.affine import transpose
     return transpose.transpose
 
-def power():
-    from cvxpy.atoms.elementwise import power
-    return power.power
+def vec():
+    from cvxpy.atoms.affine import vec
+    return vec.vec

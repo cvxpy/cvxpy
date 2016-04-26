@@ -76,6 +76,17 @@ class Parameter(Leaf):
     def value(self, val):
         self._value = self._validate_value(val)
 
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        return {}
+
     def parameters(self):
         """Returns itself as a parameter.
         """

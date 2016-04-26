@@ -22,8 +22,9 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
-import scipy.sparse as sp
 from numpy import linalg as LA
+import numpy as np
+import scipy.sparse as sp
 
 class matrix_frac(Atom):
     """ tr X.T*P^-1*X """
@@ -38,6 +39,44 @@ class matrix_frac(Atom):
         X = values[0]
         P = values[1]
         return (X.T.dot(LA.inv(P)).dot(X)).trace()
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[1] >> 0]
+
+    def _grad(self,values):
+        """
+        Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        X = np.matrix(values[0])
+        P = np.matrix(values[1])
+        try:
+            P_inv = LA.inv(P)
+        except LA.LinAlgError:
+            return [None,None]
+        # partial_X = (P^-1+P^-T)X
+        # partial_P = - (P^-1 * X * X^T * P^-1)^T
+        else:
+            DX = np.dot(P_inv+np.transpose(P_inv), X)
+            DX = DX.T.ravel(order='F')
+            DX = sp.csc_matrix(DX).T
+
+            DP = P_inv.dot(X)
+            DP = DP.dot(X.T)
+            DP = DP.dot(P_inv)
+            DP = -DP.T
+            DP = sp.csc_matrix(DP.T.ravel(order='F')).T
+            return [DX, DP]
+
 
     def validate_arguments(self):
         """Checks that the dimensions of x and P match.

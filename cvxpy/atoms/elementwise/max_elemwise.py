@@ -72,6 +72,30 @@ class max_elemwise(Elementwise):
         """
         return False
 
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        max_vals = np.matrix(self.numeric(values))
+        unused = np.matrix(np.ones(max_vals.shape), dtype=bool)
+        grad_list = []
+        for idx, value in enumerate(values):
+            rows = self.args[idx].size[0]*self.args[idx].size[1]
+            cols = self.size[0]*self.size[1]
+            grad_vals = (value == max_vals) & unused
+            # Remove all the max_vals that were used.
+            unused[value == max_vals] = 0
+            grad_list += [max_elemwise.elemwise_grad_to_diag(grad_vals,
+                                                             rows, cols)]
+        return grad_list
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.

@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from fractions import Fraction
-from cvxpy.constraints import SOC_Elemwise
+from cvxpy.constraints import SOC_Axis
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict
@@ -27,9 +27,13 @@ import numbers
 two = lu.create_const(2, (1, 1))
 
 def gm(t, x, y):
-    return SOC_Elemwise(lu.sum_expr([x, y]),
-               [lu.sub_expr(x, y),
-                lu.mul_expr(two, t, t.size)])
+    length = t.size[0]*t.size[1]
+    return SOC_Axis(lu.reshape(lu.sum_expr([x, y]), (length, 1)),
+                    lu.vstack([
+                        lu.reshape(lu.sub_expr(x, y), (1, length)),
+                        lu.reshape(lu.mul_expr(two, t, t.size), (1, length))
+                        ], (2, length)),
+                    0)
 
 
 def gm_constrs(t, x_list, p):
