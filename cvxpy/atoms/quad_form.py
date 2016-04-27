@@ -20,8 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
-from .norm import norm
-from .elementwise.square import square
 from .sum_squares import sum_squares
 from scipy import linalg as LA
 import numpy as np

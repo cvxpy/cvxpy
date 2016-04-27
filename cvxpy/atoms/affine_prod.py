@@ -26,9 +26,6 @@ import scipy.sparse as sp
 class affine_prod(Atom):
     """Product of two affine expressions.
     """
-    OP_NAME = "*"
-    OP_FUNC = op.mul
-
     def __init__(self, x, y):
         super(affine_prod, self).__init__(x, y)
 
@@ -44,10 +41,9 @@ class affine_prod(Atom):
         return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
 
     def sign_from_args(self):
-        """Returns sign (is positive, is negative) of the expression.
+        """Default to rules for times.
         """
-        # Unknown.
-        return (False, False)
+        return u.sign.mul_sign(self.args[0], self.args[1])
 
     def is_atom_convex(self):
         """Affine times affine is not convex
@@ -62,12 +58,12 @@ class affine_prod(Atom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return False
+        return self.args[1-idx].is_positive()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return False
+        return self.args[1-idx].is_negative()
 
     def validate_arguments(self):
         """Check dimensions of arguments and linearity.
@@ -80,11 +76,6 @@ class affine_prod(Atom):
         """Is the expression quadratic?
         """
         return True
-
-    def _domain(self):
-        """Returns constraints describing the domain of the node.
-        """
-        return []
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
