@@ -207,6 +207,16 @@ class power(Elementwise):
         else:
             return False
 
+    def is_quadratic(self):
+        if self.p == 0:
+            return True
+        elif self.p == 1:
+            return self.args[0].is_quadratic()
+        elif self.p == 2:
+            return self.args[0].is_affine()
+        else:
+            return False
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

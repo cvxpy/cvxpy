@@ -66,6 +66,11 @@ class mul_elemwise(AffAtom):
         """
         return self.args[0].is_negative()
 
+    def is_quadratic(self):
+        """Quadratic if x is quadratic.
+        """
+        return self.args[1].is_quadratic()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Multiply the expressions elementwise.

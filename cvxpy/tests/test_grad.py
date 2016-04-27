@@ -42,6 +42,20 @@ class TestGrad(BaseTest):
         self.B = Variable(2,2,name='B')
         self.C = Variable(3,2,name='C')
 
+    def test_affine_prod(self):
+        """Test gradient for affine_prod
+        """
+        expr = affine_prod(self.C, self.A)
+        self.C.value = np.matrix([[1, -2], [3, 4], [-1, -3]])
+        self.A.value = np.matrix([[3, 2], [-5, 1]])
+
+        self.assertItemsAlmostEqual(expr.grad[self.C].todense(),
+            np.matrix([[3,0,0,2,0,0], [0,3,0,0,2,0], [0,0,3,0,0,2],
+                [-5,0,0,1,0,0], [0,-5,0,0,1,0], [0,0,-5,0,0,1]]))
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),
+            np.matrix([[1,3,-1,0,0,0], [-2,4,-3,0,0,0],
+                [0,0,0,1,3,-1], [0,0,0,-2,4,-3]]))
+
     def test_pnorm(self):
         """Test gradient for pnorm
         """
@@ -222,7 +236,6 @@ class TestGrad(BaseTest):
         self.A.value = np.matrix([[1,2],[4,3]])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(),np.matrix([[0,0],[0,1],[1,0],[0,0]]))
 
-
     def test_sigma_max(self):
         """Test sigma_max.
         """
@@ -260,9 +273,9 @@ class TestGrad(BaseTest):
         self.x.value = [1,2]
         lin_expr = linearize(expr)
         self.x.value = [55,22]
-        self.assertAlmostEquals(lin_expr.value, expr.value)
+        self.assertAlmostEqual(lin_expr.value, expr.value)
         self.x.value = [-1,-5]
-        self.assertAlmostEquals(lin_expr.value, expr.value)
+        self.assertAlmostEqual(lin_expr.value, expr.value)
 
         # Convex.
         expr = (self.A)**2 + 5
@@ -295,13 +308,13 @@ class TestGrad(BaseTest):
         """
         expr = log(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 1.0/2)
+        self.assertAlmostEqual(expr.grad[self.a], 1.0/2)
 
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], 1.0/3)
+        self.assertAlmostEqual(expr.grad[self.a], 1.0/3)
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[self.a], None)
 
         expr = log(self.x)
         self.x.value = [3,4]
@@ -322,13 +335,13 @@ class TestGrad(BaseTest):
         """
         expr = log1p(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 1.0/3)
+        self.assertAlmostEqual(expr.grad[self.a], 1.0/3)
 
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], 1.0/4)
+        self.assertAlmostEqual(expr.grad[self.a], 1.0/4)
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[self.a], None)
 
         expr = log1p(self.x)
         self.x.value = [3,4]
@@ -349,13 +362,13 @@ class TestGrad(BaseTest):
         """
         expr = entr(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], -np.log(2) - 1)
+        self.assertAlmostEqual(expr.grad[self.a], -np.log(2) - 1)
 
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], -(np.log(3) + 1))
+        self.assertAlmostEqual(expr.grad[self.a], -(np.log(3) + 1))
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[self.a], None)
 
         expr = entr(self.x)
         self.x.value = [3,4]
@@ -377,13 +390,13 @@ class TestGrad(BaseTest):
         """
         expr = exp(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], np.exp(2))
+        self.assertAlmostEqual(expr.grad[self.a], np.exp(2))
 
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], np.exp(3))
+        self.assertAlmostEqual(expr.grad[self.a], np.exp(3))
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], np.exp(-1))
+        self.assertAlmostEqual(expr.grad[self.a], np.exp(-1))
 
         expr = exp(self.x)
         self.x.value = [3,4]
@@ -405,13 +418,13 @@ class TestGrad(BaseTest):
         """
         expr = logistic(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], np.exp(2)/(1+np.exp(2)))
+        self.assertAlmostEqual(expr.grad[self.a], np.exp(2)/(1+np.exp(2)))
 
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], np.exp(3)/(1+np.exp(3)))
+        self.assertAlmostEqual(expr.grad[self.a], np.exp(3)/(1+np.exp(3)))
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], np.exp(-1)/(1+np.exp(-1)))
+        self.assertAlmostEqual(expr.grad[self.a], np.exp(-1)/(1+np.exp(-1)))
 
         expr = logistic(self.x)
         self.x.value = [3,4]
@@ -433,14 +446,14 @@ class TestGrad(BaseTest):
         """
         expr = huber(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 2)
+        self.assertAlmostEqual(expr.grad[self.a], 2)
 
         expr = huber(self.a, M=2)
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], 4)
+        self.assertAlmostEqual(expr.grad[self.a], 4)
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], -2)
+        self.assertAlmostEqual(expr.grad[self.a], -2)
 
         expr = huber(self.x)
         self.x.value = [3,4]
@@ -464,18 +477,18 @@ class TestGrad(BaseTest):
         expr = kl_div(self.a, b)
         self.a.value = 2
         b.value = 4
-        self.assertAlmostEquals(expr.grad[self.a], np.log(2/4))
-        self.assertAlmostEquals(expr.grad[b], 1 - (2/4))
+        self.assertAlmostEqual(expr.grad[self.a], np.log(2/4))
+        self.assertAlmostEqual(expr.grad[b], 1 - (2/4))
 
         self.a.value = 3
         b.value = 0
-        self.assertAlmostEquals(expr.grad[self.a], None)
-        self.assertAlmostEquals(expr.grad[b], None)
+        self.assertAlmostEqual(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[b], None)
 
         self.a.value = -1
         b.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], None)
-        self.assertAlmostEquals(expr.grad[b], None)
+        self.assertAlmostEqual(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[b], None)
 
         y = Variable(2)
         expr = kl_div(self.x, y)
@@ -508,18 +521,18 @@ class TestGrad(BaseTest):
         expr = max_elemwise(self.a, b)
         self.a.value = 2
         b.value = 4
-        self.assertAlmostEquals(expr.grad[self.a], 0)
-        self.assertAlmostEquals(expr.grad[b], 1)
+        self.assertAlmostEqual(expr.grad[self.a], 0)
+        self.assertAlmostEqual(expr.grad[b], 1)
 
         self.a.value = 3
         b.value = 0
-        self.assertAlmostEquals(expr.grad[self.a], 1)
-        self.assertAlmostEquals(expr.grad[b], 0)
+        self.assertAlmostEqual(expr.grad[self.a], 1)
+        self.assertAlmostEqual(expr.grad[b], 0)
 
         self.a.value = -1
         b.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 0)
-        self.assertAlmostEquals(expr.grad[b], 1)
+        self.assertAlmostEqual(expr.grad[self.a], 0)
+        self.assertAlmostEqual(expr.grad[b], 1)
 
         y = Variable(2)
         expr = max_elemwise(self.x, y)
@@ -554,18 +567,18 @@ class TestGrad(BaseTest):
         expr = min_elemwise(self.a, b)
         self.a.value = 2
         b.value = 4
-        self.assertAlmostEquals(expr.grad[self.a], 1)
-        self.assertAlmostEquals(expr.grad[b], 0)
+        self.assertAlmostEqual(expr.grad[self.a], 1)
+        self.assertAlmostEqual(expr.grad[b], 0)
 
         self.a.value = 3
         b.value = 0
-        self.assertAlmostEquals(expr.grad[self.a], 0)
-        self.assertAlmostEquals(expr.grad[b], 1)
+        self.assertAlmostEqual(expr.grad[self.a], 0)
+        self.assertAlmostEqual(expr.grad[b], 1)
 
         self.a.value = -1
         b.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 1)
-        self.assertAlmostEquals(expr.grad[b], 0)
+        self.assertAlmostEqual(expr.grad[self.a], 1)
+        self.assertAlmostEqual(expr.grad[b], 0)
 
         y = Variable(2)
         expr = min_elemwise(self.x, y)
@@ -598,13 +611,13 @@ class TestGrad(BaseTest):
         """
         expr = sqrt(self.a)
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 0.5/np.sqrt(2))
+        self.assertAlmostEqual(expr.grad[self.a], 0.5/np.sqrt(2))
 
         self.a.value = 3
-        self.assertAlmostEquals(expr.grad[self.a], 0.5/np.sqrt(3))
+        self.assertAlmostEqual(expr.grad[self.a], 0.5/np.sqrt(3))
 
         self.a.value = -1
-        self.assertAlmostEquals(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[self.a], None)
 
         expr = (self.x)**3
         self.x.value = [3,4]
@@ -622,7 +635,7 @@ class TestGrad(BaseTest):
 
         # Constant.
         expr = (self.a)**0
-        self.assertAlmostEquals(expr.grad[self.a], 0)
+        self.assertAlmostEqual(expr.grad[self.a], 0)
 
         expr = (self.x)**0
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), np.zeros((2,2)))
@@ -637,26 +650,26 @@ class TestGrad(BaseTest):
             self.a.value = None
             self.x.value = None
             grad = expr.grad
-            self.assertAlmostEquals(grad[self.a], None)
-            self.assertAlmostEquals(grad[self.x], None)
+            self.assertAlmostEqual(grad[self.a], None)
+            self.assertAlmostEqual(grad[self.x], None)
             # Outside domain.
             self.a.value = 1.0
             self.x.value = [5,5]
             grad = expr.grad
-            self.assertAlmostEquals(grad[self.a], None)
-            self.assertAlmostEquals(grad[self.x], None)
+            self.assertAlmostEqual(grad[self.a], None)
+            self.assertAlmostEqual(grad[self.x], None)
 
             self.a.value = 1
             self.x.value = [10,10]
             grad = expr.grad
-            self.assertAlmostEquals(grad[self.a], obj.args[0].grad[self.a])
+            self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a])
             self.assertItemsAlmostEqual(grad[self.x].todense(), [0,0,0,0])
 
             # Optimize over x.
             expr = cvxpy.partial_optimize(prob, opt_vars=[self.x])
             self.a.value = 1
             grad = expr.grad
-            self.assertAlmostEquals(grad[self.a], obj.args[0].grad[self.a] + 0)
+            self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a] + 0)
 
             # Optimize over a.
             fix_prob = Problem(obj, [self.x + self.a >= [5,8], self.x == 0])
@@ -677,15 +690,15 @@ class TestGrad(BaseTest):
         """
         expr = -self.a
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], -1)
+        self.assertAlmostEqual(expr.grad[self.a], -1)
 
         expr = 2*self.a
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 2)
+        self.assertAlmostEqual(expr.grad[self.a], 2)
 
         expr = self.a/2
         self.a.value = 2
-        self.assertAlmostEquals(expr.grad[self.a], 0.5)
+        self.assertAlmostEqual(expr.grad[self.a], 0.5)
 
         expr = -(self.x)
         self.x.value = [3,4]

@@ -59,6 +59,9 @@ class AffAtom(Atom):
         # Defaults to increasing.
         return False
 
+    def is_quadratic(self):
+        return all([arg.is_quadratic() for arg in self.args])
+    
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

@@ -20,8 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
-from .norm import norm
-from .elementwise.square import square
+from .sum_squares import sum_squares
 from scipy import linalg as LA
 import numpy as np
 
@@ -76,6 +75,7 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
         cond = factor[t] * np.finfo(t).eps
     scaled_abs_w = abs_w / scale
     mask = scaled_abs_w > cond
+    # TODO: allow indefinite quad_form
     if np.any(w[mask] * sgn < 0):
         msg = 'P has both positive and negative eigenvalues.'
         raise CvxPyDomainError(msg)
@@ -101,6 +101,6 @@ def quad_form(x, P):
             msg = "P is not symmetric."
             raise CvxPyDomainError(msg)
         sgn, scale, M = _decomp_quad(P)
-        return sgn * scale * square(norm(Constant(M.T) * x))
+        return sgn * scale * sum_squares(Constant(M.T) * x)
     else:
         raise Exception("At least one argument to quad_form must be constant.")

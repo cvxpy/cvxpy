@@ -334,9 +334,14 @@ class TestExpressions(BaseTest):
             Constant([[2, 1],[2, 2]]) * self.C
         self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
+        # Affine times affine is okay
+        q = self.A * self.B
+        self.assertTrue(q.is_quadratic())
+        
+        # Nonaffine times nonconstant raises error
         with self.assertRaises(Exception) as cm:
-            (self.A * self.B)
-        self.assertEqual(str(cm.exception), "Cannot multiply two non-constants.")
+            ((self.A * self.B) * self.A)
+        self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
 
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])

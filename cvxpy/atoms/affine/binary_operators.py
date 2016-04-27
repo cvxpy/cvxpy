@@ -57,6 +57,7 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
         """
@@ -139,9 +140,14 @@ class RMulExpression(MulExpression):
             arg_objs[0] = lu.diag_vec(arg)
         return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
 
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
+
+
+    def is_quadratic(self):
+        return self.args[0].is_quadratic() and self.args[1].is_constant()
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
@@ -157,6 +163,7 @@ class DivExpression(BinaryOperator):
         """Is the composition non-increasing in argument idx?
         """
         return self.args[1].is_negative()
+
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
