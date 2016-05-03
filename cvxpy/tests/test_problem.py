@@ -583,6 +583,11 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, -6)
 
+        p1.value = None
+        with self.assertRaises(Exception) as cm:
+            p.solve()
+        self.assertEqual(str(cm.exception), "Problem has missing parameter value.")
+
     # Test problems with normInf
     def test_normInf(self):
         # Constant argument.

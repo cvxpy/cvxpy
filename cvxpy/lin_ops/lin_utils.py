@@ -613,6 +613,29 @@ def replace_new_vars(expr, id_to_new_var):
             )
         return lo.LinOp(expr.type, expr.size, new_args, expr.data)
 
+def check_param_val(param):
+    """Wrapper on accessing a parameter.
+
+    Parameters
+    ----------
+    param : Parameter
+        The parameter whose value is being accessed.
+
+    Returns
+    -------
+    The numerical value of the parameter.
+
+    Raises
+    ------
+    ValueError
+        Raises error if parameter value is None.
+    """
+    val = param.value
+    if val is None:
+        raise ValueError("Problem has missing parameter value.")
+    else:
+        return val
+
 def replace_params_with_consts(expr):
     """Replaces parameters with constant nodes.
 
@@ -627,7 +650,7 @@ def replace_params_with_consts(expr):
         An LinOp identical to expr, but with the parameters replaced.
     """
     if expr.type == lo.PARAM:
-        return create_const(expr.data.value, expr.size)
+        return create_const(check_param_val(expr.data), expr.size)
     else:
         new_args = []
         for arg in expr.args:
@@ -635,7 +658,8 @@ def replace_params_with_consts(expr):
         # Data could also be a parameter.
         if isinstance(expr.data, lo.LinOp) and expr.data.type == lo.PARAM:
             data_lin_op = expr.data
-            data = create_const(data_lin_op.data.value, data_lin_op.size)
+            val = check_param_val(data_lin_op.data)
+            data = create_const(val, data_lin_op.size)
         else:
             data = expr.data
         return lo.LinOp(expr.type, expr.size, new_args, data)

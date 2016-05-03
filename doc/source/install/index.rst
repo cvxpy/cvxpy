@@ -182,13 +182,14 @@ CVXPY has the following dependencies:
 * Python 2.7 or Python 3.4
 * `setuptools`_ >= 1.4
 * `toolz`_
+* `six <https://pythonhosted.org/six/>`_
 * `multiprocess`_
 * `CVXOPT`_ >= 1.1.6
 * `ECOS`_ >= 2
-* `SCS`_ >= 1.0.1
+* `SCS`_ >= 1.1.3
 * `NumPy`_ >= 1.8
-* `SciPy`_ >= 0.13
-* `CVXcanon`_ >= 0.0.17
+* `SciPy`_ >= 0.15
+* `CVXcanon`_ >= 0.0.22
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
