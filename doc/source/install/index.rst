@@ -113,6 +113,7 @@ Windows
 There are two ways to install CVXPY on Windows.
 One method uses Python(x,y), while the other uses Anaconda.
 Installation with Python(x,y) is less likely to have problems.
+Both installation methods use Python 2.
 
 Windows with Python(x,y)
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -143,7 +144,7 @@ If all the tests pass, your installation was successful.
 Windows with Anaconda
 ^^^^^^^^^^^^^^^^^^^^^
 
-1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_.
+1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_. You must use the Python 2 version.
 
 2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
 
