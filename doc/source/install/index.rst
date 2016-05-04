@@ -138,7 +138,7 @@ This will bring up a console.
       :scale: 100%
 
 5. From the console, run ``nosetests cvxpy``.
-If all the tests pass, your installation was successful.
+If all but one of the tests pass, your installation was successful.
 
 
 Windows with Anaconda
