@@ -215,7 +215,7 @@ class power(Elementwise):
         elif self.p == 2:
             return self.args[0].is_affine()
         else:
-            return False
+            return self.args[0].is_constant()
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
