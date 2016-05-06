@@ -119,6 +119,7 @@ Windows with Python(x,y)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. If you have Python installed already, it's probably a good idea to remove it first.
+If you uninstall Anaconda, you may need to take `extra steps to remove all traces of the Anaconda install <http://stackoverflow.com/questions/15828294/problems-in-fully-uninstalling-python-2-7-from-windows-7>`_.
 
 2. Download the `latest version of Python(x,y) <https://python-xy.github.io/downloads.html>`_.
 
