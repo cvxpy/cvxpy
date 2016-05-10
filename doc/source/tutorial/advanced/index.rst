@@ -514,7 +514,7 @@ For example, the following code is equivalent to solving the problem directly wi
 
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
-.. _ECOS_BB: https://www.embotech.com/ECOS
+.. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
