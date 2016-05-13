@@ -64,7 +64,10 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
-        raise Exception("Cannot evaluate the truth value of a constraint.")
+        raise Exception(
+            ("Cannot evaluate the truth value of a constraint or "
+             "chain constraints, e.g., 1 >= x >= 0.")
+        )
 
     def __bool__(self):
         """Raises an exception when called.
@@ -74,7 +77,7 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
-        raise Exception("Cannot evaluate the truth value of a constraint.")
+        return __nonzero__(self)
 
     @property
     def size(self):

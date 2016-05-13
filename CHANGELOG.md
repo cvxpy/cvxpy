@@ -25,6 +25,7 @@ Version 0.4.1 (next release)
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
 * TODO improve error message when solving with missing parameter values.
+* Made error message for chaining constraints clearer.
 
 Version 0.4.0
 -------------

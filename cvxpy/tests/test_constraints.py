@@ -229,10 +229,12 @@ class TestConstraints(BaseTest):
     def test_chained_constraints(self):
         """Tests that chaining constraints raises an error.
         """
+        error_str = ("Cannot evaluate the truth value of a constraint or "
+             "chain constraints, e.g., 1 >= x >= 0.")
         with self.assertRaises(Exception) as cm:
             (self.z <= self.x <= 1)
-        self.assertEqual(str(cm.exception), "Cannot evaluate the truth value of a constraint.")
+        self.assertEqual(str(cm.exception), error_str)
 
         with self.assertRaises(Exception) as cm:
             (self.x == self.z == 1)
-        self.assertEqual(str(cm.exception), "Cannot evaluate the truth value of a constraint.")
+        self.assertEqual(str(cm.exception), error_str)
