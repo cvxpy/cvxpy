@@ -5,6 +5,7 @@ from numpy.testing import assert_allclose, assert_equal
 from scipy import linalg
 import cvxopt
 import cvxpy
+import warnings
 
 from cvxpy.tests.base_test import BaseTest
 
@@ -78,7 +79,8 @@ class TestNonOptimal(BaseTest):
         """
         P = np.array([[1, 0], [0, -1]])
         x = cvxpy.Variable(2,1)
-        with self.assertRaises(Exception) as cm:
-            cvxpy.quad_form(x,P)
-        self.assertEqual(str(cm.exception),
-            "P has both positive and negative eigenvalues.")
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            cvxpy.quad_form(x, P)
+            self.assertEqual(str(w[-1].message),
+                "Forming a nonconvex expression quad_form(x, indefinite).")
