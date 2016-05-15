@@ -238,3 +238,11 @@ class TestConstraints(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.x == self.z == 1)
         self.assertEqual(str(cm.exception), error_str)
+
+        with self.assertRaises(Exception) as cm:
+            (self.z <= self.x).__bool__()
+        self.assertEqual(str(cm.exception), error_str)
+
+        with self.assertRaises(Exception) as cm:
+            (self.z <= self.x).__nonzero__()
+        self.assertEqual(str(cm.exception), error_str)

@@ -77,7 +77,7 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
-        return __nonzero__(self)
+        return self.__nonzero__()
 
     @property
     def size(self):
