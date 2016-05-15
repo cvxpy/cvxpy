@@ -701,7 +701,7 @@ class TestProblem(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             Problem(Minimize(quad_form(self.x, [[-1, 0], [0, 9]]))).solve()
-        self.assertEqual(str(cm.exception), "P has both positive and negative eigenvalues.")
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
         P = [[4, 0], [0, 9]]
         p = Problem(Minimize(quad_form(self.x, P)), [self.x >= 1])

@@ -58,29 +58,30 @@ class TestNonOptimal(BaseTest):
     def test_sparse_quad_form(self):
         """Test quad form with a sparse matrix.
         """
-        Q = cvxopt.spdiag([1,1])
-        x = cvxpy.Variable(2,1)
-        cost = cvxpy.quad_form(x,Q)
-        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1,2]])
+        Q = cvxopt.spdiag([1, 1])
+        x = cvxpy.Variable(2)
+        cost = cvxpy.quad_form(x, Q)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         self.assertAlmostEqual(prob.solve(), 5)
 
     def test_non_symmetric(self):
-        """Test error when P is constant and not symmetric.
+        """Test when P is constant and not symmetric.
         """
-        P = np.array([[1, 2], [3, 4]])
-        x = cvxpy.Variable(2,1)
-        with self.assertRaises(Exception) as cm:
-            cvxpy.quad_form(x,P)
-        self.assertEqual(str(cm.exception),
-            "P is not symmetric.")
+        P = np.array([[2, 2], [3, 4]])
+        x = cvxpy.Variable(2)
+        cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+        self.assertAlmostEqual(prob.solve(), 28)
 
     def test_non_psd(self):
         """Test error when P is symmetric but not definite.
         """
         P = np.array([[1, 0], [0, -1]])
-        x = cvxpy.Variable(2,1)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cvxpy.quad_form(x, P)
-            self.assertEqual(str(w[-1].message),
-                "Forming a nonconvex expression quad_form(x, indefinite).")
+        x = cvxpy.Variable(2)
+        # Forming quad_form is okay
+        cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+        with self.assertRaises(Exception) as cm:
+            prob.solve()
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+        

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import division
 import cvxpy.interface as intf
 import warnings
 from cvxpy.expressions.expression import Expression
@@ -97,10 +98,8 @@ def quad_form(x, P):
     elif P.is_constant():
         np_intf = intf.get_matrix_interface(np.ndarray)
         P = np_intf.const_to_matrix(P.value)
-        # P must be symmetric.
-        if not np.allclose(P, P.T):
-            msg = "P is not symmetric."
-            raise CvxPyDomainError(msg)
+        # Force symmetry
+        P = (P + P.T) / 2.0
         scale, M1, M2 = _decomp_quad(P)
         ret = 0
         if M1.size > 0:
