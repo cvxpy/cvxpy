@@ -115,15 +115,28 @@ class JuliaOpt(ECOS):
         lengths += [3]*dims[s.EXP_DIM]
         indices = np.arange(constr_len)
         constr_cones = cmpb.MPBCones(types, lengths, indices)
+        # Handle binary/integer variables.
+        var_types = None
+        if data[s.BOOL_IDX] or data[s.INT_IDX]:
+            var_types = []
+            for i in range(var_len):
+                if i in data[s.BOOL_IDX]:
+                    var_type = cmpb.MPBBINVAR
+                elif i in data[s.INT_IDX]:
+                    var_type = cmpb.MPBINTVAR
+                else:
+                    var_type = cmpb.MPBCONTVAR
+                var_types.append(var_type)
         # Create solver object.
         Acoo = data[s.A].tocoo()
         model = cmpb.MPBModel(solver_opts["package"], solver_opts["solver_str"],
-                 data[s.C], Acoo, data[s.B], constr_cones, var_cones)
+                 data[s.C], Acoo, data[s.B], constr_cones, var_cones,
+                 var_types)
         # Solve problem.
         model.optimize()
         # Collect results.
         results_dict = {}
-        results_dict["status"] = model.getstatus()
+        results_dict["status"] = model.status()
         results_dict["pobj"] = model.getproperty("objval")
         results_dict["x"] = model.getsolution()
         results_dict["y"] = model.getdual()

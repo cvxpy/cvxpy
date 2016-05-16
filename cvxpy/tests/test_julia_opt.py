@@ -207,3 +207,24 @@ class TestJuliaOpt(BaseTest):
         for pkg, solver_str in self.OPTIONS:
             result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)
             self.assertAlmostEqual(result, 2)
+
+    def test_pajarito(self):
+        """Test mixed integer problem with Pajarito.
+        """
+        pkg, solver_str = ("Pajarito, GLPKMathProgInterface, ECOS", "PajaritoSolver(verbose=1,mip_solver=GLPKSolverMIP(),cont_solver=ECOSSolver(verbose=0))")
+        # sqrt in constraint.
+        x_int = Int(2)
+        obj = Minimize(sum_entries(x_int))
+        constr = [sqrt(x_int) >= [2,3]]
+        p = Problem(obj, constr)
+        result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)
+        self.assertAlmostEqual(result, 13)
+        self.assertItemsAlmostEqual(self.x.value, [4,9])
+
+        x_bool = mul_elemwise([4,9], Bool(2))
+        obj = Minimize(sum_entries(x_bool))
+        constr = [sqrt(x_bool) >= [2,3]]
+        p = Problem(obj, constr)
+        result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)
+        self.assertAlmostEqual(result, 13)
+        self.assertItemsAlmostEqual(self.x.value, [4,9])
