@@ -38,6 +38,7 @@ import sys
 import scs
 import cvxopt.solvers
 import ecos
+import warnings
 PY2 = sys.version_info < (3, 0)
 if sys.version_info < (3, 0):
     from cStringIO import StringIO
@@ -699,9 +700,11 @@ class TestProblem(BaseTest):
             Problem(Minimize(quad_form(1, self.A))).solve()
         self.assertEqual(str(cm.exception), "Invalid dimensions for arguments.")
 
-        with self.assertRaises(Exception) as cm:
-            Problem(Minimize(quad_form(self.x, [[-1, 0], [0, 9]]))).solve()
-        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            with self.assertRaises(Exception) as cm:
+                Problem(Minimize(quad_form(self.x, [[-1, 0], [0, 9]]))).solve()
+            self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
         P = [[4, 0], [0, 9]]
         p = Problem(Minimize(quad_form(self.x, P)), [self.x >= 1])
