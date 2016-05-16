@@ -79,7 +79,9 @@ class TestNonOptimal(BaseTest):
         P = np.array([[1, 0], [0, -1]])
         x = cvxpy.Variable(2)
         # Forming quad_form is okay
-        cost = cvxpy.quad_form(x, P)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cost = cvxpy.quad_form(x, P)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
             prob.solve()
