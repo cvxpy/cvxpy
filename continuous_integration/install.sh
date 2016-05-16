@@ -28,7 +28,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
+    conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
 
@@ -72,13 +72,13 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd "$oldpath"
     fi
 
-    if [[ "$INSTALL_MKL" == "true" ]]; then
-        # Make sure that MKL is used
-        conda install --yes mkl
-    else
-        # Make sure that MKL is not used
-        conda remove --yes --features mkl || echo "MKL not installed"
-    fi
+    # if [[ "$INSTALL_MKL" == "true" ]]; then
+    #     # Make sure that MKL is used
+    #     conda install --yes mkl
+    # else
+    #     # Make sure that MKL is not used
+    #     conda remove --yes --features mkl || echo "MKL not installed"
+    # fi
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     sudo apt-get update -qq
