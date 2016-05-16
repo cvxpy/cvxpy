@@ -5,6 +5,7 @@ from numpy.testing import assert_allclose, assert_equal
 from scipy import linalg
 import cvxopt
 import cvxpy
+import warnings
 
 from cvxpy.tests.base_test import BaseTest
 
@@ -57,28 +58,32 @@ class TestNonOptimal(BaseTest):
     def test_sparse_quad_form(self):
         """Test quad form with a sparse matrix.
         """
-        Q = cvxopt.spdiag([1,1])
-        x = cvxpy.Variable(2,1)
-        cost = cvxpy.quad_form(x,Q)
-        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1,2]])
+        Q = cvxopt.spdiag([1, 1])
+        x = cvxpy.Variable(2)
+        cost = cvxpy.quad_form(x, Q)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         self.assertAlmostEqual(prob.solve(), 5)
 
     def test_non_symmetric(self):
-        """Test error when P is constant and not symmetric.
+        """Test when P is constant and not symmetric.
         """
-        P = np.array([[1, 2], [3, 4]])
-        x = cvxpy.Variable(2,1)
-        with self.assertRaises(Exception) as cm:
-            cvxpy.quad_form(x,P)
-        self.assertEqual(str(cm.exception),
-            "P is not symmetric.")
+        P = np.array([[2, 2], [3, 4]])
+        x = cvxpy.Variable(2)
+        cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+        self.assertAlmostEqual(prob.solve(), 28)
 
     def test_non_psd(self):
         """Test error when P is symmetric but not definite.
         """
         P = np.array([[1, 0], [0, -1]])
-        x = cvxpy.Variable(2,1)
+        x = cvxpy.Variable(2)
+        # Forming quad_form is okay
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
-            cvxpy.quad_form(x,P)
-        self.assertEqual(str(cm.exception),
-            "P has both positive and negative eigenvalues.")
+            prob.solve()
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+        
