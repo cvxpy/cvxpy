@@ -62,7 +62,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(w.is_affine())
         self.assertTrue(w.is_quadratic())
         self.assertTrue(w.is_dcp())
-    
+
     def test_matrix_multiplication(self):
         x = Variable(3, 5)
         y = Variable(3, 5)
@@ -75,7 +75,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
         self.assertFalse(s.is_dcp())
-    
+
     def test_quad_over_lin(self):
         x = Variable(3, 5)
         y = Variable(3, 5)
@@ -85,13 +85,13 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_affine())
         self.assertFalse(s.is_quadratic())
         self.assertTrue(s.is_dcp())
-        
+
         t = quad_over_lin(x+2*y, 5)
         self.assertFalse(t.is_constant())
         self.assertFalse(t.is_affine())
         self.assertTrue(t.is_quadratic())
         self.assertTrue(t.is_dcp())
-    
+
     def test_matrix_frac(self):
         x = Variable(5)
         M = np.asmatrix(np.random.randn(5, 5))
@@ -101,7 +101,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
         self.assertTrue(s.is_dcp())
-    
+
     def test_quadratic_form(self):
         x = Variable(5)
         P = np.asmatrix(np.random.randn(5, 5))
@@ -117,7 +117,7 @@ class TestExpressions(BaseTest):
         P = np.asmatrix(np.random.randn(3, 5))
         Q = np.asmatrix(np.random.randn(4, 7))
         M = np.asmatrix(np.random.randn(3, 7))
-        
+
         y = P*X*Q + M
         self.assertFalse(y.is_constant())
         self.assertTrue(y.is_affine())
@@ -161,7 +161,7 @@ class TestExpressions(BaseTest):
 
         s = max_entries(vstack(x, y, z))**2
         self.assertFalse(s.is_quadratic())
-        
+
         t = max_entries(vstack(x**2, power(y, 2), z))
         self.assertFalse(t.is_quadratic())
 
@@ -169,7 +169,10 @@ class TestExpressions(BaseTest):
         x = Variable(3, 5)
         y = Variable(5, 4)
 
-        s = affine_prod(x, y)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            s = x*y
+
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
