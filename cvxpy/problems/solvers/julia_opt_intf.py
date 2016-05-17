@@ -106,13 +106,20 @@ class JuliaOpt(ECOS):
         # Description of cone constraints.
         constr_len = data[s.B].size
         dims = data[s.DIMS]
-        types = [cmpb.MPBZEROCONE, cmpb.MPBNONNEGCONE]
-        lengths = [dims[s.EQ_DIM], dims[s.LEQ_DIM]]
+        types = []
+        lengths = []
+        if dims[s.EQ_DIM]:
+            types.append(cmpb.MPBZEROCONE)
+            lengths.append(dims[s.EQ_DIM])
+        if dims[s.LEQ_DIM]:
+            types.append(cmpb.MPBNONNEGCONE)
+            lengths.append(dims[s.LEQ_DIM])
         for soc_len in dims[s.SOC_DIM]:
             types.append(cmpb.MPBSOC)
             lengths.append(soc_len)
-        types += [cmpb.MPBEXPPRIMAL]*dims[s.EXP_DIM]
-        lengths += [3]*dims[s.EXP_DIM]
+        if dims[s.EXP_DIM]:
+            types += [cmpb.MPBEXPPRIMAL]*dims[s.EXP_DIM]
+            lengths += [3]*dims[s.EXP_DIM]
         indices = np.arange(constr_len)
         constr_cones = cmpb.MPBCones(types, lengths, indices)
         # Handle binary/integer variables.
@@ -127,11 +134,11 @@ class JuliaOpt(ECOS):
                 else:
                     var_type = cmpb.MPBCONTVAR
                 var_types.append(var_type)
+
         # Create solver object.
         Acoo = data[s.A].tocoo()
         model = cmpb.MPBModel(solver_opts["package"], solver_opts["solver_str"],
-                 data[s.C], Acoo, data[s.B], constr_cones, var_cones,
-                 var_types)
+            data[s.C], Acoo, data[s.B], constr_cones, var_cones, var_types)
         # Solve problem.
         model.optimize()
         # Collect results.

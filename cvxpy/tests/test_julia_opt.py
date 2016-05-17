@@ -219,7 +219,7 @@ class TestJuliaOpt(BaseTest):
         p = Problem(obj, constr)
         result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)
         self.assertAlmostEqual(result, 13)
-        self.assertItemsAlmostEqual(self.x.value, [4,9])
+        self.assertItemsAlmostEqual(x_int.value, [4,9])
 
         x_bool = mul_elemwise([4,9], Bool(2))
         obj = Minimize(sum_entries(x_bool))
@@ -227,4 +227,4 @@ class TestJuliaOpt(BaseTest):
         p = Problem(obj, constr)
         result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)
         self.assertAlmostEqual(result, 13)
-        self.assertItemsAlmostEqual(self.x.value, [4,9])
+        self.assertItemsAlmostEqual(x_bool.value, [4,9])
