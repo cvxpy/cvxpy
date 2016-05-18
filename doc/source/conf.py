@@ -145,6 +145,7 @@ html_theme_options = {
    'github_user': 'cvxgrp',
    'github_repo': 'cvxpy',
    'github_banner': True,
+   'github_type': 'star',
    'travis_button': True,
    'analytics_id': 'UA-50248335-1',
 }
