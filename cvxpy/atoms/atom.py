@@ -27,7 +27,7 @@ from ..expressions.expression import Expression
 import abc
 import numpy as np
 import sys
-from toolz.functoolz import memoize
+from fastcache import clru_cache
 if sys.version_info >= (3, 0):
     from functools import reduce
 
@@ -74,13 +74,13 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_positive(self):
         """Is the expression positive?
         """
         return self.sign_from_args()[0]
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_negative(self):
         """Is the expression negative?
         """
@@ -110,7 +110,7 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_convex(self):
         """Is the expression convex?
         """
@@ -127,7 +127,7 @@ class Atom(Expression):
         else:
             return False
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_concave(self):
         """Is the expression concave?
         """
