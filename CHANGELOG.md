@@ -26,6 +26,7 @@ Version 0.4.1 (next release)
 * TODO test and fix updating constraints.
 * TODO improve error message when solving with missing parameter values.
 * Made error message for chaining constraints clearer.
+* Switched from toolz.memoize to fastcache.cru_cache to fix memory leak in Python 3.
 
 Version 0.4.0
 -------------

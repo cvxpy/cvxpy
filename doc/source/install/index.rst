@@ -65,25 +65,31 @@ and the instructions below assume you do not have `Anaconda`_.
 
        sudo apt-get install libatlas-base-dev gfortran
 
-3. Install ``python-dev``.
+3. Export the location of the ``ATLAS`` installation.
+
+   ::
+
+       export ATLAS="/usr/lib/atlas-base/libatlas.so"
+
+4. Install ``python-dev``.
 
    ::
 
        sudo apt-get install python-dev
 
-4. Install ``pip``.
+5. Install ``pip``.
 
    ::
 
        sudo apt-get install python-pip
 
-5. Install ``numpy`` and ``scipy``.
+6. Install ``numpy`` and ``scipy``.
 
    ::
 
        sudo apt-get install python-numpy python-scipy
 
-6. Install ``cvxpy``.
+7. Install ``cvxpy``.
 
    ::
 
@@ -95,13 +101,13 @@ and the instructions below assume you do not have `Anaconda`_.
 
       pip install --user cvxpy
 
-7. Install ``nose``.
+8. Install ``nose``.
 
   ::
 
        sudo apt-get install python-nose
 
-8. Test the installation with ``nose``.
+9. Test the installation with ``nose``.
 
   ::
 
