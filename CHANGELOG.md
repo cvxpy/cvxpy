@@ -19,6 +19,7 @@ Version 1.0 (targets)
 * TODO support more axis operations (norm, log_sum_exp, sum_squares).
 * TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
 * TODO change reshape to take size tuple argument.
+* TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 
 Version 0.4.1 (next release)
 ----------------------------
