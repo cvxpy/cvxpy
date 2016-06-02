@@ -574,6 +574,15 @@ class TestExpressions(BaseTest):
 
         x = Variable(100, name="x")
         self.assertEqual("x[:-1, 0]", str(x[:-1]))
+        
+        c = Constant([[1,2],[3,4]])
+        expr = c[0,2:0:-1]
+        self.assertEqual(expr.size, (1,1))
+        self.assertAlmostEqual(expr.value, 3)
+
+        expr = c[0,2::-1]
+        self.assertEqual(expr.size, (1,2))
+        self.assertItemsAlmostEqual(expr.value, [3,1])
 
     def test_logical_indices(self):
         """Test indexing with boolean arrays.
@@ -679,8 +688,7 @@ class TestExpressions(BaseTest):
         expr = C[np.array([0,1]), np.array([1,3])]
         self.assertEqual(expr.size, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
-        self.assertItemsAlmostEqual(A[np.array([0,1]), np.array([1,3])],
-            expr.value)
+        self.assertItemsAlmostEqual(A[np.array([0,1]), np.array([1,3])], expr.value)
 
     def test_powers(self):
         exp = self.x**2

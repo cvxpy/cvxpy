@@ -17,12 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.constants.constant import Constant
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.reshape import reshape
-import cvxpy.interface as intf
-import cvxpy.utilities as u
 from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp

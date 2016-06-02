@@ -193,9 +193,13 @@ atoms = [
         (lambda x: x[[1,2], [0,2]], (2, 1), [ [[3,4,5],[6,7,8],[9,10,11]] ], Constant([4, 11])),
         (lambda x: x[[1,2]], (2, 1), [ [[3,4,5],[6,7,8]] ], Constant([[4,5], [7,8]])),
         (lambda x: x[np.array([[3,4,5],[6,7,8]]).T % 2 == 0], (2, 1), [ [[3,4,5],[6,7,8]] ],
-                     Constant([6,4,8])),
+                  Constant([6,4,8])),
+        (lambda x: x[2:0:-1], (2, 1), [ [3,4,5] ], Constant([5,4])),
+        (lambda x: x[2::-1], (3, 1), [ [3,4,5] ], Constant([5,4,3])),
+        (lambda x: x[3:0:-1], (2, 1), [ [3,4,5] ], Constant([5,4])),
+        (lambda x: x[3::-1], (3, 1), [ [3,4,5] ], Constant([5,4,3])),
     ], Minimize),
-    ([
+    ( [
         (entr, (2, 2), [ [[1, math.e],[math.e**2, 1.0/math.e]] ],
          Constant([[0, -math.e], [-2*math.e**2, 1.0/math.e]])),
         # #(entr(0), Constant([0])),
@@ -244,7 +248,8 @@ atoms = [
         (lambda x: sum_smallest(x, 3), (1, 1), [ [-1,2,3,4,5] ], Constant([-1+2+3])),
         (lambda x: sum_smallest(x, 4), (1, 1), [ [[-3,-4,5],[6,7,8],[9,10,11]] ], Constant([-3-4+5+6])),
         (lambda x: (x + Constant(0))**0.5, (2, 2), [ [[2,4],[16,1]] ], Constant([[1.414213562373095,2],[4,1]])),
-    ], Maximize),
+    ],
+  Maximize),
 ]
 
 def check_solver(prob, solver_name):
@@ -261,27 +266,29 @@ def check_solver(prob, solver_name):
         return False
 
 # Tests numeric version of atoms.
-def run_atom(atom, problem, obj_val, solver):
+def run_atom(atom, problem, obj_val, solver, verbose=False):
     assert problem.is_dcp()
-    print(problem.objective)
-    print(problem.constraints)
-    if check_solver(problem, solver):
+    if verbose:
+        print(problem.objective)
+        print(problem.constraints)
         print("solver", solver)
+    if check_solver(problem, solver):
         tolerance = SOLVER_TO_TOL[solver]
 
         try:
             if solver == ROBUST_CVXOPT:
-                result = problem.solve(solver=CVXOPT, verbose=False, kktsolver=ROBUST_KKTSOLVER)
+                result = problem.solve(solver=CVXOPT, verbose=verbose, kktsolver=ROBUST_KKTSOLVER)
             else:
-                result = problem.solve(solver=solver, verbose=True)
+                result = problem.solve(solver=solver, verbose=verbose)
         except SolverError as e:
             if (atom, solver) in KNOWN_SOLVER_ERRORS:
                 return
             raise e
 
         if problem.status in [OPTIMAL, OPTIMAL_INACCURATE]:
-            print(result)
-            print(obj_val)
+            if verbose:
+                print(result)
+                print(obj_val)
             assert( -tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance )
         else:
             assert (atom, solver) in KNOWN_SOLVER_ERRORS
