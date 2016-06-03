@@ -28,6 +28,7 @@ Version 0.4.1 (next release)
 * TODO improve error message when solving with missing parameter values.
 * Made error message for chaining constraints clearer.
 * Switched from toolz.memoize to fastcache.cru_cache to fix memory leak in Python 3.
+* Added support for matmul and rmatmul.
 
 Version 0.4.0
 -------------

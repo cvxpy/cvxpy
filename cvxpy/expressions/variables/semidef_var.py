@@ -21,7 +21,7 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.expressions.variables.symmetric import upper_tri_to_full
 from cvxpy.constraints.semidefinite import SDP
-import cvxpy.expressions.types as types
+from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
@@ -30,7 +30,7 @@ def Semidef(n, name=None):
     """
     var = SemidefUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))
-    return types.reshape()(fill_mat*var, n, n)
+    return cvxtypes.reshape()(fill_mat*var, n, n)
 
 class SemidefUpperTri(Variable):
     """ The upper triangular part of a positive semidefinite variable. """

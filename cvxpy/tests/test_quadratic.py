@@ -41,10 +41,12 @@ class TestExpressions(BaseTest):
         self.assertTrue(x.is_affine())
         self.assertTrue(x.is_quadratic())
 
-        s = power(x.T*y, 0)
-        self.assertTrue(s.is_constant())
-        self.assertTrue(s.is_affine())
-        self.assertTrue(s.is_quadratic())
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            s = power(x.T*y, 0)
+            self.assertTrue(s.is_constant())
+            self.assertTrue(s.is_affine())
+            self.assertTrue(s.is_quadratic())
 
         t = power(x-y, 1)
         self.assertFalse(t.is_constant())
@@ -70,7 +72,9 @@ class TestExpressions(BaseTest):
         self.assertTrue(x.is_affine())
         self.assertTrue(x.is_quadratic())
 
-        s = x.T*y
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            s = x.T*y
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
@@ -106,7 +110,9 @@ class TestExpressions(BaseTest):
         x = Variable(5)
         P = np.asmatrix(np.random.randn(5, 5))
         q = np.asmatrix(np.random.randn(5, 1))
-        s = x.T*P*x + q.T*x
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            s = x.T*P*x + q.T*x
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
@@ -142,22 +148,25 @@ class TestExpressions(BaseTest):
         x = Variable()
         y = Variable()
         z = Variable()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            s = y*z
+            self.assertTrue(s.is_quadratic())
+            self.assertFalse(s.is_dcp())
 
-        s = y*z
-        self.assertTrue(s.is_quadratic())
-        self.assertFalse(s.is_dcp())
-
-        t = (x+y)**2 - s - z*z
-        self.assertTrue(t.is_quadratic())
-        self.assertFalse(t.is_dcp())
+            t = (x+y)**2 - s - z*z
+            self.assertTrue(t.is_quadratic())
+            self.assertFalse(t.is_dcp())
 
     def test_non_quadratic(self):
         x = Variable()
         y = Variable()
         z = Variable()
-        with self.assertRaises(Exception) as cm:
-            (x*y*z).is_quadratic()
-        self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            with self.assertRaises(Exception) as cm:
+                (x*y*z).is_quadratic()
+            self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
 
         s = max_entries(vstack(x, y, z))**2
         self.assertFalse(s.is_quadratic())

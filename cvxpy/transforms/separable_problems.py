@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.problems.problem import Problem
-from cvxpy.expressions import types
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 
 import itertools
@@ -40,7 +40,7 @@ def get_separable_problems(problem):
     """
     # obj_terms contains the terms in the objective functions. We have to
     # deal with the special case where the objective function is not a sum.
-    if isinstance(problem.objective.args[0], types.add_expr()):
+    if isinstance(problem.objective.args[0], cvxtypes.add_expr()):
         obj_terms = problem.objective.args[0].args
     else:
         obj_terms = [problem.objective.args[0]]
