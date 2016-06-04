@@ -292,7 +292,9 @@ class Expression(u.Canonical):
     def __matmul__(self, other):
         """Matrix multiplication of two expressions.
         """
-        return self.__mul__(self, other)
+        if self.is_scalar() or other.is_scalar():
+            raise ValueError("Scalar operands are not allowed, use '*' instead")
+        return self.__mul__(other)
 
     @_cast_other
     def __truediv__(self, other):
@@ -332,7 +334,7 @@ class Expression(u.Canonical):
     def __rmatmul__(self, other):
         """Called for matrix @ Expression.
         """
-        return self.__matmul__(other, self)
+        return other.__matmul__(self)
 
     def __neg__(self):
         """The negation of the expression.
