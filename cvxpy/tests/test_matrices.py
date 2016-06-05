@@ -70,7 +70,7 @@ class TestMatrices(unittest.TestCase):
         A = numpy.arange(8).reshape((4,2))
         self.assertExpression(A*self.x, (4,1))
         if PY35:
-            self.assertExpression(A@self.x, (4,1))
+            self.assertExpression(self.x.__rmatmul__(A), (4,1))
         # PSD inequalities.
         A = numpy.ones((2,2))
         self.assertExpression(A << self.A, (2,2))
@@ -93,7 +93,7 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(A*self.x, (4,1))
         self.assertExpression( (A.T*A) * self.x, (2,1))
         if PY35:
-            self.assertExpression(A@self.x, (4,1))
+            self.assertExpression(self.x.__rmatmul__(A), (4,1))
         # PSD inequalities.
         A = numpy.matrix(numpy.ones((2,2)))
         self.assertExpression(A << self.A, (2,2))
@@ -168,7 +168,7 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(var - A, (4, 2))
         self.assertExpression(A - A - var, (4, 2))
         if PY35:
-            self.assertExpression(B@var, (4,2))
+            self.assertExpression(var.__rmatmul__(B), (4,2))
         # self.assertExpression(var <= A, (4, 2))
         # self.assertExpression(A <= var, (4, 2))
         # self.assertExpression(var == A, (4, 2))

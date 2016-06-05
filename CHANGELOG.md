@@ -21,11 +21,14 @@ Version 1.0 (targets)
 * TODO change reshape to take size tuple argument.
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 
-Version 0.4.1 (next release)
+Version 0.4.2 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
 * TODO improve error message when solving with missing parameter values.
+
+Version 0.4.1 
+-------------
 * Made error message for chaining constraints clearer.
 * Switched from toolz.memoize to fastcache.cru_cache to fix memory leak in Python 3.
 * Added support for matmul and rmatmul.

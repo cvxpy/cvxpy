@@ -369,54 +369,54 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(expr.args[0].value, [2,1])
 
     def test_matmul_expression(self):
-        """Test @ operator.
+        """Test matmul function, corresponding to .__matmul__( operator.
         """
         if PY35:
             # Vectors
             c = Constant([[2],[2]])
-            exp = c@self.x
+            exp = c.__matmul__(self.x)
             self.assertEqual(exp.curvature, s.AFFINE)
             self.assertEqual(exp.sign, s.UNKNOWN)
             self.assertEqual(exp.canonical_form[0].size, (1,1))
             self.assertEqual(exp.canonical_form[1], [])
-            # self.assertEqual(exp.name(), c.name() + " @ " + self.x.name())
+            # self.assertEqual(exp.name(), c.name() + " .__matmul__( " + self.x.name())
             self.assertEqual(exp.size, (1,1))
 
             with self.assertRaises(Exception) as cm:
-                2@self.x
+                self.x.__matmul__(2)
             self.assertEqual(str(cm.exception),
                             "Scalar operands are not allowed, use '*' instead")
             with self.assertRaises(Exception) as cm:
-                ([2,2,3]@self.x)
-            self.assertEqual(str(cm.exception), "Incompatible dimensions (3, 1) (2, 1)")
+                (self.x.__matmul__(np.array([2,2,3])))
+            self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
             # Matrices
             with self.assertRaises(Exception) as cm:
-                Constant([[2, 1],[2, 2]]) @ self.C
+                Constant([[2, 1],[2, 2]]) .__matmul__( self.C)
             self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
             # Affine times affine is okay
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                q = self.A @ self.B
+                q = self.A .__matmul__( self.B)
                 self.assertTrue(q.is_quadratic())
 
             # Nonaffine times nonconstant raises error
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 with self.assertRaises(Exception) as cm:
-                    ((self.A @ self.B) @ self.A)
+                    (self.A.__matmul__( self.B).__matmul__( self.A))
                 self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
 
             # Constant expressions
             T = Constant([[1,2,3],[3,5,5]])
-            exp = (T + T) @ self.B
+            exp = (T + T) .__matmul__( self.B)
             self.assertEqual(exp.curvature, s.AFFINE)
             self.assertEqual(exp.size, (3,2))
 
             # Expression that would break sign multiplication without promotion.
             c = Constant([[2], [2], [-2]])
-            exp = [[1], [2]] + c@self.C
+            exp = [[1], [2]] + c.__matmul__(self.C)
             self.assertEqual(exp.sign, s.UNKNOWN)
         else:
             pass
