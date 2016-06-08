@@ -246,6 +246,30 @@ class Problem(u.Canonical):
             else:
                 raise DCPError("Problem does not follow DCP rules.")
 
+        # Problem is linearly constrained least squares
+        if (self.is_dcp() and (solver is None or solver == s.LCLS) and
+            self.objective.is_quadratic() and
+            all([constr.OP_NAME == '==' for constr in self.constraints])):
+
+            solver_name = s.LCLS
+            solver = SOLVERS[solver_name]
+            
+            objective = self.objective
+            constraints = self.constraints
+
+            id_map, N = u.get_id_map(self.variables())
+
+            results_dict = solver.solve(objective, constraints, id_map, N)
+
+            class FakeSymData(object):
+                def __init__(self, id_map, constraints):
+                    self.var_offsets = id_map
+                    self.constr_map = {s.EQ: constraints}
+            
+            sym_data = FakeSymData(id_map, constraints)
+            self._update_problem_state(results_dict, sym_data, solver)
+            return self.value
+
         objective, constraints = self.canonicalize()
 
         # Solve in parallel

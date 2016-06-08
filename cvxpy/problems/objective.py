@@ -109,6 +109,11 @@ class Minimize(u.Canonical):
         """
         return self.args[0].is_convex()
 
+    def is_quadratic(self):
+        """Returns if the objective is a quadratic function.
+        """
+        return self.args[0].is_quadratic()
+
     @property
     def value(self):
         """The value of the objective expression.
@@ -149,6 +154,11 @@ class Maximize(Minimize):
         """The objective must be concave.
         """
         return self.args[0].is_concave()
+
+    def is_quadratic(self):
+        """Returns if the objective is a quadratic function.
+        """
+        return self.args[0].is_quadratic()
 
     @staticmethod
     def primal_to_result(result):
