@@ -248,8 +248,6 @@ class Problem(u.Canonical):
 
         objective, constraints = self.canonicalize()
 
-        print (constraints)
-
         import cvxpy.lin_ops as lo
         from cvxpy.constraints import SOC
         allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
@@ -259,7 +257,9 @@ class Problem(u.Canonical):
             self.objective.args[0].is_quadratic() and not self.objective.args[0].is_affine() and
             all([constr.OP_NAME == '==' for constr in self.constraints]) and
             all([isinstance(c, allowedConstrs) for c in constraints])):
+            
             print ("solving using LCLS")
+            
             solver_name = s.LCLS
             solver = SOLVERS[solver_name]
             
