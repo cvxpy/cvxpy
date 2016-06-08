@@ -83,8 +83,9 @@ class LCLS(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        from cvxopt import matrix, spmatrix
-        from cvxopt.lapack import posv, gesv
+        from cvxopt import matrix, spmatrix, sparse
+        from cvxopt.lapack import sysv
+        from cvxopt.umfpack import linsolve
         import scipy.sparse as sp
         import numpy as np
 
@@ -105,16 +106,21 @@ class LCLS(Solver):
         m = As.shape[0]
         AA = matrix( np.bmat([[P, As.transpose()], [As, np.zeros((m, m))]]) )
         BB = matrix( np.vstack((-q, -bs)) )
-        gesv(AA, BB)
+        AA = sparse(AA)
+        try:
+            linsolve(AA, BB)
+            x = np.asmatrix(np.array(BB[:N, :]))
+            nu = np.asmatrix(np.array(BB[N:, :]))
+            p_star = np.dot(x.transpose(), np.dot(P, x)) + 2*np.dot(q.transpose(), x) + r
+            p_star = p_star[0, 0]
+        except ArithmeticError:
+            x = None
+            nu = None
+            p_star = None
 
-        x = np.asmatrix(np.array(BB[:N, :]))
-        nu = np.asmatrix(np.array(BB[N:, :]))
-        p_star = np.dot(x.transpose(), np.dot(P, x)) + 2*np.dot(q.transpose(), x) + r
-        p_star = p_star[0, 0]
+        return self.format_results(x, nu, p_star)
 
-        return self.format_results(p_star, x, nu)
-
-    def format_results(self, p_star, x, nu):
+    def format_results(self, x, nu, p_star):
     #def format_results(self, results_dict, data, cached_data):
         """Converts the solver output into standard form.
 
@@ -133,8 +139,11 @@ class LCLS(Solver):
             The solver output in standard form.
         """
         new_results = {}
-        new_results[s.VALUE] = p_star
-        new_results[s.STATUS] = s.OPTIMAL # just for now
-        new_results[s.PRIMAL] = x
-        new_results[s.EQ_DUAL] = nu
+        if x is not None: # just for now
+            new_results[s.VALUE] = p_star
+            new_results[s.STATUS] = s.OPTIMAL
+            new_results[s.PRIMAL] = x
+            new_results[s.EQ_DUAL] = nu
+        else:
+            new_results[s.STATUS] = s.INFEASIBLE
         return new_results
