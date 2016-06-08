@@ -109,11 +109,6 @@ class Minimize(u.Canonical):
         """
         return self.args[0].is_convex()
 
-    def is_quadratic(self):
-        """Returns if the objective is a quadratic function.
-        """
-        return self.args[0].is_quadratic()
-
     @property
     def value(self):
         """The value of the objective expression.
