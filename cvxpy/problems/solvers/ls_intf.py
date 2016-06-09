@@ -78,10 +78,14 @@ class LS(Solver):
         #from cvxpy.constraints import SOC
         #allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
 
+        import cvxpy.expressions.variables as var
+        allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
+        
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
             and not prob.objective.args[0].is_affine()
             and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
-            and all([not v.domain for v in prob.variables()]) # no implicit domains
+            and all([isinstance(v, allowedVariables) for v in prob.variables()])
+            and all([not v.domain for v in prob.variables()]) # no implicit domains (TODO: domains to be implemented)
             #all([isinstance(c, allowedConstrs) for c in canon_constraints])
             )
 
