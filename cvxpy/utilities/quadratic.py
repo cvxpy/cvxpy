@@ -100,8 +100,7 @@ def quad_coeffs_affine_atom(expr, id_map, N):
             fake_args += [lu.create_var(arg.size, idx)]
             offsets[idx] = offset
             offset += arg.size[0]*arg.size[1]
-    fake_expr, _ = expr.graph_implementation(
-        fake_args, expr.size, expr.get_data())
+    fake_expr, _ = expr.graph_implementation(fake_args, expr.size, expr.get_data())
     # Get the matrix representation of the function.
     V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(fake_expr)], offsets)
     # return "AX+b"
@@ -140,15 +139,8 @@ def quad_coeffs(expr, id_map, N):
 def affine_coeffs(expr, id_map, N):
     s, _ = expr.canonical_form
     V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], id_map)
-    retA = sp.lil_matrix( (expr.size[0]*expr.size[1], N) )
-    retb = sp.lil_matrix( (expr.size[0]*expr.size[1], 1) )
-
-    for (v, i, j) in zip(V, I, J):
-        retA[int(i), j] = v
-    for i, v in enumerate(b):
-        retb[i, 0] += v
-
-    return (retA, retb)
+    A = sp.coo_matrix((V, (I, J)), shape=(expr.size[0]*expr.size[1], N))
+    return (A, b)
 
 def get_id_map(vars):
     id_map = {}

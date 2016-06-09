@@ -70,17 +70,20 @@ class LS(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
 
-    def suitable(self, prob, canon_constraints):
+    def suitable(self, prob):
         """Temporary method to determine whether the given Problem object is suitable for LS solver.
         """
-        import cvxpy.lin_ops as lo
-        from cvxpy.constraints import SOC
-        allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
+        #import cvxpy.lin_ops as lo
+        import cvxpy.constraints.eq_constraint as eqc
+        #from cvxpy.constraints import SOC
+        #allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
 
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
-            and not prob.objective.args[0].is_affine() and
-            all([constr.OP_NAME == '==' for constr in prob.constraints]) and
-            all([isinstance(c, allowedConstrs) for c in canon_constraints]))
+            and not prob.objective.args[0].is_affine()
+            and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
+            and all([not v.domain for v in prob.variables()]) # no implicit domains
+            #all([isinstance(c, allowedConstrs) for c in canon_constraints])
+            )
 
     def solve(self, objective, constraints, id_map, N):
         """Returns the result of the call to the solver.
@@ -112,10 +115,10 @@ class LS(Solver):
         if len(constraints) > 0:
             Cs = [u.affine_coeffs(c._expr, id_map, N) for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
-            bs = sp.vstack([C[1] for C in Cs])
+            bs = np.vstack([C[1] for C in Cs])
             AA = sp.bmat([[P, As.transpose()], [As, None]]).tocoo()
-            BB = matrix(sp.vstack([-q, -bs]).todense())
-        else:
+            BB = matrix(np.vstack([-q.todense(), -bs]))
+        else: # unconstrained. TODO: should this be handled in LS or ECOS?
             AA = P.tocoo()
             BB = matrix(-q.todense())
 
@@ -126,7 +129,7 @@ class LS(Solver):
             nu = np.array(BB[N:, :])
             s = np.dot(x.transpose(), P*x)
             t = q.transpose()*x
-            p_star = (s+t)[0, 0] + r
+            p_star = (s+2*t)[0, 0] + r
 
         except ArithmeticError:
             x = None
