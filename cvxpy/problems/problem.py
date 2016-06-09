@@ -248,20 +248,10 @@ class Problem(u.Canonical):
 
         objective, constraints = self.canonicalize()
 
-        import cvxpy.lin_ops as lo
-        from cvxpy.constraints import SOC
-        allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
-
         # Problem is linearly constrained least squares
-        if (self.is_dcp() and (solver is None or solver == s.LCLS) and
-            self.objective.args[0].is_quadratic() and not self.objective.args[0].is_affine() and
-            all([constr.OP_NAME == '==' for constr in self.constraints]) and
-            all([isinstance(c, allowedConstrs) for c in constraints])):
-            
-            print ("solving using LCLS")
-            
-            solver_name = s.LCLS
-            solver = SOLVERS[solver_name]
+        if solver is None and SOLVERS[s.LS].suitable(self, constraints):
+
+            solver = SOLVERS[s.LS]
             
             objective = self.objective
             constraints = self.constraints

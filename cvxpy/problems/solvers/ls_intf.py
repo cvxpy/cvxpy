@@ -22,11 +22,13 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 import cvxpy.utilities as u
 
-class LCLS(Solver):
+class LS(Solver):
     """An interface for the ECOS solver.
     """
 
     # Solver capabilities.
+    # Incapable of solving any general cone program,
+    # must be invoked through a special path.
     LP_CAPABLE = False
     SOCP_CAPABLE = False
     SDP_CAPABLE = False
@@ -36,12 +38,12 @@ class LCLS(Solver):
     def import_solver(self):
         """Imports the solver.
         """
-        import lcls
+        import ls
 
     def name(self):
         """The name of the solver.
         """
-        return s.LCLS
+        return s.LS
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -68,6 +70,18 @@ class LCLS(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
 
+    def suitable(self, prob, canon_constraints):
+        """Temporary method to determine whether the given Problem object is suitable for LS solver.
+        """
+        import cvxpy.lin_ops as lo
+        from cvxpy.constraints import SOC
+        allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
+
+        return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
+            and not prob.objective.args[0].is_affine() and
+            all([constr.OP_NAME == '==' for constr in prob.constraints]) and
+            all([isinstance(c, allowedConstrs) for c in canon_constraints]))
+
     def solve(self, objective, constraints, id_map, N):
         """Returns the result of the call to the solver.
 
@@ -90,29 +104,30 @@ class LCLS(Solver):
         import numpy as np
 
         M = u.quad_coeffs(objective.args[0], id_map, N)[0]
-        M = M.todense()
+
         P = M[:N, :N]
         q = (M[:N, N] + M[N, :N].transpose())/2
         r = M[N, N]
-        As = np.empty([0, N])
-        bs = np.empty([0, 1])
-        for constr in constraints:
-            (A, b) = u.affine_coeffs(constr._expr, id_map, N)
-            A = A.todense()
-            b = b.todense()
-            As = np.vstack((As, A))
-            bs = np.vstack((bs, b))
 
-        m = As.shape[0]
-        AA = matrix( np.bmat([[P, As.transpose()], [As, np.zeros((m, m))]]) )
-        BB = matrix( np.vstack((-q, -bs)) )
-        AA = sparse(AA)
+        if len(constraints) > 0:
+            Cs = [u.affine_coeffs(c._expr, id_map, N) for c in constraints]
+            As = sp.vstack([C[0] for C in Cs])
+            bs = sp.vstack([C[1] for C in Cs])
+            AA = sp.bmat([[P, As.transpose()], [As, None]]).tocoo()
+            BB = matrix(sp.vstack([-q, -bs]).todense())
+        else:
+            AA = P.tocoo()
+            BB = matrix(-q.todense())
+
+        AA = spmatrix(AA.data, AA.row, AA.col, AA.shape)
         try:
             linsolve(AA, BB)
-            x = np.asmatrix(np.array(BB[:N, :]))
-            nu = np.asmatrix(np.array(BB[N:, :]))
-            p_star = np.dot(x.transpose(), np.dot(P, x)) + 2*np.dot(q.transpose(), x) + r
-            p_star = p_star[0, 0]
+            x = np.array(BB[:N, :])
+            nu = np.array(BB[N:, :])
+            s = np.dot(x.transpose(), P*x)
+            t = q.transpose()*x
+            p_star = (s+t)[0, 0] + r
+
         except ArithmeticError:
             x = None
             nu = None
