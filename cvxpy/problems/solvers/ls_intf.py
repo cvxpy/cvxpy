@@ -84,7 +84,7 @@ class LS(Solver):
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
             and not prob.objective.args[0].is_affine()
             and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
-            and all([isinstance(v, allowedVariables) for v in prob.variables()])
+            and all([type(v) in allowedVariables for v in prob.variables()])
             and all([not v.domain for v in prob.variables()]) # no implicit domains (TODO: domains to be implemented)
             #all([isinstance(c, allowedConstrs) for c in canon_constraints])
             )
