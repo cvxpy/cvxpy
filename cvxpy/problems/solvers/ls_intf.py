@@ -109,11 +109,15 @@ class LS(Solver):
         from cvxopt.umfpack import linsolve
         import scipy.sparse as sp
         import numpy as np
+        #import time
 
-        M = u.quad_coeffs(objective.args[0], id_map, N)[0]
+        #t1 = time.time()
+
+        M = u.quad_coeffs(objective.args[0], id_map, N)[0].tocsr()
 
         P = M[:N, :N]
         q = (M[:N, N] + M[N, :N].transpose())/2
+        q = q.todense()
         r = M[N, N]
 
         if len(constraints) > 0:
@@ -121,12 +125,13 @@ class LS(Solver):
             As = sp.vstack([C[0] for C in Cs])
             bs = np.vstack([C[1] for C in Cs])
             AA = sp.bmat([[P, As.transpose()], [As, None]]).tocoo()
-            BB = matrix(np.vstack([-q.todense(), -bs]))
+            BB = matrix(np.vstack([-q, -bs]))
         else: # unconstrained. TODO: should this be handled in LS or ECOS?
             AA = P.tocoo()
-            BB = matrix(-q.todense())
+            BB = matrix(-q)
 
         AA = spmatrix(AA.data, AA.row, AA.col, AA.shape)
+        #t2 = time.time()
         try:
             linsolve(AA, BB)
             x = np.array(BB[:N, :])
@@ -139,6 +144,9 @@ class LS(Solver):
             x = None
             nu = None
             p_star = None
+
+        #t3 = time.time()
+        #print ("runtime break: %f %f" % (t2-t1, t3-t2))
 
         return self.format_results(x, nu, p_star)
 

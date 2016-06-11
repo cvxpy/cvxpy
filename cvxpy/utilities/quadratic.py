@@ -25,6 +25,8 @@ import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from numpy import linalg as LA
 
+# TODO: determine the best sparse format for each of the
+#       quadratic atoms
 def quad_coeffs_constant(expr, id_map, N):
     ret = [sp.lil_matrix((N+1, N+1)) for i in range(expr.size[0]*expr.size[1])]
     if expr.is_scalar():
@@ -55,7 +57,7 @@ def quad_coeffs_affine_prod(expr, id_map, N):
     n = expr.args[1].size[1]
     for j in range(n):
         for i in range(m):
-            M = sp.lil_matrix((N+1, N+1))
+            M = sp.csc_matrix((N+1, N+1))
             for k in range(p):
                 Xind = k*m + i
                 Yind = j*p + k
@@ -63,16 +65,24 @@ def quad_coeffs_affine_prod(expr, id_map, N):
             ret.append(M)
     return ret
 
+# There might be a faster way
 def quad_coeffs_quad_over_lin(expr, id_map, N):
-    Xs = quad_coeffs(expr.args[0], id_map, N)
+    (A, b) = affine_coeffs(expr.args[0], id_map, N)
+    A = A.tocsr()
+
+    m = A.shape[0]
+    P = sum([A[i, :].T*A[i, :] for i in range(m)])
+    q = sum([2*b[i]*A[i, :] for i in range(m)])
+    r = np.dot(b.T, b)
+
     y = expr.args[1].value
-    return [sum([X*X.T for X in Xs]) / y]
+    return [sp.bmat([[P, None], [q, r]]) / y]
 
 def quad_coeffs_power(expr, id_map, N):
-    Xs = quad_coeffs(expr.args[0], id_map, N)
     if expr.p == 1:
-        return Xs
+        return quad_coeffs(expr.args[0], id_map, N)
     elif expr.p == 2:
+        Xs = quad_coeffs(expr.args[0], id_map, N)
         return [X*X.T for X in Xs]
     else:
         raise Exception("Error while processing power(x, %f)." % p)
