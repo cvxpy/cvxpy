@@ -21,6 +21,16 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 import cvxpy.utilities as u
+import numpy as np
+import scipy.sparse as sp
+from cvxopt import matrix, spmatrix, sparse
+from cvxopt.lapack import sysv
+from cvxopt.umfpack import linsolve
+
+# converts scipy sparse matrix to cvxopt sparse matrix
+def scipy_to_cvxopt(A):
+    A = A.tocoo()
+    return spmatrix(A.data, A.row, A.col, size=A.shape)
 
 class LS(Solver):
     """An interface for the ECOS solver.
@@ -89,6 +99,7 @@ class LS(Solver):
             #all([isinstance(c, allowedConstrs) for c in canon_constraints])
             )
 
+
     def solve(self, objective, constraints, id_map, N):
         """Returns the result of the call to the solver.
 
@@ -104,34 +115,41 @@ class LS(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        from cvxopt import matrix, spmatrix, sparse
-        from cvxopt.lapack import sysv
-        from cvxopt.umfpack import linsolve
-        import scipy.sparse as sp
-        import numpy as np
         #import time
 
-        #t1 = time.time()
+        #ts = [time.time()]
 
         M = u.quad_coeffs(objective.args[0], id_map, N)[0].tocsr()
 
+        #ts.append(time.time())
+
         P = M[:N, :N]
+        #P = scipy_to_cvxopt(P)
         q = (M[:N, N] + M[N, :N].transpose())/2
         q = q.todense()
         r = M[N, N]
 
+        #ts.append(time.time())
+
         if len(constraints) > 0:
             Cs = [u.affine_coeffs(c._expr, id_map, N) for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
+            #As = self.scipy_to_cvxopt(As)
             bs = np.vstack([C[1] for C in Cs])
+            m = bs.shape[0]
+            #AA = sparse([ [P, As], [As.T, spmatrix([], [], [], (m, m))] ])
             AA = sp.bmat([[P, As.transpose()], [As, None]]).tocoo()
             BB = matrix(np.vstack([-q, -bs]))
         else: # unconstrained. TODO: should this be handled in LS or ECOS?
-            AA = P.tocoo()
+            AA = P
             BB = matrix(-q)
 
-        AA = spmatrix(AA.data, AA.row, AA.col, AA.shape)
-        #t2 = time.time()
+        #ts.append(time.time())
+
+        AA = scipy_to_cvxopt(AA)
+        
+        #ts.append(time.time())
+
         try:
             linsolve(AA, BB)
             x = np.array(BB[:N, :])
@@ -145,8 +163,10 @@ class LS(Solver):
             nu = None
             p_star = None
 
-        #t3 = time.time()
-        #print ("runtime break: %f %f" % (t2-t1, t3-t2))
+        #ts.append(time.time())
+
+        #print ("runtime break: ")
+        #print ([ts[i+1]-ts[i] for i in range(len(ts)-1)])
 
         return self.format_results(x, nu, p_star)
 

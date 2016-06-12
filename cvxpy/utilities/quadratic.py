@@ -68,13 +68,9 @@ def quad_coeffs_affine_prod(expr, id_map, N):
 # There might be a faster way
 def quad_coeffs_quad_over_lin(expr, id_map, N):
     (A, b) = affine_coeffs(expr.args[0], id_map, N)
-    A = A.tocsr()
-
-    m = A.shape[0]
-    P = sum([A[i, :].T*A[i, :] for i in range(m)])
-    q = sum([2*b[i]*A[i, :] for i in range(m)])
+    P = A.T*A
+    q = 2*b.T*A
     r = np.dot(b.T, b)
-
     y = expr.args[1].value
     return [sp.bmat([[P, None], [q, r]]) / y]
 
@@ -149,7 +145,7 @@ def quad_coeffs(expr, id_map, N):
 def affine_coeffs(expr, id_map, N):
     s, _ = expr.canonical_form
     V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], id_map)
-    A = sp.coo_matrix((V, (I, J)), shape=(expr.size[0]*expr.size[1], N))
+    A = sp.csr_matrix((V, (I, J)), shape=(expr.size[0]*expr.size[1], N))
     return (A, b)
 
 def get_id_map(vars):
