@@ -108,8 +108,20 @@ def scalar_value(constant):
         raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 
 # Return the collective sign of the matrix entries.
-def sign(constant):
+def sign(constant, tol=1e-5):
     """Return (is positive, is negative).
+
+    Parameters
+    ----------
+    constant : numeric type
+        The numeric value to evaluate the sign of.
+    tol : float, optional
+        The largest (smallest) value considered positive (negative).
+
+    Returns
+    -------
+    tuple
+        The sign of the constant.
     """
     if isinstance(constant, numbers.Number):
         max_val = constant
@@ -124,7 +136,7 @@ def sign(constant):
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         max_val = mat.max()
         min_val = mat.min()
-    return (min_val >= 0, max_val <= 0)
+    return (min_val >= -tol, max_val <= tol)
 
 # Get the value at the given index.
 def index(constant, key):

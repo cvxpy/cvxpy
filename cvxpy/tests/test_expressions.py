@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variables import Variable, Semidef
+from cvxpy.expressions.variables import Variable, Semidef, NonNegative
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
@@ -110,6 +110,16 @@ class TestExpressions(BaseTest):
         A = Variable(3, 2)
         A.value = np.ones((3, 2))
         self.assertItemsAlmostEqual(A.value, np.ones((3, 2)))
+
+        # Test assigning negative val to nonnegative variable.
+        x = NonNegative()
+        with self.assertRaises(Exception) as cm:
+            x.value = -2
+        self.assertEqual(str(cm.exception), "Invalid sign for NonNegative value.")
+
+        # Small negative values are rounded to 0.
+        x.value = -1e-8
+        self.assertEqual(x.value, 0)
 
     # Test tranposing variables.
     def test_transpose_variable(self):

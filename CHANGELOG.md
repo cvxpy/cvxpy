@@ -26,6 +26,10 @@ Version 0.4.2 (next release)
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
 * TODO improve error message when solving with missing parameter values.
+* TODO add domains for special variables like Semidef and NonNegative (var with domain).
+Canonicalize then add in domains separately.
+* TODO force variable value assignments to satisfy variable properties.
+* Fixed bug with gradient of expressions where a variable only appears in a constant term.
 
 Version 0.4.1 
 -------------

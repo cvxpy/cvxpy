@@ -22,7 +22,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import scipy.sparse as sp
 
 def constant_grad(expr):
-    """Returns the gradient of a constant expression.
+    """Returns the gradient of constant terms in an expression.
 
     Matrix expressions are vectorized, so the gradient is a matrix.
 
