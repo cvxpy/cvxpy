@@ -23,14 +23,7 @@ from cvxpy.problems.solvers.solver import Solver
 import cvxpy.utilities as u
 import numpy as np
 import scipy.sparse as sp
-from cvxopt import matrix, spmatrix, sparse
-from cvxopt.lapack import sysv
-from cvxopt.umfpack import linsolve
-
-# converts scipy sparse matrix to cvxopt sparse matrix
-def scipy_to_cvxopt(A):
-    A = A.tocoo()
-    return spmatrix(A.data, A.row, A.col, size=A.shape)
+import scipy.sparse.linalg as SLA
 
 class LS(Solver):
     """An interface for the ECOS solver.
@@ -124,7 +117,6 @@ class LS(Solver):
         #ts.append(time.time())
 
         P = M[:N, :N]
-        #P = scipy_to_cvxopt(P)
         q = (M[:N, N] + M[N, :N].transpose())/2
         q = q.todense()
         r = M[N, N]
@@ -134,28 +126,22 @@ class LS(Solver):
         if len(constraints) > 0:
             Cs = [u.affine_coeffs(c._expr, id_map, N) for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
-            #As = self.scipy_to_cvxopt(As)
             bs = np.vstack([C[1] for C in Cs])
             m = bs.shape[0]
-            #AA = sparse([ [P, As], [As.T, spmatrix([], [], [], (m, m))] ])
-            AA = sp.bmat([[P, As.transpose()], [As, None]]).tocoo()
-            BB = matrix(np.vstack([-q, -bs]))
-        else: # unconstrained. TODO: should this be handled in LS or ECOS?
+            AA = sp.bmat([[P, As.transpose()], [As, None]])
+            BB = np.vstack([-q, -bs])
+        else: # avoiding calling vstack with empty list
             AA = P
-            BB = matrix(-q)
+            BB = -q
 
-        #ts.append(time.time())
-
-        AA = scipy_to_cvxopt(AA)
-        
         #ts.append(time.time())
 
         try:
-            linsolve(AA, BB)
-            x = np.array(BB[:N, :])
-            nu = np.array(BB[N:, :])
+            BB = SLA.spsolve(AA.tocsr(), BB)
+            x = np.array(BB[:N])
+            nu = np.array(BB[N:])
             s = np.dot(x.transpose(), P*x)
-            t = q.transpose()*x
+            t = np.dot(q.transpose(), x)
             p_star = (s+2*t)[0, 0] + r
 
         except ArithmeticError:
