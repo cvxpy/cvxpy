@@ -247,7 +247,7 @@ class Problem(u.Canonical):
                 raise DCPError("Problem does not follow DCP rules.")
 
         # Problem is linearly constrained least squares
-        if solver is None and SOLVERS[s.LS].suitable(self):
+        if solver in [None, s.LS] and SOLVERS[s.LS].suitable(self):
 
             solver = SOLVERS[s.LS]
             
@@ -255,7 +255,9 @@ class Problem(u.Canonical):
             constraints = self.constraints
             
             sym_data = solver.get_sym_data(objective, constraints)
-            results_dict = solver.solve(objective, constraints, sym_data)
+            results_dict = solver.solve(objective, constraints,
+                                        self._cached_data, warm_start, verbose,
+                                        kwargs)
             self._update_problem_state(results_dict, sym_data, solver)
             return self.value
 

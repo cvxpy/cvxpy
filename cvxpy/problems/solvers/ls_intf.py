@@ -81,6 +81,7 @@ class LS(Solver):
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
         
+        # TODO: handle affine objective
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
             and not prob.objective.args[0].is_affine()
             and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
@@ -110,7 +111,10 @@ class LS(Solver):
                 return (var_offsets, var_sizes, vert_offset)
         return FakeSymData(objective, constraints)
 
-    def solve(self, objective, constraints, sym_data):
+    #def solve(self, objective, constraints, cached_data,
+    #          warm_start, verbose, solver_opts):
+    def solve(self, objective, constraints, cached_data,
+            warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -126,6 +130,8 @@ class LS(Solver):
             (status, optimal value, primal, equality dual, inequality dual)
         """
 
+        sym_data = self.get_sym_data(objective, constraints)
+
         id_map = sym_data.var_offsets
         N = sym_data.x_length
 
@@ -138,8 +144,8 @@ class LS(Solver):
         #ts.append(time.time())
 
         P = M[:N, :N]
-        q = (M[:N, N] + M[N, :N].transpose())/2
-        q = q.todense()
+        q = (M[:N, N] + M[N, :N].T)/2
+        q = np.asarray(q.todense()).flatten()
         r = M[N, N]
 
         #ts.append(time.time())
@@ -147,23 +153,20 @@ class LS(Solver):
         if len(constraints) > 0:
             Cs = [u.affine_coeffs(c._expr, id_map, N) for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
-            bs = np.vstack([C[1] for C in Cs])
-            m = bs.shape[0]
-            AA = sp.bmat([[P, As.transpose()], [As, None]])
-            BB = np.vstack([-q, -bs])
+            bs = np.array([C[1] for C in Cs]).flatten()
+            lhs = sp.bmat([[P, As.transpose()], [As, None]])
+            rhs = np.concatenate([-q, -bs])
         else: # avoiding calling vstack with empty list
-            AA = P
-            BB = -q
+            lhs = P
+            rhs = -q
 
         #ts.append(time.time())
 
         try:
-            BB = SLA.spsolve(AA.tocsr(), BB)
-            x = np.array(BB[:N])
-            nu = np.array(BB[N:])
-            s = np.dot(x.transpose(), P*x)
-            t = np.dot(q.transpose(), x)
-            p_star = (s+2*t)[0, 0] + r
+            sol = SLA.spsolve(lhs.tocsr(), rhs)
+            x = np.array(sol[:N])
+            nu = np.array(sol[N:])
+            p_star = np.dot(x.transpose(), P*x + 2*q) + r
 
         except ArithmeticError:
             x = None
@@ -175,10 +178,11 @@ class LS(Solver):
         #print ("runtime break: ")
         #print ([ts[i+1]-ts[i] for i in range(len(ts)-1)])
 
-        return self.format_results(x, nu, p_star)
+        result_dict = {s.PRIMAL: x, s.EQ_DUAL: nu, s.VALUE: p_star}
 
-    def format_results(self, x, nu, p_star):
-    #def format_results(self, results_dict, data, cached_data):
+        return self.format_results(result_dict, None, cached_data)
+
+    def format_results(self, result_dict, data, cached_data):
         """Converts the solver output into standard form.
 
         Parameters
@@ -195,12 +199,10 @@ class LS(Solver):
         dict
             The solver output in standard form.
         """
-        new_results = {}
-        if x is not None: # just for now
-            new_results[s.VALUE] = p_star
-            new_results[s.STATUS] = s.OPTIMAL
-            new_results[s.PRIMAL] = x
-            new_results[s.EQ_DUAL] = nu
-        else:
+
+        new_results = result_dict
+        if result_dict[s.PRIMAL] is None:
             new_results[s.STATUS] = s.INFEASIBLE
+        else:
+            new_results[s.STATUS] = s.OPTIMAL
         return new_results
