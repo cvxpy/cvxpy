@@ -76,10 +76,7 @@ class LS(Solver):
     def suitable(self, prob):
         """Temporary method to determine whether the given Problem object is suitable for LS solver.
         """
-        #import cvxpy.lin_ops as lo
         import cvxpy.constraints.eq_constraint as eqc
-        #from cvxpy.constraints import SOC
-        #allowedConstrs = (lo.LinEqConstr, lo.LinLeqConstr, SOC)
 
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
@@ -88,12 +85,32 @@ class LS(Solver):
             and not prob.objective.args[0].is_affine()
             and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
             and all([type(v) in allowedVariables for v in prob.variables()])
-            and all([not v.domain for v in prob.variables()]) # no implicit domains (TODO: domains to be implemented)
-            #all([isinstance(c, allowedConstrs) for c in canon_constraints])
+            and all([not v.domain for v in prob.variables()]) # no implicit variable domains (TODO: domains are not implemented yet)
             )
 
+    def get_sym_data(self, objective, constraints, cached_data=None):
+        class FakeSymData(object):
+            def __init__(self, objective, constraints):
+                self.constr_map = {s.EQ: constraints}
+                vars_ = objective.variables()
+                for c in constraints:
+                    vars_ += c.variables()
+                vars_ = list(set(vars_))
+                self.var_offsets, self.var_sizes, self.x_length = self.get_var_offsets(vars_)
+            
+            def get_var_offsets(self, variables):
+                var_offsets = {}
+                var_sizes = {}
+                vert_offset = 0
+                for x in variables:
+                    var_sizes[x.id] = x.size
+                    var_offsets[x.id] = vert_offset
+                    vert_offset += x.size[0]*x.size[1]
 
-    def solve(self, objective, constraints, id_map, N):
+                return (var_offsets, var_sizes, vert_offset)
+        return FakeSymData(objective, constraints)
+
+    def solve(self, objective, constraints, sym_data):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -108,6 +125,10 @@ class LS(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+
+        id_map = sym_data.var_offsets
+        N = sym_data.x_length
+
         #import time
 
         #ts = [time.time()]

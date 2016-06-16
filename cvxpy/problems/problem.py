@@ -253,17 +253,9 @@ class Problem(u.Canonical):
             
             objective = self.objective
             constraints = self.constraints
-
-            id_map, N = u.get_id_map(self.variables())
-
-            results_dict = solver.solve(objective, constraints, id_map, N)
-
-            class FakeSymData(object):
-                def __init__(self, id_map, constraints):
-                    self.var_offsets = id_map
-                    self.constr_map = {s.EQ: constraints}
             
-            sym_data = FakeSymData(id_map, constraints)
+            sym_data = solver.get_sym_data(objective, constraints)
+            results_dict = solver.solve(objective, constraints, sym_data)
             self._update_problem_state(results_dict, sym_data, solver)
             return self.value
 

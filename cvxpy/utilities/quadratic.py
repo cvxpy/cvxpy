@@ -78,6 +78,7 @@ def quad_coeffs_power(expr, id_map, N):
     if expr.p == 1:
         return quad_coeffs(expr.args[0], id_map, N)
     elif expr.p == 2:
+        # (a^T x + b)^2 = x^T (a a^T) x + (2ba)^T x + b^2
         Xs = quad_coeffs(expr.args[0], id_map, N)
         return [X*X.T for X in Xs]
     else:
