@@ -111,13 +111,12 @@ class QuadCoeffExtractor(object):
                 Ps.append(M.tocsr())
                 ind += 1
 
-        Q = Q.tocsr()
-        return (Ps, Q, R)
+        return (Ps, Q.tocsr(), R)
 
     def _coeffs_quad_over_lin(self, expr):
         (_, A, b) = self._coeffs_affine(expr.args[0])
         P = A.T*A
-        q = 2*b.T*A
+        q = sp.csr_matrix(2*b.T*A)
         r = np.dot(b.T, b)
         y = expr.args[1].value
         return ([P/y], q/y, r/y)
@@ -174,10 +173,13 @@ class QuadCoeffExtractor(object):
         fake_expr, _ = expr.graph_implementation(fake_args, expr.size, expr.get_data())
         # Get the matrix representation of the function.
         V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(fake_expr)], offsets)
+        R = R.flatten()
         # return "AX+b"
         for (v, i, j) in zip(V, I.astype(int), J.astype(int)):
-            Ps[i] += v*C[j][0]
+            Ps[i] += v*C[j][0][0]
             Q[i, :] += v*C[j][1]
             R[i] += v*C[j][2]
+
+        Ps = [P.tocsr() for P in Ps]
         
-        return (Ps, Q, R)
+        return (Ps, Q.tocsr(), R)

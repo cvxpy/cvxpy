@@ -25,14 +25,14 @@ from cvxpy.utilities import QuadCoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as SLA
+import warnings
 
 class LS(Solver):
-    """An interface for the ECOS solver.
+    """Linearly constrained least squares solver via SciPy.
     """
 
-    # Solver capabilities.
-    # Incapable of solving any general cone program,
-    # must be invoked through a special path.
+    # LS is incapable of solving any general cone program,
+    # and must be invoked through a special path.
     LP_CAPABLE = False
     SOCP_CAPABLE = False
     SDP_CAPABLE = False
@@ -42,7 +42,7 @@ class LS(Solver):
     def import_solver(self):
         """Imports the solver.
         """
-        import scipy
+        import numpy, scipy
 
     def name(self):
         """The name of the solver.
@@ -115,12 +115,10 @@ class LS(Solver):
                     var_sizes[x.id] = x.size
                     var_offsets[x.id] = vert_offset
                     vert_offset += x.size[0]*x.size[1]
-
                 return (var_offsets, var_sizes, vert_offset)
+        
         return FakeSymData(objective, constraints)
 
-    #def solve(self, objective, constraints, cached_data,
-    #          warm_start, verbose, solver_opts):
     def solve(self, objective, constraints, cached_data,
             warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
@@ -145,48 +143,39 @@ class LS(Solver):
         N = sym_data.x_length
 
         extractor = QuadCoeffExtractor(id_map, N)
-        #import time
-
-        #ts = [time.time()]
-
+        
+        # Extract the coefficients
         (Ps, Q, R) = extractor.get_coeffs(objective.args[0])
 
-        #ts.append(time.time())
-
         P = Ps[0]
-        q = Q.flatten()
-        #q = np.asarray(Q.todense()).flatten()
+        q = np.asarray(Q.todense()).flatten()
         r = R[0]
 
-        #ts.append(time.time())
-
+        # Forming the KKT system
         if len(constraints) > 0:
             Cs = [extractor.get_coeffs(c._expr)[1:] for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
             bs = np.array([C[1] for C in Cs]).flatten()
-            lhs = sp.bmat([[2*P, As.transpose()], [As, None]])
+            lhs = sp.bmat([[2*P, As.transpose()], [As, None]], format='csr')
             rhs = np.concatenate([-q, -bs])
         else: # avoiding calling vstack with empty list
             lhs = 2*P
             rhs = -q
 
-        #ts.append(time.time())
-
+        warnings.filterwarnings('error')
+        
+        # Actually solving the KKT system
         try:
             sol = SLA.spsolve(lhs.tocsr(), rhs)
             x = np.array(sol[:N])
             nu = np.array(sol[N:])
             p_star = np.dot(x.transpose(), P*x + q) + r
-
-        except ArithmeticError:
+        except SLA.MatrixRankWarning:
             x = None
             nu = None
             p_star = None
-
-        #ts.append(time.time())
-
-        #print ("runtime break: ")
-        #print ([ts[i+1]-ts[i] for i in range(len(ts)-1)])
+        
+        warnings.resetwarnings()
 
         result_dict = {s.PRIMAL: x, s.EQ_DUAL: nu, s.VALUE: p_star}
 
