@@ -25,10 +25,45 @@ import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from numpy import linalg as LA
 
-class QuadCoeffExtractor:
+class QuadCoeffExtractor(object):
+
     def __init__(self, id_map, N):
         self.id_map = id_map
         self.N = N
+
+    # Given a quadratic expression expr of size m*n, extracts
+    # the coefficients. Returns (Ps, Q, R) such that the (i, j)
+    # entry of expr is given by
+    #   x.T*Ps[k]*x + Q[k, :]*x + R[k],
+    # where k = i + j*m. x is the vectorized variables indexed
+    # by id_map.
+    #
+    # Ps: array of SciPy sparse matrices
+    # Q: SciPy sparse matrix
+    # R: NumPy array
+    def get_coeffs(self, expr):
+        if expr.is_constant():
+            return self._quad_coeffs_constant(expr)
+        elif expr.is_affine():
+            return self._quad_coeffs_affine(expr)
+        elif isinstance(expr, cvx.affine_prod):
+            return self._quad_coeffs_affine_prod(expr)
+        elif isinstance(expr, cvx.quad_over_lin):
+            return self._quad_coeffs_quad_over_lin(expr)
+        elif isinstance(expr, cvx.power):
+            return self._quad_coeffs_power(expr)
+        elif isinstance(expr, cvx.matrix_frac):
+            return self._quad_coeffs_matrix_frac(expr)
+        elif isinstance(expr, cvx.affine.affine_atom.AffAtom):
+            return self._quad_coeffs_affine_atom(expr)
+        else:
+            raise Exception("Unknown expression type %s." % type(expr))
+
+    def get_affine_coeffs(self, expr):
+        s, _ = expr.canonical_form
+        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
+        A = sp.csr_matrix((V, (I, J)), shape=(expr.size[0]*expr.size[1], self.N))
+        return (A, b)
 
     # TODO: determine the best sparse format for each of the
     #       quadratic atoms
@@ -122,27 +157,3 @@ class QuadCoeffExtractor:
         for i, v in enumerate(b):
             ret[i][self.N, self.N] += v
         return ret
-
-    def get_coeffs(self, expr):
-        if expr.is_constant():
-            return self._quad_coeffs_constant(expr)
-        elif expr.is_affine():
-            return self._quad_coeffs_affine(expr)
-        elif isinstance(expr, cvx.affine_prod):
-            return self._quad_coeffs_affine_prod(expr)
-        elif isinstance(expr, cvx.quad_over_lin):
-            return self._quad_coeffs_quad_over_lin(expr)
-        elif isinstance(expr, cvx.power):
-            return self._quad_coeffs_power(expr)
-        elif isinstance(expr, cvx.matrix_frac):
-            return self._quad_coeffs_matrix_frac(expr)
-        elif isinstance(expr, cvx.affine.affine_atom.AffAtom):
-            return self._quad_coeffs_affine_atom(expr)
-        else:
-            raise Exception("Unknown expression type %s." % type(expr))
-
-    def get_affine_coeffs(self, expr):
-        s, _ = expr.canonical_form
-        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
-        A = sp.csr_matrix((V, (I, J)), shape=(expr.size[0]*expr.size[1], self.N))
-        return (A, b)

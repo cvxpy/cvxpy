@@ -507,7 +507,7 @@ class TestSolvers(BaseTest):
                     prob.solve(solver=solver)
                     self.assertItemsAlmostEqual(self.x.value, [0, 0])
                 # LS is the only solver that can't handle this problem
-                except Exception, cm:
+                except (Exception) as cm:
                     self.assertEqual(str(cm), "The solver LS cannot solve the problem.")
             else:
                 with self.assertRaises(Exception) as cm:
