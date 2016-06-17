@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
-import cvxpy.utilities as u
+from cvxpy.utilities import QuadCoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as SLA
@@ -97,6 +97,7 @@ class LS(Solver):
                 for c in constraints:
                     vars_ += c.variables()
                 vars_ = list(set(vars_))
+                self.vars_ = vars_
                 self.var_offsets, self.var_sizes, self.x_length = self.get_var_offsets(vars_)
             
             def get_var_offsets(self, variables):
@@ -132,14 +133,16 @@ class LS(Solver):
 
         sym_data = self.get_sym_data(objective, constraints)
 
+        vars_ = sym_data.vars_
         id_map = sym_data.var_offsets
         N = sym_data.x_length
 
+        extractor = QuadCoeffExtractor(id_map, N)
         #import time
 
         #ts = [time.time()]
 
-        M = u.quad_coeffs(objective.args[0], id_map, N)[0].tocsr()
+        M = extractor.get_coeffs(objective.args[0])[0].tocsr()
 
         #ts.append(time.time())
 
@@ -151,7 +154,7 @@ class LS(Solver):
         #ts.append(time.time())
 
         if len(constraints) > 0:
-            Cs = [u.affine_coeffs(c._expr, id_map, N) for c in constraints]
+            Cs = [extractor.get_affine_coeffs(c._expr) for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
             bs = np.array([C[1] for C in Cs]).flatten()
             lhs = sp.bmat([[P, As.transpose()], [As, None]])
