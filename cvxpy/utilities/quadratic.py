@@ -90,7 +90,7 @@ class QuadCoeffExtractor:
             raise Exception("Error while processing power(x, %f)." % p)
 
     def _quad_coeffs_matrix_frac(self, expr):
-        Xs = self.quad_coeffs(expr.args[0])
+        Xs = self.get_coeffs(expr.args[0])
         Pinv = LA.inv(expr.args[1].value)
         m, n = expr.args[0].size
         M = sp.lil_matrix((self.N+1, self.N+1))
@@ -108,7 +108,7 @@ class QuadCoeffExtractor:
             if arg.is_constant():
                 fake_args += [lu.create_const(arg.value, arg.size)]
             else:
-                Xs += self.quad_coeffs(arg)
+                Xs += self.get_coeffs(arg)
                 fake_args += [lu.create_var(arg.size, idx)]
                 offsets[idx] = offset
                 offset += arg.size[0]*arg.size[1]
