@@ -43,99 +43,123 @@ class QuadCoeffExtractor(object):
     # R: NumPy array
     def get_coeffs(self, expr):
         if expr.is_constant():
-            return self._quad_coeffs_constant(expr)
+            return self._coeffs_constant(expr)
         elif expr.is_affine():
-            return self._quad_coeffs_affine(expr)
+            return self._coeffs_affine(expr)
         elif isinstance(expr, cvx.affine_prod):
-            return self._quad_coeffs_affine_prod(expr)
+            return self._coeffs_affine_prod(expr)
         elif isinstance(expr, cvx.quad_over_lin):
-            return self._quad_coeffs_quad_over_lin(expr)
+            return self._coeffs_quad_over_lin(expr)
         elif isinstance(expr, cvx.power):
-            return self._quad_coeffs_power(expr)
+            return self._coeffs_power(expr)
         elif isinstance(expr, cvx.matrix_frac):
-            return self._quad_coeffs_matrix_frac(expr)
+            return self._coeffs_matrix_frac(expr)
         elif isinstance(expr, cvx.affine.affine_atom.AffAtom):
-            return self._quad_coeffs_affine_atom(expr)
+            return self._coeffs_affine_atom(expr)
         else:
             raise Exception("Unknown expression type %s." % type(expr))
 
-    def get_affine_coeffs(self, expr):
-        s, _ = expr.canonical_form
-        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
-        A = sp.csr_matrix((V, (I, J)), shape=(expr.size[0]*expr.size[1], self.N))
-        return (A, b)
-
     # TODO: determine the best sparse format for each of the
     #       quadratic atoms
-    def _quad_coeffs_constant(self, expr):
-        ret = [sp.lil_matrix((self.N+1, self.N+1)) for i in range(expr.size[0]*expr.size[1])]
+    def _coeffs_constant(self, expr):
         if expr.is_scalar():
-            ret[0][self.N, self.N] = expr.value
+            sz = 1
+            R = np.array([expr.value])
         else:
-            row = 0
-            for j in range(expr.size[1]):
-                for i in range(expr.size[0]):
-                    ret[row][self.N, self.N] = expr.value[i, j]
-                    row += 1
-        return ret
+            sz = expr.size[0]*expr.size[1]
+            R = expr.value.reshape(sz, order='F')
+        Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
+        Q = sp.csr_matrix((sz, self.N))
+        return (Ps, Q, R)
 
-    def _quad_coeffs_affine(self, expr):
+    def _coeffs_affine(self, expr):
+        sz = expr.size[0]*expr.size[1]
         s, _ = expr.canonical_form
-        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
-        ret = [sp.lil_matrix((self.N+1, self.N+1)) for i in range(expr.size[0]*expr.size[1])]
-        for (v, i, j) in zip(V, I, J):
-            ret[int(i)][j, self.N] = v
-        for i, v in enumerate(b):
-            ret[i][self.N, self.N] += v
-        return ret
+        V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
+        Q = sp.csr_matrix((V, (I, J)), shape=(sz, self.N))
+        Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
+        return (Ps, Q, R)
 
-    def _quad_coeffs_affine_prod(self, expr):
-        Xs = self.get_coeffs(expr.args[0])
-        Ys = self.get_coeffs(expr.args[1])
-        ret = []
+    def _coeffs_affine_prod(self, expr):
+        (_, XQ, XR) = self._coeffs_affine(expr.args[0])
+        (_, YQ, YR) = self._coeffs_affine(expr.args[1])
+
         m, p = expr.args[0].size
         n = expr.args[1].size[1]
+        
+        Ps = []
+        Q = sp.lil_matrix((m*n, self.N))
+        R = np.zeros((m*n))
+
+        ind = 0
         for j in range(n):
             for i in range(m):
-                M = sp.csc_matrix((self.N+1, self.N+1))
+                M = sp.csc_matrix((self.N, self.N)) # TODO: find best format
                 for k in range(p):
                     Xind = k*m + i
                     Yind = j*p + k
-                    M += Xs[Xind] * Ys[Yind].T
-                ret.append(M)
-        return ret
 
-    # There might be a faster way
-    def _quad_coeffs_quad_over_lin(self, expr):
-        (A, b) = self.get_affine_coeffs(expr.args[0])
+                    a = XQ[Xind, :]
+                    b = XR[Xind]
+                    c = YQ[Yind, :]
+                    d = YR[Yind]
+
+                    M += a*c.T
+                    Q[ind, :] += b*c + d*a
+                    R[ind] += b*d
+
+                Ps.append(M.tocsr())
+                ind += 1
+
+        Q = Q.tocsr()
+        return (Ps, Q, R)
+
+    def _coeffs_quad_over_lin(self, expr):
+        (_, A, b) = self._coeffs_affine(expr.args[0])
         P = A.T*A
         q = 2*b.T*A
         r = np.dot(b.T, b)
         y = expr.args[1].value
-        return [sp.bmat([[P, None], [q, r]]) / y]
+        return ([P/y], q/y, r/y)
 
-    def _quad_coeffs_power(self, expr):
+    def _coeffs_power(self, expr):
         if expr.p == 1:
             return self.get_coeffs(expr.args[0])
         elif expr.p == 2:
-            # (a^T x + b)^2 = x^T (a a^T) x + (2ba)^T x + b^2
-            Xs = self.get_coeffs(expr.args[0])
-            return [X*X.T for X in Xs]
+            (_, A, b) = self._coeffs_affine(expr.args[0])
+            Ps = [(A[i, :]*A[i, :].T).tocsr() for i in range(A.shape[0])]
+            Q = np.multiply(A, b[:, None]).tocsr()
+            R = np.power(b, 2)
+            return (Ps, Q, R)
         else:
             raise Exception("Error while processing power(x, %f)." % p)
 
-    def _quad_coeffs_matrix_frac(self, expr):
-        Xs = self.get_coeffs(expr.args[0])
-        Pinv = LA.inv(expr.args[1].value)
+    def _coeffs_matrix_frac(self, expr):
+        (_, A, b) = self._coeffs_affine(expr.args[0])
         m, n = expr.args[0].size
-        M = sp.lil_matrix((self.N+1, self.N+1))
-        for i in range(m):
-            for j in range(m):
-                M += sum([Pinv[i, j]*Xs[i+k*m]*Xs[j+k*m].T for k in range(n)])
-        return [M]
+        Pinv = LA.inv(expr.args[1].value)
+        
+        M = sp.lil_matrix((self.N, self.N))
+        Q = sp.lil_matrix((1, self.N))
+        R = 0
 
-    def _quad_coeffs_affine_atom(self, expr):
-        Xs = []
+        for i in range(0, m*n, m):
+            A2 = A[i:i+m, :]
+            b2 = b[i:i+m]
+            
+            M += A2.T*Pinv*A2
+            Q += 2*A2.T*(Pinv*b2)
+            R += b2.T*Pinv*b2
+
+        return ([M.tocsr()], Q.tocsr(), np.array([R]))
+
+
+    def _coeffs_affine_atom(self, expr):
+        sz = expr.size[0]*expr.size[1]
+        Ps = [sp.lil_matrix((self.N, self.N)) for i in range(sz)]
+        Q = sp.lil_matrix((sz, self.N))
+        C = []
+
         fake_args = []
         offsets = {}
         offset = 0
@@ -143,17 +167,17 @@ class QuadCoeffExtractor(object):
             if arg.is_constant():
                 fake_args += [lu.create_const(arg.value, arg.size)]
             else:
-                Xs += self.get_coeffs(arg)
+                C.append(self.get_coeffs(arg))
                 fake_args += [lu.create_var(arg.size, idx)]
                 offsets[idx] = offset
                 offset += arg.size[0]*arg.size[1]
         fake_expr, _ = expr.graph_implementation(fake_args, expr.size, expr.get_data())
         # Get the matrix representation of the function.
-        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(fake_expr)], offsets)
+        V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(fake_expr)], offsets)
         # return "AX+b"
-        ret = [sp.lil_matrix((self.N+1, self.N+1)) for i in range(expr.size[0]*expr.size[1])]
-        for (v, i, j) in zip(V, I, J):
-            ret[int(i)] += v*Xs[int(j)]
-        for i, v in enumerate(b):
-            ret[i][self.N, self.N] += v
-        return ret
+        for (v, i, j) in zip(V, I.astype(int), J.astype(int)):
+            Ps[i] += v*C[j][0]
+            Q[i, :] += v*C[j][1]
+            R[i] += v*C[j][2]
+        
+        return (Ps, Q, R)

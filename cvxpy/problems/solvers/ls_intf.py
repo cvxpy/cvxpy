@@ -149,25 +149,25 @@ class LS(Solver):
 
         #ts = [time.time()]
 
-        M = extractor.get_coeffs(objective.args[0])[0].tocsr()
+        (Ps, Q, R) = extractor.get_coeffs(objective.args[0])
 
         #ts.append(time.time())
 
-        P = M[:N, :N]
-        q = (M[:N, N] + M[N, :N].T)/2
-        q = np.asarray(q.todense()).flatten()
-        r = M[N, N]
+        P = Ps[0]
+        q = Q.flatten()
+        #q = np.asarray(Q.todense()).flatten()
+        r = R[0]
 
         #ts.append(time.time())
 
         if len(constraints) > 0:
-            Cs = [extractor.get_affine_coeffs(c._expr) for c in constraints]
+            Cs = [extractor.get_coeffs(c._expr)[1:] for c in constraints]
             As = sp.vstack([C[0] for C in Cs])
             bs = np.array([C[1] for C in Cs]).flatten()
-            lhs = sp.bmat([[P, As.transpose()], [As, None]])
+            lhs = sp.bmat([[2*P, As.transpose()], [As, None]])
             rhs = np.concatenate([-q, -bs])
         else: # avoiding calling vstack with empty list
-            lhs = P
+            lhs = 2*P
             rhs = -q
 
         #ts.append(time.time())
@@ -176,7 +176,7 @@ class LS(Solver):
             sol = SLA.spsolve(lhs.tocsr(), rhs)
             x = np.array(sol[:N])
             nu = np.array(sol[N:])
-            p_star = np.dot(x.transpose(), P*x + 2*q) + r
+            p_star = np.dot(x.transpose(), P*x + q) + r
 
         except ArithmeticError:
             x = None
