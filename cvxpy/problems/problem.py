@@ -252,6 +252,7 @@ class Problem(u.Canonical):
         
         if solver == s.LS:
             solver = SOLVERS[s.LS]
+            solver.validate_solver(self)
             
             objective = self.objective
             constraints = self.constraints

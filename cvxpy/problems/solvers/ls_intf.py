@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.interface as intf
+from cvxpy.error import SolverError
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.utilities import QuadCoeffExtractor
@@ -41,7 +42,7 @@ class LS(Solver):
     def import_solver(self):
         """Imports the solver.
         """
-        import ls
+        import scipy
 
     def name(self):
         """The name of the solver.
@@ -87,6 +88,12 @@ class LS(Solver):
             and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
             and all([type(v) in allowedVariables for v in prob.variables()])
             and all([not v.domain for v in prob.variables()]) # no implicit variable domains (TODO: domains are not implemented yet)
+            )
+
+    def validate_solver(self, prob):
+        if not self.suitable(prob):
+            raise SolverError(
+                "The solver %s cannot solve the problem." % self.name()
             )
 
     def get_sym_data(self, objective, constraints, cached_data=None):

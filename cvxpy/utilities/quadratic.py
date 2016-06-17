@@ -108,7 +108,7 @@ class QuadCoeffExtractor:
             if arg.is_constant():
                 fake_args += [lu.create_const(arg.value, arg.size)]
             else:
-                Xs += quad_coeffs(arg, id_map, N)
+                Xs += self.quad_coeffs(arg)
                 fake_args += [lu.create_var(arg.size, idx)]
                 offsets[idx] = offset
                 offset += arg.size[0]*arg.size[1]
