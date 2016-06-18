@@ -20,6 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from cvxpy.expressions import expression
 import cvxpy.interface as intf
+import numpy as np
+
 
 class Leaf(expression.Expression):
     """
@@ -89,6 +91,11 @@ class Leaf(expression.Expression):
                 raise ValueError(
                     "Invalid sign for %s value." % self.__class__.__name__
                 )
+            # Round to correct sign.
+            elif self.is_positive():
+                val = np.maximum(val, 0)
+            elif self.is_negative():
+                val = np.minimum(val, 0)
         return val
 
     def is_quadratic(self):

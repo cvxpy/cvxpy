@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variables import Variable, Semidef
+from cvxpy.expressions.variables import Variable, Semidef, NonNegative
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
@@ -32,6 +32,8 @@ from cvxpy.tests.base_test import BaseTest
 from cvxopt import matrix
 import numpy as np
 import warnings
+import sys
+PY35 = sys.version_info >= (3,5)
 
 class TestExpressions(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -108,6 +110,16 @@ class TestExpressions(BaseTest):
         A = Variable(3, 2)
         A.value = np.ones((3, 2))
         self.assertItemsAlmostEqual(A.value, np.ones((3, 2)))
+
+        # Test assigning negative val to nonnegative variable.
+        x = NonNegative()
+        with self.assertRaises(Exception) as cm:
+            x.value = -2
+        self.assertEqual(str(cm.exception), "Invalid sign for NonNegative value.")
+
+        # Small negative values are rounded to 0.
+        x.value = -1e-8
+        self.assertEqual(x.value, 0)
 
     # Test tranposing variables.
     def test_transpose_variable(self):
@@ -341,9 +353,11 @@ class TestExpressions(BaseTest):
             self.assertTrue(q.is_quadratic())
 
         # Nonaffine times nonconstant raises error
-        with self.assertRaises(Exception) as cm:
-            ((self.A * self.B) * self.A)
-        self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            with self.assertRaises(Exception) as cm:
+                ((self.A * self.B) * self.A)
+            self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
 
         # Constant expressions
         T = Constant([[1,2,3],[3,5,5]])
@@ -363,6 +377,59 @@ class TestExpressions(BaseTest):
         # Scalar variables on the left should be moved right.
         expr = self.a*[2,1]
         self.assertItemsAlmostEqual(expr.args[0].value, [2,1])
+
+    def test_matmul_expression(self):
+        """Test matmul function, corresponding to .__matmul__( operator.
+        """
+        if PY35:
+            # Vectors
+            c = Constant([[2],[2]])
+            exp = c.__matmul__(self.x)
+            self.assertEqual(exp.curvature, s.AFFINE)
+            self.assertEqual(exp.sign, s.UNKNOWN)
+            self.assertEqual(exp.canonical_form[0].size, (1,1))
+            self.assertEqual(exp.canonical_form[1], [])
+            # self.assertEqual(exp.name(), c.name() + " .__matmul__( " + self.x.name())
+            self.assertEqual(exp.size, (1,1))
+
+            with self.assertRaises(Exception) as cm:
+                self.x.__matmul__(2)
+            self.assertEqual(str(cm.exception),
+                            "Scalar operands are not allowed, use '*' instead")
+            with self.assertRaises(Exception) as cm:
+                (self.x.__matmul__(np.array([2,2,3])))
+            self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+
+            # Matrices
+            with self.assertRaises(Exception) as cm:
+                Constant([[2, 1],[2, 2]]) .__matmul__( self.C)
+            self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
+
+            # Affine times affine is okay
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                q = self.A .__matmul__( self.B)
+                self.assertTrue(q.is_quadratic())
+
+            # Nonaffine times nonconstant raises error
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                with self.assertRaises(Exception) as cm:
+                    (self.A.__matmul__( self.B).__matmul__( self.A))
+                self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
+
+            # Constant expressions
+            T = Constant([[1,2,3],[3,5,5]])
+            exp = (T + T) .__matmul__( self.B)
+            self.assertEqual(exp.curvature, s.AFFINE)
+            self.assertEqual(exp.size, (3,2))
+
+            # Expression that would break sign multiplication without promotion.
+            c = Constant([[2], [2], [-2]])
+            exp = [[1], [2]] + c.__matmul__(self.C)
+            self.assertEqual(exp.sign, s.UNKNOWN)
+        else:
+            pass
 
     # Test the DivExpresion class.
     def test_div_expression(self):
@@ -574,7 +641,7 @@ class TestExpressions(BaseTest):
 
         x = Variable(100, name="x")
         self.assertEqual("x[:-1, 0]", str(x[:-1]))
-        
+
         c = Constant([[1,2],[3,4]])
         expr = c[0,2:0:-1]
         self.assertEqual(expr.size, (1,1))

@@ -171,8 +171,7 @@ class PartialProblem(Expression):
                 return u.grad.error_grad(self)
             else:
                 fix_vars += [var == var.value]
-        obj_arg = self._prob.objective.args[0]
-        prob = Problem(self.args[0].objective.copy(obj_arg),
+        prob = Problem(self._prob.objective,
                        fix_vars + self._prob.constraints)
         prob.solve()
         # Compute gradient.

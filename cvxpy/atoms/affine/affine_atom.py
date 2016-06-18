@@ -22,7 +22,6 @@ import abc
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-import operator as op
 import canonInterface
 import scipy.sparse as sp
 if sys.version_info >= (3, 0):
@@ -99,7 +98,13 @@ class AffAtom(Atom):
         grad_list = []
         start = 0
         for arg in self.args:
-            if not arg.is_constant():
+            if arg.is_constant():
+                grad_shape = (arg.size[0]*arg.size[1], shape[1])
+                if grad_shape == (1, 1):
+                    grad_list += [0]
+                else:
+                    grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
+            else:
                 stop = start + arg.size[0]*arg.size[1]
                 grad_list += [stacked_grad[start:stop,:]]
                 start = stop

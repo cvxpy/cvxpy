@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variables.variable import Variable
-import cvxpy.expressions.types as types
+from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
@@ -28,7 +28,7 @@ def Symmetric(n, name=None):
     """
     var = SymmetricUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))
-    return types.reshape()(fill_mat*var, int(n), int(n))
+    return cvxtypes.reshape()(fill_mat*var, int(n), int(n))
 
 def upper_tri_to_full(n):
     """Returns a coefficient matrix to create a symmetric matrix.
