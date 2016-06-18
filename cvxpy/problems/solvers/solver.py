@@ -96,9 +96,6 @@ class Solver(object):
         # Otherwise use ECOS.
         else:
             return s.ECOS
-        # TODO: If linearly constrained quadratic problem, use CLS.
-        #       Currently this part is handled directly
-        #       in problem.py, which is definitely not ideal.
 
     def is_installed(self):
         """Is the solver installed?

@@ -176,7 +176,7 @@ class TestProblem(BaseTest):
             for solver in installed_solvers():
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in ["GLPK", "GLPK_MI", "MOSEK", "CBC", "LS"]:
+                if solver in ["GLPK", "GLPK_MI", "MOSEK", "CBC"]:
                     continue
                 if solver == "ELEMENTAL":
                     # ELEMENTAL's stdout is separate from python,

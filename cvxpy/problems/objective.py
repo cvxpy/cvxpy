@@ -150,11 +150,6 @@ class Maximize(Minimize):
         """
         return self.args[0].is_concave()
 
-    def is_quadratic(self):
-        """Returns if the objective is a quadratic function.
-        """
-        return self.args[0].is_quadratic()
-
     @staticmethod
     def primal_to_result(result):
         """The value of the objective given the solver primal value.

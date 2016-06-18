@@ -19,12 +19,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variables.variable import Variable
+from cvxpy.constraints.semidefinite import SDP
 from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
 def Symmetric(n, name=None):
-    """An expression representing a symmetric matrix.
+    """An expression representing a positive semidefinite matrix.
     """
     var = SymmetricUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))

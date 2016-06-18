@@ -59,10 +59,8 @@ SCS = "SCS"
 GUROBI = "GUROBI"
 ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
-LS = "LS"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
-           GLPK_MI, SCS, GUROBI, ELEMENTAL,
-           MOSEK, LS]
+           GLPK_MI, SCS, GUROBI, ELEMENTAL, MOSEK]
 
 # Parallel (meta) solver
 PARALLEL = "parallel"
