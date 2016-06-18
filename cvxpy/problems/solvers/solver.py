@@ -96,6 +96,9 @@ class Solver(object):
         # Otherwise use ECOS.
         else:
             return s.ECOS
+        # TODO: If linearly constrained least squares, use LS.
+        #       Currently this part is handled directly
+        #       in problem.py, which is not ideal.
 
     def is_installed(self):
         """Is the solver installed?

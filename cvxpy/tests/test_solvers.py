@@ -503,8 +503,12 @@ class TestSolvers(BaseTest):
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
         for solver in SOLVERS.keys():
             if solver in installed_solvers():
-                prob.solve(solver=solver)
-                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                try:
+                    prob.solve(solver=solver)
+                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
+                # LS is the only solver that can't handle this problem
+                except (Exception) as cm:
+                    self.assertEqual(str(cm), "The solver LS cannot solve the problem.")
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver = solver)
