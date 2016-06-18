@@ -78,7 +78,7 @@ class QuadCoeffExtractor(object):
         V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
         Q = sp.csr_matrix((V, (I, J)), shape=(sz, self.N))
         Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
-        return (Ps, Q, R)
+        return (Ps, Q, R.flatten())
 
     def _coeffs_affine_prod(self, expr):
         (_, XQ, XR) = self._coeffs_affine(expr.args[0])
@@ -88,13 +88,13 @@ class QuadCoeffExtractor(object):
         n = expr.args[1].size[1]
         
         Ps = []
-        Q = sp.lil_matrix((m*n, self.N))
+        Q = sp.csr_matrix((m*n, self.N))
         R = np.zeros((m*n))
 
         ind = 0
         for j in range(n):
             for i in range(m):
-                M = sp.csc_matrix((self.N, self.N)) # TODO: find best format
+                M = sp.csr_matrix((self.N, self.N)) # TODO: find best format
                 for k in range(p):
                     Xind = k*m + i
                     Yind = j*p + k
@@ -119,15 +119,15 @@ class QuadCoeffExtractor(object):
         q = sp.csr_matrix(2*b.T*A)
         r = np.dot(b.T, b)
         y = expr.args[1].value
-        return ([P/y], q/y, r/y)
+        return ([P/y], q/y, np.array([r/y]))
 
     def _coeffs_power(self, expr):
         if expr.p == 1:
             return self.get_coeffs(expr.args[0])
         elif expr.p == 2:
             (_, A, b) = self._coeffs_affine(expr.args[0])
-            Ps = [(A[i, :]*A[i, :].T).tocsr() for i in range(A.shape[0])]
-            Q = np.multiply(A, b[:, None]).tocsr()
+            Ps = [(A[i, :].T*A[i, :]).tocsr() for i in range(A.shape[0])]
+            Q = 2*(sp.diags(b, 0)*A).tocsr()
             R = np.power(b, 2)
             return (Ps, Q, R)
         else:
@@ -136,7 +136,7 @@ class QuadCoeffExtractor(object):
     def _coeffs_matrix_frac(self, expr):
         (_, A, b) = self._coeffs_affine(expr.args[0])
         m, n = expr.args[0].size
-        Pinv = LA.inv(expr.args[1].value)
+        Pinv = np.asarray(LA.inv(expr.args[1].value))
         
         M = sp.lil_matrix((self.N, self.N))
         Q = sp.lil_matrix((1, self.N))
@@ -147,8 +147,8 @@ class QuadCoeffExtractor(object):
             b2 = b[i:i+m]
             
             M += A2.T*Pinv*A2
-            Q += 2*A2.T*(Pinv*b2)
-            R += b2.T*Pinv*b2
+            Q += 2*A2.T.dot(np.dot(Pinv, b2))
+            R += np.dot(b2, np.dot(Pinv, b2))
 
         return ([M.tocsr()], Q.tocsr(), np.array([R]))
 
@@ -157,7 +157,9 @@ class QuadCoeffExtractor(object):
         sz = expr.size[0]*expr.size[1]
         Ps = [sp.lil_matrix((self.N, self.N)) for i in range(sz)]
         Q = sp.lil_matrix((sz, self.N))
-        C = []
+        Parg = None
+        Qarg = None
+        Rarg = None
 
         fake_args = []
         offsets = {}
@@ -166,7 +168,13 @@ class QuadCoeffExtractor(object):
             if arg.is_constant():
                 fake_args += [lu.create_const(arg.value, arg.size)]
             else:
-                C.append(self.get_coeffs(arg))
+                if Parg is None:
+                    (Parg, Qarg, Rarg) = self.get_coeffs(arg)
+                else:
+                    (p, q, r) = self.get_coeffs(arg)
+                    Parg += p
+                    Qarg = sp.vstack([Qarg, q])
+                    Rarg = np.vstack([Rarg, r])
                 fake_args += [lu.create_var(arg.size, idx)]
                 offsets[idx] = offset
                 offset += arg.size[0]*arg.size[1]
@@ -176,10 +184,9 @@ class QuadCoeffExtractor(object):
         R = R.flatten()
         # return "AX+b"
         for (v, i, j) in zip(V, I.astype(int), J.astype(int)):
-            Ps[i] += v*C[j][0][0]
-            Q[i, :] += v*C[j][1]
-            R[i] += v*C[j][2]
+            Ps[i] += v*Parg[j]
+            Q[i, :] += v*Qarg[j, :]
+            R[i] += v*Rarg[j]
 
-        Ps = [P.tocsr() for P in Ps]
-        
+        Ps = [P.tocsr() for P in Ps]        
         return (Ps, Q.tocsr(), R)
