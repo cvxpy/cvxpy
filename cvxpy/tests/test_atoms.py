@@ -58,6 +58,7 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[1] is self.B)
         self.assertEqual(copy.get_data(), atom.get_data())
 
+
     # Test the normInf class.
     def test_normInf(self):
         exp = self.x+self.y
@@ -89,6 +90,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(norm2(atom).curvature, s.CONVEX)
         self.assertEqual(norm2(-atom).curvature, s.CONVEX)
+
+        # Test with axis arg.
+        expr = norm(self.A, 2, axis=0)
+        self.assertEqual(expr.size, (1,2))
 
     # Test the power class.
     def test_power(self):
