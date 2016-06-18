@@ -21,3 +21,4 @@ from .canonical import Canonical
 from . import grad
 from . import shape
 from . import sign
+from .quadratic import get_id_map, quad_coeffs, affine_coeffs

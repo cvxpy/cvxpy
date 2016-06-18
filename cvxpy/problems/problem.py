@@ -246,6 +246,19 @@ class Problem(u.Canonical):
             else:
                 raise DCPError("Problem does not follow DCP rules.")
 
+        # Problem is linearly constrained least squares
+        if solver is None and SOLVERS[s.LS].suitable(self):
+
+            solver = SOLVERS[s.LS]
+            
+            objective = self.objective
+            constraints = self.constraints
+            
+            sym_data = solver.get_sym_data(objective, constraints)
+            results_dict = solver.solve(objective, constraints, sym_data)
+            self._update_problem_state(results_dict, sym_data, solver)
+            return self.value
+
         objective, constraints = self.canonicalize()
 
         # Solve in parallel
