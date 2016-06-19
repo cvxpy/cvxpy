@@ -21,7 +21,7 @@ Version 1.0 (targets)
 * TODO change reshape to take size tuple argument.
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 
-Version 0.4.2 (next release)
+Version 0.4.3 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
@@ -29,7 +29,11 @@ Version 0.4.2 (next release)
 * TODO add domains for special variables like Semidef and NonNegative (var with domain).
 Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
+
+Version 0.4.2 
+-------------
 * Fixed bug with gradient of expressions where a variable only appears in a constant term.
+* Added special solver for linearly constrained least-squares problems.
 
 Version 0.4.1 
 -------------
