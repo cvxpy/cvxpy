@@ -69,6 +69,39 @@ class MOSEK(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], [])
 
+    @staticmethod
+    def _handle_mosek_params(task, params):
+        if params is None:
+            return
+
+        import mosek
+
+        def _handle_str_param(param, value):
+            if param.startswith("MSK_DPAR_"):
+                task.putnadouparam(param, value)
+            elif param.startswith("MSK_IPAR_"):
+                task.putnaintparam(param, value)
+            elif param.startswith("MSK_SPAR_"):
+                task.putnastrparam(param, value)
+            else:
+                raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        def _handle_enum_param(param, value):
+            if isinstance(param, mosek.dparam):
+                task.putdouparam(param, value)
+            elif isinstance(param, mosek.iparam):
+                task.putintparam(param, value)
+            elif isinstance(param, mosek.sparam):
+                task.putstrparam(param, value)
+            else:
+                raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        for param, value in params.items():
+            if isinstance(param, str):
+                _handle_str_param(param.strip(), value)
+            else:
+                _handle_enum_param(param, value)
+
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
@@ -95,7 +128,9 @@ class MOSEK(Solver):
         """
         import mosek
         env = mosek.Env()
-        task = env.Task(0,0)
+        task = env.Task(0, 0)
+
+        self._handle_mosek_params(task, solver_opts.get("mosek_params"))
 
         if verbose:
             # Define a stream printer to grab output from MOSEK

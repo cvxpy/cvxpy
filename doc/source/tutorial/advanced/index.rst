@@ -231,7 +231,7 @@ The table below shows the types of problems the solvers can handle.
 | `SCS`_       | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
 
-A special solver `LS`_ is also available. It is unable to solve any of the problem types in the table above, but it recognizes and solves linearly constrained least squares problems very quickly. 
+A special solver `LS`_ is also available. It is unable to solve any of the problem types in the table above, but it recognizes and solves linearly constrained least squares problems very quickly.
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -345,7 +345,7 @@ All the solvers can print out information about their progress while solving the
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `ECOS_BB`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -423,6 +423,15 @@ Here's the complete list of solver options.
 
 ``'mi_rel_eps'``
     relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)
+
+`MOSEK`_ options:
+
+``'mosek_params'``
+    A dictionary of MOSEK parameters. Refer to MOSEK's Python or C API for
+    details. Note that if parameters are given as string-value pairs, parameter
+    names must be of the form ``'MSK_DPAR_BASIS_TOL_X'`` as in the C API.
+    Alternatively, Python enum options like ``'mosek.dparam.basis_tol_x'`` are
+    also supported.
 
 `CVXOPT`_ options:
 
