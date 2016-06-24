@@ -374,7 +374,7 @@ The function ``sum_entries`` sums all the entries in a single expression. The bu
 Functions along an axis
 -----------------------
 
-The functions ``sum_entries``, ``max_entries``, and ``min_entries`` can be
+The functions ``sum_entries``, ``norm(X, 2)``, ``max_entries``, and ``min_entries`` can be
 applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
