@@ -55,7 +55,7 @@ Advanced Applications
 - `L1 trend filtering <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb>`_
 - `Nonnegative matrix factorization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb>`_
 - `Optimal parade route <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb>`_
-- `Optimal power and bandwidth allocation in a Gaussian broadcast channel <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_Gaussian_channel_BV4.62.ipynb>`_
+- `Optimal power and bandwidth allocation in a Gaussian broadcast channel <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb>`_
 - `Power assignment in a wireless communication system <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb>`_
 - `Predicting NBA game wins <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb>`_
 - `Robust Kalman filtering for vehicle tracking <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb>`_
