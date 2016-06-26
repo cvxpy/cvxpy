@@ -5,6 +5,7 @@ Install Guide
 
 **To update CVXPY, first update NumPy and SciPy separately.
 Then run** ``pip uninstall cvxpy; pip install cvxpy``.
+
 **Simply running** ``pip install --upgrade cvxpy`` **can cause errors, especially if you're using Anaconda.**
 
 Mac OS X
@@ -257,8 +258,8 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
 CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
-Simply install cylp (you will need the Cbc sources which includes Cgl; available `here <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
-See the `cylp <http://mpy.github.io/CyLPdoc/>`_ documentation for installation instructions.
+Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
+See the `cylp documentation <http://mpy.github.io/CyLPdoc/>`_ for installation instructions.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
