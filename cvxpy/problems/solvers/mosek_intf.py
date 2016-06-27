@@ -130,7 +130,12 @@ class MOSEK(Solver):
         env = mosek.Env()
         task = env.Task(0, 0)
 
-        self._handle_mosek_params(task, solver_opts.get("mosek_params"))
+        kwargs = sorted(solver_opts.keys())
+        if "mosek_params" in kwargs:
+            self._handle_mosek_params(task, solver_opts["mosek_params"])
+            kwargs.remove("mosek_params")
+        if kwargs:
+            raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 
         if verbose:
             # Define a stream printer to grab output from MOSEK

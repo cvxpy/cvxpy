@@ -437,19 +437,25 @@ class TestSolvers(BaseTest):
             x = rnd.randn(n)
             y = A.dot(x)
 
+            # Solve a simple basis pursuit problem for testing purposes.
             z = Variable(n)
             objective = Minimize(norm1(z))
             constraints = [A * z == y[:, np.newaxis]]
             problem = Problem(objective, constraints)
+
             invalid_mosek_params = {
                 "dparam.basis_tol_x": "1e-8"
             }
+            with self.assertRaises(ValueError):
+                problem.solve(solver=MOSEK, mosek_params=invalid_mosek_params)
+
+            with self.assertRaises(ValueError):
+                problem.solve(solver=MOSEK, invalid_kwarg=None)
+
             mosek_params = {
                 mosek.dparam.basis_tol_x: 1e-8,
                 "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20
             }
-            with self.assertRaises(ValueError):
-                problem.solve(solver=MOSEK, mosek_params=invalid_mosek_params)
             problem.solve(solver=MOSEK, mosek_params=mosek_params)
 
     def test_gurobi_warm_start(self):
