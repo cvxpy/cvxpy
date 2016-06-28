@@ -143,6 +143,32 @@ class Problem(u.Canonical):
         # Remove duplicates.
         return list(set(params))
 
+    def n_variables(self):
+        """Returns the number of variables in the problem.
+        """
+        n_vars = 0
+        for var in self.variables():
+            n_vars += np.prod(var.size())
+        return n_vars
+
+    def n_eq(self):
+        """Returns the number of equality constraints in the problem.
+        """
+        n_eq_constraints = 0
+        for constraint in self.constraints:
+            if constraint.__class__.__name__ is "EqConstraint":
+            n_eq_constraints += np.prod(constraint._expr.size)
+        return n_eq_constraints
+
+    def n_leq(self):
+        """Returns the number of inequality constraints in the problem.
+        """
+        n_leq_constraints = 0
+        for constraint in self.constraints:
+            if constraint.__class__.__name__ is "LeqConstraint":
+            n_leq_constraints += np.prod(constraint._expr.size)
+        return n_leq_constraints
+
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
 
