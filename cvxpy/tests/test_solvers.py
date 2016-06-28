@@ -425,6 +425,38 @@ class TestSolvers(BaseTest):
                 prob.solve(solver = MOSEK)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % MOSEK)
 
+    def test_mosek_params(self):
+        if MOSEK in installed_solvers():
+            import numpy as np
+            import numpy.random as rnd
+            import mosek
+
+            n = 10
+            m = 4
+            A = rnd.randn(m, n)
+            x = rnd.randn(n)
+            y = A.dot(x)
+
+            # Solve a simple basis pursuit problem for testing purposes.
+            z = Variable(n)
+            objective = Minimize(norm1(z))
+            constraints = [A * z == y[:, np.newaxis]]
+            problem = Problem(objective, constraints)
+
+            invalid_mosek_params = {
+                "dparam.basis_tol_x": "1e-8"
+            }
+            with self.assertRaises(ValueError):
+                problem.solve(solver=MOSEK, mosek_params=invalid_mosek_params)
+
+            with self.assertRaises(ValueError):
+                problem.solve(solver=MOSEK, invalid_kwarg=None)
+
+            mosek_params = {
+                mosek.dparam.basis_tol_x: 1e-8,
+                "MSK_IPAR_INTPNT_MAX_ITERATIONS": 20
+            }
+            problem.solve(solver=MOSEK, mosek_params=mosek_params)
 
     def test_gurobi_warm_start(self):
         """Make sure that warm starting Gurobi behaves as expected
