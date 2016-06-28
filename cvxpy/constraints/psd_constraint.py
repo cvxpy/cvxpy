@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.leq_constraint import LeqConstraint
 from cvxpy.constraints.semidefinite import SDP
 import cvxpy.lin_ops.lin_utils as lu
@@ -41,34 +42,15 @@ class PSDConstraint(LeqConstraint):
         return self._expr.is_affine()
 
     @property
-    def value(self):
-        """Does the constraint hold?
+    def residual(self):
+       """The residual of the constraint.
 
-        Returns
-        -------
-        bool
-        """
-        if self._expr.value is None:
-            return None
-        else:
-            mat = self._expr.value
-            w, _ = np.linalg.eig(mat + mat.T)
-            return w.min()/2 >= -self.TOLERANCE
-
-    @property
-    def violation(self):
-        """How much is this constraint off by?
-
-        Returns
-        -------
-        float
-        """
-        if self._expr.value is None:
-            return None
-        else:
-            mat = self._expr.value
-            w, _ = np.linalg.eig(mat + mat.T)
-            return -min(w.min()/2, 0)
+       Returns
+       -------
+       Expression
+       """
+       min_eig = cvxtypes.lambda_min()(self._expr + self._expr.T)/2
+       return cvxtypes.neg()(min_eig)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

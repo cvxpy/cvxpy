@@ -66,10 +66,12 @@ class TestConstraints(BaseTest):
         self.z.value = [2,2]
         assert not constr.value
         self.assertItemsAlmostEqual(constr.violation, [0,1])
+        self.assertItemsAlmostEqual(constr.residual.value, [0,1])
 
         self.z.value = [2,1]
         assert constr.value
         self.assertItemsAlmostEqual(constr.violation, [0,0])
+        self.assertItemsAlmostEqual(constr.residual.value, [0,0])
 
         with self.assertRaises(Exception) as cm:
             (self.x == self.y)
@@ -108,10 +110,12 @@ class TestConstraints(BaseTest):
         self.z.value = [2,0]
         assert not constr.value
         self.assertItemsAlmostEqual(constr.violation, [0,1])
+        self.assertItemsAlmostEqual(constr.residual.value, [0,1])
 
         self.z.value = [2,2]
         assert constr.value
         self.assertItemsAlmostEqual(constr.violation, [0,0])
+        self.assertItemsAlmostEqual(constr.residual.value, [0,0])
 
         with self.assertRaises(Exception) as cm:
             (self.x <= self.y)
@@ -144,10 +148,12 @@ class TestConstraints(BaseTest):
         self.B.save_value(np.matrix("1 0; 0 1"))
         assert constr.value
         self.assertAlmostEqual(constr.violation, 0)
+        self.assertAlmostEqual(constr.residual.value, 0)
 
         self.B.save_value(np.matrix("3 0; 0 3"))
         assert not constr.value
         self.assertAlmostEqual(constr.violation, 1)
+        self.assertAlmostEqual(constr.residual.value, 1)
 
         with self.assertRaises(Exception) as cm:
             (self.x >> self.y)

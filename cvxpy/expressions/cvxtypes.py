@@ -26,6 +26,10 @@ def constant():
     from cvxpy.expressions import constants
     return constants.Constant
 
+def variable():
+    from cvxpy.expressions import variables
+    return variables.Variable
+
 def index():
     from cvxpy.atoms.affine import index
     return index.index
@@ -49,6 +53,22 @@ def div_expr():
 def neg_expr():
     from cvxpy.atoms.affine import unary_operators
     return unary_operators.NegExpression
+
+def abs():
+    from cvxpy.atoms.elementwise import abs
+    return abs.abs
+
+def lambda_min():
+    from cvxpy.atoms import lambda_min
+    return lambda_min
+
+def pos():
+    from cvxpy.atoms.elementwise import pos
+    return pos.pos
+
+def neg():
+    from cvxpy.atoms.elementwise import neg
+    return neg.neg
 
 def power():
     from cvxpy.atoms.elementwise import power

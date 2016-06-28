@@ -29,7 +29,7 @@ Version 0.4.3 (next release)
 * TODO add dmains for special variables like Semidef and NonNegative (var with domain).
 Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
-* TODO add residual to constraints (vector/matrix), use for violation.
+* Add residual to constraints (vector/matrix), use for violation.
 
 Version 0.4.2 
 -------------
