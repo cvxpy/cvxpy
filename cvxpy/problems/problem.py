@@ -143,6 +143,20 @@ class Problem(u.Canonical):
         # Remove duplicates.
         return list(set(params))
 
+    def constants(self):
+        const_dict = {}
+        constants_ = self.objective.constants()
+        for constr in self.constraints:
+            constants_ += constr.constants()
+        # Remove duplicates.
+        # Note that numpy matrices are not hashable.
+        # Remove duplicates:
+        try:
+            const_dict = {str(constant): constant for constant in constants_}
+        except:
+            print const_list
+        return const_dict.values()
+
     def n_variables(self):
         """Returns the number of variables in the problem.
         """
@@ -157,7 +171,7 @@ class Problem(u.Canonical):
         n_eq_constraints = 0
         for constraint in self.constraints:
             if constraint.__class__.__name__ is "EqConstraint":
-            n_eq_constraints += np.prod(constraint._expr.size)
+                n_eq_constraints += np.prod(constraint._expr.size)
         return n_eq_constraints
 
     def n_leq(self):
@@ -166,7 +180,7 @@ class Problem(u.Canonical):
         n_leq_constraints = 0
         for constraint in self.constraints:
             if constraint.__class__.__name__ is "LeqConstraint":
-            n_leq_constraints += np.prod(constraint._expr.size)
+                n_leq_constraints += np.prod(constraint._expr.size)
         return n_leq_constraints
 
     def solve(self, *args, **kwargs):
@@ -271,7 +285,6 @@ class Problem(u.Canonical):
                       "Solving a convex relaxation.")
             else:
                 raise DCPError("Problem does not follow DCP rules.")
-
         # Problem is linearly constrained least squares
         if solver is None and SOLVERS[s.LS].suitable(self):
             solver = s.LS
@@ -292,10 +305,10 @@ class Problem(u.Canonical):
 
         # Standard cone problem
         objective, constraints = self.canonicalize()
-
         # Solve in parallel
         if parallel:
             # Check if the objective or constraint has changed
+
             if (objective != self._cached_data[s.PARALLEL].objective or
                 constraints != self._cached_data[s.PARALLEL].constraints):
                 self._separable_problems = cvxpy.transforms.get_separable_problems(self)
@@ -304,7 +317,6 @@ class Problem(u.Canonical):
             if len(self._separable_problems) > 1:
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
-
         # Choose a solver/check the chosen solver.
         if solver is None:
             solver_name = Solver.choose_solver(constraints)
@@ -314,7 +326,6 @@ class Problem(u.Canonical):
             solver.validate_solver(constraints)
         else:
             raise SolverError("Unknown solver.")
-
         sym_data = solver.get_sym_data(objective, constraints,
                                        self._cached_data)
         # Presolve couldn't solve the problem.
@@ -325,7 +336,6 @@ class Problem(u.Canonical):
         # Presolve determined problem was unbounded or infeasible.
         else:
             results_dict = {s.STATUS: sym_data.presolve_status}
-
         self._update_problem_state(results_dict, sym_data, solver)
         return self.value
 

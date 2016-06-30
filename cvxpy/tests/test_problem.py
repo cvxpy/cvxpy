@@ -100,6 +100,19 @@ class TestProblem(BaseTest):
         else:
             self.assertCountEqual(params, ref)
 
+    def test_constants(self):
+        """Test the constants method.
+        """
+        c1 = numpy.random.randn(1, 2)
+        c2 = numpy.random.randn(2, 1)
+        p = Problem(Minimize(c1*self.x), [self.x >= c2])
+        constants_ = p.constants()
+        ref = [str(c1), str(c2)]
+        if PY2:
+            self.assertItemsEqual([str(const) for const in constants_], ref)
+        else:
+            self.assertCountEqual([str(const) for const in constants_], ref)
+
     def test_get_problem_data(self):
         """Test get_problem_data method.
         """

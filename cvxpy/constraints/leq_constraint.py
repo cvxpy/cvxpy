@@ -113,6 +113,11 @@ class LeqConstraint(u.Canonical, Constraint):
         """
         return self._expr.parameters()
 
+    def constants(self):
+        """Returns the constants in the compared expressions.
+        """
+        return self._expr.constants()
+
     @property
     def value(self):
         """Does the constraint hold?

@@ -209,6 +209,22 @@ class Atom(Expression):
         # Remove duplicates.
         return list(set(param_list))
 
+    def constants(self):
+        """Returns all the constants present in the arguments.
+        """
+        const_list = []
+        const_dict = {}
+        for arg in self.args:
+            const_list += arg.constants()
+        # Remove duplicates:
+        try:
+            const_dict = {str(constant): constant for constant in const_list}
+        except:
+            print const_list
+        return const_dict.values()
+
+
+
     @property
     def value(self):
         # Catch the case when the expression is known to be

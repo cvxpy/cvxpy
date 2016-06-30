@@ -43,6 +43,11 @@ class Leaf(expression.Expression):
         """
         return []
 
+    def constants(self):
+        """Default is empty list of Constants.
+        """
+        return []
+
     def is_convex(self):
         """Is the expression convex?
         """
