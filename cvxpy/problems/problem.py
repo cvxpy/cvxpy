@@ -285,6 +285,7 @@ class Problem(u.Canonical):
                       "Solving a convex relaxation.")
             else:
                 raise DCPError("Problem does not follow DCP rules.")
+
         # Problem is linearly constrained least squares
         if solver is None and SOLVERS[s.LS].suitable(self):
             solver = s.LS
@@ -305,6 +306,7 @@ class Problem(u.Canonical):
 
         # Standard cone problem
         objective, constraints = self.canonicalize()
+
         # Solve in parallel
         if parallel:
             # Check if the objective or constraint has changed
@@ -317,6 +319,7 @@ class Problem(u.Canonical):
             if len(self._separable_problems) > 1:
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
+
         # Choose a solver/check the chosen solver.
         if solver is None:
             solver_name = Solver.choose_solver(constraints)
@@ -326,6 +329,7 @@ class Problem(u.Canonical):
             solver.validate_solver(constraints)
         else:
             raise SolverError("Unknown solver.")
+            
         sym_data = solver.get_sym_data(objective, constraints,
                                        self._cached_data)
         # Presolve couldn't solve the problem.
