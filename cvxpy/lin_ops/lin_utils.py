@@ -525,6 +525,20 @@ def create_geq(lh_op, rh_op=None, constr_id=None):
         rh_op = neg_expr(rh_op)
     return create_leq(neg_expr(lh_op), rh_op, constr_id)
 
+def is_constant(operator):
+    """Returns whether the operator is constant.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The operator to extract the variables from.
+
+    Returns
+    -------
+    bool
+    """
+    return len(get_expr_vars(operator)) == 0
+
 def get_expr_vars(operator):
     """Get a list of the variables in the operator and their sizes.
 

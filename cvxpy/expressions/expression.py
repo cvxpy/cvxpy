@@ -259,13 +259,9 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """The product of two expressions.
         """
-        # Cannot multiply two non-constant expressions.
-        if not self.is_constant() and \
-           not other.is_constant():
-            raise DCPError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
-        elif self.is_constant():
+        if self.is_constant():
             # TODO HACK catch c.T*x where c is a NumPy 1D array.
             if self.size[0] == other.size[0] and \
                self.size[1] != self.size[0] and \
@@ -276,7 +272,7 @@ class Expression(u.Canonical):
         elif self.is_scalar() or other.is_scalar():
             return types.mul_expr()(other, self)
         else:
-            return types.rmul_expr()(self, other)
+            return types.mul_expr()(self, other)
 
     @_cast_other
     def __truediv__(self, other):

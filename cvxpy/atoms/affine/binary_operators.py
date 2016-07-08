@@ -77,43 +77,17 @@ class MulExpression(BinaryOperator):
         """
         u.shape.mul_shapes(self.args[0].size, self.args[1].size)
 
-    @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
-        """Multiply the linear expressions.
+    def is_atom_convex(self):
+        if not self.args[0].is_constant() and not self.args[1].is_constant():
+            return False
+        else:
+            return True
 
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        # Promote the right hand side to a diagonal matrix if necessary.
-        if size[1] != 1 and arg_objs[1].size == (1, 1):
-            arg = lu.promote(arg_objs[1], (size[1], 1))
-            arg_objs[1] = lu.diag_vec(arg)
-        return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
-
-class RMulExpression(MulExpression):
-    """Multiplication by a constant on the right.
-    """
-
-    def is_incr(self, idx):
-        """Is the composition non-decreasing in argument idx?
-        """
-        return self.args[1].is_positive()
-
-    def is_decr(self, idx):
-        """Is the composition non-increasing in argument idx?
-        """
-        return self.args[1].is_negative()
+    def is_atom_concave(self):
+        if not self.args[0].is_constant() and not self.args[1].is_constant():
+            return False
+        else:
+            return True
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -133,11 +107,20 @@ class RMulExpression(MulExpression):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # Promote the left hand side to a diagonal matrix if necessary.
-        if size[0] != 1 and arg_objs[0].size == (1, 1):
-            arg = lu.promote(arg_objs[0], (size[0], 1))
-            arg_objs[0] = lu.diag_vec(arg)
-        return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
+        if lu.is_constant(arg_objs[0]):
+            # Promote the right hand side to a diagonal matrix if necessary.
+            if size[1] != 1 and arg_objs[1].size == (1, 1):
+                arg = lu.promote(arg_objs[1], (size[1], 1))
+                arg_objs[1] = lu.diag_vec(arg)
+            return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
+        elif lu.is_constant(arg_objs[1]):
+            # Promote the left hand side to a diagonal matrix if necessary.
+            if size[0] != 1 and arg_objs[0].size == (1, 1):
+                arg = lu.promote(arg_objs[0], (size[0], 1))
+                arg_objs[0] = lu.diag_vec(arg)
+            return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
+        else:
+            raise ValueError("Cannot canonicalize product of two non-constants.")
 
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
