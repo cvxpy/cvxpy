@@ -113,6 +113,49 @@ class TestProblem(BaseTest):
         else:
             self.assertCountEqual([str(const) for const in constants_], ref)
 
+    def test_n_variables(self):
+        """Test the n_variables method."
+        """
+        # Test single variables
+        prob = Problem(Minimize(exp(self.a)), [self.a == 0])
+        n_variables = prob.n_variables()
+        ref = numpy.prod(self.a.size)
+        self.assertEqual(n_variables, ref)
+        # Test long variables
+        prob = Problem(Minimize(sum_squares(self.x)), [self.x == 0])
+        n_variables = prob.n_variables()
+        ref = numpy.prod(self.x.size)
+        self.assertEqual(n_variables, ref)
+
+
+    def test_n_eq(self):
+        """Test the n_eq method."
+        """
+        # Test single variables
+        prob = Problem(Minimize(exp(self.a)), [self.a == 0])
+        n_eq = prob.n_eq()
+        ref = numpy.prod(self.a.size)
+        self.assertEqual(n_eq, ref)
+        # Test long variables
+        prob = Problem(Minimize(sum_squares(self.x)), [self.x == 0])
+        n_eq = prob.n_eq()
+        ref = numpy.prod(self.x.size)
+        self.assertEqual(n_eq, ref)
+
+    def test_n_leq(self):
+        """Test the n_leq method."
+        """
+        # Test single variables
+        prob = Problem(Minimize(exp(self.a)), [self.a <= 0])
+        n_leq = prob.n_leq()
+        ref = numpy.prod(self.a.size)
+        self.assertEqual(n_leq, ref)
+        # Test long variables
+        prob = Problem(Minimize(sum_squares(self.x)), [self.x <= 0])
+        n_leq = prob.n_leq()
+        ref = numpy.prod(self.x.size)
+        self.assertEqual(n_leq, ref)
+
     def test_get_problem_data(self):
         """Test get_problem_data method.
         """

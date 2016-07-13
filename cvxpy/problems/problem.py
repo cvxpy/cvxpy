@@ -31,6 +31,9 @@ from cvxpy.problems.problem_data.problem_data import ProblemData
 # cvxpy here.
 import cvxpy
 
+# For representing numpy.matrix objects in hashable form
+import hashlib
+
 import multiprocess as multiprocessing
 import numpy as np
 from collections import namedtuple
@@ -144,17 +147,18 @@ class Problem(u.Canonical):
         return list(set(params))
 
     def constants(self):
+        """Returns a list of the constants in the problem.
+        """
         const_dict = {}
         constants_ = self.objective.constants()
         for constr in self.constraints:
             constants_ += constr.constants()
         # Remove duplicates.
         # Note that numpy matrices are not hashable.
-        # Remove duplicates:
         try:
-            const_dict = {str(constant): constant for constant in constants_}
+            const_dict = {hashlib.sha1(constant): constant for constant in constants_}
         except:
-            print const_list
+            print const_dict
         return const_dict.values()
 
     def n_variables(self):
@@ -162,7 +166,7 @@ class Problem(u.Canonical):
         """
         n_vars = 0
         for var in self.variables():
-            n_vars += np.prod(var.size())
+            n_vars += np.prod(var.size)
         return n_vars
 
     def n_eq(self):
