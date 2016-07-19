@@ -45,6 +45,8 @@ if sys.version_info < (3, 0):
 else:
     from io import StringIO
 
+from nose.tools import set_trace
+
 class TestProblem(BaseTest):
     """ Unit tests for the expression/expression module. """
     def setUp(self):
@@ -113,48 +115,43 @@ class TestProblem(BaseTest):
         else:
             self.assertCountEqual([str(const) for const in constants_], ref)
 
-    def test_n_variables(self):
-        """Test the n_variables method."
+    def test_size_metrics(self):
+        """Test the size_metrics method.
         """
-        # Test single variables
-        prob = Problem(Minimize(exp(self.a)), [self.a == 0])
-        n_variables = prob.n_variables()
-        ref = numpy.prod(self.a.size)
+        p1 = Parameter()
+        p2 = Parameter(3, sign="negative")
+        p3 = Parameter(4, 4, sign="positive")
+
+        c1 = numpy.random.randn(2, 1)
+        c2 = numpy.random.randn(1, 2)
+        constants = [2, c2.dot(c1)]
+
+        p = Problem(Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + constants[0], self.c == constants[1]])
+        # num_scalar_variables
+        n_variables = p.size_metrics.num_scalar_variables
+        ref = numpy.prod(self.a.size) + numpy.prod(self.b.size) + numpy.prod(self.c.size)
         self.assertEqual(n_variables, ref)
-        # Test long variables
-        prob = Problem(Minimize(sum_squares(self.x)), [self.x == 0])
-        n_variables = prob.n_variables()
-        ref = numpy.prod(self.x.size)
-        self.assertEqual(n_variables, ref)
 
+        # num_scalar_data
+        n_data = p.size_metrics.num_scalar_data
+        ref = numpy.prod(p1.size) + numpy.prod(p2.size) + numpy.prod(p3.size) + len(constants) # 2 and c2.dot(c1) are both single scalar constants.
+        self.assertEqual(n_data, ref)
 
-    def test_n_eq(self):
-        """Test the n_eq method."
-        """
-        # Test single variables
-        prob = Problem(Minimize(exp(self.a)), [self.a == 0])
-        n_eq = prob.n_eq()
-        ref = numpy.prod(self.a.size)
-        self.assertEqual(n_eq, ref)
-        # Test long variables
-        prob = Problem(Minimize(sum_squares(self.x)), [self.x == 0])
-        n_eq = prob.n_eq()
-        ref = numpy.prod(self.x.size)
-        self.assertEqual(n_eq, ref)
+        # num_scalar_eq_constr
+        n_eq_constr = p.size_metrics.num_scalar_eq_constr
+        ref = c2.dot(c1).size
+        # print "ref:",ref
+        self.assertEqual(n_eq_constr, ref)
 
-    def test_n_leq(self):
-        """Test the n_leq method."
-        """
-        # Test single variables
-        prob = Problem(Minimize(exp(self.a)), [self.a <= 0])
-        n_leq = prob.n_leq()
-        ref = numpy.prod(self.a.size)
-        self.assertEqual(n_leq, ref)
-        # Test long variables
-        prob = Problem(Minimize(sum_squares(self.x)), [self.x <= 0])
-        n_leq = prob.n_leq()
-        ref = numpy.prod(self.x.size)
-        self.assertEqual(n_leq, ref)
+        # num_scalar_leq_constr
+        n_leq_constr = p.size_metrics.num_scalar_leq_constr
+        ref = numpy.prod(p3.size) + numpy.prod(p2.size)
+        self.assertEqual(n_leq_constr, ref)
+
+        # max_data_dimension
+        max_data_dim = p.size_metrics.max_data_dimension
+        ref = max(p3.size)
+        self.assertEqual(max_data_dim, ref)
 
     def test_get_problem_data(self):
         """Test get_problem_data method.
@@ -249,6 +246,7 @@ class TestProblem(BaseTest):
 
                 p = Problem(Minimize(self.a + self.x[0]),
                                      [self.a >= 2, self.x >= 2])
+
                 if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)
                     p.solve(verbose=verbose, solver=solver)

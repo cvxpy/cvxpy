@@ -77,6 +77,8 @@ class Problem(u.Canonical):
         self._reset_cache()
         # List of separable (sub)problems
         self._separable_problems = None
+        # Information about the size of the problem and its constituent parts
+        self._size_metrics = SizeMetrics(self)
 
     def _reset_cache(self):
         """Resets the cached data.
@@ -154,38 +156,20 @@ class Problem(u.Canonical):
         for constr in self.constraints:
             constants_ += constr.constants()
         # Remove duplicates.
-        # Note that numpy matrices are not hashable.
+        # Note that numpy matrices are not hashable, so we use the buildin function id
         try:
-            const_dict = {hashlib.sha1(constant): constant for constant in constants_}
+            const_dict = {id(constant): constant for constant in constants_}
         except:
-            print const_dict
+            print constants_
+            # print const_dict
         return const_dict.values()
 
-    def n_variables(self):
-        """Returns the number of variables in the problem.
+    @property
+    def size_metrics(self):
+        """Returns an object containing information about the size of the problem.
         """
-        n_vars = 0
-        for var in self.variables():
-            n_vars += np.prod(var.size)
-        return n_vars
+        return self._size_metrics
 
-    def n_eq(self):
-        """Returns the number of equality constraints in the problem.
-        """
-        n_eq_constraints = 0
-        for constraint in self.constraints:
-            if constraint.__class__.__name__ is "EqConstraint":
-                n_eq_constraints += np.prod(constraint._expr.size)
-        return n_eq_constraints
-
-    def n_leq(self):
-        """Returns the number of inequality constraints in the problem.
-        """
-        n_leq_constraints = 0
-        for constraint in self.constraints:
-            if constraint.__class__.__name__ is "LeqConstraint":
-                n_leq_constraints += np.prod(constraint._expr.size)
-        return n_leq_constraints
 
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
@@ -618,3 +602,91 @@ class Problem(u.Canonical):
         return Problem(self.objective * (1.0 / other), self.constraints)
 
     __truediv__ = __div__
+
+
+class SizeMetrics(object):
+    """Reports various metrics regarding the problem
+
+    Attributes
+    ----------
+    
+    Counts:
+        num_scalar_variables:
+            The number of scalar variables in the problem.
+        num_scalar_data
+            The number of scalar constants and parameters in the problem. The number of 
+            constants used across all matrices, vectors, in the problem.
+            Some constants are not apparent when the problem is constructed: for example,
+            The sum_squares expression is a wrapper for a quad_over_lin expression with a 
+            constant 1 in the denominator.
+        num_scalar_eq_constr:
+            The number of scalar equality constraints in the problem.
+        num_scalar_leq_constr:
+            The number of scalar inequality constraints in the problem.
+
+    Max and min sizes:
+        max_data_dimension:
+            The longest dimension of any data block constraint or parameter.
+
+    """
+
+    def __init__(self, problem):
+        # num_scalar_variables
+        self._num_scalar_variables = 0
+        for var in problem.variables():
+            self._num_scalar_variables += np.prod(var.size)
+
+        # num_scalar_data and max_data_dimension
+        self._max_data_dimension = 0
+        self._num_scalar_data = 0
+        for const in problem.constants()+problem.parameters():
+            thismax = 0
+            # Compute number of data
+            self._num_scalar_data += np.prod(const.size)
+            thismax = max(const.size)
+
+            # Get max absolute residual:
+            if self._max_data_dimension < thismax:
+                self._max_data_dimension = thismax
+
+        # num_scalar_eq_constr
+        self._num_scalar_eq_constr = 0
+        for constraint in problem.constraints:
+            if constraint.__class__.__name__ is "EqConstraint":
+                self._num_scalar_eq_constr += np.prod(constraint._expr.size)
+        
+        # num_scalar_leq_constr
+        self._num_scalar_leq_constr = 0
+        for constraint in problem.constraints:
+            if constraint.__class__.__name__ is "LeqConstraint":
+                self._num_scalar_leq_constr += np.prod(constraint._expr.size)
+
+    @property
+    def num_scalar_variables(self):
+        """Returns the number of variables in the problem.
+        """
+        return self._num_scalar_variables
+
+    @property
+    def num_scalar_data(self):
+        """Returns the number of scalar data values and parameters in the problem.
+        """
+        return self._num_scalar_data
+
+    @property
+    def num_scalar_eq_constr(self):
+        """Returns the number of equality constraints in the problem.
+        """
+        return self._num_scalar_eq_constr
+
+    @property
+    def num_scalar_leq_constr(self):
+        """Returns the number of inequality constraints in the problem.
+        """
+        return self._num_scalar_leq_constr
+
+    @property
+    def max_data_dimension(self):
+        """Returns the largest dimension of any data block in the problem.
+        """
+        return self._max_data_dimension

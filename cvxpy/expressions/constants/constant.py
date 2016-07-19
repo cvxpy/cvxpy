@@ -52,7 +52,7 @@ class Constant(Leaf):
     def constants(self):
         """Returns self as a constant.
         """
-        return [self.value]
+        return [self]
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
