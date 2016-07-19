@@ -40,11 +40,11 @@ class mul_elemwise(AffAtom):
     def validate_arguments(self):
         """Checks that the arguments are valid.
 
-           Left-hand argument must be constant.
+           # Left-hand argument must be constant.
         """
-        if not self.args[0].is_constant():
-            raise ValueError( ("The first argument to mul_elemwise must "
-                               "be constant.") )
+        #if not self.args[0].is_constant():
+        #    raise ValueError( ("The first argument to mul_elemwise must "
+        #                       "be constant.") )
 
     def size_from_args(self):
         """The sum of the argument dimensions - 1.
@@ -59,12 +59,34 @@ class mul_elemwise(AffAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_positive()
+        # idx?
+        if self.args[0].is_constant():
+            return self.args[0].is_positive()
+        elif self.args[1].is_constant():
+            return self.args[1].is_positive()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_negative()
+        if self.args[0].is_constant():
+            return self.args[0].is_negative()
+        elif self.args[1].is_constant():
+            return self.args[1].is_positive()
+
+    def is_atom_multiconvex(self):
+        return True
+
+    def is_atom_convex(self):
+        if not self.args[0].is_constant() and not self.args[1].is_constant():
+            return False
+        else:
+            return True
+
+    def is_atom_concave(self):
+        if not self.args[0].is_constant() and not self.args[1].is_constant():
+            return False
+        else:
+            return True
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -86,6 +108,16 @@ class mul_elemwise(AffAtom):
         """
         # One of the arguments is a scalar, so we can use normal multiplication.
         if arg_objs[0].size != arg_objs[1].size:
-            return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
+            if lu.is_constant(arg_objs[0]):
+                return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
+            elif lu.is_constant(arg_objs[1]):
+                return (lu.mul_expr(arg_objs[1], arg_objs[0], size), [])
+            else:
+                raise ValueError("Cannot canonicalize mul_elemwise of two non-constants.")
         else:
-            return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])
+            if lu.is_constant(arg_objs[0]):
+                return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])
+            elif lu.is_constant(arg_objs[1]):
+                return (lu.mul_elemwise(arg_objs[1], arg_objs[0]), [])
+            else:
+                raise ValueError("Cannot canonicalize mul_elemwise of two non-constants.")

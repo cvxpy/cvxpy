@@ -43,8 +43,8 @@ class conv(AffAtom):
         """
         if not self.args[0].is_vector() or not self.args[1].is_vector():
             raise ValueError("The arguments to conv must resolve to vectors." )
-        if not self.args[0].is_constant():
-            raise ValueError("The first argument to conv must be constant.")
+        #if not self.args[0].is_constant():
+        #    raise ValueError("The first argument to conv must be constant.")
 
     def size_from_args(self):
         """The sum of the argument dimensions - 1.
@@ -61,12 +61,33 @@ class conv(AffAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_positive()
+        if self.args[0].is_constant():
+            return self.args[0].is_positive()
+        elif self.args[1].is_constant():
+            return self.args[1].is_positive()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_negative()
+        if self.args[0].is_constant():
+            return self.args[0].is_negative()
+        elif self.args[1].is_constant():
+            return self.args[1].is_negative()
+
+    def is_atom_convex(self):
+        if not self.args[0].is_constant() and not self.args[1].is_constant():
+            return False
+        else:
+            return True
+
+    def is_atom_concave(self):
+        if not self.args[0].is_constant() and not self.args[1].is_constant():
+            return False
+        else:
+            return True
+
+    def is_atom_multiconvex(self):
+        return True
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -86,4 +107,9 @@ class conv(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.conv(arg_objs[0], arg_objs[1], size), [])
+        if lu.is_constant(arg_objs[0]):
+            return (lu.conv(arg_objs[0], arg_objs[1], size), [])
+        elif lu.is_constant(arg_objs[1]):
+            return (lu.conv(arg_objs[1], arg_objs[0], size), [])
+        else:
+            raise ValueError("Cannot canonicalize conv of two non-constants.")

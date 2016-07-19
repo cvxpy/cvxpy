@@ -65,17 +65,26 @@ class MulExpression(BinaryOperator):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_positive()
+        if self.args[0].is_constant():
+            return self.args[0].is_positive()
+        elif self.args[1].is_constant():
+            return self.args[1].is_positive()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_negative()
+        if self.args[0].is_constant():
+            return self.args[0].is_negative()
+        elif self.args[1].is_constant():
+            return self.args[1].is_negative()
 
     def validate_arguments(self):
         """Validates the dimensions.
         """
         u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+
+    def is_atom_multiconvex(self):
+        return True
 
     def is_atom_convex(self):
         if not self.args[0].is_constant() and not self.args[1].is_constant():

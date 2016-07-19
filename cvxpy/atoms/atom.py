@@ -306,6 +306,11 @@ class Atom(Expression):
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
+    def is_atom_multiconvex(self):
+        """Is the atom multiconvec?
+        """
+        return False
+
     def _domain(self):
         """Returns constraints describing the domain of the atom.
         """

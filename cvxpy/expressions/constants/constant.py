@@ -100,3 +100,6 @@ class Constant(Leaf):
         return "Constant(%s, %s, %s)" % (self.curvature,
                                          self.sign,
                                          self.size)
+
+    def is_atom_multiconvex(self):
+        return False

@@ -113,11 +113,12 @@ def search_conflict(expr,t,varid):
     """
     for arg in expr.args:
         t = search_conflict(arg,t,varid)
-    try:
-        op = expr.OP_NAME
-    except AttributeError:
-        op = None
-    if op == '*' and not expr.args[0].is_constant() and not expr.args[1].is_constant(): # multiplication of two vars
+    #try:
+    #    op = expr.OP_NAME
+    #except AttributeError:
+    #    op = None
+    #if op == '*' and not expr.args[0].is_constant() and not expr.args[1].is_constant(): # multiplication of two vars
+    if expr.is_atom_multiconvex() and not expr.args[0].is_constant() and not expr.args[1].is_constant():
         id1 = [var.id for var in expr.args[0].variables()] # var ids in left child node
         id2 = [var.id for var in expr.args[1].variables()]
         index1 = [varid.index(vi) for vi in id1] # table index in left child node

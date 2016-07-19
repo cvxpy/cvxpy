@@ -7,7 +7,7 @@ import numpy as np
 from initial import dccp_ini
 import cvxpy as cvx
 
-def bcd(prob, max_iter = 100, solver = None, mu=5e-3, rho=1.5, mu_max = 1e5, ep = 1e-3, random_ini = 1, random_times = 3, lambd = 10, linear=False, proximal=True):
+def bcd(prob, max_iter = 100, solver = 'SCS', mu=5e-3, rho=1.5, mu_max = 1e5, ep = 1e-3, random_ini = 1, random_times = 3, lambd = 10, linear=False, proximal=True):
     # check if the problem is DMCP, and find the maximal sets
     convex_sets = find_maxset_graph(prob)
     if convex_sets is None:
@@ -23,8 +23,10 @@ def bcd(prob, max_iter = 100, solver = None, mu=5e-3, rho=1.5, mu_max = 1e5, ep 
         cost_value = -float("inf")
     if not random_ini:
         random_times = 1
+    var_solution = []
     for t in range(random_times):
-        dccp_ini(prob, random = random_ini)
+        if random_ini:
+            dccp_ini(prob, random = random_ini)
         result_temp = _bcd(prob, convex_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linear, proximal)
         #result_temp = _joint(prob, convex_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linear, proximal)
         if result_temp is None:
@@ -34,6 +36,12 @@ def bcd(prob, max_iter = 100, solver = None, mu=5e-3, rho=1.5, mu_max = 1e5, ep 
                 if t==0 or result[1]<1e-4: # first iteration; slack small enough
                     result = result_temp # update the result
                     cost_value = prob.objective.value # update the record on the best cost value
+                    var_solution = [] # store the new solution
+                    for var in prob.variables():
+                        var_solution.append(var.value)
+    if var_solution is not None:
+        for idx, var in enumerate(prob.variables()):
+            var.value = var_solution[idx]
     print "===="
     print "number of iterations:", result[0]
     print "max slack:", result[1]
@@ -88,7 +96,6 @@ def _bcd(prob, convex_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linear
         for set in convex_sets:
             set_id = [var.id for var in set]
             fix_set = [var for var in prob.variables() if var.id not in set_id]
-            print fix_set
             # fix variables in fix_set
             fixed_p = fix_prob(prob,fix_set)
             # linear
@@ -176,15 +183,15 @@ def add_slack(prob, mu):
     new_cost = prob.objective.args[0]
     if prob.objective.NAME == 'minimize':
         for var in var_slack:
-            new_cost  =  new_cost + sum_entries(abs(var))*mu
+            new_cost  =  new_cost + norm(var,1)*mu
         new_prob = Problem(Minimize(new_cost), new_constr)
     else: # maximize
         for var in var_slack:
-            new_cost  =  new_cost - sum_entries(abs(var))*mu
+            new_cost  =  new_cost - norm(var,1)*mu
         new_prob = Problem(Maximize(new_cost), new_constr)
     return new_prob, var_slack
 
-def proximal_op(prob, var_slack, lambd=10):
+def proximal_op(prob, var_slack, lambd):
     """
     proximal operator of the objective
     :param prob: problem

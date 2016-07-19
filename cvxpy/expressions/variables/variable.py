@@ -108,3 +108,6 @@ class Variable(Leaf):
         """String to recreate the object.
         """
         return "Variable(%d, %d)" % self.size
+
+    def is_atom_multiconvex(self):
+        return False

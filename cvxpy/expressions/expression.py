@@ -145,6 +145,9 @@ class Expression(u.Canonical):
         """
         return self.is_convex() or self.is_concave()
 
+    #def is_multiconvex(self):
+    #    return False
+
     # Sign properties.
 
     @property

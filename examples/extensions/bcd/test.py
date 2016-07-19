@@ -16,7 +16,7 @@ y = NonNegative(1)
 #prob = Problem(Minimize(inv_pos(x+1)*exp(y)), [x==y])
 prob = Problem(Minimize(alpha), [exp(x) <= (x+1)*alpha])
 
-prob.solve(method = 'bcd',solver = 'SCS', rho=1.1)
+prob.solve(method = 'bcd', rho=1.1)
 print "======= solution ======="
 for var in prob.variables():
     print var.name(), "=", var.value
