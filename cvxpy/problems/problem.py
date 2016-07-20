@@ -158,7 +158,7 @@ class Problem(u.Canonical):
         # Remove duplicates.
         # Note that numpy matrices are not hashable, so we use the buildin function id
         const_dict = {id(constant): constant for constant in constants_}
-        return const_dict.values()
+        return list(const_dict.values())
 
     @property
     def size_metrics(self):

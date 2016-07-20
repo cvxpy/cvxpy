@@ -218,7 +218,7 @@ class Atom(Expression):
             const_list += arg.constants()
         # Remove duplicates:
         const_dict = {id(constant): constant for constant in const_list}
-        return const_dict.values()
+        return list(const_dict.values())
 
     @property
     def value(self):

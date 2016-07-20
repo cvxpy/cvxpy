@@ -130,7 +130,10 @@ class TestProblem(BaseTest):
         # num_scalar_variables
         n_variables = p.size_metrics.num_scalar_variables
         ref = numpy.prod(self.a.size) + numpy.prod(self.b.size) + numpy.prod(self.c.size)
-        self.assertEqual(n_variables, ref)
+        if PY2:
+            self.assertEqual(n_variables, ref)
+        else:
+            self.assertEqual(n_variables, ref)
 
         # num_scalar_data
         n_data = p.size_metrics.num_scalar_data
