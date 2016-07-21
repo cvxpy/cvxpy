@@ -49,6 +49,11 @@ class Constant(Leaf):
     def name(self):
         return str(self.value)
 
+    def constants(self):
+        """Returns self as a constant.
+        """
+        return [self]
+
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
