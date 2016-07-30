@@ -79,6 +79,8 @@ class Problem(u.Canonical):
         self._separable_problems = None
         # Information about the size of the problem and its constituent parts
         self._size_metrics = SizeMetrics(self)
+        # Benchmarks reported by the solver:
+        self._solver_stats = SolverStats()
 
     def _reset_cache(self):
         """Resets the cached data.
@@ -166,6 +168,11 @@ class Problem(u.Canonical):
         """
         return self._size_metrics
 
+    @property
+    def solver_stats(self):
+        """Returns an object containing additional information returned by the solver.
+        """
+        return self._solver_stats
 
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
@@ -438,6 +445,7 @@ class Problem(u.Canonical):
             raise SolverError(
                 "Solver '%s' failed. Try another solver." % solver.name())
         self._status = results_dict[s.STATUS]
+        self._solver_stats.update(results_dict)
 
     def unpack_results(self, solver_name, results_dict):
         """Parses the output from a solver and updates the problem state.
@@ -600,6 +608,43 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
+class SolverStats(object):
+    """Reports some of the miscellaneous information that is returned 
+    by the solver after solving but that is not captured directly by 
+    the Problem instance.
+
+    Attributes
+    ----------
+    solve_time : double
+        The time (in seconds) it took for the solver to solve the problem.
+    setup_time : double
+        The time (in seconds) it took for the solver to setup the problem.
+    num_iters : int
+        The number of iterations the solver had to go through to find a solution.
+    """
+    def __init__(self):
+        self.solve_time = None
+        self.setup_time = None
+        self.num_iters = None
+
+    def update(self, results_dict):
+        """Update the solver stats using the results_dict
+        returned by the solver interface.
+
+        Parameters
+        ----------
+        results_dict : dict
+            Data returned by solver.
+        """
+        if s.SOLVE_TIME in results_dict:
+            self.solve_time = results_dict[s.SOLVE_TIME]
+        if s.SETUP_TIME in results_dict:
+            self.setup_time = results_dict[s.SETUP_TIME]
+        if s.NUM_ITERS in results_dict:
+            self.num_iters = results_dict[s.NUM_ITERS]
+
+
+
 class SizeMetrics(object):
     """Reports various metrics regarding the problem
 
@@ -609,7 +654,7 @@ class SizeMetrics(object):
     Counts:
         num_scalar_variables:
             The number of scalar variables in the problem.
-        num_scalar_data
+        num_scalar_data:
             The number of scalar constants and parameters in the problem. The number of 
             constants used across all matrices, vectors, in the problem.
             Some constants are not apparent when the problem is constructed: for example,
@@ -656,3 +701,6 @@ class SizeMetrics(object):
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "LeqConstraint":
                 self.num_scalar_leq_constr += np.prod(constraint._expr.size)
+
+
+

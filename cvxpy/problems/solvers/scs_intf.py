@@ -130,6 +130,12 @@ class SCS(ECOS):
         new_results = {}
         status = self.STATUS_MAP[results_dict["info"]["status"]]
         new_results[s.STATUS] = status
+
+        # Timing and iteration data
+        new_results[s.SOLVE_TIME] = results_dict["info"]["solveTime"]/1000
+        new_results[s.SETUP_TIME] = results_dict["info"]["setupTime"]/1000
+        new_results[s.NUM_ITERS]  = results_dict["info"]["iter"]
+
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # Save previous result for possible future warm_start.
             solver_cache.prev_result = {"x": results_dict["x"],

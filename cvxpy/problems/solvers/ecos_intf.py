@@ -144,6 +144,12 @@ class ECOS(Solver):
         new_results = {}
         status = self.STATUS_MAP[results_dict['info']['exitFlag']]
         new_results[s.STATUS] = status
+
+        # Timing data
+        new_results[s.SOLVE_TIME] = results_dict["info"]["timing"]["tsolve"]
+        new_results[s.SETUP_TIME] = results_dict["info"]["timing"]["tsetup"]
+        new_results[s.NUM_ITERS]  = results_dict["info"]["iter"]
+
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['info']['pcost']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
