@@ -34,6 +34,7 @@ import cvxopt
 import numpy as np
 import numpy.linalg as LA
 import math
+import sys
 from nose.tools import assert_raises
 
 ROBUST_CVXOPT = "robust_cvxopt"
@@ -313,11 +314,13 @@ def test_atom():
                             variables.append( Variable(*intf.size(expr) ))
                             constraints.append( variables[-1] == expr)
                         objective = objective_type(atom(*variables)[row,col])
-                        yield (run_atom,
-                               atom,
-                               Problem(objective, constraints),
-                               obj_val[row,col].value,
-                               solver)
+                        # TODO In Anaconda, CVXOPT and SCS are broken.
+                        if sys.platform not in ['win32', 'win64']:
+                            yield (run_atom,
+                                   atom,
+                                   Problem(objective, constraints),
+                                   obj_val[row,col].value,
+                                   solver)
                         # Atoms with Parameter arguments.
                         parameters = []
                         for expr in args:
