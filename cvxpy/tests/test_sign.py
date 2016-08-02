@@ -20,8 +20,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy import Constant, Variable
 import cvxpy.settings as s
 from nose.tools import *
+from cvxpy.tests.base_test import BaseTest
 
-class TestSign(object):
+
+class TestSign(BaseTest):
   """ Unit tests for the expression/sign class. """
   @classmethod
   def setup_class(self):
@@ -31,28 +33,28 @@ class TestSign(object):
       self.unknown = Variable()
 
   def test_add(self):
-      assert_equals( (self.pos + self.neg).sign, self.unknown.sign)
-      assert_equals( (self.neg + self.zero).sign, self.neg.sign)
-      assert_equals( (self.pos + self.pos).sign, self.pos.sign)
-      assert_equals( (self.unknown + self.zero).sign, self.unknown.sign)
+      self.assertEqual( (self.pos + self.neg).sign, self.unknown.sign)
+      self.assertEqual( (self.neg + self.zero).sign, self.neg.sign)
+      self.assertEqual( (self.pos + self.pos).sign, self.pos.sign)
+      self.assertEqual( (self.unknown + self.zero).sign, self.unknown.sign)
 
   def test_sub(self):
-      assert_equals( (self.pos - self.neg).sign, self.pos.sign)
-      assert_equals( (self.neg - self.zero).sign, self.neg.sign)
-      assert_equals( (self.pos - self.pos).sign, self.unknown.sign)
+      self.assertEqual( (self.pos - self.neg).sign, self.pos.sign)
+      self.assertEqual( (self.neg - self.zero).sign, self.neg.sign)
+      self.assertEqual( (self.pos - self.pos).sign, self.unknown.sign)
 
   def test_mult(self):
-      assert_equals( (self.zero * self.pos).sign, self.zero.sign)
-      assert_equals( (self.unknown * self.pos).sign, self.unknown.sign)
-      assert_equals( (self.pos * self.neg).sign, self.neg.sign)
-      assert_equals( (self.pos * self.pos).sign, self.pos.sign)
-      assert_equals( (self.pos * self.pos).sign, self.pos.sign)
-      assert_equals( (self.neg * self.neg).sign, self.pos.sign)
-      assert_equals( (self.zero * self.unknown).sign, self.zero.sign)
+      self.assertEqual( (self.zero * self.pos).sign, self.zero.sign)
+      self.assertEqual( (self.unknown * self.pos).sign, self.unknown.sign)
+      self.assertEqual( (self.pos * self.neg).sign, self.neg.sign)
+      self.assertEqual( (self.pos * self.pos).sign, self.pos.sign)
+      self.assertEqual( (self.pos * self.pos).sign, self.pos.sign)
+      self.assertEqual( (self.neg * self.neg).sign, self.pos.sign)
+      self.assertEqual( (self.zero * self.unknown).sign, self.zero.sign)
 
   def test_neg(self):
-      assert_equals( (-self.zero).sign, self.zero.sign)
-      assert_equals( (-self.pos).sign, self.neg.sign)
+      self.assertEqual( (-self.zero).sign, self.zero.sign)
+      self.assertEqual( (-self.pos).sign, self.neg.sign)
 
   # Tests the is_positive and is_negative methods.
   def test_is_sign(self):

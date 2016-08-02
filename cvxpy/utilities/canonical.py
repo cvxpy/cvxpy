@@ -63,6 +63,15 @@ class Canonical(object):
         """
         return NotImplemented
 
+    @abc.abstractmethod
+    def constants(self):
+        """The objects constant objects.
+
+        Returns:
+            A list of Constant objects.
+        """
+        return NotImplemented
+
     def copy(self, args=None):
         """Returns a shallow copy of the object.
 

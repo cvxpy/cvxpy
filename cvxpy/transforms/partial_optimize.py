@@ -142,6 +142,11 @@ class PartialProblem(Expression):
         """
         return self.args[0].parameters()
 
+    def constants(self):
+        """Returns the constants in the problem.
+        """
+        return self.args[0].constants()
+
     @property
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.

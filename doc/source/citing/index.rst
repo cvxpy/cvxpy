@@ -11,7 +11,7 @@ Use the following BibTeX citation:
 
     @article{cvxpy,
       author  = {Steven Diamond and Stephen Boyd},
-      title   = {CVXPY: A Python-Embedded Modeling Language for Convex Optimization},
+      title   = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization},
       journal = {Journal of Machine Learning Research},
       year    = {2016},
       volume  = {17},
