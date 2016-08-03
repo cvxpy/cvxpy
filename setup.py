@@ -24,7 +24,7 @@ setup(
               'cvxpy.transforms',
               'cvxpy.utilities'],
     package_dir={'cvxpy': 'cvxpy'},
-        url='http://github.com/cvxgrp/cvxpy/',
+    url='http://github.com/cvxgrp/cvxpy/',
     license='GPLv3',
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization problems in Python.',

@@ -71,7 +71,8 @@ class GLPK_MI(GLPK):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.glpk
+        import cvxopt
+        import cvxopt.glpk
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
         old_options = cvxopt.glpk.options.copy()

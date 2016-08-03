@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-#from cvxpy.interface.base_matrix_interface import BaseMatrixInterface
 from cvxpy.interface import base_matrix_interface
 import numpy as np
 import scipy.sparse as sp
