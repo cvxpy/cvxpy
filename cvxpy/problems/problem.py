@@ -652,22 +652,26 @@ class SizeMetrics(object):
     ----------
     
     Counts:
-        num_scalar_variables:
+        num_scalar_variables : integer
             The number of scalar variables in the problem.
-        num_scalar_data:
+        num_scalar_data : integer
             The number of scalar constants and parameters in the problem. The number of 
             constants used across all matrices, vectors, in the problem.
             Some constants are not apparent when the problem is constructed: for example,
             The sum_squares expression is a wrapper for a quad_over_lin expression with a 
             constant 1 in the denominator.
-        num_scalar_eq_constr:
+        num_scalar_eq_constr : integer
             The number of scalar equality constraints in the problem.
-        num_scalar_leq_constr:
+        num_scalar_leq_constr : integer
             The number of scalar inequality constraints in the problem.
 
     Max and min sizes:
-        max_data_dimension:
+        max_data_dimension : integer
             The longest dimension of any data block constraint or parameter.
+        max_big_small_squared : integer
+            The maximum value of (big)(small)^2 over all data blocks of the problem, where
+            (big) is the larger dimension and (small) is the smaller dimension 
+            for each data block.
 
     """
 
@@ -677,18 +681,23 @@ class SizeMetrics(object):
         for var in problem.variables():
             self.num_scalar_variables += np.prod(var.size)
 
-        # num_scalar_data and max_data_dimension
+        # num_scalar_data, max_data_dimension, and max_big_small_squared
         self.max_data_dimension = 0
         self.num_scalar_data = 0
+        self.max_big_small_squared = 0
         for const in problem.constants()+problem.parameters():
-            thismax = 0
+            big = 0
             # Compute number of data
             self.num_scalar_data += np.prod(const.size)
-            thismax = max(const.size)
+            big = max(const.size)
+            small = min(const.size)
 
-            # Get max absolute residual:
-            if self.max_data_dimension < thismax:
-                self.max_data_dimension = thismax
+            # Get max data dimension:
+            if self.max_data_dimension < big:
+                self.max_data_dimension = big
+
+            if self.max_big_small_squared < big*small*small:
+                self.max_big_small_squared = big*small*small
 
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
