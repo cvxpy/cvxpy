@@ -9,6 +9,7 @@ import warnings
 
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self):
         """Test quad form with a singular matrix.

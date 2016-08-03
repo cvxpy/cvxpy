@@ -27,6 +27,7 @@ import scipy
 import numpy as np
 import copy
 
+
 class CVXOPT(Solver):
     """An interface for the CVXOPT solver.
     """

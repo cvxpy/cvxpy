@@ -23,6 +23,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
 
+
 def format_axis(t, X, axis):
     """Formats all the row/column cones for the solver.
 
@@ -62,6 +63,7 @@ def format_axis(t, X, axis):
     terms += [lu.mul_expr(X_mat, X, prod_size)]
     return [lu.create_geq(lu.sum_expr(terms))]
 
+
 def format_elemwise(vars_):
     """Formats all the elementwise cones for the solver.
 
@@ -86,6 +88,7 @@ def format_elemwise(vars_):
         mat = get_spacing_matrix(mat_size, spacing, i)
         terms.append(lu.mul_expr(mat, var, prod_size))
     return [lu.create_geq(lu.sum_expr(terms))]
+
 
 def get_spacing_matrix(size, spacing, offset):
     """Returns a sparse matrix LinOp that spaces out an expression.

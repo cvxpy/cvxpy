@@ -21,6 +21,7 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
 import numpy as np
 
+
 class SCS(ECOS):
     """An interface for the SCS solver.
     """

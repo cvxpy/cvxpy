@@ -28,8 +28,10 @@ import sys
 if sys.version_info >= (3, 0):
     from functools import reduce
 
+
 class TestSCS(BaseTest):
     """ Unit tests for the nonlinear atoms module. """
+
     def setUp(self):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')

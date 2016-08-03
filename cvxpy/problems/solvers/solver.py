@@ -23,6 +23,7 @@ import cvxpy.settings as s
 from cvxpy.problems.problem_data.matrix_data import MatrixData
 from cvxpy.problems.problem_data.sym_data import SymData
 
+
 class Solver(object):
     """Generic interface for a solver.
     """
@@ -174,7 +175,6 @@ class Solver(object):
         if prob_data.sym_data is None:
             prob_data.sym_data = SymData(objective, constraints, self)
         return prob_data.sym_data
-
 
     def get_matrix_data(self, objective, constraints, cached_data):
         """Returns the numeric data for the problem.

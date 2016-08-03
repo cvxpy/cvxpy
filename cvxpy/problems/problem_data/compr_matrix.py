@@ -19,10 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import scipy.sparse as sp
 import numpy as np
 
+
 def get_row_nnz(mat, row):
     """Return the number of nonzeros in row.
     """
     return mat.indptr[row+1] - mat.indptr[row]
+
 
 def compress_matrix(A, b, equil_eps=1e-10):
     """Compresses A and b by eliminating redundant rows.

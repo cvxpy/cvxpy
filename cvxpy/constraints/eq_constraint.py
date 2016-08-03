@@ -22,9 +22,11 @@ from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class EqConstraint(LeqConstraint):
     OP_NAME = "=="
     # Both sides must be affine.
+
     def is_dcp(self):
         return self._expr.is_affine()
 

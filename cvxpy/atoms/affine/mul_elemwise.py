@@ -22,6 +22,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class mul_elemwise(AffAtom):
     """ Multiplies two expressions elementwise.
 

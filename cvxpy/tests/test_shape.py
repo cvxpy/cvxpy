@@ -21,8 +21,10 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.utilities import shape
 import unittest
 
+
 class TestShape(unittest.TestCase):
     """ Unit tests for the expressions/shape module. """
+
     def setUp(self):
         pass
 

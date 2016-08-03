@@ -26,6 +26,7 @@ import numpy as np
 from .power import power
 from fractions import Fraction
 
+
 class huber(Elementwise):
     """The Huber function
 
@@ -39,6 +40,7 @@ class huber(Elementwise):
         A CVXPY expression.
     M : int/float or Parameter
     """
+
     def __init__(self, x, M=1):
         self.M = self.cast_to_const(M)
         super(huber, self).__init__(x)

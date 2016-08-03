@@ -30,11 +30,13 @@ import numpy as np
 if sys.version_info >= (3, 0):
     from functools import reduce
 
+
 class BinaryOperator(AffAtom):
     """
     Base class for expressions involving binary operators.
 
     """
+
     def __init__(self, lh_exp, rh_exp):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
@@ -53,10 +55,10 @@ class BinaryOperator(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
+
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
-
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
@@ -102,6 +104,7 @@ class MulExpression(BinaryOperator):
             arg_objs[1] = lu.diag_vec(arg)
         return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 
+
 class RMulExpression(MulExpression):
     """Multiplication by a constant on the right.
     """
@@ -145,7 +148,6 @@ class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3, 0)) else op.__div__
 
-
     def is_quadratic(self):
         return self.args[0].is_quadratic() and self.args[1].is_constant()
 
@@ -163,7 +165,6 @@ class DivExpression(BinaryOperator):
         """Is the composition non-increasing in argument idx?
         """
         return self.args[1].is_negative()
-
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

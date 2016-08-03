@@ -21,6 +21,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
+
 class vstack(AffAtom):
     """ Vertical concatenation """
     # Returns the vstack of the values.

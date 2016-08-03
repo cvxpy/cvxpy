@@ -19,5 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 
+
 def min_elemwise(*args):
     return -max_elemwise(*[-Elementwise.cast_to_const(arg) for arg in args])

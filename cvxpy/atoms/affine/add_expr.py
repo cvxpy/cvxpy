@@ -28,6 +28,7 @@ import operator as op
 if sys.version_info >= (3, 0):
     from functools import reduce
 
+
 class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """

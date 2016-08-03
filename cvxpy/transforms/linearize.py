@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import reshape, vec
 from cvxpy.expressions.constants import Constant
 
+
 def linearize(expr):
     """Returns the tangent approximation to the expression.
 

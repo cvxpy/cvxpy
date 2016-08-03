@@ -22,6 +22,7 @@ from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 
+
 class Minimize(u.Canonical):
     """An optimization objective for minimization.
     """
@@ -125,6 +126,7 @@ class Minimize(u.Canonical):
         """The value of the objective given the solver primal value.
         """
         return result
+
 
 class Maximize(Minimize):
     """An optimization objective for maximization.

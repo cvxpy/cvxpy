@@ -24,9 +24,11 @@ from cvxpy.atoms.affine.index import index
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 
+
 class log(Elementwise):
     """Elementwise :math:`\log x`.
     """
+
     def __init__(self, x):
         super(log, self).__init__(x)
 

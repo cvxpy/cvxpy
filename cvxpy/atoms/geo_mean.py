@@ -265,7 +265,6 @@ class geo_mean(Atom):
             D = w_arr/x.A.ravel(order='F')*self.numeric(values)
             return [sp.csc_matrix(D).T]
 
-
     def name(self):
         return "%s(%s, (%s))" % (self.__class__.__name__,
                                  self.args[0].name(),

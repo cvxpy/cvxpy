@@ -24,6 +24,7 @@ import numpy as np
 from cvxpy.problems.solvers.solver import Solver
 from scipy.sparse import dok_matrix
 
+
 class GUROBI(Solver):
     """An interface for the Gurobi solver.
     """

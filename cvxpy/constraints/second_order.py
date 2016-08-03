@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint
 
+
 class SOC(Constraint):
     """A second-order cone constraint, i.e., norm2(x) <= t.
 
@@ -29,6 +30,7 @@ class SOC(Constraint):
         t: The scalar part of the second-order constraint.
         x_elems: The elements of the vector part of the constraint.
     """
+
     def __init__(self, t, x_elems):
         self.t = t
         self.x_elems = x_elems

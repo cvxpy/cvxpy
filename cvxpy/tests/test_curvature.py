@@ -22,6 +22,7 @@ from cvxpy import Constant, Variable, Parameter
 import cvxpy.settings as s
 from nose.tools import assert_equals
 
+
 class TestCurvature(object):
     """ Unit tests for the expression/curvature class. """
     @classmethod

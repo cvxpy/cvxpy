@@ -22,6 +22,7 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 import numpy as np
 
+
 class Elemental(Solver):
     """An interface for the Elemental solver.
     """

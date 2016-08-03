@@ -23,6 +23,7 @@ import cvxopt
 import numpy
 import numbers
 
+
 class SparseMatrixInterface(DenseMatrixInterface):
     """
     An interface to convert constant values to the cvxopt sparse matrix class.

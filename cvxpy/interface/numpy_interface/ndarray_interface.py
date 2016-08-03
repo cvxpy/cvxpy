@@ -24,6 +24,7 @@ import numbers
 import scipy.sparse
 import cvxopt
 
+
 class NDArrayInterface(base.BaseMatrixInterface):
     """
     An interface to convert constant values to the numpy ndarray class.

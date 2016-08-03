@@ -25,9 +25,11 @@ import abc
 from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
+
 class LeqConstraint(u.Canonical, Constraint):
     OP_NAME = "<="
     TOLERANCE = 1e-4
+
     def __init__(self, lh_exp, rh_exp):
         self.args = [lh_exp, rh_exp]
         self._expr = lh_exp - rh_exp

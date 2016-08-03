@@ -166,7 +166,6 @@ class Problem(u.Canonical):
         """
         return self._size_metrics
 
-
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
 

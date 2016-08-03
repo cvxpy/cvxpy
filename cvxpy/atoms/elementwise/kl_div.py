@@ -24,10 +24,12 @@ from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
+
 class kl_div(Elementwise):
     """:math:`x\log(x/y) - x + y`
 
     """
+
     def __init__(self, x, y):
         super(kl_div, self).__init__(x, y)
 

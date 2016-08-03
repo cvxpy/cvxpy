@@ -28,6 +28,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace
 import copy
 
+
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
     """Partially optimizes the given problem over the specified variables.
 
@@ -72,6 +73,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
 
     return PartialProblem(prob, opt_vars, dont_opt_vars)
 
+
 class PartialProblem(Expression):
     """A partial optimization problem.
 
@@ -82,6 +84,7 @@ class PartialProblem(Expression):
     dont_opt_vars : list
         The variables to not optimize over.
     """
+
     def __init__(self, prob, opt_vars, dont_opt_vars):
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars

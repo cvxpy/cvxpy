@@ -25,10 +25,12 @@ import numpy as np
 import scipy.sparse as sp
 import scipy as scipy
 
+
 class quad_over_lin(Atom):
     """ :math:`(sum_{ij}X^2_{ij})/y`
 
     """
+
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
 

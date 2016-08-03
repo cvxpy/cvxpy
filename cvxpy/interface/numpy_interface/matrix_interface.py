@@ -23,6 +23,7 @@ import scipy.sparse as sp
 import numpy as np
 import cvxopt
 
+
 class MatrixInterface(NDArrayInterface):
     """
     An interface to convert constant values to the numpy matrix class.

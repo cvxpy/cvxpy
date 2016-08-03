@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 
+
 def pos(x):
     """ Alias for max_elemwise{x,0}.
 

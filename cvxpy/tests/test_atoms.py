@@ -28,8 +28,10 @@ import unittest
 from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestAtoms(BaseTest):
     """ Unit tests for the atoms module. """
+
     def setUp(self):
         self.a = Variable(name='a')
 
@@ -57,7 +59,6 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[0] is self.A)
         self.assertTrue(copy.args[1] is self.B)
         self.assertEqual(copy.get_data(), atom.get_data())
-
 
     # Test the normInf class.
     def test_normInf(self):
@@ -135,7 +136,6 @@ class TestAtoms(BaseTest):
                 self.assertTrue(copy.args[0] is self.y)
                 self.assertEqual(copy.get_data(), atom.get_data())
 
-
     # Test the geo_mean class.
     def test_geo_mean(self):
         atom = geo_mean(self.x)
@@ -155,7 +155,6 @@ class TestAtoms(BaseTest):
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
-
 
     # Test the harmonic_mean class.
     def test_harmonic_mean(self):
@@ -235,7 +234,6 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
 
-
     def test_quad_over_lin(self):
         # Test quad_over_lin DCP.
         atom = quad_over_lin(square(self.x), self.a)
@@ -305,7 +303,6 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
 
-
     def test_min_entries(self):
         """Test min_entries.
         """
@@ -326,7 +323,6 @@ class TestAtoms(BaseTest):
             min_entries(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
-
 
     # Test sign logic for max_elemwise.
     def test_max_elemwise_sign(self):
@@ -406,7 +402,6 @@ class TestAtoms(BaseTest):
             sum_entries(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
-
 
     def test_mul_elemwise(self):
         """Test the mul_elemwise atom.

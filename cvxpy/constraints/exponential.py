@@ -28,6 +28,7 @@ from cvxpy.constraints.utilities import format_elemwise
 import math
 import cvxopt
 
+
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
 

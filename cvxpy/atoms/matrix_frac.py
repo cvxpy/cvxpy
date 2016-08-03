@@ -26,8 +26,10 @@ from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 
+
 class matrix_frac(Atom):
     """ tr X.T*P^-1*X """
+
     def __init__(self, X, P):
         super(matrix_frac, self).__init__(X, P)
 
@@ -76,7 +78,6 @@ class matrix_frac(Atom):
             DP = -DP.T
             DP = sp.csc_matrix(DP.T.ravel(order='F')).T
             return [DX, DP]
-
 
     def validate_arguments(self):
         """Checks that the dimensions of x and P match.

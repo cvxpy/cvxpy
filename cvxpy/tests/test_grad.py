@@ -30,8 +30,10 @@ import unittest
 from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestGrad(BaseTest):
     """ Unit tests for the grad module. """
+
     def setUp(self):
         self.a = Variable(name='a')
 
@@ -112,7 +114,6 @@ class TestGrad(BaseTest):
         self.A.value = np.matrix([[0, 1], [-1, 0]])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(),
                                     np.transpose(np.matrix([[1.0/(1+1.0/e), 1.0/e/(1+1.0/e), 0, 0], [0, 0, e/(1+e), 1.0/(1+e)]])))
-
 
     def test_geo_mean(self):
         """Test gradient for geo_mean
@@ -383,7 +384,6 @@ class TestGrad(BaseTest):
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag(-(np.log([1, 2, 3, 4]) + 1))
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
-
 
     def test_exp(self):
         """Test domain for exp.

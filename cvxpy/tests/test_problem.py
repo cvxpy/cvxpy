@@ -47,8 +47,10 @@ else:
 
 from nose.tools import set_trace
 
+
 class TestProblem(BaseTest):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -344,6 +346,7 @@ class TestProblem(BaseTest):
         eq = (self.x == 2)
         le = (self.x <= 2)
         obj = 0
+
         def test(self):
             objective, constraints = self.canonicalize()
             sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
@@ -949,7 +952,6 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
-
         c = matrix(1, (2, 2))
         p = Problem(Minimize(sum_entries(vstack(self.A, self.C))),
                     [self.A >= 2*c,
@@ -986,7 +988,6 @@ class TestProblem(BaseTest):
                     [self.x == [1, 2]])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
-
 
         c = matrix(1, (2, 2))
         p = Problem(Minimize(sum_entries(hstack(self.A.T, self.C.T))),
@@ -1401,7 +1402,6 @@ class TestProblem(BaseTest):
         result = prob.solve(solver=s.CVXOPT)
         self.assertEqual(prob.status, s.UNBOUNDED)
 
-
     def test_psd_duals(self):
         """Test the duals of PSD constraints.
         """
@@ -1531,7 +1531,6 @@ class TestProblem(BaseTest):
         Problem(Maximize(geo_mean(y)), [x <= 1]).solve()
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
-
 
     def test_pnorm(self):
         import numpy as np

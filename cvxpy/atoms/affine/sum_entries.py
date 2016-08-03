@@ -23,6 +23,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class sum_entries(AxisAtom, AffAtom):
     """ Summing the entries of an expression.
 

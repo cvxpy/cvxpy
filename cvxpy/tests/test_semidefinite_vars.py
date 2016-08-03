@@ -26,8 +26,10 @@ import numpy as np
 from cvxpy.tests.base_test import BaseTest
 import unittest
 
+
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
+
     def setUp(self):
         self.X = Semidef(2)
         self.Y = Variable(2, 2)

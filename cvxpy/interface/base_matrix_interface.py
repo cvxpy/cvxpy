@@ -22,6 +22,7 @@ import abc
 import numbers
 import numpy as np
 
+
 class BaseMatrixInterface(object):
     """
     An interface between constants' internal values

@@ -23,10 +23,12 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class conv(AffAtom):
     """ 1D discrete convolution of two vectors.
     """
     # TODO work with right hand constant.
+
     def __init__(self, lh_expr, rh_expr):
         super(conv, self).__init__(lh_expr, rh_expr)
 

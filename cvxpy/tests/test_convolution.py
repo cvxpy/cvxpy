@@ -24,6 +24,7 @@ import cvxpy.problems.iterative as iterative
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
+
 class TestConvolution(BaseTest):
     """ Unit tests for convolution. """
 

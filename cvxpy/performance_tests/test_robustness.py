@@ -27,8 +27,10 @@ from cvxopt import matrix
 import scipy.sparse as sp
 import unittest
 
+
 class TestProblem(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')

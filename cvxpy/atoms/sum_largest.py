@@ -24,9 +24,11 @@ from cvxpy.atoms.affine.sum_entries import sum_entries
 import numpy as np
 import scipy.sparse as sp
 
+
 class sum_largest(Atom):
     """Sum of the largest k values in the matrix X.
     """
+
     def __init__(self, x, k):
         self.k = k
         super(sum_largest, self).__init__(x)

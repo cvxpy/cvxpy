@@ -23,8 +23,10 @@ from cvxpy.problems.objective import *
 from cvxpy.error import DCPError
 import unittest
 
+
 class TestObjectives(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.x = Variable(name='x')
         self.y = Variable(3, name='y')
@@ -124,7 +126,6 @@ class TestObjectives(unittest.TestCase):
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
         assert (Minimize(expr1) - Maximize(-expr2)).is_dcp()
-
 
         # Multiplication (alpha is a positive scalar).
 

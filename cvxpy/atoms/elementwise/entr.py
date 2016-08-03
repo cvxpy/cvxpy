@@ -24,9 +24,11 @@ from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
+
 class entr(Elementwise):
     """Elementwise :math:`-x\log x`.
     """
+
     def __init__(self, x):
         super(entr, self).__init__(x)
 

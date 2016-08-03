@@ -26,8 +26,10 @@ from .sum_squares import sum_squares
 from scipy import linalg as LA
 import numpy as np
 
+
 class CvxPyDomainError(Exception):
     pass
+
 
 def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
@@ -83,6 +85,7 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     M1 = V[:, maskp] * np.sqrt(w_scaled[maskp])
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2
+
 
 def quad_form(x, P):
     """ Alias for :math:`x^T P x`.

@@ -4,6 +4,7 @@ from cvxpy.tests.base_test import BaseTest
 
 class TestSolvers(BaseTest):
     """ Unit tests for solver specific behavior. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -128,7 +129,6 @@ class TestSolvers(BaseTest):
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=CBC, verbose=False)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % CBC)
-
 
     def test_options(self):
         """Test that all the CBC solver options work.

@@ -23,9 +23,11 @@ from cvxpy.atoms.elementwise.log import log
 import scipy
 import numpy as np
 
+
 class log1p(log):
     """Elementwise :math:`\log (1 + x)`.
     """
+
     def __init__(self, x):
         super(log1p, self).__init__(x)
 

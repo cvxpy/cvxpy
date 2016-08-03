@@ -35,8 +35,10 @@ import warnings
 import sys
 PY35 = sys.version_info >= (3, 5)
 
+
 class TestExpressions(BaseTest):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.a = Variable(name='a')
 

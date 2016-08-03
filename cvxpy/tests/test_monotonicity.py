@@ -22,9 +22,11 @@ import cvxpy.settings as s
 from nose.tools import *
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestMonotonicity(BaseTest):
     """ Unit tests for the utilities/monotonicity class. """
     # Test application of DCP composition rules to determine curvature.
+
     def test_dcp_curvature(self):
         expr = 1 + cvx.exp(cvx.Variable())
         self.assertEqual(expr.curvature, s.CONVEX)

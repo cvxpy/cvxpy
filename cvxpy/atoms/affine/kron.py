@@ -23,10 +23,12 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class kron(AffAtom):
     """Kronecker product.
     """
     # TODO work with right hand constant.
+
     def __init__(self, lh_expr, rh_expr):
         super(kron, self).__init__(lh_expr, rh_expr)
 

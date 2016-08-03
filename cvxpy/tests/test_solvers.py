@@ -1,8 +1,10 @@
 from cvxpy import *
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestSolvers(BaseTest):
     """ Unit tests for solver specific behavior. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -181,7 +183,6 @@ class TestSolvers(BaseTest):
             prob.solve(solver=GUROBI)
             self.assertItemsAlmostEqual(self.x.value, [-100, 1])
 
-
             # Boolean and integer version.
             bool_var = Bool()
             int_var = Int()
@@ -239,7 +240,6 @@ class TestSolvers(BaseTest):
             prob = Problem(objective, constraints)
             prob.solve(solver=GUROBI)
             self.assertItemsAlmostEqual(self.x.value, [-100, 1])
-
 
             # Boolean and integer version.
             bool_var = Bool()
@@ -327,7 +327,6 @@ class TestSolvers(BaseTest):
             prob = Problem(objective, constraints)
             prob.solve(solver=MOSEK)
             self.assertItemsAlmostEqual(self.x.value, [-100, 1])
-
 
         else:
             with self.assertRaises(Exception) as cm:
@@ -486,7 +485,6 @@ class TestSolvers(BaseTest):
             orig_objective = result
             orig_x = self.x.value
 
-
             # Change A and b from the original values
             A.value = np.matrix([[0, 0], [0, 1]])   # <----- Changed
             b.value = np.array([0, 1])              # <----- Changed
@@ -498,7 +496,6 @@ class TestSolvers(BaseTest):
             self.assertEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [2, 1])
 
-
             # Change h from the original values
             A.value = np.matrix([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
@@ -509,7 +506,6 @@ class TestSolvers(BaseTest):
             result = prob.solve(solver=GUROBI, warm_start=True)
             self.assertEqual(result, 2)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
-
 
             # Change c from the original values
             A.value = np.matrix([[1, 0], [0, 0]])

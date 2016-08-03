@@ -22,6 +22,7 @@ from cvxpy.atoms.norm import norm
 from cvxpy.expressions.variables import Variable
 from cvxpy.atoms.affine.hstack import hstack
 
+
 def mixed_norm(X, p=2, q=1):
     """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert )^q/p)^{1/q}`.
 

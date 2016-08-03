@@ -24,8 +24,10 @@ import numpy as np
 from cvxpy.tests.base_test import BaseTest
 import unittest
 
+
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
+
     def setUp(self):
         self.x_bool = Bool()
         self.y_int = Int()

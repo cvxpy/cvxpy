@@ -26,8 +26,10 @@ import scipy.sparse as sp
 from numpy import linalg as LA
 import numpy as np
 
+
 class sigma_max(Atom):
     """ Maximum singular value. """
+
     def __init__(self, A):
         super(sigma_max, self).__init__(A)
 

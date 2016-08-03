@@ -21,6 +21,7 @@ from cvxpy import *
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestNonOptimal(BaseTest):
     """ Unit tests for infeasible and unbounded problems. """
 

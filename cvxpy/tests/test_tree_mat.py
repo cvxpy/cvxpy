@@ -29,6 +29,7 @@ import scipy.linalg as LA
 import unittest
 from cvxpy.tests.base_test import BaseTest
 
+
 class test_tree_mat(BaseTest):
     """ Unit tests for the matrix ops with expression trees. """
 

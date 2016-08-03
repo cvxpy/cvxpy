@@ -27,6 +27,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as SLA
 import warnings
 
+
 class LS(Solver):
     """Linearly constrained least squares solver via SciPy.
     """

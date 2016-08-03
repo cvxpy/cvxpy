@@ -22,6 +22,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.index import index
 import numpy as np
 
+
 class hstack(AffAtom):
     """ Horizontal concatenation """
     # Returns the hstack of the values.

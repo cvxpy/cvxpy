@@ -26,6 +26,7 @@ from toolz.itertoolz import unique
 from collections import OrderedDict
 import canonInterface
 
+
 class SymData(object):
     """The symbolic info for the conic form convex optimization problem.
 

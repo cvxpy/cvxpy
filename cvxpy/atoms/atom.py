@@ -36,6 +36,7 @@ class Atom(Expression):
     """ Abstract base class for atoms. """
     __metaclass__ = abc.ABCMeta
     # args are the expressions passed into the Atom constructor.
+
     def __init__(self, *args):
         # Throws error if args is empty.
         if len(args) == 0:
@@ -326,6 +327,7 @@ class Atom(Expression):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.
            Ensures both inputs and outputs are the correct matrix types.
         """
+
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)

@@ -26,8 +26,10 @@ import unittest
 import math
 import numpy as np
 
+
 class TestNonlinearAtoms(BaseTest):
     """ Unit tests for the nonlinear atoms module. """
+
     def setUp(self):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')

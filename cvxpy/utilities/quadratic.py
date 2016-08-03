@@ -25,6 +25,7 @@ import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from numpy import linalg as LA
 
+
 class QuadCoeffExtractor(object):
 
     def __init__(self, id_map, N):
@@ -151,7 +152,6 @@ class QuadCoeffExtractor(object):
             R += np.dot(b2, np.dot(Pinv, b2))
 
         return ([M.tocsr()], Q.tocsr(), np.array([R]))
-
 
     def _coeffs_affine_atom(self, expr):
         sz = expr.size[0]*expr.size[1]

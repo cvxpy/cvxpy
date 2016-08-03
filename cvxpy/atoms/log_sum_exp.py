@@ -26,10 +26,12 @@ from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.misc import logsumexp
 
+
 class log_sum_exp(AxisAtom):
     """:math:`\log\sum_i e^{x_i}`
 
     """
+
     def __init__(self, x, axis=None):
         super(log_sum_exp, self).__init__(x, axis=axis)
 

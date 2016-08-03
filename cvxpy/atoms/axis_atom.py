@@ -23,6 +23,7 @@ import numpy as np
 import scipy.sparse as sp
 import cvxpy.interface as intf
 
+
 class AxisAtom(Atom):
     """
     An abstract base class for atoms that can be applied along an axis.

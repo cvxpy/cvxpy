@@ -23,9 +23,11 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
 
+
 class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
+
     def __init__(self, x, axis=None):
         super(max_entries, self).__init__(x, axis=axis)
 

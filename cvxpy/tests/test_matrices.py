@@ -33,8 +33,10 @@ import unittest
 import sys
 PY35 = sys.version_info >= (3, 5)
 
+
 class TestMatrices(unittest.TestCase):
     """ Unit tests for testing different forms of matrices as constants. """
+
     def assertExpression(self, expr, size):
         """Asserts that expr is an Expression with dimension size.
         """

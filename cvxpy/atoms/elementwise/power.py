@@ -117,6 +117,7 @@ class power(Elementwise):
 
 
     """
+
     def __init__(self, x, p, max_denom=1024):
         p_old = p
 

@@ -28,8 +28,10 @@ import unittest
 from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestDomain(BaseTest):
     """ Unit tests for the domain module. """
+
     def setUp(self):
         self.a = Variable(name='a')
 

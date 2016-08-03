@@ -24,8 +24,10 @@ from .elementwise import Elementwise
 import numpy as np
 import scipy.sparse as sp
 
+
 class abs(Elementwise):
     """ Elementwise absolute value """
+
     def __init__(self, x):
         super(abs, self).__init__(x)
 

@@ -23,6 +23,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 import canonInterface
 
+
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
 
@@ -39,6 +40,7 @@ class MatrixCache(object):
     size : tuple
         The (rows, cols) dimensions of the matrix.
     """
+
     def __init__(self, coo_tup, const_vec, constraints, x_length):
         self.coo_tup = coo_tup
         self.const_vec = const_vec

@@ -28,18 +28,23 @@ from cvxopt.misc import scale, pack, unpack
 REG_EPS = 1e-9
 
 # Returns a kktsolver for linear cone programs (or nonlinear if F is given).
+
+
 def get_kktsolver(G, dims, A, F=None):
     if F is None:
         factor = kkt_ldl(G, dims, A)
+
         def kktsolver(W):
             return factor(W)
     else:
         mnl, x0 = F()
         factor = kkt_ldl(G, dims, A, mnl)
+
         def kktsolver(x, z, W):
             f, Df, H = F(x, z)
             return factor(W, H, Df)
     return kktsolver
+
 
 def kkt_ldl(G, dims, A, mnl=0):
     """

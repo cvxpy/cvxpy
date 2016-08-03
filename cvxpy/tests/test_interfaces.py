@@ -25,8 +25,10 @@ import scipy
 import unittest
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestInterfaces(BaseTest):
     """ Unit tests for matrix interfaces. """
+
     def setUp(self):
         pass
 

@@ -1,8 +1,10 @@
 from cvxpy import *
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestSolvers(BaseTest):
     """ Unit tests for solver specific behavior. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')

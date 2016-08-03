@@ -26,6 +26,7 @@ import numbers
 
 two = lu.create_const(2, (1, 1))
 
+
 def gm(t, x, y):
     length = t.size[0]*t.size[1]
     return SOC_Axis(lu.reshape(lu.sum_expr([x, y]), (length, 1)),

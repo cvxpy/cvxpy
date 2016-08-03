@@ -26,10 +26,12 @@ from scipy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 
+
 class lambda_max(Atom):
     """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
 
     """
+
     def __init__(self, A):
         super(lambda_max, self).__init__(A)
 

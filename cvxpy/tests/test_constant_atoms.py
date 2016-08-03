@@ -252,6 +252,7 @@ atoms = [
         Maximize),
 ]
 
+
 def check_solver(prob, solver_name):
     """Can the solver solve the problem?
     """
@@ -266,6 +267,8 @@ def check_solver(prob, solver_name):
         return False
 
 # Tests numeric version of atoms.
+
+
 def run_atom(atom, problem, obj_val, solver, verbose=False):
     assert problem.is_dcp()
     if verbose:
@@ -292,6 +295,7 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
             assert(-tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance)
         else:
             assert (atom, solver) in KNOWN_SOLVER_ERRORS
+
 
 def test_atom():
     for atom_list, objective_type in atoms:

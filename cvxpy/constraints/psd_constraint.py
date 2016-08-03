@@ -23,10 +23,12 @@ from cvxpy.constraints.semidefinite import SDP
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class PSDConstraint(LeqConstraint):
     """Constraint X >> Y that z.T(X - Y)z >= 0 for all z.
     """
     OP_NAME = ">>"
+
     def __init__(self, lh_exp, rh_exp):
         # Arguments must be square matrices or scalars.
         if (lh_exp.size[0] != lh_exp.size[1]) or \

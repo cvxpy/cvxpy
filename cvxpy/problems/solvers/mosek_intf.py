@@ -23,6 +23,7 @@ from cvxpy.problems.solvers.solver import Solver
 import numpy as np
 import scipy.sparse as sp
 
+
 class MOSEK(Solver):
     """An interface for the MOSEK solver.
     """

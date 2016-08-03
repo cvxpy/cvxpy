@@ -22,8 +22,10 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
+
 class TestConstraints(BaseTest):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -134,7 +136,6 @@ class TestConstraints(BaseTest):
         self.assertTrue(copy.args[0] is self.A)
         self.assertTrue(copy.args[1] is self.B)
 
-
     def test_psd_constraint(self):
         """Test the PSD constraint <<.
         """
@@ -171,7 +172,6 @@ class TestConstraints(BaseTest):
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.B)
         self.assertTrue(copy.args[1] is self.A)
-
 
     def test_nsd_constraint(self):
         """Test the PSD constraint <<.

@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
 
+
 class GLPK(CVXOPT):
     """An interface for the GLPK solver.
     """

@@ -21,6 +21,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 
+
 class ECOS(Solver):
     """An interface for the ECOS solver.
     """

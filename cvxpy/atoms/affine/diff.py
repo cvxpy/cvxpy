@@ -1,5 +1,6 @@
 from cvxpy.expressions.expression import Expression
 
+
 def diff(x, k=1):
     """ Vector of kth order differences.
 

@@ -25,6 +25,7 @@ from cvxpy.tests.base_test import BaseTest
 import cvxopt
 import numbers
 
+
 class TestExamples(BaseTest):
     """ Unit tests using example problems. """
 

@@ -42,6 +42,7 @@ def get_mul_funcs(sym_data):
 
     return (accAmul, accATmul)
 
+
 def constr_unpack(constraints, vector):
     """Unpacks a vector into a list of values for constraints.
     """
@@ -55,6 +56,7 @@ def constr_unpack(constraints, vector):
             offset += rows
         values.append(val)
     return values
+
 
 def vec_to_dict(vector, var_offsets, var_sizes):
     """Converts a vector to a map of variable id to value.
@@ -84,6 +86,7 @@ def vec_to_dict(vector, var_offsets, var_sizes):
         val_dict[id_] = value
     return val_dict
 
+
 def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
     """Converts a map of variable id to value to a vector.
 
@@ -111,6 +114,7 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
                 vector[offset:size[0]+offset] = np.squeeze(value[:, col])
             offset += size[0]
     return vector
+
 
 def constr_mul(constraints, var_dict, vec_size, is_abs):
     """Multiplies a vector by the matrix implied by the constraints.
@@ -140,6 +144,7 @@ def constr_mul(constraints, var_dict, vec_size, is_abs):
             offset += rows
 
     return product
+
 
 def constr_tmul(constraints, values, is_abs):
     """Multiplies a vector by the transpose of the constraints matrix.

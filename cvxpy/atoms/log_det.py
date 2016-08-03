@@ -28,10 +28,12 @@ import numpy as np
 from numpy import linalg as LA
 import scipy.sparse as sp
 
+
 class log_det(Atom):
     """:math:`\log\det A`
 
     """
+
     def __init__(self, A):
         super(log_det, self).__init__(A)
 

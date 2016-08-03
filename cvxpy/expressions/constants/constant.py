@@ -24,10 +24,12 @@ from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class Constant(Leaf):
     """
     A constant, either matrix or scalar.
     """
+
     def __init__(self, value):
         # TODO HACK.
         # A fix for c.T*x where c is a 1D array.

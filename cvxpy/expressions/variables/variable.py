@@ -23,11 +23,13 @@ from ..leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
+
 class Variable(Leaf):
     """ The base variable class """
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
+
     def __init__(self, rows=1, cols=1, name=None):
         self._rows = rows
         self._cols = cols

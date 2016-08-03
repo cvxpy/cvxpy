@@ -23,6 +23,7 @@ import unittest
 import numpy as np
 import scipy.sparse as sp
 
+
 class TestLS(BaseTest):
     """ LS solver tests. """
 
