@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # Utility functions for constraints.
 
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 import scipy.sparse as sp
 
 
@@ -43,7 +42,6 @@ def format_axis(t, X, axis):
         X = lu.transpose(X)
     # Create matrices Tmat, Xmat such that Tmat*t + Xmat*X
     # gives the format for the elementwise cone constraints.
-    num_cones = t.size[0]
     cone_size = 1 + X.size[0]
     terms = []
     # Make t_mat

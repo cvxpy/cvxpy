@@ -18,18 +18,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant, CallbackParam
-from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
 import numpy as np
-import sys
 from fastcache import clru_cache
-if sys.version_info >= (3, 0):
-    from functools import reduce
 
 
 class Atom(Expression):

@@ -21,8 +21,6 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.elementwise.exp import exp
-from cvxpy.atoms.affine.sum_entries import sum_entries
-from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.misc import logsumexp
 

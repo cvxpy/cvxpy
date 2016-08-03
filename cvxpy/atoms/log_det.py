@@ -21,7 +21,6 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from cvxpy.expressions.variables.semidef_var import Semidef
 import numpy as np
@@ -99,7 +98,6 @@ class log_det(Atom):
         """
         X = np.matrix(values[0])
         eigen_val = LA.eigvals(X)
-        rows = self.args[0].size[0]*self.args[0].size[1]
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T

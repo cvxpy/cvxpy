@@ -21,7 +21,6 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.expressions import cvxtypes
-import abc
 from cvxpy.constraints.constraint import Constraint
 import numpy as np
 

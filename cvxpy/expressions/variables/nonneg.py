@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.variables.variable import Variable
 import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.utilities as utils
 
 
 class NonNegative(Variable):

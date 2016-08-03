@@ -21,7 +21,6 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import copy
 import numpy as np
-from numpy.fft import fft, ifft
 from scipy.signal import fftconvolve
 
 # Utility functions for treating an expression tree as a matrix

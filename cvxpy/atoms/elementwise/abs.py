@@ -17,12 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.expressions.variables import Variable
 from .elementwise import Elementwise
 import numpy as np
-import scipy.sparse as sp
 
 
 class abs(Elementwise):

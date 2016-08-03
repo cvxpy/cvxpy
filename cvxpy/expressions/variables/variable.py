@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from ... import settings as s
-from ... import utilities as u
 from ..leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp

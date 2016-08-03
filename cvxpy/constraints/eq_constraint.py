@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.constraints.leq_constraint import LeqConstraint
 from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 
 
 class EqConstraint(LeqConstraint):

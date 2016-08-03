@@ -17,15 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
 import abc
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 import canonInterface
 import scipy.sparse as sp
-if sys.version_info >= (3, 0):
-    from functools import reduce
 
 
 class AffAtom(Atom):

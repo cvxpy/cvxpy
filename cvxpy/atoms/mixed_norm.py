@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
-from cvxpy.expressions.variables import Variable
 from cvxpy.atoms.affine.hstack import hstack
 
 

@@ -293,8 +293,8 @@ class pnorm(AxisAtom):
 
 
 
-        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
-        more efficiently and with fewer variables and inequalities.
+        Although the inequalities above are correct, for a few special cases,
+        we can represent the p-norm more efficiently and with fewer variables and inequalities.
 
         - For :math:`p = 1`, we use the representation
 
@@ -319,8 +319,9 @@ class pnorm(AxisAtom):
 
                 \|x\|_2 \leq t
 
-          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
-          of a large second-order cone into into several smaller inequalities.
+          Note that we could have used the set of inequalities given above if we wanted
+          an alternate decomposition of a large second-order cone into into several
+          smaller inequalities.
 
         """
         p = data[0]
@@ -372,4 +373,5 @@ class pnorm(AxisAtom):
 
         return t, constraints
 
-        # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
+        # todo: no need to run gm_constr to form the tree each time.
+        # we only need to form the tree once

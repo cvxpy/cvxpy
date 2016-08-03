@@ -19,9 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.constants import Constant
-import cvxpy.interface as intf
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op

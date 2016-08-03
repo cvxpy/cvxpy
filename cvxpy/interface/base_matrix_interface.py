@@ -19,8 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface.matrix_utilities
 import abc
-import numbers
-import numpy as np
 
 
 class BaseMatrixInterface(object):
@@ -124,7 +122,8 @@ class BaseMatrixInterface(object):
         """
         # If the block is a scalar, promote it.
         if cvxpy.interface.matrix_utilities.is_scalar(block):
-            block = self.scalar_matrix(cvxpy.interface.matrix_utilities.scalar_value(block), rows, cols)
+            block = self.scalar_matrix(
+                cvxpy.interface.matrix_utilities.scalar_value(block), rows, cols)
         # If the block is a vector coerced into a matrix, promote it.
         elif cvxpy.interface.matrix_utilities.is_vector(block) and cols > 1:
             block = self.reshape(block, (rows, cols))

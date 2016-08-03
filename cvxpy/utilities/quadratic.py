@@ -132,7 +132,7 @@ class QuadCoeffExtractor(object):
             R = np.power(b, 2)
             return (Ps, Q, R)
         else:
-            raise Exception("Error while processing power(x, %f)." % p)
+            raise Exception("Error while processing power(x, %f)." % expr.p)
 
     def _coeffs_matrix_frac(self, expr):
         (_, A, b) = self._coeffs_affine(expr.args[0])

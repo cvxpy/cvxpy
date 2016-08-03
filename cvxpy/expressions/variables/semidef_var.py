@@ -23,7 +23,6 @@ from cvxpy.expressions.variables.symmetric import upper_tri_to_full
 from cvxpy.constraints.semidefinite import SDP
 from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
-import scipy.sparse as sp
 
 
 def Semidef(n, name=None):

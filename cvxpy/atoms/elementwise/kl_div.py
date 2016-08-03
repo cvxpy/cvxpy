@@ -37,7 +37,7 @@ class kl_div(Elementwise):
     def numeric(self, values):
         x = values[0]
         y = values[1]
-        #TODO return inf outside the domain
+        # TODO return inf outside the domain
         return xlogy(x, x/y) - x + y
 
     def sign_from_args(self):

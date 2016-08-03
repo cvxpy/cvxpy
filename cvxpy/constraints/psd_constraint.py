@@ -21,7 +21,6 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.leq_constraint import LeqConstraint
 from cvxpy.constraints.semidefinite import SDP
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 
 
 class PSDConstraint(LeqConstraint):

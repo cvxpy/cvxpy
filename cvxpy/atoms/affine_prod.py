@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
-import operator as op
 import numpy as np
 import scipy.sparse as sp
 

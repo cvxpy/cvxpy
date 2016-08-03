@@ -21,7 +21,6 @@ import abc
 from cvxpy.atoms.atom import Atom
 import numpy as np
 import scipy.sparse as sp
-import cvxpy.interface as intf
 
 
 class AxisAtom(Atom):
@@ -53,7 +52,7 @@ class AxisAtom(Atom):
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.
         """
-        if self.axis is not None and not self.axis in [0, 1]:
+        if self.axis is not None and self.axis not in [0, 1]:
             raise ValueError("Invalid argument for axis.")
 
     def _axis_grad(self, values):
@@ -70,7 +69,7 @@ class AxisAtom(Atom):
         """
         m = self.args[0].size[0]
         n = self.args[0].size[1]
-        if self.axis == None:
+        if self.axis is None:
             value = np.reshape(values[0].T, (m*n, 1))
             D = self._column_grad(value)
             if D is not None:
