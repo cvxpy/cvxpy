@@ -38,8 +38,8 @@ class vstack(AffAtom):
     def validate_arguments(self):
         arg_cols = [arg.size[1] for arg in self.args]
         if max(arg_cols) != min(arg_cols):
-            raise TypeError( ("All arguments to vstack must have "
-                              "the same number of columns.") )
+            raise TypeError(("All arguments to vstack must have "
+                             "the same number of columns."))
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

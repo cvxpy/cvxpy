@@ -128,7 +128,7 @@ class SymData(object):
         # If all the coefficients are zero then return the constant term
         # and set all variables to 0.
         if not any(constr_map.values()):
-            str(objective) # TODO
+            str(objective)  # TODO
 
         # Remove constraints with no variables or parameters.
         for key in [s.EQ, s.LEQ]:
@@ -142,7 +142,7 @@ class SymData(object):
                     # For inequality (i.e. <= 0) constraint,
                     # coeff must be negative.
                     if key == s.EQ and not (is_pos and is_neg) or \
-                        key == s.LEQ and not is_neg:
+                            key == s.LEQ and not is_neg:
                         return s.INFEASIBLE
                 else:
                     new_constraints.append(constr)

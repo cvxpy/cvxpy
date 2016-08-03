@@ -96,7 +96,7 @@ class index(AffAtom):
         select_mat = idx_mat[key]
         if select_mat.ndim == 2:
             final_size = select_mat.shape
-        else: # Always cast 1d arrays as column vectors.
+        else:  # Always cast 1d arrays as column vectors.
             final_size = (select_mat.size, 1)
         select_vec = np.reshape(select_mat, select_mat.size, order='F')
         # Select the chosen entries from expr.

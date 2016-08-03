@@ -43,8 +43,8 @@ class mul_elemwise(AffAtom):
            Left-hand argument must be constant.
         """
         if not self.args[0].is_constant():
-            raise ValueError( ("The first argument to mul_elemwise must "
-                               "be constant.") )
+            raise ValueError(("The first argument to mul_elemwise must "
+                              "be constant."))
 
     def size_from_args(self):
         """The sum of the argument dimensions - 1.

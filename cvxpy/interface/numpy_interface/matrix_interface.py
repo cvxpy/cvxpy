@@ -48,7 +48,7 @@ class MatrixInterface(NDArrayInterface):
             value = value*1.0
         # Lists and 1D arrays become column vectors.
         elif isinstance(value, list) or \
-             isinstance(value, np.ndarray) and value.ndim == 1:
+                isinstance(value, np.ndarray) and value.ndim == 1:
             value = np.asmatrix(value, dtype='float64').T
         # First convert sparse to dense.
         elif sp.issparse(value):

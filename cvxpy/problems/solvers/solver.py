@@ -148,7 +148,7 @@ class Solver(object):
         prob_data = cached_data[self.name()]
         if prob_data.sym_data is not None and \
            (objective != prob_data.sym_data.objective or \
-            constraints != prob_data.sym_data.constraints):
+                constraints != prob_data.sym_data.constraints):
             prob_data.sym_data = None
             prob_data.matrix_data = None
 

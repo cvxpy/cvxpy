@@ -43,14 +43,14 @@ class PSDConstraint(LeqConstraint):
 
     @property
     def residual(self):
-       """The residual of the constraint.
+        """The residual of the constraint.
 
-       Returns
-       -------
-       Expression
-       """
-       min_eig = cvxtypes.lambda_min()(self._expr + self._expr.T)/2
-       return cvxtypes.neg()(min_eig)
+        Returns
+        -------
+        Expression
+        """
+        min_eig = cvxtypes.lambda_min()(self._expr + self._expr.T)/2
+        return cvxtypes.neg()(min_eig)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -62,7 +62,7 @@ class PSDConstraint(LeqConstraint):
             A tuple of (affine expression, [constraints]).
         """
         obj, constraints = self._expr.canonical_form
-        half = lu.create_const(0.5, (1,1))
+        half = lu.create_const(0.5, (1, 1))
         symm = lu.mul_expr(half, lu.sum_expr([obj, lu.transpose(obj)]),
                            obj.size)
         dual_holder = SDP(symm, enforce_sym=False, constr_id=self.id)

@@ -84,7 +84,7 @@ class BaseMatrixInterface(object):
     def index(self, matrix, key):
         value = matrix[key]
         # Reduce to a scalar if possible.
-        if cvxpy.interface.matrix_utilities.size(value) == (1,1):
+        if cvxpy.interface.matrix_utilities.size(value) == (1, 1):
             return cvxpy.interface.matrix_utilities.scalar_value(value)
         else:
             return value

@@ -105,7 +105,7 @@ def create_const(value, size, sparse=False):
     if size == (1, 1):
         op_type = lo.SCALAR_CONST
         if not np.isscalar(value):
-            value = value[0,0]
+            value = value[0, 0]
     # Check if sparse.
     elif sparse:
         op_type = lo.SPARSE_CONST

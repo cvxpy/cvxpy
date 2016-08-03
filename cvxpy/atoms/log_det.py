@@ -52,7 +52,7 @@ class log_det(Atom):
     def validate_arguments(self):
         n, m = self.args[0].size
         if n != m:
-            raise TypeError("The argument to log_det must be a square matrix." )
+            raise TypeError("The argument to log_det must be a square matrix.")
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
@@ -153,7 +153,7 @@ class log_det(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # n by n matrix.
+        A = arg_objs[0]  # n by n matrix.
         n, _ = A.size
         X = lu.create_var((2*n, 2*n))
         X, constraints = Semidef(2*n).canonical_form

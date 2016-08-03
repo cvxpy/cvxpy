@@ -68,7 +68,7 @@ def compress_matrix(A, b, equil_eps=1e-10):
         # Sparsity pattern is the same or there was a false collision.
         # Check rows have the same number of nonzeros.
         elif pattern in sparsity_to_row and nnz == \
-            get_row_nnz(A, sparsity_to_row[pattern][0]):
+                get_row_nnz(A, sparsity_to_row[pattern][0]):
             # Now test if one row is a multiple of another.
             row_matches = sparsity_to_row[pattern]
             for row_match in row_matches:
@@ -101,9 +101,9 @@ def compress_matrix(A, b, equil_eps=1e-10):
     P = sp.coo_matrix((P_V, (P_I, P_J)), (A.shape[0], cols))
     # SciPy 0.13 can't index using an empty list.
     if len(row_to_keep) == 0:
-        A_compr = A[0:0,:]
-        b_compr = b[0:0,:]
+        A_compr = A[0:0, :]
+        b_compr = b[0:0, :]
     else:
-        A_compr = A[row_to_keep,:]
-        b_compr = b[row_to_keep,:]
+        A_compr = A[row_to_keep, :]
+        b_compr = b[row_to_keep, :]
     return (A_compr, b_compr, P)

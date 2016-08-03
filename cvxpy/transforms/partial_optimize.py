@@ -87,7 +87,7 @@ class PartialProblem(Expression):
         self.dont_opt_vars = dont_opt_vars
         self.args = [prob]
         # Replace the opt_vars in prob with new variables.
-        id_to_new_var = {var.id:var.copy() for var in self.opt_vars}
+        id_to_new_var = {var.id: var.copy() for var in self.opt_vars}
         new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
         new_constrs = [self._replace_new_vars(con, id_to_new_var)
                        for con in prob.constraints]
@@ -103,13 +103,13 @@ class PartialProblem(Expression):
         """Is the expression convex?
         """
         return self.args[0].is_dcp() and \
-               type(self.args[0].objective) == Minimize
+            type(self.args[0].objective) == Minimize
 
     def is_concave(self):
         """Is the expression concave?
         """
         return self.args[0].is_dcp() and \
-               type(self.args[0].objective) == Maximize
+            type(self.args[0].objective) == Maximize
 
     def is_positive(self):
         """Is the expression positive?
@@ -169,7 +169,7 @@ class PartialProblem(Expression):
         if self.is_constant():
             return u.grad.constant_grad(self)
 
-        old_vals = {var.id:var.value for var in self.variables()}
+        old_vals = {var.id: var.value for var in self.variables()}
         fix_vars = []
         for var in self.variables():
             if var.value is None:
@@ -189,8 +189,8 @@ class PartialProblem(Expression):
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
                 lagr += trace(lagr_multiplier.T*constr._expr)
             grad_map = lagr.grad
-            result = {var:grad_map[var] for var in self.variables()}
-        else: # Unbounded, infeasible, or solver error.
+            result = {var: grad_map[var] for var in self.variables()}
+        else:  # Unbounded, infeasible, or solver error.
             result = u.grad.error_grad(self)
         # Restore the original values to the variables.
         for var in self.variables():
@@ -213,7 +213,7 @@ class PartialProblem(Expression):
         Returns:
             A numpy matrix or a scalar.
         """
-        old_vals = {var.id:var.value for var in self.variables()}
+        old_vals = {var.id: var.value for var in self.variables()}
         fix_vars = []
         for var in self.variables():
             if var.value is None:
@@ -251,12 +251,12 @@ class PartialProblem(Expression):
         elif isinstance(obj, PartialProblem):
             prob = obj.args[0]
             new_obj = PartialProblem._replace_new_vars(prob.objective,
-                id_to_new_var)
+                                                       id_to_new_var)
             new_constr = []
             for constr in prob.constraints:
                 new_constr.append(
                     PartialProblem._replace_new_vars(constr,
-                                            id_to_new_var)
+                                                     id_to_new_var)
                 )
             new_args = [Problem(new_obj, new_constr)]
             return obj.copy(new_args)

@@ -39,8 +39,8 @@ class hstack(AffAtom):
     def validate_arguments(self):
         arg_cols = [arg.size[0] for arg in self.args]
         if max(arg_cols) != min(arg_cols):
-            raise TypeError( ("All arguments to hstack must have "
-                              "the same number of rows.") )
+            raise TypeError(("All arguments to hstack must have "
+                             "the same number of rows."))
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

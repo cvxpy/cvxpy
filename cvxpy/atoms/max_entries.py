@@ -119,7 +119,7 @@ class max_entries(AxisAtom):
             const_size = (arg_objs[0].size[0], 1)
             ones = lu.create_const(np.ones(const_size), const_size)
             promoted_t = lu.mul_expr(ones, t, arg_objs[0].size)
-        else: # axis == 1
+        else:  # axis == 1
             t = lu.create_var((arg_objs[0].size[0], 1))
             const_size = (1, arg_objs[0].size[1])
             ones = lu.create_const(np.ones(const_size), const_size)

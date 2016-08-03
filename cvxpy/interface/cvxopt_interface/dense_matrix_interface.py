@@ -62,7 +62,7 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
-        return matrix[0,0]
+        return matrix[0, 0]
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
@@ -70,7 +70,7 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
             rows = int(rows)
         if isinstance(cols, numbers.Number):
             cols = int(cols)
-        return cvxopt.matrix(value, (rows,cols), tc='d')
+        return cvxopt.matrix(value, (rows, cols), tc='d')
 
     # Stuff the matrix into a different shape.
     # First convert the matrix to a cvxopt dense matrix.

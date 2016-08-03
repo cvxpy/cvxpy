@@ -30,7 +30,7 @@ INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
               np.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
               sp.csc_matrix: np_intf.SparseMatrixInterface(),
-}
+              }
 # Default Numpy interface.
 DEFAULT_NP_INTF = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
@@ -55,10 +55,10 @@ def size(constant):
         return (1, 1)
     elif isinstance(constant, list):
         if len(constant) == 0:
-            return (0,0)
-        elif isinstance(constant[0], numbers.Number): # Vector
-            return (len(constant),1)
-        else: # Matrix
+            return (0, 0)
+        elif isinstance(constant[0], numbers.Number):  # Vector
+            return (len(constant), 1)
+        else:  # Matrix
             return (len(constant[0]), len(constant))
     elif constant.__class__ in INTERFACES:
         return INTERFACES[constant.__class__].size(constant)
@@ -132,7 +132,7 @@ def sign(constant, tol=1e-5):
     elif sp.issparse(constant):
         max_val = constant.max()
         min_val = constant.min()
-    else: # Convert to Numpy array.
+    else:  # Convert to Numpy array.
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         max_val = mat.max()
         min_val = mat.min()

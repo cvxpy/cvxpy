@@ -192,7 +192,7 @@ class GUROBI(Solver):
                         if i < data[s.DIMS][s.EQ_DIM]:
                             ctype = gurobipy.GRB.EQUAL
                         elif data[s.DIMS][s.EQ_DIM] <= i \
-                             < data[s.DIMS][s.EQ_DIM] + data[s.DIMS][s.LEQ_DIM]:
+                                < data[s.DIMS][s.EQ_DIM] + data[s.DIMS][s.LEQ_DIM]:
                             ctype = gurobipy.GRB.LESS_EQUAL
                         gur_constrs[i] = model.addConstr(expr, ctype, b[i])
 
@@ -250,7 +250,7 @@ class GUROBI(Solver):
                 soc_start += constr_len
 
             gur_constrs = eq_constrs + ineq_constrs + \
-                          soc_constrs + new_leq_constrs
+                soc_constrs + new_leq_constrs
             model.update()
 
         # Set verbosity and other parameters

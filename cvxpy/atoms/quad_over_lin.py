@@ -129,7 +129,7 @@ class quad_over_lin(Atom):
             (LinOp for objective, list of constraints)
         """
         x = arg_objs[0]
-        y = arg_objs[1] # Known to be a scalar.
+        y = arg_objs[1]  # Known to be a scalar.
         v = lu.create_var((1, 1))
         two = lu.create_const(2, (1, 1))
         constraints = [SOC(lu.sum_expr([y, v]),

@@ -40,7 +40,7 @@ class TestMIPVariable(BaseTest):
         for i in range(5):
             obj = Minimize(square(self.y_int - 0.2))
             p = Problem(obj, [self.A_bool == 0, self.x_bool == self.B_int])
-            data_recs.append( p.get_problem_data(ECOS_BB) )
+            data_recs.append(p.get_problem_data(ECOS_BB))
             # result_recs.append( p.solve() )
 
         # Check that problem data and result is always the same.

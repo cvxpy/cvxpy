@@ -101,5 +101,5 @@ class abs(Elementwise):
         t = lu.create_var(x.size)
         constraints = [lu.create_geq(lu.sum_expr([x, t])),
                        lu.create_leq(x, t),
-        ]
+                       ]
         return (t, constraints)

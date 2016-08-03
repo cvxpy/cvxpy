@@ -133,8 +133,8 @@ def is_single_index(slc):
     else:
         step = slc.step
     return slc.start is not None and \
-           slc.stop is not None and \
-           slc.start + step >= slc.stop
+        slc.stop is not None and \
+        slc.start + step >= slc.stop
 
 def size(key, shape):
     """Finds the dimensions of a sliced expression.

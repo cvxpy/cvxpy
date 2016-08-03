@@ -52,4 +52,4 @@ def error_grad(expr):
     Returns:
         A map of variable value to None.
     """
-    return {var:None for var in expr.variables()}
+    return {var: None for var in expr.variables()}

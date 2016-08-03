@@ -60,7 +60,7 @@ class AffAtom(Atom):
 
     def is_quadratic(self):
         return all([arg.is_quadratic() for arg in self.args])
-    
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -106,6 +106,6 @@ class AffAtom(Atom):
                     grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
             else:
                 stop = start + arg.size[0]*arg.size[1]
-                grad_list += [stacked_grad[start:stop,:]]
+                grad_list += [stacked_grad[start:stop, :]]
                 start = stop
         return grad_list

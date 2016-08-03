@@ -39,7 +39,7 @@ class AddExpression(AffAtom):
         self.args = []
         for group in arg_groups:
             self.args += self.expand_args(group)
-    
+
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
         """

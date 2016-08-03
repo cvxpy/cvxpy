@@ -166,7 +166,7 @@ class SCS(ECOS):
         """Expands n*(n+1)//2 lower triangular to full matrix,
         with off-diagonal entries scaled by 1/sqrt(2).
         """
-        full = np.zeros((n,n))
+        full = np.zeros((n, n))
         for col in range(n):
             for row in range(col, n):
                 idx = row - col + n*(n+1)//2 - (n-col)*(n-col+1)//2

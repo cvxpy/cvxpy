@@ -132,7 +132,7 @@ class huber(Elementwise):
         two = lu.create_const(2, (1, 1))
         if isinstance(M, Parameter):
             M = lu.create_param(M, (1, 1))
-        else: # M is constant.
+        else:  # M is constant.
             M = lu.create_const(M.value, (1, 1))
 
         # n**2 + 2*M*|s|

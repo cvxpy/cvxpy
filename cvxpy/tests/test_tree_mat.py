@@ -116,14 +116,14 @@ class test_tree_mat(BaseTest):
         x = Variable(3)
         f = np.matrix(np.array([1, 2, 3])).T
         g = np.array([0, 1, 0.5])
-        f_conv_g = np.array([ 0., 1., 2.5,  4., 1.5])
+        f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
         expr = conv(f, x).canonical_form[0]
         val_dict = {x.id: g}
         result = mul(expr, val_dict)
         self.assertItemsAlmostEqual(result, f_conv_g)
         value = np.array(range(5))
         result_dict = tmul(expr, value)
-        toep = LA.toeplitz(np.array([1,0,0]),
+        toep = LA.toeplitz(np.array([1, 0, 0]),
                            np.array([1, 2, 3, 0, 0]))
         x_val = toep.dot(value)
         self.assertItemsAlmostEqual(result_dict[x.id], x_val)
@@ -214,14 +214,14 @@ class test_tree_mat(BaseTest):
         x = Variable(3)
         f = np.matrix(np.array([1, -2, -3])).T
         g = np.array([0, 1, 0.5])
-        f_conv_g = np.array([ 0., 1., 2.5,  4., 1.5])
+        f_conv_g = np.array([0., 1., 2.5,  4., 1.5])
         expr = conv(f, x).canonical_form[0]
         val_dict = {x.id: g}
         result = mul(expr, val_dict, True)
         self.assertItemsAlmostEqual(result, f_conv_g)
         value = np.array(range(5))
         result_dict = tmul(expr, value, True)
-        toep = LA.toeplitz(np.array([1,0,0]),
+        toep = LA.toeplitz(np.array([1, 0, 0]),
                            np.array([1, 2, 3, 0, 0]))
         x_val = toep.dot(value)
         self.assertItemsAlmostEqual(result_dict[x.id], x_val)

@@ -28,5 +28,5 @@ def diff(x, k=1):
     d = x
     for i in range(k):
         d = d[1:] - d[:-1]
-        
+
     return d

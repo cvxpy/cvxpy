@@ -91,7 +91,7 @@ def quad_form(x, P):
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
     n = P.size[0]
-    if P.size[1] != n or x.size != (n,1):
+    if P.size[1] != n or x.size != (n, 1):
         raise Exception("Invalid dimensions for arguments.")
     if x.is_constant():
         return x.T * P * x

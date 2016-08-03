@@ -30,13 +30,13 @@ class EqConstraint(LeqConstraint):
 
     @property
     def residual(self):
-       """The residual of the constraint.
+        """The residual of the constraint.
 
-       Returns
-       -------
-       Expression
-       """
-       return cvxtypes.abs()(self._expr)
+        Returns
+        -------
+        Expression
+        """
+        return cvxtypes.abs()(self._expr)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

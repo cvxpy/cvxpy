@@ -143,7 +143,7 @@ class RMulExpression(MulExpression):
 
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
-    OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
+    OP_FUNC = op.__truediv__ if (sys.version_info >= (3, 0)) else op.__div__
 
 
     def is_quadratic(self):

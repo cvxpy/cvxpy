@@ -48,7 +48,7 @@ class TestObjectives(unittest.TestCase):
         exp = self.x + self.z
         obj = Minimize(exp)
         self.assertEqual(str(obj), "minimize %s" % exp.name())
-        new_obj,constraints = obj.canonical_form
+        new_obj, constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
         self.assertEqual(len(constraints), 0)
@@ -56,7 +56,7 @@ class TestObjectives(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             Minimize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
-            "The 'minimize' objective must resolve to a scalar.")
+                         "The 'minimize' objective must resolve to a scalar.")
 
         # Test copy with args=None
         copy = obj.copy()
@@ -75,7 +75,7 @@ class TestObjectives(unittest.TestCase):
         exp = self.x + self.z
         obj = Maximize(exp)
         self.assertEqual(str(obj), "maximize %s" % exp.name())
-        new_obj,constraints = obj.canonical_form
+        new_obj, constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
         self.assertEqual(len(constraints), 0)
@@ -83,7 +83,7 @@ class TestObjectives(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             Maximize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
-            "The 'maximize' objective must resolve to a scalar.")
+                         "The 'maximize' objective must resolve to a scalar.")
 
         # Test copy with args=None
         copy = obj.copy()
@@ -114,24 +114,24 @@ class TestObjectives(unittest.TestCase):
 
         # Addition.
 
-        assert ( Minimize(expr1) + Minimize(expr2) ).is_dcp()
+        assert (Minimize(expr1) + Minimize(expr2)).is_dcp()
 
-        assert ( Maximize(-expr1) + Maximize(-expr2) ).is_dcp()
+        assert (Maximize(-expr1) + Maximize(-expr2)).is_dcp()
 
         # Test Minimize + Maximize
         with self.assertRaises(DCPError) as cm:
             Minimize(expr1) + Maximize(-expr2)
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
-        assert ( Minimize(expr1) - Maximize(-expr2) ).is_dcp()
+        assert (Minimize(expr1) - Maximize(-expr2)).is_dcp()
 
 
         # Multiplication (alpha is a positive scalar).
 
-        assert ( alpha*Minimize(expr1) ).is_dcp()
+        assert (alpha*Minimize(expr1)).is_dcp()
 
-        assert ( alpha*Maximize(-expr1) ).is_dcp()
+        assert (alpha*Maximize(-expr1)).is_dcp()
 
-        assert ( -alpha*Maximize(-expr1) ).is_dcp()
+        assert (-alpha*Maximize(-expr1)).is_dcp()
 
-        assert ( -alpha*Maximize(-expr1) ).is_dcp()
+        assert (-alpha*Maximize(-expr1)).is_dcp()

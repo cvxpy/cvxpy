@@ -72,7 +72,7 @@ class lambda_max(Atom):
         """
         if not self.args[0].size[0] == self.args[0].size[1]:
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
-                % self.args[0].name())
+                             % self.args[0].name())
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

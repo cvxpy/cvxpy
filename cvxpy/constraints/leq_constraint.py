@@ -134,13 +134,13 @@ class LeqConstraint(u.Canonical, Constraint):
 
     @property
     def residual(self):
-       """The residual of the constraint.
+        """The residual of the constraint.
 
-       Returns
-       -------
-       Expression
-       """
-       return cvxtypes.pos()(self._expr)
+        Returns
+        -------
+        Expression
+        """
+        return cvxtypes.pos()(self._expr)
 
     @property
     def violation(self):

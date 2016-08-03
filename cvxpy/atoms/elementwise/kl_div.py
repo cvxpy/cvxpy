@@ -116,7 +116,7 @@ class kl_div(Elementwise):
         y = Elementwise._promote(arg_objs[1], size)
         t = lu.create_var(size)
         constraints = [ExpCone(t, x, y),
-                       lu.create_geq(y)] # 0 <= y
+                       lu.create_geq(y)]  # 0 <= y
         # -t - x + y
         obj = lu.sub_expr(y, lu.sum_expr([x, t]))
         return (obj, constraints)

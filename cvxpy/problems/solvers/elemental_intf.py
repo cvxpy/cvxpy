@@ -107,7 +107,7 @@ class Elemental(Solver):
         height = distr_vec.Height()
         local_vec = np.zeros(height)
         for i in range(local_vec.size):
-             local_vec[i] = distr_vec.Get(i, 0)
+            local_vec[i] = distr_vec.Get(i, 0)
         return local_vec
 
     @staticmethod
@@ -199,14 +199,14 @@ class Elemental(Solver):
             ctrl.mehrotraCtrl.time = True
         else:
             ctrl = None
-        El.SOCPAffine(A,G,b,c,h,orders,firstInds,x,y,z,s_var,ctrl)
+        El.SOCPAffine(A, G, b, c, h, orders, firstInds, x, y, z, s_var, ctrl)
         local_c = data['c']
         local_x = self.local_vec(x)
         local_y = self.local_vec(y)
         local_z = self.local_vec(z)
         El.Finalize()
-        results_dict = {'info':{'exitFlag':0, 'pcost': local_c.dot(local_x)},
-                        'x':local_x, 'y':local_y, 'z':local_z}
+        results_dict = {'info': {'exitFlag': 0, 'pcost': local_c.dot(local_x)},
+                        'x': local_x, 'y': local_y, 'z': local_z}
         return self.format_results(results_dict, data, cached_data)
 
     def format_results(self, results_dict, data, cached_data):

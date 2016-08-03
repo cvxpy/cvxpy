@@ -324,5 +324,5 @@ class power(Elementwise):
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
-                                 self.args[0].name(),
-                                 self.p)
+                               self.args[0].name(),
+                               self.p)
