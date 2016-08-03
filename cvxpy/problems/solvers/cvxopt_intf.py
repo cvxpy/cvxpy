@@ -27,6 +27,7 @@ import scipy
 import numpy as np
 import copy
 
+
 class CVXOPT(Solver):
     """An interface for the CVXOPT solver.
     """
@@ -53,6 +54,7 @@ class CVXOPT(Solver):
         """Imports the solver.
         """
         import cvxopt
+        cvxopt  # For flake8
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -103,20 +105,13 @@ class CVXOPT(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt
+        import cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save old data in case need to use robust solver.
-        old_data = {
-                s.DIMS: data[s.DIMS],
-                s.A: data[s.A],
-                s.B: data[s.B],
-                s.G: data[s.G],
-                s.H: data[s.H],
-                s.F: data[s.F],
-            }
         data[s.DIMS] = copy.deepcopy(data[s.DIMS])
         # Convert all longs to ints.
-        for key,val in data[s.DIMS].items():
+        for key, val in data[s.DIMS].items():
             if isinstance(val, list):
                 data[s.DIMS][key] = [int(v) for v in val]
             else:
@@ -141,7 +136,7 @@ class CVXOPT(Solver):
             cvxopt.solvers.options[key] = value
 
         # Always do 1 step of iterative refinement after solving KKT system.
-        if not "refinement" in cvxopt.solvers.options:
+        if "refinement" not in cvxopt.solvers.options:
             cvxopt.solvers.options["refinement"] = 1
 
         try:
@@ -178,7 +173,7 @@ class CVXOPT(Solver):
         ValueError
             If CVXOPT fails.
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt.solvers
         if kktsolver == s.ROBUST_KKTSOLVER:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(data[s.G],
@@ -214,7 +209,7 @@ class CVXOPT(Solver):
         ValueError
             If CVXOPT fails.
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt.solvers
         if kktsolver == s.ROBUST_KKTSOLVER:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(data[s.G],
@@ -245,29 +240,29 @@ class CVXOPT(Solver):
         dims = data[s.DIMS]
         # Convert A, b, G, h to scipy sparse matrices and numpy 1D arrays.
         A = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.A],
-            convert_scalars=True)
+                                                     convert_scalars=True)
         G = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.G],
-            convert_scalars=True)
+                                                     convert_scalars=True)
         b = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.B],
-            convert_scalars=True)
+                                                 convert_scalars=True)
         h = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.H],
-            convert_scalars=True)
+                                                 convert_scalars=True)
         # Remove redundant rows in A.
         if A.shape[0] > 0:
             # The pivoting improves robustness.
             Q, R, P = scipy.linalg.qr(A.todense(), pivoting=True)
             rows_to_keep = []
             for i in range(R.shape[0]):
-                if np.linalg.norm(R[i,:]) > 1e-10:
+                if np.linalg.norm(R[i, :]) > 1e-10:
                     rows_to_keep.append(i)
-            R = R[rows_to_keep,:]
+            R = R[rows_to_keep, :]
             Q = Q[:, rows_to_keep]
             # Invert P from col -> var to var -> col.
             Pinv = np.zeros(P.size, dtype='int')
             for i in range(P.size):
                 Pinv[P[i]] = i
             # Rearrage R.
-            R = R[:,Pinv]
+            R = R[:, Pinv]
             A = R
             b_old = b
             b = Q.T.dot(b)
@@ -277,19 +272,19 @@ class CVXOPT(Solver):
                 return s.INFEASIBLE
             dims[s.EQ_DIM] = int(b.shape[0])
             data["Q"] = intf.CVXOPT_DENSE_INTF.const_to_matrix(Q,
-                convert_scalars=True)
+                                                               convert_scalars=True)
 
         # Remove obviously redundant rows in G's <= constraints.
         if dims[s.LEQ_DIM] > 0:
             G = G.tocsr()
-            G_leq = G[:dims[s.LEQ_DIM],:]
+            G_leq = G[:dims[s.LEQ_DIM], :]
             h_leq = h[:dims[s.LEQ_DIM]]
-            G_other = G[dims[s.LEQ_DIM]:,:]
+            G_other = G[dims[s.LEQ_DIM]:, :]
             h_other = h[dims[s.LEQ_DIM]:]
             G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
             dims[s.LEQ_DIM] = int(h_leq.shape[0])
             data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
-                convert_scalars=True)
+                                                                    convert_scalars=True)
             # Scipy 0.13 can't stack empty arrays.
             if G_leq.shape[0] > 0 and G_other.shape[0] > 0:
                 G = sp.vstack([G_leq, G_other])
@@ -300,13 +295,13 @@ class CVXOPT(Solver):
             h = np.vstack([h_leq, h_other])
         # Convert A, b, G, h to CVXOPT matrices.
         data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(A,
-            convert_scalars=True)
+                                                            convert_scalars=True)
         data[s.G] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(G,
-            convert_scalars=True)
+                                                            convert_scalars=True)
         data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(b,
-            convert_scalars=True)
+                                                           convert_scalars=True)
         data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
-            convert_scalars=True)
+                                                           convert_scalars=True)
         return s.OPTIMAL
 
     @staticmethod

@@ -21,6 +21,7 @@ from cvxpy import *
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestNonOptimal(BaseTest):
     """ Unit tests for infeasible and unbounded problems. """
 
@@ -30,7 +31,7 @@ class TestNonOptimal(BaseTest):
         x1 = Variable()
         x2 = Variable()
         obj = Minimize(-x1-x2)
-        constraints = [2*x1 + x2 >= 1, x1 + 3*x2 >= 1, x1>= 0, x2>=0]
+        constraints = [2*x1 + x2 >= 1, x1 + 3*x2 >= 1, x1 >= 0, x2 >= 0]
         p_unb = Problem(obj, constraints)
         p_inf = Problem(Minimize(x1), [0 <= x1, x1 <= -1])
         for solver in [ECOS, CVXOPT, SCS]:

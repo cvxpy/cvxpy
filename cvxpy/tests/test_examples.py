@@ -25,6 +25,7 @@ from cvxpy.tests.base_test import BaseTest
 import cvxopt
 import numbers
 
+
 class TestExamples(BaseTest):
     """ Unit tests using example problems. """
 
@@ -43,9 +44,9 @@ class TestExamples(BaseTest):
 
         # Create and solve the model
         r = Variable(name='r')
-        x_c = Variable(2,name='x_c')
+        x_c = Variable(2, name='x_c')
         obj = Maximize(r)
-        constraints = [ #TODO have atoms compute values for constants.
+        constraints = [  # TODO have atoms compute values for constants.
             a1.T*x_c + np.linalg.norm(a1)*r <= b[0],
             a2.T*x_c + np.linalg.norm(a2)*r <= b[1],
             a3.T*x_c + np.linalg.norm(a3)*r <= b[2],
@@ -56,7 +57,7 @@ class TestExamples(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0.447214)
         self.assertAlmostEqual(r.value, result)
-        self.assertItemsAlmostEqual(x_c.value, [0,0])
+        self.assertItemsAlmostEqual(x_c.value, [0, 0])
 
     # Test issue with numpy scalars.
     def test_numpy_scalars(self):
@@ -89,11 +90,11 @@ class TestExamples(BaseTest):
         slack = Variable()
         # Form the problem
         x = Variable(n)
-        objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 + slack)
-        constraints = [0.5*quad_form(x,P1) + q1.T*x + r1 <= slack,
-                       0.5*quad_form(x,P2) + q2.T*x + r2 <= slack,
-                       0.5*quad_form(x,P3) + q3.T*x + r3 <= slack,
-        ]
+        objective = Minimize(0.5*quad_form(x, P0) + q0.T*x + r0 + slack)
+        constraints = [0.5*quad_form(x, P1) + q1.T*x + r1 <= slack,
+                       0.5*quad_form(x, P2) + q2.T*x + r2 <= slack,
+                       0.5*quad_form(x, P3) + q3.T*x + r3 <= slack,
+                       ]
 
         # We now find the primal result and compare it to the dual result
         # to check if strong duality holds i.e. the duality gap is effectively zero
@@ -102,7 +103,7 @@ class TestExamples(BaseTest):
 
         # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
         # When feasible, we can print out the following values
-        print(x.value) # solution
+        print(x.value)  # solution
         lam1 = constraints[0].dual_value
         lam2 = constraints[1].dual_value
         lam3 = constraints[2].dual_value
@@ -113,7 +114,7 @@ class TestExamples(BaseTest):
         r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
         dual_result = -0.5*q_lam.T.dot(P_lam).dot(q_lam) + r_lam
         print(dual_result.shape)
-        self.assertEqual(intf.size(dual_result), (1,1))
+        self.assertEqual(intf.size(dual_result), (1, 1))
 
     # Tests examples from the README.
     def test_readme_examples(self):
@@ -123,7 +124,7 @@ class TestExamples(BaseTest):
         # Problem data.
         m = 30
         n = 20
-        A = cvxopt.normal(m,n)
+        A = cvxopt.normal(m, n)
         b = cvxopt.normal(m)
 
         # Construct the problem.
@@ -167,7 +168,7 @@ class TestExamples(BaseTest):
 
         # Raises an error for assigning a value with invalid sign.
         with self.assertRaises(Exception) as cm:
-            G.value = numpy.ones((4,7))
+            G.value = numpy.ones((4, 7))
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
         ####################################################
@@ -188,7 +189,7 @@ class TestExamples(BaseTest):
         # Problem data.
         n = 10
         m = 5
-        A = cvxopt.normal(n,m)
+        A = cvxopt.normal(n, m)
         b = cvxopt.normal(n)
         gamma = Parameter(sign="positive")
 
@@ -211,7 +212,7 @@ class TestExamples(BaseTest):
         n = 10
 
         mu = cvxopt.normal(1, n)
-        sigma = cvxopt.normal(n,n)
+        sigma = cvxopt.normal(n, n)
         sigma = sigma.T*sigma
         gamma = Parameter(sign="positive")
         gamma.value = 1
@@ -253,7 +254,7 @@ class TestExamples(BaseTest):
         gamma = Parameter(sign="positive")
         gamma.value = 0.1
         # 'a' is a variable constrained to have at most 6 non-zero entries.
-        a = Variable(n)#mi.SparseVar(n, nonzeros=6)
+        a = Variable(n)  # mi.SparseVar(n, nonzeros=6)
         b = Variable()
 
         slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
@@ -334,10 +335,10 @@ class TestExamples(BaseTest):
         # Create and solve the model
         A = Variable(n, n);
         b = Variable(n);
-        obj = Maximize( log_det(A) )
+        obj = Maximize(log_det(A))
         constraints = []
         for i in range(m):
-            constraints.append( norm(A*x[:, i] + b) <= 1 )
+            constraints.append(norm(A*x[:, i] + b) <= 1)
         p = Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 1.9746, places=4)
@@ -348,8 +349,8 @@ class TestExamples(BaseTest):
         import numpy as np
         import scipy.sparse as sp
         np.random.seed(5)
-        n = 100#10000
-        m = 10#100
+        n = 100  # 10000
+        m = 10  # 100
         pbar = (np.ones((n, 1)) * .03 +
                 np.matrix(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
 
@@ -507,7 +508,7 @@ class TestExamples(BaseTest):
 
         print("Optimal value", prob.solve())
         print("Optimal var")
-        print(x.value) # A numpy matrix.
+        print(x.value)  # A numpy matrix.
 
         self.assertAlmostEqual(prob.value, 4.14133859146)
 
@@ -642,10 +643,10 @@ class TestExamples(BaseTest):
         np.random.seed(1)
         m = 5
         n = 2
-        X = np.matrix(np.ones((m,n)))
+        X = np.matrix(np.ones((m, n)))
         w = cp.Variable(n)
 
-        expr2 = [cp.log_sum_exp(cp.vstack(0, X[i,:]*w)) for i in range(m)]
+        expr2 = [cp.log_sum_exp(cp.vstack(0, X[i, :]*w)) for i in range(m)]
         expr3 = sum(expr2)
         obj = cp.Minimize(expr3)
         p = cp.Problem(obj)

@@ -23,6 +23,7 @@ import scipy.sparse as sp
 import numpy as np
 import cvxopt
 
+
 class MatrixInterface(NDArrayInterface):
     """
     An interface to convert constant values to the numpy matrix class.
@@ -48,7 +49,7 @@ class MatrixInterface(NDArrayInterface):
             value = value*1.0
         # Lists and 1D arrays become column vectors.
         elif isinstance(value, list) or \
-             isinstance(value, np.ndarray) and value.ndim == 1:
+                isinstance(value, np.ndarray) and value.ndim == 1:
             value = np.asmatrix(value, dtype='float64').T
         # First convert sparse to dense.
         elif sp.issparse(value):
@@ -66,4 +67,3 @@ class MatrixInterface(NDArrayInterface):
 
     def reshape(self, matrix, size):
         return np.reshape(matrix, size, order='F')
-

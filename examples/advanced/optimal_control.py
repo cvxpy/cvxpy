@@ -16,7 +16,7 @@ class Stage(object):
         self.cost = sum(square(self.u)) + sum(abs(self.x))
         self.constraint = (self.x == A*x_prev + B*self.u)
 
-stages = [Stage(A, B, x_init)] 
+stages = [Stage(A, B, x_init)]
 for i in range(T):
     stages.append(Stage(A, B, stages[-1].x))
 

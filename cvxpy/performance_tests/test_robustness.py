@@ -27,8 +27,10 @@ from cvxopt import matrix
 import scipy.sparse as sp
 import unittest
 
+
 class TestProblem(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -38,9 +40,9 @@ class TestProblem(unittest.TestCase):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2,2,name='A')
-        self.B = Variable(2,2,name='B')
-        self.C = Variable(3,2,name='C')
+        self.A = Variable(2, 2, name='A')
+        self.B = Variable(2, 2, name='B')
+        self.C = Variable(3, 2, name='C')
 
     # Overriden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
@@ -50,14 +52,14 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=3)
+            super(TestProblem, self).assertAlmostEqual(a, b, places=3)
 
     def test_large_sum(self):
         """Test large number of variables summed.
         """
         for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n,n))
-            x = Variable(n,n)
+            A = matrix(range(n*n), (n, n))
+            x = Variable(n, n)
             p = Problem(Minimize(at.sum_entries(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
@@ -68,20 +70,20 @@ class TestProblem(unittest.TestCase):
         """Test large number of variables squared.
         """
         for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n,n))
-            x = Variable(n,n)
+            A = matrix(range(n*n), (n, n))
+            x = Variable(n, n)
             p = Problem(Minimize(at.square(x[0, 0])),
-                [x >= A])
+                        [x >= A])
             result = p.solve()
             self.assertAlmostEqual(result, 0)
 
     def test_sdp(self):
         """Test a problem with semidefinite cones.
         """
-        a = sp.rand(100,100,.1, random_state=1)
+        a = sp.rand(100, 100, .1, random_state=1)
         a = a.todense()
-        X = Variable(100,100)
-        obj = at.norm(X, "nuc") + at.norm(X-a,'fro')
+        X = Variable(100, 100)
+        obj = at.norm(X, "nuc") + at.norm(X-a, 'fro')
         p = Problem(Minimize(obj))
         p.solve(solver="SCS")
 
@@ -94,6 +96,6 @@ class TestProblem(unittest.TestCase):
         X = Variable(*SHAPE)
         Z = Variable(rows+cols, rows+cols)
         prob = Problem(Minimize(0.5*at.trace(Z)),
-            [X[0,0] >= 1, Z[0:rows,rows:rows+cols] == X, Z >> 0, Z == Z.T])
+                       [X[0, 0] >= 1, Z[0:rows, rows:rows+cols] == X, Z >> 0, Z == Z.T])
         prob.solve(solver="SCS")
         self.assertAlmostEqual(prob.value, 1.0)

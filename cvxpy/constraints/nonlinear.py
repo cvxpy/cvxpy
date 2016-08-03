@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 from cvxpy.constraints.constraint import Constraint
+
 
 class NonlinearConstraint(Constraint):
     """
@@ -31,6 +31,7 @@ class NonlinearConstraint(Constraint):
     """
     # f - a nonlinear function
     # vars_ - the variables involved in the function
+
     def __init__(self, f, vars_):
         self.f = f
         self.vars_ = vars_

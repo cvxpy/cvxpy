@@ -20,14 +20,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 
+
 class matrix_frac(Atom):
     """ tr X.T*P^-1*X """
+
     def __init__(self, X, P):
         super(matrix_frac, self).__init__(X, P)
 
@@ -45,7 +46,7 @@ class matrix_frac(Atom):
         """
         return [self.args[1] >> 0]
 
-    def _grad(self,values):
+    def _grad(self, values):
         """
         Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -62,7 +63,7 @@ class matrix_frac(Atom):
         try:
             P_inv = LA.inv(P)
         except LA.LinAlgError:
-            return [None,None]
+            return [None, None]
         # partial_X = (P^-1+P^-T)X
         # partial_P = - (P^-1 * X * X^T * P^-1)^T
         else:
@@ -76,7 +77,6 @@ class matrix_frac(Atom):
             DP = -DP.T
             DP = sp.csc_matrix(DP.T.ravel(order='F')).T
             return [DX, DP]
-
 
     def validate_arguments(self):
         """Checks that the dimensions of x and P match.
@@ -145,8 +145,8 @@ class matrix_frac(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        X = arg_objs[0] # n by m matrix.
-        P = arg_objs[1] # n by n matrix.
+        X = arg_objs[0]  # n by m matrix.
+        P = arg_objs[1]  # n by n matrix.
         n, m = X.size
         # Create a matrix with Schur complement T - X.T*P^-1*X.
         M = lu.create_var((n + m, n + m))

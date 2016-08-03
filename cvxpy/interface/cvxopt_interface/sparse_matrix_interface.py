@@ -23,6 +23,7 @@ import cvxopt
 import numpy
 import numbers
 
+
 class SparseMatrixInterface(DenseMatrixInterface):
     """
     An interface to convert constant values to the cvxopt sparse matrix class.
@@ -48,8 +49,8 @@ class SparseMatrixInterface(DenseMatrixInterface):
         elif sp.issparse(value):
             value = value.tocoo()
             return cvxopt.spmatrix(value.data.tolist(), value.row.tolist(),
-                value.col.tolist(), size=value.shape, tc='d')
-        else: # Lists.
+                                   value.col.tolist(), size=value.shape, tc='d')
+        else:  # Lists.
             return cvxopt.sparse(value, tc='d')
 
     # Return an identity matrix.
@@ -64,15 +65,15 @@ class SparseMatrixInterface(DenseMatrixInterface):
             cols = int(cols)
 
         if value == 0:
-            return cvxopt.spmatrix(0, [], [], size=(rows,cols))
+            return cvxopt.spmatrix(0, [], [], size=(rows, cols))
         else:
-            dense = cvxopt.matrix(value, (rows,cols), tc='d')
+            dense = cvxopt.matrix(value, (rows, cols), tc='d')
             return cvxopt.sparse(dense)
 
     def reshape(self, matrix, size):
         old_size = matrix.size
         new_mat = self.zeros(*size)
-        for v,i,j in zip(matrix.V, matrix.I, matrix.J):
+        for v, i, j in zip(matrix.V, matrix.I, matrix.J):
             pos = i + old_size[0]*j
             new_row = pos % size[0]
             new_col = pos // size[0]

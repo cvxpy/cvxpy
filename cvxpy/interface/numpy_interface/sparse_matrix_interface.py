@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 import scipy.sparse as sp
 import numpy as np
-import numbers
 import cvxopt
 
 

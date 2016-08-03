@@ -18,24 +18,20 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant, CallbackParam
-from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
 import numpy as np
-import sys
 from fastcache import clru_cache
-if sys.version_info >= (3, 0):
-    from functools import reduce
 
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
     __metaclass__ = abc.ABCMeta
     # args are the expressions passed into the Atom constructor.
+
     def __init__(self, *args):
         # Throws error if args is empty.
         if len(args) == 0:
@@ -119,8 +115,8 @@ class Atom(Expression):
             return True
         elif self.is_atom_convex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or \
-                        (arg.is_convex() and self.is_incr(idx)) or \
+                if not (arg.is_affine() or
+                        (arg.is_convex() and self.is_incr(idx)) or
                         (arg.is_concave() and self.is_decr(idx))):
                     return False
             return True
@@ -136,8 +132,8 @@ class Atom(Expression):
             return True
         elif self.is_atom_concave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or \
-                        (arg.is_concave() and self.is_incr(idx)) or \
+                if not (arg.is_affine() or
+                        (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
                     return False
             return True
@@ -326,6 +322,7 @@ class Atom(Expression):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.
            Ensures both inputs and outputs are the correct matrix types.
         """
+
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)

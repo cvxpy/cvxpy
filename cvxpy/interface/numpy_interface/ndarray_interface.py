@@ -20,9 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import base_matrix_interface as base
 import numpy
-import numbers
 import scipy.sparse
 import cvxopt
+
 
 class NDArrayInterface(base.BaseMatrixInterface):
     """

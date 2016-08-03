@@ -25,6 +25,7 @@ import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from numpy import linalg as LA
 
+
 class QuadCoeffExtractor(object):
 
     def __init__(self, id_map, N):
@@ -86,7 +87,7 @@ class QuadCoeffExtractor(object):
 
         m, p = expr.args[0].size
         n = expr.args[1].size[1]
-        
+
         Ps = []
         Q = sp.csr_matrix((m*n, self.N))
         R = np.zeros((m*n))
@@ -94,7 +95,7 @@ class QuadCoeffExtractor(object):
         ind = 0
         for j in range(n):
             for i in range(m):
-                M = sp.csr_matrix((self.N, self.N)) # TODO: find best format
+                M = sp.csr_matrix((self.N, self.N))  # TODO: find best format
                 for k in range(p):
                     Xind = k*m + i
                     Yind = j*p + k
@@ -131,13 +132,13 @@ class QuadCoeffExtractor(object):
             R = np.power(b, 2)
             return (Ps, Q, R)
         else:
-            raise Exception("Error while processing power(x, %f)." % p)
+            raise Exception("Error while processing power(x, %f)." % expr.p)
 
     def _coeffs_matrix_frac(self, expr):
         (_, A, b) = self._coeffs_affine(expr.args[0])
         m, n = expr.args[0].size
         Pinv = np.asarray(LA.inv(expr.args[1].value))
-        
+
         M = sp.lil_matrix((self.N, self.N))
         Q = sp.lil_matrix((1, self.N))
         R = 0
@@ -145,13 +146,12 @@ class QuadCoeffExtractor(object):
         for i in range(0, m*n, m):
             A2 = A[i:i+m, :]
             b2 = b[i:i+m]
-            
+
             M += A2.T*Pinv*A2
             Q += 2*A2.T.dot(np.dot(Pinv, b2))
             R += np.dot(b2, np.dot(Pinv, b2))
 
         return ([M.tocsr()], Q.tocsr(), np.array([R]))
-
 
     def _coeffs_affine_atom(self, expr):
         sz = expr.size[0]*expr.size[1]
@@ -188,5 +188,5 @@ class QuadCoeffExtractor(object):
             Q[i, :] += v*Qarg[j, :]
             R[i] += v*Rarg[j]
 
-        Ps = [P.tocsr() for P in Ps]        
+        Ps = [P.tocsr() for P in Ps]
         return (Ps, Q.tocsr(), R)

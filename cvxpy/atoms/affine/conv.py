@@ -23,10 +23,12 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class conv(AffAtom):
     """ 1D discrete convolution of two vectors.
     """
     # TODO work with right hand constant.
+
     def __init__(self, lh_expr, rh_expr):
         super(conv, self).__init__(lh_expr, rh_expr)
 
@@ -42,7 +44,7 @@ class conv(AffAtom):
         """Checks that both arguments are vectors, and the first is constant.
         """
         if not self.args[0].is_vector() or not self.args[1].is_vector():
-            raise ValueError("The arguments to conv must resolve to vectors." )
+            raise ValueError("The arguments to conv must resolve to vectors.")
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
 

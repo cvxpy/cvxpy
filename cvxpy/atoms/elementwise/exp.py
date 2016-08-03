@@ -19,13 +19,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.affine.index import index
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
+
 
 class exp(Elementwise):
     """Elementwise :math:`e^{x}`.
     """
+
     def __init__(self, x):
         super(exp, self).__init__(x)
 

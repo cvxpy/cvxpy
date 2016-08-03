@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
@@ -40,9 +39,12 @@ class power(Elementwise):
         p = 0 & f(x) = 1 & \text{constant, positive} \\
         p = 1 & f(x) = x & \text{affine, increasing, same sign as $x$} \\
         p = 2,4,8,\ldots &f(x) = |x|^p  & \text{convex, signed monotonicity, positive} \\
-        p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases} & \text{convex, decreasing, positive} \\
-        0 < p < 1 & f(x) = \begin{cases} x^p & x \geq 0 \\ -\infty & x < 0 \end{cases} & \text{concave, increasing, positive} \\
-        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\ +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
+        p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases}
+          & \text{convex, decreasing, positive} \\
+        0 < p < 1 & f(x) = \begin{cases} x^p & x \geq 0 \\ -\infty & x < 0 \end{cases}
+          & \text{concave, increasing, positive} \\
+        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\
+          +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
         \end{array}
 
     .. note::
@@ -117,6 +119,7 @@ class power(Elementwise):
 
 
     """
+
     def __init__(self, x, p, max_denom=1024):
         p_old = p
 
@@ -129,7 +132,8 @@ class power(Elementwise):
             p, w = pow_neg(p, max_denom)
 
         # note: if, after making the rational approximation, p ends up being 0 or 1,
-        # we default to using the 0 or 1 behavior of the atom, which affects the curvature, domain, etc...
+        # we default to using the 0 or 1 behavior of the atom,
+        # which affects the curvature, domain, etc...
         # maybe unexpected behavior to the user if they put in 1.00001?
 
         if p == 1:
@@ -324,5 +328,5 @@ class power(Elementwise):
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
-                                 self.args[0].name(),
-                                 self.p)
+                               self.args[0].name(),
+                               self.p)

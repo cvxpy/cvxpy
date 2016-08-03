@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import reshape, vec
 from cvxpy.expressions.constants import Constant
 
+
 def linearize(expr):
     """Returns the tangent approximation to the expression.
 
@@ -41,7 +42,7 @@ def linearize(expr):
         tangent = expr.value
         if tangent is None:
             raise ValueError(
-        "Cannot linearize non-affine expression with missing variable values."
+                "Cannot linearize non-affine expression with missing variable values."
             )
         grad_map = expr.grad
         for var in expr.variables():

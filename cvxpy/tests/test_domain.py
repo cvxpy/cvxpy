@@ -28,8 +28,10 @@ import unittest
 from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestDomain(BaseTest):
     """ Unit tests for the domain module. """
+
     def setUp(self):
         self.a = Variable(name='a')
 
@@ -37,15 +39,15 @@ class TestDomain(BaseTest):
         self.y = Variable(2, name='y')
         self.z = Variable(3, name='z')
 
-        self.A = Variable(2,2,name='A')
-        self.B = Variable(2,2,name='B')
-        self.C = Variable(3,2,name='C')
+        self.A = Variable(2, 2, name='A')
+        self.B = Variable(2, 2, name='B')
+        self.C = Variable(3, 2, name='C')
 
     def test_partial_problem(self):
         """Test domain for partial minimization/maximization problems.
         """
         for obj in [Minimize((self.a)**-1), Maximize(log(self.a))]:
-            prob = Problem(obj, [self.x  + self.a >= [5,8]])
+            prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
             expr = cvxpy.partial_optimize(prob, dont_opt_vars=[self.x, self.a])
             dom = expr.domain
@@ -54,7 +56,7 @@ class TestDomain(BaseTest):
             prob.solve()
             self.assertAlmostEqual(prob.value, 13)
             assert self.a.value >= 0
-            assert np.all( (self.x  + self.a - [5,8]).value >= -1e-3)
+            assert np.all((self.x + self.a - [5, 8]).value >= -1e-3)
 
             # Optimize over x.
             expr = cvxpy.partial_optimize(prob, opt_vars=[self.x])
@@ -81,40 +83,40 @@ class TestDomain(BaseTest):
         dom = geo_mean(self.x).domain
         prob = Problem(Minimize(sum_entries(self.x)), dom)
         prob.solve()
-        self.assertAlmostEqual(prob.value,0)
+        self.assertAlmostEqual(prob.value, 0)
 
         # No special case for only one weight.
-        dom = geo_mean(self.x,[0,2]).domain
-        dom.append(self.x>=-1)
+        dom = geo_mean(self.x, [0, 2]).domain
+        dom.append(self.x >= -1)
         prob = Problem(Minimize(sum_entries(self.x)), dom)
         prob.solve()
-        self.assertItemsAlmostEqual(self.x.value,[-1,0])
+        self.assertItemsAlmostEqual(self.x.value, [-1, 0])
 
-        dom = geo_mean(self.z,[0,1,1]).domain
-        dom.append(self.z>=-1)
+        dom = geo_mean(self.z, [0, 1, 1]).domain
+        dom.append(self.z >= -1)
         prob = Problem(Minimize(sum_entries(self.z)), dom)
         prob.solve()
-        self.assertItemsAlmostEqual(self.z.value,[-1,0,0])
+        self.assertItemsAlmostEqual(self.z.value, [-1, 0, 0])
 
     def test_quad_over_lin(self):
         """Test domain for quad_over_lin
         """
-        dom = quad_over_lin(self.x,self.a).domain
-        Problem(Minimize(self.a),dom).solve()
-        self.assertAlmostEqual(self.a.value,0)
+        dom = quad_over_lin(self.x, self.a).domain
+        Problem(Minimize(self.a), dom).solve()
+        self.assertAlmostEqual(self.a.value, 0)
 
     def test_lambda_max(self):
         """Test domain for lambda_max
         """
         dom = lambda_max(self.A).domain
-        A0 = [[1,2],[3,4]]
-        Problem(Minimize(norm2(self.A-A0)),dom).solve()
-        self.assertItemsAlmostEqual(self.A.value,np.matrix([[1,2.5],[2.5,4]]))
+        A0 = [[1, 2], [3, 4]]
+        Problem(Minimize(norm2(self.A-A0)), dom).solve()
+        self.assertItemsAlmostEqual(self.A.value, np.matrix([[1, 2.5], [2.5, 4]]))
 
     def test_pnorm(self):
         """ Test domain for pnorm.
         """
-        dom = pnorm(self.a,-0.5).domain
+        dom = pnorm(self.a, -0.5).domain
         prob = Problem(Minimize(self.a), dom)
         prob.solve()
         self.assertAlmostEqual(prob.value, 0)
@@ -179,7 +181,7 @@ class TestDomain(BaseTest):
     def test_matrix_frac(self):
         """Test domain for matrix_frac.
         """
-        dom = matrix_frac(self.x,self.A + np.eye(2)).domain
+        dom = matrix_frac(self.x, self.A + np.eye(2)).domain
         prob = Problem(Minimize(sum_entries(diag(self.A))), dom)
         prob.solve(solver=cvxpy.SCS)
         self.assertAlmostEquals(prob.value, -2, places=3)

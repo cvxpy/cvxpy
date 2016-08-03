@@ -4,6 +4,7 @@ from cvxpy.tests.base_test import BaseTest
 
 class TestSolvers(BaseTest):
     """ Unit tests for solver specific behavior. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -13,9 +14,9 @@ class TestSolvers(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2,2,name='A')
-        self.B = Variable(2,2,name='B')
-        self.C = Variable(3,2,name='C')
+        self.A = Variable(2, 2, name='A')
+        self.B = Variable(2, 2, name='B')
+        self.C = Variable(3, 2, name='C')
 
     def test_lp(self):
         """Tests basic LPs. (from test_elemental.py)
@@ -43,10 +44,10 @@ class TestSolvers(BaseTest):
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
             objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
-            constraints = [ 2 * self.x[0] + self.x[1] <= 3,
-                            self.x[0] + 2 * self.x[1] <= 3,
-                            self.x[0] >= 0,
-                            self.x[1] >= 0]
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
             prob = Problem(objective, constraints)
             prob.solve(verbose=False, solver=CBC)
             self.assertAlmostEqual(prob.value, -9)
@@ -65,7 +66,7 @@ class TestSolvers(BaseTest):
             bool_var = Bool()
             int_var = Int()
             prob = Problem(Minimize(norm(self.x, 1)),
-                        [self.x == bool_var, bool_var == 0])
+                           [self.x == bool_var, bool_var == 0])
             prob.solve(solver=CBC, verbose=False)
             self.assertAlmostEqual(prob.value, 0)
             self.assertAlmostEqual(bool_var.value, 0)
@@ -73,12 +74,12 @@ class TestSolvers(BaseTest):
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
             objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
-            constraints = [ 2 * self.x[0] + self.x[1] <= int_var,
-                            self.x[0] + 2 * self.x[1] <= 3*bool_var,
-                            self.x[0] >= 0,
-                            self.x[1] >= 0,
-                            int_var == 3*bool_var,
-                            int_var == 3]
+            constraints = [2 * self.x[0] + self.x[1] <= int_var,
+                           self.x[0] + 2 * self.x[1] <= 3*bool_var,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0,
+                           int_var == 3*bool_var,
+                           int_var == 3]
             prob = Problem(objective, constraints)
             prob.solve(solver=CBC, verbose=False)
             self.assertAlmostEqual(prob.value, -9)
@@ -129,7 +130,6 @@ class TestSolvers(BaseTest):
                 prob.solve(solver=CBC, verbose=False)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % CBC)
 
-
     def test_options(self):
         """Test that all the CBC solver options work.
         """
@@ -138,11 +138,11 @@ class TestSolvers(BaseTest):
             for i in range(2):
                 # Some cut-generators seem to be buggy for now -> set to false
                 prob.solve(solver=CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
-                    MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
-                    KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True, 
-                    LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
-                    RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False, 
-                    ProbingCuts=True, SimpleRoundingCuts=True)
+                           MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
+                           KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True,
+                           LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
+                           RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False,
+                           ProbingCuts=True, SimpleRoundingCuts=True)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
         else:
             with self.assertRaises(Exception) as cm:

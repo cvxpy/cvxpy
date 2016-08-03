@@ -26,12 +26,14 @@ import numpy as np
 from cvxpy.tests.base_test import BaseTest
 import unittest
 
+
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
+
     def setUp(self):
         self.X = Semidef(2)
-        self.Y = Variable(2,2)
-        self.F = matrix([[1,0],[0,-1]], tc='d')
+        self.Y = Variable(2, 2)
+        self.F = matrix([[1, 0], [0, -1]], tc='d')
 
     def test_sdp_print(self):
         """Test to string methods for SDP vars.
@@ -41,14 +43,14 @@ class TestSemidefiniteVariable(BaseTest):
     def test_sdp_problem(self):
         # SDP in objective.
         obj = Minimize(sum_entries(square(self.X - self.F)))
-        p = Problem(obj,[])
+        p = Problem(obj, [])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
-        self.assertAlmostEqual(self.X.value[0,0], 1, places=3)
-        self.assertAlmostEqual(self.X.value[0,1], 0)
-        self.assertAlmostEqual(self.X.value[1,0], 0)
-        self.assertAlmostEqual(self.X.value[1,1], 0)
+        self.assertAlmostEqual(self.X.value[0, 0], 1, places=3)
+        self.assertAlmostEqual(self.X.value[0, 1], 0)
+        self.assertAlmostEqual(self.X.value[1, 0], 0)
+        self.assertAlmostEqual(self.X.value[1, 1], 0)
 
         # SDP in constraint.
         # ECHU: note to self, apparently this is a source of redundancy
@@ -57,31 +59,31 @@ class TestSemidefiniteVariable(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
-        self.assertAlmostEqual(self.Y.value[0,0], 1, places=3)
-        self.assertAlmostEqual(self.Y.value[0,1], 0)
-        self.assertAlmostEqual(self.Y.value[1,0], 0)
-        self.assertAlmostEqual(self.Y.value[1,1], 0)
+        self.assertAlmostEqual(self.Y.value[0, 0], 1, places=3)
+        self.assertAlmostEqual(self.Y.value[0, 1], 0)
+        self.assertAlmostEqual(self.Y.value[1, 0], 0)
+        self.assertAlmostEqual(self.Y.value[1, 1], 0)
 
         # Index into semidef.
-        obj = Minimize(square(self.X[0,0] - 1) +
-                       square(self.X[1,0] - 2) +
+        obj = Minimize(square(self.X[0, 0] - 1) +
+                       square(self.X[1, 0] - 2) +
                        #square(self.X[0,1] - 3) +
-                       square(self.X[1,1] - 4))
-        p = Problem(obj,[])
+                       square(self.X[1, 1] - 4))
+        p = Problem(obj, [])
         result = p.solve()
         print(self.X.value)
         self.assertAlmostEqual(result, 0)
 
-        self.assertAlmostEqual(self.X.value[0,0], 1, places=3)
-        self.assertAlmostEqual(self.X.value[0,1], 2, places=3)
-        self.assertAlmostEqual(self.X.value[1,0], 2, places=3)
-        self.assertAlmostEqual(self.X.value[1,1], 4, places=4)
+        self.assertAlmostEqual(self.X.value[0, 0], 1, places=3)
+        self.assertAlmostEqual(self.X.value[0, 1], 2, places=3)
+        self.assertAlmostEqual(self.X.value[1, 0], 2, places=3)
+        self.assertAlmostEqual(self.X.value[1, 1], 4, places=4)
 
     def test_legacy(self):
         """Test that the legacy name semidefinite works.
         """
         X = semidefinite(2)
         obj = Minimize(sum_entries(square(X - self.F)))
-        p = Problem(obj,[])
+        p = Problem(obj, [])
         result = p.solve()
         self.assertAlmostEqual(result, 1)

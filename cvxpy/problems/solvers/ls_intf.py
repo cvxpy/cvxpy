@@ -27,6 +27,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as SLA
 import warnings
 
+
 class LS(Solver):
     """Linearly constrained least squares solver via SciPy.
     """
@@ -42,7 +43,7 @@ class LS(Solver):
     def import_solver(self):
         """Imports the solver.
         """
-        import numpy, scipy
+        pass
 
     def name(self):
         """The name of the solver.
@@ -81,14 +82,15 @@ class LS(Solver):
 
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
-        
+
         # TODO: handle affine objective
-        return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
-            and not prob.objective.args[0].is_affine()
-            and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
-            and all([type(v) in allowedVariables for v in prob.variables()])
-            and all([not v.domain for v in prob.variables()]) # no implicit variable domains (TODO: domains are not implemented yet)
-            )
+        return (prob.is_dcp() and prob.objective.args[0].is_quadratic() and
+                not prob.objective.args[0].is_affine() and
+                all([isinstance(c, eqc.EqConstraint) for c in prob.constraints]) and
+                all([type(v) in allowedVariables for v in prob.variables()]) and
+                all([not v.domain for v in prob.variables()])  # no implicit variable domains
+                # (TODO: domains are not implemented yet)
+                )
 
     def validate_solver(self, prob):
         if not self.suitable(prob):
@@ -106,7 +108,7 @@ class LS(Solver):
                 vars_ = list(set(vars_))
                 self.vars_ = vars_
                 self.var_offsets, self.var_sizes, self.x_length = self.get_var_offsets(vars_)
-            
+
             def get_var_offsets(self, variables):
                 var_offsets = {}
                 var_sizes = {}
@@ -116,11 +118,11 @@ class LS(Solver):
                     var_offsets[x.id] = vert_offset
                     vert_offset += x.size[0]*x.size[1]
                 return (var_offsets, var_sizes, vert_offset)
-        
+
         return FakeSymData(objective, constraints)
 
     def solve(self, objective, constraints, cached_data,
-            warm_start, verbose, solver_opts):
+              warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -129,7 +131,7 @@ class LS(Solver):
             Raw objective passed by CVXPY. Can be convex/concave.
         constraints : list
             The list of raw constraints.
-        
+
         Returns
         -------
         tuple
@@ -138,12 +140,11 @@ class LS(Solver):
 
         sym_data = self.get_sym_data(objective, constraints)
 
-        vars_ = sym_data.vars_
         id_map = sym_data.var_offsets
         N = sym_data.x_length
 
         extractor = QuadCoeffExtractor(id_map, N)
-        
+
         # Extract the coefficients
         (Ps, Q, R) = extractor.get_coeffs(objective.args[0])
 
@@ -158,12 +159,12 @@ class LS(Solver):
             bs = np.array([C[1] for C in Cs]).flatten()
             lhs = sp.bmat([[2*P, As.transpose()], [As, None]], format='csr')
             rhs = np.concatenate([-q, -bs])
-        else: # avoiding calling vstack with empty list
+        else:  # avoiding calling vstack with empty list
             lhs = 2*P
             rhs = -q
 
         warnings.filterwarnings('error')
-        
+
         # Actually solving the KKT system
         try:
             sol = SLA.spsolve(lhs.tocsr(), rhs)
@@ -174,7 +175,7 @@ class LS(Solver):
             x = None
             nu = None
             p_star = None
-        
+
         warnings.resetwarnings()
 
         result_dict = {s.PRIMAL: x, s.EQ_DUAL: nu, s.VALUE: p_star}

@@ -44,7 +44,7 @@ The objective is to minimize  -∑log(α_i+x_i) subject to the constraint ∑x_i
 if __name__ == '__main__':
   print(water_filling.__doc__)
   # print all arrays to 3 significant figures
-  np.set_printoptions(precision=3) 
+  np.set_printoptions(precision=3)
   buckets=3
   alpha = np.array([0.8,1.0,1.2])
   print('Number of buckets = %s'%buckets)

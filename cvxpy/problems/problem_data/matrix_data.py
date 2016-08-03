@@ -18,10 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.interface as intf
-import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 import canonInterface
+
 
 class MatrixCache(object):
     """A cached version of the matrix and vector pair in an affine constraint.
@@ -39,6 +39,7 @@ class MatrixCache(object):
     size : tuple
         The (rows, cols) dimensions of the matrix.
     """
+
     def __init__(self, coo_tup, const_vec, constraints, x_length):
         self.coo_tup = coo_tup
         self.const_vec = const_vec
@@ -165,7 +166,7 @@ class MatrixData(object):
                 # If parameterized, convert the parameters into constant nodes.
                 if has_param:
                     constr = lu.copy_constr(constr,
-                        lu.replace_params_with_consts)
+                                            lu.replace_params_with_consts)
                 active_constr.append(constr)
                 constr_offsets.append(vert_offset)
             vert_offset += constr.size[0]*constr.size[1]
@@ -179,7 +180,7 @@ class MatrixData(object):
             )
             # Convert the constant offset to the correct data type.
             conv_vec = self.vec_intf.const_to_matrix(const_vec,
-                convert_scalars=True)
+                                                     convert_scalars=True)
             mat_cache.const_vec[:const_vec.size] += conv_vec
             for i, vals in enumerate([V, I, J]):
                 mat_cache.coo_tup[i].extend(vals)
@@ -210,7 +211,7 @@ class MatrixData(object):
             # Convert the constraints matrix to the correct type.
             matrix = self.matrix_intf.const_to_matrix(matrix,
                                                       convert_scalars=True)
-        else: # Empty matrix.
+        else:  # Empty matrix.
             matrix = self.matrix_intf.zeros(rows, cols)
         # Convert 2D ND arrays to 1D
         combo_vec = mat_cache.const_vec + param_cache.const_vec

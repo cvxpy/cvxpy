@@ -24,10 +24,12 @@ from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
+
 class kl_div(Elementwise):
     """:math:`x\log(x/y) - x + y`
 
     """
+
     def __init__(self, x, y):
         super(kl_div, self).__init__(x, y)
 
@@ -35,7 +37,7 @@ class kl_div(Elementwise):
     def numeric(self, values):
         x = values[0]
         y = values[1]
-        #TODO return inf outside the domain
+        # TODO return inf outside the domain
         return xlogy(x, x/y) - x + y
 
     def sign_from_args(self):
@@ -116,7 +118,7 @@ class kl_div(Elementwise):
         y = Elementwise._promote(arg_objs[1], size)
         t = lu.create_var(size)
         constraints = [ExpCone(t, x, y),
-                       lu.create_geq(y)] # 0 <= y
+                       lu.create_geq(y)]  # 0 <= y
         # -t - x + y
         obj = lu.sub_expr(y, lu.sum_expr([x, t]))
         return (obj, constraints)

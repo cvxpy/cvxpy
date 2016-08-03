@@ -23,6 +23,7 @@ from cvxpy.problems.solvers.solver import Solver
 import numpy as np
 import scipy.sparse as sp
 
+
 class MOSEK(Solver):
     """An interface for the MOSEK solver.
     """
@@ -38,6 +39,7 @@ class MOSEK(Solver):
         """Imports the solver.
         """
         import mosek
+        mosek  # For flake8
 
     def name(self):
         """The name of the solver.
@@ -161,7 +163,7 @@ class MOSEK(Solver):
 
                 # otherwise it crashes on empty probl.
                 if numvar == 0:
-                    result_dict = {s.STATUS:s.OPTIMAL}
+                    result_dict = {s.STATUS: s.OPTIMAL}
                     result_dict[s.PRIMAL] = []
                     result_dict[s.VALUE] = 0. + data[s.OFFSET]
                     result_dict[s.EQ_DUAL] = []
@@ -173,8 +175,8 @@ class MOSEK(Solver):
                 task.putclist(np.arange(len(c)), c)
                 task.putvarboundlist(np.arange(numvar, dtype=int),
                                      [mosek.boundkey.fr]*numvar,
-                                      np.zeros(numvar),
-                                      np.zeros(numvar))
+                                     np.zeros(numvar),
+                                     np.zeros(numvar))
 
                 # SDP variables
                 if sum(dims[s.SDP_DIM]) > 0:
@@ -188,13 +190,14 @@ class MOSEK(Solver):
                     constraints_matrix = A if A.shape[0] else G
                 coefficients = np.concatenate([b, h])
 
-                row,col,el = sp.find(constraints_matrix)
-                task.putaijlist(row,col,el)
+                row, col, el = sp.find(constraints_matrix)
+                task.putaijlist(row, col, el)
 
                 type_constraint = [mosek.boundkey.fx] * len(b)
                 type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
-                type_constraint += [mosek.boundkey.fx] * (sum(dims[s.SOC_DIM])+ \
-                                        sum([el**2 for el in dims[s.SDP_DIM]]))
+                sdp_total_dims = sum([cdim**2 for cdim in dims[s.SDP_DIM]])
+                type_constraint += [mosek.boundkey.fx] * \
+                    (sum(dims[s.SOC_DIM]) + sdp_total_dims)
 
                 task.putconboundlist(np.arange(numcon, dtype=int),
                                      type_constraint,
@@ -206,28 +209,31 @@ class MOSEK(Solver):
                 current_con_index = len(b) + dims[s.LEQ_DIM]
 
                 for size_cone in dims[s.SOC_DIM]:
-                    row,col,el = sp.find(sp.eye(size_cone))
+                    row, col, el = sp.find(sp.eye(size_cone))
                     row += current_con_index
                     col += current_var_index
-                    task.putaijlist(row,col,el) # add a identity for each cone
+                    task.putaijlist(row, col, el)  # add a identity for each cone
                     # add a cone constraint
                     task.appendcone(mosek.conetype.quad,
-                                    0.0, #unused
+                                    0.0,  # unused
                                     np.arange(current_var_index,
                                               current_var_index + size_cone))
                     current_con_index += size_cone
                     current_var_index += size_cone
 
-                #SDP
+                # SDP
                 for num_sdp_var, size_matrix in enumerate(dims[s.SDP_DIM]):
                     for i_sdp_matrix in range(size_matrix):
                         for j_sdp_matrix in range(size_matrix):
+                            coeff = 1. if i_sdp_matrix == j_sdp_matrix else .5
                             task.putbaraij(current_con_index,
                                            num_sdp_var,
                                            [task.appendsparsesymmat(size_matrix,
-                                                     [max(i_sdp_matrix, j_sdp_matrix)],
-                                                     [min(i_sdp_matrix, j_sdp_matrix)],
-                                    [1. if (i_sdp_matrix == j_sdp_matrix) else .5])],
+                                                                    [max(i_sdp_matrix,
+                                                                         j_sdp_matrix)],
+                                                                    [min(i_sdp_matrix,
+                                                                         j_sdp_matrix)],
+                                                                    [coeff])],
                                            [1.0])
                             current_con_index += 1
 
@@ -270,7 +276,7 @@ class MOSEK(Solver):
                       mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
                       mosek.solsta.unknown: s.SOLVER_ERROR}
 
-        prosta = task.getprosta(mosek.soltype.itr) #unused
+        task.getprosta(mosek.soltype.itr)  # unused
         solsta = task.getsolsta(mosek.soltype.itr)
 
         result_dict = {s.STATUS: STATUS_MAP[solsta]}
@@ -281,7 +287,7 @@ class MOSEK(Solver):
             task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL])
             # get obj value
             result_dict[s.VALUE] = task.getprimalobj(mosek.soltype.itr) + \
-                                   data[s.OFFSET]
+                data[s.OFFSET]
             # get dual
             y = np.zeros(task.getnumcon(), dtype=np.float)
             task.gety(mosek.soltype.itr, y)

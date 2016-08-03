@@ -21,13 +21,14 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.expressions import cvxtypes
-import abc
 from cvxpy.constraints.constraint import Constraint
 import numpy as np
+
 
 class LeqConstraint(u.Canonical, Constraint):
     OP_NAME = "<="
     TOLERANCE = 1e-4
+
     def __init__(self, lh_exp, rh_exp):
         self.args = [lh_exp, rh_exp]
         self._expr = lh_exp - rh_exp
@@ -134,13 +135,13 @@ class LeqConstraint(u.Canonical, Constraint):
 
     @property
     def residual(self):
-       """The residual of the constraint.
+        """The residual of the constraint.
 
-       Returns
-       -------
-       Expression
-       """
-       return cvxtypes.pos()(self._expr)
+        Returns
+        -------
+        Expression
+        """
+        return cvxtypes.pos()(self._expr)
 
     @property
     def violation(self):

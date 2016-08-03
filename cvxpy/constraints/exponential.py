@@ -28,6 +28,7 @@ from cvxpy.constraints.utilities import format_elemwise
 import math
 import cvxopt
 
+
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
 
@@ -97,7 +98,7 @@ class ExpCone(NonlinearConstraint):
     def __CVXOPT_format(self):
         constraints = []
         for i, var in enumerate(self.vars_):
-            if not var.type is VARIABLE:
+            if var.type is not VARIABLE:
                 lone_var = lu.create_var(var.size)
                 constraints.append(lu.create_eq(lone_var, var))
                 self.vars_[i] = lone_var

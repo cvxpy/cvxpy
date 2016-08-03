@@ -9,6 +9,7 @@ import warnings
 
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self):
         """Test quad form with a singular matrix.
@@ -86,4 +87,3 @@ class TestNonOptimal(BaseTest):
         with self.assertRaises(Exception) as cm:
             prob.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
-        

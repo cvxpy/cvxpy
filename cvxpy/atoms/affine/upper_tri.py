@@ -18,13 +18,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 class upper_tri(AffAtom):
     """The vectorized strictly upper triagonal entries.
     """
+
     def __init__(self, expr):
         super(upper_tri, self).__init__(expr)
 

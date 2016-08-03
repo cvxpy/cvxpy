@@ -1,4 +1,4 @@
-# Construct a random connected graph and stores it as tuples of 
+# Construct a random connected graph and stores it as tuples of
 # (start node #, end node #, capacity).
 from random import choice, sample, random
 import pickle
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         n1,n2 = sample(range(N), 2)
         edges.append( (n1,n2,c) )
     # Pickle the graph data.
-    data = {NODE_COUNT_KEY: N, 
+    data = {NODE_COUNT_KEY: N,
             EDGES_KEY: edges}
     f = open(FILE, 'w')
     pickle.dump(data, f)

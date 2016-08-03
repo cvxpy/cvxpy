@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-#from cvxpy.interface.base_matrix_interface import BaseMatrixInterface
 from cvxpy.interface import base_matrix_interface
 import numpy as np
 import scipy.sparse as sp
@@ -62,7 +61,7 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
-        return matrix[0,0]
+        return matrix[0, 0]
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, rows, cols):
@@ -70,11 +69,10 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
             rows = int(rows)
         if isinstance(cols, numbers.Number):
             cols = int(cols)
-        return cvxopt.matrix(value, (rows,cols), tc='d')
+        return cvxopt.matrix(value, (rows, cols), tc='d')
 
     # Stuff the matrix into a different shape.
     # First convert the matrix to a cvxopt dense matrix.
     def reshape(self, matrix, size):
         matrix = self.const_to_matrix(matrix, convert_scalars=True)
         return cvxopt.matrix(list(matrix), size, tc='d')
-

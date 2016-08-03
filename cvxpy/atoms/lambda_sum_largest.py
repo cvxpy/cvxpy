@@ -22,6 +22,7 @@ from cvxpy.expressions.variables import Semidef
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.affine.trace import trace
 
+
 def lambda_sum_largest(X, k):
     """Sum of the largest k eigenvalues.
     """
