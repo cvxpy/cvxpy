@@ -54,6 +54,7 @@ class CVXOPT(Solver):
         """Imports the solver.
         """
         import cvxopt
+        cvxopt  # For flake8
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -104,17 +105,10 @@ class CVXOPT(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt
+        import cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save old data in case need to use robust solver.
-        old_data = {
-                s.DIMS: data[s.DIMS],
-                s.A: data[s.A],
-                s.B: data[s.B],
-                s.G: data[s.G],
-                s.H: data[s.H],
-                s.F: data[s.F],
-            }
         data[s.DIMS] = copy.deepcopy(data[s.DIMS])
         # Convert all longs to ints.
         for key, val in data[s.DIMS].items():
@@ -142,7 +136,7 @@ class CVXOPT(Solver):
             cvxopt.solvers.options[key] = value
 
         # Always do 1 step of iterative refinement after solving KKT system.
-        if not "refinement" in cvxopt.solvers.options:
+        if "refinement" not in cvxopt.solvers.options:
             cvxopt.solvers.options["refinement"] = 1
 
         try:
@@ -179,7 +173,7 @@ class CVXOPT(Solver):
         ValueError
             If CVXOPT fails.
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt.solvers
         if kktsolver == s.ROBUST_KKTSOLVER:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(data[s.G],
@@ -215,7 +209,7 @@ class CVXOPT(Solver):
         ValueError
             If CVXOPT fails.
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt.solvers
         if kktsolver == s.ROBUST_KKTSOLVER:
             # Get custom kktsolver.
             kktsolver = get_kktsolver(data[s.G],

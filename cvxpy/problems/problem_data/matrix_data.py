@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.interface as intf
-import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 import canonInterface

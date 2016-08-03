@@ -43,7 +43,7 @@ class LS(Solver):
     def import_solver(self):
         """Imports the solver.
         """
-        import numpy, scipy
+        pass
 
     def name(self):
         """The name of the solver.
@@ -84,11 +84,12 @@ class LS(Solver):
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
 
         # TODO: handle affine objective
-        return (prob.is_dcp() and prob.objective.args[0].is_quadratic()
-                and not prob.objective.args[0].is_affine()
-                and all([isinstance(c, eqc.EqConstraint) for c in prob.constraints])
-                and all([type(v) in allowedVariables for v in prob.variables()])
-                and all([not v.domain for v in prob.variables()])  # no implicit variable domains (TODO: domains are not implemented yet)
+        return (prob.is_dcp() and prob.objective.args[0].is_quadratic() and
+                not prob.objective.args[0].is_affine() and
+                all([isinstance(c, eqc.EqConstraint) for c in prob.constraints]) and
+                all([type(v) in allowedVariables for v in prob.variables()]) and
+                all([not v.domain for v in prob.variables()])  # no implicit variable domains
+                # (TODO: domains are not implemented yet)
                 )
 
     def validate_solver(self, prob):
@@ -139,7 +140,6 @@ class LS(Solver):
 
         sym_data = self.get_sym_data(objective, constraints)
 
-        vars_ = sym_data.vars_
         id_map = sym_data.var_offsets
         N = sym_data.x_length
 

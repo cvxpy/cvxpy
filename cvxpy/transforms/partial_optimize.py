@@ -19,8 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.lin_ops.lin_op as lo
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable

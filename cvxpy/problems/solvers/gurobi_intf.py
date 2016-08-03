@@ -61,6 +61,7 @@ class GUROBI(Solver):
         """Imports the solver.
         """
         import gurobipy
+        gurobipy  # For flake8
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -180,7 +181,7 @@ class GUROBI(Solver):
                 for i in I_unique:
 
                     # Remove old constraint if it exists
-                    if gur_constrs[i] != None:
+                    if gur_constrs[i] is not None:
                         model.remove(gur_constrs[i])
                         gur_constrs[i] = None
 
@@ -274,7 +275,7 @@ class GUROBI(Solver):
             if not self.is_mip(data):
                 vals = []
                 for lc in gur_constrs:
-                    if lc != None:
+                    if lc is not None:
                         if isinstance(lc, gurobipy.QConstr):
                             vals.append(lc.QCPi)
                         else:

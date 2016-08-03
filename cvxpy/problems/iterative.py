@@ -21,7 +21,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.lin_ops.tree_mat import mul, tmul, sum_dicts
 import numpy as np
-import scipy.sparse.linalg as LA
 
 
 def get_mul_funcs(sym_data):

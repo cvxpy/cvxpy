@@ -32,7 +32,6 @@ from cvxpy.problems.problem_data.problem_data import ProblemData
 import cvxpy
 
 # For representing numpy.matrix objects in hashable form
-import hashlib
 
 import multiprocess as multiprocessing
 import numpy as np
@@ -609,10 +608,10 @@ class SizeMetrics(object):
         num_scalar_variables:
             The number of scalar variables in the problem.
         num_scalar_data
-            The number of scalar constants and parameters in the problem. The number of 
+            The number of scalar constants and parameters in the problem. The number of
             constants used across all matrices, vectors, in the problem.
             Some constants are not apparent when the problem is constructed: for example,
-            The sum_squares expression is a wrapper for a quad_over_lin expression with a 
+            The sum_squares expression is a wrapper for a quad_over_lin expression with a
             constant 1 in the denominator.
         num_scalar_eq_constr:
             The number of scalar equality constraints in the problem.

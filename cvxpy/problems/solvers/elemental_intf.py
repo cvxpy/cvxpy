@@ -42,6 +42,7 @@ class Elemental(Solver):
         """Imports the solver.
         """
         import El
+        El  # For flake8
 
     def name(self):
         """The name of the solver.
@@ -162,8 +163,6 @@ class Elemental(Solver):
         import El
         data = self.get_problem_data(objective, constraints, cached_data)
         El.Initialize()
-        worldRank = El.mpi.WorldRank()
-        worldSize = El.mpi.WorldSize()
         # Package data.
         c = self.distr_vec(data["c"], El.dTag)
         A = self.distr_mat(data["A"])

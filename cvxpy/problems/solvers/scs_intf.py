@@ -52,6 +52,7 @@ class SCS(ECOS):
         """Imports the solver.
         """
         import scs
+        scs  # For flake8
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.

@@ -123,8 +123,8 @@ class Solver(object):
             raise SolverError("The solver %s is not installed." % self.name())
         # Check the solver can solve the problem.
         constr_map = SymData.filter_constraints(constraints)
-        if ((constr_map[s.BOOL] or constr_map[s.INT])
-            and not self.MIP_CAPABLE) or \
+        if ((constr_map[s.BOOL] or constr_map[s.INT]) and
+            not self.MIP_CAPABLE) or \
            (constr_map[s.SDP] and not self.SDP_CAPABLE) or \
            (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
            (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \

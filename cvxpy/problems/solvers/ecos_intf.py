@@ -61,6 +61,7 @@ class ECOS(Solver):
         """Imports the solver.
         """
         import ecos
+        ecos  # For flake8
 
     def name(self):
         """The name of the solver.

@@ -78,10 +78,12 @@ def kkt_ldl(G, dims, A, mnl=0):
 
     def factor(W, H=None, Df=None):
         blas.scal(0.0, K)
-        if H is not None: K[:n, :n] = H
+        if H is not None:
+            K[:n, :n] = H
         K[n:n+p, :n] = A
         for k in range(n):
-            if mnl: g[:mnl] = Df[:, k]
+            if mnl:
+                g[:mnl] = Df[:, k]
             g[mnl:] = G[:, k]
             scale(g, W, trans='T', inverse='I')
             pack(g, K, dims, mnl, offsety=k*ldK + n + p)
