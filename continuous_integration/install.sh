@@ -31,6 +31,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
+    pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
         # Install GLPK.
