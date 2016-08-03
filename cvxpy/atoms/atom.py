@@ -120,8 +120,8 @@ class Atom(Expression):
             return True
         elif self.is_atom_convex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or \
-                        (arg.is_convex() and self.is_incr(idx)) or \
+                if not (arg.is_affine() or
+                        (arg.is_convex() and self.is_incr(idx)) or
                         (arg.is_concave() and self.is_decr(idx))):
                     return False
             return True
@@ -137,8 +137,8 @@ class Atom(Expression):
             return True
         elif self.is_atom_concave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or \
-                        (arg.is_concave() and self.is_incr(idx)) or \
+                if not (arg.is_affine() or
+                        (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
                     return False
             return True

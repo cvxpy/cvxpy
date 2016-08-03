@@ -67,4 +67,3 @@ class MatrixInterface(NDArrayInterface):
 
     def reshape(self, matrix, size):
         return np.reshape(matrix, size, order='F')
-

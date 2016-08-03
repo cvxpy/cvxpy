@@ -77,4 +77,3 @@ class DenseMatrixInterface(base_matrix_interface.BaseMatrixInterface):
     def reshape(self, matrix, size):
         matrix = self.const_to_matrix(matrix, convert_scalars=True)
         return cvxopt.matrix(list(matrix), size, tc='d')
-

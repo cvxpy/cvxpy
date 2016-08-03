@@ -87,4 +87,3 @@ class TestNonOptimal(BaseTest):
         with self.assertRaises(Exception) as cm:
             prob.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
-

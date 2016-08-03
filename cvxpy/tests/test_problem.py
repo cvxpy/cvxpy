@@ -1149,7 +1149,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(inf_exp.value,
                                LA.norm(self.x.value - self.z.value, numpy.inf))
         self.assertAlmostEqual(sum_entries_exp.value,
-                               5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) + \
+                               5 + LA.norm(self.z.value, 1) + LA.norm(self.x.value, 1) +
                                LA.norm(self.x.value - self.z.value, numpy.inf))
         self.assertAlmostEqual(constr_exp.value,
                                LA.norm(self.x.value + self.z.value, 2))

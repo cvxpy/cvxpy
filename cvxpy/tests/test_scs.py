@@ -197,4 +197,3 @@ class TestSCS(BaseTest):
     #     self.assertEqual(kl_div(1, 0).value, np.inf)
     #     self.assertEqual(kl_div(0, 1).value, np.inf)
     #     self.assertEqual(kl_div(-1, -1).value, np.inf)
-

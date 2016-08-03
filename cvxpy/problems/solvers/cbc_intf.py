@@ -44,7 +44,7 @@ class CBC(Solver):
     STATUS_MAP_LP = {'optimal': s.OPTIMAL,
                      'primal infeasible': s.INFEASIBLE,
                      'stopped due to errors': s.SOLVER_ERROR,
-                     'stopped by event handler (virtual int ' \
+                     'stopped by event handler (virtual int '
                      'ClpEventHandler::event())': s.SOLVER_ERROR}
 
     SUPPORTED_CUT_GENERATORS = {"GomoryCuts": "CyCglGomory",

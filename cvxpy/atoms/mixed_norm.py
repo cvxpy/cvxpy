@@ -47,4 +47,3 @@ def mixed_norm(X, p=2, q=1):
 
     # outer norm
     return norm(hstack(*vecnorms), q)
-

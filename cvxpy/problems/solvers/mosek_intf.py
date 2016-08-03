@@ -195,7 +195,7 @@ class MOSEK(Solver):
 
         type_constraint = [mosek.boundkey.fx] * len(b)
         type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
-        type_constraint += [mosek.boundkey.fx] * (sum(dims[s.SOC_DIM]) + \
+        type_constraint += [mosek.boundkey.fx] * (sum(dims[s.SOC_DIM]) +
                                                   sum([el**2 for el in dims[s.SDP_DIM]]))
 
         task.putconboundlist(np.arange(numcon, dtype=int),
