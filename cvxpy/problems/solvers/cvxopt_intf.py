@@ -59,12 +59,12 @@ class CVXOPT(Solver):
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """
-        return intf.CVXOPT_SPARSE_INTF
+        return intf.DEFAULT_SPARSE_INTF
 
     def vec_intf(self):
         """The interface for vectors passed to the solver.
         """
-        return intf.CVXOPT_DENSE_INTF
+        return intf.DEFAULT_NP_INTF
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -123,6 +123,17 @@ class CVXOPT(Solver):
             # Will detect infeasibility.
             if self.remove_redundant_rows(data) == s.INFEASIBLE:
                 return {s.STATUS: s.INFEASIBLE}
+        # Convert A, b, G, h, c to CVXOPT matrices.
+        data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(data[s.A],
+                                                            convert_scalars=True)
+        data[s.G] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(data[s.G],
+                                                            convert_scalars=True)
+        data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(data[s.B],
+                                                           convert_scalars=True)
+        data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(data[s.H],
+                                                           convert_scalars=True)
+        data[s.C] = intf.CVXOPT_DENSE_INTF.const_to_matrix(data[s.C],
+                                                           convert_scalars=True)
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
@@ -237,16 +248,12 @@ class CVXOPT(Solver):
         str
             A status indicating if infeasibility was detected.
         """
+        # Extract data.
         dims = data[s.DIMS]
-        # Convert A, b, G, h to scipy sparse matrices and numpy 1D arrays.
-        A = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.A],
-                                                     convert_scalars=True)
-        G = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.G],
-                                                     convert_scalars=True)
-        b = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.B],
-                                                 convert_scalars=True)
-        h = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.H],
-                                                 convert_scalars=True)
+        A = data[s.A]
+        G = data[s.G]
+        b = data[s.B]
+        h = data[s.H]
         # Remove redundant rows in A.
         if A.shape[0] > 0:
             # The pivoting improves robustness.
@@ -278,9 +285,9 @@ class CVXOPT(Solver):
         if dims[s.LEQ_DIM] > 0:
             G = G.tocsr()
             G_leq = G[:dims[s.LEQ_DIM], :]
-            h_leq = h[:dims[s.LEQ_DIM]]
+            h_leq = h[:dims[s.LEQ_DIM]].ravel()
             G_other = G[dims[s.LEQ_DIM]:, :]
-            h_other = h[dims[s.LEQ_DIM]:]
+            h_other = h[dims[s.LEQ_DIM]:].ravel()
             G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
             dims[s.LEQ_DIM] = int(h_leq.shape[0])
             data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
@@ -292,16 +299,12 @@ class CVXOPT(Solver):
                 G = G_leq
             else:
                 G = G_other
-            h = np.vstack([h_leq, h_other])
+            h = np.hstack([h_leq, h_other])
         # Convert A, b, G, h to CVXOPT matrices.
-        data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(A,
-                                                            convert_scalars=True)
-        data[s.G] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(G,
-                                                            convert_scalars=True)
-        data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(b,
-                                                           convert_scalars=True)
-        data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
-                                                           convert_scalars=True)
+        data[s.A] = A
+        data[s.G] = G
+        data[s.B] = b
+        data[s.H] = h
         return s.OPTIMAL
 
     @staticmethod

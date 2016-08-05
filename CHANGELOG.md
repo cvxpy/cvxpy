@@ -20,6 +20,7 @@ Version 1.0 (targets)
 * TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
 * TODO change reshape to take size tuple argument.
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
+* TODO make @ work when imported from future.
 
 Version 0.4.3 (next release)
 ----------------------------

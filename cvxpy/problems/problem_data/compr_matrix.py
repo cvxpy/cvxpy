@@ -101,11 +101,6 @@ def compress_matrix(A, b, equil_eps=1e-10):
     # Compress A and b.
     cols = max(len(row_to_keep), 1)
     P = sp.coo_matrix((P_V, (P_I, P_J)), (A.shape[0], cols))
-    # SciPy 0.13 can't index using an empty list.
-    if len(row_to_keep) == 0:
-        A_compr = A[0:0, :]
-        b_compr = b[0:0, :]
-    else:
-        A_compr = A[row_to_keep, :]
-        b_compr = b[row_to_keep, :]
+    A_compr = A[row_to_keep, :]
+    b_compr = b[row_to_keep]
     return (A_compr, b_compr, P)

@@ -236,7 +236,7 @@ class MatrixData(object):
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
-        big_x = self.vec_intf.zeros(cols, 1)
+        big_x = intf.CVXOPT_DENSE_INTF.zeros(cols, 1)
         for constr in nonlin_constr:
             constr.place_x0(big_x, var_offsets, self.vec_intf)
 
@@ -245,8 +245,8 @@ class MatrixData(object):
             """
             if x is None:
                 return rows, big_x
-            big_f = self.vec_intf.zeros(rows, 1)
-            big_Df = self.matrix_intf.zeros(rows, cols)
+            big_f = intf.CVXOPT_DENSE_INTF.zeros(rows, 1)
+            big_Df = intf.CVXOPT_SPARSE_INTF.zeros(rows, cols)
             if z:
                 big_H = self.matrix_intf.zeros(cols, cols)
 
