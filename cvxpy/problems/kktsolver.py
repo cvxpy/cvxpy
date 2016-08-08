@@ -20,10 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # A custom KKT solver for CVXOPT that can handle redundant constraints.
 # Uses regularization and iterative refinement.
 
-from cvxopt import blas, lapack
-from cvxopt.base import matrix
-from cvxopt.misc import scale, pack, unpack
-
 # Regularization constant.
 REG_EPS = 1e-9
 
@@ -67,6 +63,9 @@ def kkt_ldl(G, dims, A, mnl=0):
     H is n x n,  A is p x n, Df is mnl x n, G is N x n where
     N = dims['l'] + sum(dims['q']) + sum( k**2 for k in dims['s'] ).
     """
+    from cvxopt import blas, lapack
+    from cvxopt.base import matrix
+    from cvxopt.misc import scale, pack, unpack
 
     p, n = A.size
     ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([int(k*(k+1)/2)
