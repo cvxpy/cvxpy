@@ -1340,7 +1340,7 @@ class TestProblem(BaseTest):
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         gamma.value = 1
-        prob.solve()
+        prob.solve(solver=s.SCS)
         self.assertEqual(prob.status, s.OPTIMAL)
 
     def test_parameter_expressions(self):
