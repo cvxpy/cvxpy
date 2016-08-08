@@ -135,16 +135,16 @@ class TestMatrices(unittest.TestCase):
     #     self.assertExpression(A*self.x, (4,1))
     #     self.assertExpression( (A.T*A) * self.x, (2,1))
 
-    # Test cvxopt sparse matrices.
-    def test_cvxopt_sparse(self):
-        m = 100
-        n = 20
+    # # Test cvxopt sparse matrices.
+    # def test_cvxopt_sparse(self):
+    #     m = 100
+    #     n = 20
 
-        mu = cvxopt.exp(cvxopt.normal(m))
-        F = cvxopt.normal(m, n)
-        D = cvxopt.spdiag(cvxopt.uniform(m))
-        x = Variable(m)
-        exp = square(norm2(D*x))
+    #     mu = cvxopt.exp(cvxopt.normal(m))
+    #     F = cvxopt.normal(m, n)
+    #     D = cvxopt.spdiag(cvxopt.uniform(m))
+    #     x = Variable(m)
+    #     exp = square(norm2(D*x))
 
     def test_scipy_sparse(self):
         """Test scipy sparse matrices."""

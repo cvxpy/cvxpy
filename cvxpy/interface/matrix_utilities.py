@@ -17,17 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.interface import cvxopt_interface as co_intf
 from cvxpy.interface import numpy_interface as np_intf
 import scipy.sparse as sp
 import numbers
 import numpy as np
-import cvxopt
 
 # A mapping of class to interface.
-INTERFACES = {cvxopt.matrix: co_intf.DenseMatrixInterface(),
-              cvxopt.spmatrix: co_intf.SparseMatrixInterface(),
-              np.ndarray: np_intf.NDArrayInterface(),
+INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),
               np.matrix: np_intf.MatrixInterface(),
               sp.csc_matrix: np_intf.SparseMatrixInterface(),
               }
@@ -36,21 +32,89 @@ DEFAULT_NP_INTF = INTERFACES[np.ndarray]
 # Default dense and sparse matrix interfaces.
 DEFAULT_INTF = INTERFACES[np.matrix]
 DEFAULT_SPARSE_INTF = INTERFACES[sp.csc_matrix]
-# CVXOPT interfaces.
-CVXOPT_DENSE_INTF = INTERFACES[cvxopt.matrix]
-CVXOPT_SPARSE_INTF = INTERFACES[cvxopt.spmatrix]
+
 
 # Returns the interface for interacting with the target matrix class.
-
-
 def get_matrix_interface(target_class):
     return INTERFACES[target_class]
+
+
+def get_cvxopt_dense_intf():
+    """Dynamic import of CVXOPT dense interface.
+    """
+    import cvxpy.interface.cvxopt_interface.valuerix_interface as dmi
+    return dmi.DenseMatrixInterface()
+
+
+def get_cvxopt_sparse_intf():
+    """Dynamic import of CVXOPT sparse interface.
+    """
+    import cvxpy.interface.cvxopt_interface.sparse_matrix_interface as smi
+    return smi.SparseMatrixInterface()
+
+# Tools for handling CVXOPT matrices.
+
+
+def sparse2cvxopt(value):
+    """Converts a SciPy sparse matrix to a CVXOPT sparse matrix.
+
+    Parameters
+    ----------
+    sparse_mat : SciPy sparse matrix
+        The matrix to convert.
+
+    Returns
+    -------
+    CVXOPT spmatrix
+        The converted matrix.
+    """
+    import cvxopt
+    if isinstance(value, (np.ndarray, np.matrix)):
+        return cvxopt.sparse(cvxopt.matrix(value.astype('float64')), tc='d')
+    # Convert scipy sparse matrices to coo form first.
+    elif sp.issparse(value):
+        value = value.tocoo()
+        return cvxopt.spmatrix(value.data.tolist(), value.row.tolist(),
+                               value.col.tolist(), size=value.shape, tc='d')
+
+
+def dense2cvxopt(value):
+    """Converts a NumPy matrix to a CVXOPT matrix.
+
+    Parameters
+    ----------
+    value : NumPy matrix/ndarray
+        The matrix to convert.
+
+    Returns
+    -------
+    CVXOPT matrix
+        The converted matrix.
+    """
+    import cvxopt
+    return cvxopt.matrix(value, tc='d')
+
+
+def cvxopt2dense(value):
+    """Converts a CVXOPT matrix to a NumPy ndarray.
+
+    Parameters
+    ----------
+    value : CVXOPT matrix
+        The matrix to convert.
+
+    Returns
+    -------
+    NumPy ndarray
+        The converted matrix.
+    """
+    return np.array(value)
 
 
 def is_sparse(constant):
     """Is the constant a sparse matrix?
     """
-    return sp.issparse(constant) or isinstance(constant, cvxopt.spmatrix)
+    return sp.issparse(constant)
 
 # Get the dimensions of the constant.
 
@@ -141,9 +205,6 @@ def sign(constant, tol=1e-5):
     if isinstance(constant, numbers.Number):
         max_val = constant
         min_val = constant
-    elif isinstance(constant, cvxopt.spmatrix):
-        max_val = max(constant.V)
-        min_val = min(constant.V)
     elif sp.issparse(constant):
         max_val = constant.max()
         min_val = constant.min()

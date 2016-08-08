@@ -232,29 +232,28 @@ class MatrixData(object):
         -------
         Oracle function.
         """
+        import cvxopt
         rows = int(sum([c.size[0] * c.size[1] for c in nonlin_constr]))
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
-        big_x = intf.CVXOPT_DENSE_INTF.zeros(cols, 1)
+        big_x = cvxopt.matrix(0., (cols, 1))
         for constr in nonlin_constr:
-            constr.place_x0(big_x, var_offsets, self.vec_intf)
+            constr.place_x0(big_x, var_offsets)
 
         def F(x=None, z=None):
             """Oracle for function value, gradient, and Hessian.
             """
             if x is None:
                 return rows, big_x
-            big_f = intf.CVXOPT_DENSE_INTF.zeros(rows, 1)
-            big_Df = intf.CVXOPT_SPARSE_INTF.zeros(rows, cols)
+            big_f = cvxopt.matrix(0., (rows, 1))
+            big_Df = cvxopt.spmatrix(0., [], [], size=(rows, cols))
             if z:
-                big_H = self.matrix_intf.zeros(cols, cols)
-
+                big_H = cvxopt.spmatrix(0., [], [], size=(cols, cols))
             offset = 0
             for constr in nonlin_constr:
                 constr_entries = constr.size[0]*constr.size[1]
-                local_x = constr.extract_variables(x, var_offsets,
-                                                   self.vec_intf)
+                local_x = constr.extract_variables(x, var_offsets)
                 if z:
                     f, Df, H = constr.f(local_x,
                                         z[offset:offset + constr_entries])
@@ -265,11 +264,9 @@ class MatrixData(object):
                     else:
                         return None
                 big_f[offset:offset + constr_entries] = f
-                constr.place_Df(big_Df, Df, var_offsets,
-                                offset, self.matrix_intf)
+                constr.place_Df(big_Df, Df, var_offsets, offset)
                 if z:
-                    constr.place_H(big_H, H, var_offsets,
-                                   self.matrix_intf)
+                    constr.place_H(big_H, H, var_offsets)
                 offset += constr_entries
 
             if z is None:

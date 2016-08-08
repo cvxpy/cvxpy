@@ -23,7 +23,7 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
-from cvxopt import matrix
+import numpy as np
 import scipy.sparse as sp
 import unittest
 
@@ -58,7 +58,8 @@ class TestProblem(unittest.TestCase):
         """Test large number of variables summed.
         """
         for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n, n))
+            A = np.arange(n*n)
+            A = np.reshape(A, (n, n))
             x = Variable(n, n)
             p = Problem(Minimize(at.sum_entries(x)), [x >= A])
             result = p.solve()
@@ -70,7 +71,8 @@ class TestProblem(unittest.TestCase):
         """Test large number of variables squared.
         """
         for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n, n))
+            A = np.arange(n*n)
+            A = np.reshape(A, (n, n))
             x = Variable(n, n)
             p = Problem(Minimize(at.square(x[0, 0])),
                         [x >= A])

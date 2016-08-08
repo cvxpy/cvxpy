@@ -99,8 +99,7 @@ def quad_form(x, P):
     if x.is_constant():
         return x.T * P * x
     elif P.is_constant():
-        np_intf = intf.get_matrix_interface(np.ndarray)
-        P = np_intf.const_to_matrix(P.value)
+        P = intf.DEFAULT_NP_INTF.const_to_matrix(P.value)
         # Force symmetry
         P = (P + P.T) / 2.0
         scale, M1, M2 = _decomp_quad(P)

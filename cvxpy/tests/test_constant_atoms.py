@@ -30,18 +30,21 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.error import SolverError
 import cvxpy.interface as intf
-import cvxopt
 import numpy as np
 import numpy.linalg as LA
 import math
-from nose.tools import assert_raises
 
 ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2,
-                 ECOS: 1e-7,
-                 CVXOPT: 1e-7,
-                 ROBUST_CVXOPT: 1e-7}
-SOLVERS_TO_TRY = [ECOS, SCS, CVXOPT, ROBUST_CVXOPT]
+                 ECOS: 1e-7
+}
+SOLVERS_TO_TRY = [ECOS, SCS]
+# Test CVXOPT if installed.
+if CVXOPT in installed_solvers():
+    SOLVERS_TO_TRY += [CVXOPT, ROBUST_CVXOPT]
+    SOLVER_TO_TOL[CVXOPT] = 1e-7
+    SOLVER_TO_TOL[ROBUST_CVXOPT] = 1e-7
+
 # Test elemental if installed.
 if ELEMENTAL in installed_solvers():
     SOLVERS_TO_TRY.append(ELEMENTAL)
@@ -52,7 +55,6 @@ if MOSEK in installed_solvers():
     SOLVERS_TO_TRY.append(MOSEK)
     SOLVER_TO_TOL[MOSEK] = 1e-6
 
-v = cvxopt.matrix([-1, 2, -2], tc='d')
 v_np = np.matrix([-1., 2, -2]).T
 
 # Defined here to be used in KNOWN_SOLVER_ERRORS
@@ -121,13 +123,13 @@ atoms = [
         (max_entries, (1, 1), [[-5, -10]], Constant([-5])),
         (lambda x: max_entries(x, axis=0), (1, 2), [[[-5, 2], [-3, 1]]], Constant([2, 1]).T),
         (lambda x: max_entries(x, axis=1), (2, 1), [[[-5, 2], [-3, 1]]], Constant([-3, 2])),
-        (lambda x: norm(x, 2), (1, 1), [v], Constant([3])),
+        (lambda x: norm(x, 2), (1, 1), [v_np], Constant([3])),
         (lambda x: norm(x, "fro"), (1, 1), [[[-1, 2], [3, -4]]],
             Constant([5.47722557])),
-        (lambda x: norm(x, 1), (1, 1), [v], Constant([5])),
+        (lambda x: norm(x, 1), (1, 1), [v_np], Constant([5])),
         (lambda x: norm(x, 1), (1, 1), [[[-1, 2], [3, -4]]],
             Constant([10])),
-        (lambda x: norm(x, "inf"), (1, 1), [v], Constant([2])),
+        (lambda x: norm(x, "inf"), (1, 1), [v_np], Constant([2])),
         (lambda x: norm(x, "inf"), (1, 1), [[[-1, 2], [3, -4]]],
             Constant([4])),
         (lambda x: norm(x, "nuc"), (1, 1), [[[2, 0], [0, 1]]], Constant([3])),
@@ -168,7 +170,7 @@ atoms = [
         (lambda x: power(x, 1.34), (1, 1), [7.45], Constant([14.746515290825071])),
 
         (quad_over_lin, (1, 1), [[[-1, 2, -2], [-1, 2, -2]], 2], Constant([2*4.5])),
-        (quad_over_lin, (1, 1), [v, 2], Constant([4.5])),
+        (quad_over_lin, (1, 1), [v_np, 2], Constant([4.5])),
         (lambda x: norm(x, 2), (1, 1), [[[2, 0], [0, 1]]], Constant([2])),
         (lambda x: norm(x, 2), (1, 1), [[[3, 4, 5], [6, 7, 8], [9, 10, 11]]], Constant([22.368559552680377])),
         (lambda x: scalene(x, 2, 3), (2, 2), [[[-5, 2], [-3, 1]]], Constant([[15, 4], [9, 2]])),
