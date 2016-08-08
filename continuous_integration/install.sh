@@ -31,7 +31,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
     source activate testenv
-    conda install -c cvxgrp scs
+    conda install -c cvxgrp --yes scs multiprocess
     pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
