@@ -88,13 +88,14 @@ class TestSolvers(BaseTest):
         # tolerance for feasibility conditions (default: 1e-7).
         # 'refinement'
         # number of iterative refinement steps when solving KKT equations (default: 0 if the problem has no second-order cone or matrix inequality constraints; 1 otherwise).
-        EPS = 1e-7
-        prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        for i in range(2):
-            prob.solve(solver=CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
-                       max_iters=20, verbose=True, kktsolver="chol",
-                       refinement=2, warm_start=True)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+        if CVXOPT in installed_solvers():
+            EPS = 1e-7
+            prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+            for i in range(2):
+                prob.solve(solver=CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
+                            max_iters=20, verbose=True, kktsolver="chol",
+                            refinement=2, warm_start=True)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_cvxopt_glpk(self):
         """Test a basic LP with GLPK.

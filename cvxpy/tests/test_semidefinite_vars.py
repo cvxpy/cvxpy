@@ -44,7 +44,7 @@ class TestSemidefiniteVariable(BaseTest):
         obj = Minimize(sum_entries(square(self.X - self.F)))
         p = Problem(obj, [])
         result = p.solve()
-        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(result, 1, places=4)
 
         self.assertAlmostEqual(self.X.value[0, 0], 1, places=3)
         self.assertAlmostEqual(self.X.value[0, 1], 0)
@@ -56,12 +56,12 @@ class TestSemidefiniteVariable(BaseTest):
         obj = Minimize(sum_entries(square(self.Y - self.F)))
         p = Problem(obj, [self.Y == Semidef(2)])
         result = p.solve()
-        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(result, 1, places=2)
 
         self.assertAlmostEqual(self.Y.value[0, 0], 1, places=3)
         self.assertAlmostEqual(self.Y.value[0, 1], 0)
         self.assertAlmostEqual(self.Y.value[1, 0], 0)
-        self.assertAlmostEqual(self.Y.value[1, 1], 0)
+        self.assertAlmostEqual(self.Y.value[1, 1], 0, places=3)
 
         # Index into semidef.
         obj = Minimize(square(self.X[0, 0] - 1) +
@@ -73,10 +73,10 @@ class TestSemidefiniteVariable(BaseTest):
         print(self.X.value)
         self.assertAlmostEqual(result, 0)
 
-        self.assertAlmostEqual(self.X.value[0, 0], 1, places=3)
-        self.assertAlmostEqual(self.X.value[0, 1], 2, places=3)
-        self.assertAlmostEqual(self.X.value[1, 0], 2, places=3)
-        self.assertAlmostEqual(self.X.value[1, 1], 4, places=4)
+        self.assertAlmostEqual(self.X.value[0, 0], 1, places=2)
+        self.assertAlmostEqual(self.X.value[0, 1], 2, places=2)
+        self.assertAlmostEqual(self.X.value[1, 0], 2, places=2)
+        self.assertAlmostEqual(self.X.value[1, 1], 4, places=3)
 
     def test_legacy(self):
         """Test that the legacy name semidefinite works.
@@ -85,4 +85,4 @@ class TestSemidefiniteVariable(BaseTest):
         obj = Minimize(sum_entries(square(X - self.F)))
         p = Problem(obj, [])
         result = p.solve()
-        self.assertAlmostEqual(result, 1)
+        self.assertAlmostEqual(result, 1, places=4)

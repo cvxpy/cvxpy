@@ -19,10 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy import *
 from cvxpy.expressions.variables import Bool, Int
-from cvxopt import matrix
-import numpy as np
 from cvxpy.tests.base_test import BaseTest
-import unittest
 
 
 class TestMIPVariable(BaseTest):

@@ -291,9 +291,10 @@ class TestExamples(BaseTest):
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
-        prob.solve(solver=CVXOPT)
-        print("optimal value with CVXOPT:", prob.value)
-        self.assertAlmostEqual(prob.value, 6)
+        if CVXOPT in installed_solvers():
+            prob.solve(solver=CVXOPT)
+            print("optimal value with CVXOPT:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
 
         # Solve with SCS.
         prob.solve(solver=SCS)
@@ -338,7 +339,7 @@ class TestExamples(BaseTest):
             constraints.append(norm(A*x[:, i] + b) <= 1)
         p = Problem(obj, constraints)
         result = p.solve()
-        self.assertAlmostEqual(result, 1.9746, places=4)
+        self.assertAlmostEqual(result, 1.9746, places=2)
 
     def test_portfolio_problem(self):
         """Test portfolio problem that caused dcp_attr errors.
@@ -618,7 +619,8 @@ class TestExamples(BaseTest):
         data = prob.get_problem_data(ECOS_BB)
 
         # Get CVXOPT arguments.
-        data = prob.get_problem_data(CVXOPT)
+        if CVXOPT in installed_solvers():
+            data = prob.get_problem_data(CVXOPT)
 
         # Get SCS arguments.
         data = prob.get_problem_data(SCS)

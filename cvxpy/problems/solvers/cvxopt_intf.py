@@ -302,6 +302,11 @@ class CVXOPT(Solver):
             else:
                 del cvxopt.solvers.options[key]
 
+    def nonlin_constr(self):
+        """Returns whether nonlinear constraints are needed.
+        """
+        return True
+
     @staticmethod
     def get_kktsolver_opt(solver_opts):
         """Returns the KKT solver selected by the user.

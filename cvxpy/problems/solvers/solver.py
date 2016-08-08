@@ -93,7 +93,13 @@ class Solver(object):
             return s.ECOS_BB
         # If SDP, defaults to CVXOPT.
         elif constr_map[s.SDP]:
-            return s.CVXOPT
+            try:
+                import cvxopt
+                cvxopt  # For flake8
+                return s.CVXOPT
+            except ImportError:
+                return s.SCS
+
         # Otherwise use ECOS.
         else:
             return s.ECOS
@@ -199,7 +205,8 @@ class Solver(object):
             prob_data.matrix_data = MatrixData(sym_data,
                                                self.matrix_intf(),
                                                self.vec_intf(),
-                                               self)
+                                               self,
+                                               self.nonlin_constr())
         return prob_data.matrix_data
 
     def get_problem_data(self, objective, constraints, cached_data):
@@ -234,6 +241,11 @@ class Solver(object):
         data[s.BOOL_IDX] = bool_idx
         data[s.INT_IDX] = int_idx
         return data
+
+    def nonlin_constr(self):
+        """Returns whether nonlinear constraints are needed.
+        """
+        return False
 
     @abc.abstractmethod
     def solve(self, objective, constraints, cached_data,

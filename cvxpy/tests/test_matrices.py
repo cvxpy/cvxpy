@@ -26,8 +26,6 @@ from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
 import numpy
-import cvxopt
-import scipy
 import scipy.sparse as sp
 import unittest
 import sys

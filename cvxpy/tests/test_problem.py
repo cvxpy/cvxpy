@@ -35,7 +35,6 @@ import numpy
 import sys
 # Solvers.
 import scs
-import cvxopt.solvers
 import ecos
 import warnings
 PY2 = sys.version_info < (3, 0)
@@ -177,13 +176,14 @@ class TestProblem(BaseTest):
         self.assertEqual(data["A"].shape, (0, 3))
         self.assertEqual(data["G"].shape, (3, 3))
 
-        data = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.CVXOPT)
-        dims = data["dims"]
-        self.assertEqual(dims["q"], [3])
-        # NumPy ndarrays, not cvxopt matrices.
-        self.assertEqual(data["c"].shape, (3,))
-        self.assertEqual(data["A"].shape, (0, 3))
-        self.assertEqual(data["G"].shape, (3, 3))
+        if s.CVXOPT in installed_solvers():
+            data = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.CVXOPT)
+            dims = data["dims"]
+            self.assertEqual(dims["q"], [3])
+            # NumPy ndarrays, not cvxopt matrices.
+            self.assertEqual(data["c"].shape, (3,))
+            self.assertEqual(data["A"].shape, (0, 3))
+            self.assertEqual(data["G"].shape, (3, 3))
 
     def test_unpack_results(self):
         """Test unpack results method.
@@ -212,20 +212,21 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(prob.value, 0)
         self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
-        import cvxopt
-        prob = Problem(Minimize(norm(self.x)), [self.x == 0])
-        args = prob.get_problem_data(s.CVXOPT)
-        c = intf.dense2cvxopt(args["c"])
-        h = intf.dense2cvxopt(args["h"])
-        b = intf.dense2cvxopt(args["b"])
-        G = intf.sparse2cvxopt(args["G"])
-        A = intf.sparse2cvxopt(args["A"])
-        results_dict = cvxopt.solvers.conelp(c, G, h, args["dims"], A, b)
-        prob = Problem(Minimize(norm(self.x)), [self.x == 0])
-        prob.unpack_results(s.CVXOPT, results_dict)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
-        self.assertAlmostEqual(prob.value, 0)
-        self.assertAlmostEqual(prob.status, s.OPTIMAL)
+        if s.CVXOPT in installed_solvers():
+            import cvxopt
+            prob = Problem(Minimize(norm(self.x)), [self.x == 0])
+            args = prob.get_problem_data(s.CVXOPT)
+            c = intf.dense2cvxopt(args["c"])
+            h = intf.dense2cvxopt(args["h"])
+            b = intf.dense2cvxopt(args["b"])
+            G = intf.sparse2cvxopt(args["G"])
+            A = intf.sparse2cvxopt(args["A"])
+            results_dict = cvxopt.solvers.conelp(c, G, h, args["dims"], A, b)
+            prob = Problem(Minimize(norm(self.x)), [self.x == 0])
+            prob.unpack_results(s.CVXOPT, results_dict)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
     # Test silencing and enabling solver messages.
     def test_verbose(self):
@@ -529,12 +530,13 @@ class TestProblem(BaseTest):
         assert self.a.value is None
         assert p.constraints[0].dual_value is None
 
-        p = Problem(Minimize(-self.a), [self.a >= 2])
-        result = p.solve(solver=s.CVXOPT)
-        self.assertEqual(result, p.value)
-        self.assertEqual(p.status, s.UNBOUNDED)
-        assert numpy.isinf(p.value)
-        assert p.value < 0
+        if s.CVXOPT in installed_solvers():
+            p = Problem(Minimize(-self.a), [self.a >= 2])
+            result = p.solve(solver=s.CVXOPT)
+            self.assertEqual(result, p.value)
+            self.assertEqual(p.status, s.UNBOUNDED)
+            assert numpy.isinf(p.value)
+            assert p.value < 0
 
         # Infeasible problems.
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
@@ -808,34 +810,35 @@ class TestProblem(BaseTest):
     # Test recovery of dual variables.
     def test_dual_variables(self):
         for solver in [s.ECOS, s.SCS, s.CVXOPT]:
-            if solver == s.SCS:
-                acc = 1
-            else:
-                acc = 5
-            p = Problem(Minimize(norm1(self.x + self.z)),
-                        [self.x >= [2, 3],
-                         [[1, 2], [3, 4]]*self.z == [-1, -4],
-                         norm2(self.x + self.z) <= 100])
-            result = p.solve(solver=solver)
-            self.assertAlmostEqual(result, 4, places=acc)
-            self.assertItemsAlmostEqual(self.x.value, [4, 3], places=acc)
-            self.assertItemsAlmostEqual(self.z.value, [-4, 1], places=acc)
-            # Dual values
-            self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1], places=acc)
-            self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5], places=acc)
-            self.assertAlmostEqual(p.constraints[2].dual_value, 0, places=acc)
+            if solver in installed_solvers():
+                if solver == s.SCS:
+                    acc = 1
+                else:
+                    acc = 5
+                p = Problem(Minimize(norm1(self.x + self.z)),
+                            [self.x >= [2, 3],
+                            [[1, 2], [3, 4]]*self.z == [-1, -4],
+                            norm2(self.x + self.z) <= 100])
+                result = p.solve(solver=solver)
+                self.assertAlmostEqual(result, 4, places=acc)
+                self.assertItemsAlmostEqual(self.x.value, [4, 3], places=acc)
+                self.assertItemsAlmostEqual(self.z.value, [-4, 1], places=acc)
+                # Dual values
+                self.assertItemsAlmostEqual(p.constraints[0].dual_value, [0, 1], places=acc)
+                self.assertItemsAlmostEqual(p.constraints[1].dual_value, [-1, 0.5], places=acc)
+                self.assertAlmostEqual(p.constraints[2].dual_value, 0, places=acc)
 
-            T = numpy.ones((2, 3))*2
-            c = numpy.matrix([3, 4]).T
-            p = Problem(Minimize(1),
-                        [self.A >= T*self.C,
-                         self.A == self.B,
-                         self.C == T.T])
-            result = p.solve(solver=solver)
-            # Dual values
-            self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0], places=acc)
-            self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0], places=acc)
-            self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0], places=acc)
+                T = numpy.ones((2, 3))*2
+                c = numpy.matrix([3, 4]).T
+                p = Problem(Minimize(1),
+                            [self.A >= T*self.C,
+                            self.A == self.B,
+                            self.C == T.T])
+                result = p.solve(solver=solver)
+                # Dual values
+                self.assertItemsAlmostEqual(p.constraints[0].dual_value, 4*[0], places=acc)
+                self.assertItemsAlmostEqual(p.constraints[1].dual_value, 4*[0], places=acc)
+                self.assertItemsAlmostEqual(p.constraints[2].dual_value, 6*[0], places=acc)
 
     # Test problems with indexing.
     def test_indexing(self):
@@ -1099,13 +1102,13 @@ class TestProblem(BaseTest):
         obj = Minimize(sum_entries(self.x))
         constraints = [self.x == 2, self.x == 2, self.x.T == 2, self.x[0] == 2]
         p = Problem(obj, constraints)
-        result = p.solve(solver=s.CVXOPT)
+        result = p.solve(solver=s.ECOS)
         self.assertAlmostEqual(result, 4)
 
         obj = Minimize(sum_entries(square(self.x)))
         constraints = [self.x == self.x]
         p = Problem(obj, constraints)
-        result = p.solve(solver=s.CVXOPT)
+        result = p.solve(solver=s.ECOS)
         self.assertAlmostEqual(result, 0)
 
     # Test that symmetry is enforced.
@@ -1121,7 +1124,7 @@ class TestProblem(BaseTest):
 
         p = Problem(Minimize(lambda_max(self.A)), [self.A >= 2])
         result = p.solve()
-        self.assertItemsAlmostEqual(self.A.value, self.A.value.T)
+        self.assertItemsAlmostEqual(self.A.value, self.A.value.T, places=3)
 
         p = Problem(Minimize(lambda_max(self.A)), [self.A == [[1, 2], [3, 4]]])
         result = p.solve()
@@ -1136,7 +1139,7 @@ class TestProblem(BaseTest):
                           self.A[1, 1] == 2,
                           self.A[1, 0] == 2])
         result = p.solve()
-        self.assertAlmostEqual(result, 0)
+        self.assertAlmostEqual(result, 0, places=3)
 
     # Test getting values for expressions.
     def test_expression_values(self):
@@ -1308,7 +1311,7 @@ class TestProblem(BaseTest):
                        C == Semidef(3)]
         prob = Problem(obj, constraints)
         result = prob.solve()
-        self.assertAlmostEqual(result, 0.583151)
+        self.assertAlmostEqual(result, 0.583151, places=2)
 
     def test_presolve_constant_constraints(self):
         """Test that the presolver removes constraints with no variables.
@@ -1337,7 +1340,7 @@ class TestProblem(BaseTest):
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         gamma.value = 1
-        prob.solve(solver=s.CVXOPT)
+        prob.solve()
         self.assertEqual(prob.status, s.OPTIMAL)
 
     def test_parameter_expressions(self):
@@ -1393,7 +1396,7 @@ class TestProblem(BaseTest):
                        C >> 0]
         prob = Problem(obj, constraints)
         result = prob.solve()
-        self.assertAlmostEqual(result, 0.583151)
+        self.assertAlmostEqual(result, 0.583151, places=2)
 
         C = Variable(2, 2)
         obj = Maximize(C[0, 1])
@@ -1406,28 +1409,29 @@ class TestProblem(BaseTest):
         obj = Minimize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
-        result = prob.solve(solver=s.CVXOPT)
+        result = prob.solve()
         self.assertEqual(prob.status, s.UNBOUNDED)
 
     def test_psd_duals(self):
         """Test the duals of PSD constraints.
         """
-        # Test the dual values with cvxopt.
-        C = Symmetric(2, 2)
-        obj = Maximize(C[0, 0])
-        constraints = [C << [[2, 0], [0, 2]]]
-        prob = Problem(obj, constraints)
-        result = prob.solve(solver=s.CVXOPT)
-        self.assertAlmostEqual(result, 2)
+        if s.CVXOPT in installed_solvers():
+            # Test the dual values with cvxopt.
+            C = Symmetric(2, 2)
+            obj = Maximize(C[0, 0])
+            constraints = [C << [[2, 0], [0, 2]]]
+            prob = Problem(obj, constraints)
+            result = prob.solve(solver=s.CVXOPT)
+            self.assertAlmostEqual(result, 2)
 
-        psd_constr_dual = constraints[0].dual_value
-        C = Symmetric(2, 2)
-        X = Semidef(2)
-        obj = Maximize(C[0, 0])
-        constraints = [X == [[2, 0], [0, 2]] - C]
-        prob = Problem(obj, constraints)
-        result = prob.solve(solver=s.CVXOPT)
-        self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
+            psd_constr_dual = constraints[0].dual_value
+            C = Symmetric(2, 2)
+            X = Semidef(2)
+            obj = Maximize(C[0, 0])
+            constraints = [X == [[2, 0], [0, 2]] - C]
+            prob = Problem(obj, constraints)
+            result = prob.solve(solver=s.CVXOPT)
+            self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
         # Test the dual values with SCS.
         C = Symmetric(2, 2)

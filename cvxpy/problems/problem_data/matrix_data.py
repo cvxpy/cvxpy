@@ -66,9 +66,11 @@ class MatrixData(object):
         The matrix interface to use for creating the constraints matrix.
     vec_intf : interface
         The matrix interface to use for creating the constant vector.
+    nonlin : bool
+        Are nonlinear constraints needed?
     """
 
-    def __init__(self, sym_data, matrix_intf, vec_intf, solver):
+    def __init__(self, sym_data, matrix_intf, vec_intf, solver, nonlin):
         self.sym_data = sym_data
         # A dummy constraint for the objective.
         self.matrix_intf = matrix_intf
@@ -90,7 +92,10 @@ class MatrixData(object):
                                                   self.sym_data.x_length)
         self._lin_matrix(self.ineq_cache, caching=True)
         # Nonlinear constraints.
-        self.F = self._nonlin_matrix(nonlin_constr)
+        if nonlin:
+            self.F = self._nonlin_matrix(nonlin_constr)
+        else:
+            self.F = None
 
     def _dummy_constr(self):
         """Returns a dummy constraint for the objective.
