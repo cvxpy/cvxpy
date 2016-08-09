@@ -28,7 +28,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    if [["$INSTALL_GLPK" == "true"]]; then
+    if [[ "$INSTALL_GLPK" == "true" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
     else
