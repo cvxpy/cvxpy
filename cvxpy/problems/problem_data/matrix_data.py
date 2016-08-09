@@ -66,9 +66,11 @@ class MatrixData(object):
         The matrix interface to use for creating the constraints matrix.
     vec_intf : interface
         The matrix interface to use for creating the constant vector.
+    nonlin : bool
+        Are nonlinear constraints needed?
     """
 
-    def __init__(self, sym_data, matrix_intf, vec_intf, solver):
+    def __init__(self, sym_data, matrix_intf, vec_intf, solver, nonlin):
         self.sym_data = sym_data
         # A dummy constraint for the objective.
         self.matrix_intf = matrix_intf
@@ -90,7 +92,10 @@ class MatrixData(object):
                                                   self.sym_data.x_length)
         self._lin_matrix(self.ineq_cache, caching=True)
         # Nonlinear constraints.
-        self.F = self._nonlin_matrix(nonlin_constr)
+        if nonlin:
+            self.F = self._nonlin_matrix(nonlin_constr)
+        else:
+            self.F = None
 
     def _dummy_constr(self):
         """Returns a dummy constraint for the objective.
@@ -232,29 +237,28 @@ class MatrixData(object):
         -------
         Oracle function.
         """
+        import cvxopt
         rows = int(sum([c.size[0] * c.size[1] for c in nonlin_constr]))
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
-        big_x = self.vec_intf.zeros(cols, 1)
+        big_x = cvxopt.matrix(0., (cols, 1))
         for constr in nonlin_constr:
-            constr.place_x0(big_x, var_offsets, self.vec_intf)
+            constr.place_x0(big_x, var_offsets)
 
         def F(x=None, z=None):
             """Oracle for function value, gradient, and Hessian.
             """
             if x is None:
                 return rows, big_x
-            big_f = self.vec_intf.zeros(rows, 1)
-            big_Df = self.matrix_intf.zeros(rows, cols)
+            big_f = cvxopt.matrix(0., (rows, 1))
+            big_Df = cvxopt.spmatrix(0., [], [], size=(rows, cols))
             if z:
-                big_H = self.matrix_intf.zeros(cols, cols)
-
+                big_H = cvxopt.spmatrix(0., [], [], size=(cols, cols))
             offset = 0
             for constr in nonlin_constr:
                 constr_entries = constr.size[0]*constr.size[1]
-                local_x = constr.extract_variables(x, var_offsets,
-                                                   self.vec_intf)
+                local_x = constr.extract_variables(x, var_offsets)
                 if z:
                     f, Df, H = constr.f(local_x,
                                         z[offset:offset + constr_entries])
@@ -265,11 +269,9 @@ class MatrixData(object):
                     else:
                         return None
                 big_f[offset:offset + constr_entries] = f
-                constr.place_Df(big_Df, Df, var_offsets,
-                                offset, self.matrix_intf)
+                constr.place_Df(big_Df, Df, var_offsets, offset)
                 if z:
-                    constr.place_H(big_H, H, var_offsets,
-                                   self.matrix_intf)
+                    constr.place_H(big_H, H, var_offsets)
                 offset += constr_entries
 
             if z is None:

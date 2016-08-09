@@ -20,8 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy import *
 import cvxpy.atoms.elementwise.log as cvxlog
 from cvxpy.tests.base_test import BaseTest
-import cvxopt
-import unittest
 import math
 import numpy as np
 import sys

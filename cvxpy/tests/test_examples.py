@@ -22,7 +22,6 @@ from cvxpy import *
 import cvxpy.interface as intf
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
-import cvxopt
 import numbers
 
 
@@ -63,29 +62,29 @@ class TestExamples(BaseTest):
     def test_numpy_scalars(self):
         n = 6
         eps = 1e-6
-        cvxopt.setseed(10)
-        P0 = cvxopt.normal(n, n)
-        eye = cvxopt.spmatrix(1.0, range(n), range(n))
-        P0 = P0.T * P0 + eps * eye
+        np.random.seed(10)
+        P0 = np.random.randn(n, n)
+        eye = np.eye(n)
+        P0 = P0.T.dot(P0) + eps * eye
 
         print(P0)
 
-        P1 = cvxopt.normal(n, n)
-        P1 = P1.T*P1
-        P2 = cvxopt.normal(n, n)
-        P2 = P2.T*P2
-        P3 = cvxopt.normal(n, n)
-        P3 = P3.T*P3
+        P1 = np.random.randn(n, n)
+        P1 = P1.T.dot(P1)
+        P2 = np.random.randn(n, n)
+        P2 = P2.T.dot(P2)
+        P3 = np.random.randn(n, n)
+        P3 = P3.T.dot(P3)
 
-        q0 = cvxopt.normal(n, 1)
-        q1 = cvxopt.normal(n, 1)
-        q2 = cvxopt.normal(n, 1)
-        q3 = cvxopt.normal(n, 1)
+        q0 = np.random.randn(n, 1)
+        q1 = np.random.randn(n, 1)
+        q2 = np.random.randn(n, 1)
+        q3 = np.random.randn(n, 1)
 
-        r0 = cvxopt.normal(1, 1)
-        r1 = cvxopt.normal(1, 1)
-        r2 = cvxopt.normal(1, 1)
-        r3 = cvxopt.normal(1, 1)
+        r0 = np.random.randn(1, 1)
+        r1 = np.random.randn(1, 1)
+        r2 = np.random.randn(1, 1)
+        r3 = np.random.randn(1, 1)
 
         slack = Variable()
         # Form the problem
@@ -118,14 +117,13 @@ class TestExamples(BaseTest):
 
     # Tests examples from the README.
     def test_readme_examples(self):
-        import cvxopt
         import numpy
-
+        numpy.random.seed(1)
         # Problem data.
         m = 30
         n = 20
-        A = cvxopt.normal(m, n)
-        b = cvxopt.normal(m)
+        A = numpy.random.randn(m, n)
+        b = numpy.random.randn(m)
 
         # Construct the problem.
         x = Variable(n)
@@ -183,14 +181,13 @@ class TestExamples(BaseTest):
         ####################################################
 
         import numpy as np
-        import cvxopt
         from multiprocessing import Pool
 
         # Problem data.
         n = 10
         m = 5
-        A = cvxopt.normal(n, m)
-        b = cvxopt.normal(n)
+        A = np.random.randn(n, m)
+        b = np.random.randn(n)
         gamma = Parameter(sign="positive")
 
         # Construct the problem.
@@ -211,9 +208,9 @@ class TestExamples(BaseTest):
         ####################################################
         n = 10
 
-        mu = cvxopt.normal(1, n)
-        sigma = cvxopt.normal(n, n)
-        sigma = sigma.T*sigma
+        mu = np.random.randn(1, n)
+        sigma = np.random.randn(n, n)
+        sigma = sigma.T.dot(sigma)
         gamma = Parameter(sign="positive")
         gamma.value = 1
         x = Variable(n)
@@ -246,9 +243,9 @@ class TestExamples(BaseTest):
         n = 10
         data = []
         for i in range(N):
-            data += [(1, cvxopt.normal(n, mean=1.0, std=2.0))]
+            data += [(1, np.random.normal(loc=1.0, scale=2.0, size=n))]
         for i in range(M):
-            data += [(-1, cvxopt.normal(n, mean=-1.0, std=2.0))]
+            data += [(-1, np.random.normal(loc=-1.0, scale=2.0, size=n))]
 
         # Construct problem.
         gamma = Parameter(sign="positive")
@@ -294,9 +291,10 @@ class TestExamples(BaseTest):
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
-        prob.solve(solver=CVXOPT)
-        print("optimal value with CVXOPT:", prob.value)
-        self.assertAlmostEqual(prob.value, 6)
+        if CVXOPT in installed_solvers():
+            prob.solve(solver=CVXOPT)
+            print("optimal value with CVXOPT:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
 
         # Solve with SCS.
         prob.solve(solver=SCS)
@@ -341,7 +339,7 @@ class TestExamples(BaseTest):
             constraints.append(norm(A*x[:, i] + b) <= 1)
         p = Problem(obj, constraints)
         result = p.solve()
-        self.assertAlmostEqual(result, 1.9746, places=4)
+        self.assertAlmostEqual(result, 1.9746, places=2)
 
     def test_portfolio_problem(self):
         """Test portfolio problem that caused dcp_attr errors.
@@ -621,7 +619,8 @@ class TestExamples(BaseTest):
         data = prob.get_problem_data(ECOS_BB)
 
         # Get CVXOPT arguments.
-        data = prob.get_problem_data(CVXOPT)
+        if CVXOPT in installed_solvers():
+            data = prob.get_problem_data(CVXOPT)
 
         # Get SCS arguments.
         data = prob.get_problem_data(SCS)

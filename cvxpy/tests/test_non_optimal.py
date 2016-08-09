@@ -35,11 +35,12 @@ class TestNonOptimal(BaseTest):
         p_unb = Problem(obj, constraints)
         p_inf = Problem(Minimize(x1), [0 <= x1, x1 <= -1])
         for solver in [ECOS, CVXOPT, SCS]:
-            print(solver)
-            p_unb.solve(solver=solver)
-            self.assertEqual(p_unb.status, UNBOUNDED)
-            p_inf.solve(solver=solver)
-            self.assertEqual(p_inf.status, INFEASIBLE)
+            if CVXOPT in installed_solvers():
+                print(solver)
+                p_unb.solve(solver=solver)
+                self.assertEqual(p_unb.status, UNBOUNDED)
+                p_inf.solve(solver=solver)
+                self.assertEqual(p_inf.status, INFEASIBLE)
 
     def test_vector_lp(self):
         """Test vector LP problems.
@@ -51,11 +52,12 @@ class TestNonOptimal(BaseTest):
                          x <= 0])
         p_unb = Problem(Minimize(sum_entries(x)), [x <= 1])
         for solver in [ECOS, CVXOPT, SCS]:
-            print(solver)
-            p_inf.solve(solver=solver)
-            self.assertEqual(p_inf.status, INFEASIBLE)
-            p_unb.solve(solver=solver)
-            self.assertEqual(p_unb.status, UNBOUNDED)
+            if CVXOPT in installed_solvers():
+                print(solver)
+                p_inf.solve(solver=solver)
+                self.assertEqual(p_inf.status, INFEASIBLE)
+                p_unb.solve(solver=solver)
+                self.assertEqual(p_unb.status, UNBOUNDED)
 
     def test_inaccurate(self):
         """Test the optimal inaccurate status.

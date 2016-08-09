@@ -28,12 +28,19 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+    if [[ "$INSTALL_GLPK" == "true" ]]; then
+        conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
+    else
+        conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
+        conda install -c cvxgrp --yes scs multiprocess cvxcanon
+    fi
     source activate testenv
     pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
+        pip install cvxopt
         # Install GLPK.
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
         tar -zxvf glpk-4.55.tar.gz

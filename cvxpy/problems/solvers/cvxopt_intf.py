@@ -59,12 +59,12 @@ class CVXOPT(Solver):
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
         """
-        return intf.CVXOPT_SPARSE_INTF
+        return intf.DEFAULT_SPARSE_INTF
 
     def vec_intf(self):
         """The interface for vectors passed to the solver.
         """
-        return intf.CVXOPT_DENSE_INTF
+        return intf.DEFAULT_NP_INTF
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -123,6 +123,12 @@ class CVXOPT(Solver):
             # Will detect infeasibility.
             if self.remove_redundant_rows(data) == s.INFEASIBLE:
                 return {s.STATUS: s.INFEASIBLE}
+        # Convert A, b, G, h, c to CVXOPT matrices.
+        data[s.A] = intf.sparse2cvxopt(data[s.A])
+        data[s.G] = intf.sparse2cvxopt(data[s.G])
+        data[s.B] = intf.dense2cvxopt(data[s.B])
+        data[s.H] = intf.dense2cvxopt(data[s.H])
+        data[s.C] = intf.dense2cvxopt(data[s.C])
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.
@@ -237,16 +243,12 @@ class CVXOPT(Solver):
         str
             A status indicating if infeasibility was detected.
         """
+        # Extract data.
         dims = data[s.DIMS]
-        # Convert A, b, G, h to scipy sparse matrices and numpy 1D arrays.
-        A = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.A],
-                                                     convert_scalars=True)
-        G = intf.DEFAULT_SPARSE_INTF.const_to_matrix(data[s.G],
-                                                     convert_scalars=True)
-        b = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.B],
-                                                 convert_scalars=True)
-        h = intf.DEFAULT_NP_INTF.const_to_matrix(data[s.H],
-                                                 convert_scalars=True)
+        A = data[s.A]
+        G = data[s.G]
+        b = data[s.B]
+        h = data[s.H]
         # Remove redundant rows in A.
         if A.shape[0] > 0:
             # The pivoting improves robustness.
@@ -271,37 +273,24 @@ class CVXOPT(Solver):
             if not np.allclose(b_old, Q.dot(b)):
                 return s.INFEASIBLE
             dims[s.EQ_DIM] = int(b.shape[0])
-            data["Q"] = intf.CVXOPT_DENSE_INTF.const_to_matrix(Q,
-                                                               convert_scalars=True)
-
+            data["Q"] = intf.dense2cvxopt(Q)
         # Remove obviously redundant rows in G's <= constraints.
         if dims[s.LEQ_DIM] > 0:
             G = G.tocsr()
             G_leq = G[:dims[s.LEQ_DIM], :]
-            h_leq = h[:dims[s.LEQ_DIM]]
+            h_leq = h[:dims[s.LEQ_DIM]].ravel()
             G_other = G[dims[s.LEQ_DIM]:, :]
-            h_other = h[dims[s.LEQ_DIM]:]
+            h_other = h[dims[s.LEQ_DIM]:].ravel()
             G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
             dims[s.LEQ_DIM] = int(h_leq.shape[0])
-            data["P_leq"] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(P_leq,
-                                                                    convert_scalars=True)
-            # Scipy 0.13 can't stack empty arrays.
-            if G_leq.shape[0] > 0 and G_other.shape[0] > 0:
-                G = sp.vstack([G_leq, G_other])
-            elif G_leq.shape[0] > 0:
-                G = G_leq
-            else:
-                G = G_other
-            h = np.vstack([h_leq, h_other])
+            data["P_leq"] = intf.sparse2cvxopt(P_leq)
+            G = sp.vstack([G_leq, G_other])
+            h = np.hstack([h_leq, h_other])
         # Convert A, b, G, h to CVXOPT matrices.
-        data[s.A] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(A,
-                                                            convert_scalars=True)
-        data[s.G] = intf.CVXOPT_SPARSE_INTF.const_to_matrix(G,
-                                                            convert_scalars=True)
-        data[s.B] = intf.CVXOPT_DENSE_INTF.const_to_matrix(b,
-                                                           convert_scalars=True)
-        data[s.H] = intf.CVXOPT_DENSE_INTF.const_to_matrix(h,
-                                                           convert_scalars=True)
+        data[s.A] = A
+        data[s.G] = G
+        data[s.B] = b
+        data[s.H] = h
         return s.OPTIMAL
 
     @staticmethod
@@ -312,6 +301,11 @@ class CVXOPT(Solver):
                 cvxopt.solvers.options[key] = old_options[key]
             else:
                 del cvxopt.solvers.options[key]
+
+    def nonlin_constr(self):
+        """Returns whether nonlinear constraints are needed.
+        """
+        return True
 
     @staticmethod
     def get_kktsolver_opt(solver_opts):
@@ -353,6 +347,7 @@ class CVXOPT(Solver):
         dict
             The solver output in standard form.
         """
+        import cvxopt
         new_results = {}
         status = self.STATUS_MAP[results_dict['status']]
         new_results[s.STATUS] = status
@@ -367,18 +362,18 @@ class CVXOPT(Solver):
                 new_results[s.INEQ_DUAL] = results_dict['z']
             # Need to multiply duals by Q and P_leq.
             if "Q" in data:
-                y = new_results[s.EQ_DUAL]
+                y = results_dict['y']
                 # Test if all constraints eliminated.
                 if y.size[0] == 0:
                     dual_len = data["Q"].size[0]
-                    new_results[s.EQ_DUAL] = self.vec_intf().zeros(dual_len, 1)
+                    new_results[s.EQ_DUAL] = cvxopt.matrix(0., (dual_len, 1))
                 else:
                     new_results[s.EQ_DUAL] = data["Q"]*y
             if "P_leq" in data:
                 leq_len = data[s.DIMS][s.LEQ_DIM]
                 P_rows = data["P_leq"].size[1]
                 new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
-                new_dual = self.vec_intf().zeros(new_len, 1)
+                new_dual = cvxopt.matrix(0., (new_len, 1))
                 z = new_results[s.INEQ_DUAL][:leq_len]
                 # Test if all constraints eliminated.
                 if z.size[0] == 0:
@@ -387,5 +382,8 @@ class CVXOPT(Solver):
                     new_dual[:P_rows] = data["P_leq"].T*z
                 new_dual[P_rows:] = new_results[s.INEQ_DUAL][leq_len:]
                 new_results[s.INEQ_DUAL] = new_dual
+
+            for key in [s.PRIMAL, s.EQ_DUAL, s.INEQ_DUAL]:
+                new_results[key] = intf.cvxopt2dense(new_results[key])
 
         return new_results

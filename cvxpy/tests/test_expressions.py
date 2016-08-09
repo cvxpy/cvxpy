@@ -29,7 +29,6 @@ import cvxpy.settings as s
 from collections import deque
 import unittest
 from cvxpy.tests.base_test import BaseTest
-from cvxopt import matrix
 import numpy as np
 import warnings
 import sys
@@ -136,7 +135,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(var.name(), "x.T")
         self.assertEqual(var.size, (1, 2))
 
-        self.x.save_value(matrix([1, 2]))
+        self.x.save_value(np.matrix([1, 2]).T)
         self.assertEqual(var.value[0, 0], 1)
         self.assertEqual(var.value[0, 1], 2)
 

@@ -2,8 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
-from scipy import linalg
-import cvxopt
+import scipy.sparse as sp
 import cvxpy
 import warnings
 
@@ -59,7 +58,7 @@ class TestNonOptimal(BaseTest):
     def test_sparse_quad_form(self):
         """Test quad form with a sparse matrix.
         """
-        Q = cvxopt.spdiag([1, 1])
+        Q = sp.eye(2)
         x = cvxpy.Variable(2)
         cost = cvxpy.quad_form(x, Q)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
