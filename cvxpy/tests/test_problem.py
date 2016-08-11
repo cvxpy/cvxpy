@@ -177,13 +177,16 @@ class TestProblem(BaseTest):
         self.assertEqual(data["G"].shape, (3, 3))
 
         if s.CVXOPT in installed_solvers():
+            import cvxopt
             data = Problem(Minimize(norm(self.x) + 3)).get_problem_data(s.CVXOPT)
             dims = data["dims"]
             self.assertEqual(dims["q"], [3])
             # NumPy ndarrays, not cvxopt matrices.
-            self.assertEqual(data["c"].shape, (3,))
-            self.assertEqual(data["A"].shape, (0, 3))
-            self.assertEqual(data["G"].shape, (3, 3))
+            self.assertEqual(type(data["c"]), cvxopt.matrix)
+            self.assertEqual(type(data["A"]), cvxopt.spmatrix)
+            self.assertEqual(data["c"].size, (3, 1))
+            self.assertEqual(data["A"].size, (0, 3))
+            self.assertEqual(data["G"].size, (3, 3))
 
     def test_unpack_results(self):
         """Test unpack results method.
@@ -216,12 +219,9 @@ class TestProblem(BaseTest):
             import cvxopt
             prob = Problem(Minimize(norm(self.x)), [self.x == 0])
             args = prob.get_problem_data(s.CVXOPT)
-            c = intf.dense2cvxopt(args["c"])
-            h = intf.dense2cvxopt(args["h"])
-            b = intf.dense2cvxopt(args["b"])
-            G = intf.sparse2cvxopt(args["G"])
-            A = intf.sparse2cvxopt(args["A"])
-            results_dict = cvxopt.solvers.conelp(c, G, h, args["dims"], A, b)
+            results_dict = cvxopt.solvers.conelp(args["c"], args["G"],
+                                                 args["h"], args["dims"],
+                                                 args["A"], args["b"])
             prob = Problem(Minimize(norm(self.x)), [self.x == 0])
             prob.unpack_results(s.CVXOPT, results_dict)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])

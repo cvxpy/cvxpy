@@ -81,6 +81,34 @@ class CVXOPT(Solver):
         """
         return (constr_map[s.EQ], constr_map[s.LEQ], constr_map[s.EXP])
 
+    def get_problem_data(self, objective, constraints, cached_data):
+        """Returns the argument for the call to the solver.
+
+        Parameters
+        ----------
+        objective : LinOp
+            The canonicalized objective.
+        constraints : list
+            The list of canonicalized cosntraints.
+        cached_data : dict
+            A map of solver name to cached problem data.
+
+        Returns
+        -------
+        dict
+            The arguments needed for the solver.
+        """
+        # Returns CVXOPT matrices so can be used by raw CVXOPT solver.
+        data = super(CVXOPT, self).get_problem_data(objective, constraints,
+                                                    cached_data)
+        # Convert A, b, G, h, c to CVXOPT matrices.
+        data[s.A] = intf.sparse2cvxopt(data[s.A])
+        data[s.G] = intf.sparse2cvxopt(data[s.G])
+        data[s.B] = intf.dense2cvxopt(data[s.B])
+        data[s.H] = intf.dense2cvxopt(data[s.H])
+        data[s.C] = intf.dense2cvxopt(data[s.C])
+        return data
+
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
@@ -107,7 +135,8 @@ class CVXOPT(Solver):
         """
         import cvxopt
         import cvxopt.solvers
-        data = self.get_problem_data(objective, constraints, cached_data)
+        data = super(CVXOPT, self).get_problem_data(objective, constraints,
+                                                    cached_data)
         # Save old data in case need to use robust solver.
         data[s.DIMS] = copy.deepcopy(data[s.DIMS])
         # Convert all longs to ints.
