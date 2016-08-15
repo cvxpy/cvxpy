@@ -18,10 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 class reshape(AffAtom):
     """ Reshapes the expression.
@@ -29,6 +28,7 @@ class reshape(AffAtom):
     Vectorizes the expression then unvectorizes it into the new shape.
     The entries are stored in column-major order.
     """
+
     def __init__(self, expr, rows, cols):
         self.rows = rows
         self.cols = cols

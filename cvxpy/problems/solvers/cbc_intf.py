@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import importlib
-import numpy as np
 import six
 import cvxpy.interface as intf
 import cvxpy.settings as s
@@ -44,8 +43,8 @@ class CBC(Solver):
     STATUS_MAP_LP = {'optimal': s.OPTIMAL,
                      'primal infeasible': s.INFEASIBLE,
                      'stopped due to errors': s.SOLVER_ERROR,
-                     'stopped by event handler (virtual int ' \
-                                    'ClpEventHandler::event())': s.SOLVER_ERROR}
+                     'stopped by event handler (virtual int '
+                     'ClpEventHandler::event())': s.SOLVER_ERROR}
 
     SUPPORTED_CUT_GENERATORS = {"GomoryCuts": "CyCglGomory",
                                 "MIRCuts": "CyCglMixedIntegerRounding",
@@ -73,6 +72,7 @@ class CBC(Solver):
         """Imports the solver.
         """
         from cylp.cy import CyClpSimplex
+        CyClpSimplex  # For flake8
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -125,7 +125,6 @@ class CBC(Solver):
         """
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
-        from cylp.py.modeling.CyLPModel import CyLPArray
 
         # Get problem data
         data = self.get_problem_data(objective, constraints, cached_data)
@@ -136,8 +135,6 @@ class CBC(Solver):
         dims = data[s.DIMS]
 
         n = c.shape[0]
-
-        solver_cache = cached_data[self.name()]
 
         # Problem
         model = CyClpSimplex()

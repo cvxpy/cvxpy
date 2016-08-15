@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.sum_largest import sum_largest
 
+
 def sum_smallest(x, k):
     """Sum of the smallest k values.
     """

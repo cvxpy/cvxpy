@@ -71,9 +71,9 @@ class FloorPlan(object):
         constraints = []
         for box in self.boxes:
             # Enforce that boxes lie in bounding box.
-            constraints += [box.bottom >= FloorPlan.MARGIN, 
+            constraints += [box.bottom >= FloorPlan.MARGIN,
                             box.top + FloorPlan.MARGIN <= self.height]
-            constraints += [box.left >= FloorPlan.MARGIN, 
+            constraints += [box.left >= FloorPlan.MARGIN,
                             box.right + FloorPlan.MARGIN <= self.width]
             # Enforce aspect ratios.
             constraints += [(1/box.ASPECT_RATIO)*box.height <= box.width,

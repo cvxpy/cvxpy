@@ -19,7 +19,9 @@ env:
       COVERAGE="true" INSTALL_GLPK="false"
 sudo: required
 install: source continuous_integration/install.sh
-script: bash continuous_integration/test_script.sh
+script:
+  - bash continuous_integration/test_script.sh
+  - flake8 .
 after_success:
     - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
 cache: apt

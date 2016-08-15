@@ -20,8 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 import scipy.sparse as sp
 import numpy as np
-import numbers
-import cvxopt
 
 
 class SparseMatrixInterface(NDArrayInterface):
@@ -42,15 +40,6 @@ class SparseMatrixInterface(NDArrayInterface):
             A matrix of type self.target_matrix or a scalar.
         """
         # Convert cvxopt sparse to coo matrix.
-        if isinstance(value, cvxopt.spmatrix):
-            Vp, Vi, Vx = value.CCS
-            Vp, Vi = (np.fromiter(iter(x),
-                                  dtype=np.int32,
-                                  count=len(x))
-                      for x in (Vp, Vi))
-            Vx = np.fromiter(iter(Vx), dtype=np.double)
-            m, n = value.size
-            return sp.csc_matrix((Vx, Vi, Vp), shape=(m, n))
         if isinstance(value, list):
             return sp.csc_matrix(value, dtype=np.double).T
         return sp.csc_matrix(value, dtype=np.double)

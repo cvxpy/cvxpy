@@ -17,16 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.affine.index import index
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
+
 
 class log(Elementwise):
     """Elementwise :math:`\log x`.
     """
+
     def __init__(self, x):
         super(log, self).__init__(x)
 

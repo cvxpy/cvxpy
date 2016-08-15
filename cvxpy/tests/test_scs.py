@@ -20,27 +20,27 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy import *
 import cvxpy.atoms.elementwise.log as cvxlog
 from cvxpy.tests.base_test import BaseTest
-import cvxopt
-import unittest
 import math
 import numpy as np
 import sys
 if sys.version_info >= (3, 0):
     from functools import reduce
 
+
 class TestSCS(BaseTest):
     """ Unit tests for the nonlinear atoms module. """
+
     def setUp(self):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
-        self.A = Variable(2,2,name='A')
-        self.B = Variable(2,2,name='B')
-        self.C = Variable(3,2,name='C')
+        self.A = Variable(2, 2, name='A')
+        self.B = Variable(2, 2, name='B')
+        self.C = Variable(3, 2, name='C')
 
     # Overriden method to assume lower accuracy.
     def assertItemsAlmostEqual(self, a, b, places=2):
-        super(TestSCS, self).assertItemsAlmostEqual(a,b,places=places)
+        super(TestSCS, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overriden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places=2):
@@ -57,23 +57,23 @@ class TestSCS(BaseTest):
 
         # Log in constraint.
         obj = Minimize(sum_entries(self.x))
-        constr = [log(self.x) >= 0, self.x <= [1,1]]
+        constr = [log(self.x) >= 0, self.x <= [1, 1]]
         p = Problem(obj, constr)
         result = p.solve(solver=SCS)
         self.assertAlmostEqual(result, 2)
-        self.assertItemsAlmostEqual(self.x.value, [1,1])
+        self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
         # Index into log.
         obj = Maximize(log(self.x)[1])
         constr = [self.x <= [1, math.e]]
-        p = Problem(obj,constr)
+        p = Problem(obj, constr)
         result = p.solve(solver=SCS)
         self.assertAlmostEqual(result, 1)
 
     def test_sigma_max(self):
         """Test sigma_max.
         """
-        const = Constant([[1,2,3],[4,5,6]])
+        const = Constant([[1, 2, 3], [4, 5, 6]])
         constr = [self.C == const]
         prob = Problem(Minimize(norm(self.C, 2)), constr)
         result = prob.solve(solver=SCS)
@@ -83,7 +83,7 @@ class TestSCS(BaseTest):
     def test_sdp_var(self):
         """Test sdp var.
         """
-        const = Constant([[1,2,3],[4,5,6], [7,8,9]])
+        const = Constant([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         X = Semidef(3)
         prob = Problem(Minimize(0), [X == const])
         prob.solve(verbose=True, solver=SCS)
@@ -101,25 +101,25 @@ class TestSCS(BaseTest):
         import numpy as np
         import cvxpy as cp
 
-        kK=50
-        kSeed=10
+        kK = 50
+        kSeed = 10
 
-        prng=np.random.RandomState(kSeed)
+        prng = np.random.RandomState(kSeed)
         #Generate a random reference distribution
-        npSPriors=prng.uniform(0.0,1.0,(kK,1))
-        npSPriors=npSPriors/sum(npSPriors)
+        npSPriors = prng.uniform(0.0, 1.0, (kK, 1))
+        npSPriors = npSPriors/sum(npSPriors)
 
         #Reference distribution
-        p_refProb=cp.Parameter(kK,1,sign='positive')
+        p_refProb = cp.Parameter(kK, 1, sign='positive')
         #Distribution to be estimated
-        v_prob=cp.Variable(kK,1)
-        objkl=0.0
+        v_prob = cp.Variable(kK, 1)
+        objkl = 0.0
         for k in range(kK):
-            objkl += cp.kl_div(v_prob[k,0],p_refProb[k,0])
+            objkl += cp.kl_div(v_prob[k, 0], p_refProb[k, 0])
 
-        constrs=[sum([v_prob[k,0] for k in range(kK)])==1]
-        klprob=cp.Problem(cp.Minimize(objkl),constrs)
-        p_refProb.value=npSPriors
+        constrs = [sum([v_prob[k, 0] for k in range(kK)]) == 1]
+        klprob = cp.Problem(cp.Minimize(objkl), constrs)
+        p_refProb.value = npSPriors
         result = klprob.solve(solver=SCS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
@@ -171,7 +171,7 @@ class TestSCS(BaseTest):
         lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
         g_parts = [-cvxpy.quad_over_lin(theta1, -4*eta2) + 0.5 * cvxpy.log(-2 * eta2)
                    for theta1 in theta1s]
-        objective = reduce(lambda x,y: x+y, lin_parts + g_parts)
+        objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
         problem = cvxpy.Problem(cvxpy.Maximize(objective))
         problem.solve(verbose=True, solver=cvxpy.SCS)
         assert problem.status in [cvxpy.OPTIMAL_INACCURATE, cvxpy.OPTIMAL]
@@ -195,4 +195,3 @@ class TestSCS(BaseTest):
     #     self.assertEqual(kl_div(1, 0).value, np.inf)
     #     self.assertEqual(kl_div(0, 1).value, np.inf)
     #     self.assertEqual(kl_div(-1, -1).value, np.inf)
-

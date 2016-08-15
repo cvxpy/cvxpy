@@ -20,14 +20,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 import scipy.sparse as sp
 from numpy import linalg as LA
 import numpy as np
 
+
 class sigma_max(Atom):
     """ Maximum singular value. """
+
     def __init__(self, A):
         super(sigma_max, self).__init__(A)
 
@@ -37,7 +38,7 @@ class sigma_max(Atom):
         """
         return LA.norm(values[0], 2)
 
-    def _grad(self,values):
+    def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -104,7 +105,7 @@ class sigma_max(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # n by m matrix.
+        A = arg_objs[0]  # n by m matrix.
         n, m = A.size
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = lu.create_var((n+m, n+m))

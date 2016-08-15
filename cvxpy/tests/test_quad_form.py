@@ -2,12 +2,12 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
-from scipy import linalg
-import cvxopt
+import scipy.sparse as sp
 import cvxpy
 import warnings
 
 from cvxpy.tests.base_test import BaseTest
+
 
 class TestNonOptimal(BaseTest):
     def test_singular_quad_form(self):
@@ -58,7 +58,7 @@ class TestNonOptimal(BaseTest):
     def test_sparse_quad_form(self):
         """Test quad form with a sparse matrix.
         """
-        Q = cvxopt.spdiag([1, 1])
+        Q = sp.eye(2)
         x = cvxpy.Variable(2)
         cost = cvxpy.quad_form(x, Q)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
@@ -86,4 +86,3 @@ class TestNonOptimal(BaseTest):
         with self.assertRaises(Exception) as cm:
             prob.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
-        

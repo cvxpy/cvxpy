@@ -36,9 +36,9 @@ class Boolean(Variable):
     @property
     def _rounded(self):
         # WARNING: attempts to access self.value
-        if self.size == (1, 1): 
+        if self.size == (1, 1):
             return round(self.value)
-        else: 
+        else:
             return np.around(self.value)
 
     @property

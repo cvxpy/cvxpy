@@ -18,16 +18,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import settings as s
-from cvxpy import utilities as u
-from cvxpy import interface as intf
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
+
 
 class Parameter(Leaf):
     """
     A parameter, either matrix or scalar.
     """
     PARAM_COUNT = 0
+
     def __init__(self, rows=1, cols=1, name=None, sign="unknown", value=None):
         self.id = lu.get_id()
         self._rows = rows

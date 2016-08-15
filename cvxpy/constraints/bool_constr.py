@@ -23,6 +23,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint
 
+
 class BoolConstr(Constraint):
     """
     A boolean constraint:

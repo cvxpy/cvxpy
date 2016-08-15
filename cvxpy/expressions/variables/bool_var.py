@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.constraints.bool_constr import BoolConstr
 
+
 class Bool(Variable):
     """ A boolean variable. """
 

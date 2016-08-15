@@ -17,15 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
 import abc
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 import canonInterface
 import scipy.sparse as sp
-if sys.version_info >= (3, 0):
-    from functools import reduce
+
 
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
@@ -60,7 +58,7 @@ class AffAtom(Atom):
 
     def is_quadratic(self):
         return all([arg.is_quadratic() for arg in self.args])
-    
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -106,6 +104,6 @@ class AffAtom(Atom):
                     grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
             else:
                 stop = start + arg.size[0]*arg.size[1]
-                grad_list += [stacked_grad[start:stop,:]]
+                grad_list += [stacked_grad[start:stop, :]]
                 start = stop
         return grad_list

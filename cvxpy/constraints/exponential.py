@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-import cvxpy.interface as intf
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
@@ -26,7 +25,7 @@ import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
 import math
-import cvxopt
+
 
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
@@ -46,8 +45,6 @@ class ExpCone(NonlinearConstraint):
         y: Variable y in the exponential cone.
         z: Variable z in the exponential cone.
     """
-    CVXOPT_DENSE_INTF = intf.get_matrix_interface(cvxopt.matrix)
-    CVXOPT_SPARSE_INTF = intf.get_matrix_interface(cvxopt.spmatrix)
 
     def __init__(self, x, y, z):
         self.x = x
@@ -97,7 +94,7 @@ class ExpCone(NonlinearConstraint):
     def __CVXOPT_format(self):
         constraints = []
         for i, var in enumerate(self.vars_):
-            if not var.type is VARIABLE:
+            if var.type is not VARIABLE:
                 lone_var = lu.create_var(var.size)
                 constraints.append(lu.create_eq(lone_var, var))
                 self.vars_[i] = lone_var
@@ -120,6 +117,7 @@ class ExpCone(NonlinearConstraint):
             _solver_hook(x, z) returns the function value, gradient,
             and (z scaled) Hessian at x.
         """
+        import cvxopt  # Not necessary unless using cvxopt solver.
         entries = self.size[0]*self.size[1]
         if vars_ is None:
             x_init = entries*[0.0]
@@ -135,11 +133,11 @@ class ExpCone(NonlinearConstraint):
         if min(y) <= 0.0 or min(z) <= 0.0:
             return None
         # Evaluate the function.
-        f = self.CVXOPT_DENSE_INTF.zeros(entries, 1)
+        f = cvxopt.matrix(0., (entries, 1))
         for i in range(entries):
             f[i] = x[i] - y[i]*math.log(z[i]) + y[i]*math.log(y[i])
         # Compute the gradient.
-        Df = self.CVXOPT_DENSE_INTF.zeros(entries, 3*entries)
+        Df = cvxopt.matrix(0., (entries, 3*entries))
         for i in range(entries):
             Df[i, i] = 1.0
             Df[i, entries+i] = math.log(y[i]) - math.log(z[i]) + 1.0
@@ -148,7 +146,7 @@ class ExpCone(NonlinearConstraint):
         if scaling is None:
             return f, Df
         # Compute the Hessian.
-        big_H = self.CVXOPT_SPARSE_INTF.zeros(3*entries, 3*entries)
+        big_H = cvxopt.spmatrix(0, [], [], size=(3*entries, 3*entries))
         for i in range(entries):
             H = cvxopt.matrix([
                     [0.0, 0.0, 0.0],

@@ -21,11 +21,12 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-import scipy.sparse as sp
+
 
 class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
+
     def __init__(self, x, axis=None):
         super(max_entries, self).__init__(x, axis=axis)
 
@@ -119,7 +120,7 @@ class max_entries(AxisAtom):
             const_size = (arg_objs[0].size[0], 1)
             ones = lu.create_const(np.ones(const_size), const_size)
             promoted_t = lu.mul_expr(ones, t, arg_objs[0].size)
-        else: # axis == 1
+        else:  # axis == 1
             t = lu.create_var((arg_objs[0].size[0], 1))
             const_size = (1, arg_objs[0].size[1])
             ones = lu.create_const(np.ones(const_size), const_size)

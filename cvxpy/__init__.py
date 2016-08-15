@@ -17,19 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import (Variable, Semidef, Symmetric, Bool,
-Int, NonNegative)
+                                         Int, NonNegative)
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.error import SolverError
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC,
-ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS,
-OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
-OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
+                            ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS,
+                            OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
+                            OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 from cvxpy.transforms import linearize, partial_optimize
 
 # Legacy names.

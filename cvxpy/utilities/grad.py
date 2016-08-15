@@ -21,6 +21,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import scipy.sparse as sp
 
+
 def constant_grad(expr):
     """Returns the gradient of constant terms in an expression.
 
@@ -43,6 +44,7 @@ def constant_grad(expr):
             grad[var] = sp.csc_matrix((rows, cols), dtype='float64')
     return grad
 
+
 def error_grad(expr):
     """Returns a gradient of all None.
 
@@ -52,4 +54,4 @@ def error_grad(expr):
     Returns:
         A map of variable value to None.
     """
-    return {var:None for var in expr.variables()}
+    return {var: None for var in expr.variables()}

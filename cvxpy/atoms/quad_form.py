@@ -26,8 +26,10 @@ from .sum_squares import sum_squares
 from scipy import linalg as LA
 import numpy as np
 
+
 class CvxPyDomainError(Exception):
     pass
+
 
 def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
@@ -84,6 +86,7 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2
 
+
 def quad_form(x, P):
     """ Alias for :math:`x^T P x`.
 
@@ -91,13 +94,12 @@ def quad_form(x, P):
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
     n = P.size[0]
-    if P.size[1] != n or x.size != (n,1):
+    if P.size[1] != n or x.size != (n, 1):
         raise Exception("Invalid dimensions for arguments.")
     if x.is_constant():
         return x.T * P * x
     elif P.is_constant():
-        np_intf = intf.get_matrix_interface(np.ndarray)
-        P = np_intf.const_to_matrix(P.value)
+        P = intf.DEFAULT_NP_INTF.const_to_matrix(P.value)
         # Force symmetry
         P = (P + P.T) / 2.0
         scale, M1, M2 = _decomp_quad(P)

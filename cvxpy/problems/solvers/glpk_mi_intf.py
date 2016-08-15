@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.problems.solvers.glpk_intf import GLPK
 
+
 class GLPK_MI(GLPK):
     """An interface for the GLPK MI solver.
     """
@@ -70,7 +71,8 @@ class GLPK_MI(GLPK):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.glpk
+        import cvxopt
+        import cvxopt.glpk
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
         old_options = cvxopt.glpk.options.copy()

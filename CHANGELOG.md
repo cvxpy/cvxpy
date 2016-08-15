@@ -20,6 +20,7 @@ Version 1.0 (targets)
 * TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
 * TODO change reshape to take size tuple argument.
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
+* TODO make @ work when imported from future.
 
 Version 0.4.3 (next release)
 ----------------------------
@@ -29,6 +30,7 @@ Version 0.4.3 (next release)
 * TODO add dmains for special variables like Semidef and NonNegative (var with domain).
 Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
+* TODO make quad_form(pos cvx, pos def pos) work.
 * Add residual to constraints (vector/matrix), use for violation.
 
 Version 0.4.2 

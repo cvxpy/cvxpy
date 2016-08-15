@@ -23,6 +23,7 @@ from cvxpy.problems.solvers.solver import Solver
 import numpy as np
 import scipy.sparse as sp
 
+
 class MOSEK(Solver):
     """An interface for the MOSEK solver.
     """
@@ -38,6 +39,7 @@ class MOSEK(Solver):
         """Imports the solver.
         """
         import mosek
+        mosek  # For flake8
 
     def name(self):
         """The name of the solver.
@@ -127,119 +129,122 @@ class MOSEK(Solver):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         import mosek
-        env = mosek.Env()
-        task = env.Task(0, 0)
+        with mosek.Env() as env:
+            with env.Task(0, 0) as task:
+                kwargs = sorted(solver_opts.keys())
+                if "mosek_params" in kwargs:
+                    self._handle_mosek_params(task, solver_opts["mosek_params"])
+                    kwargs.remove("mosek_params")
+                if kwargs:
+                    raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 
-        kwargs = sorted(solver_opts.keys())
-        if "mosek_params" in kwargs:
-            self._handle_mosek_params(task, solver_opts["mosek_params"])
-            kwargs.remove("mosek_params")
-        if kwargs:
-            raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
+                if verbose:
+                    # Define a stream printer to grab output from MOSEK
+                    def streamprinter(text):
+                        import sys
+                        sys.stdout.write(text)
+                        sys.stdout.flush()
+                    env.set_Stream(mosek.streamtype.log, streamprinter)
+                    task.set_Stream(mosek.streamtype.log, streamprinter)
 
-        if verbose:
-            # Define a stream printer to grab output from MOSEK
-            def streamprinter(text):
-                import sys
-                sys.stdout.write(text)
-                sys.stdout.flush()
-            env.set_Stream(mosek.streamtype.log, streamprinter)
-            task.set_Stream(mosek.streamtype.log, streamprinter)
+                data = self.get_problem_data(objective, constraints, cached_data)
 
-        data = self.get_problem_data(objective, constraints, cached_data)
+                A = data[s.A]
+                b = data[s.B]
+                G = data[s.G]
+                h = data[s.H]
+                c = data[s.C]
+                dims = data[s.DIMS]
 
-        A = data[s.A]
-        b = data[s.B]
-        G = data[s.G]
-        h = data[s.H]
-        c = data[s.C]
-        dims = data[s.DIMS]
+                # size of problem
+                numvar = len(c) + sum(dims[s.SOC_DIM])
+                numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM]) + \
+                    sum([el**2 for el in dims[s.SDP_DIM]])
 
-        # size of problem
-        numvar = len(c) + sum(dims[s.SOC_DIM])
-        numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM]) + \
-            sum([el**2 for el in dims[s.SDP_DIM]])
+                # otherwise it crashes on empty probl.
+                if numvar == 0:
+                    result_dict = {s.STATUS: s.OPTIMAL}
+                    result_dict[s.PRIMAL] = []
+                    result_dict[s.VALUE] = 0. + data[s.OFFSET]
+                    result_dict[s.EQ_DUAL] = []
+                    result_dict[s.INEQ_DUAL] = []
+                    return result_dict
 
-        # otherwise it crashes on empty probl.
-        if numvar == 0:
-            result_dict = {s.STATUS:s.OPTIMAL}
-            result_dict[s.PRIMAL] = []
-            result_dict[s.VALUE] = 0. + data[s.OFFSET]
-            result_dict[s.EQ_DUAL] = []
-            result_dict[s.INEQ_DUAL] = []
-            return result_dict
+                # objective
+                task.appendvars(numvar)
+                task.putclist(np.arange(len(c)), c)
+                task.putvarboundlist(np.arange(numvar, dtype=int),
+                                     [mosek.boundkey.fr]*numvar,
+                                     np.zeros(numvar),
+                                     np.zeros(numvar))
 
-        # objective
-        task.appendvars(numvar)
-        task.putclist(np.arange(len(c)), c)
-        task.putvarboundlist(np.arange(numvar, dtype=int),
-                             [mosek.boundkey.fr]*numvar,
-                              np.zeros(numvar),
-                              np.zeros(numvar))
+                # SDP variables
+                if sum(dims[s.SDP_DIM]) > 0:
+                    task.appendbarvars(dims[s.SDP_DIM])
 
-        # SDP variables
-        if sum(dims[s.SDP_DIM]) > 0:
-            task.appendbarvars(dims[s.SDP_DIM])
+                # linear equality and linear inequality constraints
+                task.appendcons(numcon)
+                if A.shape[0] and G.shape[0]:
+                    constraints_matrix = sp.bmat([[A], [G]])
+                else:
+                    constraints_matrix = A if A.shape[0] else G
+                coefficients = np.concatenate([b, h])
 
-        # linear equality and linear inequality constraints
-        task.appendcons(numcon)
-        if A.shape[0] and G.shape[0]:
-            constraints_matrix = sp.bmat([[A], [G]])
-        else:
-            constraints_matrix = A if A.shape[0] else G
-        coefficients = np.concatenate([b, h])
+                row, col, el = sp.find(constraints_matrix)
+                task.putaijlist(row, col, el)
 
-        row,col,el = sp.find(constraints_matrix)
-        task.putaijlist(row,col,el)
+                type_constraint = [mosek.boundkey.fx] * len(b)
+                type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
+                sdp_total_dims = sum([cdim**2 for cdim in dims[s.SDP_DIM]])
+                type_constraint += [mosek.boundkey.fx] * \
+                    (sum(dims[s.SOC_DIM]) + sdp_total_dims)
 
-        type_constraint = [mosek.boundkey.fx] * len(b)
-        type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
-        type_constraint += [mosek.boundkey.fx] * (sum(dims[s.SOC_DIM])+ \
-                                sum([el**2 for el in dims[s.SDP_DIM]]))
+                task.putconboundlist(np.arange(numcon, dtype=int),
+                                     type_constraint,
+                                     coefficients,
+                                     coefficients)
 
-        task.putconboundlist(np.arange(numcon, dtype=int),
-                             type_constraint,
-                             coefficients,
-                             coefficients)
+                # cones
+                current_var_index = len(c)
+                current_con_index = len(b) + dims[s.LEQ_DIM]
 
-        # cones
-        current_var_index = len(c)
-        current_con_index = len(b) + dims[s.LEQ_DIM]
+                for size_cone in dims[s.SOC_DIM]:
+                    row, col, el = sp.find(sp.eye(size_cone))
+                    row += current_con_index
+                    col += current_var_index
+                    task.putaijlist(row, col, el)  # add a identity for each cone
+                    # add a cone constraint
+                    task.appendcone(mosek.conetype.quad,
+                                    0.0,  # unused
+                                    np.arange(current_var_index,
+                                              current_var_index + size_cone))
+                    current_con_index += size_cone
+                    current_var_index += size_cone
 
-        for size_cone in dims[s.SOC_DIM]:
-            row,col,el = sp.find(sp.eye(size_cone))
-            row += current_con_index
-            col += current_var_index
-            task.putaijlist(row,col,el) # add a identity for each cone
-            # add a cone constraint
-            task.appendcone(mosek.conetype.quad,
-                            0.0, #unused
-                            np.arange(current_var_index,
-                                      current_var_index + size_cone))
-            current_con_index += size_cone
-            current_var_index += size_cone
+                # SDP
+                for num_sdp_var, size_matrix in enumerate(dims[s.SDP_DIM]):
+                    for i_sdp_matrix in range(size_matrix):
+                        for j_sdp_matrix in range(size_matrix):
+                            coeff = 1. if i_sdp_matrix == j_sdp_matrix else .5
+                            task.putbaraij(current_con_index,
+                                           num_sdp_var,
+                                           [task.appendsparsesymmat(size_matrix,
+                                                                    [max(i_sdp_matrix,
+                                                                         j_sdp_matrix)],
+                                                                    [min(i_sdp_matrix,
+                                                                         j_sdp_matrix)],
+                                                                    [coeff])],
+                                           [1.0])
+                            current_con_index += 1
 
-        #SDP
-        for num_sdp_var, size_matrix in enumerate(dims[s.SDP_DIM]):
-            for i_sdp_matrix in range(size_matrix):
-                for j_sdp_matrix in range(size_matrix):
-                    task.putbaraij(current_con_index,
-                                   num_sdp_var,
-                                   [task.appendsparsesymmat(size_matrix,
-                                             [max(i_sdp_matrix, j_sdp_matrix)],
-                                             [min(i_sdp_matrix, j_sdp_matrix)],
-                            [1. if (i_sdp_matrix == j_sdp_matrix) else .5])],
-                                   [1.0])
-                    current_con_index += 1
+                # solve
+                task.putobjsense(mosek.objsense.minimize)
+                task.optimize()
 
-        # solve
-        task.putobjsense(mosek.objsense.minimize)
-        task.optimize()
+                if verbose:
+                    task.solutionsummary(mosek.streamtype.msg)
 
-        if verbose:
-            task.solutionsummary(mosek.streamtype.msg)
-
-        return self.format_results(task, data, cached_data)
+                return self.format_results(task, data, cached_data)
 
     def format_results(self, task, data, cached_data):
         """Converts the solver output into standard form.
@@ -271,7 +276,7 @@ class MOSEK(Solver):
                       mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
                       mosek.solsta.unknown: s.SOLVER_ERROR}
 
-        prosta = task.getprosta(mosek.soltype.itr) #unused
+        task.getprosta(mosek.soltype.itr)  # unused
         solsta = task.getsolsta(mosek.soltype.itr)
 
         result_dict = {s.STATUS: STATUS_MAP[solsta]}
@@ -291,7 +296,7 @@ class MOSEK(Solver):
             task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL])
             # get obj value
             result_dict[s.VALUE] = task.getprimalobj(mosek.soltype.itr) + \
-                                   data[s.OFFSET]
+                data[s.OFFSET]
             # get dual
             y = np.zeros(task.getnumcon(), dtype=np.float)
             task.gety(mosek.soltype.itr, y)
