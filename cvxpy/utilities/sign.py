@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 def sum_signs(exprs):
     """Give the sign resulting from summing a list of expressions.
 
@@ -29,6 +30,7 @@ def sum_signs(exprs):
     is_pos = all([expr.is_positive() for expr in exprs])
     is_neg = all([expr.is_negative() for expr in exprs])
     return (is_pos, is_neg)
+
 
 def mul_sign(lh_expr, rh_expr):
     """Give the sign resulting from multiplying two expressions.

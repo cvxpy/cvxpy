@@ -19,9 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 class sum_entries(AxisAtom, AffAtom):
     """ Summing the entries of an expression.
@@ -66,7 +66,7 @@ class sum_entries(AxisAtom, AffAtom):
             const_size = (arg_objs[0].size[1], 1)
             ones = lu.create_const(np.ones(const_size), const_size)
             obj = lu.rmul_expr(arg_objs[0], ones, size)
-        else: # axis == 0
+        else:  # axis == 0
             const_size = (1, arg_objs[0].size[0])
             ones = lu.create_const(np.ones(const_size), const_size)
             obj = lu.mul_expr(ones, arg_objs[0], size)

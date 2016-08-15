@@ -21,15 +21,15 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.elementwise.exp import exp
-from cvxpy.atoms.affine.sum_entries import sum_entries
-from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.misc import logsumexp
+
 
 class log_sum_exp(AxisAtom):
     """:math:`\log\sum_i e^{x_i}`
 
     """
+
     def __init__(self, x, axis=None):
         super(log_sum_exp, self).__init__(x, axis=axis)
 

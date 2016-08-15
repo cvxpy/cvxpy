@@ -13,7 +13,7 @@ class BaseTest(unittest.TestCase):
 
     # Overriden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places=5):
-        super(BaseTest, self).assertAlmostEqual(a,b,places=places)
+        super(BaseTest, self).assertAlmostEqual(a, b, places=places)
 
     def mat_to_list(self, mat):
         """Convert a numpy matrix to a list.

@@ -22,6 +22,7 @@ import unittest
 import time
 from cvxpy import *
 
+
 class TestWarmstart(unittest.TestCase):
 
     def test_warmstart(self):

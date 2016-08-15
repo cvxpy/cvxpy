@@ -23,6 +23,7 @@ import unittest
 import numpy as np
 import scipy.sparse as sp
 
+
 class TestLS(BaseTest):
     """ LS solver tests. """
 
@@ -61,18 +62,18 @@ class TestLS(BaseTest):
         optval = Problem(Minimize(fit_error), []).solve(solver=LS)
         optval2 = Problem(Minimize(fit_error), []).solve(solver=ECOS)
         self.assertAlmostEqual(optval, 139.225660756)
-        
+
     def test_control(self):
         # Some constraints on our motion
         # The object should start from the origin, and end at rest
         initial_velocity = np.matrix('-20; 100')
         final_position = np.matrix('100; 100')
 
-        T = 100 # The number of timesteps
-        h = 0.1 # The time between time intervals
-        mass = 1 # Mass of object
-        drag = 0.1 # Drag on object
-        g = np.matrix('0; -9.8') # Gravity on object
+        T = 100  # The number of timesteps
+        h = 0.1  # The time between time intervals
+        mass = 1  # Mass of object
+        drag = 0.1  # Drag on object
+        g = np.matrix('0; -9.8')  # Gravity on object
 
         # Declare the variables we need
         position = Variable(2, T)
@@ -111,7 +112,7 @@ class TestLS(BaseTest):
         b = np.random.randn(m, 1)
         G = sp.rand(r, n, density)
         h = np.random.randn(r, 1)
-        
+
         x = Variable(n)
         optval = Problem(Minimize(sum_squares(A*x - b)), [G*x == h]).solve(solver=LS)
         self.assertAlmostEqual(optval, 6071.830658)

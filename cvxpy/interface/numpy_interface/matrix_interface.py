@@ -21,7 +21,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 import scipy.sparse as sp
 import numpy as np
-import cvxopt
+
 
 class MatrixInterface(NDArrayInterface):
     """
@@ -40,15 +40,9 @@ class MatrixInterface(NDArrayInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        # Convert cvxopt sparse to dense.
-        if isinstance(value, cvxopt.spmatrix):
-            value = cvxopt.matrix(value, tc='d')
-        # Convert integer cvxopt matrices to float.
-        elif isinstance(value, cvxopt.matrix) and value.typecode == 'i':
-            value = value*1.0
         # Lists and 1D arrays become column vectors.
-        elif isinstance(value, list) or \
-             isinstance(value, np.ndarray) and value.ndim == 1:
+        if isinstance(value, list) or \
+                isinstance(value, np.ndarray) and value.ndim == 1:
             value = np.asmatrix(value, dtype='float64').T
         # First convert sparse to dense.
         elif sp.issparse(value):
@@ -66,4 +60,3 @@ class MatrixInterface(NDArrayInterface):
 
     def reshape(self, matrix, size):
         return np.reshape(matrix, size, order='F')
-

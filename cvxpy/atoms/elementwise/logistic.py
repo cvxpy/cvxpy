@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.exp import exp
 import numpy as np
+
 
 class logistic(Elementwise):
     """:math:`\log(1 + e^{x})`
@@ -29,6 +29,7 @@ class logistic(Elementwise):
     This is a special case of log(sum(exp)) that is evaluates to a vector rather
     than to a scalar which is useful for logistic regression.
     """
+
     def __init__(self, x):
         super(logistic, self).__init__(x)
 

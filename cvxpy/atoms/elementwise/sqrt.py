@@ -20,5 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.elementwise.power import power
 from fractions import Fraction
 
+
 def sqrt(x):
     return power(x, Fraction(1, 2))

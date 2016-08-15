@@ -19,5 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.elementwise.power import power
 
+
 def inv_pos(x):
     return power(x, -1)

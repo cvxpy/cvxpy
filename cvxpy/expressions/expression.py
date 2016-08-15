@@ -27,6 +27,7 @@ from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
 from cvxpy.expressions import cvxtypes
 import abc
 
+
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
 
@@ -36,12 +37,14 @@ def _cast_other(binary_op):
     Returns:
         A wrapped binary operator that can handle non-Expression arguments.
     """
+
     def cast_op(self, other):
         """A wrapped binary operator that can handle non-Expression arguments.
         """
         other = self.cast_to_const(other)
         return binary_op(self, other)
     return cast_op
+
 
 class Expression(u.Canonical):
     """

@@ -23,6 +23,7 @@ import cvxpy.settings as s
 from cvxpy.problems.problem_data.matrix_data import MatrixData
 from cvxpy.problems.problem_data.sym_data import SymData
 
+
 class Solver(object):
     """Generic interface for a solver.
     """
@@ -92,7 +93,13 @@ class Solver(object):
             return s.ECOS_BB
         # If SDP, defaults to CVXOPT.
         elif constr_map[s.SDP]:
-            return s.CVXOPT
+            try:
+                import cvxopt
+                cvxopt  # For flake8
+                return s.CVXOPT
+            except ImportError:
+                return s.SCS
+
         # Otherwise use ECOS.
         else:
             return s.ECOS
@@ -122,8 +129,8 @@ class Solver(object):
             raise SolverError("The solver %s is not installed." % self.name())
         # Check the solver can solve the problem.
         constr_map = SymData.filter_constraints(constraints)
-        if ((constr_map[s.BOOL] or constr_map[s.INT]) \
-            and not self.MIP_CAPABLE) or \
+        if ((constr_map[s.BOOL] or constr_map[s.INT]) and
+            not self.MIP_CAPABLE) or \
            (constr_map[s.SDP] and not self.SDP_CAPABLE) or \
            (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
            (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \
@@ -147,8 +154,8 @@ class Solver(object):
         """
         prob_data = cached_data[self.name()]
         if prob_data.sym_data is not None and \
-           (objective != prob_data.sym_data.objective or \
-            constraints != prob_data.sym_data.constraints):
+           (objective != prob_data.sym_data.objective or
+                constraints != prob_data.sym_data.constraints):
             prob_data.sym_data = None
             prob_data.matrix_data = None
 
@@ -175,7 +182,6 @@ class Solver(object):
             prob_data.sym_data = SymData(objective, constraints, self)
         return prob_data.sym_data
 
-
     def get_matrix_data(self, objective, constraints, cached_data):
         """Returns the numeric data for the problem.
 
@@ -199,7 +205,8 @@ class Solver(object):
             prob_data.matrix_data = MatrixData(sym_data,
                                                self.matrix_intf(),
                                                self.vec_intf(),
-                                               self)
+                                               self,
+                                               self.nonlin_constr())
         return prob_data.matrix_data
 
     def get_problem_data(self, objective, constraints, cached_data):
@@ -234,6 +241,11 @@ class Solver(object):
         data[s.BOOL_IDX] = bool_idx
         data[s.INT_IDX] = int_idx
         return data
+
+    def nonlin_constr(self):
+        """Returns whether nonlinear constraints are needed.
+        """
+        return False
 
     @abc.abstractmethod
     def solve(self, objective, constraints, cached_data,

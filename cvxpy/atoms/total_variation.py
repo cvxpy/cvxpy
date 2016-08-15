@@ -23,6 +23,7 @@ from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.affine.sum_entries import sum_entries
 from cvxpy.atoms.affine.reshape import reshape
 
+
 def tv(value, *args):
     """Total variation of a vector, matrix, or list of matrices.
 

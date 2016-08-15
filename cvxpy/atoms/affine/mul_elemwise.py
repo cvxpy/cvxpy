@@ -22,6 +22,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class mul_elemwise(AffAtom):
     """ Multiplies two expressions elementwise.
 
@@ -43,8 +44,8 @@ class mul_elemwise(AffAtom):
            Left-hand argument must be constant.
         """
         if not self.args[0].is_constant():
-            raise ValueError( ("The first argument to mul_elemwise must "
-                               "be constant.") )
+            raise ValueError(("The first argument to mul_elemwise must "
+                              "be constant."))
 
     def size_from_args(self):
         """The sum of the argument dimensions - 1.

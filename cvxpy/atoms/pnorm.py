@@ -27,6 +27,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.soc_axis import SOC_Axis
 from fractions import Fraction
 
+
 class pnorm(AxisAtom):
     r"""The vector p-norm.
 
@@ -94,6 +95,7 @@ class pnorm(AxisAtom):
     Expression
         An Expression representing the norm.
     """
+
     def __init__(self, x, p=2, axis=None, max_denom=1024):
         p_old = p
         if p in ('inf', 'Inf', np.inf):
@@ -115,7 +117,6 @@ class pnorm(AxisAtom):
             self.approx_error = 0
         else:
             self.approx_error = float(abs(self.p - p_old))
-
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -143,7 +144,6 @@ class pnorm(AxisAtom):
                 retval = np.reshape(retval, (self.args[0].size[0], 1))
 
         return retval
-
 
     def validate_arguments(self):
         super(pnorm, self).validate_arguments()
@@ -184,6 +184,7 @@ class pnorm(AxisAtom):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p)
+
     def _domain(self):
         """Returns constraints describing the domain of the node.
         """
@@ -292,8 +293,8 @@ class pnorm(AxisAtom):
 
 
 
-        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
-        more efficiently and with fewer variables and inequalities.
+        Although the inequalities above are correct, for a few special cases,
+        we can represent the p-norm more efficiently and with fewer variables and inequalities.
 
         - For :math:`p = 1`, we use the representation
 
@@ -318,8 +319,9 @@ class pnorm(AxisAtom):
 
                 \|x\|_2 \leq t
 
-          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
-          of a large second-order cone into into several smaller inequalities.
+          Note that we could have used the set of inequalities given above if we wanted
+          an alternate decomposition of a large second-order cone into into several
+          smaller inequalities.
 
         """
         p = data[0]
@@ -371,4 +373,5 @@ class pnorm(AxisAtom):
 
         return t, constraints
 
-        # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
+        # todo: no need to run gm_constr to form the tree each time.
+        # we only need to form the tree once

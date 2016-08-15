@@ -31,9 +31,6 @@ from cvxpy.problems.problem_data.problem_data import ProblemData
 # cvxpy here.
 import cvxpy
 
-# For representing numpy.matrix objects in hashable form
-import hashlib
-
 import multiprocess as multiprocessing
 import numpy as np
 from collections import namedtuple
@@ -280,14 +277,14 @@ class Problem(u.Canonical):
         # Problem is linearly constrained least squares
         if solver is None and SOLVERS[s.LS].suitable(self):
             solver = s.LS
-        
+
         if solver == s.LS:
             solver = SOLVERS[s.LS]
             solver.validate_solver(self)
-            
+
             objective = self.objective
             constraints = self.constraints
-            
+
             sym_data = solver.get_sym_data(objective, constraints)
             results_dict = solver.solve(objective, constraints,
                                         self._cached_data, warm_start, verbose,
@@ -303,7 +300,7 @@ class Problem(u.Canonical):
             # Check if the objective or constraint has changed
 
             if (objective != self._cached_data[s.PARALLEL].objective or
-                constraints != self._cached_data[s.PARALLEL].constraints):
+                    constraints != self._cached_data[s.PARALLEL].constraints):
                 self._separable_problems = cvxpy.transforms.get_separable_problems(self)
                 self._cached_data[s.PARALLEL] = CachedProblem(objective,
                                                               constraints)
@@ -672,7 +669,6 @@ class SizeMetrics(object):
             The maximum value of (big)(small)^2 over all data blocks of the problem, where
             (big) is the larger dimension and (small) is the smaller dimension 
             for each data block.
-
     """
 
     def __init__(self, problem):
@@ -699,17 +695,16 @@ class SizeMetrics(object):
             if self.max_big_small_squared < big*small*small:
                 self.max_big_small_squared = big*small*small
 
+
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "EqConstraint":
                 self.num_scalar_eq_constr += np.prod(constraint._expr.size)
-        
+
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "LeqConstraint":
                 self.num_scalar_leq_constr += np.prod(constraint._expr.size)
-
-
 

@@ -21,12 +21,13 @@ from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.leq_constraint import LeqConstraint
 from cvxpy.constraints.semidefinite import SDP
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
+
 
 class PSDConstraint(LeqConstraint):
     """Constraint X >> Y that z.T(X - Y)z >= 0 for all z.
     """
     OP_NAME = ">>"
+
     def __init__(self, lh_exp, rh_exp):
         # Arguments must be square matrices or scalars.
         if (lh_exp.size[0] != lh_exp.size[1]) or \
@@ -43,14 +44,14 @@ class PSDConstraint(LeqConstraint):
 
     @property
     def residual(self):
-       """The residual of the constraint.
+        """The residual of the constraint.
 
-       Returns
-       -------
-       Expression
-       """
-       min_eig = cvxtypes.lambda_min()(self._expr + self._expr.T)/2
-       return cvxtypes.neg()(min_eig)
+        Returns
+        -------
+        Expression
+        """
+        min_eig = cvxtypes.lambda_min()(self._expr + self._expr.T)/2
+        return cvxtypes.neg()(min_eig)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -62,7 +63,7 @@ class PSDConstraint(LeqConstraint):
             A tuple of (affine expression, [constraints]).
         """
         obj, constraints = self._expr.canonical_form
-        half = lu.create_const(0.5, (1,1))
+        half = lu.create_const(0.5, (1, 1))
         symm = lu.mul_expr(half, lu.sum_expr([obj, lu.transpose(obj)]),
                            obj.size)
         dual_holder = SDP(symm, enforce_sym=False, constr_id=self.id)

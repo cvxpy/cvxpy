@@ -18,10 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.utilities import format_axis
+
 
 class SOC_Axis(SOC):
     """A second-order cone constraint for each row/column.
@@ -33,6 +33,7 @@ class SOC_Axis(SOC):
         X: A matrix whose rows/columns are each a cone.
         axis: Slice by column 0 or row 1.
     """
+
     def __init__(self, t, X, axis):
         assert t.size[1] == 1
         self.axis = axis

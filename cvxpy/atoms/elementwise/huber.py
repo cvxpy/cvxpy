@@ -26,6 +26,7 @@ import numpy as np
 from .power import power
 from fractions import Fraction
 
+
 class huber(Elementwise):
     """The Huber function
 
@@ -39,6 +40,7 @@ class huber(Elementwise):
         A CVXPY expression.
     M : int/float or Parameter
     """
+
     def __init__(self, x, M=1):
         self.M = self.cast_to_const(M)
         super(huber, self).__init__(x)
@@ -83,8 +85,7 @@ class huber(Elementwise):
     def validate_arguments(self):
         """Checks that M >= 0 and is constant.
         """
-        if not (self.M.is_positive() and self.M.is_constant() \
-                and self.M.is_scalar()):
+        if not (self.M.is_positive() and self.M.is_constant() and self.M.is_scalar()):
             raise ValueError("M must be a non-negative scalar constant.")
 
     def _grad(self, values):
@@ -132,7 +133,7 @@ class huber(Elementwise):
         two = lu.create_const(2, (1, 1))
         if isinstance(M, Parameter):
             M = lu.create_param(M, (1, 1))
-        else: # M is constant.
+        else:  # M is constant.
             M = lu.create_const(M.value, (1, 1))
 
         # n**2 + 2*M*|s|

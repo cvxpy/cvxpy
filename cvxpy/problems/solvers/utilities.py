@@ -32,7 +32,8 @@ from cvxpy.problems.solvers.ls_intf import LS
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                GLPK_MI(), CBC(), SCS(), GUROBI(),
                Elemental(), MOSEK(), LS()]
-SOLVERS = {solver.name():solver for solver in solver_intf}
+SOLVERS = {solver.name(): solver for solver in solver_intf}
+
 
 def installed_solvers():
     """List the installed solvers.

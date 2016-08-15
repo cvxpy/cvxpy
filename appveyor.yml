@@ -8,8 +8,8 @@ environment:
           # /E:ON and /V:ON options are not enabled in the batch script intepreter
           # See: http://stackoverflow.com/a/13751649/163740
           CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
-          CONDA_CHANNELS: "omnia"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip cvxopt scs ecos cvxcanon toolz"
+          CONDA_CHANNELS: "cvxgrp"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip scs ecos multiprocess"
 
     matrix:
           - PYTHON_VERSION: "2.7"
@@ -23,6 +23,7 @@ install:
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
+    - "pip install cvxcanon toolz multiprocess"
 
 # Not a .NET project, we build CVXPY in the install step instead
 build: false

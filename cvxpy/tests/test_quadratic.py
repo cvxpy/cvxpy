@@ -28,8 +28,10 @@ from cvxpy.tests.base_test import BaseTest
 import numpy as np
 import warnings
 
+
 class TestExpressions(BaseTest):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         pass
 

@@ -22,8 +22,8 @@ from cvxpy import *
 import cvxpy.interface as intf
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
-import cvxopt
 import numbers
+
 
 class TestExamples(BaseTest):
     """ Unit tests using example problems. """
@@ -43,9 +43,9 @@ class TestExamples(BaseTest):
 
         # Create and solve the model
         r = Variable(name='r')
-        x_c = Variable(2,name='x_c')
+        x_c = Variable(2, name='x_c')
         obj = Maximize(r)
-        constraints = [ #TODO have atoms compute values for constants.
+        constraints = [  # TODO have atoms compute values for constants.
             a1.T*x_c + np.linalg.norm(a1)*r <= b[0],
             a2.T*x_c + np.linalg.norm(a2)*r <= b[1],
             a3.T*x_c + np.linalg.norm(a3)*r <= b[2],
@@ -56,44 +56,44 @@ class TestExamples(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0.447214)
         self.assertAlmostEqual(r.value, result)
-        self.assertItemsAlmostEqual(x_c.value, [0,0])
+        self.assertItemsAlmostEqual(x_c.value, [0, 0])
 
     # Test issue with numpy scalars.
     def test_numpy_scalars(self):
         n = 6
         eps = 1e-6
-        cvxopt.setseed(10)
-        P0 = cvxopt.normal(n, n)
-        eye = cvxopt.spmatrix(1.0, range(n), range(n))
-        P0 = P0.T * P0 + eps * eye
+        np.random.seed(10)
+        P0 = np.random.randn(n, n)
+        eye = np.eye(n)
+        P0 = P0.T.dot(P0) + eps * eye
 
         print(P0)
 
-        P1 = cvxopt.normal(n, n)
-        P1 = P1.T*P1
-        P2 = cvxopt.normal(n, n)
-        P2 = P2.T*P2
-        P3 = cvxopt.normal(n, n)
-        P3 = P3.T*P3
+        P1 = np.random.randn(n, n)
+        P1 = P1.T.dot(P1)
+        P2 = np.random.randn(n, n)
+        P2 = P2.T.dot(P2)
+        P3 = np.random.randn(n, n)
+        P3 = P3.T.dot(P3)
 
-        q0 = cvxopt.normal(n, 1)
-        q1 = cvxopt.normal(n, 1)
-        q2 = cvxopt.normal(n, 1)
-        q3 = cvxopt.normal(n, 1)
+        q0 = np.random.randn(n, 1)
+        q1 = np.random.randn(n, 1)
+        q2 = np.random.randn(n, 1)
+        q3 = np.random.randn(n, 1)
 
-        r0 = cvxopt.normal(1, 1)
-        r1 = cvxopt.normal(1, 1)
-        r2 = cvxopt.normal(1, 1)
-        r3 = cvxopt.normal(1, 1)
+        r0 = np.random.randn(1, 1)
+        r1 = np.random.randn(1, 1)
+        r2 = np.random.randn(1, 1)
+        r3 = np.random.randn(1, 1)
 
         slack = Variable()
         # Form the problem
         x = Variable(n)
-        objective = Minimize( 0.5*quad_form(x,P0) + q0.T*x + r0 + slack)
-        constraints = [0.5*quad_form(x,P1) + q1.T*x + r1 <= slack,
-                       0.5*quad_form(x,P2) + q2.T*x + r2 <= slack,
-                       0.5*quad_form(x,P3) + q3.T*x + r3 <= slack,
-        ]
+        objective = Minimize(0.5*quad_form(x, P0) + q0.T*x + r0 + slack)
+        constraints = [0.5*quad_form(x, P1) + q1.T*x + r1 <= slack,
+                       0.5*quad_form(x, P2) + q2.T*x + r2 <= slack,
+                       0.5*quad_form(x, P3) + q3.T*x + r3 <= slack,
+                       ]
 
         # We now find the primal result and compare it to the dual result
         # to check if strong duality holds i.e. the duality gap is effectively zero
@@ -102,7 +102,7 @@ class TestExamples(BaseTest):
 
         # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
         # When feasible, we can print out the following values
-        print(x.value) # solution
+        print(x.value)  # solution
         lam1 = constraints[0].dual_value
         lam2 = constraints[1].dual_value
         lam3 = constraints[2].dual_value
@@ -113,18 +113,17 @@ class TestExamples(BaseTest):
         r_lam = r0 + lam1*r1 + lam2*r2 + lam3*r3
         dual_result = -0.5*q_lam.T.dot(P_lam).dot(q_lam) + r_lam
         print(dual_result.shape)
-        self.assertEqual(intf.size(dual_result), (1,1))
+        self.assertEqual(intf.size(dual_result), (1, 1))
 
     # Tests examples from the README.
     def test_readme_examples(self):
-        import cvxopt
         import numpy
-
+        numpy.random.seed(1)
         # Problem data.
         m = 30
         n = 20
-        A = cvxopt.normal(m,n)
-        b = cvxopt.normal(m)
+        A = numpy.random.randn(m, n)
+        b = numpy.random.randn(m)
 
         # Construct the problem.
         x = Variable(n)
@@ -167,7 +166,7 @@ class TestExamples(BaseTest):
 
         # Raises an error for assigning a value with invalid sign.
         with self.assertRaises(Exception) as cm:
-            G.value = numpy.ones((4,7))
+            G.value = numpy.ones((4, 7))
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
         ####################################################
@@ -182,14 +181,13 @@ class TestExamples(BaseTest):
         ####################################################
 
         import numpy as np
-        import cvxopt
         from multiprocessing import Pool
 
         # Problem data.
         n = 10
         m = 5
-        A = cvxopt.normal(n,m)
-        b = cvxopt.normal(n)
+        A = np.random.randn(n, m)
+        b = np.random.randn(n)
         gamma = Parameter(sign="positive")
 
         # Construct the problem.
@@ -210,9 +208,9 @@ class TestExamples(BaseTest):
         ####################################################
         n = 10
 
-        mu = cvxopt.normal(1, n)
-        sigma = cvxopt.normal(n,n)
-        sigma = sigma.T*sigma
+        mu = np.random.randn(1, n)
+        sigma = np.random.randn(n, n)
+        sigma = sigma.T.dot(sigma)
         gamma = Parameter(sign="positive")
         gamma.value = 1
         x = Variable(n)
@@ -245,15 +243,15 @@ class TestExamples(BaseTest):
         n = 10
         data = []
         for i in range(N):
-            data += [(1, cvxopt.normal(n, mean=1.0, std=2.0))]
+            data += [(1, np.random.normal(loc=1.0, scale=2.0, size=n))]
         for i in range(M):
-            data += [(-1, cvxopt.normal(n, mean=-1.0, std=2.0))]
+            data += [(-1, np.random.normal(loc=-1.0, scale=2.0, size=n))]
 
         # Construct problem.
         gamma = Parameter(sign="positive")
         gamma.value = 0.1
         # 'a' is a variable constrained to have at most 6 non-zero entries.
-        a = Variable(n)#mi.SparseVar(n, nonzeros=6)
+        a = Variable(n)  # mi.SparseVar(n, nonzeros=6)
         b = Variable()
 
         slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
@@ -293,9 +291,10 @@ class TestExamples(BaseTest):
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
-        prob.solve(solver=CVXOPT)
-        print("optimal value with CVXOPT:", prob.value)
-        self.assertAlmostEqual(prob.value, 6)
+        if CVXOPT in installed_solvers():
+            prob.solve(solver=CVXOPT)
+            print("optimal value with CVXOPT:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
 
         # Solve with SCS.
         prob.solve(solver=SCS)
@@ -334,13 +333,13 @@ class TestExamples(BaseTest):
         # Create and solve the model
         A = Variable(n, n);
         b = Variable(n);
-        obj = Maximize( log_det(A) )
+        obj = Maximize(log_det(A))
         constraints = []
         for i in range(m):
-            constraints.append( norm(A*x[:, i] + b) <= 1 )
+            constraints.append(norm(A*x[:, i] + b) <= 1)
         p = Problem(obj, constraints)
         result = p.solve()
-        self.assertAlmostEqual(result, 1.9746, places=4)
+        self.assertAlmostEqual(result, 1.9746, places=2)
 
     def test_portfolio_problem(self):
         """Test portfolio problem that caused dcp_attr errors.
@@ -348,8 +347,8 @@ class TestExamples(BaseTest):
         import numpy as np
         import scipy.sparse as sp
         np.random.seed(5)
-        n = 100#10000
-        m = 10#100
+        n = 100  # 10000
+        m = 10  # 100
         pbar = (np.ones((n, 1)) * .03 +
                 np.matrix(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
 
@@ -507,7 +506,7 @@ class TestExamples(BaseTest):
 
         print("Optimal value", prob.solve())
         print("Optimal var")
-        print(x.value) # A numpy matrix.
+        print(x.value)  # A numpy matrix.
 
         self.assertAlmostEqual(prob.value, 4.14133859146)
 
@@ -620,7 +619,8 @@ class TestExamples(BaseTest):
         data = prob.get_problem_data(ECOS_BB)
 
         # Get CVXOPT arguments.
-        data = prob.get_problem_data(CVXOPT)
+        if CVXOPT in installed_solvers():
+            data = prob.get_problem_data(CVXOPT)
 
         # Get SCS arguments.
         data = prob.get_problem_data(SCS)
@@ -642,10 +642,10 @@ class TestExamples(BaseTest):
         np.random.seed(1)
         m = 5
         n = 2
-        X = np.matrix(np.ones((m,n)))
+        X = np.matrix(np.ones((m, n)))
         w = cp.Variable(n)
 
-        expr2 = [cp.log_sum_exp(cp.vstack(0, X[i,:]*w)) for i in range(m)]
+        expr2 = [cp.log_sum_exp(cp.vstack(0, X[i, :]*w)) for i in range(m)]
         expr3 = sum(expr2)
         obj = cp.Minimize(expr3)
         p = cp.Problem(obj)

@@ -26,6 +26,7 @@ import numbers
 
 two = lu.create_const(2, (1, 1))
 
+
 def gm(t, x, y):
     length = t.size[0]*t.size[1]
     return SOC_Axis(lu.reshape(lu.sum_expr([x, y]), (length, 1)),
@@ -223,8 +224,9 @@ def is_weight(w):
     """
     if isinstance(w, np.ndarray):
         w = w.tolist()
-    return (all(v >= 0 and isinstance(v, (numbers.Integral, Fraction)) for v in w)
-            and sum(w) == 1)
+    valid_elems = all(v >= 0 and
+                      isinstance(v, (numbers.Integral, Fraction)) for v in w)
+    return valid_elems and sum(w) == 1
 
 
 def fracify(a, max_denom=1024, force_dyad=False):
@@ -364,8 +366,9 @@ def fracify(a, max_denom=1024, force_dyad=False):
         w_frac = tuple(Fraction(v, total) for v in a)
         d = max(v.denominator for v in w_frac)
         if d > max_denom:
-            msg = "Can't reliably represent the input weight vector."
-            msg += "\nTry increasing `max_denom` or checking the denominators of your input fractions."
+            msg = ("Can't reliably represent the input weight vector."
+                   "\nTry increasing `max_denom` or checking the denominators "
+                   "of your input fractions.")
             raise ValueError(msg)
     else:
         # fall through code

@@ -21,9 +21,8 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
 import numpy as np
 import scipy.sparse as sp
-import numbers
-
-from ..utilities.power_tools import fracify, decompose, approx_error, lower_bound, over_bound, prettydict, gm, gm_constrs
+from ..utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
+                                     over_bound, prettydict, gm_constrs)
 import cvxpy.lin_ops.lin_utils as lu
 
 
@@ -79,8 +78,8 @@ class geo_mean(Atom):
     Examples
     --------
 
-    The weights ``w`` can be seen from the string representation of the ``geo_mean`` object, or through
-    the ``w`` attribute.
+    The weights ``w`` can be seen from the string representation of the
+    ``geo_mean`` object, or through the ``w`` attribute.
 
     >>> from cvxpy import Variable, geo_mean, Problem, Maximize
     >>> x = Variable(3, name='x')
@@ -90,8 +89,9 @@ class geo_mean(Atom):
     >>> g.w
     (Fraction(1, 4), Fraction(1, 2), Fraction(1, 4))
 
-    Floating point numbers with few decimal places can sometimes be represented exactly. The approximation
-    error between ``w`` and ``p/sum(p)`` is given by the ``approx_error`` attribute.
+    Floating point numbers with few decimal places can sometimes be represented
+    exactly. The approximation error between ``w`` and ``p/sum(p)`` is given by
+    the ``approx_error`` attribute.
 
     >>> import numpy as np
     >>> x = Variable(4, name='x')
@@ -111,7 +111,8 @@ class geo_mean(Atom):
     >>> 1e-4 <= g.approx_error <= 1e-3
     True
 
-    The weight vector ``p`` can contain combinations of ``int``, ``float``, and ``Fraction`` objects.
+    The weight vector ``p`` can contain combinations of ``int``, ``float``,
+    and ``Fraction`` objects.
 
     >>> from fractions import Fraction
     >>> x = Variable(4, name='x')
@@ -145,17 +146,19 @@ class geo_mean(Atom):
     x : cvxpy.Variable
         A column or row vector whose elements we will take the geometric mean of.
 
-    p : Sequence (list, tuple, numpy.array, ...) of ``int``, ``float``, or ``Fraction`` objects
+    p : Sequence (list, tuple, ...) of ``int``, ``float``, or ``Fraction`` objects
         A vector of weights for the weighted geometric mean
 
-        When ``p`` is a sequence of ``int`` and/or ``Fraction`` objects, ``w`` can often be an **exact** representation
-        of the weights. An exact representation is sometimes possible when ``p`` has ``float`` elements with only a few
-        decimal places.
+        When ``p`` is a sequence of ``int`` and/or ``Fraction`` objects,
+        ``w`` can often be an **exact** representation of the weights.
+        An exact representation is sometimes possible when ``p`` has ``float``
+        elements with only a few decimal places.
 
     max_denom : int
-        The maximum denominator to use in approximating ``p/sum(p)`` with ``geo_mean.w``. If ``w`` is not an exact
-        representation, increasing ``max_denom`` **may** offer a more accurate representation, at the cost of requiring
-        more convex inequalities to represent the geometric mean.
+        The maximum denominator to use in approximating ``p/sum(p)`` with
+        ``geo_mean.w``. If ``w`` is not an exact representation, increasing
+        ``max_denom`` **may** offer a more accurate representation, at the
+        cost of requiring more convex inequalities to represent the geometric mean.
 
 
     Attributes
@@ -163,7 +166,8 @@ class geo_mean(Atom):
     w : tuple of ``Fractions``
         A rational approximation of ``p/sum(p)``.
     approx_error : float
-        The error in approximating ``p/sum(p)`` with ``w``, given by :math:`\|p/\mathbf{1}^T p - w \|_\infty`
+        The error in approximating ``p/sum(p)`` with ``w``, given by
+        :math:`\|p/\mathbf{1}^T p - w \|_\infty`
     """
 
     def __init__(self, x, p=None, max_denom=1024):
@@ -173,17 +177,18 @@ class geo_mean(Atom):
         ----------
 
         w_dyad : tuple of ``Fractions`` whose denominators are all a power of two
-            The dyadic completion of ``w``, which is used internally to form the inequalities representing the
-            geometric mean.
+            The dyadic completion of ``w``, which is used internally to form the
+            inequalities representing the geometric mean.
 
         tree : ``dict``
             keyed by dyadic tuples, whose values are Sequences of children.
             The children are also dyadic tuples.
-            This represents the graph that needs to be formed to represent the weighted geometric mean.
+            This represents the graph that needs to be formed to represent the
+            weighted geometric mean.
 
         cone_lb : int
-            A known lower bound (which is not always tight) on the number of cones needed to represent this
-            geometric mean.
+            A known lower bound (which is not always tight) on the number of cones
+            needed to represent this geometric mean.
 
         cone_num_over : int
             The number of cones beyond the lower bound that this geometric mean used.
@@ -264,7 +269,6 @@ class geo_mean(Atom):
         else:
             D = w_arr/x.A.ravel(order='F')*self.numeric(values)
             return [sp.csc_matrix(D).T]
-
 
     def name(self):
         return "%s(%s, (%s))" % (self.__class__.__name__,
@@ -365,7 +369,8 @@ class geo_mean(Atom):
         if arg_objs[0].size[0] == 1:
             x_list = [index.get_index(arg_objs[0], [], 0, i) for i in range(len(w))]
 
-        #todo: catch cases where we have (0, 0, 1)?
-        #todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1), should this behavior match with what we do in power?
+        # todo: catch cases where we have (0, 0, 1)?
+        # todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1),
+        # should this behavior match with what we do in power?
 
         return t, gm_constrs(t, x_list, w)

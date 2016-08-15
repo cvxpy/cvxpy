@@ -23,12 +23,14 @@ from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
+
 def Symmetric(n, name=None):
     """An expression representing a symmetric matrix.
     """
     var = SymmetricUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))
     return cvxtypes.reshape()(fill_mat*var, int(n), int(n))
+
 
 def upper_tri_to_full(n):
     """Returns a coefficient matrix to create a symmetric matrix.
@@ -67,8 +69,10 @@ def upper_tri_to_full(n):
     return sp.coo_matrix((val_arr, (row_arr, col_arr)),
                          (n*n, entries)).tocsc()
 
+
 class SymmetricUpperTri(Variable):
     """ The upper triangular part of a symmetric variable. """
+
     def __init__(self, n, name=None):
         self.n = n
         super(SymmetricUpperTri, self).__init__(n*(n+1)//2, 1, name)

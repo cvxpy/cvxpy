@@ -20,14 +20,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 import scipy.linalg
 import numpy as np
 import scipy.sparse as sp
 
+
 class normNuc(Atom):
     """ Sum of the singular values. """
+
     def __init__(self, A):
         super(normNuc, self).__init__(A)
 

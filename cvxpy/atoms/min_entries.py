@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.max_entries import max_entries
 from cvxpy.expressions.expression import Expression
 
+
 def min_entries(x, axis=None):
     """:math:`\min_{i,j}\{X_{i,j}\}`.
     """

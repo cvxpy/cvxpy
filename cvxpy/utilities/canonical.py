@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from cvxpy.utilities import performance_utils as pu
 
+
 class Canonical(object):
     """
     An interface for objects that can be canonicalized.
