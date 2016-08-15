@@ -257,8 +257,7 @@ class TestProblem(BaseTest):
                     sys.stdout = StringIO()  # capture output
 
                 p = Problem(Minimize(self.a + self.x[0]),
-
-                                     [self.a >= 2, self.x >= 2])
+                            [self.a >= 2, self.x >= 2])
 
                 if SOLVERS[solver].MIP_CAPABLE:
                     p.constraints.append(Bool() == 0)

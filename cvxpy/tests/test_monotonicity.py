@@ -62,31 +62,31 @@ class TestMonotonicity(BaseTest):
     # Test DCP composition rules with signed monotonicity.
     def test_signed_curvature(self):
         # Convex argument.
-        expr = cvx.abs(1 + cvx.exp(cvx.Variable()) )
+        expr = cvx.abs(1 + cvx.exp(cvx.Variable()))
         self.assertEqual(expr.curvature, s.CONVEX)
 
-        expr = cvx.abs( -cvx.entr(cvx.Variable()) )
+        expr = cvx.abs(-cvx.entr(cvx.Variable()))
         self.assertEqual(expr.curvature, s.UNKNOWN)
 
-        expr = cvx.abs( -cvx.log(cvx.Variable()) )
+        expr = cvx.abs(-cvx.log(cvx.Variable()))
         self.assertEqual(expr.curvature, s.UNKNOWN)
 
         # Concave argument.
-        expr = cvx.abs( cvx.log(cvx.Variable()) )
+        expr = cvx.abs(cvx.log(cvx.Variable()))
         self.assertEqual(expr.curvature, s.UNKNOWN)
 
-        expr = cvx.abs( -cvx.square(cvx.Variable()) )
+        expr = cvx.abs(-cvx.square(cvx.Variable()))
         self.assertEqual(expr.curvature, s.CONVEX)
 
-        expr = cvx.abs( cvx.entr(cvx.Variable()) )
+        expr = cvx.abs(cvx.entr(cvx.Variable()))
         self.assertEqual(expr.curvature, s.UNKNOWN)
 
         # Affine argument.
-        expr = cvx.abs( cvx.NonNegative() )
+        expr = cvx.abs(cvx.NonNegative())
         self.assertEqual(expr.curvature, s.CONVEX)
 
-        expr = cvx.abs( -cvx.NonNegative() )
+        expr = cvx.abs(-cvx.NonNegative())
         self.assertEqual(expr.curvature, s.CONVEX)
 
-        expr = cvx.abs( cvx.Variable() )
+        expr = cvx.abs(cvx.Variable())
         self.assertEqual(expr.curvature, s.CONVEX)

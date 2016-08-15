@@ -22,6 +22,7 @@ import cvxpy.settings as s
 from nose.tools import *
 from cvxpy.tests.base_test import BaseTest
 
+
 class TestSign(BaseTest):
     """ Unit tests for the expression/sign class. """
     @classmethod
