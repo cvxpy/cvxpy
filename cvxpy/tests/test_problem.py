@@ -137,8 +137,7 @@ class TestProblem(BaseTest):
 
         # num_scalar_data
         n_data = p.size_metrics.num_scalar_data
-
-        ref = numpy.prod(p1.size) + numpy.prod(p2.size) + numpy.prod(p3.size) + len(constants) # 2 and c2.dot(c1) are both single scalar constants.
+        ref = numpy.prod(p1.size) + numpy.prod(p2.size) + numpy.prod(p3.size) + len(constants)  # 2 and c2.dot(c1) are both single scalar constants.
         self.assertEqual(n_data, ref)
 
         # num_scalar_eq_constr
