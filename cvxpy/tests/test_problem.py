@@ -179,12 +179,7 @@ class TestProblem(BaseTest):
         self.assertGreater(stats.setup_time, 0)
         self.assertGreater(stats.num_iters, 0)
 
-        prob.solve(solver = s.CVXOPT) # CVXOPT does not currently report timing data
-        stats = prob.solver_stats
-        self.assertIsNone(stats.solve_time)
-        self.assertIsNone(stats.setup_time)
-        self.assertIsNone(stats.num_iters)
-
+        
     def test_get_problem_data(self):
         """Test get_problem_data method.
         """
