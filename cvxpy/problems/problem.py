@@ -77,7 +77,7 @@ class Problem(u.Canonical):
         # Information about the size of the problem and its constituent parts
         self._size_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
-        self._solver_stats = SolverStats()
+        self._solver_stats = None
 
     def _reset_cache(self):
         """Resets the cached data.
@@ -442,7 +442,7 @@ class Problem(u.Canonical):
             raise SolverError(
                 "Solver '%s' failed. Try another solver." % solver.name())
         self._status = results_dict[s.STATUS]
-        self._solver_stats.update(results_dict)
+        self._solver_stats = SolverStats(results_dict, solver.name())
 
     def unpack_results(self, solver_name, results_dict):
         """Parses the output from a solver and updates the problem state.
@@ -619,28 +619,18 @@ class SolverStats(object):
     num_iters : int
         The number of iterations the solver had to go through to find a solution.
     """
-    def __init__(self):
+    def __init__(self, results_dict, solver_name):
+        self.solver_name = solver_name
         self.solve_time = None
         self.setup_time = None
         self.num_iters = None
 
-    def update(self, results_dict):
-        """Update the solver stats using the results_dict
-        returned by the solver interface.
-
-        Parameters
-        ----------
-        results_dict : dict
-            Data returned by solver.
-        """
         if s.SOLVE_TIME in results_dict:
             self.solve_time = results_dict[s.SOLVE_TIME]
         if s.SETUP_TIME in results_dict:
             self.setup_time = results_dict[s.SETUP_TIME]
         if s.NUM_ITERS in results_dict:
             self.num_iters = results_dict[s.NUM_ITERS]
-
-
 
 class SizeMetrics(object):
     """Reports various metrics regarding the problem
