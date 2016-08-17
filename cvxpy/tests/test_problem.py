@@ -174,9 +174,6 @@ class TestProblem(BaseTest):
         """
         prob = Problem(Minimize(norm(self.x)), [self.x == 0])
         stats = prob.solver_stats
-        self.assertIsNone(stats.solve_time)
-        self.assertIsNone(stats.setup_time)
-        self.assertIsNone(stats.num_iters)
         prob.solve(solver = s.ECOS)
         stats = prob.solver_stats
         self.assertGreater(stats.solve_time, 0)
