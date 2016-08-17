@@ -173,7 +173,6 @@ class TestProblem(BaseTest):
         """Test the solver_stats method.
         """
         prob = Problem(Minimize(norm(self.x)), [self.x == 0])
-        stats = prob.solver_stats
         prob.solve(solver = s.ECOS)
         stats = prob.solver_stats
         self.assertGreater(stats.solve_time, 0)

@@ -288,7 +288,7 @@ class MOSEK(Solver):
         # http://docs.mosek.com/7.1/pythonapi/Double_information_items.html
         result_dict[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
         result_dict[s.SETUP_TIME] = task.getdouinf(mosek.dinfitem.presolve_time)
-        result_dict[s.NUM_ITERS]  = task.getintinf(mosek.iinfitem.intpnt_iter)
+        result_dict[s.NUM_ITERS] = task.getintinf(mosek.iinfitem.intpnt_iter)
 
         if result_dict[s.STATUS] in s.SOLUTION_PRESENT:
             # get primal variables values

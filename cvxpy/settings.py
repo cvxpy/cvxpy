@@ -92,9 +92,9 @@ OBJ_OFFSET = "obj_offset"
 PRIMAL = "primal"
 EQ_DUAL = "eq_dual"
 INEQ_DUAL = "ineq_dual"
-SOLVE_TIME = "solve_time" # in seconds
-SETUP_TIME = "setup_time" # in seconds
-NUM_ITERS = "num_iters" # number of iterations
+SOLVE_TIME = "solve_time"  # in seconds
+SETUP_TIME = "setup_time"  # in seconds
+NUM_ITERS = "num_iters"  # number of iterations
 
 # Keys for problem data dict.
 C = "c"

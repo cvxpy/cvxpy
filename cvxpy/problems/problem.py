@@ -317,7 +317,7 @@ class Problem(u.Canonical):
             solver.validate_solver(constraints)
         else:
             raise SolverError("Unknown solver.")
-            
+
         sym_data = solver.get_sym_data(objective, constraints,
                                        self._cached_data)
         # Presolve couldn't solve the problem.
@@ -606,8 +606,8 @@ class Problem(u.Canonical):
 
 
 class SolverStats(object):
-    """Reports some of the miscellaneous information that is returned 
-    by the solver after solving but that is not captured directly by 
+    """Reports some of the miscellaneous information that is returned
+    by the solver after solving but that is not captured directly by
     the Problem instance.
 
     Attributes
@@ -632,20 +632,21 @@ class SolverStats(object):
         if s.NUM_ITERS in results_dict:
             self.num_iters = results_dict[s.NUM_ITERS]
 
+
 class SizeMetrics(object):
     """Reports various metrics regarding the problem
 
     Attributes
     ----------
-    
+
     Counts:
         num_scalar_variables : integer
             The number of scalar variables in the problem.
         num_scalar_data : integer
-            The number of scalar constants and parameters in the problem. The number of 
+            The number of scalar constants and parameters in the problem. The number of
             constants used across all matrices, vectors, in the problem.
             Some constants are not apparent when the problem is constructed: for example,
-            The sum_squares expression is a wrapper for a quad_over_lin expression with a 
+            The sum_squares expression is a wrapper for a quad_over_lin expression with a
             constant 1 in the denominator.
         num_scalar_eq_constr : integer
             The number of scalar equality constraints in the problem.
@@ -657,7 +658,7 @@ class SizeMetrics(object):
             The longest dimension of any data block constraint or parameter.
         max_big_small_squared : integer
             The maximum value of (big)(small)^2 over all data blocks of the problem, where
-            (big) is the larger dimension and (small) is the smaller dimension 
+            (big) is the larger dimension and (small) is the smaller dimension
             for each data block.
     """
 
@@ -685,7 +686,6 @@ class SizeMetrics(object):
             if self.max_big_small_squared < big*small*small:
                 self.max_big_small_squared = big*small*small
 
-
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
@@ -697,4 +697,3 @@ class SizeMetrics(object):
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "LeqConstraint":
                 self.num_scalar_leq_constr += np.prod(constraint._expr.size)
-

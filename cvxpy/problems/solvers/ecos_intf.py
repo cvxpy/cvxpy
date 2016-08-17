@@ -150,7 +150,7 @@ class ECOS(Solver):
         # Timing data
         new_results[s.SOLVE_TIME] = results_dict["info"]["timing"]["tsolve"]
         new_results[s.SETUP_TIME] = results_dict["info"]["timing"]["tsetup"]
-        new_results[s.NUM_ITERS]  = results_dict["info"]["iter"]
+        new_results[s.NUM_ITERS] = results_dict["info"]["iter"]
 
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['info']['pcost']
