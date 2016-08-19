@@ -5,28 +5,41 @@ from bcd import bcd
 import numpy as np
 from fix import fix_prob
 
-alpha = NonNegative(1)
-x = NonNegative(1)
-y = NonNegative(1)
+#alpha = NonNegative(1)
+#alpha.value = 1
+#x = NonNegative(1)
+#y = NonNegative(1)
 
-#prob = Problem(Minimize(alpha), [x +1.5 <= sqrt(x+0.5)*alpha])
-#prob = Problem(Minimize(inv_pos(sqrt(y+0.5))*(x+1.5)), [x==y])
+x = Variable(1)
+y = Variable(1)
+z = Variable(1)
+w = Variable(1)
+
+x.value = 2.0
+y.value = 1
+z.value  = 0.6
+w.value = 5.0
+
+#prob = Problem(Minimize(alpha), [square(x) +1 <= sqrt(x+0.5)*alpha])
+#prob = Problem(Minimize(inv_pos(sqrt(y+0.5))*(square(x) +1)), [x==y])
 #prob = Problem(Minimize(alpha), [square(x)+1 <= log(x+2)*alpha])
 #prob = Problem(Minimize(inv_pos(log(y+2))*(square(x)+1)), [x==y])
 #prob = Problem(Minimize(inv_pos(x+1)*exp(y)), [x==y])
-prob = Problem(Minimize(alpha), [exp(x) <= (x+1)*alpha])
+#prob = Problem(Minimize(alpha), [exp(x) <= (x+1)*alpha])
+prob = Problem(Minimize(abs(x*y+w*z)),[x+y+z+w==1])
 
-prob.solve(method = 'bcd', rho=1.1)
+prob.solve(method = 'bcd', ep = 1e-4, rho = 1.1)
 print "======= solution ======="
 for var in prob.variables():
     print var.name(), "=", var.value
 print "objective = ", prob.objective.args[0].value
 
+
 # bisection
 print "==== bisection method ===="
 upper = Parameter(sign = 'Positive')
 lower = Parameter(sign = 'Positive')
-prob = Problem(Minimize(0), [exp(x)<=(upper+lower)*(x+1)/float(2)])
+prob = Problem(Minimize(0), [square(x) +1<=(upper+lower)*sqrt(x+0.5)/float(2)])
 upper.value = 1000
 lower.value = 0
 flag = 1

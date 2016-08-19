@@ -25,7 +25,7 @@ prob = Problem(Minimize(cost), [normInf(y) <= 1])
 
 x.value = np.ones((n,1))
 y.value = np.ones((m,1))
-prob.solve(method = 'bcd', random_ini = 0)
+prob.solve(method = 'bcd')
 
 plt.plot(np.array(abs(x).value).flatten(),'b-o')
 plt.plot(np.array(abs(y).value).flatten(),'c-s')

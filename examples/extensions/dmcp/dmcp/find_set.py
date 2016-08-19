@@ -4,6 +4,21 @@ from fix import fix
 from fix import fix_prob
 import numpy as np
 
+def find_minset(prob):
+    if prob.is_dcp():
+        return []
+    maxsets = find_maxset_graph(prob)
+    if maxsets is None:
+        return [[var.id+1 for var in prob.variables()]]
+    else:
+        result = []
+        for maxset in maxsets:
+            set_id = [var.id for var in maxset]
+            fix_id = [var.id for var in prob.variables() if var.id not in set_id]
+            result.append(fix_id)
+        return result
+
+
 def find_maxset_graph(prob):
     """
     Analyze a problem by a graph to find maximum subsets of variables,
@@ -24,7 +39,7 @@ def find_maxset_graph(prob):
         return None
     return find_all_MIS(prob.variables(), t, prob)
 
-def find_all_MIS(V,g, prob):
+def find_all_MIS(V,g,prob):
     """
     find {V1, V2, ..., Vk} such that:
         V1, ..., Vk are k maximal independent subsets of V on graph g that have the k-largest cardinalities;
@@ -38,7 +53,7 @@ def find_all_MIS(V,g, prob):
     subsets_len = [len(subset) for subset in i_subsets]
     sort_idx = np.argsort(subsets_len) # sort the subsets by card
     result = []
-    U = [] # union of all collected vars
+    #U = [] # union of all collected vars
     for count in range(1,len(sort_idx)+1): # collecting from the subsets with largest card
         flag = 1
         for subs in result:
@@ -50,11 +65,13 @@ def find_all_MIS(V,g, prob):
             fix_set = [var for var in prob.variables() if var.id not in set_id]
             if fix_prob(prob, fix_set).is_dcp():
                 result.append(i_subsets[sort_idx[-count]])
-                U = union(U, i_subsets[sort_idx[-count]])
-    if is_subset(V,U): # the collected vars cover all vars
-        return result
-    else:
-        return None
+                #U = union(U, i_subsets[sort_idx[-count]])
+            else:
+                return None
+    #if is_subset(V,U): # the collected vars cover all vars
+    return result
+    #else:
+    #    return None
 
 
 def find_all_iset(V,g):

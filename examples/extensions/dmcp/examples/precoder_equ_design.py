@@ -21,18 +21,21 @@ cost = sum_entries(square(B*C*A-I))/2 + square(sigma_e)*sum_entries(square(B))
 obj = Minimize(cost/(m*n))
 prob = Problem(obj, [norm(A,'fro')<=10])
 
+
 SNR = np.power(10,np.linspace(-2,1,20))
 sigma_e_value = np.sqrt(float(n)/2/m/SNR)
 
 MSE = []
 MSE_lin = []
+MSE_noprox = []
 BER = []
 BER_lin = []
+BER_noprox = []
 for value in sigma_e_value:
     sigma_e.value = value
     B.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), np.transpose(U))
     A.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), V)
-    prob.solve(method = 'bcd', random_ini = False)
+    prob.solve(method = 'bcd')
     print "======= solution ======="
     print "objective =", cost.value
     # test
@@ -50,7 +53,7 @@ for value in sigma_e_value:
     # linear
     B.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), np.transpose(U))
     A.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), V)
-    iter, max_slack = bcd(prob, linear = True, max_iter = 500, random_ini = False)
+    iter, max_slack = bcd(prob, linearize = True, max_iter = 500)
     print "======= solution ======="
     print "number of iterations =", iter+1
     print "objective =", cost.value
@@ -66,19 +69,40 @@ for value in sigma_e_value:
         BER_lin[-1] += sum_entries(abs(s-r).value>=0.5).value/float(test_t)
     print "mean squared error =", MSE_lin[-1]
     print "bit error rate =", BER_lin[-1]
+    # without proximal
+    B.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), np.transpose(U))
+    A.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), V)
+    iter, max_slack = bcd(prob, proximal = False)
+    print "======= solution ======="
+    print "number of iterations =", iter+1
+    print "objective =", cost.value
+    # test
+    test_t = 1000
+    MSE_noprox.append(0)
+    BER_noprox.append(0)
+    for t in range(test_t):
+        s = np.random.randint(0,2,size=(n,1))
+        noise = np.random.randn(m,1)*value
+        r = B*(C*A*s+noise)
+        MSE_noprox[-1] += square(norm(s-r)).value/test_t
+        BER_noprox[-1] += sum_entries(abs(s-r).value>=0.5).value/float(test_t)
+    print "mean squared error =", MSE_noprox[-1]
+    print "bit error rate =", BER_noprox[-1]
 
 plt.figure(figsize=(10,5))
 plt.subplot(121)
 plt.semilogy(np.log10(SNR), MSE, 'b-o')
 plt.semilogy(np.log10(SNR), MSE_lin, 'r--^')
+plt.semilogy(np.log10(SNR), MSE_noprox, 'k--s')
 plt.ylabel('MSE')
 plt.xlabel('SNR (dB)')
-plt.legend(["proximal", "prox-linear"])
+plt.legend(["proximal", "prox-linear", "without proximal"])
 
 plt.subplot(122)
 plt.plot(np.log10(SNR), BER, 'b-o')
 plt.semilogy(np.log10(SNR), BER_lin, 'r--^')
+plt.semilogy(np.log10(SNR), BER_noprox, 'k--s')
 plt.ylabel('Averaged BER')
 plt.xlabel('SNR (dB)')
-plt.legend(["proximal", "prox-linear"])
+plt.legend(["proximal", "prox-linear", "without proximal"])
 plt.show()

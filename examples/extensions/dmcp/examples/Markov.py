@@ -26,7 +26,7 @@ for i in range(n):
     right += theta[i]*np.transpose(P0[i])
 constr += [P == right]
 prob = Problem(Minimize(cost), constr)
-prob.solve(method = 'bcd',solver = 'SCS', rho = 1.2, proximal = 0, mu_max = 1e4)
+prob.solve(method = 'bcd', ep = 1e-5)
 
 print x.value
 print theta.value

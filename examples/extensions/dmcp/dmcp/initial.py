@@ -2,9 +2,21 @@ __author__ = 'Xinyue'
 from cvxpy import *
 import numpy as np
 
-def dccp_ini(self, times = 1, random = 1):
+def rand_initial(prob):
     """
-    set initial values
+    set random values to all variables
+    :param prob: a problem
+    :return:
+    """
+    for var in prob.variables():
+        if var.sign == "POSITIVE":
+            var.value = np.random.rand(var._rows,var._cols)
+        else:
+            var.value = np.random.randn(var._rows,var._cols)
+
+def rand_initial_proj(self, times = 1, random = 1):
+    """
+    random initial value with projection
     :param times: number of random projections for each variable
     :param random: mandatory random initial values
     """

@@ -25,7 +25,7 @@ constr = [x[:,0]-1 == 0, max_entries(abs(x[0,:])) <= 8]
 for t in range(n-1):
     constr += [x[:,t+1]-x[:,t] == A0*x[:,t]+A1*x[:,t]*u[t]]
 prob = Problem(Minimize(norm(x[:,1])), constr)
-prob.solve(method = 'bcd', solver = 'SCS', random_ini = 0, lambd = 100)
+prob.solve(method = 'bcd', lambd = 100)
 
 plt.plot(np.array(x[0,:].value).flatten(),'g--',linewidth=2)
 plt.plot(np.array(x[1,:].value).flatten(),'b-', linewidth=2)

@@ -107,3 +107,5 @@ class Parameter(Leaf):
         return 'Parameter(%d, %d, sign="%s")' % (self._rows,
                                                  self._cols,
                                                  self.sign)
+    def is_atom_multiconvex(self):
+        return False

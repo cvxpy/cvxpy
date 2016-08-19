@@ -29,8 +29,10 @@ for t in range(times):
     err_random = []
     card_random = []
     for a_value in alpha_value:
+        D.value = None
+        Y.value = None
         alpha.value = a_value
-        prob.solve(method = 'bcd', ep = 1e-2, lambd = 200)
+        prob.solve(method = 'bcd', ep = 1e-3, lambd = 200, rho = 1.2, max_iter = 200)
         err_random.append(norm(D*Y-X,'fro').value/norm(X,'fro').value)
         card_random.append(sum_entries(abs(Y).value>=1e-3).value)
         print "======= solution ======="
