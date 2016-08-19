@@ -281,6 +281,15 @@ class MOSEK(Solver):
 
         result_dict = {s.STATUS: STATUS_MAP[solsta]}
 
+        # Callback data example:
+        # http://docs.mosek.com/7.1/pythonapi/The_progress_call-back.html
+        # Retrieving double information items:
+        # http://docs.mosek.com/7.1/pythonapi/Task_getdouinf_.html#@generated-ID:5ef16e0
+        # http://docs.mosek.com/7.1/pythonapi/Double_information_items.html
+        result_dict[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
+        result_dict[s.SETUP_TIME] = task.getdouinf(mosek.dinfitem.presolve_time)
+        result_dict[s.NUM_ITERS] = task.getintinf(mosek.iinfitem.intpnt_iter)
+
         if result_dict[s.STATUS] in s.SOLUTION_PRESENT:
             # get primal variables values
             result_dict[s.PRIMAL] = np.zeros(task.getnumvar(), dtype=np.float)
