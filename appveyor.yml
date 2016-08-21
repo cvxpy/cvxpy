@@ -9,11 +9,11 @@ environment:
           # See: http://stackoverflow.com/a/13751649/163740
           CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
           CONDA_CHANNELS: "cvxgrp"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip scs ecos multiprocess"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip scs ecos multiprocess cvxcanon"
 
     matrix:
           - PYTHON_VERSION: "2.7"
-          # - PYTHON_VERSION: "3.4"
+          - PYTHON_VERSION: "3.5"
 
 platform:
     - x64
@@ -23,7 +23,7 @@ install:
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
-    - "pip install cvxcanon toolz multiprocess"
+    - "pip install toolz"
 
 # Not a .NET project, we build CVXPY in the install step instead
 build: false
