@@ -1,9 +1,9 @@
 __author__ = 'Xinyue'
 
 from cvxpy import *
-from bcd import bcd
 import numpy as np
 import matplotlib.pyplot as plt
+from examples.extensions.dmcp.dmcp.dmcp import bcd
 
 m = 10
 n = 20
@@ -32,7 +32,7 @@ for t in range(times):
         D.value = None
         Y.value = None
         alpha.value = a_value
-        prob.solve(method = 'bcd', ep = 1e-3, lambd = 200, rho = 1.2, max_iter = 200)
+        prob.solve(method = 'bcd', ep = 1e-1, rho = 2, max_iter = 100)
         err_random.append(norm(D*Y-X,'fro').value/norm(X,'fro').value)
         card_random.append(sum_entries(abs(Y).value>=1e-3).value)
         print "======= solution ======="

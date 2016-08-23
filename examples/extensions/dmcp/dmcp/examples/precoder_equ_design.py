@@ -1,9 +1,9 @@
 __author__ = 'Xinyue'
 
-from cvxpy import *
-from bcd import bcd
 import numpy as np
 import matplotlib.pyplot as plt
+from cvxpy import *
+from examples.extensions.dmcp.dmcp.dmcp.bcd import bcd
 
 n = 10
 m = 15
@@ -35,7 +35,7 @@ for value in sigma_e_value:
     sigma_e.value = value
     B.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), np.transpose(U))
     A.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), V)
-    prob.solve(method = 'bcd')
+    #prob.solve(method = 'bcd')
     print "======= solution ======="
     print "objective =", cost.value
     # test
@@ -53,9 +53,9 @@ for value in sigma_e_value:
     # linear
     B.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), np.transpose(U))
     A.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), V)
-    iter, max_slack = bcd(prob, linearize = True, max_iter = 500)
+    #iter, max_slack = bcd(prob, linearize = True, max_iter = 500)
     print "======= solution ======="
-    print "number of iterations =", iter+1
+    #print "number of iterations =", iter+1
     print "objective =", cost.value
     # test
     test_t = 1000
@@ -72,7 +72,7 @@ for value in sigma_e_value:
     # without proximal
     B.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), np.transpose(U))
     A.value = np.dot(np.dot(np.transpose(V), np.diag(float(1)/np.sqrt(S))), V)
-    iter, max_slack = bcd(prob, proximal = False)
+    iter, max_slack = bcd(prob, proximal = False, ep = 1e-4)
     print "======= solution ======="
     print "number of iterations =", iter+1
     print "objective =", cost.value
@@ -91,18 +91,18 @@ for value in sigma_e_value:
 
 plt.figure(figsize=(10,5))
 plt.subplot(121)
-plt.semilogy(np.log10(SNR), MSE, 'b-o')
-plt.semilogy(np.log10(SNR), MSE_lin, 'r--^')
-plt.semilogy(np.log10(SNR), MSE_noprox, 'k--s')
+#plt.semilogy(np.log10(SNR), MSE, 'b-o')
+#plt.semilogy(np.log10(SNR), MSE_lin, 'r--^')
+plt.semilogy(np.log10(SNR), MSE_noprox, 'b-o')
 plt.ylabel('MSE')
 plt.xlabel('SNR (dB)')
-plt.legend(["proximal", "prox-linear", "without proximal"])
+#plt.legend(["proximal", "prox-linear", "without proximal"])
 
 plt.subplot(122)
-plt.plot(np.log10(SNR), BER, 'b-o')
-plt.semilogy(np.log10(SNR), BER_lin, 'r--^')
-plt.semilogy(np.log10(SNR), BER_noprox, 'k--s')
+#plt.plot(np.log10(SNR), BER, 'b-o')
+#plt.semilogy(np.log10(SNR), BER_lin, 'r--^')
+plt.semilogy(np.log10(SNR), BER_noprox, 'b-o')
 plt.ylabel('Averaged BER')
 plt.xlabel('SNR (dB)')
-plt.legend(["proximal", "prox-linear", "without proximal"])
+#plt.legend(["proximal", "prox-linear", "without proximal"])
 plt.show()

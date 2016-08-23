@@ -1,8 +1,9 @@
 __author__ = 'Xinyue'
 
-from cvxpy import *
-from bcd import bcd
 import numpy as np
+from examples.extensions.dmcp.dmcp.dmcp import bcd
+from cvxpy import *
+
 np.random.seed(0)
 
 n = 10

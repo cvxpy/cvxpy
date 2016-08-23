@@ -1,9 +1,8 @@
 __author__ = 'Xinyue'
 
 from cvxpy import *
-from bcd import bcd
-import numpy as np
-from fix import fix_prob
+from examples.extensions.dmcp.dmcp.dmcp import bcd
+
 
 #alpha = NonNegative(1)
 #alpha.value = 1
@@ -26,7 +25,7 @@ w.value = 5.0
 #prob = Problem(Minimize(inv_pos(log(y+2))*(square(x)+1)), [x==y])
 #prob = Problem(Minimize(inv_pos(x+1)*exp(y)), [x==y])
 #prob = Problem(Minimize(alpha), [exp(x) <= (x+1)*alpha])
-prob = Problem(Minimize(abs(x*y+w*z)),[x+y+z+w==1])
+prob = Problem(Minimize(abs(x*y+z*w)),[x+y+z+w==1])
 
 prob.solve(method = 'bcd', ep = 1e-4, rho = 1.1)
 print "======= solution ======="

@@ -1,18 +1,18 @@
 __author__ = 'Xinyue'
 
 from cvxpy import *
-from find_set import find_minset
-from fix import fix_prob
-import numpy as np
-from initial import rand_initial
+from examples.extensions.dmcp.dmcp.dmcp.find_set import find_minimal_sets
+from examples.extensions.dmcp.dmcp.dmcp.fix import fix_prob
+from examples.extensions.dmcp.dmcp.dmcp.initial import rand_initial
 import cvxpy as cvx
+import numpy as np
 
 def is_dmcp(prob):
     """
     :param prob: a problem
     :return: a boolean indicating if the problem is DMCP
     """
-    min_sets = find_minset(prob)
+    min_sets = find_minimal_sets(prob)
     if len(min_sets[0]) == len(prob.variables()): # if the minimal set contains all vars
         return False
     else:
@@ -34,27 +34,29 @@ def bcd(prob, max_iter = 100, solver = 'SCS', mu = 5e-3, rho = 1.5, mu_max = 1e5
     :return: it: number of iterations; max_slack: maximum slack variable
     """
     # check if the problem is DMCP, and find minimal sets to fix
-    fix_sets = find_minset(prob)
-    if len(fix_sets[0]) == len(prob.variables()):
+    fix_sets = find_minimal_sets(prob)
+    if fix_sets==[]: # the problem is DCP
+        print "problem is DCP"
+        prob.solve()
+    elif len(fix_sets[0]) == len(prob.variables()):
         print "problem is not DMCP"
         return None
-    #
-    #result = None
-    #if prob.objective.NAME == 'minimize':
-    #    cost_value = float("inf") # record on the best cost value
-    #else:
-    #    cost_value = -float("inf")
-    #var_solution = []
-    #dccp_ini(prob, random = True)
-    flag_ini = 0
-    for var in prob.variables():
-        if var.value is None:
-            flag_ini = 1
-            break
-    if flag_ini:
-        rand_initial(prob)
-
-    result = _bcd(prob, fix_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linearize, proximal)
+    else:
+        flag_ini = 0
+        for var in prob.variables():
+            if var.value is None:
+                flag_ini = 1
+                rand_initial(prob)
+                break
+        result = _bcd(prob, fix_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linearize, proximal)
+        print "======= result ======="
+        print "minimal sets:", fix_sets
+        if flag_ini:
+            print "initial point not set by the user"
+        print "number of iterations:", result[0]+1
+        print "maximum value of slack variables:", result[1]
+        print "objective value:", prob.objective.value
+        return result
     #if result_temp is None:
     #    return None
     #if (prob.objective.NAME == 'minimize' and prob.objective.value<cost_value) \
@@ -67,14 +69,6 @@ def bcd(prob, max_iter = 100, solver = 'SCS', mu = 5e-3, rho = 1.5, mu_max = 1e5
     #if var_solution is not None:
     #    for idx, var in enumerate(prob.variables()):
     #        var.value = var_solution[idx]
-    print "======= result ======="
-    print "minimal sets:", fix_sets
-    if flag_ini:
-        print "initial point not set by the user"
-    print "number of iterations:", result[0]+1
-    print "maximum value of slack variables:", result[1]
-    print "objective value:", prob.objective.value
-    return result
 
 def _bcd(prob, fix_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linear, proximal):
     """
@@ -88,9 +82,10 @@ def _bcd(prob, fix_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linear, p
     for it in range(max_iter):
         #print "======= iteration", it, "======="
         for set in fix_sets:
-            fix_set = [var for var in prob.variables() if var.id in set]
+            #fix_set = [var for var in prob.variables() if var.id in set]
+            fix_var = [prob.variables()[idx] for idx in set]
             # fix variables in fix_set
-            fixed_p = fix_prob(prob,fix_set)
+            fixed_p = fix_prob(prob,fix_var)
             # linearize
             if linear:
                 fixed_p.objective.args[0] = linearize(fixed_p.objective.args[0])

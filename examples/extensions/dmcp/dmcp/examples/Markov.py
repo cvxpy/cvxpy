@@ -1,13 +1,15 @@
 __author__ = 'Xinyue'
 
-from cvxpy import *
-from bcd import bcd
 import numpy as np
+from cvxpy import *
+from examples.extensions.dmcp.dmcp.dmcp import bcd
 
 n = 4
 m = 3
+
 theta = Variable(n)
 theta.value = np.ones((n,1))/float(n)
+a = Parameter(1)
 x = Variable(m)
 x.value = np.ones((m,1))/float(m)
 P = Variable(m,m)

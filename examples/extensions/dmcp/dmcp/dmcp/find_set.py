@@ -4,18 +4,26 @@ from fix import fix
 from fix import fix_prob
 import numpy as np
 
-def find_minset(prob):
+def find_minimal_sets(prob):
+    """
+    find all minimal sets of a problem
+    :param prob: a problem
+    :return: result: a list of minimal sets,
+    each is a set of indexes of variables in prob.variables()
+    """
     if prob.is_dcp():
         return []
     maxsets = find_maxset_graph(prob)
     if maxsets is None:
-        return [[var.id+1 for var in prob.variables()]]
+        return [[i for i in range(len(prob.variables()))]]
     else:
         result = []
         for maxset in maxsets:
-            set_id = [var.id for var in maxset]
-            fix_id = [var.id for var in prob.variables() if var.id not in set_id]
-            result.append(fix_id)
+            maxset_id = [var.id for var in maxset]
+            fix_id = [var.id for var in prob.variables() if var.id not in maxset_id]
+            prob_var_id = [var.id for var in prob.variables()]
+            fix_idx = [prob_var_id.index(varid) for varid in fix_id]
+            result.append(fix_idx)
         return result
 
 
@@ -163,7 +171,7 @@ def is_intersect(set1, set2):
                 return flag
     return flag
 
-def union(set1,set2):
+def union(set1, set2):
     """
     the union of set1 and set2
     :param set1: a list of vars
