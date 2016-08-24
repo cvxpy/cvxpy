@@ -109,11 +109,25 @@ class TestProblem(BaseTest):
         c2 = numpy.random.randn(2, 1)
         p = Problem(Minimize(c1*self.x), [self.x >= c2])
         constants_ = p.constants()
-        ref = [str(c1), str(c2)]
-        if PY2:
-            self.assertItemsEqual([str(const) for const in constants_], ref)
-        else:
-            self.assertCountEqual([str(const) for const in constants_], ref)
+        ref = [c1, c2]
+        self.assertEqual(len(ref), len(constants_))
+        for c, r in zip(constants_, ref):
+            self.assertTupleEqual(c.size, r.shape)
+            self.assertTrue((c.value == r).all())
+            # Allows comparison between numpy matrices and numpy arrays
+            # Necessary because of the way cvxpy handles numpy arrays and constants
+
+        # Single scalar constants
+        p = Problem(Minimize(self.a), [self.x >= 1])
+        constants_ = p.constants()
+        ref = [numpy.matrix(1)]
+        self.assertEqual(len(ref), len(constants_))
+        for c, r in zip(constants_, ref):
+            self.assertEqual(c.size, r.shape) and \
+            self.assertTrue((c.value == r).all()) 
+            # Allows comparison between numpy matrices and numpy arrays
+            # Necessary because of the way cvxpy handles numpy arrays and constants
+
 
     def test_size_metrics(self):
         """Test the size_metrics method.
@@ -143,7 +157,6 @@ class TestProblem(BaseTest):
         # num_scalar_eq_constr
         n_eq_constr = p.size_metrics.num_scalar_eq_constr
         ref = c2.dot(c1).size
-        # print "ref:",ref
         self.assertEqual(n_eq_constr, ref)
 
         # num_scalar_leq_constr
@@ -156,6 +169,17 @@ class TestProblem(BaseTest):
         ref = max(p3.size)
         self.assertEqual(max_data_dim, ref)
 
+    def test_solver_stats(self):
+        """Test the solver_stats method.
+        """
+        prob = Problem(Minimize(norm(self.x)), [self.x == 0])
+        prob.solve(solver = s.ECOS)
+        stats = prob.solver_stats
+        self.assertGreater(stats.solve_time, 0)
+        self.assertGreater(stats.setup_time, 0)
+        self.assertGreater(stats.num_iters, 0)
+
+        
     def test_get_problem_data(self):
         """Test get_problem_data method.
         """

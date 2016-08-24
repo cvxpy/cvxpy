@@ -40,7 +40,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
     pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
-        pip install cvxopt
         # Install GLPK.
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
         tar -zxvf glpk-4.55.tar.gz
