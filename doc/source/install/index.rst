@@ -3,115 +3,24 @@
 Install Guide
 =============
 
-**To update CVXPY, first update NumPy and SciPy separately.
-Then run** ``pip uninstall cvxpy; pip install cvxpy``.
+Mac OS X and Linux
+------------------
 
-**Simply running** ``pip install --upgrade cvxpy`` **can cause errors, especially if you're using Anaconda.**
+CVXPY supports both Python 2 and Python 3 on OS X and Linux.
 
-Mac OS X
---------
+1. Install `Anaconda`_.
 
-The following instructions assume you already have Python installed.
-CVXPY supports both Python 2 and Python 3.
-
-We recommend using `Anaconda`_  rather than the Python that comes with the Mac
-and installing pip, nose, NumPy, SciPy, and CVXOPT through `Anaconda`_ (i.e., ``conda install pip nose numpy scipy cvxopt``).
-But it is not necessary to have `Anaconda`_ to install CVXPY,
-and the instructions below assume you do not have `Anaconda`_.
-
-1. Install the Command Line Tools for Xcode.
-
-   Download from the `Apple developer site <http://developer.apple.com/downloads>`_.
-
-2. If you don't have ``pip`` installed, follow the instructions `here <https://pip.pypa.io/en/latest/installing.html>`_ to install it.
-
-3. Install ``numpy`` with ``pip`` from the command-line.
+2. Install ``cvxpy`` with ``conda``. 
 
    ::
 
-     pip install numpy
+      conda install -c cvxgrp cvxpy
 
-4. Install ``cvxpy`` with ``pip`` from the command-line.
-
-   ::
-
-       pip install cvxpy
-
-5. Test the installation with ``nose``.
+3. Test the installation with ``nose``.
 
   ::
 
-       pip install nose
-       nosetests cvxpy
-
-Ubuntu 14.04+
--------------
-
-The following instructions are for installing CVXPY with Python 2.
-To install CVXPY with Python 3, simply install the Python 3 version of all the packages (e.g., ``python3-dev``, ``python3-pip``).
-
-We recommend using `Anaconda`_  and installing pip, nose, NumPy, SciPy, and CVXOPT through `Anaconda`_ (i.e., ``conda install pip nose numpy scipy cvxopt``).
-But it is not necessary to have `Anaconda`_ to install CVXPY,
-and the instructions below assume you do not have `Anaconda`_.
-
-1. Make sure ``apt-get`` is up-to-date.
-
-  ::
-
-      sudo apt-get update
-
-2. Install ``ATLAS`` and ``gfortran`` (needed for ``SCS``).
-
-   ::
-
-       sudo apt-get install libatlas-base-dev gfortran
-
-3. Export the location of the ``ATLAS`` installation.
-
-   ::
-
-       export ATLAS="/usr/lib/atlas-base/libatlas.so"
-
-4. Install ``python-dev``.
-
-   ::
-
-       sudo apt-get install python-dev
-
-5. Install ``pip``.
-
-   ::
-
-       sudo apt-get install python-pip
-
-6. Install ``numpy`` and ``scipy``.
-
-   ::
-
-       sudo apt-get install python-numpy python-scipy
-
-7. Install ``cvxpy``.
-
-   ::
-
-       sudo pip install cvxpy
-
-  or to install locally
-
-   ::
-
-      pip install --user cvxpy
-
-8. Install ``nose``.
-
-  ::
-
-       sudo apt-get install python-nose
-
-9. Test the installation with ``nose``.
-
-  ::
-
+       conda install nose
        nosetests cvxpy
 
 Windows
@@ -156,13 +65,7 @@ Windows with Anaconda
 
 2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
 
-3. Open the Anaconda prompt and install CVXOPT by running the following command:
-
-  ::
-
-      conda install -c https://conda.anaconda.org/omnia cvxopt
-
-4. Install SCS from the Anaconda prompt by running the following command:
+3. Install SCS from the Anaconda prompt by running the following command:
 
   ::
 
@@ -192,8 +95,8 @@ CVXPY has the following dependencies:
 * `setuptools`_ >= 1.4
 * `toolz`_
 * `six <https://pythonhosted.org/six/>`_
+* `fastcache <https://github.com/pbrady/fastcache>`_
 * `multiprocess`_
-* `CVXOPT`_ >= 1.1.6
 * `ECOS`_ >= 2
 * `SCS`_ >= 1.1.3
 * `NumPy`_ >= 1.8
@@ -202,7 +105,7 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `ECOS`_, `CVXOPT`_, `SCS`_, `toolz`_, and
+CVXPY automatically installs `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
 `multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually.
 You may also wish to install `Swig`_ to build `CVXcanon`_ from source.
 Once you’ve installed
@@ -214,6 +117,13 @@ Once you’ve installed
    ::
 
        python setup.py install
+
+Install with CVXOPT support
+---------------------------
+
+CVXPY supports the `CVXOPT`_ solver.
+Simply install CVXOPT by running ``pip install cvxopt``.
+If you use Anaconda you will need to run ``conda install nomkl`` first.
 
 Install with Elemental support
 ------------------------------
@@ -259,7 +169,7 @@ Install with Cbc (Clp, Cgl) support
 -----------------------------------
 CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
 Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
-See the `cylp documentation <http://mpy.github.io/CyLPdoc/>`_ for installation instructions.
+See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
