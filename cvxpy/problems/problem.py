@@ -274,10 +274,6 @@ class Problem(u.Canonical):
             else:
                 raise DCPError("Problem does not follow DCP rules.")
 
-        # Problem is linearly constrained least squares
-        if solver is None and SOLVERS[s.LS].suitable(self):
-            solver = s.LS
-
         if solver == s.LS:
             solver = SOLVERS[s.LS]
             solver.validate_solver(self)
