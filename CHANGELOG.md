@@ -22,7 +22,7 @@ Version 1.0 (targets)
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 * TODO make @ work when imported from future.
 
-Version 0.4.4 (next release)
+Version 0.4.6 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
@@ -32,10 +32,18 @@ Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
 * TODO make quad_form(pos cvx, pos def pos) work.
 
-Version 0.4.3
+Version 0.4.5
 -------------
 * Add residual to constraints (vector/matrix), use for violation.
 * Added cumsum. 
+
+Version 0.4.4
+-------------
+* Dropped LS as default solver.
+
+Version 0.4.3
+-------------
+* Dropped dependency on CVXOPT.
 
 Version 0.4.2 
 -------------
