@@ -283,14 +283,15 @@ class GUROBI(Solver):
                     else:
                         vals.append(0)
                 results_dict["y"] = -np.array(vals)
+
+            results_dict["status"] = self.STATUS_MAP.get(model.Status,
+                                                         s.SOLVER_ERROR)
         except:
-            pass
+            results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
-        results_dict["status"] = self.STATUS_MAP.get(model.Status,
-                                                     s.SOLVER_ERROR)
 
         return self.format_results(results_dict, data, cached_data)
 
