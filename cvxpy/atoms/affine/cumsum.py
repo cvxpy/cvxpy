@@ -21,6 +21,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
 import scipy.sparse as sp
 
+
 def get_cumsum_mat(dim):
     """Return a sparse matrix representation of cumsum operator.
 
