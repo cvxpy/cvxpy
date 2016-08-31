@@ -22,16 +22,20 @@ Version 1.0 (targets)
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 * TODO make @ work when imported from future.
 
-Version 0.4.3 (next release)
+Version 0.4.4 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
 * TODO improve error message when solving with missing parameter values.
-* TODO add dmains for special variables like Semidef and NonNegative (var with domain).
+* TODO add domains for special variables like Semidef and NonNegative (var with domain).
 Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
 * TODO make quad_form(pos cvx, pos def pos) work.
+
+Version 0.4.3
+-------------
 * Add residual to constraints (vector/matrix), use for violation.
+* Added cumsum. 
 
 Version 0.4.2 
 -------------

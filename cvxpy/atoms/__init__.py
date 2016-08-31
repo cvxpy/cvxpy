@@ -46,6 +46,7 @@ from cvxpy.atoms.total_variation import tv
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conv import conv
+from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack

@@ -637,6 +637,14 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on |_| c
 
+   * - cumsum(X, axis)
+
+     - cumulative sum along given axis.
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - diag(x)
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
      - :math:`x \in\mathbf{R}^{n}`
