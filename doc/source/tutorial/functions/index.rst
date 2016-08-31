@@ -637,7 +637,7 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on |_| c
 
-   * - cumsum(X, axis)
+   * - cumsum(X, axis=0)
 
      - cumulative sum along given axis.
      - :math:`X \in \mathbf{R}^{m \times n}`
@@ -659,12 +659,12 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - diff(x, k=1)
+   * - diff(X, k=1, axis=0)
 
        :math:`k \in 0,1,2,\ldots`
-     - vector of kth order differences
-     - :math:`x \in\mathbf{R}^{n}`
-     - same as x
+     - kth order differences along given axis
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - same as X
      - |affine| affine
      - |incr| incr.
 

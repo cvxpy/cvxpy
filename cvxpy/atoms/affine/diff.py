@@ -1,7 +1,7 @@
 from cvxpy.expressions.expression import Expression
 
 
-def diff(x, k=1):
+def diff(x, k=1, axis=0):
     """ Vector of kth order differences.
 
     Takes in a vector of length n and returns a vector
@@ -18,16 +18,17 @@ def diff(x, k=1):
     diff(x, 0) returns the vector x unchanged
     """
     x = Expression.cast_to_const(x)
+    if axis == 1:
+        x = x.T
     m, n = x.size
-
-    try:
-        assert 0 <= k < m
-        assert n == 1
-    except:
-        raise ValueError('Must have k >= 0 and x must be a 1D vector with < k elements')
+    if k < 0 or k >= m:
+        raise ValueError('Must have k >= 0 and X must have < k elements along axis')
 
     d = x
     for i in range(k):
-        d = d[1:] - d[:-1]
+        d = d[1:, :] - d[:-1, :]
 
-    return d
+    if axis == 1:
+        return d.T
+    else:
+        return d

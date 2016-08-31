@@ -231,7 +231,10 @@ atoms = [
         (lambda x: diff(x, 2), (1, 1), [[1, 2, 3]], Constant([0])),
         (diff, (3, 1), [[2.1, 1, 4.5, -.1]], Constant([-1.1, 3.5, -4.6])),
         (lambda x: diff(x, 2), (2, 1), [[2.1, 1, 4.5, -.1]], Constant([4.6, -8.1])),
-
+        (lambda x: diff(x, 1, axis=0), (1, 2), [[[-5, 2], [-3, 1]]],
+            Constant([[7], [4]])),
+        (lambda x: diff(x, 1, axis=1), (2, 1), [[[-5, 2], [-3, 1]]],
+            Constant([[2, -1]])),
 
         (lambda x: pnorm(x, .5), (1, 1), [[1.1, 2, .1]], Constant([7.724231543909264])),
         (lambda x: pnorm(x, -.4), (1, 1), [[1.1, 2, .1]], Constant([0.02713620334])),

@@ -31,6 +31,7 @@ Version 0.4.6 (next release)
 Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
 * TODO make quad_form(pos cvx, pos def pos) work.
+* Made cumsum definition implicit and O(n).
 
 Version 0.4.5
 -------------
