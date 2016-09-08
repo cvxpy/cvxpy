@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.glpk_intf import GLPK
 
@@ -130,7 +131,7 @@ class GLPK_MI(GLPK):
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # No dual variables.
-            new_results[s.PRIMAL] = results_dict['x']
+            new_results[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
             primal_val = (data[s.C].T*new_results[s.PRIMAL])[0]
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
 

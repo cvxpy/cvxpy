@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
 
+
 def get_diff_mat(dim, axis):
     """Return a sparse matrix representation of first order difference operator.
 
