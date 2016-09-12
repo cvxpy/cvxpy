@@ -84,6 +84,11 @@ class TestGrad(BaseTest):
         self.x.value = [0, 0]
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [0, 0])
 
+        expr = pnorm(self.x, 2, axis=1)
+        self.x.value = [1, 2]
+        val = np.eye(2)
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
         expr = pnorm(self.A, 2)
         self.A.value = np.matrix([[2, -2], [2, 2]])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0.5, 0.5, -0.5, 0.5])
@@ -727,3 +732,15 @@ class TestGrad(BaseTest):
         val = np.zeros((3, 5))
         val[:, 2:] = np.eye(3)
         self.assertItemsAlmostEqual(expr.grad[z].todense(), val)
+
+        # cumsum
+        expr = cumsum(self.x)
+        self.x.value = [1, 2]
+        val = np.ones((2, 2))
+        val[1, 0] = 0
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+
+        expr = cumsum(self.x, axis=1)
+        self.x.value = [1, 2]
+        val = np.eye(2)
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)

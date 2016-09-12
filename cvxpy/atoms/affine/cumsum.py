@@ -17,7 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.binary_operators import MulExpression, RMulExpression
+from cvxpy.expressions.variables import Variable
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
@@ -59,7 +62,7 @@ def get_diff_mat(dim, axis):
         return mat.T
 
 
-class cumsum(AffAtom):
+class cumsum(AffAtom, AxisAtom):
     """Cumulative sum.
 
     Attributes
@@ -70,8 +73,7 @@ class cumsum(AffAtom):
         The axis to sum across if 2D.
     """
     def __init__(self, expr, axis=0):
-        self.axis = axis
-        super(cumsum, self).__init__(expr)
+        super(cumsum, self).__init__(expr, axis)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
@@ -84,14 +86,33 @@ class cumsum(AffAtom):
         """
         return self.args[0].size
 
-    def get_data(self):
-        """Returns the axis being cumsummed.
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
         """
-        return [self.axis]
+        # TODO inefficient
+        dim = values[0].shape[self.axis]
+        mat = np.zeros((dim, dim))
+        for i in range(dim):
+            for j in range(i+1):
+                mat[i, j] = 1
+        var = Variable(*self.args[0].size)
+        if self.axis == 0:
+            grad = MulExpression(mat, var)._grad(values)[1]
+        else:
+            grad = RMulExpression(var, mat.T)._grad(values)[0]
+        return [grad]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
-        """Convolve two vectors.
+        """Cumulative sum via difference matrix.
 
         Parameters
         ----------

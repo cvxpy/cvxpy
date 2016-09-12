@@ -33,6 +33,7 @@ Canonicalize then add in domains separately.
 * TODO make quad_form(pos cvx, pos def pos) work.
 * TODO add cummax/cummin.
 * Made cumsum definition implicit and O(n).
+* Error for parameter P to quad_form.
 
 Version 0.4.5
 -------------

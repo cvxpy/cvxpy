@@ -96,6 +96,8 @@ def quad_form(x, P):
     n = P.size[0]
     if P.size[1] != n or x.size != (n, 1):
         raise Exception("Invalid dimensions for arguments.")
+    if len(P.parameters()) > 0:
+        raise Exception("P cannot be a parameter.")
     if x.is_constant():
         return x.T * P * x
     elif P.is_constant():

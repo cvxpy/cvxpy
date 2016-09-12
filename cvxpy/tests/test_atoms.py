@@ -96,6 +96,14 @@ class TestAtoms(BaseTest):
         expr = norm(self.A, 2, axis=0)
         self.assertEqual(expr.size, (1, 2))
 
+    def test_quad_form(self):
+        """Test quad_form atom.
+        """
+        P = Parameter(2,2)
+        with self.assertRaises(Exception) as cm:
+            quad_form(self.x, P)
+        self.assertEqual(str(cm.exception), "P cannot be a parameter.")
+
     # Test the power class.
     def test_power(self):
         from fractions import Fraction
