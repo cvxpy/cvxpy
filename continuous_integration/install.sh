@@ -46,7 +46,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd glpk-4.60
         sudo ./configure
         sudo make
+        sudo make check
         sudo make install
+        sudo ldconfig
         cd ..
         # Install CVXOPT with GLPK bindings.
         CVXOPT_BUILD_GLPK=1 CVXOPT_GLPK_LIB_DIR=/usr/local/lib CVXOPT_GLPK_INC_DIR=/usr/local/include pip install cvxopt
