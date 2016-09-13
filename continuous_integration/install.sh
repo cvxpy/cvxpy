@@ -41,18 +41,15 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
         # Install GLPK.
-        wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
-        tar -zxvf glpk-4.55.tar.gz
-        cd glpk-4.55
+        wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
+        tar -zxvf glpk-4.60.tar.gz
+        cd glpk-4.60
         sudo ./configure
         sudo make
         sudo make install
         cd ..
         # Install CVXOPT with GLPK bindings.
-        CVXOPT_BUILD_GLPK=1
-        CVXOPT_GLPK_LIB_DIR=/home/travis/glpk-4.55/lib
-        CVXOPT_GLPK_INC_DIR=/home/travis/glpk-4.55/include
-        pip install cvxopt
+        CVXOPT_BUILD_GLPK=1 CVXOPT_GLPK_LIB_DIR=/usr/local/lib CVXOPT_GLPK_INC_DIR=/usr/local/include pip install cvxopt
 
         # Install CBC
         oldpath="$PWD"
