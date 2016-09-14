@@ -271,7 +271,7 @@ class TestExamples(BaseTest):
         print(a.value)
         print(b.value)
 
-    def test_advanded(self):
+    def test_advanced(self):
         """Code from the advanced tutorial.
         """
         # Solving a problem with different solvers.

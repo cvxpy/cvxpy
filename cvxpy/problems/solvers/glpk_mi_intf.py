@@ -132,7 +132,7 @@ class GLPK_MI(GLPK):
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # No dual variables.
             new_results[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
-            primal_val = (data[s.C].T*new_results[s.PRIMAL])[0]
+            primal_val = (data[s.C].T*results_dict['x'])[0]
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
 
         return new_results
