@@ -14,17 +14,18 @@ def find_minimal_sets(prob):
     if prob.is_dcp():
         return []
     maxsets = find_maxset_graph(prob)
-    if maxsets is None:
-        return [[i for i in range(len(prob.variables()))]]
-    else:
-        result = []
-        for maxset in maxsets:
-            maxset_id = [var.id for var in maxset]
-            fix_id = [var.id for var in prob.variables() if var.id not in maxset_id]
-            prob_var_id = [var.id for var in prob.variables()]
-            fix_idx = [prob_var_id.index(varid) for varid in fix_id]
-            result.append(fix_idx)
-        return result
+    #if maxsets is None:
+    #    return [[i for i in range(len(prob.variables()))]]
+    #else:
+    result = []
+    for maxset in maxsets:
+        maxset_id = [var.id for var in maxset]
+        fix_id = [var.id for var in prob.variables() if var.id not in maxset_id]
+        prob_var_id = [var.id for var in prob.variables()]
+        fix_idx = [prob_var_id.index(varid) for varid in fix_id]
+        print fix_id, fix_idx
+        result.append(fix_idx)
+    return result
 
 
 def find_maxset_graph(prob):
@@ -32,7 +33,7 @@ def find_maxset_graph(prob):
     Analyze a problem by a graph to find maximum subsets of variables,
     so that the problem is dcp in each subset
     :param prob: Problem
-    :return: a list of subsets of Variables, or None
+    :return: a list of subsets of Variables
     """
     if prob.is_dcp():
         return [prob.variables()]
@@ -43,16 +44,13 @@ def find_maxset_graph(prob):
     t = search_conflict(prob.objective.args[0],t,varid) # search conflicts in objective function
     for con in prob.constraints:
         t = search_conflict(con.args[0] + con.args[1],t,varid) # search conflicts in each constraint
-    if not sum(np.diag(t)) == 0: # graph has self-loop <=> not dmcp
-        return None
+    #if not sum(np.diag(t)) == 0: # graph has self-loop <=> not dmcp
+    #    return None
     return find_all_MIS(prob.variables(), t, prob)
 
 def find_all_MIS(V,g,prob):
     """
-    find {V1, V2, ..., Vk} such that:
-        V1, ..., Vk are k maximal independent subsets of V on graph g that have the k-largest cardinalities;
-        the union of V1, ..., Vk covers V;
-        the union of V1, ..., V(k-1) cannot cover V
+    find all maximal independent sets of a graph
     :param g: graph
     :param V: set of all vertices
     :return: a list of maximal independent sets
@@ -74,8 +72,8 @@ def find_all_MIS(V,g,prob):
             if fix_prob(prob, fix_set).is_dcp():
                 result.append(i_subsets[sort_idx[-count]])
                 #U = union(U, i_subsets[sort_idx[-count]])
-            else:
-                return None
+            #else:
+            #    return None
     #if is_subset(V,U): # the collected vars cover all vars
     return result
     #else:
@@ -84,13 +82,13 @@ def find_all_MIS(V,g,prob):
 
 def find_all_iset(V,g):
     """
-    find all independent subsets
+    find all independent subsets, including the empty set
     :param V: vertex set
     :param g: graph
     :return: a list of independent subsets
     """
     subsets = find_all_subsets(V)
-    result = []
+    result = [[]]
     V_id = [var.id for var in V]
     for subset in subsets:
         subset_id = [var.id for var in subset]

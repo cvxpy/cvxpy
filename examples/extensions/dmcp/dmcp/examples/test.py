@@ -2,6 +2,9 @@ __author__ = 'Xinyue'
 
 from cvxpy import *
 from examples.extensions.dmcp.dmcp.dmcp import bcd
+from examples.extensions.dmcp.dmcp.dmcp.bcd import is_dmcp
+from examples.extensions.dmcp.dmcp.dmcp.find_set import find_minimal_sets
+from examples.extensions.dmcp.dmcp.dmcp.fix import fix
 
 
 #alpha = NonNegative(1)
@@ -11,13 +14,17 @@ from examples.extensions.dmcp.dmcp.dmcp import bcd
 
 x = Variable(1)
 y = Variable(1)
-z = Variable(1)
+z = NonNegative(1)
 w = Variable(1)
+
 
 x.value = 2.0
 y.value = 1
 z.value  = 0.6
 w.value = 5.0
+
+expr = y*x
+print fix(expr,[y])
 
 #prob = Problem(Minimize(alpha), [square(x) +1 <= sqrt(x+0.5)*alpha])
 #prob = Problem(Minimize(inv_pos(sqrt(y+0.5))*(square(x) +1)), [x==y])
@@ -25,13 +32,17 @@ w.value = 5.0
 #prob = Problem(Minimize(inv_pos(log(y+2))*(square(x)+1)), [x==y])
 #prob = Problem(Minimize(inv_pos(x+1)*exp(y)), [x==y])
 #prob = Problem(Minimize(alpha), [exp(x) <= (x+1)*alpha])
-prob = Problem(Minimize(abs(x*y+z*w)),[x+y+z+w==1])
+prob = Problem(Minimize(z*(abs(x)+abs(y))))
+print fix(prob,[y])
 
-prob.solve(method = 'bcd', ep = 1e-4, rho = 1.1)
-print "======= solution ======="
-for var in prob.variables():
-    print var.name(), "=", var.value
-print "objective = ", prob.objective.args[0].value
+print prob.is_dcp()
+print is_dmcp(prob)
+print find_minimal_sets(prob)
+#prob.solve(method = 'bcd', ep = 1e-4, rho = 1.1)
+#print "======= solution ======="
+#for var in prob.variables():
+#    print var.name(), "=", var.value
+#print "objective = ", prob.objective.args[0].value
 
 
 # bisection

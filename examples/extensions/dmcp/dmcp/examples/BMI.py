@@ -23,7 +23,7 @@ C = np.matrix([[0.00, 0.00, 0.16, 0.00, -1.78],
      [1.23, -0.38, 0.75, -0.38, 0.00],
      [0.46, 0.00, -0.05, 0.00, 0.00],
      [0.00, -0.12, 0.23, -0.12, 1.14]])
-theta = 1e-2
+theta = 0.35
 
 P = Variable(n,n)
 K = Variable(m1,m2)
@@ -36,7 +36,7 @@ alpha.value = -1
 cost = norm(K,1)
 constr = [np.eye(n) << P, (A+B*K*C).T*P+P*(A+B*K*C) << P*alpha*2, alpha<=-theta]
 prob = Problem(Minimize(cost), constr)
-prob.solve(method = 'bcd', max_iter = 200)
+prob.solve(method = 'bcd', max_iter = 200, mu_max = 1e10, mu = 0.3)
 print "======= solution ======="
 print "objective =", cost.value
 print K.value

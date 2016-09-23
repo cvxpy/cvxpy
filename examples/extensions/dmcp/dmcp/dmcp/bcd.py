@@ -2,7 +2,7 @@ __author__ = 'Xinyue'
 
 from cvxpy import *
 from examples.extensions.dmcp.dmcp.dmcp.find_set import find_minimal_sets
-from examples.extensions.dmcp.dmcp.dmcp.fix import fix_prob
+from examples.extensions.dmcp.dmcp.dmcp.fix import fix
 from examples.extensions.dmcp.dmcp.dmcp.initial import rand_initial
 import cvxpy as cvx
 import numpy as np
@@ -12,13 +12,14 @@ def is_dmcp(prob):
     :param prob: a problem
     :return: a boolean indicating if the problem is DMCP
     """
-    min_sets = find_minimal_sets(prob)
-    if len(min_sets[0]) == len(prob.variables()): # if the minimal set contains all vars
-        return False
-    else:
-        return True
+    for var in prob.variables():
+        fix_var = [avar for avar in prob.variables() if not avar.id == var.id]
+        if not fix(prob,fix_var).is_dcp():
+            return False
+    return True
 
-def bcd(prob, max_iter = 100, solver = 'SCS', mu = 5e-3, rho = 1.5, mu_max = 1e5, ep = 1e-3, lambd = 10, linearize = False, proximal = True):
+
+def bcd(prob, max_iter = 100, solver = 'SCS', mu = 5e-3, rho = 1.5, mu_max = 1e5, ep = 1e-3, lambd = 10, update = 'proximal'):
     """
     call the solving method
     :param prob: a problem
@@ -29,26 +30,40 @@ def bcd(prob, max_iter = 100, solver = 'SCS', mu = 5e-3, rho = 1.5, mu_max = 1e5
     :param mu_max: maximal value of mu
     :param ep: precision in convergence criterion
     :param lambd: parameter lambda
-    :param linearize: if prox-lin operator is used
-    :param proximal: if proximal operator is used
+    :param update: update method
     :return: it: number of iterations; max_slack: maximum slack variable
     """
-    # check if the problem is DMCP, and find minimal sets to fix
-    fix_sets = find_minimal_sets(prob)
-    if fix_sets==[]: # the problem is DCP
-        print "problem is DCP"
-        prob.solve()
-    elif len(fix_sets[0]) == len(prob.variables()):
+    # check if the problem is DMCP
+    if not is_dmcp(prob):
         print "problem is not DMCP"
         return None
+    # check if the problem is dcp
+    if prob.is_dcp():
+        print "problem is DCP"
+        prob.solve()
     else:
+        fix_sets = find_minimal_sets(prob)
         flag_ini = 0
         for var in prob.variables():
-            if var.value is None:
+            if var.value is None: # check if initialization is needed
                 flag_ini = 1
                 rand_initial(prob)
                 break
+        # set update option
+        if update == 'proximal':
+            proximal = True
+            linearize = False
+        elif update == 'minimize':
+            proximal = False
+            linearize = False
+        elif update == 'prox_linear':
+            proximal = True
+            linearize = True
+        else:
+            print "no such update method"
+            return None
         result = _bcd(prob, fix_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linearize, proximal)
+        # print result
         print "======= result ======="
         print "minimal sets:", fix_sets
         if flag_ini:
@@ -85,7 +100,7 @@ def _bcd(prob, fix_sets, max_iter, solver, mu, rho, mu_max, ep, lambd, linear, p
             #fix_set = [var for var in prob.variables() if var.id in set]
             fix_var = [prob.variables()[idx] for idx in set]
             # fix variables in fix_set
-            fixed_p = fix_prob(prob,fix_var)
+            fixed_p = fix(prob,fix_var)
             # linearize
             if linear:
                 fixed_p.objective.args[0] = linearize(fixed_p.objective.args[0])

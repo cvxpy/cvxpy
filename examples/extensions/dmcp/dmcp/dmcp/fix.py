@@ -1,5 +1,20 @@
 __author__ = 'Xinyue'
 from cvxpy import *
+from cvxpy.expressions.expression import Expression
+
+def fix(obj, fix_vars):
+    """
+    Fix the given variables in the object
+    :param obj: a problem or an expression
+    :param fix_var: a list of variables
+    :return: a problem or an expression
+    """
+    if isinstance(obj,Expression):
+        return fix_expr(obj,fix_vars)
+    elif isinstance(obj,Problem):
+        return fix_prob(obj,fix_vars)
+    else:
+        print "wrong type to fix"
 
 def fix_prob(prob, fix_var):
     """Fix the given variables in the problem.
@@ -14,15 +29,15 @@ def fix_prob(prob, fix_var):
         -------
         Problem
         """
-    new_cost = fix(prob.objective.args[0], fix_var)
+    new_cost = fix_expr(prob.objective.args[0], fix_var)
     if prob.objective.NAME == 'minimize':
         new_obj = Minimize(new_cost)
     else:
         new_obj = Maximize(new_cost)
     new_constr = []
     for con in prob.constraints:
-        left = fix(con.args[0],fix_var)
-        right = fix(con.args[1],fix_var)
+        left = fix_expr(con.args[0],fix_var)
+        right = fix_expr(con.args[1],fix_var)
         if con.OP_NAME == "<=":
             new_constr.append(left <= right)
         elif con.OP_NAME == ">>":
@@ -33,7 +48,7 @@ def fix_prob(prob, fix_var):
     return new_prob
 
 
-def fix(expr, fix_var):
+def fix_expr(expr, fix_var):
     """Fix the given variables in the expression.
 
         Parameters
