@@ -1,8 +1,6 @@
 Version 1.0 (targets)
 ---------------------
-* TODO add FAQ with info about solver errors, DCP errors, adding an objective in a for loop, dot product with numpy ND arrays.
 * TODO change *args to lists.
-* TODO separate out parts of DCPAttr and refactor so universal rules used for affine atoms.
 * TODO change size to size[0]*size[1] and shape to size.
 * TODO return 2D arrays instead of matrices.
 * TODO add sets and domains for Parameters/Variables that affect DCP properties.
@@ -32,8 +30,11 @@ Canonicalize then add in domains separately.
 * TODO force variable value assignments to satisfy variable properties.
 * TODO make quad_form(pos cvx, pos def pos) work.
 * TODO add cummax/cummin.
+* TODO canonicalize to QP hack (split objective into quad + PWL + constant)
+* TODO add .is_pwl() # Piece-wise linear.
 * Made cumsum definition implicit and O(n).
 * Error for parameter P to quad_form.
+* Fix for Gurobi interface and Python 3.
 
 Version 0.4.5
 -------------

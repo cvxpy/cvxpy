@@ -170,12 +170,12 @@ class GUROBI(Solver):
 
                 # Figure out which rows of A and elements of b have changed
                 try:
-                    I, _ = zip(*[x for x in A_diff.iterkeys()])
+                    I, _ = zip(*[x for x in A_diff.keys()])
                 except ValueError:
                     I = []
                 I_unique = list(set(I) | set(np.where(b_diff)[0]))
 
-                nonzero_locs = gurobipy.tuplelist([x for x in A.iterkeys()])
+                nonzero_locs = gurobipy.tuplelist([x for x in A.keys()])
 
                 # Update locations which have changed
                 for i in I_unique:
@@ -226,7 +226,7 @@ class GUROBI(Solver):
                 )
             model.update()
 
-            nonzero_locs = gurobipy.tuplelist([x for x in A.iterkeys()])
+            nonzero_locs = gurobipy.tuplelist([x for x in A.keys()])
             eq_constrs = self.add_model_lin_constr(model, variables,
                                                    range(data[s.DIMS][s.EQ_DIM]),
                                                    gurobipy.GRB.EQUAL,
