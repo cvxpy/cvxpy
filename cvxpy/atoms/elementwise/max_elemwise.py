@@ -73,11 +73,6 @@ class max_elemwise(Elementwise):
         """
         return False
 
-    def is_pwl(self):
-        """Is the atom piecewise linear?
-        """
-        return all ([arg.is_pwl() for arg in self.args])
-
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

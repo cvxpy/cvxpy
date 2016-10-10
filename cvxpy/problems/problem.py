@@ -30,7 +30,6 @@ from cvxpy.problems.problem_data.problem_data import ProblemData
 # a circular import (cvxpy.transforms imports Problem). Hence we need to import
 # cvxpy here.
 import cvxpy
-import cvxpy.constraints.eq_constraint as eqc
 
 import multiprocess as multiprocessing
 import numpy as np
@@ -111,13 +110,6 @@ class Problem(u.Canonical):
         """Does the problem satisfy DCP rules?
         """
         return all(exp.is_dcp() for exp in self.constraints + [self.objective])
-
-    def is_qp(self):
-        """Is problem a quadratic program?
-        """
-        return (self.is_dcp() and self.objective.args[0].is_quadratic() and
-            all([(isinstance(c, eqc.EqConstraint) or c._expr.is_pwl())
-                for c in self.constraints]))
 
     def canonicalize(self):
         """Computes the graph implementation of the problem.
