@@ -110,7 +110,6 @@ class Problem(u.Canonical):
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
-        print ("hi")
         return all(exp.is_dcp() for exp in self.constraints + [self.objective])
 
     def is_qp(self):
