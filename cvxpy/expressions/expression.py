@@ -153,6 +153,12 @@ class Expression(u.Canonical):
         # Defaults to false
         return False
 
+    def is_pwl(self):
+        """Is the expression piecewise linear?
+        """
+        # Defaults to false
+        return False
+
     # Sign properties.
 
     @property

@@ -412,6 +412,28 @@ class TestProblem(BaseTest):
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
         p.solve(ignore_dcp=True)
 
+    # Test the is_qp method.
+    def test_is_qp(self):
+        A = numpy.random.randn(4, 3)
+        b = numpy.random.randn(4)
+        Aeq = numpy.random.randn(2,3)
+        beq = numpy.random.randn(2)
+        F = numpy.random.randn(2,3)
+        g = numpy.random.randn(2)
+        obj = sum_squares(A*self.y - b)
+        p = Problem(Minimize(obj),[])
+        self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(obj),[Aeq * self.y == beq, F * self.y <= g])
+        self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(obj),[max_elemwise(1, 3 * self.y) <= 200, abs(2 * self.y) <= 100, 
+            norm(2 * self.y, 1) <= 1000, Aeq * self.y == beq])
+        self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(obj),[max_elemwise(1, 3 * self.y ** 2) <= 200])
+        self.assertEqual(p.is_qp(), False)
+
     # Test problems involving variables with the same name.
     def test_variable_name_conflict(self):
         var = Variable(name='a')

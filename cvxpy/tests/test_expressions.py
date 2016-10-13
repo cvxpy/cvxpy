@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms import *
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.variables import Variable, Semidef, NonNegative
@@ -805,3 +806,25 @@ class TestExpressions(BaseTest):
         y = x.copy()
         self.assertEqual(y.size, (1, 1))
         self.assertEqual(y.value, 2)
+
+    def test_is_pwl(self):
+        """Test is_pwl()
+        """
+        A = np.random.randn(2, 3)
+        b = np.random.randn(2)
+
+        expr = A * self.y - b
+        self.assertEqual(expr.is_pwl(), True)
+
+        expr = max_elemwise(1, 3 * self.y)
+        self.assertEqual(expr.is_pwl(), True)
+
+        expr = abs(self.y)
+        self.assertEqual(expr.is_pwl(), True)
+
+        expr = pnorm(3 * self.y, 1)
+        self.assertEqual(expr.is_pwl(), True)
+
+        expr = pnorm(3 * self.y ** 2, 1)
+        self.assertEqual(expr.is_pwl(), False)
+

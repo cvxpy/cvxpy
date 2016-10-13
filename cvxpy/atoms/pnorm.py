@@ -177,6 +177,11 @@ class pnorm(AxisAtom):
         """
         return self.p >= 1 and self.args[0].is_negative()
 
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return (self.p == 1 or self.p == np.inf) and self.args[0].is_pwl()
+
     def get_data(self):
         return [self.p, self.axis]
 
