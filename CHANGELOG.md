@@ -31,7 +31,6 @@ Canonicalize then add in domains separately.
 * TODO make quad_form(pos cvx, pos def pos) work.
 * TODO add cummax/cummin.
 * TODO canonicalize to QP hack (split objective into quad + PWL + constant)
-* TODO add .is_pwl() # Piece-wise linear.
 
 Version 0.4.6
 -------------
@@ -39,6 +38,7 @@ Version 0.4.6
 * Error for parameter P to quad_form.
 * Fix for Gurobi interface and Python 3.
 * Fixed bug with grad of sparse*var.
+* Added .is_pwl() # Piece-wise linear.
 
 Version 0.4.5
 -------------
