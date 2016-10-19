@@ -466,11 +466,14 @@ Here's the complete list of solver options.
 ``'alpha'``
     relaxation parameter (default: 1.8).
 
+``'scale'``
+    balance between minimizing primal and dual residual (default: 5.0).
+
 ``'normalize'``
     whether to precondition data matrices (default: True).
 
 ``'use_indirect'``
-    whether to use indirect solver for KKT sytem (instead of direct) (default: False).
+    whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
 ``'warm_start'``
     whether to initialize the solver with the previous solution (default: False).
