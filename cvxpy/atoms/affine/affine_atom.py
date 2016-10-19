@@ -21,6 +21,7 @@ import abc
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.constants import Constant
 import canonInterface
 import scipy.sparse as sp
 
@@ -80,7 +81,7 @@ class AffAtom(Atom):
         offset = 0
         for idx, arg in enumerate(self.args):
             if arg.is_constant():
-                fake_args += [lu.create_const(arg.value, arg.size)]
+                fake_args += [Constant(arg.value).canonical_form[0]]
             else:
                 fake_args += [lu.create_var(arg.size, idx)]
                 var_offsets[idx] = offset

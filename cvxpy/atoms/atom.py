@@ -94,6 +94,11 @@ class Atom(Expression):
         """
         return NotImplemented
 
+    def is_atom_affine(self):
+        """Is the atom affine?
+        """
+        return self.is_atom_concave() and self.is_atom_convex()
+
     @abc.abstractmethod
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?

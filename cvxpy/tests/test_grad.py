@@ -195,6 +195,13 @@ class TestGrad(BaseTest):
         self.A.value = -np.matrix([[1, 2], [3, 4]])
         self.assertAlmostEqual(expr.grad[self.A], None)
 
+        K = Variable(8, 8)
+        expr = log_det(K[[1,2]][:,[1,2]])
+        K.value = np.eye(8)
+        val = np.zeros((8,8))
+        val[[1,2],[1,2]] = 1
+        self.assertItemsAlmostEqual(expr.grad[K].todense(), val)
+
     def test_quad_over_lin(self):
         """Test gradient for quad_over_lin
         """

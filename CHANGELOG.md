@@ -20,7 +20,7 @@ Version 1.0 (targets)
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 * TODO make @ work when imported from future.
 
-Version 0.4.6 (next release)
+Version 0.4.7 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
@@ -32,9 +32,13 @@ Canonicalize then add in domains separately.
 * TODO add cummax/cummin.
 * TODO canonicalize to QP hack (split objective into quad + PWL + constant)
 * TODO add .is_pwl() # Piece-wise linear.
+
+Version 0.4.6
+-------------
 * Made cumsum definition implicit and O(n).
 * Error for parameter P to quad_form.
 * Fix for Gurobi interface and Python 3.
+* Fixed bug with grad of sparse*var.
 
 Version 0.4.5
 -------------
