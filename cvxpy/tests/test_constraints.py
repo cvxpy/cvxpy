@@ -21,7 +21,8 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.constraints.second_order import SOC
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
-
+import sys
+PY2 = sys.version_info < (3, 0)
 
 class TestConstraints(BaseTest):
     """ Unit tests for the expression/expression module. """
@@ -245,10 +246,11 @@ class TestConstraints(BaseTest):
             (self.x == self.z == 1)
         self.assertEqual(str(cm.exception), error_str)
 
-        with self.assertRaises(Exception) as cm:
-            (self.z <= self.x).__bool__()
-        self.assertEqual(str(cm.exception), error_str)
-
-        with self.assertRaises(Exception) as cm:
-            (self.z <= self.x).__nonzero__()
-        self.assertEqual(str(cm.exception), error_str)
+        if PY2:
+            with self.assertRaises(Exception) as cm:
+                (self.z <= self.x).__nonzero__()
+            self.assertEqual(str(cm.exception), error_str)
+        else:
+            with self.assertRaises(Exception) as cm:
+                (self.z <= self.x).__bool__()
+            self.assertEqual(str(cm.exception), error_str)
