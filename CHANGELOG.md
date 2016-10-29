@@ -20,7 +20,7 @@ Version 1.0 (targets)
 * TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
 * TODO make @ work when imported from future.
 
-Version 0.4.7 (next release)
+Version 0.4.8 (next release)
 ----------------------------
 * TODO make division work elementwise (and with division of scalar by variable)
 * TODO test and fix updating constraints.
@@ -31,6 +31,11 @@ Canonicalize then add in domains separately.
 * TODO make quad_form(pos cvx, pos def pos) work.
 * TODO add cummax/cummin.
 * TODO canonicalize to QP hack (split objective into quad + PWL + constant)
+
+Version 0.4.7
+-------------
+* Fixed bug with power of negative values outside domain.
+* Fixed bug with __nonzero__ being removed on Python 3 by conda build.
 
 Version 0.4.6
 -------------

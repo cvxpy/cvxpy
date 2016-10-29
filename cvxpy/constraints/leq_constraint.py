@@ -66,6 +66,11 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
+        return self._chain_constraints()
+
+    def _chain_constraints(self):
+        """Raises an error due to chained constraints.
+        """
         raise Exception(
             ("Cannot evaluate the truth value of a constraint or "
              "chain constraints, e.g., 1 >= x >= 0.")
@@ -79,7 +84,7 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
-        return self.__nonzero__()
+        return self._chain_constraints()
 
     @property
     def size(self):

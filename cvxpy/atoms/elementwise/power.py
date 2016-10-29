@@ -152,9 +152,15 @@ class power(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        # TODO throw error if negative and power doesn't handle that.
-        if self.p == 0:
-            return np.ones(self.size)
+        # Throw error if negative and power doesn't handle that.
+        if self.p < 0 and values[0].min() <= 0:
+            raise ValueError(
+                "power(x, %.1f) cannot be applied to negative or zero values." % float(self.p)
+            )
+        elif not is_power2(self.p) and self.p != 0 and values[0].min() < 0:
+            raise ValueError(
+                "power(x, %.1f) cannot be applied to negative values." % float(self.p)
+            )
         else:
             return np.power(values[0], float(self.p))
 
