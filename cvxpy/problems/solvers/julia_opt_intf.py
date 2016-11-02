@@ -21,6 +21,7 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
 import numpy as np
 
+
 class JuliaOpt(ECOS):
     """An interface for JuliaOpt solvers.
     """
@@ -51,6 +52,7 @@ class JuliaOpt(ECOS):
         """Imports the solver.
         """
         import cmpb
+        cmpb  # For flake8
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -138,7 +140,7 @@ class JuliaOpt(ECOS):
         # Create solver object.
         Acoo = data[s.A].tocoo()
         model = cmpb.MPBModel(solver_opts["package"], solver_opts["solver_str"],
-            data[s.C], Acoo, data[s.B], constr_cones, var_cones, var_types)
+                              data[s.C], Acoo, data[s.B], constr_cones, var_cones, var_types)
         # Solve problem.
         model.optimize()
         # Collect results.

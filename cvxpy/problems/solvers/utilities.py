@@ -35,6 +35,7 @@ solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                Elemental(), MOSEK(), LS(), JuliaOpt()]
 SOLVERS = {solver.name(): solver for solver in solver_intf}
 
+
 def installed_solvers():
     """List the installed solvers.
     """
