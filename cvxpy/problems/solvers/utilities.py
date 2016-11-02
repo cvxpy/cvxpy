@@ -28,12 +28,12 @@ from cvxpy.problems.solvers.gurobi_intf import GUROBI
 from cvxpy.problems.solvers.elemental_intf import Elemental
 from cvxpy.problems.solvers.mosek_intf import MOSEK
 from cvxpy.problems.solvers.ls_intf import LS
+from cvxpy.problems.solvers.julia_opt_intf import JuliaOpt
 
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                GLPK_MI(), CBC(), SCS(), GUROBI(),
-               Elemental(), MOSEK(), LS()]
+               Elemental(), MOSEK(), LS(), JuliaOpt()]
 SOLVERS = {solver.name(): solver for solver in solver_intf}
-
 
 def installed_solvers():
     """List the installed solvers.

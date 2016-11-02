@@ -60,9 +60,10 @@ GUROBI = "GUROBI"
 ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
 LS = "LS"
+JULIA_OPT = "JULIA_OPT"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, ELEMENTAL,
-           MOSEK, LS]
+           MOSEK, LS, JULIA_OPT]
 
 # Parallel (meta) solver
 PARALLEL = "parallel"
