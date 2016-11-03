@@ -421,13 +421,19 @@ class TestProblem(BaseTest):
         F = numpy.random.randn(2,3)
         g = numpy.random.randn(2)
         obj = sum_squares(A*self.y - b)
-        qpwa_obj = 3*sum_squares(abs(A*self.y)) +\
+        qpwa_obj = 3*sum_squares(-abs(A*self.y)) +\
             quad_over_lin(max_elemwise(abs(A*self.y), [3.,3.,3.,3.]), 2.)
+        not_qpwa_obj = 3*sum_squares(abs(A*self.y)) +\
+            quad_over_lin(min_elemwise(abs(A*self.y), [3.,3.,3.,3.]), 2.)
+
         p = Problem(Minimize(obj),[])
         self.assertEqual(p.is_qp(), True)
 
         p = Problem(Minimize(qpwa_obj),[])
         self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(not_qpwa_obj),[])
+        self.assertEqual(p.is_qp(), False)
 
         p = Problem(Minimize(obj),[Aeq * self.y == beq, F * self.y <= g])
         self.assertEqual(p.is_qp(), True)
