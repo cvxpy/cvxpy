@@ -118,7 +118,7 @@ class Problem(u.Canonical):
         for c in self.constraints:
             if not (isinstance(c, eqc.EqConstraint) or c._expr.is_pwl()):
                 return False
-        return (self.is_dcp() and self.objective.args[0].is_quadratic())
+        return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
     def canonicalize(self):
         """Computes the graph implementation of the problem.

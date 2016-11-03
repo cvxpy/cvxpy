@@ -148,6 +148,9 @@ class DivExpression(BinaryOperator):
     def is_quadratic(self):
         return self.args[0].is_quadratic() and self.args[1].is_constant()
 
+    def is_qpwa(self):
+        return self.args[0].is_qpwa() and self.args[1].is_constant()
+
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
         """

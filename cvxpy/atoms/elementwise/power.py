@@ -227,6 +227,17 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
+    def is_qpwa(self):
+        if self.p == 0:
+            return True
+        elif self.p == 1:
+            return self.args[0].is_qpwa()
+        elif self.p == 2:
+            return self.args[0].is_pwl()
+        else:
+            return self.args[0].is_constant()
+
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

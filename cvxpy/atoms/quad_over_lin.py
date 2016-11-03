@@ -111,6 +111,11 @@ class quad_over_lin(Atom):
         """
         return self.args[0].is_affine() and self.args[1].is_constant()
 
+    def is_qpwa(self):
+            """Quadratic of piecewise affine if x is PWL and y is constant.
+            """
+            return self.args[0].is_pwl() and self.args[1].is_constant()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
