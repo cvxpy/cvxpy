@@ -343,6 +343,34 @@ class power(Elementwise):
                 else:
                     raise NotImplementedError('this power is not yet supported.')
 
+    @staticmethod
+    def QP_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        x = arg_objs[0]
+        p, w = data
+
+        if not p==2:
+            return graph_implementation(arg_objs, size, data)
+
+        xvec = lu.reshape(x, (x.size[0]*x.size[1],1))
+        obj = lu.quad_expr(xvec, lu.diag_vec(lu.create_const(1., xvec.size)))
+        return (obj, [])
+
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
