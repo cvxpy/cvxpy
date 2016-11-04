@@ -143,3 +143,28 @@ class quad_over_lin(Atom):
                             lu.mul_expr(two, x, x.size)]),
                        lu.create_geq(y)]
         return (v, constraints)
+
+    @staticmethod
+    def QP_implementation(arg_objs, size, data=None):
+        """Reduces the atom to a quadratic expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        x = arg_objs[0]
+        y = arg_objs[1] # in good faith this is constant
+        xvec = lu.reshape(x, (x.size[0]*x.size[1],1))
+        obj = lu.quad_expr(xvec,
+                           lu.diag_vec(lu.create_const(1./y.data, xvec.size)))
+        return (obj, [])

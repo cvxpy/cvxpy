@@ -28,3 +28,8 @@ class DCPError(Exception):
     """Error thrown for DCP violations.
     """
     pass
+
+class QPError(Exception):
+    """Error thrown for QP violations.
+    """
+    pass

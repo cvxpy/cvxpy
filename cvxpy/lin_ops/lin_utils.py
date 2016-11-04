@@ -119,6 +119,14 @@ def create_const(value, size, sparse=False):
         op_type = lo.DENSE_CONST
     return lo.LinOp(op_type, size, [], value)
 
+def quad_expr(operator, matrix):
+    """Stub. An expression x.T*A*x where matrix A is constant."""
+    class QuadExpr(object):
+        def __init__(self,x,A, size):
+            self.x=x
+            self.A=A
+            self.size=size
+    return QuadExpr(operator, matrix, operator.size)
 
 def sum_expr(operators):
     """Add linear operators.
@@ -391,7 +399,6 @@ def reshape(operator, size):
        LinOp representing the reshaped expression.
     """
     return lo.LinOp(lo.RESHAPE, size, [operator], None)
-
 
 def diag_vec(operator):
     """Converts a vector to a diagonal matrix.

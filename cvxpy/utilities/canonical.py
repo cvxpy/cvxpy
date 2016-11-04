@@ -46,6 +46,25 @@ class Canonical(object):
         """
         return self.canonicalize()
 
+    @pu.lazyprop
+    def QP_canonical_form(self):
+        """The QP implementation of the object stored as a property.
+
+        Returns:
+            A tuple of (quadratic expression, [constraints]).
+        """
+        return self.QP_canonicalize()
+
+    @abc.abstractmethod
+    def QP_canonicalize(self):
+        """Returns QP graph implementation of the object.
+
+        Returns:
+            A tuple of (quadratic expression, [constraints]).
+        """
+        if self.is_pwl():
+            return self.canonicalize()
+
     @abc.abstractmethod
     def variables(self):
         """The object's internal variables.

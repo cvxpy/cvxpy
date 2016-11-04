@@ -95,6 +95,11 @@ class Minimize(u.Canonical):
         """
         return self.args[0].canonical_form
 
+    def QP_canonicalize(self):
+        """Pass on the target expression's objective and constraints.
+        """
+        return self.args[0].QP_canonical_form
+
     def variables(self):
         """Returns the variables in the objective.
         """
@@ -150,6 +155,12 @@ class Maximize(Minimize):
         """Negates the target expression's objective.
         """
         obj, constraints = super(Maximize, self).canonicalize()
+        return (lu.neg_expr(obj), constraints)
+
+    def QP_canonicalize(self):
+        """Negates the target expression's objective.
+        """
+        obj, constraints = super(Maximize, self).QP_canonicalize()
         return (lu.neg_expr(obj), constraints)
 
     def is_dcp(self):

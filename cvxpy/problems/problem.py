@@ -138,6 +138,20 @@ class Problem(u.Canonical):
 
         return (obj, canon_constr)
 
+
+    def QP_canonicalize(self):
+            """Computes the QP implementation of the problem.
+
+            Returns
+            -------
+            tuple
+                (quadratic objective,
+                 constraints list)
+            """
+            obj, objconstr = self.objective.QP_canonical_form
+            return (obj, objconstr + [constr.canonical_form[1]
+                                    for constr in self.constraints])
+
     def variables(self):
         """Returns a list of the variables in the problem.
         """
