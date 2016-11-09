@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 from cvxpy.utilities import performance_utils as pu
-from error import QPError
+from ..error import QPError
 
 
 class Canonical(object):
