@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
 from cvxpy.utilities import performance_utils as pu
+from error import QPError
 
 
 class Canonical(object):
@@ -55,7 +56,6 @@ class Canonical(object):
         """
         return self.QP_canonicalize()
 
-    @abc.abstractmethod
     def QP_canonicalize(self):
         """Returns QP graph implementation of the object.
 
@@ -64,6 +64,10 @@ class Canonical(object):
         """
         if self.is_pwl():
             return self.canonicalize()
+        if self.is_qpwa():
+            return NotImplemented
+        # if it's neither pwl or qpwa, then it's not a QP expression
+        return QPError
 
     @abc.abstractmethod
     def variables(self):
