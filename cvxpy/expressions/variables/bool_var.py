@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.constraints.bool_constr import BoolConstr
 
+
 class Bool(Variable):
     """ A boolean variable. """
 
@@ -32,3 +33,13 @@ class Bool(Variable):
         """String to recreate the object.
         """
         return "Bool(%d, %d)" % self.size
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return True
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return False

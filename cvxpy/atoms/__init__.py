@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.affine_prod import affine_prod
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.harmonic_mean import harmonic_mean
-from cvxpy.atoms.kl_div import kl_div
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
@@ -46,6 +46,7 @@ from cvxpy.atoms.total_variation import tv
 
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.conv import conv
+from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
@@ -63,6 +64,7 @@ from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
+from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.log1p import log1p
 from cvxpy.atoms.elementwise.logistic import logistic

@@ -26,6 +26,7 @@ from toolz.itertoolz import unique
 from collections import OrderedDict
 import canonInterface
 
+
 class SymData(object):
     """The symbolic info for the conic form convex optimization problem.
 
@@ -79,7 +80,6 @@ class SymData(object):
         constr_map = {s.EQ: [],
                       s.LEQ: [],
                       s.SOC: [],
-                      s.SOC_EW: [],
                       s.SDP: [],
                       s.EXP: [],
                       s.BOOL: [],
@@ -129,7 +129,7 @@ class SymData(object):
         # If all the coefficients are zero then return the constant term
         # and set all variables to 0.
         if not any(constr_map.values()):
-            str(objective) # TODO
+            str(objective)  # TODO
 
         # Remove constraints with no variables or parameters.
         for key in [s.EQ, s.LEQ]:
@@ -138,12 +138,12 @@ class SymData(object):
                 vars_ = lu.get_expr_vars(constr.expr)
                 if len(vars_) == 0 and not lu.get_expr_params(constr.expr):
                     V, I, J, coeff = canonInterface.get_problem_matrix([constr])
-                    sign = intf.sign(coeff)
+                    is_pos, is_neg = intf.sign(coeff)
                     # For equality constraint, coeff must be zero.
                     # For inequality (i.e. <= 0) constraint,
                     # coeff must be negative.
-                    if key == s.EQ and not sign.is_zero() or \
-                        key == s.LEQ and not sign.is_negative():
+                    if key == s.EQ and not (is_pos and is_neg) or \
+                            key == s.LEQ and not is_neg:
                         return s.INFEASIBLE
                 else:
                     new_constraints.append(constr)

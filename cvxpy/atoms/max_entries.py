@@ -19,13 +19,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
+
     def __init__(self, x, axis=None):
         super(max_entries, self).__init__(x, axis=axis)
 
@@ -35,20 +36,67 @@ class max_entries(AxisAtom):
         """
         return values[0].max(axis=self.axis)
 
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray or None.
+        """
+        # Grad: 1 for a largest index.
+        value = np.matrix(value).A.ravel(order='F')
+        idx = np.argmax(value)
+        D = np.zeros((value.size, 1))
+        D[idx] = 1
+        return D
+
     def sign_from_args(self):
-        """Has the same sign as the argument.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return self.args[0]._dcp_attr.sign
+        # Same as argument.
+        return (self.args[0].is_positive(), self.args[0].is_negative())
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Increasing in its arguments.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.INCREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return self.args[0].is_pwl()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -77,7 +125,7 @@ class max_entries(AxisAtom):
             const_size = (arg_objs[0].size[0], 1)
             ones = lu.create_const(np.ones(const_size), const_size)
             promoted_t = lu.mul_expr(ones, t, arg_objs[0].size)
-        else: # axis == 1
+        else:  # axis == 1
             t = lu.create_var((arg_objs[0].size[0], 1))
             const_size = (1, arg_objs[0].size[1])
             ones = lu.create_const(np.ones(const_size), const_size)

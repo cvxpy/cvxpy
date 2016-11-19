@@ -21,10 +21,9 @@ from cvxpy import *
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import cvxpy.problems.iterative as iterative
-from cvxpy.utilities import Curvature
-from cvxpy.utilities import Sign
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+
 
 class TestConvolution(BaseTest):
     """ Unit tests for convolution. """
@@ -36,19 +35,19 @@ class TestConvolution(BaseTest):
         x = Variable(n)
         f = [1, 2, 3]
         g = [0, 1, 0.5]
-        f_conv_g = [ 0., 1., 2.5,  4., 1.5]
+        f_conv_g = [0., 1., 2.5,  4., 1.5]
         expr = conv(f, g)
         assert expr.is_constant()
-        self.assertEquals(expr.size, (5, 1))
+        self.assertEqual(expr.size, (5, 1))
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         expr = conv(f, x)
         assert expr.is_affine()
-        self.assertEquals(expr.size, (5, 1))
+        self.assertEqual(expr.size, (5, 1))
         # Matrix stuffing.
         t = Variable()
         prob = Problem(Minimize(norm(expr, 1)),
-            [x == g])
+                       [x == g])
         result = prob.solve()
         self.assertAlmostEqual(result, sum(f_conv_g))
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
@@ -114,5 +113,5 @@ class TestConvolution(BaseTest):
         h = np.asmatrix(np.random.randn(2, 1))
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
-        obj = cvx.Minimize(cvx.sum_entries(cvx.mul_elemwise(y,v[0:N])))
+        obj = cvx.Minimize(cvx.sum_entries(cvx.mul_elemwise(y, v[0:N])))
         print(cvx.Problem(obj, []).solve())

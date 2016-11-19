@@ -18,40 +18,26 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.constraints.leq_constraint import LeqConstraint
+from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
+
 
 class EqConstraint(LeqConstraint):
     OP_NAME = "=="
     # Both sides must be affine.
+
     def is_dcp(self):
         return self._expr.is_affine()
 
     @property
-    def value(self):
-        """Does the constraint hold?
+    def residual(self):
+        """The residual of the constraint.
 
         Returns
         -------
-        bool
+        Expression
         """
-        if self._expr.value is None:
-            return None
-        else:
-            return np.all(np.abs(self._expr.value) <= self.TOLERANCE)
-
-    @property
-    def violation(self):
-        """How much is this constraint off by?
-
-        Returns
-        -------
-        NumPy matrix
-        """
-        if self._expr.value is None:
-            return None
-        else:
-            return np.abs(self._expr.value)
+        return cvxtypes.abs()(self._expr)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

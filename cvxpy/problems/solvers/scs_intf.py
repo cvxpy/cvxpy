@@ -21,6 +21,7 @@ import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
 import numpy as np
 
+
 class SCS(ECOS):
     """An interface for the SCS solver.
     """
@@ -51,6 +52,7 @@ class SCS(ECOS):
         """Imports the solver.
         """
         import scs
+        scs  # For flake8
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -130,6 +132,12 @@ class SCS(ECOS):
         new_results = {}
         status = self.STATUS_MAP[results_dict["info"]["status"]]
         new_results[s.STATUS] = status
+
+        # Timing and iteration data
+        new_results[s.SOLVE_TIME] = results_dict["info"]["solveTime"]/1000
+        new_results[s.SETUP_TIME] = results_dict["info"]["setupTime"]/1000
+        new_results[s.NUM_ITERS] = results_dict["info"]["iter"]
+
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # Save previous result for possible future warm_start.
             solver_cache.prev_result = {"x": results_dict["x"],
@@ -166,7 +174,7 @@ class SCS(ECOS):
         """Expands n*(n+1)//2 lower triangular to full matrix,
         with off-diagonal entries scaled by 1/sqrt(2).
         """
-        full = np.zeros((n,n))
+        full = np.zeros((n, n))
         for col in range(n):
             for row in range(col, n):
                 idx = row - col + n*(n+1)//2 - (n-col)*(n-col+1)//2

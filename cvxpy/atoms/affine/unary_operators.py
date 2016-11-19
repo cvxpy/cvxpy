@@ -21,10 +21,12 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 
+
 class UnaryOperator(AffAtom):
     """
     Base class for expressions involving unary operators.
     """
+
     def __init__(self, expr):
         super(UnaryOperator, self).__init__(expr)
 
@@ -35,13 +37,30 @@ class UnaryOperator(AffAtom):
     def numeric(self, values):
         return self.OP_FUNC(values[0])
 
-    # Returns the sign, curvature, and shape.
-    def init_dcp_attr(self):
-        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr)
 
 class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return self.args[0].size
+
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        return (self.args[0].is_negative(), self.args[0].is_positive())
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return True
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

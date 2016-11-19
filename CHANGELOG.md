@@ -1,8 +1,6 @@
 Version 1.0 (targets)
 ---------------------
-* TODO add FAQ with info about solver errors, DCP errors, adding an objective in a for loop, dot product with numpy ND arrays.
 * TODO change *args to lists.
-* TODO separate out parts of DCPAttr and refactor so universal rules used for affine atoms.
 * TODO change size to size[0]*size[1] and shape to size.
 * TODO return 2D arrays instead of matrices.
 * TODO add sets and domains for Parameters/Variables that affect DCP properties.
@@ -16,10 +14,92 @@ Version 1.0 (targets)
 * TODO separate constant and linear components of expressions so potentially can cache matrix factorizations.
 * TODO add informative errors for single constraint in problem instead of list, etc.
 * TODO sort out norms. i.e. norm(X, 1) is wrong.
-* TODO support more axis operations (norm, log_sum_exp, sum_squares)
+* TODO support more axis operations (norm, log_sum_exp, sum_squares).
+* TODO add Lambert W function  W(z) = max x, exp(-entr(x)) <= z.
+* TODO change reshape to take size tuple argument.
+* TODO make identical to numpy in every behavior (ndarrays instead of matrices etc.)
+* TODO make @ work when imported from future.
 
-Version 0.3.5 (next release)
+Version 0.4.9 (next release)
 ----------------------------
+* TODO make division work elementwise (and with division of scalar by variable)
+* TODO test and fix updating constraints.
+* TODO improve error message when solving with missing parameter values.
+* TODO add domains for special variables like Semidef and NonNegative (var with domain).
+Canonicalize then add in domains separately.
+* TODO force variable value assignments to satisfy variable properties.
+* TODO make quad_form(pos cvx, pos def pos) work.
+* TODO add cummax/cummin.
+* TODO canonicalize to QP hack (split objective into quad + PWL + constant)
+
+Version 0.4.8
+-------------
+* Fixed test with __nonzero__ called in Python 3.
+
+Version 0.4.7
+-------------
+* Fixed bug with power of negative values outside domain.
+* Fixed bug with __nonzero__ being removed on Python 3 by conda build.
+
+Version 0.4.6
+-------------
+* Made cumsum definition implicit and O(n).
+* Error for parameter P to quad_form.
+* Fix for Gurobi interface and Python 3.
+* Fixed bug with grad of sparse*var.
+* Added .is_pwl() # Piece-wise linear.
+
+Version 0.4.5
+-------------
+* Add residual to constraints (vector/matrix), use for violation.
+* Added cumsum. 
+
+Version 0.4.4
+-------------
+* Dropped LS as default solver.
+
+Version 0.4.3
+-------------
+* Dropped dependency on CVXOPT.
+
+Version 0.4.2 
+-------------
+* Fixed bug with gradient of expressions where a variable only appears in a constant term.
+* Added special solver for linearly constrained least-squares problems.
+
+Version 0.4.1 
+-------------
+* Made error message for chaining constraints clearer.
+* Switched from toolz.memoize to fastcache.cru_cache to fix memory leak in Python 3.
+* Added support for matmul and rmatmul.
+
+Version 0.4.0
+-------------
+* Added domains and gradients.
+* Made curvature, sign recursive and affine == convex + concave || constant. Eliminated old DCPAttr system. Memoized important info.
+
+Version 0.3.9
+-------------
+* Fixed bug in diag with row vectors.
+* Fixed kl_div to be elementwise.
+
+Version 0.3.8
+-------------
+* Fixed bug with cvxopt solver on windows (conversion from scipy to cvxopt sparse
+matrix failed).
+
+Version 0.3.7
+-------------
+* Fixed bug where partial optimize didn't work with maximize objective.
+* log_sum_exp axis now works for rectangular matrices.
+
+Version 0.3.6
+-------------
+* Fixed bug with DCP attributes of partial optimize.
+
+Version 0.3.5
+-------------
+* Made to work on Windows.
 
 Version 0.3.4
 -------------

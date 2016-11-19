@@ -21,6 +21,7 @@ import unittest
 import time
 import cvxpy as cvx
 
+
 class TestParamCache(unittest.TestCase):
 
     def test_param_timings(self):

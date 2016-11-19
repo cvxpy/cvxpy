@@ -19,13 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.constants import Constant
-import cvxpy.interface as intf
+import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
 if sys.version_info >= (3, 0):
     from functools import reduce
+
 
 class AddExpression(AffAtom):
     """The sum of any number of expressions.
@@ -39,8 +38,10 @@ class AddExpression(AffAtom):
         for group in arg_groups:
             self.args += self.expand_args(group)
 
-    def init_dcp_attr(self):
-        self._dcp_attr = reduce(op.add, [arg._dcp_attr for arg in self.args])
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return u.shape.sum_shapes([arg.size for arg in self.args])
 
     def expand_args(self, expr):
         """Helper function to extract the arguments from an AddExpression.

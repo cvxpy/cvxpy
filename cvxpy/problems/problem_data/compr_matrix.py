@@ -19,10 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import scipy.sparse as sp
 import numpy as np
 
+
 def get_row_nnz(mat, row):
     """Return the number of nonzeros in row.
     """
     return mat.indptr[row+1] - mat.indptr[row]
+
 
 def compress_matrix(A, b, equil_eps=1e-10):
     """Compresses A and b by eliminating redundant rows.
@@ -68,7 +70,7 @@ def compress_matrix(A, b, equil_eps=1e-10):
         # Sparsity pattern is the same or there was a false collision.
         # Check rows have the same number of nonzeros.
         elif pattern in sparsity_to_row and nnz == \
-            get_row_nnz(A, sparsity_to_row[pattern][0]):
+                get_row_nnz(A, sparsity_to_row[pattern][0]):
             # Now test if one row is a multiple of another.
             row_matches = sparsity_to_row[pattern]
             for row_match in row_matches:
@@ -99,11 +101,6 @@ def compress_matrix(A, b, equil_eps=1e-10):
     # Compress A and b.
     cols = max(len(row_to_keep), 1)
     P = sp.coo_matrix((P_V, (P_I, P_J)), (A.shape[0], cols))
-    # SciPy 0.13 can't index using an empty list.
-    if len(row_to_keep) == 0:
-        A_compr = A[0:0,:]
-        b_compr = b[0:0,:]
-    else:
-        A_compr = A[row_to_keep,:]
-        b_compr = b[row_to_keep,:]
+    A_compr = A[row_to_keep, :]
+    b_compr = b[row_to_keep]
     return (A_compr, b_compr, P)

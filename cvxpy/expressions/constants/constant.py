@@ -17,17 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.interface as intf
-import cvxpy.settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 class Constant(Leaf):
     """
     A constant, either matrix or scalar.
     """
+
     def __init__(self, value):
         # TODO HACK.
         # A fix for c.T*x where c is a 1D array.
@@ -42,7 +42,8 @@ class Constant(Leaf):
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
-        self.init_dcp_attr()
+        self._size = intf.size(self.value)
+        self._is_pos, self._is_neg = intf.sign(self.value)
         super(Constant, self).__init__()
 
     def name(self):
@@ -54,6 +55,11 @@ class Constant(Leaf):
         else:
             return str(self.value)
 
+    def constants(self):
+        """Returns self as a constant.
+        """
+        return [self]
+
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
@@ -63,11 +69,32 @@ class Constant(Leaf):
     def value(self):
         return self._value
 
-    # Return the DCP attributes of the constant.
-    def init_dcp_attr(self):
-        shape = u.Shape(*intf.size(self.value))
-        sign = intf.sign(self.value)
-        self._dcp_attr = u.DCPAttr(sign, u.Curvature.CONSTANT, shape)
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        return {}
+
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return self._size
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self._is_pos
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self._is_neg
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

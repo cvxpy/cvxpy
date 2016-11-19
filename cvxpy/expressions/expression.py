@@ -5,6 +5,7 @@ This file is part of CVXPY.
 
 CVXPY is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
+
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
@@ -18,15 +19,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.error import DCPError
-import cvxpy.interface as intf
+import warnings
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
-from cvxpy.utilities import performance_utils as pu
 from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
-from cvxpy.expressions import types
+from cvxpy.expressions import cvxtypes
 import abc
-import numpy as np
+
 
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
@@ -37,12 +37,14 @@ def _cast_other(binary_op):
     Returns:
         A wrapped binary operator that can handle non-Expression arguments.
     """
+
     def cast_op(self, other):
         """A wrapped binary operator that can handle non-Expression arguments.
         """
         other = self.cast_to_const(other)
         return binary_op(self, other)
     return cast_op
+
 
 class Expression(u.Canonical):
     """
@@ -54,12 +56,31 @@ class Expression(u.Canonical):
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
 
-    @abc.abstractmethod
+    @abc.abstractproperty
     def value(self):
         """Returns the numeric value of the expression.
 
         Returns:
             A numpy matrix or a scalar.
+        """
+        return NotImplemented
+
+    @abc.abstractproperty
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix.
+            None if a variable value is missing.
+        """
+        return NotImplemented
+
+    @abc.abstractproperty
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
         """
         return NotImplemented
 
@@ -81,73 +102,101 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
-    @abc.abstractmethod
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
-        """
-        return NotImplemented
-
     # Curvature properties.
 
     @property
     def curvature(self):
         """ Returns the curvature of the expression.
         """
-        return str(self._dcp_attr.curvature)
+        if self.is_constant():
+            curvature_str = s.CONSTANT
+        elif self.is_affine():
+            curvature_str = s.AFFINE
+        elif self.is_convex():
+            curvature_str = s.CONVEX
+        elif self.is_concave():
+            curvature_str = s.CONCAVE
+        else:
+            curvature_str = s.UNKNOWN
+        return curvature_str
 
     def is_constant(self):
         """Is the expression constant?
         """
-        return self._dcp_attr.curvature.is_constant()
+        return len(self.variables()) == 0 or self.is_zero()
 
     def is_affine(self):
         """Is the expression affine?
         """
-        return self._dcp_attr.curvature.is_affine()
+        return self.is_constant() or (self.is_convex() and self.is_concave())
 
+    @abc.abstractmethod
     def is_convex(self):
         """Is the expression convex?
         """
-        return self._dcp_attr.curvature.is_convex()
+        return NotImplemented
 
+    @abc.abstractmethod
     def is_concave(self):
         """Is the expression concave?
         """
-        return self._dcp_attr.curvature.is_concave()
+        return NotImplemented
 
     def is_dcp(self):
         """Is the expression DCP compliant? (i.e., no unknown curvatures).
         """
-        return self._dcp_attr.curvature.is_dcp()
+        return self.is_convex() or self.is_concave()
+
+    def is_quadratic(self):
+        """Is the expression quadratic?
+        """
+        # Defaults to false
+        return False
+
+    def is_pwl(self):
+        """Is the expression piecewise linear?
+        """
+        # Defaults to false
+        return False
 
     # Sign properties.
 
     @property
     def sign(self):
-        """ Returns the sign of the expression.
+        """Returns the sign of the expression.
         """
-        return str(self._dcp_attr.sign)
+        if self.is_zero():
+            sign_str = s.ZERO
+        elif self.is_positive():
+            sign_str = s.POSITIVE
+        elif self.is_negative():
+            sign_str = s.NEGATIVE
+        else:
+            sign_str = s.UNKNOWN
+        return sign_str
 
     def is_zero(self):
         """Is the expression all zero?
         """
-        return self._dcp_attr.sign.is_zero()
+        return self.is_positive() and self.is_negative()
 
+    @abc.abstractmethod
     def is_positive(self):
         """Is the expression positive?
         """
-        return self._dcp_attr.sign.is_positive()
+        return NotImplemented
 
+    @abc.abstractmethod
     def is_negative(self):
         """Is the expression negative?
         """
-        return self._dcp_attr.sign.is_negative()
+        return NotImplemented
 
-    @property
+    @abc.abstractproperty
     def size(self):
-        """ Returns the (row, col) dimensions of the expression.
+        """Returns the (row, col) dimensions of the expression.
         """
-        return self._dcp_attr.shape.size
+        return NotImplemented
 
     def is_scalar(self):
         """Is the expression a scalar?
@@ -170,9 +219,9 @@ class Expression(u.Canonical):
         # Returning self for scalars causes
         # the built-in sum to hang.
         if ku.is_special_slice(key):
-            return types.index().get_special_slice(self, key)
+            return cvxtypes.index().get_special_slice(self, key)
         else:
-            return types.index()(self, key)
+            return cvxtypes.index()(self, key)
 
     @property
     def T(self):
@@ -182,25 +231,25 @@ class Expression(u.Canonical):
         if self.is_scalar():
             return self
         else:
-            return types.transpose()(self)
+            return cvxtypes.transpose()(self)
 
     def __pow__(self, power):
         """The power operator.
         """
-        return types.power()(self, power)
+        return cvxtypes.power()(self, power)
 
     # Arithmetic operators.
     @staticmethod
     def cast_to_const(expr):
         """Converts a non-Expression to a Constant.
         """
-        return expr if isinstance(expr, Expression) else types.constant()(expr)
+        return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
     @_cast_other
     def __add__(self, other):
         """The sum of two expressions.
         """
-        return types.add_expr()([self, other])
+        return cvxtypes.add_expr()([self, other])
 
     @_cast_other
     def __radd__(self, other):
@@ -224,24 +273,37 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """The product of two expressions.
         """
-        # Cannot multiply two non-constant expressions.
-        if not self.is_constant() and \
-           not other.is_constant():
-            raise DCPError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
-        elif self.is_constant():
+        if self.is_constant():
             # TODO HACK catch c.T*x where c is a NumPy 1D array.
             if self.size[0] == other.size[0] and \
                self.size[1] != self.size[0] and \
-               isinstance(self, types.constant()) and self.is_1D_array:
+               isinstance(self, cvxtypes.constant()) and self.is_1D_array:
                 self = self.T
-            return types.mul_expr()(self, other)
-        # Having the constant on the left is more efficient.
-        elif self.is_scalar() or other.is_scalar():
-            return types.mul_expr()(other, self)
+            return cvxtypes.mul_expr()(self, other)
+        elif other.is_constant():
+            # Having the constant on the left is more efficient.
+            if self.is_scalar() or other.is_scalar():
+                return cvxtypes.mul_expr()(other, self)
+            else:
+                return cvxtypes.rmul_expr()(self, other)
+        # When both expressions are not constant
+        # Allow affine * affine but raise DCPError otherwise
+        # Cannot multiply two non-constant expressions.
+        elif self.is_affine() and other.is_affine():
+            warnings.warn("Forming a nonconvex expression (affine)*(affine).")
+            return cvxtypes.affine_prod_expr()(self, other)
         else:
-            return types.rmul_expr()(self, other)
+            raise DCPError("Cannot multiply %s and %s." % (self.curvature, other.curvature))
+
+    @_cast_other
+    def __matmul__(self, other):
+        """Matrix multiplication of two expressions.
+        """
+        if self.is_scalar() or other.is_scalar():
+            raise ValueError("Scalar operands are not allowed, use '*' instead")
+        return self.__mul__(other)
 
     @_cast_other
     def __truediv__(self, other):
@@ -255,9 +317,9 @@ class Expression(u.Canonical):
         """
         # Can only divide by scalar constants.
         if other.is_constant() and other.is_scalar():
-            return types.div_expr()(self, other)
+            return cvxtypes.div_expr()(self, other)
         else:
-            raise TypeError("Can only divide by a scalar constant.")
+            raise DCPError("Can only divide by a scalar constant.")
 
     @_cast_other
     def __rdiv__(self, other):
@@ -277,10 +339,16 @@ class Expression(u.Canonical):
         """
         return other * self
 
+    @_cast_other
+    def __rmatmul__(self, other):
+        """Called for matrix @ Expression.
+        """
+        return other.__matmul__(self)
+
     def __neg__(self):
         """The negation of the expression.
         """
-        return types.neg_expr()(self)
+        return cvxtypes.neg_expr()(self)
 
     @_cast_other
     def __rshift__(self, other):
@@ -306,7 +374,7 @@ class Expression(u.Canonical):
         """
         return PSDConstraint(self, other)
 
-    #needed for python3:
+    # Needed for Python3:
     def __hash__(self):
         return id(self)
 

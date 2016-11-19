@@ -17,23 +17,23 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.constants.constant import Constant
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.reshape import reshape
-import cvxpy.utilities as u
 from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 import numpy as np
 
+
 class index(AffAtom):
     """ Indexing/slicing into a matrix. """
     # expr - the expression indexed/sliced into.
     # key - the index/slicing key (i.e. expr[key[0],key[1]]).
+
     def __init__(self, expr, key):
         # Format and validate key.
-        self.key = ku.validate_key(key, expr._dcp_attr.shape)
+        self.key = ku.validate_key(key, expr.size)
         super(index, self).__init__(expr)
 
     # The string representation of the atom.
@@ -45,10 +45,10 @@ class index(AffAtom):
     def numeric(self, values):
         return values[0][self.key]
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """Returns the shape of the index expression.
         """
-        return u.Shape(*ku.size(self.key, self.args[0]._dcp_attr.shape))
+        return ku.size(self.key, self.args[0].size)
 
     def get_data(self):
         """Returns the (row slice, column slice).
@@ -98,7 +98,7 @@ class index(AffAtom):
         select_mat = idx_mat[key]
         if select_mat.ndim == 2:
             final_size = select_mat.shape
-        else: # Always cast 1d arrays as column vectors.
+        else:  # Always cast 1d arrays as column vectors.
             final_size = (select_mat.size, 1)
         select_vec = np.reshape(select_mat, select_mat.size, order='F')
         # Select the chosen entries from expr.

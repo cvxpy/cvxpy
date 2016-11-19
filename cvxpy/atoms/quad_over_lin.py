@@ -18,16 +18,18 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.constraints.second_order import SOC
 import numpy as np
 import scipy.sparse as sp
+import scipy as scipy
+
 
 class quad_over_lin(Atom):
     """ :math:`(sum_{ij}X^2_{ij})/y`
 
     """
+
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
 
@@ -37,31 +39,77 @@ class quad_over_lin(Atom):
         """
         return np.square(values[0]).sum()/values[1]
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
         """
-        return u.Shape(1,1)
+        # y > 0.
+        return [self.args[1] >= 0]
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        X = values[0]
+        y = values[1]
+        if y <= 0:
+            return [None, None]
+        else:
+            # DX = 2X/y, Dy = -||X||^2_2/y^2
+            Dy = -np.square(X).sum()/np.square(y)
+            Dy = sp.csc_matrix(Dy)
+            DX = 2.0*X/y
+            DX = np.reshape(DX, (self.args[0].size[0]*self.args[0].size[1], 1))
+            DX = scipy.sparse.csc_matrix(DX)
+            return [DX, Dy]
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return (1, 1)
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Increasing for positive x and decreasing for negative.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.SIGNED, u.monotonicity.DECREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return (idx == 0) and self.args[idx].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return ((idx == 0) and self.args[idx].is_negative()) or (idx == 1)
 
     def validate_arguments(self):
         """Check dimensions of arguments.
         """
         if not self.args[1].is_scalar():
             raise ValueError("The second argument to quad_over_lin must be a scalar.")
+
+    def is_quadratic(self):
+        """Quadratic if x is affine and y is constant.
+        """
+        return self.args[0].is_affine() and self.args[1].is_constant()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -82,7 +130,7 @@ class quad_over_lin(Atom):
             (LinOp for objective, list of constraints)
         """
         x = arg_objs[0]
-        y = arg_objs[1] # Known to be a scalar.
+        y = arg_objs[1]  # Known to be a scalar.
         v = lu.create_var((1, 1))
         two = lu.create_const(2, (1, 1))
         constraints = [SOC(lu.sum_expr([y, v]),

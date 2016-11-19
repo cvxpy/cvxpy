@@ -10,9 +10,11 @@ Use the following BibTeX citation:
 ::
 
     @article{cvxpy,
-      author       = {Steven Diamond and Stephen Boyd},
-      title        = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization},
-      journal      = {Journal of Machine Learning Research},
-      note         = {To appear},
-      url          = {http://stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf},
+      author  = {Steven Diamond and Stephen Boyd},
+      title   = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization},
+      journal = {Journal of Machine Learning Research},
+      year    = {2016},
+      volume  = {17},
+      number  = {83},
+      pages   = {1--5},
     }

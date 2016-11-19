@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.exp import exp
 import numpy as np
+
 
 class logistic(Elementwise):
     """:math:`\log(1 + e^{x})`
@@ -29,6 +29,7 @@ class logistic(Elementwise):
     This is a special case of log(sum(exp)) that is evaluates to a vector rather
     than to a scalar which is useful for logistic regression.
     """
+
     def __init__(self, x):
         super(logistic, self).__init__(x)
 
@@ -39,17 +40,47 @@ class logistic(Elementwise):
         return np.logaddexp(0, values[0])
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        return [u.monotonicity.INCREASING]
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        exp_val = np.exp(values[0])
+        grad_vals = exp_val/(1 + exp_val)
+        return [logistic.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

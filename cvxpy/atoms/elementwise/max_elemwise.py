@@ -18,13 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
-
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 if sys.version_info >= (3, 0):
     from functools import reduce
+
 
 class max_elemwise(Elementwise):
     """ Elementwise maximum. """
@@ -41,45 +40,67 @@ class max_elemwise(Elementwise):
         return reduce(np.maximum, values)
 
     def sign_from_args(self):
-        """Determins the sign of max_elemwise from the arguments' signs.
-
-        Reduces the list of argument signs according to the following rules:
-            POSITIVE, ANYTHING = POSITIVE
-            ZERO, UNKNOWN = POSITIVE
-            ZERO, ZERO = ZERO
-            ZERO, NEGATIVE = ZERO
-            UNKNOWN, NEGATIVE = UNKNOWN
-            NEGATIVE, NEGATIVE = NEGATIVE
-
-        Returns
-        -------
-        Sign
-            The Sign of the expression.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        arg_signs = [arg._dcp_attr.sign for arg in self.args]
-        if u.Sign.POSITIVE in arg_signs:
-            max_sign = u.Sign.POSITIVE
-        elif u.Sign.ZERO in arg_signs:
-            if u.Sign.UNKNOWN in arg_signs:
-                max_sign = u.Sign.POSITIVE
-            else:
-                max_sign = u.Sign.ZERO
-        elif u.Sign.UNKNOWN in arg_signs:
-            max_sign = u.Sign.UNKNOWN
-        else:
-            max_sign = u.Sign.NEGATIVE
+        # Reduces the list of argument signs according to the following rules:
+        #     POSITIVE, ANYTHING = POSITIVE
+        #     ZERO, UNKNOWN = POSITIVE
+        #     ZERO, ZERO = ZERO
+        #     ZERO, NEGATIVE = ZERO
+        #     UNKNOWN, NEGATIVE = UNKNOWN
+        #     NEGATIVE, NEGATIVE = NEGATIVE
+        is_pos = any([arg.is_positive() for arg in self.args])
+        is_neg = all([arg.is_negative() for arg in self.args])
+        return (is_pos, is_neg)
 
-        return max_sign
-
-    def func_curvature(self):
-        """The function's default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """The function is increasing in each argument.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return len(self.args)*[u.monotonicity.INCREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return all([arg.is_pwl() for arg in self.args])
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        max_vals = np.matrix(self.numeric(values))
+        unused = np.matrix(np.ones(max_vals.shape), dtype=bool)
+        grad_list = []
+        for idx, value in enumerate(values):
+            rows = self.args[idx].size[0]*self.args[idx].size[1]
+            cols = self.size[0]*self.size[1]
+            grad_vals = (value == max_vals) & unused
+            # Remove all the max_vals that were used.
+            unused[value == max_vals] = 0
+            grad_list += [max_elemwise.elemwise_grad_to_diag(grad_vals,
+                                                             rows, cols)]
+        return grad_list
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -102,8 +123,6 @@ class max_elemwise(Elementwise):
         t = lu.create_var(size)
         constraints = []
         for obj in arg_objs:
-            # Promote obj.
-            if obj.size != size:
-                obj = lu.promote(obj, size)
+            obj = Elementwise._promote(obj, size)
             constraints.append(lu.create_leq(obj, t))
         return (t, constraints)

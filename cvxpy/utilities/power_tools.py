@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from fractions import Fraction
-from cvxpy.constraints import SOC_Elemwise
+from cvxpy.constraints import SOC_Axis
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict
@@ -26,10 +26,15 @@ import numbers
 
 two = lu.create_const(2, (1, 1))
 
+
 def gm(t, x, y):
-    return SOC_Elemwise(lu.sum_expr([x, y]),
-               [lu.sub_expr(x, y),
-                lu.mul_expr(two, t, t.size)])
+    length = t.size[0]*t.size[1]
+    return SOC_Axis(lu.reshape(lu.sum_expr([x, y]), (length, 1)),
+                    lu.vstack([
+                        lu.reshape(lu.sub_expr(x, y), (1, length)),
+                        lu.reshape(lu.mul_expr(two, t, t.size), (1, length))
+                        ], (2, length)),
+                    0)
 
 
 def gm_constrs(t, x_list, p):
@@ -219,8 +224,9 @@ def is_weight(w):
     """
     if isinstance(w, np.ndarray):
         w = w.tolist()
-    return (all(v >= 0 and isinstance(v, (numbers.Integral, Fraction)) for v in w)
-            and sum(w) == 1)
+    valid_elems = all(v >= 0 and
+                      isinstance(v, (numbers.Integral, Fraction)) for v in w)
+    return valid_elems and sum(w) == 1
 
 
 def fracify(a, max_denom=1024, force_dyad=False):
@@ -360,8 +366,9 @@ def fracify(a, max_denom=1024, force_dyad=False):
         w_frac = tuple(Fraction(v, total) for v in a)
         d = max(v.denominator for v in w_frac)
         if d > max_denom:
-            msg = "Can't reliably represent the input weight vector."
-            msg += "\nTry increasing `max_denom` or checking the denominators of your input fractions."
+            msg = ("Can't reliably represent the input weight vector."
+                   "\nTry increasing `max_denom` or checking the denominators "
+                   "of your input fractions.")
             raise ValueError(msg)
     else:
         # fall through code

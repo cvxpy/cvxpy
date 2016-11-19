@@ -18,15 +18,17 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
-import cvxpy.utilities as u
+from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-from ..utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
+import scipy.sparse as sp
+from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.soc_axis import SOC_Axis
 from fractions import Fraction
 
 
-class pnorm(Atom):
+class pnorm(AxisAtom):
     r"""The vector p-norm.
 
     If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
@@ -85,12 +87,16 @@ class pnorm(Atom):
     max_denom : int
         The maximum denominator considered in forming a rational approximation for ``p``.
 
+    axis : 0 or 1
+           The axis to apply the norm to.
+
     Returns
     -------
     Expression
         An Expression representing the norm.
     """
-    def __init__(self, x, p=2, max_denom=1024):
+
+    def __init__(self, x, p=2, axis=None, max_denom=1024):
         p_old = p
         if p in ('inf', 'Inf', np.inf):
             self.p = np.inf
@@ -105,19 +111,22 @@ class pnorm(Atom):
         else:
             raise ValueError('Invalid p: {}'.format(p))
 
-        super(pnorm, self).__init__(x)
+        super(pnorm, self).__init__(x, axis=axis)
 
         if self.p == np.inf:
             self.approx_error = 0
         else:
             self.approx_error = float(abs(self.p - p_old))
 
-
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the p-norm of x.
         """
-        values = np.array(values[0]).flatten()
+
+        if self.axis is None:
+            values = np.array(values[0]).flatten()
+        else:
+            values = np.array(values[0])
 
         if self.p < 1 and np.any(values < 0):
             return -np.inf
@@ -125,43 +134,116 @@ class pnorm(Atom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        return np.linalg.norm(values, float(self.p))
+        retval = np.linalg.norm(values, float(self.p), axis=self.axis)
 
+        # NOTE: workaround for NumPy <=1.9 and no keepdims for norm()
+        if self.axis is not None:
+            if self.axis == 0:
+                retval = np.reshape(retval, (1, self.args[0].size[1]))
+            else:  # self.axis == 1:
+                retval = np.reshape(retval, (self.args[0].size[0], 1))
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
-        """
-        return u.Shape(1, 1)
+        return retval
+
+    def validate_arguments(self):
+        super(pnorm, self).validate_arguments()
+        if self.axis is not None and self.p != 2:
+            raise ValueError(
+                "The axis parameter is only supported for p=2.")
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        if self.p >= 1:
-            return u.Curvature.CONVEX
-        else:
-            return u.Curvature.CONCAVE
+        return self.p >= 1
 
-    def monotonicity(self):
-        """Increasing for positive arguments and decreasing for negative.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        if self.p >= 1:
-            return [u.monotonicity.SIGNED]
-        else:
-            return [u.monotonicity.INCREASING]
+        return self.p < 1
 
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.p < 1 or (self.p >= 1 and self.args[0].is_positive())
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.p >= 1 and self.args[0].is_negative()
+
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return (self.p == 1 or self.p == np.inf) and self.args[0].is_pwl()
 
     def get_data(self):
-        return [self.p]
+        return [self.p, self.axis]
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p)
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        if self.p < 1 and self.p != 0:
+            return [self.args[0] >= 0]
+        else:
+            return []
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray matrix or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        value = np.matrix(value)
+        # Outside domain.
+        if self.p < 1 and np.any(value <= 0):
+            return None
+        D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        if self.p == 1:
+            D_null += (value > 0)
+            D_null -= (value < 0)
+            return sp.csc_matrix(D_null.A.ravel(order='F')).T
+        denominator = np.linalg.norm(value, float(self.p))
+        denominator = np.power(denominator, self.p - 1)
+        # Subgrad is 0 when denom is 0 (or undefined).
+        if denominator == 0:
+            if self.p >= 1:
+                return D_null
+            else:
+                return None
+        else:
+            nominator = np.power(value, self.p - 1)
+            frac = np.divide(nominator, denominator)
+            return np.reshape(frac.A, (frac.size, 1))
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -216,8 +298,8 @@ class pnorm(Atom):
 
 
 
-        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
-        more efficiently and with fewer variables and inequalities.
+        Although the inequalities above are correct, for a few special cases,
+        we can represent the p-norm more efficiently and with fewer variables and inequalities.
 
         - For :math:`p = 1`, we use the representation
 
@@ -242,18 +324,26 @@ class pnorm(Atom):
 
                 \|x\|_2 \leq t
 
-          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
-          of a large second-order cone into into several smaller inequalities.
+          Note that we could have used the set of inequalities given above if we wanted
+          an alternate decomposition of a large second-order cone into into several
+          smaller inequalities.
 
         """
         p = data[0]
+        axis = data[1]
         x = arg_objs[0]
         t = lu.create_var((1, 1))
         constraints = []
 
         # first, take care of the special cases of p = 2, inf, and 1
         if p == 2:
-            return t, [SOC(t, [x])]
+            if axis is None:
+                return t, [SOC(t, [x])]
+
+            else:
+                t = lu.create_var(size)
+                return t, [SOC_Axis(lu.reshape(t, (t.size[0]*t.size[1], 1)),
+                                    x, axis)]
 
         if p == np.inf:
             t_ = lu.promote(t, x.size)
@@ -288,5 +378,5 @@ class pnorm(Atom):
 
         return t, constraints
 
-        # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
-
+        # todo: no need to run gm_constr to form the tree each time.
+        # we only need to form the tree once

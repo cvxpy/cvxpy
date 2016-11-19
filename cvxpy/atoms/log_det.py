@@ -17,21 +17,22 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from cvxpy.expressions.variables.semidef_var import Semidef
 import numpy as np
 from numpy import linalg as LA
+import scipy.sparse as sp
+
 
 class log_det(Atom):
     """:math:`\log\det A`
 
     """
+
     def __init__(self, A):
         super(log_det, self).__init__(A)
 
@@ -48,26 +49,67 @@ class log_det(Atom):
         else:
             return -np.inf
 
-    # Resolves to a scalar.
-    def shape_from_args(self):
-        return u.Shape(1,1)
-
-    # Always positive.
-    def sign_from_args(self):
-        return u.Sign.UNKNOWN
-
     # Any argument size is valid.
     def validate_arguments(self):
         n, m = self.args[0].size
         if n != m:
-            raise TypeError("The argument to log_det must be a square matrix." )
+            raise TypeError("The argument to log_det must be a square matrix.")
 
-    # Default curvature.
-    def func_curvature(self):
-        return u.Curvature.CONCAVE
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return (1, 1)
 
-    def monotonicity(self):
-        return [u.monotonicity.NONMONOTONIC]
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        return (True, False)
+
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return False
+
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return True
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        X = np.matrix(values[0])
+        eigen_val = LA.eigvals(X)
+        if np.min(eigen_val) > 0:
+            # Grad: X^{-1}.T
+            D = np.linalg.inv(X).T
+            return [sp.csc_matrix(D.A.ravel(order='F')).T]
+        # Outside domain.
+        else:
+            return [None]
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[0] >> 0]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -111,7 +153,7 @@ class log_det(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # n by n matrix.
+        A = arg_objs[0]  # n by n matrix.
         n, _ = A.size
         X = lu.create_var((2*n, 2*n))
         X, constraints = Semidef(2*n).canonical_form

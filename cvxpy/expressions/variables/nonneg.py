@@ -19,11 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.variables.variable import Variable
 import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.utilities as utils
+
 
 class NonNegative(Variable):
     """A variable constrained to be nonnegative.
     """
+
     def canonicalize(self):
         """Enforce that var >= 0.
         """
@@ -33,9 +34,12 @@ class NonNegative(Variable):
     def __repr__(self):
         return "NonNegative(%d, %d)" % self.size
 
-    def init_dcp_attr(self):
-        """Override.
+    def is_positive(self):
+        """Is the expression positive?
         """
-        self._dcp_attr = utils.DCPAttr(utils.Sign.POSITIVE,
-                                       utils.Curvature.AFFINE,
-                                       utils.Shape(self._rows, self._cols))
+        return True
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return False

@@ -330,6 +330,27 @@ and returns a scalar.
      - |affine| affine
      - |incr| incr.
 
+   * - tv(x)
+     - :math:`\sum_{i}|x_{i+1} - x_i|`
+     - :math:`x \in \mathbf{R}^n`
+     - |positive| positive
+     - |convex| convex
+     - None
+
+   * - tv(X)
+     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
+   * - tv(X1,...,Xk)
+     - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2`
+     - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
 Clarifications
 ^^^^^^^^^^^^^^
 
@@ -353,7 +374,7 @@ The function ``sum_entries`` sums all the entries in a single expression. The bu
 Functions along an axis
 -----------------------
 
-The functions ``sum_entries``, ``max_entries``, and ``min_entries`` can be
+The functions ``sum_entries``, ``norm``, ``max_entries``, and ``min_entries`` can be
 applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
@@ -453,6 +474,13 @@ scalars, which are promoted.
      - :math:`x > -1`
      - same as x
      - |concave| concave
+     - |incr| incr.
+
+   * - logistic(x)
+     - :math:`\log(1 + e^{x})`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
      - |incr| incr.
 
    * - max_elemwise(x1, |_| ..., |_| xk)
@@ -575,7 +603,7 @@ scalars, which are promoted.
        |decr| for :math:`x \leq 0`
 
 
-Vector/Matrix functions
+Vector/matrix functions
 -----------------------
 
 A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
@@ -609,6 +637,14 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on |_| c
 
+   * - cumsum(X, axis=0)
+
+     - cumulative sum along given axis.
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - diag(x)
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
      - :math:`x \in\mathbf{R}^{n}`
@@ -623,12 +659,12 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - diff(x, k=1)
+   * - diff(X, k=1, axis=0)
 
        :math:`k \in 0,1,2,\ldots`
-     - vector of kth order differences
-     - :math:`x \in\mathbf{R}^{n}`
-     - same as x
+     - kth order differences along given axis
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - same as X
      - |affine| affine
      - |incr| incr.
 

@@ -25,4 +25,4 @@ from cvxpy.constraints.leq_constraint import LeqConstraint
 from cvxpy.constraints.psd_constraint import PSDConstraint
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.semidefinite import SDP
-from cvxpy.constraints.soc_elemwise import SOC_Elemwise
+from cvxpy.constraints.soc_axis import SOC_Axis

@@ -3,107 +3,43 @@
 Install Guide
 =============
 
-Mac OS X
---------
+Mac OS X and Linux
+------------------
 
-The following instructions assume you already have Python installed.
-CVXPY supports both Python 2 and Python 3.
+CVXPY supports both Python 2 and Python 3 on OS X and Linux.
 
-1. Install the Command Line Tools for Xcode.
+1. Install `Anaconda`_.
 
-   Download from the `Apple developer site <http://developer.apple.com/downloads>`_.
-
-2. If you don't have ``pip`` installed, follow the instructions `here <https://pip.pypa.io/en/latest/installing.html>`_ to install it.
-
-3. Install ``numpy`` with ``pip`` from the command-line.
+2. Install ``cvxpy`` with ``conda``. 
 
    ::
 
-     pip install numpy
+      conda install -c cvxgrp cvxpy
 
-4. Install ``cvxpy`` with ``pip`` from the command-line.
-
-   ::
-
-       pip install cvxpy
-
-5. Test the installation with ``nose``.
+3. Test the installation with ``nose``.
 
   ::
 
-       pip install nose
-       nosetests cvxpy
-
-Ubuntu 14.04
-------------
-
-The following instructions are for installing CVXPY with Python 2.
-To install CVXPY with Python 3, simply install the Python 3 version of all the packages.
-
-1. Make sure ``apt-get`` is up-to-date.
-
-  ::
-
-      sudo apt-get update
-
-2. Install ``ATLAS`` and ``gfortran`` (needed for ``SCS``).
-
-   ::
-
-       sudo apt-get install libatlas-base-dev gfortran
-
-3. Install ``python-dev``.
-
-   ::
-
-       sudo apt-get install python-dev
-
-4. Install ``pip``.
-
-   ::
-
-       sudo apt-get install python-pip
-
-5. Install ``numpy`` and ``scipy``.
-
-   ::
-
-       sudo apt-get install python-numpy python-scipy
-
-6. Install ``cvxpy``.
-
-   ::
-
-       sudo pip install cvxpy
-
-  or to install locally
-
-   ::
-
-      pip install --user cvxpy
-
-7. Install ``nose``.
-
-  ::
-
-       sudo apt-get install python-nose
-
-8. Test the installation with ``nose``.
-
-  ::
-
+       conda install nose
        nosetests cvxpy
 
 Windows
 -------
 
-Here is a step-by-step guide to installing CVXPY on a Windows machine.
+There are two ways to install CVXPY on Windows.
+One method uses Python(x,y), while the other uses Anaconda.
+Installation with Python(x,y) is less likely to have problems.
+Both installation methods use Python 2.
 
-1. If you have Python installed already, it's probably a good idea to remove it first. (Sorry!)
+Windows with Python(x,y)
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-2. Download the latest version of Python(x,y).
+1. If you have Python installed already, it's probably a good idea to remove it first.
+If you uninstall Anaconda, you may need to take `extra steps to remove all traces of the Anaconda install <http://stackoverflow.com/questions/15828294/problems-in-fully-uninstalling-python-2-7-from-windows-7>`_.
 
-3. Install Python(x,y). When prompted to select optional components, make sure to check cvxopt and cvxpy, as shown below.
+2. Download the `latest version of Python(x,y) <https://python-xy.github.io/downloads.html>`_.
+
+3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
 
   .. image:: files/windows1.png
       :scale: 100%
@@ -111,15 +47,39 @@ Here is a step-by-step guide to installing CVXPY on a Windows machine.
   .. image:: files/windows2.png
       :scale: 49%
 
-4. To test the cvxpy installation,
+4. To test the CVXPY installation,
 open Python(x,y) and launch the interactive console (highlighted button in the picture).
 This will bring up a console.
 
-  .. image:: files/windows4.png
+  .. image:: files/windows3.png
       :scale: 100%
 
-5. From the console, run "nosetests cvxpy".
+5. From the console, run ``nosetests cvxpy``.
+If all but one of the tests pass, your installation was successful.
+
+
+Windows with Anaconda
+^^^^^^^^^^^^^^^^^^^^^
+
+1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_. You must use the Python 2 version.
+
+2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
+
+3. Install SCS from the Anaconda prompt by running the following command:
+
+  ::
+
+      conda install -c https://conda.anaconda.org/omnia scs
+
+4. Install CVXPY from the Anaconda prompt by running the following command:
+
+  ::
+
+      pip install cvxpy
+
+5. From the console, run ``nosetests cvxpy``.
 If all the tests pass, your installation was successful.
+
 
 Other Platforms
 ---------------
@@ -134,20 +94,22 @@ CVXPY has the following dependencies:
 * Python 2.7 or Python 3.4
 * `setuptools`_ >= 1.4
 * `toolz`_
-* `CVXOPT`_ >= 1.1.6
+* `six <https://pythonhosted.org/six/>`_
+* `fastcache <https://github.com/pbrady/fastcache>`_
+* `multiprocess`_
 * `ECOS`_ >= 2
-* `SCS`_ >= 1.0.1
+* `SCS`_ >= 1.1.3
 * `NumPy`_ >= 1.8
-* `SciPy`_ >= 0.13
-* `CVXcanon`_ >= 0.0.17
+* `SciPy`_ >= 0.15
+* `CVXcanon`_ >= 0.0.22
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `ECOS`_, `CVXOPT`_, `SCS`_, and `toolz`_.
-`NumPy`_ and `SciPy`_ will need to be installed manually.
-You may also need to install `Swig`_ to build `CVXcanon`_.
-Once you’ve
-installed `NumPy`_, `SciPy`_, and `Swig`_, installing CVXPY from source is simple:
+CVXPY automatically installs `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
+`multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually.
+You may also wish to install `Swig`_ to build `CVXcanon`_ from source.
+Once you’ve installed
+`NumPy`_ and `SciPy`_, installing CVXPY from source is simple:
 
 1. Clone the `CVXPY git repository`_.
 2. Navigate to the top-level of the cloned directory and run
@@ -155,6 +117,34 @@ installed `NumPy`_, `SciPy`_, and `Swig`_, installing CVXPY from source is simpl
    ::
 
        python setup.py install
+
+Install with CVXOPT support
+---------------------------
+
+CVXPY supports the `CVXOPT`_ solver.
+Simply install CVXOPT by running ``pip install cvxopt``.
+If you use Anaconda you will need to run ``conda install nomkl`` first.
+
+Install with Elemental support
+------------------------------
+
+CVXPY supports the Elemental solver.
+Simply install Elemental such that you can ``import El`` in Python.
+See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
+
+Install with GUROBI support
+---------------------------
+
+CVXPY supports the GUROBI solver.
+Simply install GUROBI such that you can ``import gurobipy`` in Python.
+See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
+
+Install with MOSEK support
+---------------------------
+
+CVXPY supports the MOSEK solver.
+Simply install MOSEK such that you can ``import mosek`` in Python.
+See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
 
 Install with GLPK support
 -------------------------
@@ -175,23 +165,16 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
 
-Install with GUROBI support
----------------------------
-
-CVXPY supports the GUROBI solver.
-Simply install GUROBI such that you can ``import gurobipy`` in Python.
-See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
-
-Install with Elemental support
-------------------------------
-
-CVXPY supports the Elemental solver.
-Simply install Elemental such that you can ``import El`` in Python.
-See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
+Install with Cbc (Clp, Cgl) support
+-----------------------------------
+CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
+Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
+See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _multiprocess: https://github.com/uqfoundation/multiprocess/
 .. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos

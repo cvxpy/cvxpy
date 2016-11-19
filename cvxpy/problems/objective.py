@@ -18,8 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.utilities as u
+from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
+
 
 class Minimize(u.Canonical):
     """An optimization objective for minimization.
@@ -50,7 +52,7 @@ class Minimize(u.Canonical):
         if type(other) is Minimize:
             return Minimize(self.args[0] + other.args[0])
         else:
-            raise Exception("Problem does not follow DCP rules.")
+            raise DCPError("Problem does not follow DCP rules.")
 
     def __radd__(self, other):
         if other == 0:
@@ -103,6 +105,11 @@ class Minimize(u.Canonical):
         """
         return self.args[0].parameters()
 
+    def constants(self):
+        """Returns the constants in the objective.
+        """
+        return self.args[0].constants()
+
     def is_dcp(self):
         """The objective must be convex.
         """
@@ -119,6 +126,7 @@ class Minimize(u.Canonical):
         """The value of the objective given the solver primal value.
         """
         return result
+
 
 class Maximize(Minimize):
     """An optimization objective for maximization.
@@ -148,6 +156,11 @@ class Maximize(Minimize):
         """The objective must be concave.
         """
         return self.args[0].is_concave()
+
+    def is_quadratic(self):
+        """Returns if the objective is a quadratic function.
+        """
+        return self.args[0].is_quadratic()
 
     @staticmethod
     def primal_to_result(result):

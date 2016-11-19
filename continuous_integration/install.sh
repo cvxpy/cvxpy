@@ -28,33 +28,63 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+    if [[ "$INSTALL_GLPK" == "true" ]]; then
+        conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
+    else
+        conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
+        conda install -c cvxgrp --yes scs multiprocess cvxcanon
+    fi
     source activate testenv
+    pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
         # Install GLPK.
-        wget http://ftp.gnu.org/gnu/glpk/glpk-4.55.tar.gz
-        tar -zxvf glpk-4.55.tar.gz
-        cd glpk-4.55
+        wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
+        tar -zxvf glpk-4.60.tar.gz
+        cd glpk-4.60
+        sudo ./configure
+        sudo make
+        sudo make check
+        sudo make install
+        sudo ldconfig
+        cd ..
+        # Install CVXOPT with GLPK bindings.
+        CVXOPT_BUILD_GLPK=1 CVXOPT_GLPK_LIB_DIR=/usr/local/lib CVXOPT_GLPK_INC_DIR=/usr/local/include pip install cvxopt
+
+        # Install CBC
+        oldpath="$PWD"
+        cd /home/travis
+        wget http://www.coin-or.org/download/source/Cbc/Cbc-2.9.7.tgz
+        tar -zxvf Cbc-2.9.7.tgz
+        cd Cbc-2.9.7
         sudo ./configure
         sudo make
         sudo make install
         cd ..
-        # Install CVXOPT with GLPK bindings.
-        CVXOPT_BUILD_GLPK=1
-        CVXOPT_GLPK_LIB_DIR=/home/travis/glpk-4.55/lib
-        CVXOPT_GLPK_INC_DIR=/home/travis/glpk-4.55/include
-        pip install cvxopt
+
+        export COIN_INSTALL_DIR=/home/travis/Cbc-2.9.7
+        export LD_LIBRARY_PATH=/home/travis/Cbc-2.9.7/lib:$LD_LIBRARY_PATH
+
+        # sudo apt-get install coinor-libcbc-dev coinor-libcbc0 coinor-libcbc-doc
+
+        # Install cyLP -> which is needed for CBC-interface
+        git clone -b py3 https://github.com/jjhelmus/CyLP.git  # use custom-branch because of py3
+        cd CyLP
+        python setup.py install
+        cd ..
+
+        cd "$oldpath"
     fi
 
-    if [[ "$INSTALL_MKL" == "true" ]]; then
-        # Make sure that MKL is used
-        conda install --yes mkl
-    else
-        # Make sure that MKL is not used
-        conda remove --yes --features mkl || echo "MKL not installed"
-    fi
+    # if [[ "$INSTALL_MKL" == "true" ]]; then
+    #     # Make sure that MKL is used
+    #     conda install --yes mkl
+    # else
+    #     # Make sure that MKL is not used
+    #     conda remove --yes --features mkl || echo "MKL not installed"
+    # fi
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     sudo apt-get update -qq

@@ -20,6 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from cvxpy.expressions import expression
 import cvxpy.interface as intf
+import numpy as np
+
 
 class Leaf(expression.Expression):
     """
@@ -41,8 +43,31 @@ class Leaf(expression.Expression):
         """
         return []
 
+    def constants(self):
+        """Default is empty list of Constants.
+        """
+        return []
+
+    def is_convex(self):
+        """Is the expression convex?
+        """
+        return True
+
+    def is_concave(self):
+        """Is the expression concave?
+        """
+        return True
+
+    @property
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
+        """
+        # Default is full domain.
+        return []
+
     def _validate_value(self, val):
-        """Check that the value satisfies the parameter's symbolic attributes.
+        """Check that the value satisfies the leaf's symbolic attributes.
 
         Parameters
         ----------
@@ -65,10 +90,25 @@ class Leaf(expression.Expression):
                 )
             # All signs are valid if sign is unknown.
             # Otherwise value sign must match declared sign.
-            sign = intf.sign(val)
-            if self.is_positive() and not sign.is_positive() or \
-               self.is_negative() and not sign.is_negative():
+            pos_val, neg_val = intf.sign(val)
+            if self.is_positive() and not pos_val or \
+               self.is_negative() and not neg_val:
                 raise ValueError(
                     "Invalid sign for %s value." % self.__class__.__name__
                 )
+            # Round to correct sign.
+            elif self.is_positive():
+                val = np.maximum(val, 0)
+            elif self.is_negative():
+                val = np.minimum(val, 0)
         return val
+
+    def is_quadratic(self):
+        """Leaf nodes are always quadratic.
+        """
+        return True
+
+    def is_pwl(self):
+        """Leaf nodes are always piecewise linear.
+        """
+        return True

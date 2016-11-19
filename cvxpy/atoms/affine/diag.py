@@ -18,10 +18,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
+from cvxpy.atoms.affine.reshape import reshape
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 def diag(expr):
     """Extracts the diagonal from a matrix or makes a vector a diagonal matrix.
@@ -49,9 +50,11 @@ def diag(expr):
     else:
         raise ValueError("Argument to diag must be a vector or square matrix.")
 
+
 class diag_vec(AffAtom):
     """Converts a vector into a diagonal matrix.
     """
+
     def __init__(self, expr):
         super(diag_vec, self).__init__(expr)
 
@@ -63,11 +66,11 @@ class diag_vec(AffAtom):
         value = intf.from_2D_to_1D(values[0])
         return np.diag(value)
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """A square matrix.
         """
         rows, _ = self.args[0].size
-        return u.Shape(rows, rows)
+        return (rows, rows)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -89,9 +92,11 @@ class diag_vec(AffAtom):
         """
         return (lu.diag_vec(arg_objs[0]), [])
 
+
 class diag_mat(AffAtom):
     """Extracts the diagonal from a square matrix.
     """
+
     def __init__(self, expr):
         super(diag_mat, self).__init__(expr)
 
@@ -105,11 +110,11 @@ class diag_mat(AffAtom):
             v = v.A[0]
         return v
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """A column vector.
         """
         rows, _ = self.args[0].size
-        return u.Shape(rows, 1)
+        return (rows, 1)
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

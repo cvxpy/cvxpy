@@ -22,14 +22,19 @@ from cvxpy.problems.solvers.ecos_bb_intf import ECOS_BB
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
 from cvxpy.problems.solvers.glpk_intf import GLPK
 from cvxpy.problems.solvers.glpk_mi_intf import GLPK_MI
+from cvxpy.problems.solvers.cbc_intf import CBC
 from cvxpy.problems.solvers.scs_intf import SCS
 from cvxpy.problems.solvers.gurobi_intf import GUROBI
 from cvxpy.problems.solvers.elemental_intf import Elemental
 from cvxpy.problems.solvers.mosek_intf import MOSEK
+from cvxpy.problems.solvers.ls_intf import LS
+from cvxpy.problems.solvers.julia_opt_intf import JuliaOpt
 
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
-               GLPK_MI(), SCS(), GUROBI(), Elemental(), MOSEK()]
-SOLVERS = {solver.name():solver for solver in solver_intf}
+               GLPK_MI(), CBC(), SCS(), GUROBI(),
+               Elemental(), MOSEK(), LS(), JuliaOpt()]
+SOLVERS = {solver.name(): solver for solver in solver_intf}
+
 
 def installed_solvers():
     """List the installed solvers.

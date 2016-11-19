@@ -73,7 +73,7 @@ class Bar1(object):
     def __array_prepare__(self):
         print "hello"
         return self
-    def __array_wrap__(self): 
+    def __array_wrap__(self):
         return self
 
     def __array__(self):
@@ -95,7 +95,7 @@ def override(name):
     else:
         def ufunc(x, y):
             print y
-            if isinstance(y, Bar1): 
+            if isinstance(y, Bar1):
                 return NotImplemented
             return getattr(np, name)(x, y)
         return ufunc

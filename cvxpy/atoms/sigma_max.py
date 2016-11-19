@@ -17,17 +17,18 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 import scipy.sparse as sp
 from numpy import linalg as LA
+import numpy as np
+
 
 class sigma_max(Atom):
     """ Maximum singular value. """
+
     def __init__(self, A):
         super(sigma_max, self).__init__(A)
 
@@ -37,25 +38,54 @@ class sigma_max(Atom):
         """
         return LA.norm(values[0], 2)
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
         """
-        return u.Shape(1, 1)
+        # Grad: U diag(e_1) V.T
+        U, s, V = LA.svd(values[0])
+        ds = np.zeros(len(s))
+        ds[0] = 1
+        D = U.dot(np.diag(ds)).dot(V)
+        return [sp.csc_matrix(D.ravel(order='F')).T]
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return (1, 1)
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        # Always positive.
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Neither increasing nor decreasing.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.NONMONOTONIC]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -75,7 +105,7 @@ class sigma_max(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        A = arg_objs[0] # n by m matrix.
+        A = arg_objs[0]  # n by m matrix.
         n, m = A.size
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = lu.create_var((n+m, n+m))

@@ -25,6 +25,7 @@ from cvxpy.constraints.constraint import Constraint
 import numpy as np
 import scipy.sparse as sp
 
+
 class SDP(Constraint):
     """
     A semi-definite cone constraint:
@@ -37,6 +38,7 @@ class SDP(Constraint):
         enforce_sym: Should symmetry constraints be added?
         constr_id: The id assigned to the inequality constraint.
     """
+
     def __init__(self, A, enforce_sym=True, constr_id=None):
         self.A = A
         self.enforce_sym = enforce_sym

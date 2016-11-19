@@ -22,12 +22,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import numbers
 
+
 def validate_key(key, shape):
     """Check if the key is a valid index.
 
     Args:
         key: The key used to index/slice.
-        shape: The shape of the expression.
+        shape: The shape (rows, cols) of the expression.
 
     Returns:
         The key as a tuple of slices.
@@ -35,7 +36,7 @@ def validate_key(key, shape):
     Raises:
         Error: Index/slice out of bounds.
     """
-    rows, cols = shape.size
+    rows, cols = shape
     # Change single indices for vectors into double indices.
     if not isinstance(key, tuple):
         if rows == 1:
@@ -45,8 +46,9 @@ def validate_key(key, shape):
         else:
             raise IndexError("Invalid index/slice.")
     # Change numbers into slices and ensure all slices have a start and step.
-    key = (format_slice(slc, dim) for slc, dim in zip(key, shape.size))
+    key = (format_slice(slc, dim) for slc, dim in zip(key, shape))
     return tuple(key)
+
 
 def format_slice(key_val, dim):
     """Converts part of a key into a slice with a start and step.
@@ -74,6 +76,7 @@ def format_slice(key_val, dim):
         else:
             raise IndexError("Index/slice out of bounds.")
 
+
 def to_int(val):
     """Convert everything but None to an int.
     """
@@ -81,6 +84,7 @@ def to_int(val):
         return val
     else:
         return int(val)
+
 
 def wrap_neg_index(index, dim):
     """Converts a negative index into a positive index.
@@ -92,6 +96,7 @@ def wrap_neg_index(index, dim):
     if index is not None and index < 0:
         index %= dim
     return index
+
 
 def index_to_slice(idx):
     """Converts an index to a slice.
@@ -106,6 +111,7 @@ def index_to_slice(idx):
     """
     return slice(idx, idx+1, None)
 
+
 def slice_to_str(slc):
     """Converts a slice into a string.
     """
@@ -117,6 +123,7 @@ def slice_to_str(slc):
     else:
         return "%s:%s" % (endpoints[0], endpoints[1])
 
+
 def none_to_empty(val):
     """Converts None to an empty string.
     """
@@ -124,6 +131,7 @@ def none_to_empty(val):
         return ''
     else:
         return val
+
 
 def is_single_index(slc):
     """Is the slice equivalent to a single index?
@@ -133,30 +141,33 @@ def is_single_index(slc):
     else:
         step = slc.step
     return slc.start is not None and \
-           slc.stop is not None and \
-           slc.start + step >= slc.stop
+        slc.stop is not None and \
+        slc.start + step >= slc.stop
+
 
 def size(key, shape):
     """Finds the dimensions of a sliced expression.
 
     Args:
         key: The key used to index/slice.
-        shape: The shape of the expression.
+        shape: The shape (row, col) of the expression.
 
     Returns:
         The dimensions of the expression as (rows, cols).
     """
     dims = []
     for i in range(2):
-        selection = np.arange(shape.size[i])[key[i]]
+        selection = np.arange(shape[i])[key[i]]
         size = np.size(selection)
         dims.append(size)
     return tuple(dims)
+
 
 def to_str(key):
     """Converts a key (i.e. two slices) into a string.
     """
     return (slice_to_str(key[0]), slice_to_str(key[1]))
+
 
 def is_special_slice(key):
     """Does the key contain a list, ndarray, or logical ndarray?

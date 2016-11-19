@@ -17,17 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.affine.index import index
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
+
 class entr(Elementwise):
     """Elementwise :math:`-x\log x`.
     """
+
     def __init__(self, x):
         super(entr, self).__init__(x)
 
@@ -39,16 +39,57 @@ class entr(Elementwise):
         results[np.isnan(results)] = -np.inf
         return results
 
-    # Always unknown.
     def sign_from_args(self):
-        return u.Sign.UNKNOWN
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # Always unknown.
+        return (False, False)
 
-    # Default curvature.
-    def func_curvature(self):
-        return u.Curvature.CONCAVE
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return False
 
-    def monotonicity(self):
-        return [u.monotonicity.NONMONOTONIC]
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return True
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        rows = self.args[0].size[0]*self.args[0].size[1]
+        cols = self.size[0]*self.size[1]
+        # Outside domain or on boundary.
+        if np.min(values[0]) <= 0:
+            # Non-differentiable.
+            return [None]
+        else:
+            grad_vals = -np.log(values[0]) - 1
+            return [entr.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[0] >= 0]
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

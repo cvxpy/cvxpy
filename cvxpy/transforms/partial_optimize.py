@@ -17,14 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.settings as s
 import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.lin_ops.lin_op as lo
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.expression import Expression
+from cvxpy.atoms import trace
 import copy
+
 
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
     """Partially optimizes the given problem over the specified variables.
@@ -70,6 +71,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
 
     return PartialProblem(prob, opt_vars, dont_opt_vars)
 
+
 class PartialProblem(Expression):
     """A partial optimization problem.
 
@@ -80,17 +82,17 @@ class PartialProblem(Expression):
     dont_opt_vars : list
         The variables to not optimize over.
     """
+
     def __init__(self, prob, opt_vars, dont_opt_vars):
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.args = [prob]
         # Replace the opt_vars in prob with new variables.
-        id_to_new_var = {var.id:var.copy() for var in self.opt_vars}
+        id_to_new_var = {var.id: var.copy() for var in self.opt_vars}
         new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
         new_constrs = [self._replace_new_vars(con, id_to_new_var)
                        for con in prob.constraints]
         self._prob = Problem(new_obj, new_constrs)
-        self.init_dcp_attr()
         super(PartialProblem, self).__init__()
 
     def get_data(self):
@@ -98,23 +100,33 @@ class PartialProblem(Expression):
         """
         return [self.opt_vars, self.dont_opt_vars]
 
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
+    def is_convex(self):
+        """Is the expression convex?
         """
-        sign = self.args[0].objective.args[0]._dcp_attr.sign
-        if isinstance(self.args[0].objective, Minimize):
-            curvature = u.curvature.Curvature.CONVEX
-        elif isinstance(self.args[0].objective, Maximize):
-            curvature = u.curvature.Curvature.CONCAVE
-        else:
-            raise Exception(
-                ("You called partial_optimize with a Problem object that "
-                 "contains neither a Minimize nor a Maximize statement; "
-                 "this is not supported.")
-            )
-        self._dcp_attr = u.DCPAttr(sign,
-                                   curvature,
-                                   u.Shape(1, 1))
+        return self.args[0].is_dcp() and \
+            type(self.args[0].objective) == Minimize
+
+    def is_concave(self):
+        """Is the expression concave?
+        """
+        return self.args[0].is_dcp() and \
+            type(self.args[0].objective) == Maximize
+
+    def is_positive(self):
+        """Is the expression positive?
+        """
+        return self.args[0].objective.args[0].is_positive()
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return self.args[0].objective.args[0].is_negative()
+
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return (1, 1)
 
     def name(self):
         """Returns the string representation of the expression.
@@ -131,6 +143,70 @@ class PartialProblem(Expression):
         """
         return self.args[0].parameters()
 
+    def constants(self):
+        """Returns the constants in the problem.
+        """
+        return self.args[0].constants()
+
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+        None indicates variable values unknown or outside domain.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        # Subgrad of g(y) = min f_0(x,y)
+        #                   s.t. f_i(x,y) <= 0, i = 1,..,p
+        #                        h_i(x,y) == 0, i = 1,...,q
+        # Given by Df_0(x^*,y) + \sum_i Df_i(x^*,y) \lambda^*_i
+        #          + \sum_i Dh_i(x^*,y) \nu^*_i
+        # where x^*, \lambda^*_i, \nu^*_i are optimal primal/dual variables.
+        # Add PSD constraints in same way.
+
+        # Short circuit for constant.
+        if self.is_constant():
+            return u.grad.constant_grad(self)
+
+        old_vals = {var.id: var.value for var in self.variables()}
+        fix_vars = []
+        for var in self.variables():
+            if var.value is None:
+                return u.grad.error_grad(self)
+            else:
+                fix_vars += [var == var.value]
+        prob = Problem(self._prob.objective,
+                       fix_vars + self._prob.constraints)
+        prob.solve()
+        # Compute gradient.
+        if prob.status in s.SOLUTION_PRESENT:
+            sign = self.is_convex() - self.is_concave()
+            # Form Lagrangian.
+            lagr = self._prob.objective.args[0]
+            for constr in self._prob.constraints:
+                # TODO: better way to get constraint expressions.
+                lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
+                lagr += trace(lagr_multiplier.T*constr._expr)
+            grad_map = lagr.grad
+            result = {var: grad_map[var] for var in self.variables()}
+        else:  # Unbounded, infeasible, or solver error.
+            result = u.grad.error_grad(self)
+        # Restore the original values to the variables.
+        for var in self.variables():
+            var.value = old_vals[var.id]
+        return result
+
+    @property
+    def domain(self):
+        """A list of constraints describing the closure of the region
+           where the expression is finite.
+        """
+        # Variables optimized over are replaced in self._prob.
+        obj_expr = self._prob.objective.args[0]
+        return self._prob.constraints + obj_expr.domain
+
     @property
     def value(self):
         """Returns the numeric value of the expression.
@@ -138,7 +214,7 @@ class PartialProblem(Expression):
         Returns:
             A numpy matrix or a scalar.
         """
-        old_vals = {var.id:var.value for var in self.variables()}
+        old_vals = {var.id: var.value for var in self.variables()}
         fix_vars = []
         for var in self.variables():
             if var.value is None:
@@ -176,12 +252,12 @@ class PartialProblem(Expression):
         elif isinstance(obj, PartialProblem):
             prob = obj.args[0]
             new_obj = PartialProblem._replace_new_vars(prob.objective,
-                id_to_new_var)
+                                                       id_to_new_var)
             new_constr = []
             for constr in prob.constraints:
                 new_constr.append(
                     PartialProblem._replace_new_vars(constr,
-                                            id_to_new_var)
+                                                     id_to_new_var)
                 )
             new_args = [Problem(new_obj, new_constr)]
             return obj.copy(new_args)
@@ -203,4 +279,9 @@ class PartialProblem(Expression):
         -------
             A tuple of (affine expression, [constraints]).
         """
-        return self._prob.canonical_form
+        # Canonical form for objective and problem switches from minimize
+        # to maximize.
+        obj, constrs = self._prob.objective.args[0].canonical_form
+        for cons in self._prob.constraints:
+            constrs += cons.canonical_form[1]
+        return (obj, constrs)

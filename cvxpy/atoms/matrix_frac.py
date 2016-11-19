@@ -17,66 +17,115 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
-import scipy.sparse as sp
 from numpy import linalg as LA
+import numpy as np
+import scipy.sparse as sp
+
 
 class matrix_frac(Atom):
-    """ x.T*P^-1*x """
-    def __init__(self, x, P):
-        super(matrix_frac, self).__init__(x, P)
+    """ tr X.T*P^-1*X """
+
+    def __init__(self, X, P):
+        super(matrix_frac, self).__init__(X, P)
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns x.T*P^-1*x.
+        """Returns tr X.T*P^-1*X.
         """
         # TODO raise error if not invertible?
-        x = values[0]
+        X = values[0]
         P = values[1]
-        return x.T.dot(LA.inv(P)).dot(x)
+        return (X.T.dot(LA.inv(P)).dot(X)).trace()
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[1] >> 0]
+
+    def _grad(self, values):
+        """
+        Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        X = np.matrix(values[0])
+        P = np.matrix(values[1])
+        try:
+            P_inv = LA.inv(P)
+        except LA.LinAlgError:
+            return [None, None]
+        # partial_X = (P^-1+P^-T)X
+        # partial_P = - (P^-1 * X * X^T * P^-1)^T
+        else:
+            DX = np.dot(P_inv+np.transpose(P_inv), X)
+            DX = DX.T.ravel(order='F')
+            DX = sp.csc_matrix(DX).T
+
+            DP = P_inv.dot(X)
+            DP = DP.dot(X.T)
+            DP = DP.dot(P_inv)
+            DP = -DP.T
+            DP = sp.csc_matrix(DP.T.ravel(order='F')).T
+            return [DX, DP]
 
     def validate_arguments(self):
         """Checks that the dimensions of x and P match.
         """
-        x = self.args[0]
+        X = self.args[0]
         P = self.args[1]
         if P.size[0] != P.size[1]:
             raise ValueError(
                 "The second argument to matrix_frac must be a square matrix."
             )
-        elif x.size[1] != 1:
-            raise ValueError(
-                "The first argument to matrix_frac must be a column vector."
-            )
-        elif x.size[0] != P.size[0]:
+        elif X.size[0] != P.size[0]:
             raise ValueError(
                 "The arguments to matrix_frac have incompatible dimensions."
             )
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
         """
-        return u.Shape(1, 1)
+        return (1, 1)
 
     def sign_from_args(self):
-        """Always positive.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return u.Sign.POSITIVE
+        return (True, False)
 
-    def func_curvature(self):
-        """Default curvature.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Neither increasing nor decreasing.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return len(self.args)*[u.monotonicity.NONMONOTONIC]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
+
+    def is_quadratic(self):
+        """Quadratic if x is affine and P is constant.
+        """
+        return self.args[0].is_affine() and self.args[1].is_constant()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -96,22 +145,22 @@ class matrix_frac(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = arg_objs[0]
-        P = arg_objs[1] # n by n matrix.
-        n, _ = P.size
-        # Create a matrix with Schur complement t - x.T*P^-1*x.
-        M = lu.create_var((n + 1, n + 1))
-        t = lu.create_var((1, 1))
+        X = arg_objs[0]  # n by m matrix.
+        P = arg_objs[1]  # n by n matrix.
+        n, m = X.size
+        # Create a matrix with Schur complement T - X.T*P^-1*X.
+        M = lu.create_var((n + m, n + m))
+        T = lu.create_var((m, m))
         constraints = []
         # Fix M using the fact that P must be affine by the DCP rules.
         # M[0:n, 0:n] == P.
         index.block_eq(M, P, constraints,
                        0, n, 0, n)
-        # M[0:n, n:n+1] == x
-        index.block_eq(M, x, constraints,
-                       0, n, n, n+1)
-        # M[n:n+1, n:n+1] == t
-        index.block_eq(M, t, constraints,
-                       n, n+1, n, n+1)
+        # M[0:n, n:n+m] == X
+        index.block_eq(M, X, constraints,
+                       0, n, n, n+m)
+        # M[n:n+m, n:n+m] == T
+        index.block_eq(M, T, constraints,
+                       n, n+m, n, n+m)
         # Add SDP constraint.
-        return (t, constraints + [SDP(M)])
+        return (lu.trace(T), constraints + [SDP(M)])

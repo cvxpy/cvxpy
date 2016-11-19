@@ -52,14 +52,21 @@ INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
 CVXOPT = "CVXOPT"
 GLPK = "GLPK"
 GLPK_MI = "GLPK_MI"
+CBC = "CBC"
 ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
 GUROBI = "GUROBI"
 ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
+LS = "LS"
+JULIA_OPT = "JULIA_OPT"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
-           GLPK_MI, SCS, GUROBI, ELEMENTAL, MOSEK]
+           GLPK_MI, SCS, GUROBI, ELEMENTAL,
+           MOSEK, LS, JULIA_OPT]
+
+# Parallel (meta) solver
+PARALLEL = "parallel"
 
 # Robust CVXOPT LDL KKT solver.
 ROBUST_KKTSOLVER = "robust"
@@ -86,6 +93,9 @@ OBJ_OFFSET = "obj_offset"
 PRIMAL = "primal"
 EQ_DUAL = "eq_dual"
 INEQ_DUAL = "ineq_dual"
+SOLVE_TIME = "solve_time"  # in seconds
+SETUP_TIME = "setup_time"  # in seconds
+NUM_ITERS = "num_iters"  # number of iterations
 
 # Keys for problem data dict.
 C = "c"
@@ -98,3 +108,13 @@ F = "F"
 DIMS = "dims"
 BOOL_IDX = "bool_vars_idx"
 INT_IDX = "int_vars_idx"
+
+# Keys for curvature and sign.
+CONSTANT = "CONSTANT"
+AFFINE = "AFFINE"
+CONVEX = "CONVEX"
+CONCAVE = "CONCAVE"
+ZERO = "ZERO"
+POSITIVE = "POSITIVE"
+NEGATIVE = "NEGATIVE"
+UNKNOWN = "UNKNOWN"

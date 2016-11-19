@@ -21,19 +21,19 @@ from __future__ import division
 import sys
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.interface as intf
-from cvxpy.expressions.constants import Constant
+import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
-import numpy as np
 if sys.version_info >= (3, 0):
     from functools import reduce
+
 
 class BinaryOperator(AffAtom):
     """
     Base class for expressions involving binary operators.
 
     """
+
     def __init__(self, lh_exp, rh_exp):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
@@ -47,6 +47,7 @@ class BinaryOperator(AffAtom):
         """
         return reduce(self.OP_FUNC, values)
 
+<<<<<<< HEAD
     def init_dcp_attr(self):
         """Sets the sign, curvature, and shape.
         """
@@ -58,11 +59,19 @@ class BinaryOperator(AffAtom):
         """
         self.OP_FUNC(self.args[0]._dcp_attr.shape,
                      self.args[1]._dcp_attr.shape)
+=======
+    def sign_from_args(self):
+        """Default to rules for times.
+        """
+        return u.sign.mul_sign(self.args[0], self.args[1])
+
+>>>>>>> master
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+<<<<<<< HEAD
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Multiply the two values.
@@ -71,6 +80,27 @@ class MulExpression(BinaryOperator):
             return super(MulExpression, self).numeric(values)
         else:
             return np.dot(values[0], values[1])
+=======
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[0].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[0].is_negative()
+
+    def validate_arguments(self):
+        """Validates the dimensions.
+        """
+        u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+>>>>>>> master
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -96,9 +126,20 @@ class MulExpression(BinaryOperator):
             arg_objs[1] = lu.diag_vec(arg)
         return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 
+
 class RMulExpression(MulExpression):
     """Multiplication by a constant on the right.
     """
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[1].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[1].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
@@ -124,9 +165,28 @@ class RMulExpression(MulExpression):
             arg_objs[0] = lu.diag_vec(arg)
         return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
 
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
-    OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
+    OP_FUNC = op.__truediv__ if (sys.version_info >= (3, 0)) else op.__div__
+
+    def is_quadratic(self):
+        return self.args[0].is_quadratic() and self.args[1].is_constant()
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return self.args[0].size
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[1].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[1].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

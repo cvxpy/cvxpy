@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
+
 
 class vstack(AffAtom):
     """ Vertical concatenation """
@@ -30,17 +30,17 @@ class vstack(AffAtom):
         return np.vstack(values)
 
     # The shape is the common width and the sum of the heights.
-    def shape_from_args(self):
+    def size_from_args(self):
         cols = self.args[0].size[1]
         rows = sum(arg.size[0] for arg in self.args)
-        return u.Shape(rows, cols)
+        return (rows, cols)
 
     # All arguments must have the same width.
     def validate_arguments(self):
         arg_cols = [arg.size[1] for arg in self.args]
         if max(arg_cols) != min(arg_cols):
-            raise TypeError( ("All arguments to vstack must have "
-                              "the same number of columns.") )
+            raise TypeError(("All arguments to vstack must have "
+                             "the same number of columns."))
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

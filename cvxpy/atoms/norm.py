@@ -23,7 +23,7 @@ from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.pnorm import pnorm
 
 
-def norm(x, p=2):
+def norm(x, p=2, axis=None):
     """Wrapper on the different norm atoms.
 
     Parameters
@@ -39,18 +39,19 @@ def norm(x, p=2):
         An Expression representing the norm.
     """
     x = Expression.cast_to_const(x)
-    if p == 1:
-        return pnorm(x, 1)
+    # Norms for scalars same as absolute value.
+    if p == 1 or x.is_scalar():
+        return pnorm(x, 1, axis)
     elif p == "inf":
-        return pnorm(x, 'inf')
+        return pnorm(x, 'inf', axis)
     elif p == "nuc":
         return normNuc(x)
     elif p == "fro":
-        return pnorm(x, 2)
+        return pnorm(x, 2, axis)
     elif p == 2:
-        if x.is_matrix():
+        if axis is None and x.is_matrix():
             return sigma_max(x)
         else:
-            return pnorm(x, 2)
+            return pnorm(x, 2, axis)
     else:
-        return pnorm(x, p)
+        return pnorm(x, p, axis)

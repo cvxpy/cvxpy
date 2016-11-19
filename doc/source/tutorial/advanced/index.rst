@@ -70,7 +70,7 @@ the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`
 The constraint does not require that ``X`` and ``Y`` be symmetric.
 Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
-The following code shows how to to constrain matrix expressions to be positive or negative
+The following code shows how to constrain matrix expressions to be positive or negative
 semidefinite (but not necessarily symmetric).
 
 .. code:: python
@@ -118,17 +118,21 @@ Problem arithmetic
 
 For convenience, arithmetic operations have been overloaded for
 problems and objectives.
-The rules for adding and multiplying objectives are given below:
+Problem arithmetic is useful because it allows you to write a problem as a
+sum of smaller problems.
+The rules for adding, subtracting, and multiplying objectives are given below.
 
 .. code:: python
 
-    # Addition.
+    # Addition and subtraction.
 
     Minimize(expr1) + Minimize(expr2) == Minimize(expr1 + expr2)
 
     Maximize(expr1) + Maximize(expr2) == Maximize(expr1 + expr2)
 
     Minimize(expr1) + Maximize(expr2) # Not allowed.
+
+    Minimize(expr1) - Maximize(expr2) == Minimize(expr1 - expr2)
 
     # Multiplication (alpha is a positive scalar).
 
@@ -144,17 +148,22 @@ The rules for adding and multiplying problems are equally straightforward:
 
 .. code:: python
 
-    # Addition.
+    # Addition and subtraction.
 
     prob1 + prob2 == Problem(prob1.objective + prob2.objective,
+                             prob1.constraints + prob2.constraints)
+
+    prob1 - prob2 == Problem(prob1.objective - prob2.objective,
                              prob1.constraints + prob2.constraints)
 
     # Multiplication (alpha is any scalar).
 
     alpha*prob == Problem(alpha*prob.objective, prob.constraints)
 
-Problem arithmetic is useful because it allows you to write a problem as a
-sum of smaller problems.
+Note that the ``+`` operator concatenates lists of constraints,
+since this is the default behavior for Python lists.
+The in-place operators ``+=``, ``-=``, and ``*=`` are also supported for
+objectives and problems and follow the same rules as above.
 
 .. Given the optimization problems :math:`p_1,\ldots,p_n` where each
 .. :math:`p_i` is of the form
@@ -170,7 +179,6 @@ sum of smaller problems.
 .. \mbox{minimize}  &\sum_{i=1}^n \alpha_i f_i(x) \\
 .. \mbox{subject to} &x \in \cap_{i=1}^n \mathcal C_i
 .. \end{array}`
-
 
 Solve method options
 --------------------
@@ -196,12 +204,14 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `MOSEK`_, `GUROBI`_, and `Elemental`_.
+CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `CBC`_, `MOSEK`_, `GUROBI`_, and `Elemental`_.
 The table below shows the types of problems the solvers can handle.
 
 +--------------+----+------+-----+-----+-----+
 |              | LP | SOCP | SDP | EXP | MIP |
 +==============+====+======+=====+=====+=====+
+| `CBC`_       | X  |      |     |     | X   |
++--------------+----+------+-----+-----+-----+
 | `GLPK`_      | X  |      |     |     |     |
 +--------------+----+------+-----+-----+-----+
 | `GLPK_MI`_   | X  |      |     |     | X   |
@@ -221,13 +231,15 @@ The table below shows the types of problems the solvers can handle.
 | `SCS`_       | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
 
+A special solver `LS`_ is also available. It is unable to solve any of the problem types in the table above, but it recognizes and solves linearly constrained least squares problems very quickly.
+
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
 You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems (except mixed-integer programs). `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate. `ECOS_BB`_ is called for mixed-integer LPs and SOCPs.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems (except mixed-integer programs). `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate. `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem has a quadratic objective function and equality constraints only, CVXPY will use `LS`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
@@ -275,6 +287,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=ELEMENTAL)
     print "optimal value with Elemental:", prob.value
 
+    # Solve with CBC.
+    prob.solve(solver=CBC)
+    print "optimal value with CBC:", prob.value
+
 ::
 
     optimal value with ECOS: 5.99999999551
@@ -286,6 +302,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GUROBI: 6.0
     optimal value with MOSEK: 6.0
     optimal value with Elemental: 6.0000044085242727
+    optimal value with CBC: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -295,7 +312,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'LS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -328,7 +345,7 @@ All the solvers can print out information about their progress while solving the
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -407,6 +424,15 @@ Here's the complete list of solver options.
 ``'mi_rel_eps'``
     relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)
 
+`MOSEK`_ options:
+
+``'mosek_params'``
+    A dictionary of MOSEK parameters. Refer to MOSEK's Python or C API for
+    details. Note that if parameters are given as string-value pairs, parameter
+    names must be of the form ``'MSK_DPAR_BASIS_TOL_X'`` as in the C API.
+    Alternatively, Python enum options like ``'mosek.dparam.basis_tol_x'`` are
+    also supported.
+
 `CVXOPT`_ options:
 
 ``'max_iters'``
@@ -440,15 +466,32 @@ Here's the complete list of solver options.
 ``'alpha'``
     relaxation parameter (default: 1.8).
 
+``'scale'``
+    balance between minimizing primal and dual residual (default: 5.0).
+
 ``'normalize'``
     whether to precondition data matrices (default: True).
 
 ``'use_indirect'``
-    whether to use indirect solver for KKT sytem (instead of direct) (default: False).
+    whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
 ``'warm_start'``
     whether to initialize the solver with the previous solution (default: False).
     The use case for warm start is solving the same problem for multiple values of a parameter.
+
+`CBC`_ options:
+
+Cut-generation through `CGL`_
+
+General remarks:
+    - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
+    - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+
+The following cut-generators are available:
+    ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+
+``'CutGenName'``
+    if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
 
 Getting the standard form
 -------------------------
@@ -485,10 +528,12 @@ For example, the following code is equivalent to solving the problem directly wi
 
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
-.. _ECOS_BB: https://www.embotech.com/ECOS
+.. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
 .. _Elemental: http://libelemental.org/
+.. _CBC: https://projects.coin-or.org/Cbc
+.. _CGL: https://projects.coin-or.org/Cgl

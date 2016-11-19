@@ -1,40 +1,33 @@
 # Attempts to install ECOS in Python 2.7 and Python 3.3 on both 64- and
 # 32-bit Windows.
 environment:
-    PYVER: 2.7
-    #matrix:
-        # - platform: x64
-        #   PYVER: 2.7
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86_64.exe
-        # - platform: x64
-        #   PYVER: 3.3
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86_64.exe
-        # - platform: x86
-        #   PYVER: 2.7
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
-        # - platform: x86
-        #   PYVER: 3.3
-        #   CONDA_URL: http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Windows-x86.exe
+    global:
+          PYTHON: "C:\\conda"
+          MINICONDA_VERSION: "latest"
+          # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+          # /E:ON and /V:ON options are not enabled in the batch script intepreter
+          # See: http://stackoverflow.com/a/13751649/163740
+          CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
+          CONDA_CHANNELS: "cvxgrp"
+          CONDA_DEPENDENCIES: "numpy scipy nose pip scs ecos multiprocess cvxcanon"
+
+    matrix:
+          - PYTHON_VERSION: "2.7"
+          - PYTHON_VERSION: "3.5"
 
 platform:
     - x64
 
 install:
-    #- ps: (new-object net.webclient).DownloadFile($env:CONDA_URL, 'C:\miniconda.exe')
-    #- C:\msvc2008.exe /passive /norestart /Log "C:\install.log"
-    #- ps: msiexec /i C:\msvc2008.exe /quiet /qn /norestart /log install.log
-    - ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:\get-pip.py')
-    - python C:\get-pip.py
-    - C:\Python34\Scripts\pip.exe install conda
-    - C:\Python34\Scripts\conda.exe init
-    - C:\Python34\Scripts\conda.exe create -n testenv --yes --quiet python=%PYVER% numpy scipy nose pip
-    - C:\Python34\envs\testenv\Scripts\activate.exe
-    # - C:\Python34\Scripts\pip.exe install ecos
-    - C:\Python34\envs\testenv\Scripts\pip.exe install ecos
-    # - C:\Python34\envs\testenv\Scripts\pip.exe install scs
+    - "git clone git://github.com/astropy/ci-helpers.git"
+    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
+    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+    - "activate test"
+    - "pip install toolz"
 
-build_script:
-    - C:\Python34\envs\testenv\python.exe setup.py install
+# Not a .NET project, we build CVXPY in the install step instead
+build: false
 
 test_script:
-    - C:\Python34\envs\testenv\Scripts\nosetests.exe cvxpy/tests
+    - "%CMD_IN_ENV% python setup.py install"
+    - "%CMD_IN_ENV% nosetests cvxpy"

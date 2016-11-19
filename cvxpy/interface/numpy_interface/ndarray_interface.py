@@ -20,9 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from .. import base_matrix_interface as base
 import numpy
-import numbers
 import scipy.sparse
-import cvxopt
+
 
 class NDArrayInterface(base.BaseMatrixInterface):
     """
@@ -40,11 +39,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        # Convert cvxopt sparse to dense.
-        if isinstance(value, cvxopt.spmatrix):
-            value = cvxopt.matrix(value)
-            value = numpy.array(value, dtype='float64')
-        elif isinstance(value, list):
+        if isinstance(value, list):
             value = numpy.atleast_2d(value)
             value = value.T
         elif scipy.sparse.issparse(value):

@@ -35,8 +35,8 @@ The code below solves a simple optimization problem in CVXPY:
 ::
 
     status: optimal
-    optimal value 0.999999989323
-    optimal var 0.999999998248 1.75244914951e-09
+    optimal value 0.999999999761
+    optimal var 1.00000000001 -1.19961841702e-11
 
 
 The status, which was assigned a value "optimal" by the solve method,

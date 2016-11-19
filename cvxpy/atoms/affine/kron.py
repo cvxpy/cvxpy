@@ -19,14 +19,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.utilities as u
-import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
 
 class kron(AffAtom):
     """Kronecker product.
     """
     # TODO work with right hand constant.
+
     def __init__(self, lh_expr, rh_expr):
         super(kron, self).__init__(lh_expr, rh_expr)
 
@@ -42,17 +43,27 @@ class kron(AffAtom):
         if not self.args[0].is_constant():
             raise ValueError("The first argument to kron must be constant.")
 
-    def shape_from_args(self):
+    def size_from_args(self):
         """The sum of the argument dimensions - 1.
         """
         rows = self.args[0].size[0]*self.args[1].size[0]
         cols = self.args[0].size[1]*self.args[1].size[1]
-        return u.Shape(rows, cols)
+        return (rows, cols)
 
     def sign_from_args(self):
         """Same as times.
         """
-        return self.args[0]._dcp_attr.sign*self.args[1]._dcp_attr.sign
+        return u.sign.mul_sign(self.args[0], self.args[1])
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[0].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[0].is_negative()
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):

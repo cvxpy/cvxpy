@@ -19,8 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
-from cvxpy.expressions.variables import Variable
 from cvxpy.atoms.affine.hstack import hstack
+
 
 def mixed_norm(X, p=2, q=1):
     """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert )^q/p)^{1/q}`.
@@ -42,8 +42,7 @@ def mixed_norm(X, p=2, q=1):
     X = Expression.cast_to_const(X)
 
     # inner norms
-    vecnorms = [ norm(X[i, :], p) for i in range(X.size[0]) ]
+    vecnorms = [norm(X[i, :], p) for i in range(X.size[0])]
 
     # outer norm
     return norm(hstack(*vecnorms), q)
-

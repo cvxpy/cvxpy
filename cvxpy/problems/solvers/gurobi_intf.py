@@ -24,6 +24,7 @@ import numpy as np
 from cvxpy.problems.solvers.solver import Solver
 from scipy.sparse import dok_matrix
 
+
 class GUROBI(Solver):
     """An interface for the Gurobi solver.
     """
@@ -60,6 +61,7 @@ class GUROBI(Solver):
         """Imports the solver.
         """
         import gurobipy
+        gurobipy  # For flake8
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -168,18 +170,18 @@ class GUROBI(Solver):
 
                 # Figure out which rows of A and elements of b have changed
                 try:
-                    I, _ = zip(*[x for x in A_diff.iterkeys()])
+                    I, _ = zip(*[x for x in A_diff.keys()])
                 except ValueError:
                     I = []
                 I_unique = list(set(I) | set(np.where(b_diff)[0]))
 
-                nonzero_locs = gurobipy.tuplelist([x for x in A.iterkeys()])
+                nonzero_locs = gurobipy.tuplelist([x for x in A.keys()])
 
                 # Update locations which have changed
                 for i in I_unique:
 
                     # Remove old constraint if it exists
-                    if gur_constrs[i] != None:
+                    if gur_constrs[i] is not None:
                         model.remove(gur_constrs[i])
                         gur_constrs[i] = None
 
@@ -192,7 +194,7 @@ class GUROBI(Solver):
                         if i < data[s.DIMS][s.EQ_DIM]:
                             ctype = gurobipy.GRB.EQUAL
                         elif data[s.DIMS][s.EQ_DIM] <= i \
-                             < data[s.DIMS][s.EQ_DIM] + data[s.DIMS][s.LEQ_DIM]:
+                                < data[s.DIMS][s.EQ_DIM] + data[s.DIMS][s.LEQ_DIM]:
                             ctype = gurobipy.GRB.LESS_EQUAL
                         gur_constrs[i] = model.addConstr(expr, ctype, b[i])
 
@@ -224,7 +226,7 @@ class GUROBI(Solver):
                 )
             model.update()
 
-            nonzero_locs = gurobipy.tuplelist([x for x in A.iterkeys()])
+            nonzero_locs = gurobipy.tuplelist([x for x in A.keys()])
             eq_constrs = self.add_model_lin_constr(model, variables,
                                                    range(data[s.DIMS][s.EQ_DIM]),
                                                    gurobipy.GRB.EQUAL,
@@ -250,7 +252,7 @@ class GUROBI(Solver):
                 soc_start += constr_len
 
             gur_constrs = eq_constrs + ineq_constrs + \
-                          soc_constrs + new_leq_constrs
+                soc_constrs + new_leq_constrs
             model.update()
 
         # Set verbosity and other parameters
@@ -273,7 +275,7 @@ class GUROBI(Solver):
             if not self.is_mip(data):
                 vals = []
                 for lc in gur_constrs:
-                    if lc != None:
+                    if lc is not None:
                         if isinstance(lc, gurobipy.QConstr):
                             vals.append(lc.QCPi)
                         else:
@@ -281,14 +283,15 @@ class GUROBI(Solver):
                     else:
                         vals.append(0)
                 results_dict["y"] = -np.array(vals)
+
+            results_dict["status"] = self.STATUS_MAP.get(model.Status,
+                                                         s.SOLVER_ERROR)
         except:
-            pass
+            results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
-        results_dict["status"] = self.STATUS_MAP.get(model.Status,
-                                                     s.SOLVER_ERROR)
 
         return self.format_results(results_dict, data, cached_data)
 

@@ -18,15 +18,17 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from ... import settings as s
-from ... import utilities as u
 from ..leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
+import scipy.sparse as sp
+
 
 class Variable(Leaf):
     """ The base variable class """
     # name - unique identifier.
     # rows - variable height.
     # cols - variable width.
+
     def __init__(self, rows=1, cols=1, name=None):
         self._rows = rows
         self._cols = cols
@@ -36,15 +38,23 @@ class Variable(Leaf):
         else:
             self._name = name
         self.primal_value = None
-        self.init_dcp_attr()
         super(Variable, self).__init__()
 
-    def init_dcp_attr(self):
-        """Determines the curvature, sign, and shape from the arguments.
+    def is_positive(self):
+        """Is the expression positive?
         """
-        self._dcp_attr = u.DCPAttr(u.Sign.UNKNOWN,
-                                   u.Curvature.AFFINE,
-                                   u.Shape(self._rows, self._cols))
+        return False
+
+    def is_negative(self):
+        """Is the expression negative?
+        """
+        return False
+
+    @property
+    def size(self):
+        """Returns the (row, col) dimensions of the expression.
+        """
+        return (self._rows, self._cols)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
@@ -69,6 +79,17 @@ class Variable(Leaf):
         """
         val = self._validate_value(val)
         self.save_value(val)
+
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        return {self: sp.eye(self.size[0]*self.size[1]).tocsc()}
 
     def variables(self):
         """Returns itself as a variable.

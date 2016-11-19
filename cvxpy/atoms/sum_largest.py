@@ -19,14 +19,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.atom import Atom
 import cvxpy.interface as intf
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms.affine.sum_entries import sum_entries
 import numpy as np
+import scipy.sparse as sp
+
 
 class sum_largest(Atom):
     """Sum of the largest k values in the matrix X.
     """
+
     def __init__(self, x, k):
         self.k = k
         super(sum_largest, self).__init__(x)
@@ -45,25 +46,54 @@ class sum_largest(Atom):
         indices = np.argsort(-value)[:int(self.k)]
         return value[indices].sum()
 
-    def shape_from_args(self):
-        """Resolves to a scalar.
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
         """
-        return u.Shape(1, 1)
+        # Grad: 1 for each of k largest indices.
+        value = intf.from_2D_to_1D(values[0].flatten().T)
+        indices = np.argsort(-value)[:int(self.k)]
+        D = np.zeros((self.args[0].size[0]*self.args[0].size[1], 1))
+        D[indices] = 1
+        return [sp.csc_matrix(D)]
+
+    def size_from_args(self):
+        """Returns the (row, col) size of the expression.
+        """
+        return (1, 1)
 
     def sign_from_args(self):
-        """Same as the argument.
+        """Returns sign (is positive, is negative) of the expression.
         """
-        return self.args[0]._dcp_attr.sign
+        # Same as argument.
+        return (self.args[0].is_positive(), self.args[0].is_negative())
 
-    def func_curvature(self):
-        """Default curvature is convex.
+    def is_atom_convex(self):
+        """Is the atom convex?
         """
-        return u.Curvature.CONVEX
+        return True
 
-    def monotonicity(self):
-        """Always increasing.
+    def is_atom_concave(self):
+        """Is the atom concave?
         """
-        return [u.monotonicity.INCREASING]
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return True
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False
 
     def get_data(self):
         """Returns the parameter k.
