@@ -87,7 +87,7 @@ class QPMatrixStuffing(Reduction):
         q = np.asarray(Q.todense()).flatten()
         r = R[0]
 
-        x = cvxpy.Variable(N)
+        x = cvxpy.Variable(inverse_data.x_length)
         new_obj = cvxpy.quad_form(x, P) + q.T*x + r
         new_cons = []
 
