@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
+from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
 from cvxpy.expressions.constants import Parameter, Constant
 import cvxpy.utilities as u
 import numpy
@@ -50,7 +50,10 @@ class TestLinearCone(BaseTest):
     def test_scalar_lp(self):
         p = Problem(Minimize(3*self.a), [self.a >= 2])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        # self.assertAlmostEqual(result, result_new)
 
         p = Problem(Maximize(3*self.a - self.b),
                     [self.a <= 2, self.b == self.a, self.b <= 5])
@@ -66,6 +69,10 @@ class TestLinearCone(BaseTest):
 
         p = Problem(Maximize(self.a), [self.a <= 2])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        # self.assertAlmostEqual(result, result_new)
 
         # Unbounded problems.
         p = Problem(Maximize(self.a), [self.a >= 2])
@@ -105,3 +112,30 @@ class TestLinearCone(BaseTest):
                                   self.A == self.B, self.C == T.T])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new = ConeMatrixStuffing().apply(p)
+    
+    # Test positive definite constraints.
+    def test_psd_constraints(self):
+		C = Variable(3, 3)
+		obj = Maximize(C[0, 2])
+		constraints = [diag(C) == 1,
+		               C[0, 1] == 0.6,
+		               C[1, 2] == -0.3,
+		               C == C.T,
+		               C >> 0]
+		prob = Problem(obj, constraints)
+		self.assertTrue(ConeMatrixStuffing().accepts(prob))
+		prob_new = ConeMatrixStuffing().apply(prob)
+		
+		C = Variable(2, 2)
+		obj = Maximize(C[0, 1])
+		constraints = [C == 1, C >> [[2, 0], [0, 2]]]
+		prob = Problem(obj, constraints)
+		self.assertTrue(ConeMatrixStuffing().accepts(prob))
+		prob_new = ConeMatrixStuffing().apply(prob)
+		
+		C = Symmetric(2, 2)
+		obj = Minimize(C[0, 0])
+		constraints = [C << [[2, 0], [0, 2]]]
+		prob = Problem(obj, constraints)
+		self.assertTrue(ConeMatrixStuffing().accepts(prob))
+		prob_new = ConeMatrixStuffing().apply(prob)
