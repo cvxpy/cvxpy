@@ -68,30 +68,51 @@ class ECOS(Solver):
         """
         return s.ECOS
 
-    def matrix_intf(self):
-        """The interface for matrices passed to the solver.
-        """
-        return intf.DEFAULT_SPARSE_INTF
+    # def accepts(problem):
+    #     """Can ECOS solve the problem?
+    #     """
+    #     if not problem.objective.is_affine():
+    #         return False
+    #     for constr in problem.constraints:
+    #         if type(constr) not in [Eq, Ineq, SOC, Exp]:
+    #             return False
+    #         for arg in constr:
+    #             if not arg.is_affine():
+    #                 return False
+    #     return True
 
-    def vec_intf(self):
-        """The interface for vectors passed to the solver.
-        """
-        return intf.DEFAULT_INTF
-
-    def split_constr(self, constr_map):
-        """Extracts the equality, inequality, and nonlinear constraints.
+    def get_problem_data(self, objective, constraints):
+        """Returns the argument for the call to the solver.
 
         Parameters
         ----------
-        constr_map : dict
-            A dict of the canonicalized constraints.
+        objective : LinOp
+            The canonicalized objective.
+        constraints : list
+            The list of canonicalized cosntraints.
+        cached_data : dict
+            A map of solver name to cached problem data.
 
         Returns
         -------
-        tuple
-            (eq_constr, ineq_constr, nonlin_constr)
+        dict
+            The arguments needed for the solver.
         """
-        return (constr_map[s.EQ], constr_map[s.LEQ], [])
+        sym_data = self.get_sym_data(objective, constraints, cached_data)
+        matrix_data = self.get_matrix_data(objective, constraints,
+                                           cached_data)
+        data = {}
+        data[s.C], data[s.OFFSET] = matrix_data.get_objective()
+        data[s.A], data[s.B] = matrix_data.get_eq_constr()
+        data[s.G], data[s.H] = matrix_data.get_ineq_constr()
+        data[s.F] = matrix_data.get_nonlin_constr()
+        data[s.DIMS] = sym_data.dims.copy()
+        bool_idx, int_idx = self._noncvx_id_to_idx(data[s.DIMS],
+                                                   sym_data.var_offsets,
+                                                   sym_data.var_sizes)
+        data[s.BOOL_IDX] = bool_idx
+        data[s.INT_IDX] = int_idx
+        return data
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):

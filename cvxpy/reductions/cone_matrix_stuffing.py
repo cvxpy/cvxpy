@@ -1,9 +1,10 @@
 
-from cvxpy.constraints import LeqConstraint, EqConstraint
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.expressions.variables import Variable
+from cvxpy.problems.objective import Minimize
 from cvxpy.utilities import QuadCoeffExtractor
 import cvxpy.settings as s
 import numpy as np
-import scipy.sparse as sp
 
 class ConeMatrixStuffing(Reduction):
     """Construct matrices for linear cone problems.
@@ -20,9 +21,9 @@ class ConeMatrixStuffing(Reduction):
 
     def accepts(self, problem):
         return (
-            prob.is_dcp() and
-            prob.objective.args[0].is_affine() and
-            all([arg.is_affine() for c in prob.constraints for arg in c.args]))
+            problem.is_dcp() and
+            problem.objective.args[0].is_affine() and
+            all([arg.is_affine() for c in problem.constraints for arg in c.args]))
 
     # TODO(mwytock): Refactor inversion data and re-use with QPMatrixStuffing
     # which is identical.
@@ -66,20 +67,19 @@ class ConeMatrixStuffing(Reduction):
         _, C, R = extractor.get_coeffs(objective.args[0])
         c = np.asarray(C.todense()).flatten()
         r = R[0]
-        x = cvxpy.Variable(N)
-        for c in cons:
+        x = Variable(N)
+        for c in constraints:
             for i, arg in enumerate(c.args):
                 _, A, b = extractor.get_coeffs(arg)
                 c.args[i] = A*x + b
 
-        new_prob = cvx.Minimize(c.T*x + r, cons)
+        new_prob = Minimize(c.T*x + r, constraints)
         return (new_prob, sym_data)
-
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-
+#TODO not finished
 # primal_vars: dict of id to numpy ndarray
 # dual_vars: dict of id to numpy ndarray
 # opt_val:
