@@ -1,15 +1,19 @@
-from cvxpy.reductions.atoms import CANON
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.variable import Constant
+from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
+from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.constants import Constant
 
 
-def canonicalize_constr(constrs):
-    new_constrs = []
-    for c in constrs:
-        canon_expr, extra_constr = canononicalize_tree(c.expr)
-        Constraint(canon_expr, c.set)
-        new_constrs += extra_constr
-    return new_constrs
+# TODO this assumes all possible constraint sets are cones:
+def canonicalize_constr(constr):
+    arg_exprs = []
+    constrs = []
+    for a in constr.args:
+        e, c = canonicalize_tree(a)
+        constrs += c
+        arg_exprs += [e]
+    # Feed the linear expressions into a constraint of the same type (assumed a cone):
+    constr = type(constr)(*arg_exprs)
+    return constr, constrs
 
 
 def canonicalize_tree(expr):
@@ -19,17 +23,17 @@ def canonicalize_tree(expr):
         canon_arg, c = canonicalize_tree(arg)
         canon_args += [canon_arg]
         constrs += c
-    canon_expr, c = canonicalize(expr, canon_args)
+    canon_expr, c = canonicalize_expr(expr, canon_args)
     constrs += c
     return canon_expr, constrs
 
  
-def canonicalize(expr, args): 
-    if expr.is_affine():
-        return expr, []
-    elif isinstance(expr, Variable):
+def canonicalize_expr(expr, args): 
+    if isinstance(expr, Variable):
         return expr, []
     elif isinstance(expr, Constant):
         return expr, []
+    elif expr.is_atom_convex and expr.is_atom_concave:
+        return expr, []
     else:
-        return CANON[type(expr)](expr, args)
+        return CANON_METHODS[type(expr)](expr, args)

@@ -1,7 +1,7 @@
 from cvxpy.atoms import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.abs import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.abs_canon import *
 
-canon_methods = {
+CANON_METHODS = {
 		# affine_prod : affine_prod_canon,
 		# geo_mean : geo_mean_canon,
 		# lambda_max : lambda_max_canon,
@@ -25,4 +25,3 @@ canon_methods = {
 		# max_elemwise : max_elemwise_canon,
 		# power : power_canon,
 }
-
