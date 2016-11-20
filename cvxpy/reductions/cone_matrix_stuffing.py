@@ -68,10 +68,13 @@ class ConeMatrixStuffing(Reduction):
         c = np.asarray(C.todense()).flatten()
         r = R[0]
         x = Variable(N)
-        for c in constraints:
-            for i, arg in enumerate(c.args):
+        new_obj = c.T*x + r
+        
+        # Form the constraints
+        for con in constraints:
+            for i, arg in enumerate(con.args):
                 _, A, b = extractor.get_coeffs(arg)
-                c.args[i] = A*x + b
+                con.args[i] = A*x + b
 
         new_prob = Minimize(c.T*x + r, constraints)
         return (new_prob, sym_data)
@@ -79,7 +82,7 @@ class ConeMatrixStuffing(Reduction):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-#TODO not finished
+# TODO: not finished
 # primal_vars: dict of id to numpy ndarray
 # dual_vars: dict of id to numpy ndarray
 # opt_val:
