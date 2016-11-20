@@ -21,13 +21,14 @@ import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
-from cvxpy.expressions.constants import Parameter
+from cvxpy.expressions.constants import Parameter, Constant
 import cvxpy.utilities as u
-import numpy as np
+import numpy
 import unittest
 from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
+
 
 class TestLinearCone(BaseTest):
     """ Unit tests for the domain module. """
@@ -44,43 +45,43 @@ class TestLinearCone(BaseTest):
         self.A = Variable(2, 2, name='A')
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
-    
+
     # Test scalar LP problems.
     def test_scalar_lp(self):
-		p = Problem(Minimize(3*self.a), [self.a >= 2])
-		self.assertTrue(ConeMatrixStuffing().accepts(p))
-		p_new = ConeMatrixStuffing().apply(p)
-		
-		p = Problem(Maximize(3*self.a - self.b), 
-					[self.a <= 2, self.b == self.a, self.b <= 5])
-		self.assertTrue(ConeMatrixStuffing().accepts(p))
-		p_new = ConeMatrixStuffing().apply(p)
-		
-		# With a constant in the objective.
-		p = Problem(Minimize(3*self.a - self.b + 100),
-					[self.a >= 2,
-					 self.b + 5*self.c - 2 == self.a,
-					 self.b <= 5 + self.c])
-		self.assertTrue(ConeMatrixStuffing().accepts(p))
-		
-		p = Problem(Maximize(self.a), [self.a <= 2])
-		self.assertTrue(ConeMatrixStuffing().accepts(p))
-		
-		# Unbounded problems.
-		p = Problem(Maximize(self.a), [self.a >= 2])
-		self.assertTrue(ConeMatrixStuffing().accepts(p))
-		
-		# Infeasible problems.
-		p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-		self.assertTrue(ConeMatrixStuffing().accepts(p))
-	
-	# Test vector LP problems.
-	def test_vector_lp(self):
-		c = Constant(numpy.matrix([1, 2]).T).value
+        p = Problem(Minimize(3*self.a), [self.a >= 2])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+        p_new = ConeMatrixStuffing().apply(p)
+
+        p = Problem(Maximize(3*self.a - self.b),
+                    [self.a <= 2, self.b == self.a, self.b <= 5])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+        p_new = ConeMatrixStuffing().apply(p)
+
+        # With a constant in the objective.
+        p = Problem(Minimize(3*self.a - self.b + 100),
+                    [self.a >= 2,
+                     self.b + 5*self.c - 2 == self.a,
+                     self.b <= 5 + self.c])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+
+        p = Problem(Maximize(self.a), [self.a <= 2])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+
+        # Unbounded problems.
+        p = Problem(Maximize(self.a), [self.a >= 2])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+
+        # Infeasible problems.
+        p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+
+    # Test vector LP problems.
+    def test_vector_lp(self):
+        c = Constant(numpy.matrix([1, 2]).T).value
         p = Problem(Minimize(c.T*self.x), [self.x >= c])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new = ConeMatrixStuffing().apply(p)
-        
+
         A = Constant(numpy.matrix([[3, 5], [1, 2]]).T).value
         I = Constant([[1, 0], [0, 1]])
         p = Problem(Minimize(c.T*self.x + self.a),
@@ -91,13 +92,13 @@ class TestLinearCone(BaseTest):
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new = ConeMatrixStuffing().apply(p)
 
-	# Test matrix LP problems.
-	def test_matrix_lp(self):
-		T = Constant(numpy.ones((2, 2))).value
+    # Test matrix LP problems.
+    def test_matrix_lp(self):
+        T = Constant(numpy.ones((2, 2))).value
         p = Problem(Minimize(1), [self.A == T])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new = ConeMatrixStuffing().apply(p)
-        
+
         T = Constant(numpy.ones((2, 3))*2).value
         c = Constant(numpy.matrix([3, 4]).T).value
         p = Problem(Minimize(1), [self.A >= T*self.C,

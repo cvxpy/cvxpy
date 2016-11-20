@@ -57,7 +57,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return numpy.eye(size)
 
     # Return the dimensions of the matrix.
-    def size(self, matrix):
+    def shape(self, matrix):
         # Scalars.
         if len(matrix.shape) == 0:
             return (1, 1)
@@ -69,6 +69,11 @@ class NDArrayInterface(base.BaseMatrixInterface):
             rows = int(matrix.shape[0])
             cols = int(matrix.shape[1])
             return (rows, cols)
+
+    def size(self, matrix):
+        """Returns the number of elements in the matrix.
+        """
+        return numpy.prod(self.shape(matrix))
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
