@@ -28,6 +28,7 @@ import unittest
 from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
 
 
 class TestLinearCone(BaseTest):
@@ -48,14 +49,17 @@ class TestLinearCone(BaseTest):
 
     # Test scalar LP problems.
     def test_scalar_lp(self):
-        p = Problem(Minimize(3*self.a), [self.a >= 2])
-        self.assertTrue(ConeMatrixStuffing().accepts(p))
-        p_new = ConeMatrixStuffing().apply(p)
+        # p = Problem(Minimize(3*self.a), [self.a >= 2])
+        # self.assertTrue(ConeMatrixStuffing().accepts(p))
+        # p_new = ConeMatrixStuffing().apply(p)
 
         p = Problem(Maximize(3*self.a - self.b),
                     [self.a <= 2, self.b == self.a, self.b <= 5])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
-        p_new = ConeMatrixStuffing().apply(p)
+        p_new, inv_data = ConeMatrixStuffing().apply(p)
+        self.assertAlmostEqual(p_new.solve(), 4)
+        sltn = ECOS().solve(p_new, False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, 4)
 
         # With a constant in the objective.
         p = Problem(Minimize(3*self.a - self.b + 100),

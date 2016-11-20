@@ -18,14 +18,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, Exp
+from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, ExpCone
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.constraints.utilities import format_axis
 from cvxpy.reductions.solution import Solution
 import numpy as np
 import scipy.sparse as sp
 
-class ECOS(Solver):
+class ECOS(object):
     """An interface for the ECOS solver.
     """
 
@@ -77,7 +77,7 @@ class ECOS(Solver):
     #     if not problem.objective.is_affine():
     #         return False
     #     for constr in problem.constraints:
-    #         if type(constr) not in [Eq, Ineq, SOC, Exp]:
+    #         if type(constr) not in [Eq, Ineq, SOC, ExpCone]:
     #             return False
     #         for arg in constr:
     #             if not arg.is_affine():
@@ -88,8 +88,8 @@ class ECOS(Solver):
     def get_coeff_offset(expr):
         """Return the coefficient and offset in A*x + b.
         """
-        coeff = expr.args[0].args[0]
-        offset = expr.args[1]
+        coeff = expr.args[0].args[0].value
+        offset = expr.args[1].value
         return (coeff, offset)
 
     @staticmethod
@@ -102,9 +102,9 @@ class ECOS(Solver):
         for cons in constraints:
             coeff, offset = ECOS.get_coeff_offset(cons.args[0])
             matrices.append(coeff)
-            offsets.append(offset)
+            offsets.append(offset.ravel())
         coeff = sp.vstack(matrices)
-        offset = np.concat(offsets)
+        offset = np.hstack(offsets)
         return coeff, offset
 
     def get_problem_data(self, problem):
@@ -125,18 +125,19 @@ class ECOS(Solver):
             The arguments needed for the solver.
         """
         data = {}
-        data[s.C], data[s.OFFSET] = self.get_coeff_offset(problem.objective)
+        data[s.C], data[s.OFFSET] = self.get_coeff_offset(problem.objective.args[0])
+        data[s.C] = data[s.C].ravel()
         constr = [c for c in problem.constraints if type(c) == EqConstraint]
         data[s.A], data[s.B] = self.group_coeff_offset(constr)
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
         leq_constr = [c for c in problem.constraints if type(c) == LeqConstraint]
-        data[s.DIMS]['l'] = [c.size for c in leq_constr]
+        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
         soc_constr = [c for c in problem.constraints if type(c) == SOC]
         data[s.DIMS]['q'] = []
         for cons in soc_constr:
             data[s.DIMS]['q'] += cons.size
-        exp_constr = [c for c in problem.constraints if type(c) == Exp]
+        exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         data[s.DIMS]['e'] = sum([c.size for c in exp_constr])
         data[s.G], data[s.H] = self.group_coeff_offset(leq_constr + soc_constr + exp_constr)
         return data
@@ -166,7 +167,7 @@ class ECOS(Solver):
         """
         import ecos
         data = self.get_problem_data(problem)
-        global_var = self.problem.variables()[0]
+        global_var = problem.variables()[0]
         results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
@@ -186,9 +187,9 @@ class ECOS(Solver):
             primal_vars = {global_var.id: results_dict['x']}
             eq_dual = self.get_dual_values(results_dict['y'], problem.constraints, [EqConstraint])
             leq_dual = self.get_dual_values(results_dict['z'], problem.constraints,
-                                            [LeqConstraint, SOC, Exp])
+                                            [LeqConstraint, SOC, ExpCone])
             eq_dual.update(leq_dual)
-            dual_vars = eq_dual
+            dual_vars = leq_dual
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
