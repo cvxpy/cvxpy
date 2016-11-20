@@ -47,40 +47,16 @@ class BinaryOperator(AffAtom):
         """
         return reduce(self.OP_FUNC, values)
 
-<<<<<<< HEAD
-    def init_dcp_attr(self):
-        """Sets the sign, curvature, and shape.
-        """
-        self._dcp_attr = self.OP_FUNC(self.args[0]._dcp_attr,
-                                      self.args[1]._dcp_attr)
-
-    def validate_arguments(self):
-        """Validate the dimensions.
-        """
-        self.OP_FUNC(self.args[0]._dcp_attr.shape,
-                     self.args[1]._dcp_attr.shape)
-=======
     def sign_from_args(self):
         """Default to rules for times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
->>>>>>> master
 
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
-<<<<<<< HEAD
-    @AffAtom.numpy_numeric
-    def numeric(self, values):
-        """Multiply the two values.
-        """
-        if values[0].shape == (1,1) or values[1].shape == (1,1):
-            return super(MulExpression, self).numeric(values)
-        else:
-            return np.dot(values[0], values[1])
-=======
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
         """
@@ -100,7 +76,6 @@ class MulExpression(BinaryOperator):
         """Validates the dimensions.
         """
         u.shape.mul_shapes(self.args[0].size, self.args[1].size)
->>>>>>> master
 
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
