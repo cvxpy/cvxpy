@@ -76,7 +76,7 @@ class ConeMatrixStuffing(Reduction):
                 _, A, b = extractor.get_coeffs(arg)
                 con.args[i] = A*x + b
 
-        new_prob = Minimize(c.T*x + r, constraints)
+        new_prob = Minimize(new_obj, constraints)
         return (new_prob, sym_data)
 
     def invert(self, solution, inverse_data):
