@@ -17,10 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
+import cvxpy
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.utilities import QuadCoeffExtractor
 import numpy as np
 import scipy.sparse as sp
+from cvxpy.reductions.solution import OPTIMAL
+from cvxpy.reductions.solution import Solution
 
 class QPMatrixStuffing(Reduction):
     """Linearly constrained least squares solver via SciPy.
@@ -114,7 +117,7 @@ class QPMatrixStuffing(Reduction):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        if solution.status == "Optimal":
+        if solution.status == OPTIMAL:
             primal_vars = dict()
             dual_vars = dict()
             for (old_id, tup) in inverse_data.cons_id_map:
@@ -128,11 +131,7 @@ class QPMatrixStuffing(Reduction):
                 size = shape[0]*shape[1]
                 val = solution.primal_vars[new_id][offset:offset+size]
                 primal_vars[old_id] = val.reshape(shape, order='F')
-            return {
-                "primal_vars": primal_vars,
-                "dual_vars": dual_vars,
-                "opt_val": solution.opt_val,
-                "status": "Optimal"
-            }
+            ret = Solution(OPTIMAL, solution.opt_val, primal_vars, dual_vars)
         else:
-            return solution
+            ret = solution
+        return ret
