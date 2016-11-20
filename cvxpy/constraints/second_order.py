@@ -24,17 +24,20 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class SOC(Constraint):
-    """A second-order cone constraint, i.e., norm2(x) <= t.
+    """A second-order cone constraint for each row/column.
+
+    Assumes t is a vector the same length as X's columns (rows) for axis==0 (1).
 
     Attributes:
         t: The scalar part of the second-order constraint.
-        x_elems: The elements of the vector part of the constraint.
+        X: A matrix whose rows/columns are each a cone.
+        axis: Slice by column 0 or row 1.
     """
 
-    def __init__(self, t, x_elems):
-        self.t = t
-        self.x_elems = x_elems
-        super(SOC, self).__init__()
+    def __init__(self, t, X, axis):
+        assert t.size[1] == 1
+        self.axis = axis
+        super(SOC, self).__init__(t, [X])
 
     def __str__(self):
         return "SOC(%s, %s)" % (self.t, self.x_elems)

@@ -23,7 +23,7 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.utilities import format_axis
 
 
-class SOC_Axis(SOC):
+class SOC(SOC):
     """A second-order cone constraint for each row/column.
 
     Assumes t is a vector the same length as X's columns (rows) for axis==0 (1).
