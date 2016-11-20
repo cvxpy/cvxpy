@@ -62,7 +62,7 @@ class QPMatrixStuffing(Reduction):
                 for x in variables:
                     var_offsets[x.id] = vert_offset
                     vert_offset += x.size[0]*x.size[1]
-                    id_map[x.id] = (None, vert_offset, x.size)
+                    id_map[x.id] = (vert_offset, x.size)
                 return (id_map, var_offsets, vert_offset)
 
         return SymData(objective, constraints)
@@ -97,13 +97,14 @@ class QPMatrixStuffing(Reduction):
         new_cons = [A*x + b <= 0, F*x + g == 0]
 
         cnts = [0, 0]
+        sym_data.new_var_id = x.id
         for c in constraints:
             if c.OP_NAME == "<=":
                 sym_data.cons_id_map[c.constr_id] = (new_cons[0].constr_id, cnts[0], c._expr.shape)
-                cnts[0] += 1
+                cnts[0] += c._expr.shape[0]*c._expr.shape[1]
             else:
                 sym_data.cons_id_map[c.constr_id] = (new_cons[1].constr_id, cnts[1], c._expr.shape)
-                cnts[1] += 1
+                cnts[1] += c._expr.shape[0]*c._expr.shape[1]
 
         new_prob = cvx.Minimize(new_obj, new_cons)
 
@@ -117,14 +118,15 @@ class QPMatrixStuffing(Reduction):
             primal_vars = dict()
             dual_vars = dict()
             for (old_id, tup) in inverse_data.cons_id_map:
-                (new_id, v, shape) = tup
+                (new_id, offset, shape) = tup
                 size = shape[0]*shape[1]
-                val = solution.dual_vars[new_id][v:v+size]
+                val = solution.dual_vars[new_id][offset:offset+size]
                 dual_vars[old_id] = val.reshape(shape, order='F')
             for (old_id, tup) in inverse_data.id_map:
-                (new_id, v, size) = tup
+                (offset, size) = tup
+                new_id = inverse_data.new_var_id
                 size = shape[0]*shape[1]
-                val = solution.primal_vars[new_id][v:v+size]
+                val = solution.primal_vars[new_id][offset:offset+size]
                 primal_vars[old_id] = val.reshape(shape, order='F')
             return {
                 "primal_vars": primal_vars,
