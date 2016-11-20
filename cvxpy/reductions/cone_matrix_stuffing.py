@@ -6,7 +6,16 @@ import numpy as np
 import scipy.sparse as sp
 
 class ConeMatrixStuffing(Reduction):
-    """Linearly constrained least squares solver via SciPy.
+    """Construct matrices for linear cone problems.
+
+    Linear cone problems are assumed to have a linear objective and cone
+    constraints which may have zero or more arguments, all of which must be
+    affine.
+
+    minimize   c'x
+    subject to cone_constr1(A_1*x + b_1, ...)
+               ...
+               cone_constrK(A_i*x + b_i, ...)
     """
 
     def accepts(self, problem):
@@ -15,6 +24,8 @@ class ConeMatrixStuffing(Reduction):
             prob.objective.args[0].is_affine() and
             all([arg.is_affine() for c in prob.constraints for arg in c.args]))
 
+    # TODO(mwytock): Refactor inversion data and re-use with QPMatrixStuffing
+    # which is identical.
     def get_sym_data(self, objective, constraints, cached_data=None):
         class SymData(object):
             def __init__(self, objective, constraints):
