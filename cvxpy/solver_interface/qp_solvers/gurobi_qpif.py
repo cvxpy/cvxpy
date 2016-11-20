@@ -1,9 +1,7 @@
 # GUROBI interface to solve QP problems
 import numpy as np
-from quadprog.results import quadprogResults
 import gurobipy as grb
-import quadprog.problem as qp
-import ipdb
+import cvxpy.settings as s
 
 
 class GUROBI(object):
@@ -12,25 +10,34 @@ class GUROBI(object):
     """
 
     # Map of Gurobi status to CVXPY status.
-    STATUS_MAP = {2: qp.OPTIMAL,
-                  3: qp.INFEASIBLE,
-                  5: qp.UNBOUNDED,
-                  4: qp.SOLVER_ERROR,
-                  6: qp.SOLVER_ERROR,
-                  7: qp.SOLVER_ERROR,
-                  8: qp.SOLVER_ERROR,
+    STATUS_MAP = {2: s.OPTIMAL,
+                  3: s.INFEASIBLE,
+                  5: s.UNBOUNDED,
+                  4: s.SOLVER_ERROR,
+                  6: s.SOLVER_ERROR,
+                  7: s.SOLVER_ERROR,
+                  8: s.SOLVER_ERROR,
                   # TODO could be anything.
                   # means time expired.
-                  9: qp.OPTIMAL_INACCURATE,
-                  10: qp.SOLVER_ERROR,
-                  11: qp.SOLVER_ERROR,
-                  12: qp.SOLVER_ERROR,
-                  13: qp.SOLVER_ERROR}
+                  9: s.OPTIMAL_INACCURATE,
+                  10: s.SOLVER_ERROR,
+                  11: s.SOLVER_ERROR,
+                  12: s.SOLVER_ERROR,
+                  13: s.SOLVER_ERROR}
 
-    def __init__(self, **kwargs):
-        self.options = kwargs
+# Functions in old conic format
+# def split_constr(self, constr_map)
+# def matrix_intf(self):
+# def vec_intf(self):
 
-    def solve(self, p):
+# TODO (Bart): Is this function needed?
+    # def __init__(self, **kwargs):
+    # self.options = kwargs
+
+    # TODO: Fix how matrices used. At the moment it is using the old problem structure "p"
+    # def solve(self, p):
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
 
         # Convert Matrices in CSR format
         p.A = p.A.tocsr()
@@ -90,47 +97,40 @@ class GUROBI(object):
             model.optimize()
         except:  # Error in the solution
             print "Error in Gurobi solution\n"
-            return quadprogResults(qp.SOLVER_ERROR, None, None, None,
-                                   np.inf, None)
 
+        # TODO: Define results dictionary
+        results_dict = model
+        return self.format_results(results_dict, data, cached_data)
+
+    def format_results(self, results_dict, data, cached_data):
         # Return results
         # Get status
-        status = self.STATUS_MAP.get(model.Status, qp.SOLVER_ERROR)
+        status = self.STATUS_MAP.get(results_dict.Status, s.SOLVER_ERROR)
 
-        if (status != qp.SOLVER_ERROR) & (status != qp.INFEASIBLE):
+        if (status != s.SOLVER_ERROR) & (status != s.INFEASIBLE):
             # Get objective value
-            objval = model.objVal
+            objval = results_dict.objVal
 
             # Get solution
-            sol = np.array([x[i].X for i in range(n)])
+            sol = np.array([x[i].X for i in range(len(x))])
 
             # Get dual variables  (Gurobi uses swapped signs (-1))
-            constrs = model.getConstrs()
-            dual = -np.array([constrs[i].Pi for i in range(m)])
-            # sol_dual_ineq = -np.array([constrs[i+neq].Pi for i in range(m)])
-
-            # Bounds
-            # sol_dual_ub = np.zeros(n)
-            # sol_dual_lb = np.zeros(n)
-
-            # RCx = [x[i].RC for i in range(n)]  # Get reduced costs
-            # for i in range(n):
-            #     if RCx[i] >= 1e-07:
-            #         sol_dual_lb[i] = RCx[i]
-            #     else:
-            #         sol_dual_ub[i] = -RCx[i]
+            constrs = results_dict.getConstrs()
+            dual = -np.array([constrs[i].Pi for i in range(len(constrs))])
 
             # Get computation time
-            cputime = model.Runtime
+            cputime = results_dict.Runtime
 
             # Total Number of iterations
-            total_iter = model.BarIterCount
+            total_iter = results_dict.BarIterCount
 
+            # TODO: Add results structure
             return quadprogResults(status, objval, sol, dual,
                                    cputime, total_iter)
         else:  # Error
             # Get computation time
-            cputime = model.Runtime
+            cputime = results_dict.Runtime
 
+            # TODO: Add results structure
             return quadprogResults(status, None, None, None,
                                    cputime, None)
