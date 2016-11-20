@@ -74,11 +74,27 @@ class SOC(Constraint):
             leq_constr.append(lu.create_geq(elem))
         return ([], leq_constr)
 
+    def num_cones(self):
+        """The number of elementwise cones.
+        """
+        return self.t.size[0]
+
+    def cone_size(self):
+        """The dimensions of a single cone.
+        """
+        return (1 + self.x_elems[0].size[self.axis], 1)
+
     @property
     def size(self):
-        """The dimensions of the second-order cone.
+        """The dimensions of the second-order cones.
+
+        Returns
+        -------
+        list
+            A list of the dimensions of the elementwise cones.
         """
-        rows = 1
-        for elem in self.x_elems:
-            rows += elem.size[0]*elem.size[1]
-        return (rows, 1)
+        cones = []
+        cone_size = self.cone_size()
+        for i in range(self.num_cones()):
+            cones.append(cone_size)
+        return cones

@@ -17,10 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.interface as intf
 import cvxpy.settings as s
+from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, Exp
 from cvxpy.problems.solvers.solver import Solver
-
+from cvxpy.constraints.utilities import format_axis
+from cvxpy.reductions.solution import Solution
+import numpy as np
+import scipy.sparse as sp
 
 class ECOS(Solver):
     """An interface for the ECOS solver.
@@ -81,7 +84,30 @@ class ECOS(Solver):
     #                 return False
     #     return True
 
-    def get_problem_data(self, objective, constraints):
+    @staticmethod
+    def get_coeff_offset(expr):
+        """Return the coefficient and offset in A*x + b.
+        """
+        coeff = expr.args[0].args[0]
+        offset = expr.args[1]
+        return (coeff, offset)
+
+    @staticmethod
+    def group_coeff_offset(constraints):
+        """Combine the constraints into a single matrix, offset.
+        """
+        matrices = []
+        offsets = []
+        # TODO only works for LEQ.
+        for cons in constraints:
+            coeff, offset = ECOS.get_coeff_offset(cons.args[0])
+            matrices.append(coeff)
+            offsets.append(offset)
+        coeff = sp.vstack(matrices)
+        offset = np.concat(offsets)
+        return coeff, offset
+
+    def get_problem_data(self, problem):
         """Returns the argument for the call to the solver.
 
         Parameters
@@ -98,24 +124,24 @@ class ECOS(Solver):
         dict
             The arguments needed for the solver.
         """
-        sym_data = self.get_sym_data(objective, constraints, cached_data)
-        matrix_data = self.get_matrix_data(objective, constraints,
-                                           cached_data)
         data = {}
-        data[s.C], data[s.OFFSET] = matrix_data.get_objective()
-        data[s.A], data[s.B] = matrix_data.get_eq_constr()
-        data[s.G], data[s.H] = matrix_data.get_ineq_constr()
-        data[s.F] = matrix_data.get_nonlin_constr()
-        data[s.DIMS] = sym_data.dims.copy()
-        bool_idx, int_idx = self._noncvx_id_to_idx(data[s.DIMS],
-                                                   sym_data.var_offsets,
-                                                   sym_data.var_sizes)
-        data[s.BOOL_IDX] = bool_idx
-        data[s.INT_IDX] = int_idx
+        data[s.C], data[s.OFFSET] = self.get_coeff_offset(problem.objective)
+        constr = [c for c in problem.constraints if type(c) == EqConstraint]
+        data[s.A], data[s.B] = self.group_coeff_offset(constr)
+        # Order and group nonlinear constraints.
+        data[s.DIMS] = {}
+        leq_constr = [c for c in problem.constraints if type(c) == LeqConstraint]
+        data[s.DIMS]['l'] = [c.size for c in leq_constr]
+        soc_constr = [c for c in problem.constraints if type(c) == SOC]
+        data[s.DIMS]['q'] = []
+        for cons in soc_constr:
+            data[s.DIMS]['q'] += cons.size
+        exp_constr = [c for c in problem.constraints if type(c) == Exp]
+        data[s.DIMS]['e'] = sum([c.size for c in exp_constr])
+        data[s.G], data[s.H] = self.group_coeff_offset(leq_constr + soc_constr + exp_constr)
         return data
 
-    def solve(self, objective, constraints, cached_data,
-              warm_start, verbose, solver_opts):
+    def solve(self, problem, warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -139,45 +165,71 @@ class ECOS(Solver):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         import ecos
-        data = self.get_problem_data(objective, constraints, cached_data)
-        data[s.DIMS]['e'] = data[s.DIMS][s.EXP_DIM]
+        data = self.get_problem_data(problem)
+        global_var = self.problem.variables()[0]
         results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
                                   **solver_opts)
-        return self.format_results(results_dict, data, cached_data)
 
-    def format_results(self, results_dict, data, cached_data):
-        """Converts the solver output into standard form.
+        status = self.STATUS_MAP[results_dict['info']['exitFlag']]
+
+        # Timing data
+        attr = {}
+        attr[s.SOLVE_TIME] = results_dict["info"]["timing"]["tsolve"]
+        attr[s.SETUP_TIME] = results_dict["info"]["timing"]["tsetup"]
+        attr[s.NUM_ITERS] = results_dict["info"]["iter"]
+
+        if status in s.SOLUTION_PRESENT:
+            primal_val = results_dict['info']['pcost']
+            opt_val = primal_val + data[s.OFFSET]
+            primal_vars = {global_var.id: results_dict['x']}
+            eq_dual = self.get_dual_values(results_dict['y'], problem.constraints, [EqConstraint])
+            leq_dual = self.get_dual_values(results_dict['z'], problem.constraints,
+                                            [LeqConstraint, SOC, Exp])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
+        else:
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+            else:
+                opt_val = None
+            primal_vars = None
+            dual_vars = None
+
+        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+
+    @staticmethod
+    def get_dual_values(self, result_vec, constraints, constr_types):
+        """Gets the values of the dual variables.
 
         Parameters
         ----------
-        results_dict : dict
-            The solver output.
-        data : dict
-            Information about the problem.
-        cached_data : dict
-            A map of solver name to cached problem data.
-
-        Returns
-        -------
-        dict
-            The solver output in standard form.
+        result_vec : array_like
+            A vector containing the dual variable values.
+        constraints : list
+            A list of the constraints in the problem.
+        constr_types : type
+            A list of constraint types to consider.
         """
-        new_results = {}
-        status = self.STATUS_MAP[results_dict['info']['exitFlag']]
-        new_results[s.STATUS] = status
-
-        # Timing data
-        new_results[s.SOLVE_TIME] = results_dict["info"]["timing"]["tsolve"]
-        new_results[s.SETUP_TIME] = results_dict["info"]["timing"]["tsetup"]
-        new_results[s.NUM_ITERS] = results_dict["info"]["iter"]
-
-        if new_results[s.STATUS] in s.SOLUTION_PRESENT:
-            primal_val = results_dict['info']['pcost']
-            new_results[s.VALUE] = primal_val + data[s.OFFSET]
-            new_results[s.PRIMAL] = results_dict['x']
-            new_results[s.EQ_DUAL] = results_dict['y']
-            new_results[s.INEQ_DUAL] = results_dict['z']
-
-        return new_results
+        constr_offsets = {}
+        offset = 0
+        for constr in constraints:
+            constr_offsets[constr.constr_id] = offset
+            offset += constr.size[0] * constr.size[1]
+        active_constraints = []
+        for constr in self.constraints:
+            # Ignore constraints of the wrong type.
+            if type(constr) in constr_types:
+                active_constraints.append(constr)
+        # Store dual values.
+        dual_vars = {}
+        for constr in active_constraints:
+            rows, _ = constr.size
+            if constr.id in constr_offsets:
+                offset = constr_offsets[constr.id]
+                dual_vars[constr.id] = result_vec[offset:offset + rows]
+                offset += rows
+        return dual_vars
