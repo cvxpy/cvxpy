@@ -29,13 +29,16 @@ class Constraint(object):
 
     Attributes
     ----------
+    args : list
+        A list of expression trees.
     constr_id : int
         A unique id for the constraint.
     """
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, constr_id=None):
+    def __init__(self, args, constr_id=None):
+        self.args = args
         if constr_id is None:
             self.constr_id = lu.get_id()
         else:

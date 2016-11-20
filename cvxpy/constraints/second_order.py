@@ -37,7 +37,7 @@ class SOC(Constraint):
     def __init__(self, t, X, axis):
         assert t.size[1] == 1
         self.axis = axis
-        super(SOC, self).__init__(t, [X])
+        super(SOC, self).__init__([t, X])
 
     def __str__(self):
         return "SOC(%s, %s)" % (self.t, self.x_elems)
