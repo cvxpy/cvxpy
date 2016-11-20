@@ -47,23 +47,23 @@ class QPMatrixStuffing(Reduction):
     def get_sym_data(self, objective, constraints, cached_data=None):
         class SymData(object):
             def __init__(self, objective, constraints):
-                self.constr_map = {s.EQ: constraints}
                 vars_ = objective.variables()
                 for c in constraints:
                     vars_ += c.variables()
                 vars_ = list(set(vars_))
                 self.vars_ = vars_
-                self.var_offsets, self.var_sizes, self.x_length = self.get_var_offsets(vars_)
+                self.id_map, self.var_offsets, self.x_length = self.get_var_offsets(vars_)
+                self.cons_id_map = dict()
 
             def get_var_offsets(self, variables):
+                id_map = {}
                 var_offsets = {}
-                var_sizes = {}
                 vert_offset = 0
                 for x in variables:
-                    var_sizes[x.id] = x.size
                     var_offsets[x.id] = vert_offset
                     vert_offset += x.size[0]*x.size[1]
-                return (var_offsets, var_sizes, vert_offset)
+                    id_map[x.id] = (None, vert_offset, x.size)
+                return (id_map, var_offsets, vert_offset)
 
         return SymData(objective, constraints)
 
@@ -75,10 +75,7 @@ class QPMatrixStuffing(Reduction):
 
         sym_data = self.get_sym_data(objective, constraints)
 
-        id_map = sym_data.var_offsets
-        N = sym_data.x_length
-
-        extractor = QuadCoeffExtractor(id_map, N)
+        extractor = QuadCoeffExtractor(sym_data.var_offsets, sym_data.x_length)
 
         # Extract the coefficients
         (Ps, Q, R) = extractor.get_coeffs(objective.args[0])
@@ -97,8 +94,17 @@ class QPMatrixStuffing(Reduction):
         b = np.array([C[1] for C in ineq_cons]).flatten()
         F = sp.vstack([C[0] for C in eq_cons])
         g = np.array([C[1] for C in eq_cons]).flatten()
-
         new_cons = [A*x + b <= 0, F*x + g == 0]
+
+        cnts = [0, 0]
+        for c in constraints:
+            if c.OP_NAME == "<=":
+                sym_data.cons_id_map[c.constr_id] = (new_cons[0].constr_id, cnts[0], c._expr.shape)
+                cnts[0] += 1
+            else:
+                sym_data.cons_id_map[c.constr_id] = (new_cons[1].constr_id, cnts[1], c._expr.shape)
+                cnts[1] += 1
+
         new_prob = cvx.Minimize(new_obj, new_cons)
 
         return (new_prob, sym_data)
@@ -107,25 +113,24 @@ class QPMatrixStuffing(Reduction):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-
-# primal_vars: dict of id to numpy ndarray
-# dual_vars: dict of id to numpy ndarray
-# opt_val:
-# status
-        id_map = inverse_data.var_offsets
-        N = inverse_data.x_length
-
-        x = solution.primal_vars
-        lmb = solution.dual_vars[0]
-        nu = solution.dual_vars[1]
-        status = solution.status
-        ret = {
-            "primal_vars": None,
-            "dual_vars": None,
-            "opt_val": None,
-            "status": status
-        }
-        if status == "Optimal":
-            ret.primal_vars = x
-            ret.dual_vars = (lmb, nu)
-        return ret
+        if solution.status == "Optimal":
+            primal_vars = dict()
+            dual_vars = dict()
+            for (old_id, tup) in inverse_data.cons_id_map:
+                (new_id, v, shape) = tup
+                size = shape[0]*shape[1]
+                val = solution.dual_vars[new_id][v:v+size]
+                dual_vars[old_id] = val.reshape(shape, order='F')
+            for (old_id, tup) in inverse_data.id_map:
+                (new_id, v, size) = tup
+                size = shape[0]*shape[1]
+                val = solution.primal_vars[new_id][v:v+size]
+                primal_vars[old_id] = val.reshape(shape, order='F')
+            return {
+                "primal_vars": primal_vars,
+                "dual_vars": dual_vars,
+                "opt_val": solution.opt_val,
+                "status": "Optimal"
+            }
+        else:
+            return solution

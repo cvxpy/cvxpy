@@ -33,7 +33,7 @@ class LeqConstraint(u.Canonical, Constraint):
         self.args = [lh_exp, rh_exp]
         self._expr = lh_exp - rh_exp
         self.dual_variable = cvxtypes.variable()(*self._expr.size)
-        super(LeqConstraint, self).__init__()
+        super(LeqConstraint, self).__init__([lh_exp, rh_exp])
 
     @property
     def id(self):
