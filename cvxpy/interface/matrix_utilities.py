@@ -130,10 +130,10 @@ def size(constant):
         else:  # Matrix
             return (len(constant[0]), len(constant))
     elif constant.__class__ in INTERFACES:
-        return INTERFACES[constant.__class__].size(constant)
+        return INTERFACES[constant.__class__].shape(constant)
     # Direct all sparse matrices to CSC interface.
     elif is_sparse(constant):
-        return INTERFACES[sp.csc_matrix].size(constant)
+        return INTERFACES[sp.csc_matrix].shape(constant)
     else:
         raise TypeError("%s is not a valid type for a Constant value." % type(constant))
 

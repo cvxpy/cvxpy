@@ -1,6 +1,7 @@
 
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.expressions.variables import Variable
+from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
 from cvxpy.utilities import QuadCoeffExtractor
 import cvxpy.settings as s
@@ -76,7 +77,7 @@ class ConeMatrixStuffing(Reduction):
                 _, A, b = extractor.get_coeffs(arg)
                 con.args[i] = A*x + b
 
-        new_prob = Minimize(new_obj, constraints)
+        new_prob = Problem(Minimize(new_obj), constraints)
         return (new_prob, sym_data)
 
     def invert(self, solution, inverse_data):
