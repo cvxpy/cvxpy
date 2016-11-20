@@ -56,9 +56,14 @@ class BaseMatrixInterface(object):
     def identity(self, size):
         return NotImplemented
 
-    # Return the dimensions of the matrix.
+    # Return the number of elements of the matrix.
     @abc.abstractmethod
     def size(self, matrix):
+        return NotImplemented
+
+    # Return the dimensions of the matrix.
+    @abc.abstractmethod
+    def shape(self, matrix):
         return NotImplemented
 
     # Get the matrix interpreted as a scalar.
