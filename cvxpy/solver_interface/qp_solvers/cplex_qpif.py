@@ -1,9 +1,7 @@
 # CPLEX interface to solve QP problems
 import numpy as np
-import quadprog.problem as qp
-from quadprog.results import quadprogResults
-import cplex as cpx
-import ipdb
+import cvxpy.settings as s
+import cplex
 
 
 class CPLEX(object):
@@ -12,15 +10,34 @@ class CPLEX(object):
     """
 
     # Map of CPLEX status to CVXPY status. #TODO: add more!
-    STATUS_MAP = {1: qp.OPTIMAL,
-                  3: qp.INFEASIBLE,
-                  2: qp.UNBOUNDED,
-                  6: qp.OPTIMAL_INACCURATE}
+    STATUS_MAP = {1: s.OPTIMAL,
+                  3: s.INFEASIBLE,
+                  2: s.UNBOUNDED,
+                  6: s.OPTIMAL_INACCURATE}
 
-    def __init__(self, **kwargs):
-        self.options = kwargs
+    def import_solver(self):
+        """Imports the solver.
+        """
+        import cplex
+        cplex  # For flake8
 
-    def solve(self, p):
+    def name(self):
+        """The name of the solver.
+        """
+        return s.CPLEX
+
+# Functions in old conic format
+# def split_constr(self, constr_map)
+# def matrix_intf(self):
+# def vec_intf(self):
+
+# TODO (Bart): Is this function needed?
+    # def __init__(self, **kwargs):
+    # self.options = kwargs
+
+    # TODO: Fix how matrices used. At the moment it is using the old problem structure "p"
+    def solve(self, objective, constraints, cached_data,
+              warm_start, verbose, solver_opts):
 
         # Convert Matrices in CSR format
         p.A = p.A.tocsr()
@@ -35,48 +52,33 @@ class CPLEX(object):
         lA = np.copy(p.lA)
 
         for i in range(m):
-            # if uA[i] == -np.inf:
-            #     uA[i] = -cpx.infinity
             if uA[i] == np.inf:
-                uA[i] = cpx.infinity
+                uA[i] = cplex.infinity
             if lA[i] == -np.inf:
-                lA[i] = -cpx.infinity
-            # if lA[i] == np.inf:
-            #     lA[i] = cpx.infinity
+                lA[i] = -cplex.infinity
 
         # Define CPLEX problem
-        model = cpx.Cplex()
+        model = cplex.Cplex()
 
         # Minimize problem
         model.objective.set_sense(model.objective.sense.minimize)
 
         # Add variables
         model.variables.add(obj=p.q,
-                            lb=-cpx.infinity*np.ones(n),
-                            ub=cpx.infinity*np.ones(n))  # Linear obj part
+                            lb=-cplex.infinity*np.ones(n),
+                            ub=cplex.infinity*np.ones(n))  # Linear obj part
 
         # Add constraints
-        # sense = ["R"] * m  # Constraints sense: (range between lA and uA)
-        # rows = []
         for i in range(m):  # Add inequalities
             start = p.A.indptr[i]
             end = p.A.indptr[i+1]
             row = [[p.A.indices[start:end].tolist(),
                    p.A.data[start:end].tolist()]]
-            # if (p.uA[i] - p.lA[i]) < 1e-08:  # Equality constraint
-            #     model.linear_constraints.add(lin_expr=row,
-            #                                  senses=["E"],
-            #                                  rhs=[p.uA[i]])
-            # else:  # Inequality constraint
-            #     model.linear_constraints.add(lin_expr=row,
-            #                                  senses=["R"],
-            #                                  range_values=[p.lA[i] - p.uA[i]],
-            #                                  rhs=[p.uA[i]])
-            if (lA[i] != -cpx.infinity) & (uA[i] == cpx.infinity):
+            if (lA[i] != -cplex.infinity) & (uA[i] == cplex.infinity):
                 model.linear_constraints.add(lin_expr=row,
                                              senses=["G"],
                                              rhs=[lA[i]])
-            elif (lA[i] == -cpx.infinity) & (uA[i] != cpx.infinity):
+            elif (lA[i] == -cplex.infinity) & (uA[i] != cplex.infinity):
                 model.linear_constraints.add(lin_expr=row,
                                              senses=["L"],
                                              rhs=[uA[i]])
@@ -85,14 +87,6 @@ class CPLEX(object):
                                              senses=["R"],
                                              range_values=[lA[i] - uA[i]],
                                              rhs=[uA[i]])
-
-            # rows.append([p.A.indices[start:end].tolist(),
-            #              p.A.data[start:end].tolist()])
-        # model.linear_constraints.add(lin_expr=rows,
-        #                              senses=sense,
-        #                              range_values=(lA - uA).tolist(),
-        #                              rhs=uA.tolist())
-        # ipdb.set_trace()
 
         # Set quadratic Cost
         if p.P.count_nonzero():  # Only if quadratic form is not null
@@ -104,16 +98,16 @@ class CPLEX(object):
                             p.P.data[start:end].tolist()])
             model.objective.set_quadratic(qmat)
 
-        # Set parameters
-        for param, value in self.options.iteritems():
-            if param == "verbose":
-                if value == 0:
-                    model.set_results_stream(None)
-                    model.set_log_stream(None)
-                    model.set_error_stream(None)
-                    model.set_warning_stream(None)
-            else:
-                exec("model.parameters.%s.set(%d)" % (param, value))
+        # TODO: Set solver options
+        # for param, value in self.options.iteritems():
+        #     if param == "verbose":
+        #         if value == 0:
+        #             model.set_results_stream(None)
+        #             model.set_log_stream(None)
+        #             model.set_error_stream(None)
+        #             model.set_warning_stream(None)
+        #     else:
+        #         exec("model.parameters.%s.set(%d)" % (param, value))
 
         # Solve problem
         try:
@@ -122,47 +116,39 @@ class CPLEX(object):
             end = model.get_time()
         except:  # Error in the solution
             print "Error in CPLEX solution\n"
-            return quadprogResults(qp.SOLVER_ERROR, None, None, None,
-                                   np.inf, None)
+            # TODO: Fix it
+            return None
 
-        # Return results
+        # Get computation time and store in solution structure
+        model.solution.cputime = end-start
+
+        # TODO: Define results dictionary
+        results_dict = model
+        return self.format_results(results_dict, data, cached_data)
+
+    def format_results(self, results_dict, data, cached_data):
+        """Converts the solver output into standard QP form
+        """
+        # TODO: Complete funciton depending on required data
 
         # Get status
-        status = self.STATUS_MAP.get(model.solution.get_status(),
-                                     qp.SOLVER_ERROR)
+        status = self.STATUS_MAP.get(results_dict.get_status(),
+                                     s.SOLVER_ERROR)
 
-        # Get computation time
-        cputime = end-start
-
-        if (status != qp.SOLVER_ERROR) & (status != qp.INFEASIBLE):
+        if (status != s.SOLVER_ERROR) & (status != s.INFEASIBLE):
             # Get objective value
-            objval = model.solution.get_objective_value()
+            objval = results_dict.get_objective_value()
 
             # Get solution
-            sol = np.array(model.solution.get_values())
+            sol = np.array(results_dict.get_values())
 
             # Get dual values
-            dual = -np.array(model.solution.get_dual_values())
-            # dual_eq = -np.array(duals[:neq])    # Cplex uses swapped signs (-1)
-            # dual_ineq = -np.array(duals[neq:])  # Cplex uses swapped signs (-1)
-
-            # Bounds
-            # dual_ub = np.zeros(n)
-            # dual_lb = np.zeros(n)
-
-            # RCx = m.solution.get_reduced_costs()  # Get reduced costs
-            # for i in range(n):
-            #     if RCx[i] >= 1e-07:
-            #         dual_lb[i] = RCx[i]
-            #     else:
-            #         dual_ub[i] = -RCx[i]
-
-            # Get computation time
-            cputime = end-start
+            dual = -np.array(results_dict.get_dual_values())
 
             # Get total number of iterations
-            total_iter = int(model.solution.progress.get_num_barrier_iterations())
+            total_iter = int(results_dict.progress.get_num_barrier_iterations())
 
+            # TODO: Add results structure
             return quadprogResults(status, objval, sol, dual,
                                    cputime, total_iter)
         else:
