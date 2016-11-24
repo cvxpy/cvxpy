@@ -23,7 +23,7 @@ import warnings
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
-from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
+from cvxpy.constraints import Zero, NonPos, PSDConstraint
 from cvxpy.expressions import cvxtypes
 import abc
 
@@ -383,13 +383,13 @@ class Expression(u.Canonical):
     def __eq__(self, other):
         """Returns an equality constraint.
         """
-        return EqConstraint(self, other)
+        return Zero(self - other)
 
     @_cast_other
     def __le__(self, other):
         """Returns an inequality constraint.
         """
-        return LeqConstraint(self, other)
+        return NonPos(self - other)
 
     def __lt__(self, other):
         """Returns an inequality constraint.

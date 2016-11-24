@@ -18,12 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions import cvxtypes
-from cvxpy.constraints.leq_constraint import LeqConstraint
+from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.semidefinite import SDP
 import cvxpy.lin_ops.lin_utils as lu
 
 
-class PSDConstraint(LeqConstraint):
+class PSDConstraint(NonPos):
     """Constraint X >> Y that z.T(X - Y)z >= 0 for all z.
     """
     OP_NAME = ">>"
@@ -57,7 +57,7 @@ class PSDConstraint(LeqConstraint):
         """Returns the graph implementation of the object.
 
         Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the EqConstraint.
+        so the dual value will be saved to the Zero.
 
         Returns:
             A tuple of (affine expression, [constraints]).

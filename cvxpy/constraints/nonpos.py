@@ -25,15 +25,12 @@ from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
 
-class LeqConstraint(u.Canonical, Constraint):
-    OP_NAME = "<="
+class NonPos(u.Canonical, Constraint):
     TOLERANCE = 1e-4
 
-    def __init__(self, lh_exp, rh_exp):
-        self.args = [lh_exp, rh_exp]
-        self._expr = lh_exp - rh_exp
-        self.dual_variable = cvxtypes.variable()(*self._expr.size)
-        super(LeqConstraint, self).__init__([lh_exp, rh_exp])
+    def __init__(self, expr):
+        self.dual_variable = cvxtypes.variable()(*expr.size)
+        super(NonPos, self).__init__([expr])
 
     @property
     def id(self):
@@ -42,9 +39,7 @@ class LeqConstraint(u.Canonical, Constraint):
         return self.constr_id
 
     def name(self):
-        return ' '.join([str(self.args[0].name()),
-                         self.OP_NAME,
-                         str(self.args[1].name())])
+        return "%s >= 0" % self.args[0]
 
     def __str__(self):
         """Returns a string showing the mathematical constraint.
@@ -54,9 +49,8 @@ class LeqConstraint(u.Canonical, Constraint):
     def __repr__(self):
         """Returns a string with information about the constraint.
         """
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               repr(self.args[0]),
-                               repr(self.args[1]))
+        return "%s(%s)" % (self.__class__.__name__,
+                           repr(self.args[0]))
 
     def __nonzero__(self):
         """Raises an exception when called.
@@ -88,11 +82,11 @@ class LeqConstraint(u.Canonical, Constraint):
 
     @property
     def size(self):
-        return self._expr.size
+        return self.args[0].size
 
     # Left hand expression must be convex and right hand must be concave.
     def is_dcp(self):
-        return self._expr.is_convex()
+        return self.args[0].is_convex()
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -105,24 +99,24 @@ class LeqConstraint(u.Canonical, Constraint):
         tuple
             A tuple of (affine expression, [constraints]).
         """
-        obj, constraints = self._expr.canonical_form
+        obj, constraints = self.args[0].canonical_form
         dual_holder = lu.create_leq(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
 
     def variables(self):
         """Returns the variables in the compared expressions.
         """
-        return self._expr.variables()
+        return self.args[0].variables()
 
     def parameters(self):
         """Returns the parameters in the compared expressions.
         """
-        return self._expr.parameters()
+        return self.args[0].parameters()
 
     def constants(self):
         """Returns the constants in the compared expressions.
         """
-        return self._expr.constants()
+        return self.args[0].constants()
 
     @property
     def value(self):
@@ -146,7 +140,7 @@ class LeqConstraint(u.Canonical, Constraint):
         -------
         Expression
         """
-        return cvxtypes.pos()(self._expr)
+        return cvxtypes.neg()(self.args[0])
 
     @property
     def violation(self):

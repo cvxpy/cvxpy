@@ -60,9 +60,9 @@ class TestLinearCone(BaseTest):
                     [self.a <= 2, self.b == self.a, self.b <= 5])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new, inv_data = ConeMatrixStuffing().apply(p)
-        self.assertAlmostEqual(p_new.solve(), 4)
+        self.assertAlmostEqual(p_new.solve(), -4)
         sltn = ECOS().solve(p_new, False, False, {})
-        self.assertAlmostEqual(sltn.opt_val, 4)
+        self.assertAlmostEqual(sltn.opt_val, -4)
 
         # With a constant in the objective.
         p = Problem(Minimize(3*self.a - self.b + 100),

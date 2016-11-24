@@ -43,14 +43,14 @@ class TestConstraints(BaseTest):
         """Test string representations of the constraints.
         """
         constr = self.x <= self.x
-        self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(self.x)))
+        self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(self.x)))
         constr = self.x <= 2*self.x
-        self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(2*self.x)))
+        self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
         constr = 2*self.x >= self.x
-        self.assertEqual(repr(constr), "LeqConstraint(%s, %s)" % (repr(self.x), repr(2*self.x)))
+        self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
 
-    def test_eq_constraint(self):
-        """Test the EqConstraint class.
+    def test_zero(self):
+        """Test the Zero class.
         """
         constr = self.x == self.z
         self.assertEqual(constr.name(), "x == z")
@@ -93,8 +93,8 @@ class TestConstraints(BaseTest):
         self.assertTrue(copy.args[0] is self.A)
         self.assertTrue(copy.args[1] is self.B)
 
-    def test_leq_constraint(self):
-        """Test the LeqConstraint class.
+    def test_nonpos(self):
+        """Test the NonPos class.
         """
         constr = self.x <= self.z
         self.assertEqual(constr.name(), "x <= z")

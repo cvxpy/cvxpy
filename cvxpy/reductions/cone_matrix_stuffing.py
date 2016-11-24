@@ -1,5 +1,6 @@
 
 from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
@@ -107,6 +108,7 @@ class ConeMatrixStuffing(Reduction):
             "status": status
         }
         if status == "Optimal":
+            ret['opt_val'] = solution['']
             ret.primal_vars = x
             ret.dual_vars = (lmb, nu)
         return ret

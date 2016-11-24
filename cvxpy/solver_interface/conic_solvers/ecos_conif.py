@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import EqConstraint, LeqConstraint, SOC, ExpCone
+from cvxpy.constraints import Zero, NonPos, SOC, ExpCone
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.constraints.utilities import format_axis
 from cvxpy.reductions.solution import Solution
@@ -103,8 +103,8 @@ class ECOS(object):
             coeff, offset = ECOS.get_coeff_offset(cons.args[0])
             matrices.append(coeff)
             offsets.append(offset.ravel())
-        coeff = sp.vstack(matrices)
-        offset = np.hstack(offsets)
+        coeff = sp.vstack(matrices).tocsc()
+        offset = -np.hstack(offsets)
         return coeff, offset
 
     def get_problem_data(self, problem):
@@ -127,11 +127,12 @@ class ECOS(object):
         data = {}
         data[s.C], data[s.OFFSET] = self.get_coeff_offset(problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
-        constr = [c for c in problem.constraints if type(c) == EqConstraint]
+        data[s.OFFSET] = data[s.OFFSET][0, 0]
+        constr = [c for c in problem.constraints if type(c) == Zero]
         data[s.A], data[s.B] = self.group_coeff_offset(constr)
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
-        leq_constr = [c for c in problem.constraints if type(c) == LeqConstraint]
+        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
         data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
         soc_constr = [c for c in problem.constraints if type(c) == SOC]
         data[s.DIMS]['q'] = []
@@ -185,9 +186,9 @@ class ECOS(object):
             primal_val = results_dict['info']['pcost']
             opt_val = primal_val + data[s.OFFSET]
             primal_vars = {global_var.id: results_dict['x']}
-            eq_dual = self.get_dual_values(results_dict['y'], problem.constraints, [EqConstraint])
+            eq_dual = self.get_dual_values(results_dict['y'], problem.constraints, [Zero])
             leq_dual = self.get_dual_values(results_dict['z'], problem.constraints,
-                                            [LeqConstraint, SOC, ExpCone])
+                                            [NonPos, SOC, ExpCone])
             eq_dual.update(leq_dual)
             dual_vars = leq_dual
         else:
@@ -203,7 +204,7 @@ class ECOS(object):
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     @staticmethod
-    def get_dual_values(self, result_vec, constraints, constr_types):
+    def get_dual_values(result_vec, constraints, constr_types):
         """Gets the values of the dual variables.
 
         Parameters
@@ -221,7 +222,7 @@ class ECOS(object):
             constr_offsets[constr.constr_id] = offset
             offset += constr.size[0] * constr.size[1]
         active_constraints = []
-        for constr in self.constraints:
+        for constr in constraints:
             # Ignore constraints of the wrong type.
             if type(constr) in constr_types:
                 active_constraints.append(constr)

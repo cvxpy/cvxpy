@@ -32,7 +32,7 @@ class QPMatrixStuffing(Reduction):
     def accepts(self, problem):
         """Temporary method to determine whether the given Problem object is suitable for LS solver.
         """
-        import cvxpy.constraints.eq_constraint as eqc
+        import cvxpy.constraints.zero as eqc
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
 

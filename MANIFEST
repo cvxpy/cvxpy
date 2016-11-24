@@ -37,8 +37,8 @@ cvxpy/atoms/elementwise/square.py
 cvxpy/atoms/nonlinear/__init__.py
 cvxpy/atoms/nonlinear/log.py
 cvxpy/constraints/__init__.py
-cvxpy/constraints/eq_constraint.py
-cvxpy/constraints/leq_constraint.py
+cvxpy/constraints/zero.py
+cvxpy/constraints/nonpos.py
 cvxpy/constraints/nonlinear.py
 cvxpy/constraints/second_order.py
 cvxpy/constraints/semi_definite.py

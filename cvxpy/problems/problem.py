@@ -21,7 +21,7 @@ import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 from cvxpy.error import SolverError, DCPError
-from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
+from cvxpy.constraints import Zero, NonPos, PSDConstraint
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
@@ -30,7 +30,7 @@ from cvxpy.problems.problem_data.problem_data import ProblemData
 # a circular import (cvxpy.transforms imports Problem). Hence we need to import
 # cvxpy here.
 import cvxpy
-import cvxpy.constraints.eq_constraint as eqc
+import cvxpy.constraints.zero as eqc
 
 import multiprocess as multiprocessing
 import numpy as np
@@ -116,7 +116,7 @@ class Problem(u.Canonical):
         """Is problem a quadratic program?
         """
         for c in self.constraints:
-            if not (isinstance(c, eqc.EqConstraint) or c._expr.is_pwl()):
+            if not (isinstance(c, eqc.Zero) or c.args[0].is_pwl()):
                 return False
         return (self.is_dcp() and self.objective.args[0].is_quadratic())
 
@@ -431,11 +431,11 @@ class Problem(u.Canonical):
             if s.EQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.EQ_DUAL],
                                        sym_data.constr_map[s.EQ],
-                                       [EqConstraint])
+                                       [Zero])
             if s.INEQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.INEQ_DUAL],
                                        sym_data.constr_map[s.LEQ],
-                                       [LeqConstraint, PSDConstraint])
+                                       [NonPos, PSDConstraint])
             # Correct optimal value if the objective was Maximize.
             value = results_dict[s.VALUE]
             self._value = self.objective.primal_to_result(value)
@@ -694,11 +694,11 @@ class SizeMetrics(object):
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
-            if constraint.__class__.__name__ is "EqConstraint":
-                self.num_scalar_eq_constr += np.prod(constraint._expr.size)
+            if constraint.__class__.__name__ is "Zero":
+                self.num_scalar_eq_constr += np.prod(constraint.args[0].size)
 
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
-            if constraint.__class__.__name__ is "LeqConstraint":
-                self.num_scalar_leq_constr += np.prod(constraint._expr.size)
+            if constraint.__class__.__name__ is "NonPos":
+                self.num_scalar_leq_constr += np.prod(constraint.args[0].size)

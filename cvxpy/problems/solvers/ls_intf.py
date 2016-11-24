@@ -78,7 +78,7 @@ class LS(Solver):
     def suitable(self, prob):
         """Temporary method to determine whether the given Problem object is suitable for LS solver.
         """
-        import cvxpy.constraints.eq_constraint as eqc
+        import cvxpy.constraints.zero as eqc
 
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
@@ -86,7 +86,7 @@ class LS(Solver):
         # TODO: handle affine objective
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic() and
                 not prob.objective.args[0].is_affine() and
-                all([isinstance(c, eqc.EqConstraint) for c in prob.constraints]) and
+                all([isinstance(c, eqc.Zero) for c in prob.constraints]) and
                 all([type(v) in allowedVariables for v in prob.variables()]) and
                 all([not v.domain for v in prob.variables()])  # no implicit variable domains
                 # (TODO: domains are not implemented yet)

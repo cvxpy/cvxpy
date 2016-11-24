@@ -17,17 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.constraints.leq_constraint import LeqConstraint
+from cvxpy.constraints.nonpos import NonPos
 from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 
 
-class EqConstraint(LeqConstraint):
+class Zero(NonPos):
     OP_NAME = "=="
     # Both sides must be affine.
 
     def is_dcp(self):
-        return self._expr.is_affine()
+        return self.args[0].is_affine()
 
     @property
     def residual(self):
@@ -37,7 +37,7 @@ class EqConstraint(LeqConstraint):
         -------
         Expression
         """
-        return cvxtypes.abs()(self._expr)
+        return cvxtypes.abs()(self.args[0])
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -48,6 +48,6 @@ class EqConstraint(LeqConstraint):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj, constraints = self._expr.canonical_form
+        obj, constraints = self.args[0].canonical_form
         dual_holder = lu.create_eq(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
