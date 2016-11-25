@@ -65,12 +65,12 @@ class quad_over_lin(Atom):
             Dy = -np.square(X).sum()/np.square(y)
             Dy = sp.csc_matrix(Dy)
             DX = 2.0*X/y
-            DX = np.reshape(DX, (self.args[0].size[0]*self.args[0].size[1], 1))
+            DX = np.reshape(DX, (self.args[0].shape[0]*self.args[0].shape[1], 1))
             DX = scipy.sparse.csc_matrix(DX)
             return [DX, Dy]
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -112,15 +112,15 @@ class quad_over_lin(Atom):
         return self.args[0].is_affine() and self.args[1].is_constant()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -135,6 +135,6 @@ class quad_over_lin(Atom):
         two = lu.create_const(2, (1, 1))
         constraints = [SOC(lu.sum_expr([y, v]),
                            [lu.sub_expr(y, v),
-                            lu.mul_expr(two, x, x.size)]),
+                            lu.mul_expr(two, x, x.shape)]),
                        lu.create_geq(y)]
         return (v, constraints)

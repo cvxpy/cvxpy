@@ -36,7 +36,7 @@ class MatrixCache(object):
         The vector offset.
     constraints : list
         A list of constraints in the matrix.
-    size : tuple
+    shape : tuple
         The (rows, cols) dimensions of the matrix.
     """
 
@@ -44,9 +44,9 @@ class MatrixCache(object):
         self.coo_tup = coo_tup
         self.const_vec = const_vec
         self.constraints = constraints
-        rows = sum([c.size[0] * c.size[1] for c in constraints])
+        rows = sum([c.shape[0] * c.shape[1] for c in constraints])
         cols = x_length
-        self.size = (rows, cols)
+        self.shape = (rows, cols)
         self.param_coo_tup = ([], [], [])
 
     def reset_param_data(self):
@@ -140,7 +140,7 @@ class MatrixData(object):
         -------
         ((V, I, J), array)
         """
-        rows = sum([c.size[0] * c.size[1] for c in constraints])
+        rows = sum([c.shape[0] * c.shape[1] for c in constraints])
         COO = ([], [], [])
         const_vec = self.vec_intf.zeros(rows, 1)
         return MatrixCache(COO, const_vec, constraints, x_length)
@@ -174,7 +174,7 @@ class MatrixData(object):
                                             lu.replace_params_with_consts)
                 active_constr.append(constr)
                 constr_offsets.append(vert_offset)
-            vert_offset += constr.size[0]*constr.size[1]
+            vert_offset += constr.shape[0]*constr.shape[1]
         # Convert the constraints into a matrix and vector offset
         # and add them to the matrix cache.
         if len(active_constr) > 0:
@@ -204,9 +204,9 @@ class MatrixData(object):
         """
         # Get parameter values.
         param_cache = self._init_matrix_cache(mat_cache.constraints,
-                                              mat_cache.size[0])
+                                              mat_cache.shape[0])
         self._lin_matrix(param_cache)
-        rows, cols = mat_cache.size
+        rows, cols = mat_cache.shape
         # Create the constraints matrix.
         # Combine the cached data with the parameter data.
         V, I, J = mat_cache.coo_tup
@@ -238,7 +238,7 @@ class MatrixData(object):
         Oracle function.
         """
         import cvxopt
-        rows = int(sum([c.size[0] * c.size[1] for c in nonlin_constr]))
+        rows = int(sum([c.shape[0] * c.shape[1] for c in nonlin_constr]))
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
@@ -252,12 +252,12 @@ class MatrixData(object):
             if x is None:
                 return rows, big_x
             big_f = cvxopt.matrix(0., (rows, 1))
-            big_Df = cvxopt.spmatrix(0., [], [], size=(rows, cols))
+            big_Df = cvxopt.spmatrix(0., [], [], shape=(rows, cols))
             if z:
-                big_H = cvxopt.spmatrix(0., [], [], size=(cols, cols))
+                big_H = cvxopt.spmatrix(0., [], [], shape=(cols, cols))
             offset = 0
             for constr in nonlin_constr:
-                constr_entries = constr.size[0]*constr.size[1]
+                constr_entries = constr.shape[0]*constr.shape[1]
                 local_x = constr.extract_variables(x, var_offsets)
                 if z:
                     f, Df, H = constr.f(local_x,

@@ -38,17 +38,17 @@ class ConeMatrixStuffing(Reduction):
                     vars_ += c.variables()
                 vars_ = list(set(vars_))
                 self.vars_ = vars_
-                self.var_offsets, self.var_sizes, self.x_length = self.get_var_offsets(vars_)
+                self.var_offsets, self.var_shapes, self.x_length = self.get_var_offsets(vars_)
 
             def get_var_offsets(self, variables):
                 var_offsets = {}
-                var_sizes = {}
+                var_shapes = {}
                 vert_offset = 0
                 for x in variables:
-                    var_sizes[x.id] = x.size
+                    var_shapes[x.id] = x.shape
                     var_offsets[x.id] = vert_offset
-                    vert_offset += x.size[0]*x.size[1]
-                return (var_offsets, var_sizes, vert_offset)
+                    vert_offset += x.shape[0]*x.shape[1]
+                return (var_offsets, var_shapes, vert_offset)
 
         return SymData(objective, constraints)
 

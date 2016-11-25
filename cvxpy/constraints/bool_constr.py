@@ -41,7 +41,7 @@ class BoolConstr(Constraint):
         if lin_op.type is lo.VARIABLE:
             self.noncvx_var = lin_op
         else:
-            self.noncvx_var = lu.create_var(self.lin_op.size)
+            self.noncvx_var = lu.create_var(self.lin_op.shape)
         super(BoolConstr, self).__init__()
 
     def __str__(self):
@@ -65,7 +65,7 @@ class BoolConstr(Constraint):
         # If an equality constraint was introduced, update eq_constr and dims.
         if new_eq:
             eq_constr += new_eq
-            dims[s.EQ_DIM] += self.size[0]*self.size[1]
+            dims[s.EQ_DIM] += self.shape[0]*self.shape[1]
         # Record the noncvx_var id.
         bool_id = lu.get_expr_vars(self.noncvx_var)[0][0]
         dims[self.CONSTR_TYPE].append(bool_id)
@@ -86,7 +86,7 @@ class BoolConstr(Constraint):
         return (eq_constr, [])
 
     @property
-    def size(self):
+    def shape(self):
         """The dimensions of the semi-definite cone.
         """
-        return self.lin_op.size
+        return self.lin_op.shape

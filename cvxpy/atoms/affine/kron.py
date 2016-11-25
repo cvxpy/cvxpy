@@ -43,11 +43,11 @@ class kron(AffAtom):
         if not self.args[0].is_constant():
             raise ValueError("The first argument to kron must be constant.")
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """The sum of the argument dimensions - 1.
         """
-        rows = self.args[0].size[0]*self.args[1].size[0]
-        cols = self.args[0].size[1]*self.args[1].size[1]
+        rows = self.args[0].shape[0]*self.args[1].shape[0]
+        cols = self.args[0].shape[1]*self.args[1].shape[1]
         return (rows, cols)
 
     def sign_from_args(self):
@@ -66,15 +66,15 @@ class kron(AffAtom):
         return self.args[0].is_negative()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Kronecker product of two matrices.
 
         Parameters
         ----------
         arg_objs : list
             LinOp for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -83,4 +83,4 @@ class kron(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.kron(arg_objs[0], arg_objs[1], size), [])
+        return (lu.kron(arg_objs[0], arg_objs[1], shape), [])

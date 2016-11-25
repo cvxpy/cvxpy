@@ -42,7 +42,7 @@ def mixed_norm(X, p=2, q=1):
     X = Expression.cast_to_const(X)
 
     # inner norms
-    vecnorms = [norm(X[i, :], p) for i in range(X.size[0])]
+    vecnorms = [norm(X[i, :], p) for i in range(X.shape[0])]
 
     # outer norm
     return norm(hstack(*vecnorms), q)

@@ -139,9 +139,9 @@ class pnorm(AxisAtom):
         # NOTE: workaround for NumPy <=1.9 and no keepdims for norm()
         if self.axis is not None:
             if self.axis == 0:
-                retval = np.reshape(retval, (1, self.args[0].size[1]))
+                retval = np.reshape(retval, (1, self.args[0].shape[1]))
             else:  # self.axis == 1:
-                retval = np.reshape(retval, (self.args[0].size[0], 1))
+                retval = np.reshape(retval, (self.args[0].shape[0], 1))
 
         return retval
 
@@ -222,7 +222,7 @@ class pnorm(AxisAtom):
         Returns:
             A NumPy ndarray matrix or None.
         """
-        rows = self.args[0].size[0]*self.args[0].size[1]
+        rows = self.args[0].shape[0]*self.args[0].shape[1]
         value = np.matrix(value)
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
@@ -243,18 +243,18 @@ class pnorm(AxisAtom):
         else:
             nominator = np.power(value, self.p - 1)
             frac = np.divide(nominator, denominator)
-            return np.reshape(frac.A, (frac.size, 1))
+            return np.reshape(frac.A, (frac.shape, 1))
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         r"""Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -341,18 +341,18 @@ class pnorm(AxisAtom):
                 return t, [SOC(t, [x])]
 
             else:
-                t = lu.create_var(size)
-                return t, [SOC_Axis(lu.reshape(t, (t.size[0]*t.size[1], 1)),
+                t = lu.create_var(shape)
+                return t, [SOC_Axis(lu.reshape(t, (t.shape[0]*t.shape[1], 1)),
                                     x, axis)]
 
         if p == np.inf:
-            t_ = lu.promote(t, x.size)
+            t_ = lu.promote(t, x.shape)
             return t, [lu.create_leq(x, t_), lu.create_geq(lu.sum_expr([x, t_]))]
 
         # we need an absolute value constraint for the symmetric convex branches (p >= 1)
         # we alias |x| as x from this point forward to make the code pretty :)
         if p >= 1:
-            absx = lu.create_var(x.size)
+            absx = lu.create_var(x.shape)
             constraints += [lu.create_leq(x, absx), lu.create_geq(lu.sum_expr([x, absx]))]
             x = absx
 
@@ -362,8 +362,8 @@ class pnorm(AxisAtom):
         # now, we take care of the remaining convex and concave branches
         # to create the rational powers, we need a new variable, r, and
         # the constraint sum(r) == t
-        r = lu.create_var(x.size)
-        t_ = lu.promote(t, x.size)
+        r = lu.create_var(x.shape)
+        t_ = lu.promote(t, x.shape)
         constraints += [lu.create_eq(lu.sum_entries(r), t)]
 
         # make p a fraction so that the input weight to gm_constrs

@@ -203,10 +203,10 @@ class geo_mean(Atom):
         super(geo_mean, self).__init__(x)
 
         x = self.args[0]
-        if x.size[0] == 1:
-            n = x.size[1]
-        elif x.size[1] == 1:
-            n = x.size[0]
+        if x.shape[0] == 1:
+            n = x.shape[1]
+        elif x.shape[1] == 1:
+            n = x.shape[0]
         else:
             raise ValueError('x must be a row or column vector.')
 
@@ -278,8 +278,8 @@ class geo_mean(Atom):
     def pretty_tree(self):
         print(prettydict(self.tree))
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -344,15 +344,15 @@ class geo_mean(Atom):
         return copy
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -364,9 +364,9 @@ class geo_mean(Atom):
         w, w_dyad, tree = data
         t = lu.create_var((1, 1))
 
-        if arg_objs[0].size[1] == 1:
+        if arg_objs[0].shape[1] == 1:
             x_list = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))]
-        if arg_objs[0].size[0] == 1:
+        if arg_objs[0].shape[0] == 1:
             x_list = [index.get_index(arg_objs[0], [], 0, i) for i in range(len(w))]
 
         # todo: catch cases where we have (0, 0, 1)?

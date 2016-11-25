@@ -75,8 +75,8 @@ class Problem(u.Canonical):
         self._reset_cache()
         # List of separable (sub)problems
         self._separable_problems = None
-        # Information about the size of the problem and its constituent parts
-        self._size_metrics = SizeMetrics(self)
+        # Information about the shape of the problem and its constituent parts
+        self._shape_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
 
@@ -169,10 +169,10 @@ class Problem(u.Canonical):
         return list(const_dict.values())
 
     @property
-    def size_metrics(self):
-        """Returns an object containing information about the size of the problem.
+    def shape_metrics(self):
+        """Returns an object containing information about the shape of the problem.
         """
-        return self._size_metrics
+        return self._shape_metrics
 
     @property
     def solver_stats(self):
@@ -511,7 +511,7 @@ class Problem(u.Canonical):
         offset = 0
         for constr in constraints:
             constr_offsets[constr.constr_id] = offset
-            offset += constr.size[0] * constr.size[1]
+            offset += constr.shape[0] * constr.shape[1]
         active_constraints = []
         for constr in self.constraints:
             # Ignore constraints of the wrong type.
@@ -535,7 +535,7 @@ class Problem(u.Canonical):
             # Cast to desired matrix type.
             result_vec = intf.DEFAULT_INTF.const_to_matrix(result_vec)
         for obj in objects:
-            rows, cols = obj.size
+            rows, cols = obj.shape
             if obj.id in offset_map:
                 offset = offset_map[obj.id]
                 # Handle scalars
@@ -658,7 +658,7 @@ class SizeMetrics(object):
         num_scalar_leq_constr : integer
             The number of scalar inequality constraints in the problem.
 
-    Max and min sizes:
+    Max and min shapes:
         max_data_dimension : integer
             The longest dimension of any data block constraint or parameter.
         max_big_small_squared : integer
@@ -671,7 +671,7 @@ class SizeMetrics(object):
         # num_scalar_variables
         self.num_scalar_variables = 0
         for var in problem.variables():
-            self.num_scalar_variables += np.prod(var.size)
+            self.num_scalar_variables += np.prod(var.shape)
 
         # num_scalar_data, max_data_dimension, and max_big_small_squared
         self.max_data_dimension = 0
@@ -680,9 +680,9 @@ class SizeMetrics(object):
         for const in problem.constants()+problem.parameters():
             big = 0
             # Compute number of data
-            self.num_scalar_data += np.prod(const.size)
-            big = max(const.size)
-            small = min(const.size)
+            self.num_scalar_data += np.prod(const.shape)
+            big = max(const.shape)
+            small = min(const.shape)
 
             # Get max data dimension:
             if self.max_data_dimension < big:
@@ -695,10 +695,10 @@ class SizeMetrics(object):
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "Zero":
-                self.num_scalar_eq_constr += np.prod(constraint.args[0].size)
+                self.num_scalar_eq_constr += np.prod(constraint.args[0].shape)
 
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "NonPos":
-                self.num_scalar_leq_constr += np.prod(constraint.args[0].size)
+                self.num_scalar_leq_constr += np.prod(constraint.args[0].shape)

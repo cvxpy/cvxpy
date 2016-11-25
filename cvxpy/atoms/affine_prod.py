@@ -36,10 +36,10 @@ class affine_prod(Atom):
         """
         return np.dot(values[0], values[1])
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
-        return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+        return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
     def sign_from_args(self):
         """Default to rules for times.
@@ -71,7 +71,7 @@ class affine_prod(Atom):
         """
         if not self.args[0].is_affine() or not self.args[1].is_affine():
             raise ValueError("The arguments to affine_prod must be affine.")
-        u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+        u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
     def is_quadratic(self):
         """Is the expression quadratic?
@@ -92,20 +92,20 @@ class affine_prod(Atom):
         X = values[0]
         Y = values[1]
 
-        DX_rows = self.args[0].size[0]*self.args[0].size[1]
-        cols = self.args[0].size[0]*self.args[1].size[1]
+        DX_rows = self.args[0].shape[0]*self.args[0].shape[1]
+        cols = self.args[0].shape[0]*self.args[1].shape[1]
 
         # DX = [diag(Y11), diag(Y12), ...]
         #      [diag(Y21), diag(Y22), ...]
         #      [   ...        ...     ...]
         DX = sp.dok_matrix((DX_rows, cols))
-        for k in range(self.args[0].size[0]):
-            DX[k::self.args[0].size[0], k::self.args[0].size[0]] = Y
+        for k in range(self.args[0].shape[0]):
+            DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
         DX = sp.csc_matrix(DX)
-        DY = sp.block_diag([X.T for k in range(self.args[1].size[1])], 'csc')
+        DY = sp.block_diag([X.T for k in range(self.args[1].shape[1])], 'csc')
 
         return [DX, DY]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         return NotImplemented

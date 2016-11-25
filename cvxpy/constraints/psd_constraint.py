@@ -30,8 +30,8 @@ class PSDConstraint(NonPos):
 
     def __init__(self, lh_exp, rh_exp):
         # Arguments must be square matrices or scalars.
-        if (lh_exp.size[0] != lh_exp.size[1]) or \
-           (rh_exp.size[0] != rh_exp.size[1]):
+        if (lh_exp.shape[0] != lh_exp.shape[1]) or \
+           (rh_exp.shape[0] != rh_exp.shape[1]):
             raise ValueError(
                 "Non-square matrix in positive definite constraint."
             )
@@ -65,6 +65,6 @@ class PSDConstraint(NonPos):
         obj, constraints = self._expr.canonical_form
         half = lu.create_const(0.5, (1, 1))
         symm = lu.mul_expr(half, lu.sum_expr([obj, lu.transpose(obj)]),
-                           obj.size)
+                           obj.shape)
         dual_holder = SDP(symm, enforce_sym=False, constr_id=self.id)
         return (None, constraints + [dual_holder])

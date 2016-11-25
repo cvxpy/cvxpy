@@ -34,15 +34,15 @@ class AxisAtom(Atom):
         self.axis = axis
         super(AxisAtom, self).__init__(expr)
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """Depends on axis.
         """
         if self.axis is None:
             return (1, 1)
         elif self.axis == 0:
-            return (1, self.args[0].size[1])
+            return (1, self.args[0].shape[1])
         else:  # axis == 1.
-            return (self.args[0].size[0], 1)
+            return (self.args[0].shape[0], 1)
 
     def get_data(self):
         """Returns the axis being summed.
@@ -67,8 +67,8 @@ class AxisAtom(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        m = self.args[0].size[0]
-        n = self.args[0].size[1]
+        m = self.args[0].shape[0]
+        n = self.args[0].shape[1]
         if self.axis is None:
             value = np.reshape(values[0].T, (m*n, 1))
             D = self._column_grad(value)

@@ -93,8 +93,8 @@ def quad_form(x, P):
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
-    n = P.size[0]
-    if P.size[1] != n or x.size != (n, 1):
+    n = P.shape[0]
+    if P.shape[1] != n or x.shape != (n, 1):
         raise Exception("Invalid dimensions for arguments.")
     # P cannot be a parameter.
     if len(P.parameters()) > 0:
@@ -107,9 +107,9 @@ def quad_form(x, P):
         P = (P + P.T) / 2.0
         scale, M1, M2 = _decomp_quad(P)
         ret = 0
-        if M1.size > 0:
+        if M1.shape > 0:
             ret += scale * sum_squares(Constant(M1.T) * x)
-        if M2.size > 0:
+        if M2.shape > 0:
             ret -= scale * sum_squares(Constant(M2.T) * x)
         return ret
     else:

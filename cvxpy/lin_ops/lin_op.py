@@ -22,7 +22,7 @@ from collections import namedtuple
 # A linear operator applied to a variable
 # or a constant or function of parameters.
 LinOp = namedtuple("LinOp", ["type",
-                             "size",
+                             "shape",
                              "args",
                              "data"])
 

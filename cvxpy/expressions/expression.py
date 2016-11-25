@@ -26,7 +26,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonPos, PSDConstraint
 from cvxpy.expressions import cvxtypes
 import abc
-
+import numpy as np
 
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
@@ -94,7 +94,7 @@ class Expression(u.Canonical):
         """
         return "Expression(%s, %s, %s)" % (self.curvature,
                                            self.sign,
-                                           self.size)
+                                           self.shape)
 
     @abc.abstractmethod
     def name(self):
@@ -193,25 +193,31 @@ class Expression(u.Canonical):
         return NotImplemented
 
     @abc.abstractproperty
-    def size(self):
+    def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
         return NotImplemented
 
+    @property
+    def size(self):
+        """Returns the number of entries in the expression.
+        """
+        return np.prod(self.shape)
+
     def is_scalar(self):
         """Is the expression a scalar?
         """
-        return self.size == (1, 1)
+        return self.shape == (1, 1)
 
     def is_vector(self):
         """Is the expression a column or row vector?
         """
-        return min(self.size) == 1
+        return min(self.shape) == 1
 
     def is_matrix(self):
         """Is the expression a matrix?
         """
-        return self.size[0] > 1 and self.size[1] > 1
+        return self.shape[0] > 1 and self.shape[1] > 1
 
     def __getitem__(self, key):
         """Return a slice/index into the expression.
@@ -277,8 +283,8 @@ class Expression(u.Canonical):
         # from multiplying by a constant on the left.
         if self.is_constant():
             # TODO HACK catch c.T*x where c is a NumPy 1D array.
-            if self.size[0] == other.size[0] and \
-               self.size[1] != self.size[0] and \
+            if self.shape[0] == other.shape[0] and \
+               self.shape[1] != self.shape[0] and \
                isinstance(self, cvxtypes.constant()) and self.is_1D_array:
                 self = self.T
             return cvxtypes.mul_expr()(self, other)

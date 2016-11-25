@@ -238,8 +238,8 @@ class power(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].size[0]*self.args[0].size[1]
-        cols = self.size[0]*self.size[1]
+        rows = self.args[0].shape[0]*self.args[0].shape[1]
+        cols = self.shape[0]*self.shape[1]
         if self.p == 0:
             # All zeros.
             return [sp.csc_matrix((rows, cols), dtype='float64')]
@@ -294,15 +294,15 @@ class power(Elementwise):
         return copy
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -317,11 +317,11 @@ class power(Elementwise):
         if p == 1:
             return x, []
         else:
-            one = lu.create_const(np.mat(np.ones(size)), size)
+            one = lu.create_const(np.mat(np.ones(shape)), shape)
             if p == 0:
                 return one, []
             else:
-                t = lu.create_var(size)
+                t = lu.create_var(shape)
 
                 if 0 < p < 1:
                     return t, gm_constrs(t, [x, one], w)

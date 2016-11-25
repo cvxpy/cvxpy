@@ -42,7 +42,7 @@ class SymData(object):
         The dimensions of the cones.
     var_offsets : dict
         A dict of variable id to horizontal offset.
-    var_sizes : dict
+    var_shapes : dict
         A dict of variable id to variable dimensions.
     x_length : int
         The length of the x vector.
@@ -61,7 +61,7 @@ class SymData(object):
         # CVXOPT can have variables that only live in NonLinearConstraints.
         nonlinear = self.constr_map[s.EXP] if solver.name() == s.CVXOPT else []
         var_data = self.get_var_offsets(objective, all_ineq, nonlinear)
-        self.var_offsets, self.var_sizes, self.x_length = var_data
+        self.var_offsets, self.var_shapes, self.x_length = var_data
 
     @staticmethod
     def filter_constraints(constraints):
@@ -169,8 +169,8 @@ class SymData(object):
         """
         # Initialize dimensions.
         dims = {}
-        dims[s.EQ_DIM] = sum(c.size[0]*c.size[1] for c in constr_map[s.EQ])
-        dims[s.LEQ_DIM] = sum(c.size[0]*c.size[1] for c in constr_map[s.LEQ])
+        dims[s.EQ_DIM] = sum(c.shape[0]*c.shape[1] for c in constr_map[s.EQ])
+        dims[s.LEQ_DIM] = sum(c.shape[0]*c.shape[1] for c in constr_map[s.LEQ])
         dims[s.SOC_DIM] = []
         dims[s.SDP_DIM] = []
         dims[s.EXP_DIM] = 0
@@ -217,13 +217,13 @@ class SymData(object):
         # Ensure the variables are always in the same
         # order for the same problem.
         var_names = list(set(vars_))
-        var_names.sort(key=lambda id_and_size: id_and_size[0])
-        # Map var ids to offsets and size.
-        var_sizes = {}
+        var_names.sort(key=lambda id_and_shape: id_and_shape[0])
+        # Map var ids to offsets and shape.
+        var_shapes = {}
         vert_offset = 0
-        for var_id, var_size in var_names:
-            var_sizes[var_id] = var_size
+        for var_id, var_shape in var_names:
+            var_shapes[var_id] = var_shape
             var_offsets[var_id] = vert_offset
-            vert_offset += var_size[0]*var_size[1]
+            vert_offset += var_shape[0]*var_shape[1]
 
-        return (var_offsets, var_sizes, vert_offset)
+        return (var_offsets, var_shapes, vert_offset)

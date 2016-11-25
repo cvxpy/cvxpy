@@ -93,8 +93,8 @@ class max_elemwise(Elementwise):
         unused = np.matrix(np.ones(max_vals.shape), dtype=bool)
         grad_list = []
         for idx, value in enumerate(values):
-            rows = self.args[idx].size[0]*self.args[idx].size[1]
-            cols = self.size[0]*self.size[1]
+            rows = self.args[idx].shape[0]*self.args[idx].shape[1]
+            cols = self.shape[0]*self.shape[1]
             grad_vals = (value == max_vals) & unused
             # Remove all the max_vals that were used.
             unused[value == max_vals] = 0
@@ -103,15 +103,15 @@ class max_elemwise(Elementwise):
         return grad_list
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -120,9 +120,9 @@ class max_elemwise(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        t = lu.create_var(size)
+        t = lu.create_var(shape)
         constraints = []
         for obj in arg_objs:
-            obj = Elementwise._promote(obj, size)
+            obj = Elementwise._promote(obj, shape)
             constraints.append(lu.create_leq(obj, t))
         return (t, constraints)

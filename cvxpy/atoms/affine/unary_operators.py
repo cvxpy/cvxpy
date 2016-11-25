@@ -42,10 +42,10 @@ class NegExpression(UnaryOperator):
     OP_NAME = "-"
     OP_FUNC = op.neg
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
-        return self.args[0].size
+        return self.args[0].shape
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -63,15 +63,15 @@ class NegExpression(UnaryOperator):
         return True
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Negate the affine objective.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 

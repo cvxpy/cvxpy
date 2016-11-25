@@ -48,11 +48,11 @@ class conv(AffAtom):
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """The sum of the argument dimensions - 1.
         """
-        lh_length = self.args[0].size[0]
-        rh_length = self.args[1].size[0]
+        lh_length = self.args[0].shape[0]
+        rh_length = self.args[1].shape[0]
         return (lh_length + rh_length - 1, 1)
 
     def sign_from_args(self):
@@ -71,15 +71,15 @@ class conv(AffAtom):
         return self.args[0].is_negative()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Convolve two vectors.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -88,4 +88,4 @@ class conv(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.conv(arg_objs[0], arg_objs[1], size), [])
+        return (lu.conv(arg_objs[0], arg_objs[1], shape), [])

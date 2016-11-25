@@ -72,21 +72,21 @@ class exp(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].size[0]*self.args[0].size[1]
-        cols = self.size[0]*self.size[1]
+        rows = self.args[0].shape[0]*self.args[0].shape[1]
+        cols = self.shape[0]*self.shape[1]
         grad_vals = np.exp(values[0])
         return [exp.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -95,8 +95,8 @@ class exp(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        t = lu.create_var(size)
+        t = lu.create_var(shape)
         x = arg_objs[0]
-        ones = lu.create_const(np.mat(np.ones(size)), size)
+        ones = lu.create_const(np.mat(np.ones(shape)), shape)
 
         return (t, [ExpCone(x, ones, t)])

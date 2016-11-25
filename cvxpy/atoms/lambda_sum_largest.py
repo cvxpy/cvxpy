@@ -27,7 +27,7 @@ def lambda_sum_largest(X, k):
     """Sum of the largest k eigenvalues.
     """
     X = Expression.cast_to_const(X)
-    if X.size[0] != X.size[1]:
+    if X.shape[0] != X.shape[1]:
         raise ValueError("First argument must be a square matrix.")
     elif int(k) != k or k <= 0:
         raise ValueError("Second argument must be a positive integer.")
@@ -48,5 +48,5 @@ def lambda_sum_largest(X, k):
     We have equality when s = lambda_k and Z diagonal
     with Z_{ii} = (lambda_i - lambda_k)_+
     """
-    Z = Semidef(X.size[0])
+    Z = Semidef(X.shape[0])
     return k*lambda_max(X - Z) + trace(Z)

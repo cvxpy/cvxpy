@@ -43,14 +43,14 @@ class reshape(AffAtom):
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.
         """
-        old_len = self.args[0].size[0]*self.args[0].size[1]
+        old_len = self.args[0].shape[0]*self.args[0].shape[1]
         new_len = self.rows*self.cols
         if not old_len == new_len:
             raise ValueError(
                 "Invalid reshape dimensions (%i, %i)." % (self.rows, self.cols)
             )
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """Returns the shape from the rows, cols arguments.
         """
         return (self.rows, self.cols)
@@ -61,15 +61,15 @@ class reshape(AffAtom):
         return [self.rows, self.cols]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Convolve two vectors.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -78,4 +78,4 @@ class reshape(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.reshape(arg_objs[0], size), [])
+        return (lu.reshape(arg_objs[0], shape), [])

@@ -220,7 +220,7 @@ class ECOS(object):
         offset = 0
         for constr in constraints:
             constr_offsets[constr.constr_id] = offset
-            offset += constr.size[0] * constr.size[1]
+            offset += constr.size
         active_constraints = []
         for constr in constraints:
             # Ignore constraints of the wrong type.
@@ -229,9 +229,8 @@ class ECOS(object):
         # Store dual values.
         dual_vars = {}
         for constr in active_constraints:
-            rows, _ = constr.size
             if constr.id in constr_offsets:
                 offset = constr_offsets[constr.id]
-                dual_vars[constr.id] = result_vec[offset:offset + rows]
-                offset += rows
+                dual_vars[constr.id] = result_vec[offset:offset + constr.size]
+                offset += constr.size
         return dual_vars

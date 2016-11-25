@@ -25,6 +25,7 @@ from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.solvers.utilities import installed_solvers
+import cvxpy.interface.scipy_wrapper
 from cvxpy.error import SolverError
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, JULIA_OPT,
                             ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS,

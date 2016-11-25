@@ -81,10 +81,10 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """The same as the input.
         """
-        return self.args[0].size
+        return self.args[0].shape
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -103,7 +103,7 @@ class cumsum(AffAtom, AxisAtom):
         for i in range(dim):
             for j in range(i+1):
                 mat[i, j] = 1
-        var = Variable(*self.args[0].size)
+        var = Variable(*self.args[0].shape)
         if self.axis == 0:
             grad = MulExpression(mat, var)._grad(values)[1]
         else:
@@ -111,15 +111,15 @@ class cumsum(AffAtom, AxisAtom):
         return [grad]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Cumulative sum via difference matrix.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -130,13 +130,13 @@ class cumsum(AffAtom, AxisAtom):
         """
         # Implicit O(n) definition:
         # X = Y[:1,:] - Y[1:,:]
-        Y = lu.create_var(size)
+        Y = lu.create_var(shape)
         axis = data[0]
-        dim = size[axis]
+        dim = shape[axis]
         diff_mat = get_diff_mat(dim, axis)
         diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
         if axis == 0:
-            diff = lu.mul_expr(diff_mat, Y, size)
+            diff = lu.mul_expr(diff_mat, Y, shape)
         else:
-            diff = lu.rmul_expr(Y, diff_mat, size)
+            diff = lu.rmul_expr(Y, diff_mat, shape)
         return (Y, [lu.create_eq(arg_objs[0], diff)])

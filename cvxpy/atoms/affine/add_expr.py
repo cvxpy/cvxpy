@@ -38,10 +38,10 @@ class AddExpression(AffAtom):
         for group in arg_groups:
             self.args += self.expand_args(group)
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
-        return u.shape.sum_shapes([arg.size for arg in self.args])
+        return u.shape.sum_shapes([arg.shape for arg in self.args])
 
     def expand_args(self, expr):
         """Helper function to extract the arguments from an AddExpression.
@@ -83,15 +83,15 @@ class AddExpression(AffAtom):
         return copy
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Sum the linear expressions.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -101,6 +101,6 @@ class AddExpression(AffAtom):
             (LinOp for objective, list of constraints)
         """
         for i, arg in enumerate(arg_objs):
-            if arg.size != size:
-                arg_objs[i] = lu.promote(arg, size)
+            if arg.shape != shape:
+                arg_objs[i] = lu.promote(arg, shape)
         return (lu.sum_expr(arg_objs), [])

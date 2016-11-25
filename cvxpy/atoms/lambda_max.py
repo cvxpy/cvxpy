@@ -41,7 +41,7 @@ class lambda_max(Atom):
         """
         if not (values[0].T == values[0]).all():
             raise ValueError("lambda_max called on a non-symmetric matrix.")
-        lo = hi = self.args[0].size[0]-1
+        lo = hi = self.args[0].shape[0]-1
         return LA.eigvalsh(values[0], eigvals=(lo, hi))
 
     def _domain(self):
@@ -61,7 +61,7 @@ class lambda_max(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         w, v = LA.eigh(values[0])
-        d = np.zeros(w.size)
+        d = np.zeros(w.shape)
         d[-1] = 1
         d = np.diag(d)
         D = v.dot(d).dot(v.T)
@@ -70,12 +70,12 @@ class lambda_max(Atom):
     def validate_arguments(self):
         """Verify that the argument A is square.
         """
-        if not self.args[0].size[0] == self.args[0].size[1]:
+        if not self.args[0].shape[0] == self.args[0].shape[1]:
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
                              % self.args[0].name())
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -105,15 +105,15 @@ class lambda_max(Atom):
         return False
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -123,7 +123,7 @@ class lambda_max(Atom):
             (LinOp for objective, list of constraints)
         """
         A = arg_objs[0]
-        n, _ = A.size
+        n, _ = A.shape
         # SDP constraint.
         t = lu.create_var((1, 1))
         prom_t = lu.promote(t, (n, 1))

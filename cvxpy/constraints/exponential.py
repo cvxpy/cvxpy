@@ -50,7 +50,7 @@ class ExpCone(NonlinearConstraint):
         self.x = x
         self.y = y
         self.z = z
-        self.size = (int(self.x.size[0]), int(self.x.size[1]))
+        self.shape = (int(self.x.shape[0]), int(self.x.shape[1]))
         super(ExpCone, self).__init__(self._solver_hook,
                                       [self.x, self.y, self.z])
 
@@ -80,7 +80,7 @@ class ExpCone(NonlinearConstraint):
         else:
             raise SolverError("Solver does not support exponential cone.")
         # Update dims.
-        dims[s.EXP_DIM] += self.size[0]*self.size[1]
+        dims[s.EXP_DIM] += self.shape[0]*self.shape[1]
 
     @pu.lazyprop
     def __ECOS_format(self):
@@ -95,7 +95,7 @@ class ExpCone(NonlinearConstraint):
         constraints = []
         for i, var in enumerate(self.vars_):
             if var.type is not VARIABLE:
-                lone_var = lu.create_var(var.size)
+                lone_var = lu.create_var(var.shape)
                 constraints.append(lu.create_eq(lone_var, var))
                 self.vars_[i] = lone_var
         return (constraints, [])
@@ -112,18 +112,18 @@ class ExpCone(NonlinearConstraint):
 
         Returns
         -------
-            _solver_hook() returns the constraint size and a feasible point.
+            _solver_hook() returns the constraint shape and a feasible point.
             _solver_hook(x) returns the function value and gradient at x.
             _solver_hook(x, z) returns the function value, gradient,
             and (z scaled) Hessian at x.
         """
         import cvxopt  # Not necessary unless using cvxopt solver.
-        entries = self.size[0]*self.size[1]
+        entries = self.shape[0]*self.shape[1]
         if vars_ is None:
             x_init = entries*[0.0]
             y_init = entries*[0.5]
             z_init = entries*[1.0]
-            return self.size[0], cvxopt.matrix(x_init + y_init + z_init)
+            return self.shape[0], cvxopt.matrix(x_init + y_init + z_init)
         # Unpack vars_
         x = vars_[0:entries]
         y = vars_[entries:2*entries]
@@ -146,7 +146,7 @@ class ExpCone(NonlinearConstraint):
         if scaling is None:
             return f, Df
         # Compute the Hessian.
-        big_H = cvxopt.spmatrix(0, [], [], size=(3*entries, 3*entries))
+        big_H = cvxopt.spmatrix(0, [], [], shape=(3*entries, 3*entries))
         for i in range(entries):
             H = cvxopt.matrix([
                     [0.0, 0.0, 0.0],

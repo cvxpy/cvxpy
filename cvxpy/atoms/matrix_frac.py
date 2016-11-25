@@ -83,17 +83,17 @@ class matrix_frac(Atom):
         """
         X = self.args[0]
         P = self.args[1]
-        if P.size[0] != P.size[1]:
+        if P.shape[0] != P.shape[1]:
             raise ValueError(
                 "The second argument to matrix_frac must be a square matrix."
             )
-        elif X.size[0] != P.size[0]:
+        elif X.shape[0] != P.shape[0]:
             raise ValueError(
                 "The arguments to matrix_frac have incompatible dimensions."
             )
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -128,15 +128,15 @@ class matrix_frac(Atom):
         return self.args[0].is_affine() and self.args[1].is_constant()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -147,7 +147,7 @@ class matrix_frac(Atom):
         """
         X = arg_objs[0]  # n by m matrix.
         P = arg_objs[1]  # n by n matrix.
-        n, m = X.size
+        n, m = X.shape
         # Create a matrix with Schur complement T - X.T*P^-1*X.
         M = lu.create_var((n + m, n + m))
         T = lu.create_var((m, m))

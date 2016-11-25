@@ -54,8 +54,8 @@ class normNuc(Atom):
         D = U.dot(V)
         return [sp.csc_matrix(D.A.ravel(order='F')).T]
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -85,15 +85,15 @@ class normNuc(Atom):
         return False
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -103,7 +103,7 @@ class normNuc(Atom):
             (LinOp for objective, list of constraints)
         """
         A = arg_objs[0]
-        rows, cols = A.size
+        rows, cols = A.shape
         # Create the equivalent problem:
         #   minimize (trace(U) + trace(V))/2
         #   subject to:

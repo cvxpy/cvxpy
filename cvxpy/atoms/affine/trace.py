@@ -43,25 +43,25 @@ class trace(AffAtom):
     def validate_arguments(self):
         """Checks that the argument is a square matrix.
         """
-        rows, cols = self.args[0].size
+        rows, cols = self.args[0].shape
         if not rows == cols:
             raise ValueError("Argument to trace must be a square matrix.")
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """Always scalar.
         """
         return (1, 1)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Sum the diagonal entries of the linear expression.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 

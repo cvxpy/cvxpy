@@ -52,8 +52,8 @@ class log1p(log):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].size[0]*self.args[0].size[1]
-        cols = self.size[0]*self.size[1]
+        rows = self.args[0].shape[0]*self.args[0].shape[1]
+        cols = self.shape[0]*self.shape[1]
         # Outside domain or on boundary.
         if np.min(values[0]) <= -1:
             # Non-differentiable.
@@ -68,15 +68,15 @@ class log1p(log):
         return [self.args[0] >= -1]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -86,6 +86,6 @@ class log1p(log):
             (LinOp for objective, list of constraints)
         """
         x = arg_objs[0]
-        ones = lu.create_const(np.mat(np.ones(x.size)), x.size)
+        ones = lu.create_const(np.mat(np.ones(x.shape)), x.shape)
         xp1 = lu.sum_expr([x, ones])
-        return log.graph_implementation([xp1], size, data)
+        return log.graph_implementation([xp1], shape, data)

@@ -36,9 +36,9 @@ class NonlinearConstraint(Constraint):
         self.f = f
         self.vars_ = vars_
         # The shape of vars_ in f(vars_)
-        cols = self.vars_[0].size[1]
-        rows = sum(var.size[0] for var in self.vars_)
-        self.x_size = (rows*cols, 1)
+        cols = self.vars_[0].shape[1]
+        rows = sum(var.shape[0] for var in self.vars_)
+        self.x_shape = (rows*cols, 1)
         super(NonlinearConstraint, self).__init__()
 
     def variables(self):
@@ -58,8 +58,8 @@ class NonlinearConstraint(Constraint):
             horiz_offset: The starting column for the matrix slice.
             rows: The height of the block.
             cols: The width of the block.
-            vert_step: The row step size for the matrix slice.
-            horiz_step: The column step size for the matrix slice.
+            vert_step: The row step shape for the matrix slice.
+            horiz_step: The column step shape for the matrix slice.
         """
         import cvxopt
         # Convert dense matrix to sparse if necessary.
@@ -74,45 +74,45 @@ class NonlinearConstraint(Constraint):
         m, x0 = self.f()
         offset = 0
         for var in self.variables():
-            var_size = var.size[0]*var.size[1]
-            var_x0 = x0[offset:offset+var_size]
+            var_shape = var.shape[0]*var.shape[1]
+            var_x0 = x0[offset:offset+var_shape]
             self.block_add(big_x, var_x0, var_offsets[var.data],
-                           0, var_size, 1)
-            offset += var_size
+                           0, var_shape, 1)
+            offset += var_shape
 
     def place_Df(self, big_Df, Df, var_offsets, vert_offset):
         """Place Df in the gradient of all functions.
         """
         horiz_offset = 0
         for var in self.variables():
-            var_size = var.size[0]*var.size[1]
-            var_Df = Df[:, horiz_offset:horiz_offset+var_size]
+            var_shape = var.shape[0]*var.shape[1]
+            var_Df = Df[:, horiz_offset:horiz_offset+var_shape]
             self.block_add(big_Df, var_Df,
                            vert_offset, var_offsets[var.data],
-                           self.size[0]*self.size[1], var_size)
-            horiz_offset += var_size
+                           self.shape[0]*self.shape[1], var_shape)
+            horiz_offset += var_shape
 
     def place_H(self, big_H, H, var_offsets):
         """Place H in the Hessian of all functions.
         """
         offset = 0
         for var in self.variables():
-            var_size = var.size[0]*var.size[1]
-            var_H = H[offset:offset+var_size, offset:offset+var_size]
+            var_shape = var.shape[0]*var.shape[1]
+            var_H = H[offset:offset+var_shape, offset:offset+var_shape]
             self.block_add(big_H, var_H,
                            var_offsets[var.data], var_offsets[var.data],
-                           var_size, var_size)
-            offset += var_size
+                           var_shape, var_shape)
+            offset += var_shape
 
     def extract_variables(self, x, var_offsets):
         """Extract the function variables from the vector x of all variables.
         """
         import cvxopt
-        local_x = cvxopt.matrix(0., self.x_size)
+        local_x = cvxopt.matrix(0., self.x_shape)
         offset = 0
         for var in self.variables():
-            var_size = var.size[0]*var.size[1]
-            value = x[var_offsets[var.data]:var_offsets[var.data]+var_size]
-            self.block_add(local_x, value, offset, 0, var_size, 1)
-            offset += var_size
+            var_shape = var.shape[0]*var.shape[1]
+            value = x[var_offsets[var.data]:var_offsets[var.data]+var_shape]
+            self.block_add(local_x, value, offset, 0, var_shape, 1)
+            offset += var_shape
         return local_x

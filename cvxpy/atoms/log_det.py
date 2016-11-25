@@ -49,14 +49,14 @@ class log_det(Atom):
         else:
             return -np.inf
 
-    # Any argument size is valid.
+    # Any argument shape is valid.
     def validate_arguments(self):
-        n, m = self.args[0].size
+        n, m = self.args[0].shape
         if n != m:
             raise TypeError("The argument to log_det must be a square matrix.")
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -112,7 +112,7 @@ class log_det(Atom):
         return [self.args[0] >> 0]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Creates the equivalent problem::
@@ -143,8 +143,8 @@ class log_det(Atom):
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -154,7 +154,7 @@ class log_det(Atom):
             (LinOp for objective, list of constraints)
         """
         A = arg_objs[0]  # n by n matrix.
-        n, _ = A.size
+        n, _ = A.shape
         X = lu.create_var((2*n, 2*n))
         X, constraints = Semidef(2*n).canonical_form
         Z = lu.create_var((n, n))

@@ -42,7 +42,7 @@ class Constant(Leaf):
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
-        self._size = intf.size(self.value)
+        self._shape = intf.shape(self.value)
         self._is_pos, self._is_neg = intf.sign(self.value)
         super(Constant, self).__init__()
 
@@ -81,10 +81,10 @@ class Constant(Leaf):
         return {}
 
     @property
-    def size(self):
+    def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
-        return self._size
+        return self._shape
 
     def is_positive(self):
         """Is the expression positive?
@@ -102,7 +102,7 @@ class Constant(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_const(self.value, self.size, self._sparse)
+        obj = lu.create_const(self.value, self.shape, self._sparse)
         return (obj, [])
 
     def __repr__(self):
@@ -110,4 +110,4 @@ class Constant(Leaf):
         """
         return "Constant(%s, %s, %s)" % (self.curvature,
                                          self.sign,
-                                         self.size)
+                                         self.shape)

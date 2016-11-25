@@ -33,7 +33,7 @@ class index(AffAtom):
 
     def __init__(self, expr, key):
         # Format and validate key.
-        self.key = ku.validate_key(key, expr.size)
+        self.key = ku.validate_key(key, expr.shape)
         super(index, self).__init__(expr)
 
     # The string representation of the atom.
@@ -45,10 +45,10 @@ class index(AffAtom):
     def numeric(self, values):
         return values[0][self.key]
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """Returns the shape of the index expression.
         """
-        return ku.size(self.key, self.args[0].size)
+        return ku.shape(self.key, self.args[0].shape)
 
     def get_data(self):
         """Returns the (row slice, column slice).
@@ -56,15 +56,15 @@ class index(AffAtom):
         return [self.key]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Index/slice into the expression.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data : tuple
             A tuple of slices.
 
@@ -73,7 +73,7 @@ class index(AffAtom):
         tuple
             (LinOp, [constraints])
         """
-        obj = lu.index(arg_objs[0], size, data[0])
+        obj = lu.index(arg_objs[0], shape, data[0])
         return (obj, [])
 
     @staticmethod
@@ -93,17 +93,17 @@ class index(AffAtom):
         """
         expr = index.cast_to_const(expr)
         # Order the entries of expr and select them using key.
-        idx_mat = np.arange(expr.size[0]*expr.size[1])
-        idx_mat = np.reshape(idx_mat, expr.size, order='F')
+        idx_mat = np.arange(expr.shape[0]*expr.shape[1])
+        idx_mat = np.reshape(idx_mat, expr.shape, order='F')
         select_mat = idx_mat[key]
         if select_mat.ndim == 2:
-            final_size = select_mat.shape
+            final_shape = select_mat.shape
         else:  # Always cast 1d arrays as column vectors.
-            final_size = (select_mat.size, 1)
-        select_vec = np.reshape(select_mat, select_mat.size, order='F')
+            final_shape = (select_mat.shape, 1)
+        select_vec = np.reshape(select_mat, select_mat.shape, order='F')
         # Select the chosen entries from expr.
-        identity = sp.eye(expr.size[0]*expr.size[1]).tocsc()
-        return reshape(identity[select_vec]*vec(expr), *final_size)
+        identity = sp.eye(expr.shape[0]*expr.shape[1]).tocsc()
+        return reshape(identity[select_vec]*vec(expr), *final_shape)
 
     @staticmethod
     def get_index(matrix, constraints, row, col):
@@ -185,7 +185,7 @@ class index(AffAtom):
                slice(col_start, col_end, None))
         rows = row_end - row_start
         cols = col_end - col_start
-        assert block.size == (rows, cols)
+        assert block.shape == (rows, cols)
         slc, idx_constr = index.graph_implementation([matrix],
                                                      (rows, cols),
                                                      [key])

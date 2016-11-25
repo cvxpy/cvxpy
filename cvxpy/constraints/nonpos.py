@@ -29,7 +29,7 @@ class NonPos(u.Canonical, Constraint):
     TOLERANCE = 1e-4
 
     def __init__(self, expr):
-        self.dual_variable = cvxtypes.variable()(*expr.size)
+        self.dual_variable = cvxtypes.variable()(*expr.shape)
         super(NonPos, self).__init__([expr])
 
     @property
@@ -81,8 +81,12 @@ class NonPos(u.Canonical, Constraint):
         return self._chain_constraints()
 
     @property
+    def shape(self):
+        return self.args[0].shape
+
+    @property
     def size(self):
-        return self.args[0].size
+        return np.prod(self.args[0].shape)
 
     # Left hand expression must be convex and right hand must be concave.
     def is_dcp(self):

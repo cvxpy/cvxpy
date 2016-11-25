@@ -17,23 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.affine.reshape import reshape
+from scipy.sparse.base import spmatrix
+from cvxpy.expressions import expression as exp
 
+COMPARISONS = ["__div__", "__mul__", "__add__", "__sub__",
+               "__le__", "__eq__", "__lt__", "__gt__"]
 
-def vec(X):
-    """Flattens the matrix X into a vector in column-major order.
+for method_name in COMPARISONS:
+    method = getattr(spmatrix, method_name)
 
-    Parameters
-    ----------
-    X : Expression or numeric constant
-        The matrix to flatten.
+    def new_method(self, other):
+        if isinstance(other, exp.Expression):
+            return NotImplemented
+        else:
+            return method(self, other)
 
-    Returns
-    -------
-    Expression
-        An Expression representing the flattened matrix.
-    """
-    X = Expression.cast_to_const(X)
-
-    return reshape(X, X.shape[0]*X.shape[1], 1)
+    setattr(spmatrix, method_name, new_method)

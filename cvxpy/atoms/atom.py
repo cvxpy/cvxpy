@@ -41,7 +41,7 @@ class Atom(Expression):
         # Convert raw values to Constants.
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
-        self._size = self.size_from_args()
+        self._shape = self.shape_from_args()
 
     def name(self):
         """Returns the string representation of the function call.
@@ -55,14 +55,14 @@ class Atom(Expression):
         pass
 
     @abc.abstractmethod
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return NotImplemented
 
     @property
-    def size(self):
-        return self._size
+    def shape(self):
+        return self._shape
 
     @abc.abstractmethod
     def sign_from_args(self):
@@ -152,7 +152,7 @@ class Atom(Expression):
         if self.is_constant():
             # Parameterized expressions are evaluated later.
             if self.parameters():
-                rows, cols = self.size
+                rows, cols = self.shape
                 param = CallbackParam(lambda: self.value, rows, cols)
                 return param.canonical_form
             # Non-parameterized expressions are evaluated immediately.
@@ -168,20 +168,20 @@ class Atom(Expression):
             # Special info required by the graph implementation.
             data = self.get_data()
             graph_obj, graph_constr = self.graph_implementation(arg_objs,
-                                                                self.size,
+                                                                self.shape,
                                                                 data)
             return (graph_obj, constraints + graph_constr)
 
     @abc.abstractmethod
-    def graph_implementation(self, arg_objs, size, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -226,7 +226,7 @@ class Atom(Expression):
         # Catch the case when the expression is known to be
         # zero through DCP analysis.
         if self.is_zero():
-            result = intf.DEFAULT_INTF.zeros(*self.size)
+            result = intf.DEFAULT_INTF.zeros(*self.shape)
         else:
             arg_values = []
             for arg in self.args:
@@ -243,7 +243,7 @@ class Atom(Expression):
             result = self.numeric(arg_values)
 
         # Reduce to a scalar if possible.
-        if intf.size(result) == (1, 1):
+        if intf.shape(result) == (1, 1):
             return intf.scalar_value(result)
         else:
             return result

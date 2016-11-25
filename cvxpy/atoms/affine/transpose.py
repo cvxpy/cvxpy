@@ -33,22 +33,22 @@ class transpose(AffAtom):
     def numeric(self, values):
         return values[0].T
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """Returns the shape of the transpose expression.
         """
-        rows, cols = self.args[0].size
+        rows, cols = self.args[0].shape
         return (cols, rows)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Create a new variable equal to the argument transposed.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 

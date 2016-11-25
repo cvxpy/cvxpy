@@ -32,7 +32,7 @@ class QuadCoeffExtractor(object):
         self.id_map = id_map
         self.N = N
 
-    # Given a quadratic expression expr of size m*n, extracts
+    # Given a quadratic expression expr of shape m*n, extracts
     # the coefficients. Returns (Ps, Q, R) such that the (i, j)
     # entry of expr is given by
     #   x.T*Ps[k]*x + Q[k, :]*x + R[k],
@@ -67,14 +67,14 @@ class QuadCoeffExtractor(object):
             sz = 1
             R = np.array([expr.value])
         else:
-            sz = expr.size[0]*expr.size[1]
+            sz = expr.shape[0]*expr.shape[1]
             R = expr.value.reshape(sz, order='F')
         Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
         Q = sp.csr_matrix((sz, self.N))
         return (Ps, Q, R)
 
     def _coeffs_affine(self, expr):
-        sz = expr.size[0]*expr.size[1]
+        sz = expr.shape[0]*expr.shape[1]
         s, _ = expr.canonical_form
         V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
         Q = sp.csr_matrix((V, (I, J)), shape=(sz, self.N))
@@ -85,8 +85,8 @@ class QuadCoeffExtractor(object):
         (_, XQ, XR) = self._coeffs_affine(expr.args[0])
         (_, YQ, YR) = self._coeffs_affine(expr.args[1])
 
-        m, p = expr.args[0].size
-        n = expr.args[1].size[1]
+        m, p = expr.args[0].shape
+        n = expr.args[1].shape[1]
 
         Ps = []
         Q = sp.csr_matrix((m*n, self.N))
@@ -136,7 +136,7 @@ class QuadCoeffExtractor(object):
 
     def _coeffs_matrix_frac(self, expr):
         (_, A, b) = self._coeffs_affine(expr.args[0])
-        m, n = expr.args[0].size
+        m, n = expr.args[0].shape
         Pinv = np.asarray(LA.inv(expr.args[1].value))
 
         M = sp.lil_matrix((self.N, self.N))
@@ -154,7 +154,7 @@ class QuadCoeffExtractor(object):
         return ([M.tocsr()], Q.tocsr(), np.array([R]))
 
     def _coeffs_affine_atom(self, expr):
-        sz = expr.size[0]*expr.size[1]
+        sz = expr.shape[0]*expr.shape[1]
         Ps = [sp.lil_matrix((self.N, self.N)) for i in range(sz)]
         Q = sp.lil_matrix((sz, self.N))
         Parg = None
@@ -166,7 +166,7 @@ class QuadCoeffExtractor(object):
         offset = 0
         for idx, arg in enumerate(expr.args):
             if arg.is_constant():
-                fake_args += [lu.create_const(arg.value, arg.size)]
+                fake_args += [lu.create_const(arg.value, arg.shape)]
             else:
                 if Parg is None:
                     (Parg, Qarg, Rarg) = self.get_coeffs(arg)
@@ -175,10 +175,10 @@ class QuadCoeffExtractor(object):
                     Parg += p
                     Qarg = sp.vstack([Qarg, q])
                     Rarg = np.vstack([Rarg, r])
-                fake_args += [lu.create_var(arg.size, idx)]
+                fake_args += [lu.create_var(arg.shape, idx)]
                 offsets[idx] = offset
-                offset += arg.size[0]*arg.size[1]
-        fake_expr, _ = expr.graph_implementation(fake_args, expr.size, expr.get_data())
+                offset += arg.shape[0]*arg.shape[1]
+        fake_expr, _ = expr.graph_implementation(fake_args, expr.shape, expr.get_data())
         # Get the matrix representation of the function.
         V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(fake_expr)], offsets)
         R = R.flatten()

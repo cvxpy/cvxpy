@@ -145,7 +145,7 @@ def is_single_index(slc):
         slc.start + step >= slc.stop
 
 
-def size(key, shape):
+def shape(key, shape):
     """Finds the dimensions of a sliced expression.
 
     Args:

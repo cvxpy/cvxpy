@@ -99,14 +99,14 @@ class huber(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].size[0]*self.args[0].size[1]
-        cols = self.size[0]*self.size[1]
+        rows = self.args[0].shape[0]*self.args[0].shape[1]
+        cols = self.shape[0]*self.shape[1]
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         minimize n^2 + 2M|s|
@@ -116,8 +116,8 @@ class huber(Elementwise):
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -128,8 +128,8 @@ class huber(Elementwise):
         """
         M = data[0]
         x = arg_objs[0]
-        n = lu.create_var(size)
-        s = lu.create_var(size)
+        n = lu.create_var(shape)
+        s = lu.create_var(shape)
         two = lu.create_const(2, (1, 1))
         if isinstance(M, Parameter):
             M = lu.create_param(M, (1, 1))
@@ -137,10 +137,10 @@ class huber(Elementwise):
             M = lu.create_const(M.value, (1, 1))
 
         # n**2 + 2*M*|s|
-        n2, constr_sq = power.graph_implementation([n], size, (2, (Fraction(1, 2), Fraction(1, 2))))
-        abs_s, constr_abs = abs.graph_implementation([s], size)
-        M_abs_s = lu.mul_expr(M, abs_s, size)
-        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, size)])
+        n2, constr_sq = power.graph_implementation([n], shape, (2, (Fraction(1, 2), Fraction(1, 2))))
+        abs_s, constr_abs = abs.graph_implementation([s], shape)
+        M_abs_s = lu.mul_expr(M, abs_s, shape)
+        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, shape)])
         # x == s + n
         constraints = constr_sq + constr_abs
         constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))

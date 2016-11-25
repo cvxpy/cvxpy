@@ -85,8 +85,8 @@ class kl_div(Elementwise):
             grad_vals = [np.log(div), 1 - div]
             grad_list = []
             for idx in range(len(values)):
-                rows = self.args[idx].size[0]*self.args[idx].size[1]
-                cols = self.size[0]*self.size[1]
+                rows = self.args[idx].shape[0]*self.args[idx].shape[1]
+                cols = self.shape[0]*self.shape[1]
                 grad_list += [kl_div.elemwise_grad_to_diag(grad_vals[idx],
                                                            rows, cols)]
             return grad_list
@@ -97,15 +97,15 @@ class kl_div(Elementwise):
         return [self.args[0] >= 0, self.args[1] >= 0]
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -114,9 +114,9 @@ class kl_div(Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = Elementwise._promote(arg_objs[0], size)
-        y = Elementwise._promote(arg_objs[1], size)
-        t = lu.create_var(size)
+        x = Elementwise._promote(arg_objs[0], shape)
+        y = Elementwise._promote(arg_objs[1], shape)
+        t = lu.create_var(shape)
         constraints = [ExpCone(t, x, y),
                        lu.create_geq(y)]  # 0 <= y
         # -t - x + y

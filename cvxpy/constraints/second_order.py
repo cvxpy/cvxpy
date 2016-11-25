@@ -35,7 +35,7 @@ class SOC(Constraint):
     """
 
     def __init__(self, t, X, axis):
-        assert t.size[1] == 1
+        assert t.shape[1] == 1
         self.axis = axis
         super(SOC, self).__init__([t, X])
 
@@ -82,7 +82,7 @@ class SOC(Constraint):
     def cone_size(self):
         """The dimensions of a single cone.
         """
-        return (1 + self.x_elems[0].size[self.axis], 1)
+        return (1 + self.x_elems[0].shape[self.axis], 1)
 
     @property
     def size(self):

@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface.matrix_utilities
 import abc
+import numpy as np
 
 
 class BaseMatrixInterface(object):
@@ -57,9 +58,8 @@ class BaseMatrixInterface(object):
         return NotImplemented
 
     # Return the number of elements of the matrix.
-    @abc.abstractmethod
     def size(self, matrix):
-        return NotImplemented
+        return np.prod(self.shape(matrix))
 
     # Return the dimensions of the matrix.
     @abc.abstractmethod
@@ -88,14 +88,14 @@ class BaseMatrixInterface(object):
     def index(self, matrix, key):
         value = matrix[key]
         # Reduce to a scalar if possible.
-        if cvxpy.interface.matrix_utilities.size(value) == (1, 1):
+        if cvxpy.interface.matrix_utilities.shape(value) == (1, 1):
             return cvxpy.interface.matrix_utilities.scalar_value(value)
         else:
             return value
 
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
-    def reshape(self, matrix, size):
+    def reshape(self, matrix, shape):
         return NotImplemented
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,

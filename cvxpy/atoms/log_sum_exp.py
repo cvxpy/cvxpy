@@ -94,15 +94,15 @@ class log_sum_exp(AxisAtom):
         return False
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -113,38 +113,38 @@ class log_sum_exp(AxisAtom):
         """
         x = arg_objs[0]
         axis = data[0]
-        t = lu.create_var(size)
+        t = lu.create_var(shape)
 
         # sum(exp(x - t)) <= 1
         if axis is None:
-            prom_t = lu.promote(t, x.size)
+            prom_t = lu.promote(t, x.shape)
             expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.size)
+            obj, constraints = exp.graph_implementation([expr], x.shape)
             obj = lu.sum_entries(obj)
 
         elif axis == 0:
-            prom_size = (x.size[0], 1)
-            ones = lu.create_const(np.ones(prom_size), prom_size)
-            prom_t = lu.mul_expr(ones, t, x.size)
+            prom_shape = (x.shape[0], 1)
+            ones = lu.create_const(np.ones(prom_shape), prom_shape)
+            prom_t = lu.mul_expr(ones, t, x.shape)
             expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.size)
+            obj, constraints = exp.graph_implementation([expr], x.shape)
 
-            const_size = (1, x.size[0])
-            ones = lu.create_const(np.ones(const_size), const_size)
-            obj = lu.mul_expr(ones, obj, size)
+            const_shape = (1, x.shape[0])
+            ones = lu.create_const(np.ones(const_shape), const_shape)
+            obj = lu.mul_expr(ones, obj, shape)
 
         else:  # axis == 1
-            prom_size = (1, x.size[1])
-            ones = lu.create_const(np.ones(prom_size), prom_size)
-            prom_t = lu.rmul_expr(t, ones, x.size)
+            prom_shape = (1, x.shape[1])
+            ones = lu.create_const(np.ones(prom_shape), prom_shape)
+            prom_t = lu.rmul_expr(t, ones, x.shape)
             expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.size)
+            obj, constraints = exp.graph_implementation([expr], x.shape)
 
-            const_size = (x.size[1], 1)
-            ones = lu.create_const(np.ones(const_size), const_size)
-            obj = lu.rmul_expr(obj, ones, size)
+            const_shape = (x.shape[1], 1)
+            ones = lu.create_const(np.ones(const_shape), const_shape)
+            obj = lu.rmul_expr(obj, ones, shape)
 
-        ones = lu.create_const(np.ones(size), size)
+        ones = lu.create_const(np.ones(shape), shape)
         constraints += [lu.create_leq(obj, ones)]
 
         return (t, constraints)

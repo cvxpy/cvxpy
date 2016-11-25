@@ -75,7 +75,7 @@ def sparse2cvxopt(value):
     elif sp.issparse(value):
         value = value.tocoo()
         return cvxopt.spmatrix(value.data.tolist(), value.row.tolist(),
-                               value.col.tolist(), size=value.shape, tc='d')
+                               value.col.tolist(), shape=value.shape, tc='d')
 
 
 def dense2cvxopt(value):
@@ -119,7 +119,7 @@ def is_sparse(constant):
 # Get the dimensions of the constant.
 
 
-def size(constant):
+def shape(constant):
     if isinstance(constant, numbers.Number) or np.isscalar(constant):
         return (1, 1)
     elif isinstance(constant, list):
@@ -141,13 +141,13 @@ def size(constant):
 
 
 def is_vector(constant):
-    return size(constant)[1] == 1
+    return shape(constant)[1] == 1
 
 # Is the constant a scalar?
 
 
 def is_scalar(constant):
-    return size(constant) == (1, 1)
+    return shape(constant) == (1, 1)
 
 
 def from_2D_to_1D(constant):

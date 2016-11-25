@@ -43,7 +43,7 @@ def tv(value, *args):
         An Expression representing the total variation.
     """
     value = Expression.cast_to_const(value)
-    rows, cols = value.size
+    rows, cols = value.shape
     if value.is_scalar():
         raise ValueError("tv cannot take a scalar argument.")
     # L1 norm for vectors.
@@ -59,6 +59,6 @@ def tv(value, *args):
                 mat[0:rows-1, 1:cols] - mat[0:rows-1, 0:cols-1],
                 mat[1:rows, 0:cols-1] - mat[0:rows-1, 0:cols-1],
             ]
-        length = diffs[0].size[0]*diffs[1].size[1]
+        length = diffs[0].shape[0]*diffs[1].shape[1]
         stacked = vstack(*[reshape(diff, 1, length) for diff in diffs])
         return sum_entries(norm(stacked, p='fro', axis=0))

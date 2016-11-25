@@ -57,10 +57,10 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
-        return u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+        return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
@@ -75,18 +75,18 @@ class MulExpression(BinaryOperator):
     def validate_arguments(self):
         """Validates the dimensions.
         """
-        u.shape.mul_shapes(self.args[0].size, self.args[1].size)
+        u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -96,10 +96,10 @@ class MulExpression(BinaryOperator):
             (LinOp for objective, list of constraints)
         """
         # Promote the right hand side to a diagonal matrix if necessary.
-        if size[1] != 1 and arg_objs[1].size == (1, 1):
-            arg = lu.promote(arg_objs[1], (size[1], 1))
+        if shape[1] != 1 and arg_objs[1].shape == (1, 1):
+            arg = lu.promote(arg_objs[1], (shape[1], 1))
             arg_objs[1] = lu.diag_vec(arg)
-        return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
+        return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
 
 
 class RMulExpression(MulExpression):
@@ -117,15 +117,15 @@ class RMulExpression(MulExpression):
         return self.args[1].is_negative()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -135,10 +135,10 @@ class RMulExpression(MulExpression):
             (LinOp for objective, list of constraints)
         """
         # Promote the left hand side to a diagonal matrix if necessary.
-        if size[0] != 1 and arg_objs[0].size == (1, 1):
-            arg = lu.promote(arg_objs[0], (size[0], 1))
+        if shape[0] != 1 and arg_objs[0].shape == (1, 1):
+            arg = lu.promote(arg_objs[0], (shape[0], 1))
             arg_objs[0] = lu.diag_vec(arg)
-        return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
+        return (lu.rmul_expr(arg_objs[0], arg_objs[1], shape), [])
 
 
 class DivExpression(BinaryOperator):
@@ -148,10 +148,10 @@ class DivExpression(BinaryOperator):
     def is_quadratic(self):
         return self.args[0].is_quadratic() and self.args[1].is_constant()
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
-        return self.args[0].size
+        return self.args[0].shape
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
@@ -164,15 +164,15 @@ class DivExpression(BinaryOperator):
         return self.args[1].is_negative()
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 

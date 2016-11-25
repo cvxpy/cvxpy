@@ -51,7 +51,7 @@ class Variable(Leaf):
         return False
 
     @property
-    def size(self):
+    def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
         return (self._rows, self._cols)
@@ -89,7 +89,7 @@ class Variable(Leaf):
         Returns:
             A map of variable to SciPy CSC sparse matrix or None.
         """
-        return {self: sp.eye(self.size[0]*self.size[1]).tocsc()}
+        return {self: sp.eye(self.shape[0]*self.shape[1]).tocsc()}
 
     def variables(self):
         """Returns itself as a variable.
@@ -102,10 +102,10 @@ class Variable(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_var(self.size, self.id)
+        obj = lu.create_var(self.shape, self.id)
         return (obj, [])
 
     def __repr__(self):
         """String to recreate the object.
         """
-        return "Variable(%d, %d)" % self.size
+        return "Variable(%d, %d)" % self.shape

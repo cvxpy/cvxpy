@@ -42,15 +42,15 @@ class sum_entries(AxisAtom, AffAtom):
         return np.sum(values[0], axis=self.axis)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Sum the linear expression's entries.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -63,12 +63,12 @@ class sum_entries(AxisAtom, AffAtom):
         if axis is None:
             obj = lu.sum_entries(arg_objs[0])
         elif axis == 1:
-            const_size = (arg_objs[0].size[1], 1)
-            ones = lu.create_const(np.ones(const_size), const_size)
-            obj = lu.rmul_expr(arg_objs[0], ones, size)
+            const_shape = (arg_objs[0].shape[1], 1)
+            ones = lu.create_const(np.ones(const_shape), const_shape)
+            obj = lu.rmul_expr(arg_objs[0], ones, shape)
         else:  # axis == 0
-            const_size = (1, arg_objs[0].size[0])
-            ones = lu.create_const(np.ones(const_size), const_size)
-            obj = lu.mul_expr(ones, arg_objs[0], size)
+            const_shape = (1, arg_objs[0].shape[0])
+            ones = lu.create_const(np.ones(const_shape), const_shape)
+            obj = lu.mul_expr(ones, arg_objs[0], shape)
 
         return (obj, [])

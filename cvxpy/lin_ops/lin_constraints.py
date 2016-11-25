@@ -24,8 +24,8 @@ from collections import namedtuple
 # expr == 0
 LinEqConstr = namedtuple("LinEqConstr", ["expr",
                                          "constr_id",
-                                         "size"])
+                                         "shape"])
 # expr <= 0
 LinLeqConstr = namedtuple("LinLeqConstr", ["expr",
                                            "constr_id",
-                                           "size"])
+                                           "shape"])

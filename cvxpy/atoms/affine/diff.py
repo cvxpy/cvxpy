@@ -20,7 +20,7 @@ def diff(x, k=1, axis=0):
     x = Expression.cast_to_const(x)
     if axis == 1:
         x = x.T
-    m, n = x.size
+    m, n = x.shape
     if k < 0 or k >= m:
         raise ValueError('Must have k >= 0 and X must have < k elements along axis')
 

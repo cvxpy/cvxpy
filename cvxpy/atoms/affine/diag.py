@@ -39,13 +39,13 @@ def diag(expr):
     """
     expr = AffAtom.cast_to_const(expr)
     if expr.is_vector():
-        if expr.size[1] == 1:
+        if expr.shape[1] == 1:
             return diag_vec(expr)
         # Convert a row vector to a column vector.
         else:
-            expr = reshape(expr, expr.size[1], 1)
+            expr = reshape(expr, expr.shape[1], 1)
             return diag_vec(expr)
-    elif expr.size[0] == expr.size[1]:
+    elif expr.shape[0] == expr.shape[1]:
         return diag_mat(expr)
     else:
         raise ValueError("Argument to diag must be a vector or square matrix.")
@@ -66,22 +66,22 @@ class diag_vec(AffAtom):
         value = intf.from_2D_to_1D(values[0])
         return np.diag(value)
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """A square matrix.
         """
-        rows, _ = self.args[0].size
+        rows, _ = self.args[0].shape
         return (rows, rows)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Convolve two vectors.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -110,22 +110,22 @@ class diag_mat(AffAtom):
             v = v.A[0]
         return v
 
-    def size_from_args(self):
+    def shape_from_args(self):
         """A column vector.
         """
-        rows, _ = self.args[0].size
+        rows, _ = self.args[0].shape
         return (rows, 1)
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Extracts the diagonal of a matrix.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 

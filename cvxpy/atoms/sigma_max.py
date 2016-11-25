@@ -56,8 +56,8 @@ class sigma_max(Atom):
         D = U.dot(np.diag(ds)).dot(V)
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
-    def size_from_args(self):
-        """Returns the (row, col) size of the expression.
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
         """
         return (1, 1)
 
@@ -88,15 +88,15 @@ class sigma_max(Atom):
         return False
 
     @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
+    def graph_implementation(arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
         ----------
         arg_objs : list
             LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
+        shape : tuple
+            The shape of the resulting expression.
         data :
             Additional data required by the atom.
 
@@ -106,7 +106,7 @@ class sigma_max(Atom):
             (LinOp for objective, list of constraints)
         """
         A = arg_objs[0]  # n by m matrix.
-        n, m = A.size
+        n, m = A.shape
         # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
         X = lu.create_var((n+m, n+m))
         t = lu.create_var((1, 1))
