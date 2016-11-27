@@ -29,36 +29,35 @@ class reshape(AffAtom):
     The entries are stored in column-major order.
     """
 
-    def __init__(self, expr, rows, cols):
-        self.rows = rows
-        self.cols = cols
+    def __init__(self, expr, shape):
+        self._shape = shape
         super(reshape, self).__init__(expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Reshape the value.
         """
-        return np.reshape(values[0], (self.rows, self.cols), "F")
+        return np.reshape(values[0], self.shape, "F")
 
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.
         """
-        old_len = self.args[0].shape[0]*self.args[0].shape[1]
-        new_len = self.rows*self.cols
+        old_len = self.args[0].size
+        new_len = np.prod(self._shape)
         if not old_len == new_len:
             raise ValueError(
-                "Invalid reshape dimensions (%i, %i)." % (self.rows, self.cols)
+                "Invalid reshape dimensions %s." % self._shape
             )
 
     def shape_from_args(self):
         """Returns the shape from the rows, cols arguments.
         """
-        return (self.rows, self.cols)
+        return self._shape
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.rows, self.cols]
+        return [self._shape]
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

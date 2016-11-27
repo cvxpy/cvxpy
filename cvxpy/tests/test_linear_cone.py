@@ -47,14 +47,17 @@ class TestLinearCone(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
-    # Test scalar LP problems.
     def test_scalar_lp(self):
+        """Test scalar LP problems.
+        """
         p = Problem(Minimize(3*self.a), [self.a >= 2])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
         result_new = p_new[0].solve()
-        # self.assertAlmostEqual(result, result_new)
+        self.assertAlmostEqual(result, result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result)
 
         p = Problem(Maximize(3*self.a - self.b),
                     [self.a <= 2, self.b == self.a, self.b <= 5])

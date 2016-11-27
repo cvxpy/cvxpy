@@ -29,7 +29,7 @@ def Symmetric(n, name=None):
     """
     var = SymmetricUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))
-    return cvxtypes.reshape()(fill_mat*var, int(n), int(n))
+    return cvxtypes.reshape()(fill_mat*var, (int(n), int(n)))
 
 
 def upper_tri_to_full(n):
@@ -81,10 +81,6 @@ class SymmetricUpperTri(Variable):
         """Returns info needed to reconstruct the expression besides the args.
         """
         return [self.n, self.name]
-
-    def canonicalize(self):
-        upper_tri = lu.create_var((self.size[0], 1), self.id)
-        return (upper_tri, [])
 
     def __repr__(self):
         """String to recreate the object.
