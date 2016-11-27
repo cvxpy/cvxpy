@@ -204,6 +204,12 @@ class Expression(u.Canonical):
         """
         return np.prod(self.shape)
 
+    @property
+    def ndim(self):
+        """Returns the number of dimensions.
+        """
+        return len(self.shape)
+
     def is_scalar(self):
         """Is the expression a scalar?
         """
