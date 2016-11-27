@@ -58,11 +58,12 @@ class TestLinearCone(BaseTest):
 
         p = Problem(Maximize(3*self.a - self.b),
                     [self.a <= 2, self.b == self.a, self.b <= 5])
+        result = p.solve()
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new, inv_data = ConeMatrixStuffing().apply(p)
-        self.assertAlmostEqual(p_new.solve(), -4)
+        self.assertAlmostEqual(p_new.solve(), -result)
         sltn = ECOS().solve(p_new, False, False, {})
-        self.assertAlmostEqual(sltn.opt_val, -4)
+        self.assertAlmostEqual(sltn.opt_val, -result)
 
         # With a constant in the objective.
         p = Problem(Minimize(3*self.a - self.b + 100),
@@ -76,22 +77,39 @@ class TestLinearCone(BaseTest):
         result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
         result_new = p_new[0].solve()
-        # self.assertAlmostEqual(result, result_new)
+        self.assertAlmostEqual(result, -result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, -result)
 
         # Unbounded problems.
         p = Problem(Maximize(self.a), [self.a >= 2])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, -result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, -result)
 
         # Infeasible problems.
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, -result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, -result)
 
     # Test vector LP problems.
     def test_vector_lp(self):
         c = Constant(numpy.matrix([1, 2]).T).value
         p = Problem(Minimize(c.T*self.x), [self.x >= c])
+        result = p.solve()
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, result_new)
 
         A = Constant(numpy.matrix([[3, 5], [1, 2]]).T).value
         I = Constant([[1, 0], [0, 1]])
@@ -101,22 +119,35 @@ class TestLinearCone(BaseTest):
                      self.z >= [2, 2],
                      self.a >= 2])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result)
 
     # Test matrix LP problems.
     def test_matrix_lp(self):
         T = Constant(numpy.ones((2, 2))).value
         p = Problem(Minimize(1), [self.A == T])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, result_new)
 
         T = Constant(numpy.ones((2, 3))*2).value
         c = Constant(numpy.matrix([3, 4]).T).value
         p = Problem(Minimize(1), [self.A >= T*self.C,
                                   self.A == self.B, self.C == T.T])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
-    
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result)
+
     # Test positive definite constraints.
     def test_psd_constraints(self):
 		C = Variable(3, 3)
@@ -129,14 +160,14 @@ class TestLinearCone(BaseTest):
 		prob = Problem(obj, constraints)
 		self.assertTrue(ConeMatrixStuffing().accepts(prob))
 		prob_new = ConeMatrixStuffing().apply(prob)
-		
+
 		C = Variable(2, 2)
 		obj = Maximize(C[0, 1])
 		constraints = [C == 1, C >> [[2, 0], [0, 2]]]
 		prob = Problem(obj, constraints)
 		self.assertTrue(ConeMatrixStuffing().accepts(prob))
 		prob_new = ConeMatrixStuffing().apply(prob)
-		
+
 		C = Symmetric(2, 2)
 		obj = Minimize(C[0, 0])
 		constraints = [C << [[2, 0], [0, 2]]]

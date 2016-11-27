@@ -401,7 +401,7 @@ class TestSolvers(BaseTest):
     def test_mosek_sdp(self):
         """Make sure Mosek's dual result matches other solvers
         """
-        # TODO: should work with PSDConstraint (>>, <<).
+        # TODO: should work with PSD (>>, <<).
         if MOSEK in installed_solvers():
             import numpy as np
             import cvxpy as cvx

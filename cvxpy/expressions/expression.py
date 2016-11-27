@@ -23,7 +23,7 @@ import warnings
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, PSDConstraint
+from cvxpy.constraints import Zero, NonPos, PSD
 from cvxpy.expressions import cvxtypes
 import abc
 import numpy as np
@@ -360,25 +360,25 @@ class Expression(u.Canonical):
     def __rshift__(self, other):
         """Positive definite inequality.
         """
-        return PSDConstraint(self, other)
+        return PSD(self - other)
 
     @_cast_other
     def __rrshift__(self, other):
         """Positive definite inequality.
         """
-        return PSDConstraint(other, self)
+        return PSD(other - self)
 
     @_cast_other
     def __lshift__(self, other):
         """Positive definite inequality.
         """
-        return PSDConstraint(other, self)
+        return PSD(other - self)
 
     @_cast_other
     def __rlshift__(self, other):
         """Positive definite inequality.
         """
-        return PSDConstraint(self, other)
+        return PSD(self - other)
 
     # Needed for Python3:
     def __hash__(self):

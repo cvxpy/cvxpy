@@ -21,7 +21,7 @@ import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 from cvxpy.error import SolverError, DCPError
-from cvxpy.constraints import Zero, NonPos, PSDConstraint
+from cvxpy.constraints import Zero, NonPos, PSD
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.problems.solvers.utilities import SOLVERS
@@ -435,7 +435,7 @@ class Problem(u.Canonical):
             if s.INEQ_DUAL in results_dict:
                 self._save_dual_values(results_dict[s.INEQ_DUAL],
                                        sym_data.constr_map[s.LEQ],
-                                       [NonPos, PSDConstraint])
+                                       [NonPos, PSD])
             # Correct optimal value if the objective was Maximize.
             value = results_dict[s.VALUE]
             self._value = self.objective.primal_to_result(value)

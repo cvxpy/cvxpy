@@ -103,8 +103,12 @@ class ECOS(object):
             coeff, offset = ECOS.get_coeff_offset(cons.args[0])
             matrices.append(coeff)
             offsets.append(offset.ravel())
-        coeff = sp.vstack(matrices).tocsc()
-        offset = -np.hstack(offsets)
+        if len(constraints) > 0:
+            coeff = sp.vstack(matrices).tocsc()
+            offset = -np.hstack(offsets)
+        else:
+            coeff = None
+            offset = None
         return coeff, offset
 
     def get_problem_data(self, problem):
