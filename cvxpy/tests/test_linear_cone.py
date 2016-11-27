@@ -22,6 +22,7 @@ import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
 from cvxpy.expressions.constants import Parameter, Constant
+from cvxpy.constraints import SOC
 import cvxpy.utilities as u
 import numpy
 import unittest
@@ -143,6 +144,19 @@ class TestLinearCone(BaseTest):
         c = Constant(numpy.matrix([3, 4]).T).value
         p = Problem(Minimize(1), [self.A >= T*self.C,
                                   self.A == self.B, self.C == T.T])
+        self.assertTrue(ConeMatrixStuffing().accepts(p))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(p)
+        result_new = p_new[0].solve()
+        self.assertAlmostEqual(result, result_new)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result)
+
+    def test_socp(self):
+        """Test SOCP problems.
+        """
+        p = Problem(Minimize(self.b), [norm2(self.x) <= self.b])
+        pmod = Problem(Minimize(self.b), [SOC(self.b, self.x)])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         result = p.solve()
         p_new = ConeMatrixStuffing().apply(p)
