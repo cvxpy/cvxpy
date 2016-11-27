@@ -19,6 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to solve circular imports.
 
+def expression():
+    from cvxpy.expressions import expression
+    return expression.Expression
 
 def add_expr():
     from cvxpy.atoms.affine import add_expr

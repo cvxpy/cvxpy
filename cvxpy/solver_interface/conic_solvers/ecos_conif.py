@@ -21,7 +21,6 @@ import cvxpy.settings as s
 from cvxpy.atoms import reshape
 from cvxpy.constraints import Zero, NonPos, SOC, ExpCone
 from cvxpy.problems.solvers.solver import Solver
-from cvxpy.constraints.utilities import format_axis
 from cvxpy.reductions.solution import Solution
 import numpy as np
 import scipy.sparse as sp
@@ -61,6 +60,9 @@ class ECOS(object):
                   -4: s.SOLVER_ERROR,
                   -7: s.SOLVER_ERROR}
 
+    # Order of exponential cone arguments for solver.
+    EXP_CONE_ORDER = [0, 2, 1]
+
     def import_solver(self):
         """Imports the solver.
         """
@@ -84,6 +86,34 @@ class ECOS(object):
     #             if not arg.is_affine():
     #                 return False
     #     return True
+
+    @staticmethod
+    def get_spacing_matrix(shape, spacing, offset):
+        """Returns a sparse matrix that spaces out an expression.
+
+        Parameters
+        ----------
+        shape : tuple
+            (rows in matrix, columns in matrix)
+        spacing : int
+            The number of rows between each non-zero.
+        offset : int
+            The number of zero rows at the beginning of the matrix.
+
+        Returns
+        -------
+        SciPy CSR matrix
+            A sparse matrix
+        """
+        val_arr = []
+        row_arr = []
+        col_arr = []
+        # Selects from each column.
+        for var_row in range(shape[1]):
+            val_arr.append(np.float32(1.0))
+            row_arr.append(spacing*var_row + offset)
+            col_arr.append(var_row)
+        return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsr()
 
     @staticmethod
     def get_coeff_offset(expr):
@@ -137,12 +167,21 @@ class ECOS(object):
             for i in range(constr.args[0].size):
                 offset[i*gap] = offsets[0][i]
                 mat_arr.append(coeffs[0][i, :])
-                offset[i*gap+1:(i+1)*gap] = offsets[1][i*(gap-1):(i+1)*(gap-1)]
-                mat_arr.append(coeffs[1][i*(gap-1):(i+1)*(gap-1), :])
+                if constr.axis == 0:
+                    offset[i*gap+1:(i+1)*gap] = offsets[1][i*(gap-1):(i+1)*(gap-1)]
+                    mat_arr.append(coeffs[1][i*(gap-1):(i+1)*(gap-1), :])
+                else:
+                    offset[i*gap+1:(i+1)*gap] = offsets[1][i::gap-1]
+                    mat_arr.append(coeffs[1][i::gap-1, :])
             return -sp.vstack(mat_arr), offset
         elif type(constr) == ExpCone:
-            # TODO
-            return None
+            for i, coeff in enumerate(coeffs):
+                mat = ECOS.get_spacing_matrix((height, coeff.shape[0]),
+                                              len(ECOS.EXP_CONE_ORDER),
+                                              ECOS.EXP_CONE_ORDER[i])
+                offsets[i] = mat*offsets[i]
+                coeffs[i] = -mat*coeffs[i]
+            return sum(coeffs), sum(offsets)
         else:
             raise ValueError("Unsupported constraint type.")
 
@@ -202,7 +241,9 @@ class ECOS(object):
         for cons in soc_constr:
             data[s.DIMS]['q'] += cons.cone_sizes()
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
-        data[s.DIMS]['e'] = sum([c.size for c in exp_constr])
+        data[s.DIMS]['e'] = 0
+        for cons in exp_constr:
+            data[s.DIMS]['e'] += cons.num_cones()
         data[s.G], data[s.H] = self.group_coeff_offset(leq_constr + soc_constr + exp_constr)
         return data
 

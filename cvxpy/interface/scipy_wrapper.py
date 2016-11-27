@@ -20,16 +20,21 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from scipy.sparse.base import spmatrix
 from cvxpy.expressions import expression as exp
 
-COMPARISONS = ["__div__", "__mul__", "__add__", "__sub__",
-               "__le__", "__eq__", "__lt__", "__gt__"]
+BIN_OPS = ["__div__", "__mul__", "__add__", "__sub__",
+           "__le__", "__eq__", "__lt__", "__gt__"]
 
-for method_name in COMPARISONS:
-    method = getattr(spmatrix, method_name)
 
+def wrap_bin_op(method):
+    """Factory for wrapping binary operators.
+    """
     def new_method(self, other):
         if isinstance(other, exp.Expression):
             return NotImplemented
         else:
             return method(self, other)
+    return new_method
 
+for method_name in BIN_OPS:
+    method = getattr(spmatrix, method_name)
+    new_method = wrap_bin_op(method)
     setattr(spmatrix, method_name, new_method)

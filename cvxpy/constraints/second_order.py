@@ -100,6 +100,7 @@ class SOC(u.Canonical, Constraint):
     def size(self):
         """The number of entries in the combined cones.
         """
+        # TODO use size of dual variable(s) instead.
         return sum(self.cone_sizes())
 
     def cone_sizes(self):
@@ -108,7 +109,7 @@ class SOC(u.Canonical, Constraint):
         Returns
         -------
         list
-            A list of the dimensions of the elementwise cones.
+            A list of the sizes of the elementwise cones.
         """
         cones = []
         cone_size = 1 + self.args[1].shape[self.axis]

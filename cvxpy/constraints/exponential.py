@@ -17,17 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.utilities as u
 import cvxpy.settings as s
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 import cvxpy.utilities.performance_utils as pu
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
 import math
 
 
-class ExpCone(NonlinearConstraint):
+class ExpCone(u.Canonical, Constraint):
     """A reformulated exponential cone constraint.
 
     Operates elementwise on x, y, z.
@@ -51,8 +53,7 @@ class ExpCone(NonlinearConstraint):
         self.y = y
         self.z = z
         self.shape = (int(self.x.shape[0]), int(self.x.shape[1]))
-        super(ExpCone, self).__init__(self._solver_hook,
-                                      [self.x, self.y, self.z])
+        super(ExpCone, self).__init__([self.x, self.y, self.z])
 
     def __str__(self):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
@@ -81,6 +82,37 @@ class ExpCone(NonlinearConstraint):
             raise SolverError("Solver does not support exponential cone.")
         # Update dims.
         dims[s.EXP_DIM] += self.shape[0]*self.shape[1]
+
+    @property
+    def size(self):
+        """The number of entries in the combined cones.
+        """
+        # TODO use size of dual variable(s) instead.
+        return sum(self.cone_sizes())
+
+    def num_cones(self):
+        """The number of elementwise cones.
+        """
+        return self.args[0].shape[0]*self.args[0].shape[1]
+
+    def cone_sizes(self):
+        """The dimensions of the exponential cones.
+
+        Returns
+        -------
+        list
+            A list of the sizes of the elementwise cones.
+        """
+        return [3]*self.args[0].size
+
+    def is_dcp(self):
+        """Is the constraint DCP?
+        """
+        return all([arg.is_affine() for arg in self.args])
+
+    # TODO hack
+    def canonicalize(self):
+        return None
 
     @pu.lazyprop
     def __ECOS_format(self):

@@ -17,20 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy
-import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
-from cvxpy.expressions.constants import Parameter, Constant
-from cvxpy.constraints import SOC
-import cvxpy.utilities as u
-import numpy
-import unittest
+from cvxpy.constraints import SOC, ExpCone
+from cvxpy.expressions.constants import Constant
 from cvxpy import Problem, Minimize, Maximize
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
-
+import numpy
 
 class TestLinearCone(BaseTest):
     """ Unit tests for the domain module. """
@@ -155,6 +150,7 @@ class TestLinearCone(BaseTest):
     def test_socp(self):
         """Test SOCP problems.
         """
+        # Basic.
         p = Problem(Minimize(self.b), [norm2(self.x) <= self.b])
         pmod = Problem(Minimize(self.b), [SOC(self.b, self.x)])
         self.assertTrue(ConeMatrixStuffing().accepts(pmod))
@@ -163,13 +159,39 @@ class TestLinearCone(BaseTest):
         sltn = ECOS().solve(p_new[0], False, False, {})
         self.assertAlmostEqual(sltn.opt_val, result)
 
-        p = Problem(Minimize(self.b), [norm2(self.x/2) <= self.b+5, self.x >= 1])
-        pmod = Problem(Minimize(self.b), [SOC(self.b+5, self.x/2), self.x >= 1])
+        # More complex.
+        p = Problem(Minimize(self.b), [norm2(self.x/2 + self.y[:2]) <= self.b+5,
+                                       self.x >= 1, self.y == 5])
+        pmod = Problem(Minimize(self.b), [SOC(self.b+5, self.x/2 + self.y[:2]),
+                                          self.x >= 1, self.y == 5])
         self.assertTrue(ConeMatrixStuffing().accepts(pmod))
         result = p.solve()
         p_new = ConeMatrixStuffing().apply(pmod)
         sltn = ECOS().solve(p_new[0], False, False, {})
         self.assertAlmostEqual(sltn.opt_val, result)
+
+    def test_exp_cone(self):
+        """Test exponential cone problems.
+        """
+        # Basic.
+        p = Problem(Minimize(self.b), [exp(self.a) <= self.b])
+        pmod = Problem(Minimize(self.b), [ExpCone(self.a, Constant(1), self.b)])
+        self.assertTrue(ConeMatrixStuffing().accepts(pmod))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(pmod)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result)
+
+        # More complex.
+        p = Problem(Minimize(self.b), [exp(self.a/2 + self.c) <= self.b+5,
+                                       self.a >= 1, self.c == 5])
+        pmod = Problem(Minimize(self.b), [ExpCone(self.a/2 + self.c, Constant(1), self.b+5),
+                                          self.a >= 1, self.c == 5])
+        self.assertTrue(ConeMatrixStuffing().accepts(pmod))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(pmod)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result, places=3)
 
     # Test positive definite constraints.
     def test_psd_constraints(self):

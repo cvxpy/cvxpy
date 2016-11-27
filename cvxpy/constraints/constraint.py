@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.expressions import cvxtypes
 import abc
 
 
@@ -38,6 +39,8 @@ class Constraint(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, args, constr_id=None):
+        # TODO cast constants.
+        # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
         self.args = args
         if constr_id is None:
             self.constr_id = lu.get_id()
