@@ -24,7 +24,6 @@ import numpy as np
 import scipy.sparse as sp
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.soc_axis import SOC_Axis
 from fractions import Fraction
 
 
@@ -338,12 +337,12 @@ class pnorm(AxisAtom):
         # first, take care of the special cases of p = 2, inf, and 1
         if p == 2:
             if axis is None:
-                return t, [SOC(t, [x])]
+                return t, [SOC(t, x)]
 
             else:
                 t = lu.create_var(shape)
-                return t, [SOC_Axis(lu.reshape(t, (t.shape[0]*t.shape[1], 1)),
-                                    x, axis)]
+                return t, [SOC(lu.reshape(t, (t.shape[0]*t.shape[1], 1)),
+                               x, axis)]
 
         if p == np.inf:
             t_ = lu.promote(t, x.shape)

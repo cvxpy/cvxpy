@@ -157,11 +157,17 @@ class TestLinearCone(BaseTest):
         """
         p = Problem(Minimize(self.b), [norm2(self.x) <= self.b])
         pmod = Problem(Minimize(self.b), [SOC(self.b, self.x)])
-        self.assertTrue(ConeMatrixStuffing().accepts(p))
+        self.assertTrue(ConeMatrixStuffing().accepts(pmod))
         result = p.solve()
-        p_new = ConeMatrixStuffing().apply(p)
-        result_new = p_new[0].solve()
-        self.assertAlmostEqual(result, result_new)
+        p_new = ConeMatrixStuffing().apply(pmod)
+        sltn = ECOS().solve(p_new[0], False, False, {})
+        self.assertAlmostEqual(sltn.opt_val, result)
+
+        p = Problem(Minimize(self.b), [norm2(self.x/2) <= self.b+5, self.x >= 1])
+        pmod = Problem(Minimize(self.b), [SOC(self.b+5, self.x/2), self.x >= 1])
+        self.assertTrue(ConeMatrixStuffing().accepts(pmod))
+        result = p.solve()
+        p_new = ConeMatrixStuffing().apply(pmod)
         sltn = ECOS().solve(p_new[0], False, False, {})
         self.assertAlmostEqual(sltn.opt_val, result)
 

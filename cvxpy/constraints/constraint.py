@@ -44,3 +44,9 @@ class Constraint(object):
         else:
             self.constr_id = constr_id
         super(Constraint, self).__init__()
+
+    @property
+    def id(self):
+        """Wrapper for compatibility with variables.
+        """
+        return self.constr_id

@@ -42,23 +42,23 @@ def format_axis(t, X, axis):
         X = lu.transpose(X)
     # Create matrices Tmat, Xmat such that Tmat*t + Xmat*X
     # gives the format for the elementwise cone constraints.
-    cone_size = 1 + X.size[0]
+    cone_size = 1 + X.shape[0]
     terms = []
     # Make t_mat
-    mat_size = (cone_size, 1)
-    prod_size = (cone_size, t.size[0])
-    t_mat = sp.coo_matrix(([1.0], ([0], [0])), mat_size).tocsc()
-    t_mat = lu.create_const(t_mat, mat_size, sparse=True)
-    terms += [lu.mul_expr(t_mat, lu.transpose(t), prod_size)]
+    mat_shape = (cone_size, 1)
+    prod_shape = (cone_size, t.shape[0])
+    t_mat = sp.coo_matrix(([1.0], ([0], [0])), mat_shape).tocsc()
+    t_mat = lu.create_const(t_mat, mat_shape, sparse=True)
+    terms += [lu.mul_expr(t_mat, lu.transpose(t), prod_shape)]
     # Make X_mat
-    mat_size = (cone_size, X.size[0])
-    prod_size = (cone_size, X.size[1])
+    mat_shape = (cone_size, X.shape[0])
+    prod_shape = (cone_size, X.shape[1])
     val_arr = (cone_size - 1)*[1.0]
     row_arr = range(1, cone_size)
     col_arr = range(cone_size-1)
-    X_mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), mat_size).tocsc()
-    X_mat = lu.create_const(X_mat, mat_size, sparse=True)
-    terms += [lu.mul_expr(X_mat, X, prod_size)]
+    X_mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), mat_shape).tocsc()
+    X_mat = lu.create_const(X_mat, mat_shape, sparse=True)
+    terms += [lu.mul_expr(X_mat, X, prod_shape)]
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
@@ -78,22 +78,22 @@ def format_elemwise(vars_):
     # Create matrices Ai such that 0 <= A0*x0 + ... + An*xn
     # gives the format for the elementwise cone constraints.
     spacing = len(vars_)
-    prod_size = (spacing*vars_[0].size[0], vars_[0].size[1])
+    prod_shape = (spacing*vars_[0].shape[0], vars_[0].shape[1])
     # Matrix spaces out columns of the LinOp expressions.
-    mat_size = (spacing*vars_[0].size[0], vars_[0].size[0])
+    mat_shape = (spacing*vars_[0].shape[0], vars_[0].shape[0])
     terms = []
     for i, var in enumerate(vars_):
-        mat = get_spacing_matrix(mat_size, spacing, i)
-        terms.append(lu.mul_expr(mat, var, prod_size))
+        mat = get_spacing_matrix(mat_shape, spacing, i)
+        terms.append(lu.mul_expr(mat, var, prod_shape))
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
-def get_spacing_matrix(size, spacing, offset):
+def get_spacing_matrix(shape, spacing, offset):
     """Returns a sparse matrix LinOp that spaces out an expression.
 
     Parameters
     ----------
-    size : tuple
+    shape : tuple
         (rows in matrix, columns in matrix)
     spacing : int
         The number of rows between each non-zero.
@@ -109,9 +109,9 @@ def get_spacing_matrix(size, spacing, offset):
     row_arr = []
     col_arr = []
     # Selects from each column.
-    for var_row in range(size[1]):
+    for var_row in range(shape[1]):
         val_arr.append(1.0)
         row_arr.append(spacing*var_row + offset)
         col_arr.append(var_row)
-    mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), size).tocsc()
-    return lu.create_const(mat, size, sparse=True)
+    mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsc()
+    return lu.create_const(mat, shape, sparse=True)

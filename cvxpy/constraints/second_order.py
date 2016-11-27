@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.utilities as u
 import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.utilities import format_axis
 
 
-class SOC(Constraint):
+class SOC(u.Canonical, Constraint):
     """A second-order cone constraint for each row/column.
 
     Assumes t is a vector the same length as X's columns (rows) for axis==0 (1).
@@ -34,13 +36,13 @@ class SOC(Constraint):
         axis: Slice by column 0 or row 1.
     """
 
-    def __init__(self, t, X, axis):
+    def __init__(self, t, X, axis=0):
         assert t.shape[1] == 1
         self.axis = axis
         super(SOC, self).__init__([t, X])
 
     def __str__(self):
-        return "SOC(%s, %s)" % (self.t, self.x_elems)
+        return "SOC(%s, %s)" % (self.args[0], self.args[1])
 
     def format(self, eq_constr, leq_constr, dims, solver):
         """Formats SOC constraints as inequalities for the solver.
@@ -60,6 +62,24 @@ class SOC(Constraint):
         # Update dims.
         dims[s.SOC_DIM].append(self.size[0])
 
+    def format(self, eq_constr, leq_constr, dims, solver):
+        """Formats SOC constraints as inequalities for the solver.
+
+        Parameters
+        ----------
+        eq_constr : list
+            A list of the equality constraints in the canonical problem.
+        leq_constr : list
+            A list of the inequality constraints in the canonical problem.
+        dims : dict
+            A dict with the dimensions of the conic constraints.
+        solver : str
+            The solver being called.
+        """
+        leq_constr += self.__format[1]
+        # Update dims.
+        dims[s.SOC_DIM] += self.cone_sizes()
+
     @pu.lazyprop
     def __format(self):
         """Internal version of format with cached results.
@@ -69,23 +89,20 @@ class SOC(Constraint):
         tuple
             (equality constraints, inequality constraints)
         """
-        leq_constr = [lu.create_geq(self.t)]
-        for elem in self.x_elems:
-            leq_constr.append(lu.create_geq(elem))
-        return ([], leq_constr)
+        return ([], format_axis(self.args[0], self.args[1], self.axis))
 
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.t.size[0]
-
-    def cone_size(self):
-        """The dimensions of a single cone.
-        """
-        return (1 + self.x_elems[0].shape[self.axis], 1)
+        return self.args[0].shape[0]*self.args[0].shape[1]
 
     @property
     def size(self):
+        """The number of entries in the combined cones.
+        """
+        return sum(self.cone_sizes())
+
+    def cone_sizes(self):
         """The dimensions of the second-order cones.
 
         Returns
@@ -94,7 +111,16 @@ class SOC(Constraint):
             A list of the dimensions of the elementwise cones.
         """
         cones = []
-        cone_size = self.cone_size()
+        cone_size = 1 + self.args[1].shape[self.axis]
         for i in range(self.num_cones()):
             cones.append(cone_size)
         return cones
+
+    def is_dcp(self):
+        """Is the constraint DCP?
+        """
+        return all([arg.is_affine() for arg in self.args])
+
+    #TODO hack
+    def canonicalize(self):
+        return NotImplemented

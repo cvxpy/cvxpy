@@ -1,4 +1,5 @@
 
+from cvxpy.atoms import reshape
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 from cvxpy.expressions.variables import Variable
@@ -80,7 +81,7 @@ class ConeMatrixStuffing(Reduction):
             arg_list = []
             for arg in con.args:
                 _, A, b = extractor.get_coeffs(arg)
-                arg_list.append(A*x + b)
+                arg_list.append(reshape(A*x + b, arg.shape))
             new_cons.append(type(con)(*arg_list))
 
         new_prob = Problem(Minimize(new_obj), new_cons)

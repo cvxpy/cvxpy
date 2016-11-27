@@ -46,32 +46,34 @@ class Canonical(object):
         """
         return self.canonicalize()
 
-    @abc.abstractmethod
     def variables(self):
-        """The object's internal variables.
-
-        Returns:
-            A list of Variable objects.
+        """Returns all the variables present in the arguments.
         """
-        return NotImplemented
+        var_list = []
+        for arg in self.args:
+            var_list += arg.variables()
+        # Remove duplicates.
+        return list(set(var_list))
 
-    @abc.abstractmethod
     def parameters(self):
-        """The object's internal parameters.
-
-        Returns:
-            A list of Parameter objects.
+        """Returns all the parameters present in the arguments.
         """
-        return NotImplemented
+        param_list = []
+        for arg in self.args:
+            param_list += arg.parameters()
+        # Remove duplicates.
+        return list(set(param_list))
 
-    @abc.abstractmethod
     def constants(self):
-        """The objects constant objects.
-
-        Returns:
-            A list of Constant objects.
+        """Returns all the constants present in the arguments.
         """
-        return NotImplemented
+        const_list = []
+        const_dict = {}
+        for arg in self.args:
+            const_list += arg.constants()
+        # Remove duplicates:
+        const_dict = {id(constant): constant for constant in const_list}
+        return list(const_dict.values())
 
     def copy(self, args=None):
         """Returns a shallow copy of the object.

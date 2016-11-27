@@ -192,35 +192,6 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    def variables(self):
-        """Returns all the variables present in the arguments.
-        """
-        var_list = []
-        for arg in self.args:
-            var_list += arg.variables()
-        # Remove duplicates.
-        return list(set(var_list))
-
-    def parameters(self):
-        """Returns all the parameters present in the arguments.
-        """
-        param_list = []
-        for arg in self.args:
-            param_list += arg.parameters()
-        # Remove duplicates.
-        return list(set(param_list))
-
-    def constants(self):
-        """Returns all the constants present in the arguments.
-        """
-        const_list = []
-        const_dict = {}
-        for arg in self.args:
-            const_list += arg.constants()
-        # Remove duplicates:
-        const_dict = {id(constant): constant for constant in const_list}
-        return list(const_dict.values())
-
     @property
     def value(self):
         # Catch the case when the expression is known to be

@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
+from cvxpy.atoms import reshape
 from cvxpy.constraints import Zero, NonPos, SOC, ExpCone
 from cvxpy.problems.solvers.solver import Solver
 from cvxpy.constraints.utilities import format_axis
@@ -87,25 +88,83 @@ class ECOS(object):
     @staticmethod
     def get_coeff_offset(expr):
         """Return the coefficient and offset in A*x + b.
+
+        Args:
+          expr: A CVXPY expression.
+
+        Returns:
+          (SciPy COO sparse matrix, NumPy 1D array)
         """
-        coeff = expr.args[0].args[0].value
-        offset = expr.args[1].value
+        # May be a reshape as root.
+        if type(expr) == reshape:
+            expr = expr.args[0]
+        # Convert data to float32.
+        offset = expr.args[1].value.ravel().astype(np.float32)
+        coeff = expr.args[0].args[0].value.astype(np.float32)
+        # Convert scalars to sparse matrices.
+        if np.isscalar(coeff):
+            coeff = sp.coo_matrix(([coeff], ([0], [0])), shape=(1, 1))
         return (coeff, offset)
+
+    @staticmethod
+    def format_constr(constr):
+        """Return the coefficient and offset for the constraint in ECOS format.
+
+        Args:
+          constr: A CVXPY constraint.
+
+        Returns:
+          (SciPy CSR sparse matrix, NumPy 1D array)
+        """
+        coeffs = []
+        offsets = []
+        for arg in constr.args:
+            coeff, offset = ECOS.get_coeff_offset(arg)
+            coeffs.append(coeff.tocsr())
+            offsets.append(offset)
+        height = sum([c.shape[0] for c in coeffs])
+        # Specialize based on constraint type.
+        if type(constr) in [NonPos, Zero]:
+            return coeffs[0], -offsets[0]
+        elif type(constr) == SOC:
+            # Group each t row with appropriate X rows.
+            mat_arr = []
+            offset = np.zeros(height, dtype=np.float32)
+            if constr.axis == 0:
+                gap = constr.args[1].shape[0] + 1
+            else:
+                gap = constr.args[1].shape[1] + 1
+            for i in range(constr.args[0].size):
+                offset[i*gap] = offsets[0][i]
+                mat_arr.append(coeffs[0][i, :])
+                offset[i*gap+1:(i+1)*gap] = offsets[1][i*(gap-1):(i+1)*(gap-1)]
+                mat_arr.append(coeffs[1][i*(gap-1):(i+1)*(gap-1), :])
+            return -sp.vstack(mat_arr), offset
+        elif type(constr) == ExpCone:
+            # TODO
+            return None
+        else:
+            raise ValueError("Unsupported constraint type.")
 
     @staticmethod
     def group_coeff_offset(constraints):
         """Combine the constraints into a single matrix, offset.
+
+        Args:
+          constraints: A list of CVXPY constraints.
+
+        Returns:
+          (SciPy CSC sparse matrix, NumPy 1D array)
         """
         matrices = []
         offsets = []
-        # TODO only works for LEQ.
         for cons in constraints:
-            coeff, offset = ECOS.get_coeff_offset(cons.args[0])
+            coeff, offset = ECOS.format_constr(cons)
             matrices.append(coeff)
-            offsets.append(offset.ravel())
+            offsets.append(offset)
         if len(constraints) > 0:
             coeff = sp.vstack(matrices).tocsc()
-            offset = -np.hstack(offsets)
+            offset = np.hstack(offsets)
         else:
             coeff = None
             offset = None
@@ -131,7 +190,7 @@ class ECOS(object):
         data = {}
         data[s.C], data[s.OFFSET] = self.get_coeff_offset(problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
-        data[s.OFFSET] = data[s.OFFSET][0, 0]
+        data[s.OFFSET] = data[s.OFFSET][0]
         constr = [c for c in problem.constraints if type(c) == Zero]
         data[s.A], data[s.B] = self.group_coeff_offset(constr)
         # Order and group nonlinear constraints.
@@ -141,7 +200,7 @@ class ECOS(object):
         soc_constr = [c for c in problem.constraints if type(c) == SOC]
         data[s.DIMS]['q'] = []
         for cons in soc_constr:
-            data[s.DIMS]['q'] += cons.size
+            data[s.DIMS]['q'] += cons.cone_sizes()
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         data[s.DIMS]['e'] = sum([c.size for c in exp_constr])
         data[s.G], data[s.H] = self.group_coeff_offset(leq_constr + soc_constr + exp_constr)
