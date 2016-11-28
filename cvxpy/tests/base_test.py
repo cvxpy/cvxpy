@@ -6,8 +6,14 @@ import numpy as np
 class BaseTest(unittest.TestCase):
     # AssertAlmostEqual for lists.
     def assertItemsAlmostEqual(self, a, b, places=5):
-        a = self.mat_to_list(a)
-        b = self.mat_to_list(b)
+        if np.isscalar(a):
+            a = [a]
+        else:
+            a = self.mat_to_list(a)
+        if np.isscalar(b):
+            b = [b]
+        else:
+            b = self.mat_to_list(b)
         for i in range(len(a)):
             self.assertAlmostEqual(a[i], b[i], places)
 

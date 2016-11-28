@@ -1,10 +1,3 @@
-# Status codes.
-OPTIMAL = "OPTIMAL"
-INFEASIBLE = "INFEASIBLE"
-UNBOUNDED = "UNBOUNDED"
-USER_LIMIT = "USER_LIMIT"
-ERROR = "ERROR"
-
 class Solution(object):
     """A solution object.
 

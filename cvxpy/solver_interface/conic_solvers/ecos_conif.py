@@ -231,6 +231,7 @@ class ECOS(object):
         data[s.C] = data[s.C].ravel()
         data[s.OFFSET] = data[s.OFFSET][0]
         constr = [c for c in problem.constraints if type(c) == Zero]
+        data['eq_constr'] = constr
         data[s.A], data[s.B] = self.group_coeff_offset(constr)
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
@@ -244,7 +245,9 @@ class ECOS(object):
         data[s.DIMS]['e'] = 0
         for cons in exp_constr:
             data[s.DIMS]['e'] += cons.num_cones()
-        data[s.G], data[s.H] = self.group_coeff_offset(leq_constr + soc_constr + exp_constr)
+        other_constr = leq_constr + soc_constr + exp_constr
+        data['other_constr'] = other_constr
+        data[s.G], data[s.H] = self.group_coeff_offset(other_constr)
         return data
 
     def solve(self, problem, warm_start, verbose, solver_opts):
@@ -290,11 +293,10 @@ class ECOS(object):
             primal_val = results_dict['info']['pcost']
             opt_val = primal_val + data[s.OFFSET]
             primal_vars = {global_var.id: results_dict['x']}
-            eq_dual = self.get_dual_values(results_dict['y'], problem.constraints, [Zero])
-            leq_dual = self.get_dual_values(results_dict['z'], problem.constraints,
-                                            [NonPos, SOC, ExpCone])
+            eq_dual = self.get_dual_values(results_dict['y'], data['eq_constr'])
+            leq_dual = self.get_dual_values(results_dict['z'], data['other_constr'])
             eq_dual.update(leq_dual)
-            dual_vars = leq_dual
+            dual_vars = eq_dual
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -308,7 +310,7 @@ class ECOS(object):
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     @staticmethod
-    def get_dual_values(result_vec, constraints, constr_types):
+    def get_dual_values(result_vec, constraints):
         """Gets the values of the dual variables.
 
         Parameters
@@ -317,24 +319,16 @@ class ECOS(object):
             A vector containing the dual variable values.
         constraints : list
             A list of the constraints in the problem.
-        constr_types : type
-            A list of constraint types to consider.
+
+        Returns
+        -------
+           A map of constraint id to dual variable value.
         """
-        constr_offsets = {}
-        offset = 0
-        for constr in constraints:
-            constr_offsets[constr.constr_id] = offset
-            offset += constr.size
-        active_constraints = []
-        for constr in constraints:
-            # Ignore constraints of the wrong type.
-            if type(constr) in constr_types:
-                active_constraints.append(constr)
         # Store dual values.
         dual_vars = {}
-        for constr in active_constraints:
-            if constr.id in constr_offsets:
-                offset = constr_offsets[constr.id]
-                dual_vars[constr.id] = result_vec[offset:offset + constr.size]
-                offset += constr.size
+        offset = 0
+        for constr in constraints:
+            # TODO reshape based on dual variable size.
+            dual_vars[constr.id] = result_vec[offset:offset + constr.size]
+            offset += constr.size
         return dual_vars
