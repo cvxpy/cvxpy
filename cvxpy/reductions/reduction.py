@@ -1,5 +1,6 @@
 import abc
 
+
 class Reduction(object):
     """ Abstract base class for reductions. """
     __metaclass__ = abc.ABCMeta

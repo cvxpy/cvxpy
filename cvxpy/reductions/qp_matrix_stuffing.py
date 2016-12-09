@@ -25,11 +25,12 @@ import scipy.sparse as sp
 from cvxpy.reductions.solution import OPTIMAL
 from cvxpy.reductions.solution import Solution
 
+
 class QPMatrixStuffing(Reduction):
     """Linearly constrained least squares solver via SciPy.
     """
 
-    def accepts(self, problem):
+    def accepts(self, prob):
         """Temporary method to determine whether the given Problem object is suitable for LS solver.
         """
         import cvxpy.constraints.zero as eqc
@@ -41,7 +42,7 @@ class QPMatrixStuffing(Reduction):
             prob.is_dcp() and
             prob.objective.args[0].is_quadratic() and
             not prob.objective.args[0].is_affine() and
-            all([c._expr.is_affine() for c in prob.constraints]) 1and
+            all([c._expr.is_affine() for c in prob.constraints]) and
             all([type(v) in allowedVariables for v in prob.variables()]) and
             all([not v.domain for v in prob.variables()])  # no implicit variable domains
             # (TODO: domains are not implemented yet)
@@ -109,10 +110,9 @@ class QPMatrixStuffing(Reduction):
                 inverse_data.cons_id_map[c.constr_id] = (new_cons[1].constr_id, cnts[1], c._expr.shape)
                 cnts[1] += c._expr.shape[0]*c._expr.shape[1]
 
-        new_prob = cvx.Minimize(new_obj, new_cons)
+        new_prob = cvxpy.Minimize(new_obj, new_cons)
 
         return (new_prob, inverse_data)
-
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

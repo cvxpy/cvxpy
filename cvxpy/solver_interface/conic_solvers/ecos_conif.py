@@ -20,12 +20,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.atoms import reshape
 from cvxpy.constraints import Zero, NonPos, SOC, ExpCone
-from cvxpy.problems.solvers.solver import Solver
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 import numpy as np
 import scipy.sparse as sp
 
-class ECOS(object):
+
+class ECOS(Reduction):
     """An interface for the ECOS solver.
     """
 
@@ -63,6 +64,11 @@ class ECOS(object):
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 2, 1]
 
+    # Keys for inverse data.
+    VAR_ID = 'var_id'
+    EQ_CONSTR = 'eq_constr'
+    NEQ_CONSTR = 'other_constr'
+
     def import_solver(self):
         """Imports the solver.
         """
@@ -74,18 +80,24 @@ class ECOS(object):
         """
         return s.ECOS
 
-    # def accepts(problem):
-    #     """Can ECOS solve the problem?
-    #     """
-    #     if not problem.objective.is_affine():
-    #         return False
-    #     for constr in problem.constraints:
-    #         if type(constr) not in [Eq, Ineq, SOC, ExpCone]:
-    #             return False
-    #         for arg in constr:
-    #             if not arg.is_affine():
-    #                 return False
-    #     return True
+    def is_mat_stuffed(self, expr):
+        """Returns whether the expression is reshape(A*x + b).
+        """
+        # TODO
+
+    def accepts(self, problem):
+        """Can ECOS solve the problem?
+        """
+        # TODO check if is matrix stuffed.
+        if not problem.objective.args[0].is_affine():
+            return False
+        for constr in problem.constraints:
+            if type(constr) not in [Zero, NonPos, SOC, ExpCone]:
+                return False
+            for arg in constr.args:
+                if not arg.is_affine():
+                    return False
+        return True
 
     @staticmethod
     def get_spacing_matrix(shape, spacing, offset):
@@ -209,30 +221,24 @@ class ECOS(object):
             offset = None
         return coeff, offset
 
-    def get_problem_data(self, problem):
-        """Returns the argument for the call to the solver.
-
-        Parameters
-        ----------
-        objective : LinOp
-            The canonicalized objective.
-        constraints : list
-            The list of canonicalized cosntraints.
-        cached_data : dict
-            A map of solver name to cached problem data.
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
 
         Returns
         -------
-        dict
-            The arguments needed for the solver.
+        tuple
+            (dict of arguments needed for the solver, inverse data)
         """
         data = {}
+        inv_data = {ECOS.VAR_ID: problem.variables()[0].id}
         data[s.C], data[s.OFFSET] = self.get_coeff_offset(problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
-        data[s.OFFSET] = data[s.OFFSET][0]
+        inv_data[s.OFFSET] = data[s.OFFSET][0]
+
         constr = [c for c in problem.constraints if type(c) == Zero]
-        data['eq_constr'] = constr
+        inv_data[ECOS.EQ_CONSTR] = constr
         data[s.A], data[s.B] = self.group_coeff_offset(constr)
+
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
@@ -246,9 +252,9 @@ class ECOS(object):
         for cons in exp_constr:
             data[s.DIMS]['e'] += cons.num_cones()
         other_constr = leq_constr + soc_constr + exp_constr
-        data['other_constr'] = other_constr
+        inv_data[ECOS.NEQ_CONSTR] = other_constr
         data[s.G], data[s.H] = self.group_coeff_offset(other_constr)
-        return data
+        return data, inv_data
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
@@ -274,27 +280,30 @@ class ECOS(object):
             (status, optimal value, primal, equality dual, inequality dual)
         """
         import ecos
-        data = self.get_problem_data(problem)
-        global_var = problem.variables()[0]
-        results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
-                                  data[s.DIMS], data[s.A], data[s.B],
-                                  verbose=verbose,
-                                  **solver_opts)
+        data, inv_data = self.apply(problem)
+        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
+                              data[s.DIMS], data[s.A], data[s.B],
+                              verbose=verbose,
+                              **solver_opts)
+        return self.invert(solution, inv_data)
 
-        status = self.STATUS_MAP[results_dict['info']['exitFlag']]
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = self.STATUS_MAP[solution['info']['exitFlag']]
 
         # Timing data
         attr = {}
-        attr[s.SOLVE_TIME] = results_dict["info"]["timing"]["tsolve"]
-        attr[s.SETUP_TIME] = results_dict["info"]["timing"]["tsetup"]
-        attr[s.NUM_ITERS] = results_dict["info"]["iter"]
+        attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
+        attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
+        attr[s.NUM_ITERS] = solution["info"]["iter"]
 
         if status in s.SOLUTION_PRESENT:
-            primal_val = results_dict['info']['pcost']
-            opt_val = primal_val + data[s.OFFSET]
-            primal_vars = {global_var.id: results_dict['x']}
-            eq_dual = self.get_dual_values(results_dict['y'], data['eq_constr'])
-            leq_dual = self.get_dual_values(results_dict['z'], data['other_constr'])
+            primal_val = solution['info']['pcost']
+            opt_val = primal_val + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[ECOS.VAR_ID]: solution['x']}
+            eq_dual = self.get_dual_values(solution['y'], inverse_data[ECOS.EQ_CONSTR])
+            leq_dual = self.get_dual_values(solution['z'], inverse_data[ECOS.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
         else:

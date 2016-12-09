@@ -5,19 +5,15 @@ import cvxpy
 
 
 class Dcp2Cone(Reduction):
-
-
     def __init__(self):
         self.old_var_ids = dict() # A list of the old variable IDs.
         self.constr_map = dict()  # Maps the new constraint IDs to the old constraint IDs.
 
-
     def accepts(self, prob):
         return prob.is_dcp()
 
-
     def apply(self, prob):
-        
+
         self.old_var_ids = [v.id for v in prob.variables()]
 
         obj_expr, new_constrs = canonicalize_tree(prob.objective.args[0])
@@ -48,7 +44,7 @@ class Dcp2Cone(Reduction):
 
 
     def invert(self, solution, inverse_data):
-        
+
         pvars = dict()
         for id, val in solution.primal_vars.items():
             if id in self.old_var_ids:

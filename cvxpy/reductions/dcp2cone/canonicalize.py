@@ -27,7 +27,7 @@ def canonicalize_tree(expr):
     constrs += c
     return canon_expr, constrs
 
- 
+
 def canonicalize_expr(expr, args): 
     if isinstance(expr, Variable):
         return expr, []
