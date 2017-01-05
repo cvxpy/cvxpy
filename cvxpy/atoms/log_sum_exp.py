@@ -86,7 +86,7 @@ class log_sum_exp(AxisAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return False
+        return True
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?

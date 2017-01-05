@@ -96,6 +96,17 @@ class TestAtoms(BaseTest):
         expr = norm(self.A, 2, axis=0)
         self.assertEqual(expr.size, (1, 2))
 
+    def test_log_sum_exp(self):
+        """Test log_sum_exp"""
+        atom = log_sum_exp(vstack(-log(self.x), self.y))
+        # self.assertEqual(atom.name(), "norm2(x + y)")
+        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.curvature, s.CONVEX)
+
+        # Test with axis arg.
+        expr = log_sum_exp(self.A, axis=0)
+        self.assertEqual(expr.size, (1, 2))
+
     def test_quad_form(self):
         """Test quad_form atom.
         """

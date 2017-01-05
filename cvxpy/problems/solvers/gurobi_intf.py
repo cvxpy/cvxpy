@@ -292,6 +292,7 @@ class GUROBI(Solver):
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
+        results_dict[s.SOLVE_TIME] = model.Runtime
 
         return self.format_results(results_dict, data, cached_data)
 
@@ -436,6 +437,7 @@ class GUROBI(Solver):
             }
         new_results = {}
         new_results[s.STATUS] = results_dict['status']
+        new_results[s.SOLVE_TIME] = results_dict[s.SOLVE_TIME]
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
