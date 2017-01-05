@@ -153,7 +153,7 @@ class Atom(Expression):
             # Parameterized expressions are evaluated later.
             if self.parameters():
                 rows, cols = self.size
-                param = CallbackParam(lambda: self.value, rows, cols)
+                param = CallbackParam(self, rows, cols)
                 return param.canonical_form
             # Non-parameterized expressions are evaluated immediately.
             else:
