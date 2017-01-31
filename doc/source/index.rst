@@ -93,4 +93,4 @@ Additional solvers are supported, but must be installed separately.
 .. toctree::
    :hidden:
 
-   ideas/index
+   short_course/index
