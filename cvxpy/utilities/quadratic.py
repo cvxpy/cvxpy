@@ -105,7 +105,7 @@ class QuadCoeffExtractor(object):
                     c = YQ[Yind, :]
                     d = YR[Yind]
 
-                    M += a*c.T
+                    M += a.T*c
                     Q[ind, :] += b*c + d*a
                     R[ind] += b*d
 
@@ -174,7 +174,7 @@ class QuadCoeffExtractor(object):
                     (p, q, r) = self.get_coeffs(arg)
                     Parg += p
                     Qarg = sp.vstack([Qarg, q])
-                    Rarg = np.vstack([Rarg, r])
+                    Rarg = np.concatenate([Rarg, r])
                 fake_args += [lu.create_var(arg.size, idx)]
                 offsets[idx] = offset
                 offset += arg.size[0]*arg.size[1]
