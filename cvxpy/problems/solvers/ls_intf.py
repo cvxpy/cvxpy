@@ -84,13 +84,14 @@ class LS(Solver):
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
 
         # TODO: handle affine objective
-        return (prob.is_dcp() and prob.objective.args[0].is_quadratic() and
-                not prob.objective.args[0].is_affine() and
-                all([isinstance(c, eqc.EqConstraint) for c in prob.constraints]) and
-                all([type(v) in allowedVariables for v in prob.variables()]) and
-                all([not v.domain for v in prob.variables()])  # no implicit variable domains
-                # (TODO: domains are not implemented yet)
-                )
+        return (
+            prob.is_dcp() and prob.objective.args[0].is_quadratic() and
+            not prob.objective.args[0].is_affine() and
+            all([isinstance(c, eqc.EqConstraint) for c in prob.constraints]) and
+            all([type(v) in allowedVariables for v in prob.variables()]) and
+            all([not v.domain for v in prob.variables()])  # no implicit variable domains
+            # (TODO: domains are not implemented yet)
+        )
 
     def validate_solver(self, prob):
         if not self.suitable(prob):
@@ -178,7 +179,11 @@ class LS(Solver):
 
         warnings.resetwarnings()
 
-        result_dict = {s.PRIMAL: x, s.EQ_DUAL: nu, s.VALUE: p_star}
+        result_dict = {
+            s.PRIMAL: x,
+            s.EQ_DUAL: nu,
+            s.VALUE: objective.primal_to_result(p_star)
+        }
 
         return self.format_results(result_dict, None, cached_data)
 
