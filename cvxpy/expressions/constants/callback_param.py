@@ -26,18 +26,18 @@ class CallbackParam(Parameter):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, callback, rows=1, cols=1, name=None, sign="unknown"):
-        self._callback = callback
+    def __init__(self, atom, rows=1, cols=1, name=None, sign="unknown"):
+        self.atom = atom
         super(CallbackParam, self).__init__(rows, cols, name, sign)
 
     @property
     def value(self):
         """Evaluate the callback to get the value.
         """
-        return self._validate_value(self._callback())
+        return self._validate_value(self.atom.value)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._callback, self._rows, self._cols,
+        return [self.atom, self._rows, self._cols,
                 self._name, self.sign_str]
