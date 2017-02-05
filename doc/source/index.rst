@@ -94,3 +94,8 @@ Additional solvers are supported, but must be installed separately.
    :hidden:
 
    short_course/index
+
+.. toctree::
+   :hidden:
+
+   license/index
