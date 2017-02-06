@@ -40,6 +40,11 @@ if [[ "$DISTRIB" == "conda" ]]; then
     pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
+
+        wget http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.5.3.tar.gz
+        tar -xf SuiteSparse-4.5.3.tar.gz
+        export CVXOPT_SUITESPARSE_SRC_DIR=$(pwd)/SuiteSparse
+
         # Install GLPK.
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
         tar -zxvf glpk-4.60.tar.gz
