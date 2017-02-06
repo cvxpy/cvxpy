@@ -54,6 +54,11 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+    def numeric(self, values):
+        """Multiplication checks for 1D array * 1D array.
+        """
+        return reduce(self.OP_FUNC, values)
+
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
         """

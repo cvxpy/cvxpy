@@ -64,6 +64,7 @@ class Variable(Leaf):
     def save_value(self, value):
         """Save the value of the primal variable.
         """
+        value = self._validate_value(value)
         self.primal_value = value
 
     @property
@@ -74,7 +75,6 @@ class Variable(Leaf):
     def value(self, val):
         """Assign a value to the variable.
         """
-        val = self._validate_value(val)
         self.save_value(val)
 
     @property

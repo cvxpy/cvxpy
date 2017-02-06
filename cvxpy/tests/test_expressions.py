@@ -204,6 +204,8 @@ class TestExpressions(BaseTest):
         p.value = [1, 1]
         self.assertEqual((c*p).value, 3)
         self.assertEqual((c*self.x).size, (1, 1))
+        self.x.save_value(np.array([1, 4]))
+        self.assertEqual((c.T*self.x).value, 9)
 
     # Test the Parameter class.
     def test_parameters(self):
@@ -824,4 +826,3 @@ class TestExpressions(BaseTest):
 
         expr = pnorm(3 * self.y ** 2, 1)
         self.assertEqual(expr.is_pwl(), False)
-
