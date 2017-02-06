@@ -396,7 +396,7 @@ class Problem(u.Canonical):
                                              solve_result.primal_values):
                     var.save_value(primal_value)
                 for constr, dual_value in zip(subproblem.constraints,
-                                              solve_results):
+                                              solve_result.dual_values):
                     constr.save_value(dual_value)
             self._value = sum(solve_result.opt_value
                               for solve_result in solve_results)

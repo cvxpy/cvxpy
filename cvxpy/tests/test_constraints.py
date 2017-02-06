@@ -56,10 +56,10 @@ class TestConstraints(BaseTest):
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
-        self.x.save_value(2)
-        self.z.save_value(2)
+        self.x.save_value([2,2])
+        self.z.save_value([2,2])
         assert constr.value
-        self.x.save_value(3)
+        self.x.save_value([3,3])
         assert not constr.value
 
         self.x.value = [2, 1]
@@ -99,10 +99,10 @@ class TestConstraints(BaseTest):
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
-        self.x.save_value(1)
-        self.z.save_value(2)
+        self.x.save_value([1,1])
+        self.z.save_value([2,2])
         assert constr.value
-        self.x.save_value(3)
+        self.x.save_value([3,3])
         assert not constr.value
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
 
