@@ -155,6 +155,11 @@ class Expression(u.Canonical):
         # Defaults to false
         return False
 
+    def is_qpwa(self):
+        """Is the expression quadratic of piecewise affine?
+        """
+        return self.is_quadratic() or self.is_pwl()
+
     # Sign properties.
 
     @property

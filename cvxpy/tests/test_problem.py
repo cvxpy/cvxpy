@@ -121,7 +121,7 @@ class TestProblem(BaseTest):
         self.assertEqual(len(ref), len(constants_))
         for c, r in zip(constants_, ref):
             self.assertEqual(c.size, r.shape) and \
-            self.assertTrue((c.value == r).all()) 
+            self.assertTrue((c.value == r).all())
             # Allows comparison between numpy matrices and numpy arrays
             # Necessary because of the way cvxpy handles numpy arrays and constants
 
@@ -176,7 +176,7 @@ class TestProblem(BaseTest):
         self.assertGreater(stats.setup_time, 0)
         self.assertGreater(stats.num_iters, 0)
 
-        
+
     def test_get_problem_data(self):
         """Test get_problem_data method.
         """
@@ -418,17 +418,38 @@ class TestProblem(BaseTest):
         F = numpy.random.randn(2,3)
         g = numpy.random.randn(2)
         obj = sum_squares(A*self.y - b)
+        qpwa_obj = 3*sum_squares(-abs(A*self.y)) +\
+            quad_over_lin(max_elemwise(abs(A*self.y), [3.,3.,3.,3.]), 2.)
+        not_qpwa_obj = 3*sum_squares(abs(A*self.y)) +\
+            quad_over_lin(min_elemwise(abs(A*self.y), [3.,3.,3.,3.]), 2.)
+
         p = Problem(Minimize(obj),[])
         self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(qpwa_obj),[])
+        self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(not_qpwa_obj),[])
+        self.assertEqual(p.is_qp(), False)
 
         p = Problem(Minimize(obj),[Aeq * self.y == beq, F * self.y <= g])
         self.assertEqual(p.is_qp(), True)
 
-        p = Problem(Minimize(obj),[max_elemwise(1, 3 * self.y) <= 200, abs(2 * self.y) <= 100, 
+        p = Problem(Minimize(qpwa_obj),[Aeq * self.y == beq, F * self.y <= g])
+        self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(obj),[max_elemwise(1, 3 * self.y) <= 200, abs(2 * self.y) <= 100,
+            norm(2 * self.y, 1) <= 1000, Aeq * self.y == beq])
+        self.assertEqual(p.is_qp(), True)
+
+        p = Problem(Minimize(qpwa_obj),[max_elemwise(1, 3 * self.y) <= 200, abs(2 * self.y) <= 100,
             norm(2 * self.y, 1) <= 1000, Aeq * self.y == beq])
         self.assertEqual(p.is_qp(), True)
 
         p = Problem(Minimize(obj),[max_elemwise(1, 3 * self.y ** 2) <= 200])
+        self.assertEqual(p.is_qp(), False)
+
+        p = Problem(Minimize(qpwa_obj),[max_elemwise(1, 3 * self.y ** 2) <= 200])
         self.assertEqual(p.is_qp(), False)
 
     # Test problems involving variables with the same name.

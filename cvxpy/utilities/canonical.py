@@ -16,6 +16,7 @@ limitations under the License.
 
 import abc
 from cvxpy.utilities import performance_utils as pu
+from ..error import QPError
 
 
 class Canonical(object):
@@ -42,6 +43,28 @@ class Canonical(object):
             A tuple of (affine expression, [constraints]).
         """
         return self.canonicalize()
+
+    @pu.lazyprop
+    def QP_canonical_form(self):
+        """The QP implementation of the object stored as a property.
+
+        Returns:
+            A tuple of (quadratic expression, [constraints]).
+        """
+        return self.QP_canonicalize()
+
+    def QP_canonicalize(self):
+        """Returns QP graph implementation of the object.
+
+        Returns:
+            A tuple of (quadratic expression, [constraints]).
+        """
+        if self.is_pwl():
+            return self.canonicalize()
+        if self.is_qpwa():
+            return NotImplemented
+        # if it's neither pwl or qpwa, then it's not a QP expression
+        return QPError
 
     @abc.abstractmethod
     def variables(self):

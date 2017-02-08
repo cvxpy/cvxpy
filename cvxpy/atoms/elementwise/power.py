@@ -224,6 +224,17 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
+    def is_qpwa(self):
+        if self.p == 0:
+            return True
+        elif self.p == 1:
+            return self.args[0].is_qpwa()
+        elif self.p == 2:
+            return self.args[0].is_pwl()
+        else:
+            return self.args[0].is_constant()
+
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -328,6 +339,34 @@ class power(Elementwise):
                     return t, gm_constrs(one, [x, t], w)
                 else:
                     raise NotImplementedError('this power is not yet supported.')
+
+    @staticmethod
+    def QP_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        x = arg_objs[0]
+        p, w = data
+
+        if not p==2:
+            return graph_implementation(arg_objs, size, data)
+
+        xvec = lu.reshape(x, (x.size[0]*x.size[1],1))
+        obj = lu.quad_expr(xvec, lu.diag_vec(lu.create_const(1., xvec.size)))
+        return (obj, [])
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,

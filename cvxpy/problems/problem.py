@@ -115,7 +115,7 @@ class Problem(u.Canonical):
         for c in self.constraints:
             if not (isinstance(c, eqc.EqConstraint) or c._expr.is_pwl()):
                 return False
-        return (self.is_dcp() and self.objective.args[0].is_quadratic())
+        return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
     def canonicalize(self):
         """Computes the graph implementation of the problem.
@@ -134,6 +134,20 @@ class Problem(u.Canonical):
             canon_constr += constr.canonical_form[1]
 
         return (obj, canon_constr)
+
+
+    def QP_canonicalize(self):
+            """Computes the QP implementation of the problem.
+
+            Returns
+            -------
+            tuple
+                (quadratic objective,
+                 constraints list)
+            """
+            obj, objconstr = self.objective.QP_canonical_form
+            return (obj, objconstr + [constr.canonical_form[1]
+                                    for constr in self.constraints])
 
     def variables(self):
         """Returns a list of the variables in the problem.

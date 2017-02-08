@@ -92,6 +92,11 @@ class Minimize(u.Canonical):
         """
         return self.args[0].canonical_form
 
+    def QP_canonicalize(self):
+        """Pass on the target expression's objective and constraints.
+        """
+        return self.args[0].QP_canonical_form
+
     def variables(self):
         """Returns the variables in the objective.
         """
@@ -149,6 +154,12 @@ class Maximize(Minimize):
         obj, constraints = super(Maximize, self).canonicalize()
         return (lu.neg_expr(obj), constraints)
 
+    def QP_canonicalize(self):
+        """Negates the target expression's objective.
+        """
+        obj, constraints = super(Maximize, self).QP_canonicalize()
+        return (lu.neg_expr(obj), constraints)
+
     def is_dcp(self):
         """The objective must be concave.
         """
@@ -158,6 +169,11 @@ class Maximize(Minimize):
         """Returns if the objective is a quadratic function.
         """
         return self.args[0].is_quadratic()
+
+    def is_qpwa(self):
+        """Returns if the objective is a quadratic of piecewise affine.
+        """
+        return self.args[0].is_qpwa()
 
     @staticmethod
     def primal_to_result(result):

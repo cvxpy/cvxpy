@@ -69,6 +69,12 @@ class mul_elemwise(AffAtom):
         """
         return self.args[1].is_quadratic()
 
+    def is_qpwa(self):
+        """Quadratic of PWA if x is QPWA.
+        """
+        return self.args[1].is_qpwa()
+
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Multiply the expressions elementwise.

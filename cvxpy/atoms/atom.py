@@ -16,6 +16,7 @@ limitations under the License.
 
 
 from .. import utilities as u
+from ..error import QPError
 from .. import interface as intf
 from ..expressions.constants import Constant, CallbackParam
 from ..expressions.expression import Expression
@@ -169,6 +170,29 @@ class Atom(Expression):
                                                                 data)
             return (graph_obj, constraints + graph_constr)
 
+    def QP_canonicalize(self):
+        """Represent the atom as an quadratic objective and conic constraints.
+        """
+        if not self.is_qpwa():
+            raise QPError("Can't QP canonicalize a non-QP expression.")
+
+        arg_objs = []
+        constraints = []
+        # Special info required by the graph implementation.
+        data = self.get_data()
+        for arg in self.args:
+            obj, constr = arg.QP_canonical_form
+            arg_objs.append(obj)
+            constraints += constr
+
+        tmp = self.QP_implementation(arg_objs,self.size,data)
+        if tmp is NotImplemented:
+            tmp = self.graph_implementation(arg_objs,self.size,data)
+        graph_obj, graph_constr = tmp
+
+        return (graph_obj, constraints + graph_constr)
+
+
     @abc.abstractmethod
     def graph_implementation(self, arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
@@ -186,6 +210,26 @@ class Atom(Expression):
         -------
         tuple
             (LinOp for objective, list of constraints)
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def QP_implementation(self, arg_objs, size, data=None):
+        """Reduces the atom to an quadratic expression and list of constraints.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (QuadOp for objective, list of constraints)
         """
         return NotImplemented
 

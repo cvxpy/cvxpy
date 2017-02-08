@@ -57,6 +57,9 @@ class AffAtom(Atom):
     def is_quadratic(self):
         return all([arg.is_quadratic() for arg in self.args])
 
+    def is_qpwa(self):
+        return all([arg.is_qpwa() for arg in self.args])
+
     def is_pwl(self):
         return all([arg.is_pwl() for arg in self.args])
 
