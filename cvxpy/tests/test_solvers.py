@@ -425,6 +425,21 @@ class TestSolvers(BaseTest):
                 prob.solve(solver=MOSEK)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % MOSEK)
 
+    def test_mosek_simplex(self):
+        """Make sure Mosek's working with simplex method
+        """
+        if MOSEK in installed_solvers():
+            import mosek
+            n = 4
+            m = 3
+            x = Variable(n, m)
+            y = Variable(n, 1)
+            objective = Minimize(sum_entries(y))
+            constraints = [0 <= x, 0 <= y]
+            prob = Problem(objective, constraints)
+            prob.solve(solver=MOSEK, mosek_params={mosek.iparam.optimizer:
+                                                        mosek.optimizertype.free_simplex})
+
     def test_mosek_params(self):
         if MOSEK in installed_solvers():
             import numpy as np
