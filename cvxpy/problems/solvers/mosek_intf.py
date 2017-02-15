@@ -157,7 +157,7 @@ class MOSEK(Solver):
                 # size of problem
                 numvar = len(c) + sum(dims[s.SOC_DIM])
                 numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM]) + \
-                         sum([el ** 2 for el in dims[s.SDP_DIM]])
+                    sum([el ** 2 for el in dims[s.SDP_DIM]])
 
                 # otherwise it crashes on empty probl.
                 if numvar == 0:
@@ -195,7 +195,7 @@ class MOSEK(Solver):
                 type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
                 sdp_total_dims = sum([cdim ** 2 for cdim in dims[s.SDP_DIM]])
                 type_constraint += [mosek.boundkey.fx] * \
-                                   (sum(dims[s.SOC_DIM]) + sdp_total_dims)
+                    (sum(dims[s.SOC_DIM]) + sdp_total_dims)
 
                 task.putconboundlist(np.arange(numcon, dtype=int),
                                      type_constraint,
@@ -306,7 +306,7 @@ class MOSEK(Solver):
             task.getxx(soltype, result_dict[s.PRIMAL])
             # get obj value
             result_dict[s.VALUE] = task.getprimalobj(soltype) + \
-                                   data[s.OFFSET]
+                data[s.OFFSET]
             # get dual
             y = np.zeros(task.getnumcon(), dtype=np.float)
             task.gety(soltype, y)
