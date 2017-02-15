@@ -126,16 +126,36 @@ class Solver(object):
             raise SolverError("The solver %s is not installed." % self.name())
         # Check the solver can solve the problem.
         constr_map = SymData.filter_constraints(constraints)
-        if ((constr_map[s.BOOL] or constr_map[s.INT]) and
-            not self.MIP_CAPABLE) or \
-           (constr_map[s.SDP] and not self.SDP_CAPABLE) or \
-           (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
-           (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \
-           (len(constraints) == 0 and self.name() in [s.SCS,
-                                                      s.GLPK]):
-            raise SolverError(
-                "The solver %s cannot solve the problem." % self.name()
-            )
+
+        if (constr_map[s.BOOL] or constr_map[s.INT]) and not self.MIP_CAPABLE:
+            self._reject_problem("it cannot solve mixed-integer problems")
+        elif constr_map[s.SDP] and not self.SDP_CAPABLE:
+            self._reject_problem("it cannot solve semidefinite problems")
+        elif constr_map[s.EXP] and not self.EXP_CAPABLE:
+            self._reject_problem("it cannot solve exponential cone problems")
+        elif constr_map[s.SOC] and not self.SOCP_CAPABLE:
+            self._reject_problem("it cannot solve second-order cone problems")
+        elif len(constraints) == 0 and self.name() in (s.SCS, s.GLPK):
+            self._reject_problem("it cannot solve unconstrained problems")
+
+    def _reject_problem(self, reason):
+        """Raise an error indicating that the solver cannot solve a problem.
+
+        Parameters
+        ----------
+        reason : str
+            A short description of the reason the problem cannot be solved by
+            this solver.
+
+        Raises
+        ------
+        cvxpy.SolverError
+            An error explaining why the problem could not be solved.
+        """
+        message = "The solver {} cannot solve the problem because {}.".format(
+            self.name(), reason
+        )
+        raise SolverError(message)
 
     def validate_cache(self, objective, constraints, cached_data):
         """Clears the cache if the objective or constraints changed.

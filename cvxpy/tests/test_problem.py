@@ -176,13 +176,17 @@ class TestProblem(BaseTest):
         self.assertGreater(stats.setup_time, 0)
         self.assertGreater(stats.num_iters, 0)
 
-        
     def test_get_problem_data(self):
         """Test get_problem_data method.
         """
         with self.assertRaises(Exception) as cm:
             Problem(Maximize(Bool())).get_problem_data(s.ECOS)
-        self.assertEqual(str(cm.exception), "The solver ECOS cannot solve the problem.")
+
+        expected = (
+            "The solver ECOS cannot solve the problem because"
+            " it cannot solve mixed-integer problems."
+        )
+        self.assertEqual(str(cm.exception), expected)
 
         data = Problem(Maximize(exp(self.a) + 2)).get_problem_data(s.SCS)
         dims = data["dims"]
@@ -1263,18 +1267,30 @@ class TestProblem(BaseTest):
         """
         with self.assertRaises(Exception) as cm:
             Problem(Minimize(Bool())).solve(solver=s.ECOS)
-        self.assertEqual(str(cm.exception),
-                         "The solver ECOS cannot solve the problem.")
+
+        expected = (
+            "The solver ECOS cannot solve the problem "
+            "because it cannot solve mixed-integer problems."
+        )
+        self.assertEqual(str(cm.exception), expected)
 
         with self.assertRaises(Exception) as cm:
             Problem(Minimize(lambda_max(self.a))).solve(solver=s.ECOS)
-        self.assertEqual(str(cm.exception),
-                         "The solver ECOS cannot solve the problem.")
+
+        expected = (
+            "The solver ECOS cannot solve the problem "
+            "because it cannot solve semidefinite problems."
+        )
+        self.assertEqual(str(cm.exception), expected)
 
         with self.assertRaises(Exception) as cm:
             Problem(Minimize(self.a)).solve(solver=s.SCS)
-        self.assertEqual(str(cm.exception),
-                         "The solver SCS cannot solve the problem.")
+
+        expected = (
+            "The solver SCS cannot solve the problem "
+            "because it cannot solve unconstrained problems."
+        )
+        self.assertEqual(str(cm.exception), expected)
 
     def test_reshape(self):
         """Tests problems with reshape.
