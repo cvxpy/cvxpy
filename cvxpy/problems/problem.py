@@ -59,6 +59,8 @@ class Problem(u.Canonical):
     def __init__(self, objective, constraints=None):
         if constraints is None:
             constraints = []
+        elif not isinstance(constraints, list):
+            raise TypeError("Problem constraints must be a list.")
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
             raise DCPError("Problem objective must be Minimize or Maximize.")

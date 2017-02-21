@@ -699,6 +699,13 @@ class TestProblem(BaseTest):
             p.solve()
         self.assertEqual(str(cm.exception), "Problem has missing parameter value.")
 
+    def test_constraint_error(self):
+        """Tests non-standard input for constraints.
+        """
+        with self.assertRaises(Exception) as cm:
+            Problem(Maximize(self.a), self.a)
+        self.assertEqual(str(cm.exception), "Problem constraints must be a list.")
+
     # Test problems with normInf
     def test_normInf(self):
         # Constant argument.
