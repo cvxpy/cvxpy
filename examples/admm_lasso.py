@@ -5,6 +5,8 @@ from multiprocessing import Pool
 # Problem data.
 m = 100
 n = 75
+gamma = 1.0
+NUM_PROCS = 2
 np.random.seed(1)
 A = np.random.randn(m, n)
 b = np.random.randn(m, 1)
