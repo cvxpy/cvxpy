@@ -21,6 +21,12 @@ import numpy as np
 
 class hstack(AffAtom):
     """ Horizontal concatenation """
+    # Can take a single list as input.
+    def __init__(self, *args):
+        if len(args) == 1 and isinstance(args[0], list):
+            args = args[0]
+        super(hstack, self).__init__(*args)
+
     # Returns the hstack of the values.
     @AffAtom.numpy_numeric
     def numeric(self, values):

@@ -21,8 +21,9 @@ import numpy as np
 
 class vstack(AffAtom):
     """ Vertical concatenation """
+    # Can take a single list as input.
     def __init__(self, *args):
-        if len(args) == 1 and isinstance(args, list):
+        if len(args) == 1 and isinstance(args[0], list):
             args = args[0]
         super(vstack, self).__init__(*args)
 
