@@ -21,6 +21,11 @@ import numpy as np
 
 class vstack(AffAtom):
     """ Vertical concatenation """
+    def __init__(self, *args):
+        if len(args) == 1 and isinstance(args, list):
+            args = args[0]
+        super(vstack, self).__init__(*args)
+
     # Returns the vstack of the values.
     @AffAtom.numpy_numeric
     def numeric(self, values):

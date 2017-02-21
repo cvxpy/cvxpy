@@ -18,4 +18,8 @@ from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
 
 
 def min_elemwise(*args):
-    return -max_elemwise(*[-Elementwise.cast_to_const(arg) for arg in args])
+    if len(args) == 0 or (len(args) == 1 and not isinstance(args[0], list)):
+        raise TypeError("min_elemwise requires at least two arguments or a list.")
+    elif len(args) == 1:
+        args = args[0]
+    return -max_elemwise([-Elementwise.cast_to_const(arg) for arg in args])

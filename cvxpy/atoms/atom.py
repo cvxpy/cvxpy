@@ -30,6 +30,8 @@ class Atom(Expression):
     # args are the expressions passed into the Atom constructor.
 
     def __init__(self, *args):
+        if len(args) == 1 and isinstance(args[0], list):
+            args = args[0]
         # Throws error if args is empty.
         if len(args) == 0:
             raise TypeError(

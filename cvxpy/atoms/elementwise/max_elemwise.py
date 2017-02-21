@@ -25,10 +25,14 @@ if sys.version_info >= (3, 0):
 class max_elemwise(Elementwise):
     """ Elementwise maximum. """
 
-    def __init__(self, arg1, arg2, *args):
+    def __init__(self, *args):
         """Requires at least 2 arguments.
         """
-        super(max_elemwise, self).__init__(arg1, arg2, *args)
+        if len(args) == 0 or (len(args) == 1 and not isinstance(args[0], list)):
+            raise TypeError("max_elemwise requires at least two arguments or a list.")
+        elif len(args) == 1:
+            args = args[0]
+        super(max_elemwise, self).__init__(*args)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):

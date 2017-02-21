@@ -39,6 +39,10 @@ def tv(value, *args):
     Expression
         An Expression representing the total variation.
     """
+    # Accept single list as argument.
+    if isinstance(value, list) and len(args) == 0:
+        args = value[1:]
+        value = value[0]
     value = Expression.cast_to_const(value)
     rows, cols = value.size
     if value.is_scalar():

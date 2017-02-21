@@ -278,21 +278,6 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The second argument to quad_over_lin must be a scalar.")
 
-    def test_elemwise_arg_count(self):
-        """Test arg count for max and min variants.
-        """
-        with self.assertRaises(Exception) as cm:
-            max_elemwise(1)
-        self.assertTrue(str(cm.exception) in (
-            "__init__() takes at least 3 arguments (2 given)",
-            "__init__() missing 1 required positional argument: 'arg2'"))
-
-        with self.assertRaises(Exception) as cm:
-            min_elemwise(1)
-        self.assertTrue(str(cm.exception) in (
-            "__init__() takes at least 3 arguments (2 given)",
-            "__init__() missing 1 required positional argument: 'arg2'"))
-
     def test_matrix_frac(self):
         """Test for the matrix_frac atom.
         """
@@ -378,6 +363,42 @@ class TestAtoms(BaseTest):
                          s.POSITIVE)
         self.assertEqual(max_elemwise(1, Variable(2)).size,
                          (2, 1))
+
+    def test_list_input(self):
+        """Test *args atoms taking list input.
+        """
+        with self.assertRaises(Exception) as cm:
+            min_elemwise()
+        self.assertEqual(str(cm.exception),
+                         "min_elemwise requires at least two arguments or a list.")
+        with self.assertRaises(Exception) as cm:
+            min_elemwise(self.x)
+        self.assertEqual(str(cm.exception),
+                         "min_elemwise requires at least two arguments or a list.")
+        self.assertAlmostEqual(min_elemwise([1, 2]).value, 1)
+
+        with self.assertRaises(Exception) as cm:
+            max_elemwise()
+        self.assertEqual(str(cm.exception),
+                         "max_elemwise requires at least two arguments or a list.")
+        with self.assertRaises(Exception) as cm:
+            max_elemwise(self.x)
+        self.assertEqual(str(cm.exception),
+                         "max_elemwise requires at least two arguments or a list.")
+        self.assertAlmostEqual(max_elemwise([1, 2]).value, 2)
+
+        # TV
+        self.assertAlmostEqual(tv([np.ones((2,2)), np.ones((2,2))]).value, 0.)
+
+        # hstack
+        expr = hstack([np.ones((2,2)), np.ones((2,2))])
+        self.assertEqual(expr.size, (2, 4))
+        self.assertItemsAlmostEqual(expr.value, np.ones((2, 4)))
+
+        # vstack
+        expr = vstack([np.ones((2,2)), np.ones((2,2))])
+        self.assertEqual(expr.size, (4, 2))
+        self.assertItemsAlmostEqual(expr.value, np.ones((4, 2)))
 
     # Test sign logic for min_elemwise.
     def test_min_elemwise_sign(self):
