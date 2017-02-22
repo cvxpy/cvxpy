@@ -30,7 +30,7 @@ def Semidef(n, name=None):
     """
     var = SemidefUpperTri(n, name)
     fill_mat = Constant(upper_tri_to_full(n))
-    return cvxtypes.reshape()(fill_mat*var, n, n)
+    return cvxtypes.reshape()(fill_mat*var, (n, n))
 
 
 class SemidefUpperTri(Variable):
