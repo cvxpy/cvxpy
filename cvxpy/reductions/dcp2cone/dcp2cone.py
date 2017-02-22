@@ -13,7 +13,6 @@ class Dcp2Cone(Reduction):
         return prob.is_dcp()
 
     def apply(self, prob):
-
         self.old_var_ids = [v.id for v in prob.variables()]
 
         obj_expr, new_constrs = canonicalize_tree(prob.objective.args[0])

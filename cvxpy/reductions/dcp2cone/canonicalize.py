@@ -33,7 +33,7 @@ def canonicalize_expr(expr, args):
         return expr, []
     elif isinstance(expr, Constant):
         return expr, []
-    elif expr.is_atom_convex and expr.is_atom_concave:
+    elif expr.is_atom_convex() and expr.is_atom_concave():
         return expr, []
     else:
         return CANON_METHODS[type(expr)](expr, args)
