@@ -17,6 +17,8 @@ def geo_mean_canon(expr, args):
         return ones, []
     else:
         t = Variable(*shape)
+        # TODO(akshayka): gm_constrs requires each of its inputs to be a Variable;
+        # is this something that we want to change?
         if 0 < p < 1:
             return t, gm_constrs(t, [x, ones], w)
         elif p > 1:

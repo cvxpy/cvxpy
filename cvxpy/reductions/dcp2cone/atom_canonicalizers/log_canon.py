@@ -8,5 +8,7 @@ def log_canon(expr, args):
     shape = expr.shape
     t = Variable(*shape)
     ones = np.ones(shape)
+    # TODO(akshayka): ExpCone requires each of its inputs to be a Variable;
+    # is this something that we want to change?
     constraints = [ExpCone(t, ones, x)]
     return t, constraints
