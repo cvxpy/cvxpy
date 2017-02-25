@@ -344,7 +344,7 @@ def run_atom_helper(reduction=None):
                         parameters = []
                         for expr in args:
                             # TODO(akshayka): This line fails -- cannot
-                            # implement abstract class Parameter with abstract
+                            # instantiate abstract class Parameter with abstract
                             # methods shape
                             parameters.append(Parameter(*intf.shape(expr)))
                             parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)

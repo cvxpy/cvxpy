@@ -1,6 +1,8 @@
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variables.variable import Variable
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import power_canon
 from cvxpy.utilities.power_tools import gm_constrs
 import numpy as np
 
@@ -14,9 +16,9 @@ def huber_canon(expr, args):
 
     # n**2 + 2*M*|s|
     power_expr = power(n, 2)
-    n2, constr_sq = power_canon(power_exp, power_exp.args)
+    n2, constr_sq = power_canon(power_expr, power_expr.args)
     abs_expr = abs(s)
-    abs_s, constr_abs = abs_canon(abs_expr, abs.args)
+    abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
     obj = n2 + 2 * M * abs_s
 
     # x == s + n

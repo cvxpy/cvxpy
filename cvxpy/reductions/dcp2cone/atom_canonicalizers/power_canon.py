@@ -1,9 +1,10 @@
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
 import numpy as np
 
 
-def geo_mean_canon(expr, args):
+def power_canon(expr, args):
     x = args[0]
     p = expr.p
     w = expr.w
@@ -12,7 +13,7 @@ def geo_mean_canon(expr, args):
         return x, []
 
     shape = expr.shape
-    ones = np.ones(shape)
+    ones = Constant(np.ones(shape))
     if p == 0:
         return ones, []
     else:
