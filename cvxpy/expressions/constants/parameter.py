@@ -52,7 +52,7 @@ class Parameter(Leaf):
         return self._name
 
     @property
-    def size(self):
+    def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
         return (self._rows, self._cols)

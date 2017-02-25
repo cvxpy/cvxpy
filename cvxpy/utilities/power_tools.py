@@ -28,11 +28,11 @@ two = lu.create_const(2, (1, 1))
 
 
 def gm(t, x, y):
-    length = t.size[0]*t.size[1]
+    length = t.shape[0]*t.shape[1]
     return SOC_Axis(lu.reshape(lu.sum_expr([x, y]), (length, 1)),
                     lu.vstack([
                         lu.reshape(lu.sub_expr(x, y), (1, length)),
-                        lu.reshape(lu.mul_expr(two, t, t.size), (1, length))
+                        lu.reshape(lu.mul_expr(two, t, t.shape), (1, length))
                         ], (2, length)),
                     0)
 
@@ -67,7 +67,7 @@ def gm_constrs(t, x_list, p):
     w = dyad_completion(p)
 
     tree = decompose(w)
-    d = defaultdict(lambda: lu.create_var(t.size))
+    d = defaultdict(lambda: lu.create_var(t.shape))
     d[w] = t
 
     if len(x_list) < len(w):

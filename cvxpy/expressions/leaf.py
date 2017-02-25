@@ -82,11 +82,11 @@ class Leaf(expression.Expression):
         if val is not None:
             # Convert val to the proper matrix type.
             val = intf.DEFAULT_INTF.const_to_matrix(val)
-            size = intf.size(val)
-            if size != self.size:
+            shape = intf.shape(val)
+            if shape != self.shape:
                 raise ValueError(
                     "Invalid dimensions (%s, %s) for %s value." %
-                    (size[0], size[1], self.__class__.__name__)
+                    (shape[0], shape[1], self.__class__.__name__)
                 )
             # All signs are valid if sign is unknown.
             # Otherwise value sign must match declared sign.
