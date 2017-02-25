@@ -35,7 +35,7 @@ class SOC_Axis(SOC):
     """
 
     def __init__(self, t, X, axis):
-        assert t.size[1] == 1
+        assert t.shape[1] == 1
         self.axis = axis
         super(SOC_Axis, self).__init__(t, [X])
 
@@ -75,7 +75,7 @@ class SOC_Axis(SOC):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.t.size[0]
+        return self.t.shape[0]
 
     def cone_size(self):
         """The dimensions of a single cone.
