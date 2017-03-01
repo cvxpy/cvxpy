@@ -184,7 +184,7 @@ def scalar_value(constant):
 # Return the collective sign of the matrix entries.
 
 
-def sign(constant, tol=1e-5):
+def sign(constant):
     """Return (is positive, is negative).
 
     Parameters
@@ -209,7 +209,7 @@ def sign(constant, tol=1e-5):
         mat = INTERFACES[np.ndarray].const_to_matrix(constant)
         max_val = mat.max()
         min_val = mat.min()
-    return (min_val >= -tol, max_val <= tol)
+    return (min_val >= 0, max_val <= 0)
 
 # Get the value at the given index.
 
