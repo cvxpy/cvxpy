@@ -10,7 +10,7 @@ def logistic_canon(expr, args):
     # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1
     t0 = Variable(*shape)
     t1, constr1 = exp_canon(expr, [-t0])
-    t2, constr2 = exp_canon(expr, [x - t])
+    t2, constr2 = exp_canon(expr, [x - t0])
     ones = np.ones(shape)
-    constraints = [constr0, constr1, t1 + t2 <= ones]
-    return t, constraints
+    constraints = constr1 + constr2 + [t1 + t2 <= ones]
+    return t0, constraints
