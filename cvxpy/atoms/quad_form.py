@@ -32,14 +32,13 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
     Compute a matrix decomposition.
 
-    Compute sgn, scale, M such that P = sgn * scale * dot(M, M.T).
-    The strategy of determination of eigenvalue negligibility follows
-    the pinvh contributions from the scikit-learn project to scipy.
+    Compute scale, M1, M2 such that
+        P = scale * (dot(M1, M1.T) - dot(M2, M2.T)).
 
     Parameters
     ----------
     P : matrix or ndarray
-        A real symmetric positive or negative (semi)definite input matrix
+        A real symmetric input matrix
     cond, rcond : float, optional
         Cutoff for small eigenvalues.
         Singular values smaller than rcond * largest_eigenvalue
@@ -73,6 +72,8 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
         cond = factor[t] * np.finfo(t).eps
 
     scale = max(np.absolute(w))
+    if scale < cond:
+        return 0, V[:, []], V[:, []]
     w_scaled = w / scale
     maskp = w_scaled > cond
     maskn = w_scaled < -cond
