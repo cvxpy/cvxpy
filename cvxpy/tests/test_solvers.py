@@ -1,5 +1,6 @@
 from cvxpy import *
 from cvxpy.tests.base_test import BaseTest
+import numpy as np
 
 
 class TestSolvers(BaseTest):
@@ -96,6 +97,32 @@ class TestSolvers(BaseTest):
                             max_iters=20, verbose=True, kktsolver="chol",
                             refinement=2, warm_start=True)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+    def test_cvxopt(self):
+        """Test the CVXOPT solver.
+        """
+        if CVXOPT in installed_solvers():
+            w = Variable(2)
+            M = np.matrix([[1., 0.1],
+                           [0., 0.],
+                           [0., 0.8],
+                           [0., 0.1]])
+            Mw = M * w
+
+            lower_bound = (Mw >= np.array([-0.5, -0.5, -0.5, -0.5]))
+            upper_bound = (Mw <= np.array([0.5, 0.5, 0.5, 0.5]))
+
+            objective = Minimize(norm2(w - np.array([0.4, 1.2])))
+
+            problem = Problem(objective, [lower_bound, upper_bound])
+
+            problem.solve(solver='CVXOPT')
+            low_dual = lower_bound.dual_value
+            high_dual = upper_bound.dual_value
+            problem.solve(solver=ECOS)
+            self.assertItemsAlmostEqual(lower_bound.dual_value, low_dual)
+            self.assertItemsAlmostEqual(upper_bound.dual_value, high_dual)
+
 
     def test_cvxopt_glpk(self):
         """Test a basic LP with GLPK.
