@@ -159,6 +159,9 @@ class XPRESS (Solver):
         if 'original_problem' in solver_opts.keys ():
             origprob = solver_opts['original_problem']
 
+        if 'no_qp_reduction' in solver_opts.keys () and solver_opts['no_qp_reduction'] == True:
+            self.translate_back_QP_ = True
+
         #print (hash(data[s.C].tostring()))
         #print (hash(data[s.B].tostring()))
         print (hash(data[s.A].indices.tostring()))
