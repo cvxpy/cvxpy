@@ -59,8 +59,12 @@ SCS = "SCS"
 GUROBI = "GUROBI"
 ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
+XPRESS = "XPRESS"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
-           GLPK_MI, SCS, GUROBI, ELEMENTAL, MOSEK]
+           GLPK_MI, SCS, GUROBI, ELEMENTAL, MOSEK, XPRESS]
+
+# Xpress-specific items
+IIS = "IIS"
 
 # Parallel (meta) solver
 PARALLEL = "parallel"
