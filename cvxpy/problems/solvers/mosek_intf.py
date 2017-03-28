@@ -141,6 +141,7 @@ class MOSEK(Solver):
                         import sys
                         sys.stdout.write(text)
                         sys.stdout.flush()
+
                     env.set_Stream(mosek.streamtype.log, streamprinter)
                     task.set_Stream(mosek.streamtype.log, streamprinter)
 
@@ -156,7 +157,7 @@ class MOSEK(Solver):
                 # size of problem
                 numvar = len(c) + sum(dims[s.SOC_DIM])
                 numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM]) + \
-                    sum([el**2 for el in dims[s.SDP_DIM]])
+                    sum([el ** 2 for el in dims[s.SDP_DIM]])
 
                 # otherwise it crashes on empty probl.
                 if numvar == 0:
@@ -171,7 +172,7 @@ class MOSEK(Solver):
                 task.appendvars(numvar)
                 task.putclist(np.arange(len(c)), c)
                 task.putvarboundlist(np.arange(numvar, dtype=int),
-                                     [mosek.boundkey.fr]*numvar,
+                                     [mosek.boundkey.fr] * numvar,
                                      np.zeros(numvar),
                                      np.zeros(numvar))
 
@@ -192,7 +193,7 @@ class MOSEK(Solver):
 
                 type_constraint = [mosek.boundkey.fx] * len(b)
                 type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
-                sdp_total_dims = sum([cdim**2 for cdim in dims[s.SDP_DIM]])
+                sdp_total_dims = sum([cdim ** 2 for cdim in dims[s.SDP_DIM]])
                 type_constraint += [mosek.boundkey.fx] * \
                     (sum(dims[s.SOC_DIM]) + sdp_total_dims)
 
@@ -273,8 +274,20 @@ class MOSEK(Solver):
                       mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
                       mosek.solsta.unknown: s.SOLVER_ERROR}
 
-        task.getprosta(mosek.soltype.itr)  # unused
-        solsta = task.getsolsta(mosek.soltype.itr)
+        soltype = None
+        for sol in [mosek.soltype.itr, mosek.soltype.bas]:
+            try:
+                task.getprosta(sol)  # unused
+                soltype = sol
+                break
+            except mosek.Error as e:
+                if e.errno != 1265:
+                    raise e
+
+        if soltype is None:
+            raise ValueError("No valid soltype for mosek")
+
+        solsta = task.getsolsta(soltype)
 
         result_dict = {s.STATUS: STATUS_MAP[solsta]}
 
@@ -290,16 +303,16 @@ class MOSEK(Solver):
         if result_dict[s.STATUS] in s.SOLUTION_PRESENT:
             # get primal variables values
             result_dict[s.PRIMAL] = np.zeros(task.getnumvar(), dtype=np.float)
-            task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL])
+            task.getxx(soltype, result_dict[s.PRIMAL])
             # get obj value
-            result_dict[s.VALUE] = task.getprimalobj(mosek.soltype.itr) + \
+            result_dict[s.VALUE] = task.getprimalobj(soltype) + \
                 data[s.OFFSET]
             # get dual
             y = np.zeros(task.getnumcon(), dtype=np.float)
-            task.gety(mosek.soltype.itr, y)
+            task.gety(soltype, y)
             # it appears signs are inverted
             result_dict[s.EQ_DUAL] = -y[:len(data[s.B])]
             result_dict[s.INEQ_DUAL] = \
-                -y[len(data[s.B]):len(data[s.B])+data[s.DIMS][s.LEQ_DIM]]
+                -y[len(data[s.B]):len(data[s.B]) + data[s.DIMS][s.LEQ_DIM]]
 
         return result_dict
