@@ -356,6 +356,12 @@ class TestSolvers(BaseTest):
             prob.solve(solver=MOSEK)
             self.assertItemsAlmostEqual(self.x.value, [-100, 1])
 
+            # Test a case when only basic solution is available
+            import mosek
+            prob = Problem(objective, constraints)
+            prob.solve(solver=MOSEK, mosek_params={mosek.iparam.optimizer: mosek.optimizertype.primal_simplex})
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
