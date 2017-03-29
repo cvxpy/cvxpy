@@ -23,7 +23,6 @@ from cvxpy.problems.solvers.solver import Solver
 
 import xpress
 import numpy
-
 import scipy.sparse
 
 def makeMstart (A, n, ifCol):
@@ -197,13 +196,13 @@ class XPRESS (Solver):
 
             # We are re-solving a problem that was previously solved
 
-            self.prob_    = solver_cache.prev_result ['problem'] # initialize the problem as the same as the previous solve
+            self.prob_ = solver_cache.prev_result ['problem'] # initialize the problem as the same as the previous solve
 
-            c0       = solver_cache.prev_result ['obj']
-            A0       = solver_cache.prev_result ['mat']
-            b0       = solver_cache.prev_result ['rhs']
+            c0         = solver_cache.prev_result ['obj']
+            A0         = solver_cache.prev_result ['mat']
+            b0         = solver_cache.prev_result ['rhs']
 
-            vartype0 = solver_cache.prev_result ['vartype']
+            vartype0   = solver_cache.prev_result ['vartype']
 
             # If there is a parameter in the objective, it may have changed.
             if len (linutils.get_expr_params (objective)) > 0:
@@ -249,6 +248,9 @@ class XPRESS (Solver):
 
             # Load linear part of the problem.
 
+            varnames    = ['x_{0:05d}'. format (i) for i in range (len (c))]
+            linRownames = ['lc_{0:05d}'.format (i) for i in range (len (b))]
+
             self.prob_.loadproblem ("CVXproblem",
                                     ['E'] * nrowsEQ + ['L'] * nrowsLEQ, # qrtypes
                                     b,                                  # rhs
@@ -259,7 +261,9 @@ class XPRESS (Solver):
                                     A.indices,                          # row indices
                                     A.data,                             # coefficients
                                     [-xpress.infinity] * len (c),       # lower bound
-                                    [ xpress.infinity] * len (c))       # upper bound
+                                    [ xpress.infinity] * len (c),       # upper bound
+                                    colnames = varnames,                # column names
+                                    rownames = linRownames)             # row    names
 
             x = numpy.array (self.prob_.getVariable ()) # get whole variable vector
 
@@ -330,7 +334,8 @@ class XPRESS (Solver):
                 else:
 
                     # Create new (cone) variables and add them to the problem
-                    conevar = numpy.array ([xpress.var (lb = -xpress.infinity if i>0 else 0) for i in range (k)])
+                    conevar = numpy.array ([xpress.var (name = 'cX{0:03d}_{1:03d}'.format (iCone, i),
+                                                        lb   = -xpress.infinity if i>0 else 0) for i in range (k)])
 
                     self.prob_.addVariable (conevar)
 
@@ -338,12 +343,15 @@ class XPRESS (Solver):
 
                     mstart = makeMstart (A, k, 0)
 
+                    trNames = ['linT_qc{0:05d}_{1:05d}'.format (iCone, i) for i in range (k)]
+
                     # Linear transformation for cone variables <--> original variables
-                    self.prob_.addrows (['E'] * k, # qrtypes
-                                        b,         # rhs
-                                        mstart,    # mstart
-                                        A.indices, # ind
-                                        A.data)    # dmatval
+                    self.prob_.addrows (['E'] * k,       # qrtypes
+                                        b,               # rhs
+                                        mstart,          # mstart
+                                        A.indices,       # ind
+                                        A.data,          # dmatval
+                                        names = trNames) # row names
 
                     self.prob_.chgmcoef ([initrow + i for i in range (k)],
                                          conevar, [1] * k)
@@ -352,7 +360,7 @@ class XPRESS (Solver):
                     # need for this constraint as y**2 >= 0 is redundant)
                     if k > 1:
                         self.prob_.addConstraint (xpress.constraint (constraint = xpress.Sum (conevar [i]**2 for i in range (1,k)) <= conevar [0] ** 2,
-                                                  name = 'cone_{0}'.format (iCone)))
+                                                  name = 'cone_qc{0:05d}'.format (iCone)))
 
                 iCone += 1
 
@@ -407,7 +415,20 @@ class XPRESS (Solver):
             results_dict[s.IIS] = None # Return no IIS if problem is feasible
 
         elif status == s.INFEASIBLE:
-            results_dict[s.IIS] = 1
+
+            iisIndex = 0
+
+            self.prob_.iisfirst (0) # compute all IIS
+
+            row, col, rtype, btype, duals, rdcs, isrows, icols = [], [], [], [], [], [], [], []
+
+            self.prob_.getiisdata (0, row, col, rtype, btype, duals, rdcs, isrows, icols)
+
+            results_dict[s.IIS] = [(row, col, rtype, btype, duals, rdcs, isrows, icols)]
+            while self.prob_.iisnext () == 0:
+                iisIndex += 1
+                self.prob_.getiisdata (iisIndex, row, col, rtype, btype, duals, rdcs, isrows, icols)
+                results_dict[s.IIS]. append    ((row, col, rtype, btype, duals, rdcs, isrows, icols))
 
         return self.format_results (results_dict, data, cached_data)
 
