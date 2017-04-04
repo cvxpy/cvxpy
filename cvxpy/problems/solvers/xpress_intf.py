@@ -242,7 +242,9 @@ class XPRESS (Solver):
 
             mstart = makeMstart (A, len (c), 1)
 
-            orig_id = [i.id for i in origprob.constraints]
+            varGroups   = {} # If origprob is passed, used to tie IIS to original constraints
+            transf2Orig = {} # Ties transformation constraints to originals via varGroups
+            nOrigVar = len (c)
 
             # From a summary knowledge of origprob.constraints() and
             # the constraints list, the following seems to hold:
@@ -263,7 +265,6 @@ class XPRESS (Solver):
             # Given this information, attempt to set names in varnames
             # and linRownames so that they can be easily identified
 
-
             # Load linear part of the problem.
 
             if origprob is not None:
@@ -271,17 +272,62 @@ class XPRESS (Solver):
                 # The original problem was passed, we can take a
                 # better guess at the constraints and variable names.
 
+                nOrigVar = 0
+                orig_id = [i.id for i in origprob.constraints]
+
                 varnames = []
-                for i in range (len (origprob.variables())):
-                    varnames.extend (['x_{0:d}_{1:d}'. format (i,j) for j in range (origprob.variables () [i].size [0])])
+                for v in origprob.variables():
+                    nOrigVar += v.size[0]
+                    if v.size [0] == 1:
+                        varnames.append ('{0}'. format (v.var_id))
+                    else:
+                        varnames.extend (['{0}_{1:d}'. format (v.var_id, j) for j in range (v.size [0])])
+
                 varnames.extend (['aux_{0:d}'.format (i) for i in range (len (varnames), len(c))])
+
+                # Construct constraint name list by checking constr_id for each
 
                 linRownames = []
 
                 for con in constraints:
                     if con.constr_id in orig_id:
-                        linRownames.extend (['lc_{0:d}_{1:d}'.format (con.constr_id, j) for j in range (con.size[0])])
+
+                        prefix = ''
+
+                        if type (con.constr_id) == int:
+                            prefix = 'row_'
+
+                        if con.size[0] == 1:
+                            name = '{0}{1}'.format (prefix, con.constr_id)
+                            linRownames.append (name)
+                            transf2Orig [name] = con.constr_id
+
+                        else:
+                            names = ['{0}{1}_{2:d}'.format (prefix, con.constr_id, j) for j in range (con.size [0])]
+                            linRownames.extend (names)
+                            for i in names:
+                                transf2Orig [i] = con.constr_id
+
+
+                # Tie auxiliary variables to constraints. Scan all
+                # auxiliary variables in the objective function and in
+                # the corresponding columns of A.indices
+
+                iObjQuad = 0 # keeps track of quadratic quantities in the objective
+
+                for i in range (nOrigVar, len (c)):
+
+                    if c[i] != 0:
+                        varGroups[varnames[i]] = 'objF_{0}'.format (iObjQuad)
+                        iObjQuad += 1
+
+                    if len (A.indices [mstart[i]:mstart[i+1]]) > 0:
+                        varGroups[varnames[i]] = linRownames [min (A.indices[mstart[i]:mstart[i+1]])]
+
             else:
+
+                # fall back to flat naming. Warning: this mixes
+                # original with auxiliary variables.
 
                 varnames    = ['x_{0:05d}'. format (i) for i in range (len (c))]
                 linRownames = ['lc_{0:05d}'.format (i) for i in range (len (b))]
@@ -309,6 +355,8 @@ class XPRESS (Solver):
             currow = nrows
 
             iCone = 0
+
+            auxVars = set (range (nOrigVar, len (c)))
 
             # Conic constraints
             #
@@ -391,11 +439,21 @@ class XPRESS (Solver):
                     self.prob_.chgmcoef ([initrow + i for i in range (k)],
                                          conevar, [1] * k)
 
+
+                    conename = 'cone_qc{0:d}'.format (iCone)
                     # Real cone on the cone variables (if k == 1 there's no
                     # need for this constraint as y**2 >= 0 is redundant)
                     if k > 1:
                         self.prob_.addConstraint (xpress.constraint (constraint = xpress.Sum (conevar [i]**2 for i in range (1,k)) <= conevar [0] ** 2,
-                                                  name = 'cone_qc{0:d}'.format (iCone)))
+                                                  name = conename))
+
+                    auxInd = list (set (A.indices) & auxVars)
+
+                    if len (auxInd) > 0:
+                        group = varGroups [varnames [auxInd[0]]]
+                        for i in trNames:
+                            transf2Orig [i] = group
+                        transf2Orig[conename] = group
 
                 iCone += 1
 
@@ -462,14 +520,27 @@ class XPRESS (Solver):
 
             self.prob_.getiisdata (0, row, col, rtype, btype, duals, rdcs, isrows, icols)
 
-            results_dict[s.IIS] = [{'row'     : row,
-                                    'col'     : col,
-                                    'rtype'   : rtype,
-                                    'btype'   : btype,
-                                    'duals'   : duals,
-                                    'redcost' : rdcs,
-                                    'isolrow' : isrows,
-                                    'isolcol' : icols}]
+            origrow = []
+            for iRow in row:
+                if iRow.name in transf2Orig.keys ():
+                    name = transf2Orig[iRow.name]
+                else:
+                    name = iRow.name
+
+                if name not in origrow:
+                    origrow.append (name)
+
+            results_dict[s.TROW] = transf2Orig
+
+            results_dict[s.IIS] = [{'orig_row' : origrow,
+                                    'row'      : row,
+                                    'col'      : col,
+                                    'rtype'    : rtype,
+                                    'btype'    : btype,
+                                    'duals'    : duals,
+                                    'redcost'  : rdcs,
+                                    'isolrow'  : isrows,
+                                    'isolcol'  : icols}]
 
             while self.prob_.iisnext () == 0:
                 iisIndex += 1
@@ -535,7 +606,8 @@ class XPRESS (Solver):
             if not self.is_mip (data):
                 new_results [s.EQ_DUAL] = results_dict ['y']
 
-        new_results [s.IIS] = results_dict[s.IIS]
+        new_results [s.IIS]  = results_dict[s.IIS]
+        new_results [s.TROW] = results_dict[s.TROW]
 
         return new_results
 

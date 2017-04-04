@@ -65,6 +65,7 @@ SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
 
 # Xpress-specific items
 IIS = "IIS"
+TROW = "TransfRow"
 
 # Parallel (meta) solver
 PARALLEL = "parallel"
