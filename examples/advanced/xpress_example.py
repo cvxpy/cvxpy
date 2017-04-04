@@ -39,15 +39,13 @@ qcon1 = sum_squares (y - y0) <= 0.01
 lowx  = x >= x0
 upx   = x <= 10 + 10 * x0
 qcon2 = sum_squares (y + y0) <= 0.01
-lowx2  = x >= 2 * x0 - 1
 
 qcon1.constr_id = 'dist_pos'
 lowx.constr_id  = 'first_orthant'
 upx.constr_id   = 'upper_lim'
-lowx2.constr_id = 'aargh'
 qcon2.constr_id = 'dist_neg'
 
-constraints = [qcon1, lowx2, lowx, qcon2, upx]
+constraints = [qcon1, lowx, qcon2, upx]
 
 # The above variables, constraints, and objectives correspond to the
 # problem
@@ -111,6 +109,8 @@ print ("Problem has {0:4d} columns and {1:4d} rows".format (p.attributes.cols, p
 # each dictionary corresponding to an IIS. In the following, they are
 # all printed if the problem is infeasible, otherwise the variable
 # values and the dual value of the first constraint are printed.
+
+print (prob._transferRow)
 
 if prob.status == 'infeasible':
     print (prob._iis)

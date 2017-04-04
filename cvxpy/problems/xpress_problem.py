@@ -59,6 +59,7 @@ class XpressProblem (Problem):
         """
 
         self._iis = None
+        self._transferRow = None
 
     def _update_problem_state (self, results_dict, sym_data, solver):
         """Updates the problem state given the solver results.
@@ -78,7 +79,8 @@ class XpressProblem (Problem):
 
         super (XpressProblem, self)._update_problem_state (results_dict, sym_data, solver)
 
-        self._iis = results_dict[s.IIS]
+        self._iis         = results_dict[s.IIS]
+        self._transferRow = results_dict[s.TROW]
 
     def __repr__(self):
         return "XpressProblem(%s, %s)" % (repr(self.objective),
