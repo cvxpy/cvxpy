@@ -15,6 +15,8 @@ def huber_canon(expr, args):
     s = Variable(*shape)
 
     # n**2 + 2*M*|s|
+    # TODO(akshayka): Make use of recursion inherent to canonicalization
+    # process and just return a power / abs expressions for readability sake
     power_expr = power(n, 2)
     n2, constr_sq = power_canon(power_expr, power_expr.args)
     abs_expr = abs(s)
