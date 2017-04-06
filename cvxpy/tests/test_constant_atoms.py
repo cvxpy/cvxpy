@@ -269,6 +269,8 @@ def check_solver(prob, solver_name):
     objective, constraints = prob.canonicalize()
     if solver_name == ROBUST_CVXOPT:
         solver_name = CVXOPT
+    # TODO(akshayka): SOLVERS needs now contain the interfaces that were
+    # rewritten for each solver (i.e., the ones that lie in solver_interface/).
     solver = SOLVERS[solver_name]
     try:
         solver.validate_solver(constraints)
@@ -343,9 +345,6 @@ def run_atom_helper(reduction=None):
                         # Atoms with Parameter arguments.
                         parameters = []
                         for expr in args:
-                            # TODO(akshayka): This line fails -- cannot
-                            # instantiate abstract class Parameter with abstract
-                            # methods shape
                             parameters.append(Parameter(*intf.shape(expr)))
                             parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
                         objective = objective_type(atom(*parameters)[row, col])
@@ -354,10 +353,6 @@ def run_atom_helper(reduction=None):
                                Problem(objective),
                                obj_val[row, col].value,
                                solver))
-
-
-def test_atom():
-    yield run_atom_helper(reduction=None)
 
 
 def test_dcp2cone_atom():
