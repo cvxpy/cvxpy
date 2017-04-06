@@ -500,6 +500,8 @@ class XPRESS (Solver):
         else:
             status = self.status_map_lp  [results_dict ['status']]
 
+        results_dict[s.TROW] = transf2Orig
+
         if status in s.SOLUTION_PRESENT:
             results_dict ['x'] = self.prob_.getSolution ()
             if not self.is_mip (data):
@@ -529,8 +531,6 @@ class XPRESS (Solver):
 
                 if name not in origrow:
                     origrow.append (name)
-
-            results_dict[s.TROW] = transf2Orig
 
             results_dict[s.IIS] = [{'orig_row' : origrow,
                                     'row'      : row,
