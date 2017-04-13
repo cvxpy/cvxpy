@@ -243,6 +243,50 @@ class MOSEK(Solver):
 
                 return self.format_results(task, data, cached_data)
 
+    def choose_solution(self, task):
+        """Chooses between the basic and interior point solution.
+
+        Parameters
+        ----------
+        task : mosek.Task
+            The solver status interface.
+
+        Returns
+        -------
+        soltype
+            The preferred solution (mosek.soltype.*)
+        solsta
+            The status of the preferred solution (mosek.solsta.*)
+        """
+        import mosek
+
+        def rank(status):
+            # Rank solutions
+            # optimal > near_optimal > anything else > None
+            if status == mosek.solsta.optimal:
+                return 3
+            elif status == mosek.solsta.near_optimal:
+                return 2
+            elif status is not None:
+                return 1
+            else:
+                return 0
+
+        solsta_bas, solsta_itr = None, None
+
+        if task.solutiondef(mosek.soltype.bas):
+            solsta_bas = task.getsolsta(mosek.soltype.bas)
+
+        if task.solutiondef(mosek.soltype.itr):
+            solsta_itr = task.getsolsta(mosek.soltype.itr)
+
+        # As long as interior solution is not worse, take it
+        # (for backward compatibility)
+        if rank(solsta_itr) >= rank(solsta_bas):
+            return mosek.soltype.itr, solsta_itr
+        else:
+            return mosek.soltype.bas, solsta_bas
+
     def format_results(self, task, data, cached_data):
         """Converts the solver output into standard form.
 
@@ -273,10 +317,12 @@ class MOSEK(Solver):
                       mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
                       mosek.solsta.unknown: s.SOLVER_ERROR}
 
-        task.getprosta(mosek.soltype.itr)  # unused
-        solsta = task.getsolsta(mosek.soltype.itr)
+        soltype, solsta = self.choose_solution(task)
 
-        result_dict = {s.STATUS: STATUS_MAP[solsta]}
+        if solsta in STATUS_MAP:
+            result_dict = {s.STATUS: STATUS_MAP[solsta]}
+        else:
+            result_dict = {s.STATUS: s.SOLVER_ERROR}
 
         # Callback data example:
         # http://docs.mosek.com/7.1/pythonapi/The_progress_call-back.html
@@ -290,13 +336,13 @@ class MOSEK(Solver):
         if result_dict[s.STATUS] in s.SOLUTION_PRESENT:
             # get primal variables values
             result_dict[s.PRIMAL] = np.zeros(task.getnumvar(), dtype=np.float)
-            task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL])
+            task.getxx(soltype, result_dict[s.PRIMAL])
             # get obj value
-            result_dict[s.VALUE] = task.getprimalobj(mosek.soltype.itr) + \
+            result_dict[s.VALUE] = task.getprimalobj(soltype) + \
                 data[s.OFFSET]
             # get dual
             y = np.zeros(task.getnumcon(), dtype=np.float)
-            task.gety(mosek.soltype.itr, y)
+            task.gety(soltype, y)
             # it appears signs are inverted
             result_dict[s.EQ_DUAL] = -y[:len(data[s.B])]
             result_dict[s.INEQ_DUAL] = \
