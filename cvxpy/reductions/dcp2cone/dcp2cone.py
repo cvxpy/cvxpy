@@ -1,5 +1,5 @@
 from cvxpy.reductions.reduction import Reduction
-from canonicalize import canonicalize_constr, canonicalize_expr, canonicalize_tree
+from .canonicalize import canonicalize_constr, canonicalize_expr, canonicalize_tree
 from cvxpy.reductions.solution import Solution
 import cvxpy
 
