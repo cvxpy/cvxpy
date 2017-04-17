@@ -36,6 +36,8 @@ class SOC_Axis(SOC):
 
     def __init__(self, t, X, axis):
         assert t.shape[1] == 1
+        self.t = t
+        self.x_elems = [X]
         self.axis = axis
         super(SOC_Axis, self).__init__(t, [X])
 
@@ -80,7 +82,7 @@ class SOC_Axis(SOC):
     def cone_size(self):
         """The dimensions of a single cone.
         """
-        return (1 + self.x_elems[0].size[self.axis], 1)
+        return (1 + self.x_elems[0].shape[self.axis], 1)
 
     @property
     def size(self):
