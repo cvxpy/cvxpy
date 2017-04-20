@@ -37,7 +37,7 @@ class SOC_Axis(SOC):
     def __init__(self, t, X, axis):
         assert t.shape[1] == 1
         self.axis = axis
-        super(SOC_Axis, self).__init__(t, [X])
+        super(SOC_Axis, self).__init__(t, X)
 
     def __str__(self):
         return "SOC_Axis(%s, %s, %s)" % (self.t, self.X, self.axis)
