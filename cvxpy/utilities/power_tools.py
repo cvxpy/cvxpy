@@ -21,7 +21,9 @@ from fractions import Fraction
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints import SOC_Axis
+from cvxpy.expressions.variables.variable import Variable
 import numpy as np
+from collections import defaultdict
 import numbers
 
 
@@ -64,7 +66,7 @@ def gm_constrs(t, x_list, p):
     w = dyad_completion(p)
 
     tree = decompose(w)
-    d = {}
+    d = defaultdict(lambda: Variable(*t.shape))
     d[w] = t
 
     if len(x_list) < len(w):
