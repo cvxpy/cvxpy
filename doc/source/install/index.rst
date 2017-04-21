@@ -86,6 +86,17 @@ Other Platforms
 
 The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
 
+Install from pip
+----------------
+
+CVXPY can be installed on all platforms with `pip`_. Simply execute:
+
+  ::
+
+      pip install cvxpy
+
+Though installation with `pip`_ is simple in theory, in practice we have found that novices struggle to install all CVXPY dependencies properly when using `pip`_. We therefore recommend Anaconda as the default installation method.
+
 Install from source
 -------------------
 
@@ -185,3 +196,4 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
 .. _CVXcanon: https://github.com/jacklzhu/CVXcanon
 .. _Swig: http://www.swig.org/
+.. _pip: https://pip.pypa.io/
