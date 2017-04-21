@@ -1,5 +1,6 @@
 from cvxpy.atoms.affine.trace import trace
-from cvxpy.constraints.semidefinite import SDP
+#from cvxpy.constraints.semidefinite import SDP
+from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variables.variable import Variable
 
 
@@ -17,7 +18,7 @@ def normNuc_canon(expr, args):
     # Fix X using the fact that A must be affine by the DCP rules.
     # X[0:rows,rows:rows+cols] == A
     constraints.append(X[0:rows, rows:rows+cols] == A)
-    constraints.append(SDP(X))
+    constraints.append(PSD(X))
     trace = 0.5 * trace(X)
 
     return trace, constraints
