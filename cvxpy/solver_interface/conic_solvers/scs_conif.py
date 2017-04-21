@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, Copyright 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -18,11 +18,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.problems.solvers.ecos_intf import ECOS
+from cvxpy.constraints import Zero, NonPos, SOC, PSD, ExpCone
+from .conic_solver import ConicSolver
+from cvxpy.reductions.solution import Solution
 import numpy as np
 
 
-class SCS(ECOS):
+class SCS(ConicSolver):
     """An interface for the SCS solver.
     """
 
@@ -42,6 +44,9 @@ class SCS(ECOS):
                   "Infeasible/Inaccurate": s.INFEASIBLE_INACCURATE,
                   "Failure": s.SOLVER_ERROR,
                   "Indeterminate": s.SOLVER_ERROR}
+
+    # Order of exponential cone arguments for solver.
+    EXP_CONE_ORDER = [0, 1, 2]
 
     def name(self):
         """The name of the solver.
@@ -68,119 +73,98 @@ class SCS(ECOS):
             (eq_constr, ineq_constr, nonlin_constr)
         """
         return (constr_map[s.EQ] + constr_map[s.LEQ], [], [])
+    
+    def accepts(self, problem):
+        """Can SCS solve the problem?
+        """
+        # TODO check if is matrix stuffed.
+        if not problem.objective.args[0].is_affine():
+            return False
+        for constr in problem.constraints:
+            if type(constr) not in [Zero, NonPos, SOC, PSD, ExpCone]:
+                return False
+            for arg in constr.args:
+                if not arg.is_affine():
+                    return False
+        return True
 
-    def solve(self, objective, constraints, cached_data,
-              warm_start, verbose, solver_opts):
-        """Returns the result of the call to the solver.
-
-        Parameters
-        ----------
-        objective : LinOp
-            The canonicalized objective.
-        constraints : list
-            The list of canonicalized cosntraints.
-        cached_data : dict
-            A map of solver name to cached problem data.
-        warm_start : bool
-            Should the previous solver result be used to warm_start?
-        verbose : bool
-            Should the solver print output?
-        solver_opts : dict
-            Additional arguments for the solver.
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
 
         Returns
         -------
         tuple
-            (status, optimal value, primal, equality dual, inequality dual)
+            (dict of arguments needed for the solver, inverse data)
         """
-        import scs
-        data = self.get_problem_data(objective,
-                                     constraints,
-                                     cached_data)
-        # Set the options to be VERBOSE plus any user-specific options.
-        solver_opts["verbose"] = verbose
-        scs_args = {"c": data[s.C], "A": data[s.A], "b": data[s.B]}
-        # If warm_starting, add old primal and dual variables.
-        solver_cache = cached_data[self.name()]
-        if warm_start and solver_cache.prev_result is not None:
-            scs_args["x"] = solver_cache.prev_result["x"]
-            scs_args["y"] = solver_cache.prev_result["y"]
-            scs_args["s"] = solver_cache.prev_result["s"]
+        data = {}
+        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(problem.objective.args[0])
+        data[s.C] = data[s.C].ravel()
+        inv_data[s.OFFSET] = data[s.OFFSET][0]
 
-        results_dict = scs.solve(scs_args, data[s.DIMS], **solver_opts)
-        return self.format_results(results_dict, data, cached_data)
+        # constr = [c for c in problem.constraints if type(c) == Zero]
+        inv_data[SCS.EQ_CONSTR] = []
 
-    def format_results(self, results_dict, data, cached_data):
-        """Converts the solver output into standard form.
+        # Order and group nonlinear constraints.
+        data[s.DIMS] = {}
+        zero_constr = [c for c in problem.constraints if type(c) == Zero]
+        data[s.DIMS]['f'] = sum([np.prod(c.size) for c in zero_constr])
+        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
+        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
+        soc_constr = [c for c in problem.constraints if type(c) == SOC]
+        data[s.DIMS]['q'] = [size for cons in soc_constr for size in cons.cone_sizes()]
+        exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
+        data[s.DIMS]['ep'] = sum([cons.num_cones() for cons in exp_constr])
+        constr = zero_constr + leq_constr + soc_constr + exp_constr
+        inv_data[SCS.NEQ_CONSTR] = constr
+        data[s.A], data[s.B] = self.group_coeff_offset(constr, self.EXP_CONE_ORDER)
+        return data, inv_data
+
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = self.STATUS_MAP[solution['info']['status']]
+
+        # Timing data
+        attr = {}
+        attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
+        attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+        attr[s.NUM_ITERS] = solution["info"]["iter"]
+
+        if status in s.SOLUTION_PRESENT:
+            primal_val = solution['info']['pobj']
+            opt_val = primal_val + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[SCS.VAR_ID]: solution['x']}
+            ineq_dual = ConicSolver.get_dual_values(solution['y'], inverse_data[SCS.NEQ_CONSTR])
+            dual_vars = ineq_dual
+        else:
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+            else:
+                opt_val = None
+            primal_vars = None
+            dual_vars = None
+
+        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+
+    def solve(self, problem, warm_start, verbose, solver_opts):
+        """Returns the result of the call to the solver.
 
         Parameters
         ----------
-        results_dict : dict
-            The solver output.
-        data : dict
-            Information about the problem.
-        cached_data : dict
-            A map of solver name to cached problem data.
+        ...
 
         Returns
         -------
-        dict
-            The solver output in standard form.
+        tuple
+        ...
         """
-        solver_cache = cached_data[self.name()]
-        dims = data[s.DIMS]
-        new_results = {}
-        status = self.STATUS_MAP[results_dict["info"]["status"]]
-        new_results[s.STATUS] = status
+        import scs
+        data, inv_data = self.apply(problem)
+        solution = scs.solve(data, data[s.DIMS],
+                                verbose=verbose,
+                                **solver_opts)
+        return self.invert(solution, inv_data)
 
-        # Timing and iteration data
-        new_results[s.SOLVE_TIME] = results_dict["info"]["solveTime"]/1000
-        new_results[s.SETUP_TIME] = results_dict["info"]["setupTime"]/1000
-        new_results[s.NUM_ITERS] = results_dict["info"]["iter"]
-
-        if new_results[s.STATUS] in s.SOLUTION_PRESENT:
-            # Save previous result for possible future warm_start.
-            solver_cache.prev_result = {"x": results_dict["x"],
-                                        "y": results_dict["y"],
-                                        "s": results_dict["s"]}
-            primal_val = results_dict["info"]["pobj"]
-            new_results[s.VALUE] = primal_val + data[s.OFFSET]
-            new_results[s.PRIMAL] = results_dict["x"]
-            new_results[s.EQ_DUAL] = results_dict["y"][:dims[s.EQ_DIM]]
-            y = results_dict["y"][dims[s.EQ_DIM]:]
-            old_sdp_sizes = sum([n*(n+1)//2 for n in dims[s.SDP_DIM]])
-            new_sdp_sizes = sum([n*n for n in dims[s.SDP_DIM]])
-            y_true = np.zeros(y.shape[0] + (new_sdp_sizes - old_sdp_sizes))
-            y_offset = dims[s.LEQ_DIM] + sum([n for n in dims[s.SOC_DIM]])
-            y_true_offset = y_offset
-            y_true[:y_true_offset] = y[:y_offset]
-            # Expand SDP duals from lower triangular to full matrix,
-            # scaling off diagonal entries by 1/sqrt(2).
-            for n in dims[s.SDP_DIM]:
-                tri = y[y_offset:y_offset+n*(n+1)//2]
-                y_true[y_true_offset:y_true_offset+n*n] = self.tri_to_full(tri, n)
-                y_true_offset += n*n
-                y_offset += n*(n+1)//2
-            y_true[y_true_offset:] = y[y_offset:]
-            new_results[s.INEQ_DUAL] = y_true
-        else:
-            # No result to save.
-            solver_cache.prev_result = None
-
-        return new_results
-
-    @staticmethod
-    def tri_to_full(lower_tri, n):
-        """Expands n*(n+1)//2 lower triangular to full matrix,
-        with off-diagonal entries scaled by 1/sqrt(2).
-        """
-        full = np.zeros((n, n))
-        for col in range(n):
-            for row in range(col, n):
-                idx = row - col + n*(n+1)//2 - (n-col)*(n-col+1)//2
-                if row != col:
-                    full[row, col] = lower_tri[idx]/np.sqrt(2)
-                    full[col, row] = lower_tri[idx]/np.sqrt(2)
-                else:
-                    full[row, col] = lower_tri[idx]
-        return np.reshape(full, n*n, order='F')
