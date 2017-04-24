@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, SOC, ExpCone
-from cvxpy.reductions.solution import Solution
-from .reduction_solver import ReductionSolver
-from .conic_solver import ConicSolver
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.settings as s
+from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.reductions.solution import Solution
+
+from .conic_solver import ConicSolver
+from .reduction_solver import ReductionSolver
 
 
 class ECOS(ReductionSolver):

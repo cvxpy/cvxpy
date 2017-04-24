@@ -58,21 +58,6 @@ class SCS(ConicSolver):
         """
         import scs
         scs  # For flake8
-
-    def split_constr(self, constr_map):
-        """Extracts the equality, inequality, and nonlinear constraints.
-
-        Parameters
-        ----------
-        constr_map : dict
-            A dict of the canonicalized constraints.
-
-        Returns
-        -------
-        tuple
-            (eq_constr, ineq_constr, nonlin_constr)
-        """
-        return (constr_map[s.EQ] + constr_map[s.LEQ], [], [])
     
     def accepts(self, problem):
         """Can SCS solve the problem?

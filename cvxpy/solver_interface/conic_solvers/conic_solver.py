@@ -19,8 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
 import scipy.sparse as sp
+
 from cvxpy.atoms import reshape
-from cvxpy.constraints import Zero, NonPos, SOC, ExpCone
+from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 
 from .reduction_solver import ReductionSolver
 
