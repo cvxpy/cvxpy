@@ -5,7 +5,7 @@ import numpy as np
 
 
 def sigma_max_canon(expr, args):
-    A = arg[0]
+    A = args[0]
     n, m = A.shape
     X = Variable(n+m, n+m)
 

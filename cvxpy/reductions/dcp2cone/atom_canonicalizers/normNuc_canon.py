@@ -12,13 +12,13 @@ def normNuc_canon(expr, args):
     #   minimize (trace(U) + trace(V))/2
     #   subject to:
     #            [U A; A.T V] is positive semidefinite
-    X = Variable(rows+cols, rows+cols)
+    X = Variable(m+n, m+n)
     constraints = []
 
     # Fix X using the fact that A must be affine by the DCP rules.
     # X[0:rows,rows:rows+cols] == A
-    constraints.append(X[0:rows, rows:rows+cols] == A)
+    constraints.append(X[0:m, m:m+n] == A)
     constraints.append(PSD(X))
-    trace = 0.5 * trace(X)
+    trace_value = 0.5 * trace(X)
 
-    return trace, constraints
+    return trace_value, constraints
