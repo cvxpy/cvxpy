@@ -103,7 +103,7 @@ class index(AffAtom):
         select_vec = np.reshape(select_mat, select_mat.shape, order='F')
         # Select the chosen entries from expr.
         identity = sp.eye(expr.shape[0]*expr.shape[1]).tocsc()
-        return reshape(identity[select_vec]*vec(expr), *final_shape)
+        return reshape(identity[select_vec]*vec(expr), final_shape)
 
     @staticmethod
     def get_index(matrix, constraints, row, col):
