@@ -30,6 +30,7 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.error import SolverError
 import cvxpy.interface as intf
+from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 import numpy as np
 import numpy.linalg as LA
@@ -353,6 +354,7 @@ def run_atom_helper(reduction=None):
                                Problem(objective),
                                obj_val[row, col].value,
                                solver))
+    return tests
 
 
 def test_dcp2cone_atom():
@@ -360,10 +362,6 @@ def test_dcp2cone_atom():
         d2c = Dcp2Cone()
         assert d2c.accepts(problem)
         return d2c.apply(problem)
+        assert ConeMatrixStuffing().accepts(reduced_problem)
+        return ConeMatrixStuffing().apply(reduced_problem)
     yield run_atom_helper(reduction=reduction)
-
-def temp():
-    for test in test_dcp2cone_atom():
-        test[0](*test[1:])
-
-temp()

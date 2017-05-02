@@ -1,5 +1,6 @@
 from cvxpy.atoms.affine.trace import trace
-from cvxpy.constraints.semidefinite import SDP
+#from cvxpy.constraints.semidefinite import SDP
+from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variables.variable import Variable
 
 
@@ -19,5 +20,5 @@ def matrix_frac_canon(expr, args):
     # M[n:n+m, n:n+m] == T
     constraints.append(M[n:n+m, n:n+m] == T)
     # Add SDP constraint.
-    constraints.append(SDP(M))
+    constraints.append(PSD(M))
     return trace(T), constraints

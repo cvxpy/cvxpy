@@ -39,7 +39,7 @@ class SOC_Axis(SOC):
         self.t = t
         self.x_elems = [X]
         self.axis = axis
-        super(SOC_Axis, self).__init__(t, [X])
+        super(SOC_Axis, self).__init__(t, X)
 
     def __str__(self):
         return "SOC_Axis(%s, %s, %s)" % (self.t, self.X, self.axis)
