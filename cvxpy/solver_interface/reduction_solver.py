@@ -18,7 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
+
 from cvxpy.reductions.reduction import Reduction
+
 
 class ReductionSolver(Reduction):
     """Generic interface for a solver that uses the reduction semantics

@@ -22,8 +22,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
-
-from .reduction_solver import ReductionSolver
+from cvxpy.solver_interface.reduction_solver import ReductionSolver
 
 
 class ConicSolver(ReductionSolver):

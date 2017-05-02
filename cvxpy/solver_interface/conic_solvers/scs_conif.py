@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, Copyright 2017 Robin Verschueren
+Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -17,11 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, SOC, PSD, ExpCone
-from .conic_solver import ConicSolver
-from cvxpy.reductions.solution import Solution
 import numpy as np
+
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
+from cvxpy.reductions.solution import Solution
+
+from .conic_solver import ConicSolver
 
 
 class SCS(ConicSolver):
@@ -87,7 +89,7 @@ class SCS(ConicSolver):
         data[s.C] = data[s.C].ravel()
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
-        # constr = [c for c in problem.constraints if type(c) == Zero]
+        # SCS only has inequalities
         inv_data[SCS.EQ_CONSTR] = []
 
         # Order and group nonlinear constraints.
@@ -152,4 +154,3 @@ class SCS(ConicSolver):
                                 verbose=verbose,
                                 **solver_opts)
         return self.invert(solution, inv_data)
-

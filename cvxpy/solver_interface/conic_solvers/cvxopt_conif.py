@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, Copyright 2017 Robin Verschueren
+Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -23,9 +23,9 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.reductions.solution import Solution
+from cvxpy.solver_interface.reduction_solver import ReductionSolver
 
 from .conic_solver import ConicSolver
-from .reduction_solver import ReductionSolver
 
 
 class CVXOPT(ConicSolver):
@@ -80,4 +80,3 @@ class CVXOPT(ConicSolver):
         from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_old
         return CVXOPT_old.solve(problem.objective, problem.constraints, {}, \
              warm_start, verbose, solver_opts)
-

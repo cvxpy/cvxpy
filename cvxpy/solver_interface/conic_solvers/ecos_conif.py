@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, Copyright 2017 Robin Verschueren
+Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -23,12 +23,12 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.reductions.solution import Solution
+from cvxpy.solver_interface.reduction_solver import ReductionSolver
 
 from .conic_solver import ConicSolver
-from .reduction_solver import ReductionSolver
 
 
-class ECOS(ReductionSolver):
+class ECOS(ConicSolver):
     """An interface for the ECOS solver.
     """
 
@@ -127,26 +127,6 @@ class ECOS(ReductionSolver):
         data[s.G], data[s.H] = ConicSolver.group_coeff_offset(other_constr, ECOS.EXP_CONE_ORDER)
         return data, inv_data
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        """Returns the result of the call to the solver.
-
-        Parameters
-        ----------
-        ...
-
-        Returns
-        -------
-        tuple
-        ...
-        """
-        import ecos
-        data, inv_data = self.apply(problem)
-        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              data[s.DIMS], data[s.A], data[s.B],
-                              verbose=verbose,
-                              **solver_opts)
-        return self.invert(solution, inv_data)
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -177,3 +157,23 @@ class ECOS(ReductionSolver):
             dual_vars = None
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
+
+    def solve(self, problem, warm_start, verbose, solver_opts):
+        """Returns the result of the call to the solver.
+
+        Parameters
+        ----------
+        ...
+
+        Returns
+        -------
+        tuple
+        ...
+        """
+        import ecos
+        data, inv_data = self.apply(problem)
+        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
+                              data[s.DIMS], data[s.A], data[s.B],
+                              verbose=verbose,
+                              **solver_opts)
+        return self.invert(solution, inv_data)
