@@ -86,7 +86,6 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2
 
-
 def quad_form(x, P):
     """ Alias for :math:`x^T P x`.
 
@@ -114,3 +113,59 @@ def quad_form(x, P):
         return ret
     else:
         raise Exception("At least one argument to quad_form must be constant.")
+
+class Quadratic(Atom):
+
+    def __init__(self, x, P):
+        self.x = x
+        self.P = P
+
+    @Atom.numpy_numeric
+    def numeric(self, values):
+        return np.dot(np.dot(values[0], values[1]), values[0])
+
+    def validate_arguments(self):
+        super(Quadratic, self).validate_arguments()
+        if not P.is_constant():
+            raise ValueError("P must be a constant matrix.")
+        n = P.shape[0]
+        if P.shape[1] != n or x.shape != (n, 1):
+            raise ValueError("Invalid dimensions for arguments.")
+
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        return NotImplemented
+
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return NotImplemented
+
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return NotImplemented
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return NotImplemented
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return NotImplemented
+
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return False
+
+    def get_data(self):
+        return [self.x, self.P]
+
+    def name(self):
+        return "%s(%s, %s)" % (self.__class__.__name__,
+                               self.x,
+                               self.P)
