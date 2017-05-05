@@ -114,11 +114,12 @@ def quad_form(x, P):
     else:
         raise Exception("At least one argument to quad_form must be constant.")
 
-class Quadratic(Atom):
+class QuadForm(Atom):
 
     def __init__(self, x, P):
         self.x = x
         self.P = P
+        self.P_eigvals = LA.eigvals(P) # cache eigenvalues
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -135,32 +136,32 @@ class Quadratic(Atom):
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        return NotImplemented
+        return (self.is_atom_convex(), self.is_atom_concave())
 
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return NotImplemented
+        return np.all(self.P_eigvals >= 0)
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return NotImplemented
+        return np.all(self.P_eigvals <= 0)
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return NotImplemented
+        return self.is_pwl()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return NotImplemented
+        return self.is_pwl()
 
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return False
+        return np.count_nonzero(P) == 0
 
     def get_data(self):
         return [self.x, self.P]

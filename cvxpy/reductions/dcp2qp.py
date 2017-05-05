@@ -1,5 +1,6 @@
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.reductions.reduction import Reduction
-from .dcp2cone.canonicalize import canonicalize_constr, canonicalize_tree
+from canonicalize import canonicalize_constr, canonicalize_tree
 from cvxpy.reductions.solution import Solution
 
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
@@ -9,31 +10,28 @@ import cvxpy
 
 from cvxpy.expressions.variables.variable import Variable
 
+QP_CANON_METHODS={}
 
 def quad_over_lin_QPcanon(expr, args):
     x = args[0]
     y = args[1]
     shape = expr.shape
     # precondition: shape == (1,)
-    t = Variable(*shape)
-    #TODO
-    constraints = [SOC(y+t, y-t, 2*x), y >= 0]
-    return t, constraints
-
+    if not (x.shape[0] == 1 or x.shape[1] == 1)
+        raise ValueError("x can only be a vector in a quadratic form")
+    length_x = max(x.shape[0], x.shape[1])
+    return QuadForm(x, np.eye(length_x)/y), []
 
 def pnorm_QPcanon(expr, args):
     x = args[0]
     p = expr.p
     axis = expr.axis
     shape = expr.shape
-    t = Variable(*shape)
-
+    if not (x.shape[0] == 1 or x.shape[1] == 1)
+        raise ValueError("x can only be a vector in a quadratic form")
+    length_x = max(x.shape[0], x.shape[1])
     if p == 2:
-        #TODO
-        if axis is None:
-            return t, [SOC(t, x)]
-        else:
-            return t, [SOC(reshape(t, shape[0] * shape[1], 1), x, ais)]
+        return QuadForm(x, np.eye(length_x)), []
     else:
         return CANON_METHODS[pnorm](expr, args)
 
@@ -51,8 +49,6 @@ def power_QPcanon(expr, args):
         return CANON_METHODS[power](expr, args)
 
 
-QP_CANON_METHODS={}
-
 QP_CANON_METHODS[affine_prod] = CANON_METHODS[affine_prod]
 QP_CANON_METHODS[abs] = CANON_METHODS[abs]
 QP_CANON_METHODS[max_elemwise] = CANON_METHODS[max_elemwise]
@@ -62,7 +58,6 @@ QP_CANON_METHODS[max_entries] = CANON_METHODS[max_entries]
 QP_CANON_METHODS[quad_over_lin] = quad_over_lin_QPcanon
 QP_CANON_METHODS[pnorm] = pnorm_QPcanon
 QP_CANON_METHODS[power] = power_QPcanon
-
 
 class Dcp2Qp(Reduction):
     def __init__(self):
