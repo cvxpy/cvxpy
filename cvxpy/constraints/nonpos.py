@@ -39,7 +39,7 @@ class NonPos(u.Canonical, Constraint):
         return self.constr_id
 
     def name(self):
-        return "%s >= 0" % self.args[0]
+        return "%s <= 0" % self.args[0]
 
     def __str__(self):
         """Returns a string showing the mathematical constraint.
