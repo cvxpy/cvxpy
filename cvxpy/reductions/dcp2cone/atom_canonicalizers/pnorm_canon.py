@@ -27,7 +27,7 @@ def pnorm_canon(expr, args):
         promoted_t = Constant(np.ones(x.shape)) * t
         return t, [x <= promoted_t, x + promoted_t >= 0]
 
-    # we need an absolute value constraint for the symmetric convex branches 
+    # we need an absolute value constraint for the symmetric convex branches
     # (p >= 1)
     constraints = []
     if p >= 1:

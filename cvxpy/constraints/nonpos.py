@@ -26,7 +26,7 @@ import numpy as np
 
 
 class NonPos(u.Canonical, Constraint):
-    TOLERANCE = 1e-4
+    TOLERANCE = 1e-8
 
     def __init__(self, expr):
         self.dual_variable = cvxtypes.variable()(*expr.shape)

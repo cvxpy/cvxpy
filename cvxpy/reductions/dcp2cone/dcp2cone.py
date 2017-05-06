@@ -1,6 +1,7 @@
 from cvxpy.reductions.reduction import Reduction
-from canonicalize import canonicalize_constr, canonicalize_expr, canonicalize_tree
+from ..canonicalize import canonicalize_constr, canonicalize_expr, canonicalize_tree
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
 import cvxpy
 
 
@@ -15,14 +16,16 @@ class Dcp2Cone(Reduction):
     def apply(self, prob):
         self.old_var_ids = [v.id for v in prob.variables()]
 
-        obj_expr, new_constrs = canonicalize_tree(prob.objective.args[0])
+        obj_expr, new_constrs = canonicalize_tree(prob.objective.args[0],
+                                            canon_methods=CANON_METHODS)
         if isinstance(prob.objective, cvxpy.Minimize):
            new_obj = cvxpy.Minimize(obj_expr)
         elif isinstance(prob.objective, cvxpy.Maximize):
            new_obj = cvxpy.Maximize(obj_expr)
 
         for c in prob.constraints:
-            top_constr, canon_constrs = canonicalize_constr(c)
+            top_constr, canon_constrs = canonicalize_constr(c,
+                                                canon_methods=CANON_METHODS)
             #print(canon_constrs)
             new_constrs += canon_constrs + [top_constr]
             self.constr_map.update({ top_constr.id : c.id })
