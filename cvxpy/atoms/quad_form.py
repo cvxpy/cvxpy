@@ -20,8 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import cvxpy.interface as intf
 import warnings
-from cvxpy.expressions.expression import Expression
+from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.expression import Expression
 from .sum_squares import sum_squares
 from scipy import linalg as LA
 import numpy as np
