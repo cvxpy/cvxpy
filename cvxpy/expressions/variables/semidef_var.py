@@ -48,9 +48,9 @@ class SemidefUpperTri(Variable):
     def canonicalize(self):
         """Variable must be semidefinite and symmetric.
         """
-        upper_tri = lu.create_var((self.size[0], 1), self.id)
+        upper_tri = lu.create_var((self.shape[0], 1), self.id)
         fill_coeff = upper_tri_to_full(self.n)
-        fill_coeff = lu.create_const(fill_coeff, (self.n*self.n, self.size[0]),
+        fill_coeff = lu.create_const(fill_coeff, (self.n*self.n, self.shape[0]),
                                      sparse=True)
         full_mat = lu.mul_expr(fill_coeff, upper_tri, (self.n*self.n, 1))
         full_mat = lu.reshape(full_mat, (self.n, self.n))
