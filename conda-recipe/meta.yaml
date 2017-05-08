@@ -2,7 +2,7 @@
 # conda install -c omnia -c stevend2 -c groakat -c mlgill cvxpy
 package:
   name: cvxpy
-  version: 0.4.9
+  version: 0.4.10
 
 build:
   number: 0
