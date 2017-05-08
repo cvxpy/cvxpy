@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import cvxpy.interface as intf
 import warnings
+from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
 from .sum_squares import sum_squares
@@ -106,9 +107,9 @@ def quad_form(x, P):
         P = (P + P.T) / 2.0
         scale, M1, M2 = _decomp_quad(P)
         ret = 0
-        if M1.shape > 0:
+        if all([s > 0 for s in M1.shape]):
             ret += scale * sum_squares(Constant(M1.T) * x)
-        if M2.shape > 0:
+        if all([s > 0 for s in M2.shape]):
             ret -= scale * sum_squares(Constant(M2.T) * x)
         return ret
     else:
@@ -170,3 +171,16 @@ class QuadForm(Atom):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.x,
                                self.P)
+
+    def shape(self):
+        return (1, 1)
+    
+    def _grad(self):
+        return self.P * self.x
+
+    def graph_implementation(self):
+        return NotImplemented
+    
+    def shape_from_args(self):
+        return NotImplemented
+

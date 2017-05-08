@@ -22,11 +22,14 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.utilities import QuadCoeffExtractor
 import numpy as np
 import scipy.sparse as sp
-from cvxpy.reductions.solution import OPTIMAL
+import cvxpy.settings as s
+from cvxpy.problems.problem import Problem
+from cvxpy.constraints.nonpos import NonPos
+from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.solution import Solution
 
 
-class QPMatrixStuffing(Reduction):
+class QpMatrixStuffing(Reduction):
     """Linearly constrained least squares solver via SciPy.
     """
 
@@ -42,7 +45,7 @@ class QPMatrixStuffing(Reduction):
             prob.is_dcp() and
             prob.objective.args[0].is_quadratic() and
             not prob.objective.args[0].is_affine() and
-            all([c._expr.is_affine() for c in prob.constraints]) and
+            all([arg.is_affine() for c in prob.constraints for arg in c.args]) and
             all([type(v) in allowedVariables for v in prob.variables()]) and
             all([not v.domain for v in prob.variables()])  # no implicit variable domains
             # (TODO: domains are not implemented yet)
@@ -65,7 +68,7 @@ class QPMatrixStuffing(Reduction):
                 vert_offset = 0
                 for x in variables:
                     var_offsets[x.id] = vert_offset
-                    vert_offset += x.size[0]*x.size[1]
+                    vert_offset += x.shape[0]*x.shape[1]
                     id_map[x.id] = (vert_offset, x.size)
                 return (id_map, var_offsets, vert_offset)
 
@@ -92,32 +95,35 @@ class QPMatrixStuffing(Reduction):
         new_obj = cvxpy.quad_form(x, P) + q.T*x + r
         new_cons = []
 
-        ineq_cons = [extractor.get_coeffs(c._expr)[1:] for c in constraints if c.OP_NAME == "<="]
-        eq_cons = [extractor.get_coeffs(c._expr)[1:] for c in constraints if c.OP_NAME == "=="]
-        A = sp.vstack([C[0] for C in ineq_cons])
-        b = np.array([C[1] for C in ineq_cons]).flatten()
-        F = sp.vstack([C[0] for C in eq_cons])
-        g = np.array([C[1] for C in eq_cons]).flatten()
-        new_cons = [A*x + b <= 0, F*x + g == 0]
+        ineq_cons = [extractor.get_coeffs(c.args[0])[1:] for c in constraints if type(c) == NonPos]
+        eq_cons = [extractor.get_coeffs(c.args[0])[1:] for c in constraints if type(c) == Zero]
+        if ineq_cons:
+            A = sp.vstack([C[0] for C in ineq_cons])
+            b = np.array([C[1] for C in ineq_cons]).flatten()
+            new_cons += [A*x + b <= 0]
+        if eq_cons:
+            F = sp.vstack([C[0] for C in eq_cons])
+            g = np.array([C[1] for C in eq_cons]).flatten()
+            new_cons += [F*x + g == 0]
 
         cnts = [0, 0]
         inverse_data.new_var_id = x.id
         for c in constraints:
-            if c.OP_NAME == "<=":
-                inverse_data.cons_id_map[c.constr_id] = (new_cons[0].constr_id, cnts[0], c._expr.shape)
-                cnts[0] += c._expr.shape[0]*c._expr.shape[1]
+            if type(c) == NonPos:
+                inverse_data.cons_id_map[c.constr_id] = (new_cons[0].constr_id, cnts[0], c.shape)
+                cnts[0] += c.shape[0]*c.shape[1]
             else:
-                inverse_data.cons_id_map[c.constr_id] = (new_cons[1].constr_id, cnts[1], c._expr.shape)
-                cnts[1] += c._expr.shape[0]*c._expr.shape[1]
+                inverse_data.cons_id_map[c.constr_id] = (new_cons[1].constr_id, cnts[1], c.shape)
+                cnts[1] += c.shape[0]*c.shape[1]
 
-        new_prob = cvxpy.Minimize(new_obj, new_cons)
+        new_prob = Problem(cvxpy.Minimize(new_obj), new_cons)
 
-        return (new_prob, inverse_data)
+        return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        if solution.status == OPTIMAL:
+        if solution.status == s.OPTIMAL:
             primal_vars = dict()
             dual_vars = dict()
             for (old_id, tup) in inverse_data.cons_id_map:
@@ -131,7 +137,7 @@ class QPMatrixStuffing(Reduction):
                 size = shape[0]*shape[1]
                 val = solution.primal_vars[new_id][offset:offset+size]
                 primal_vars[old_id] = val.reshape(shape, order='F')
-            ret = Solution(OPTIMAL, solution.opt_val, primal_vars, dual_vars)
+            ret = Solution(s.OPTIMAL, solution.opt_val, primal_vars, dual_vars)
         else:
             ret = solution
         return ret

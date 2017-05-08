@@ -21,16 +21,10 @@ import numpy
 
 from cvxpy import Maximize, Minimize, Problem
 from cvxpy.atoms import *
-from cvxpy.constraints import SOC, ExpCone
 from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
-from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
-from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
-from cvxpy.solver_interface.conic_solvers.gurobi_conif import GUROBI
-from cvxpy.solver_interface.conic_solvers.mosek_conif import MOSEK
-from cvxpy.solver_interface.conic_solvers.scs_conif import SCS
-from cvxpy.solver_interface.lp_solvers.cbc_lpif import CBC
+from cvxpy.reductions.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.dcp2qp import Dcp2Qp
 from cvxpy.tests.base_test import BaseTest
 
@@ -55,4 +49,6 @@ class TestQp(BaseTest):
         p = Problem(Minimize(quad_over_lin(norm1(self.x-1), 1)), [])
         self.assertTrue(Dcp2Qp().accepts(p))
         canon_p = Dcp2Qp().apply(p)
+        self.assertTrue(QpMatrixStuffing().accepts(canon_p))
+        stuffed_p = QpMatrixStuffing().apply(canon_p)
         pass

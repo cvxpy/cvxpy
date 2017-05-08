@@ -7,6 +7,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
 from cvxpy.atoms import *
 
 import cvxpy
+from numpy import eye
 
 from cvxpy.expressions.variables.variable import Variable
 
@@ -17,46 +18,28 @@ def quad_over_lin_QPcanon(expr, args):
     y = args[1]
     shape = expr.shape
     # precondition: shape == (1,)
-    if not (x.shape[0] == 1 or x.shape[1] == 1)
+    if not (x.shape[0] == 1 or x.shape[1] == 1):
         raise ValueError("x can only be a vector in a quadratic form")
     length_x = max(x.shape[0], x.shape[1])
-    return QuadForm(x, np.eye(length_x)/y), []
-
-def pnorm_QPcanon(expr, args):
-    x = args[0]
-    p = expr.p
-    axis = expr.axis
-    shape = expr.shape
-    if not (x.shape[0] == 1 or x.shape[1] == 1)
-        raise ValueError("x can only be a vector in a quadratic form")
-    length_x = max(x.shape[0], x.shape[1])
-    if p == 2:
-        return QuadForm(x, np.eye(length_x)), []
-    else:
-        return CANON_METHODS[pnorm](expr, args)
-
+    return quad_form(x, eye(length_x)/y.value), []
 
 def power_QPcanon(expr, args):
     x = args[0]
     p = expr.p
     w = expr.w
 
-    if p == 2:
-        #TODO
-        return x, []
-
-    else:
-        return CANON_METHODS[power](expr, args)
-
+    if p != 2:
+        raise ValueError("quadratic form can only have power 2")
+    return NotImplemented
 
 QP_CANON_METHODS[affine_prod] = CANON_METHODS[affine_prod]
 QP_CANON_METHODS[abs] = CANON_METHODS[abs]
 QP_CANON_METHODS[max_elemwise] = CANON_METHODS[max_elemwise]
 QP_CANON_METHODS[sum_largest] = CANON_METHODS[sum_largest]
 QP_CANON_METHODS[max_entries] = CANON_METHODS[max_entries]
+QP_CANON_METHODS[pnorm] = CANON_METHODS[pnorm]
 
 QP_CANON_METHODS[quad_over_lin] = quad_over_lin_QPcanon
-QP_CANON_METHODS[pnorm] = pnorm_QPcanon
 QP_CANON_METHODS[power] = power_QPcanon
 
 class Dcp2Qp(Reduction):
