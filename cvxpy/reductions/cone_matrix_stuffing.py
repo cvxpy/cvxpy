@@ -45,7 +45,7 @@ class ConeMatrixStuffing(Reduction):
         extractor = CoeffExtractor(id_map, N)
 
         # Extract the coefficients
-        _, C, R = extractor.get_coeffs(objective.args[0])
+        C, R = extractor.get_coeffs(objective.args[0])
         c = np.asarray(C.todense()).flatten()
         r = R[0]
         x = Variable(N)
@@ -59,7 +59,7 @@ class ConeMatrixStuffing(Reduction):
         for con in constraints:
             arg_list = []
             for arg in con.args:
-                _, A, b = extractor.get_coeffs(arg)
+                A, b = extractor.get_coeffs(arg)
                 arg_list.append(reshape(A*x + b, arg.shape))
             new_cons.append(type(con)(*arg_list))
             con_map[con.id] = new_cons[-1].id

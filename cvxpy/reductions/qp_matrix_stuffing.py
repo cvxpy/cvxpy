@@ -63,15 +63,14 @@ class QpMatrixStuffing(Reduction):
         extractor = CoeffExtractor(inverse_data.var_offsets, inverse_data.x_length)
         objective = problem.objective
         # extract to x.T * P * x + q.T * x + r
-        ([P], Q, R) = extractor.quad_form(objective.expr)
+        ([P], Q, r) = extractor.quad_form(objective.expr)
         q = np.asarray(Q.todense()).flatten()
-        r = R[0]
         new_obj = QuadForm(x, P) + q.T*x + r
 
         constraints = problem.constraints
         new_cons = []
-        ineq_cons = [extractor.get_coeffs(c.expr)[1:] for c in constraints if type(c) == NonPos]
-        eq_cons = [extractor.get_coeffs(c.expr)[1:] for c in constraints if type(c) == Zero]
+        ineq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == NonPos]
+        eq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == Zero]
         if ineq_cons:
             A = sp.vstack([C[0] for C in ineq_cons])
             b = np.array([C[1] for C in ineq_cons]).flatten()

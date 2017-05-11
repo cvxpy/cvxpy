@@ -1,5 +1,5 @@
 """
-Copyright 2016 Jaehyun Park
+Copyright 2016 Jaehyun Park, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -25,7 +25,7 @@ import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from numpy import linalg as LA
 
-
+# TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor(object):
 
     def __init__(self, id_map, N):
@@ -62,30 +62,24 @@ class CoeffExtractor(object):
         else:
             raise Exception("Unknown expression type %s." % type(expr))
 
-    # TODO: determine the best sparse format for each of the
-    #       quadratic atoms
     def constant(self, expr):
-        if expr.is_scalar():
-            sz = 1
-            R = np.array([expr.value])
-        else:
-            sz = expr.shape[0]*expr.shape[1]
-            R = expr.value.reshape(sz, order='F')
-        Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
-        Q = sp.csr_matrix((sz, self.N))
-        return (Ps, Q, R)
+        size = expr.shape[0]*expr.shape[1]
+        return sp.csr_matrix((size, self.N)), expr.value.reshape(size, order='F')
 
     def affine(self, expr):
-        sz = expr.shape[0]*expr.shape[1]
+        """ If expression is A*x + b, return A, b
+        """
+        if not expr.is_affine():
+            raise ValueError("Expression is not affine")
+        size = expr.shape[0]*expr.shape[1]
         s, _ = expr.canonical_form
-        V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
-        Q = sp.csr_matrix((V, (I, J)), shape=(sz, self.N))
-        Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
-        return (Ps, Q, R.flatten())
+        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
+        A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
+        return A, b.flatten()
 
     def affine_prod(self, expr):
-        (_, XQ, XR) = self.affine(expr.args[0])
-        (_, YQ, YR) = self.affine(expr.args[1])
+        XQ, XR = self.affine(expr.args[0])
+        YQ, YR = self.affine(expr.args[1])
 
         m, p = expr.args[0].shape
         n = expr.args[1].shape[1]
@@ -97,7 +91,7 @@ class CoeffExtractor(object):
         ind = 0
         for j in range(n):
             for i in range(m):
-                M = sp.csr_matrix((self.N, self.N))  # TODO: find best format
+                M = sp.csr_matrix((self.N, self.N))
                 for k in range(p):
                     Xind = k*m + i
                     Yind = j*p + k
@@ -117,27 +111,27 @@ class CoeffExtractor(object):
         return (Ps, Q.tocsr(), R)
 
     def quad_over_lin(self, expr):
-        (_, A, b) = self.affine(expr.args[0])
+        A, b = self.affine(expr.args[0])
         P = A.T*A
         q = sp.csr_matrix(2*b.T*A)
         r = np.dot(b.T, b)
         y = float(expr.args[1].value)
-        return ([P/y], q/y, np.array([r/y]))
+        return [P/y], q/y, np.array([r/y])
 
     def power(self, expr):
         if expr.p == 1:
             return self.get_coeffs(expr.args[0])
         elif expr.p == 2:
-            (_, A, b) = self.affine(expr.args[0])
+            A, b = self.affine(expr.args[0])
             Ps = [(A[i, :].T*A[i, :]).tocsr() for i in range(A.shape[0])]
             Q = 2*(sp.diags(b, 0)*A).tocsr()
             R = np.power(b, 2)
-            return (Ps, Q, R)
+            return Ps, Q, R
         else:
             raise Exception("Error while processing power(x, %f)." % expr.p)
 
     def matrix_frac(self, expr):
-        (_, A, b) = self.affine(expr.args[0])
+        A, b = self.affine(expr.args[0])
         m, n = expr.args[0].shape
         Pinv = np.asarray(LA.inv(expr.args[1].value))
 
@@ -153,7 +147,7 @@ class CoeffExtractor(object):
             Q += 2*A2.T.dot(np.dot(Pinv, b2))
             R += np.dot(b2, np.dot(Pinv, b2))
 
-        return ([M.tocsr()], Q.tocsr(), np.array([R]))
+        return [M.tocsr()], Q.tocsr(), np.array([R])
 
     def affine_atom(self, expr):
         sz = expr.shape[0]*expr.shape[1]
@@ -191,11 +185,12 @@ class CoeffExtractor(object):
             R[i] += v*Rarg[j]
 
         Ps = [P.tocsr() for P in Ps]
-        return (Ps, Q.tocsr(), R)
+        return Ps, Q.tocsr(), R
 
     def quad_form(self, expr):
-        (_, P_diag, _) = self.affine(expr.args[0])
-        Ps = [sp.diags(P_diag.toarray().flatten()).tocsr()]
-        Q = sp.csr_matrix((1, self.N))
-        R = np.zeros(1)
-        return(Ps, Q, R)
+        A, b = self.affine(expr.args[0])
+        P = expr.args[1].value
+        Ps = [sp.csr_matrix((A.T * P * A))]
+        q = 2 * sp.csr_matrix((b.T * P * A))
+        r = np.array([b.T * P * b]).flatten()
+        return Ps, q, r
