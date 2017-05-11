@@ -27,6 +27,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.solution import Solution
+from cvxpy.atoms.quad_form import QuadForm
 
 
 class QpMatrixStuffing(Reduction):
@@ -92,7 +93,7 @@ class QpMatrixStuffing(Reduction):
         r = R[0]
 
         x = cvxpy.Variable(inverse_data.x_length)
-        new_obj = cvxpy.quad_form(x, P) + q.T*x + r
+        new_obj = QuadForm(x, P) + q.T*x + r
         new_cons = []
 
         ineq_cons = [extractor.get_coeffs(c.args[0])[1:] for c in constraints if type(c) == NonPos]
@@ -118,7 +119,7 @@ class QpMatrixStuffing(Reduction):
 
         new_prob = Problem(cvxpy.Minimize(new_obj), new_cons)
 
-        return new_prob, inverse_data
+        return new_prob
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

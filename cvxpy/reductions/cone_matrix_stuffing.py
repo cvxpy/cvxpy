@@ -27,7 +27,8 @@ class ConeMatrixStuffing(Reduction):
         return (
             problem.is_dcp() and
             problem.objective.args[0].is_affine() and
-            all([arg.is_affine() for c in problem.constraints for arg in c.args]))
+            all([arg.is_affine() for c in problem.constraints for arg in c.args])
+        )
 
     # TODO(mwytock): Refactor inversion data and re-use with QPMatrixStuffing
     # which is identical.

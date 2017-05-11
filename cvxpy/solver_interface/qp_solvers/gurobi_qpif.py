@@ -1,10 +1,14 @@
 # GUROBI interface to solve QP problems
 import numpy as np
 import gurobipy as grb
+from cvxpy.problems.problem_data.problem_data import ProblemData
 import cvxpy.settings as s
+from cvxpy.reductions.solution import Solution
+from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
+from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from collections import namedtuple
 
-
-class GUROBI(object):
+class GUROBI(ReductionSolver):
     """
     An interface for the Gurobi QP solver.
     """
@@ -25,19 +29,36 @@ class GUROBI(object):
                   12: s.SOLVER_ERROR,
                   13: s.SOLVER_ERROR}
 
-# Functions in old conic format
-# def split_constr(self, constr_map)
-# def matrix_intf(self):
-# def vec_intf(self):
+    def name(self):
+        return "GUROBI"
+    
+    def import_solver(self):
+        import gurobipy as grb
+        grb
 
-# TODO (Bart): Is this function needed?
-    # def __init__(self, **kwargs):
-    # self.options = kwargs
+    def accepts(self, problem):
+        return problem.is_qp()
 
-    # TODO: Fix how matrices used. At the moment it is using the old problem structure "p"
-    # def solve(self, p):
-    def solve(self, objective, constraints, cached_data,
-              warm_start, verbose, solver_opts):
+    def apply(self):
+        return NotImplemented
+
+    def invert():
+        return NotImplemented
+
+    def solve(self, problem, warm_start, verbose, solver_opts):
+        # return self._solve(problem.objective, problem.constraints, {self.name():ProblemData()}, \
+            # warm_start, verbose, solver_opts)
+        obj = problem.objective
+        p = namedtuple("qp_struct", ['P', 'q', 'A', 'lb', 'ub'])
+        p.P = obj.args[0].args[0].args[1].value
+        p.q = obj.args[0].args[1].args[0].value.flatten()
+        p.A, b = ConicSolver.get_coeff_offset(problem.constraints[0].args[0])
+        p.uA = -b
+        p.lA = -grb.GRB.INFINITY*np.ones(b.shape)
+        self.options = solver_opts
+        return self._solve(p)
+
+    def _solve(self, p):
 
         # Convert Matrices in CSR format
         p.A = p.A.tocsr()
@@ -100,9 +121,9 @@ class GUROBI(object):
 
         # TODO: Define results dictionary
         results_dict = model
-        return self.format_results(results_dict, data, cached_data)
+        return self.format_results(results_dict)
 
-    def format_results(self, results_dict, data, cached_data):
+    def format_results(self, results_dict):
         # Return results
         # Get status
         status = self.STATUS_MAP.get(results_dict.Status, s.SOLVER_ERROR)
@@ -112,7 +133,7 @@ class GUROBI(object):
             objval = results_dict.objVal
 
             # Get solution
-            sol = np.array([x[i].X for i in range(len(x))])
+            sol = np.array(results_dict.x)
 
             # Get dual variables  (Gurobi uses swapped signs (-1))
             constrs = results_dict.getConstrs()
@@ -125,12 +146,11 @@ class GUROBI(object):
             total_iter = results_dict.BarIterCount
 
             # TODO: Add results structure
-            return quadprogResults(status, objval, sol, dual,
-                                   cputime, total_iter)
+            return Solution(status, objval, sol, dual,
+                                    {s.SOLVE_TIME:cputime, s.NUM_ITERS:total_iter})
         else:  # Error
             # Get computation time
             cputime = results_dict.Runtime
 
             # TODO: Add results structure
-            return quadprogResults(status, None, None, None,
-                                   cputime, None)
+            return Solution(status, None, None, None, {s.SOLVE_TIME:cputime})

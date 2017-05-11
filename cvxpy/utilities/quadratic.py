@@ -57,6 +57,8 @@ class QuadCoeffExtractor(object):
             return self._coeffs_matrix_frac(expr)
         elif isinstance(expr, cvx.affine.affine_atom.AffAtom):
             return self._coeffs_affine_atom(expr)
+        elif expr.is_quadratic():
+            return self._coeffs_quad_form(expr)
         else:
             raise Exception("Unknown expression type %s." % type(expr))
 
@@ -119,7 +121,7 @@ class QuadCoeffExtractor(object):
         P = A.T*A
         q = sp.csr_matrix(2*b.T*A)
         r = np.dot(b.T, b)
-        y = expr.args[1].value
+        y = float(expr.args[1].value)
         return ([P/y], q/y, np.array([r/y]))
 
     def _coeffs_power(self, expr):
@@ -190,3 +192,10 @@ class QuadCoeffExtractor(object):
 
         Ps = [P.tocsr() for P in Ps]
         return (Ps, Q.tocsr(), R)
+
+    def _coeffs_quad_form(self, expr):
+        (_, P_diag, _) = self._coeffs_affine(expr.args[0])
+        Ps = [sp.diags(P_diag.toarray().flatten()).tocsr()]
+        Q = sp.csr_matrix((1, self.N))
+        R = np.zeros(1)
+        return(Ps, Q, R)

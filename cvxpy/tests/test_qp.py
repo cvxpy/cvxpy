@@ -25,7 +25,8 @@ from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
 from cvxpy.reductions.qp_matrix_stuffing import QpMatrixStuffing
-from cvxpy.reductions.dcp2qp import Dcp2Qp
+from cvxpy.reductions.quadratic2quad_form import Quadratic2QuadForm
+from cvxpy.solver_interface.qp_solvers.gurobi_qpif import GUROBI
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -45,10 +46,18 @@ class TestQp(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
+    def test_ls(self):
+        A = numpy.random.randn(10,2)
+        b = numpy.random.randn(10,1)
+        p = Problem(Minimize(sum_squares(A*self.x-b)))
+        p.solve('LS')
+        print(p.value)
+
     def test_qp(self):
         p = Problem(Minimize(quad_over_lin(norm1(self.x-1), 1)), [])
-        self.assertTrue(Dcp2Qp().accepts(p))
-        canon_p = Dcp2Qp().apply(p)
+        self.assertTrue(Quadratic2QuadForm().accepts(p))
+        canon_p = Quadratic2QuadForm().apply(p)
         self.assertTrue(QpMatrixStuffing().accepts(canon_p))
         stuffed_p = QpMatrixStuffing().apply(canon_p)
-        pass
+        solution = GUROBI().solve(stuffed_p, False, False, {})
+        print(solution)

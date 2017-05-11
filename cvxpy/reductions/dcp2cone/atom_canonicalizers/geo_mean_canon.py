@@ -11,7 +11,7 @@ def geo_mean_canon(expr, args):
     shape = expr.shape
     t = Variable(*shape)
 
-    x_list = [x[i] for x in range(len(w))]
+    x_list = [x[i] for i in range(len(w))]
 
     # todo: catch cases where we have (0, 0, 1)?
     # todo: what about curvature case (should be affine) in trivial 

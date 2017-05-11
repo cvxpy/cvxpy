@@ -36,4 +36,4 @@ def vec(X):
     """
     X = Expression.cast_to_const(X)
 
-    return reshape(X, X.shape[0]*X.shape[1], 1)
+    return reshape(X, (X.shape[0]*X.shape[1], 1))

@@ -1,4 +1,5 @@
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
 import numpy as np
 
@@ -10,6 +11,6 @@ def entr_canon(expr, args):
     # -x\log(x) >= t <=> x\exp(t/x) <= 1
     # TODO(akshayka): ExpCone requires each of its inputs to be a Variable;
     # is this something that we want to change?
-    ones = np.ones(shape)
+    ones = Constant(np.ones(shape))
     constraints = [ExpCone(t, x, ones)]
     return t, constraints

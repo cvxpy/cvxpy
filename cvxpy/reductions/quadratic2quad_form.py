@@ -21,7 +21,7 @@ def quad_over_lin_QPcanon(expr, args):
     if not (x.shape[0] == 1 or x.shape[1] == 1):
         raise ValueError("x can only be a vector in a quadratic form")
     length_x = max(x.shape[0], x.shape[1])
-    return quad_form(x, eye(length_x)/y.value), []
+    return QuadForm(x, eye(length_x)/y.value), []
 
 def power_QPcanon(expr, args):
     x = args[0]
@@ -42,7 +42,7 @@ QP_CANON_METHODS[pnorm] = CANON_METHODS[pnorm]
 QP_CANON_METHODS[quad_over_lin] = quad_over_lin_QPcanon
 QP_CANON_METHODS[power] = power_QPcanon
 
-class Dcp2Qp(Reduction):
+class Quadratic2QuadForm(Reduction):
     def __init__(self):
         self.old_var_ids = dict() # A list of the old variable IDs.
         self.constr_map = dict()  # Maps the new constraint IDs to the old constraint IDs.

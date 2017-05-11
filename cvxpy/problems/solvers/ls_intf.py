@@ -116,7 +116,7 @@ class LS(Solver):
                 for x in variables:
                     var_sizes[x.id] = x.size
                     var_offsets[x.id] = vert_offset
-                    vert_offset += x.size[0]*x.size[1]
+                    vert_offset += x.shape[0]*x.shape[1]
                 return (var_offsets, var_sizes, vert_offset)
 
         return FakeSymData(objective, constraints)
