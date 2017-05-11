@@ -4,6 +4,7 @@ from canonicalize import canonicalize_constr, canonicalize_tree
 from cvxpy.reductions.solution import Solution
 
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
+from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.atoms import *
 
 import cvxpy
@@ -67,22 +68,18 @@ class Quadratic2QuadForm(Reduction):
             self.constr_map.update({ top_constr.id : c.id })
 
         new_prob = cvxpy.Problem(new_obj, new_constrs)
-        return new_prob
+        return new_prob, {'old_var_ids': self.old_var_ids, 'constr_map': self.constr_map}
 
 
     def invert(self, solution, inverse_data):
 
-        pvars = dict()
+        primal_vars = dict()
+        dual_vars = dict()
         for id, val in solution.primal_vars.items():
-            if id in self.old_var_ids:
-                pvars.update({id: val})
+            if id in inverse_data['old_var_ids']:
+                primal_vars.update({id: val})
 
-        for old_id, orig_id in self.constr_map.items:
-            orig_sol.update({orig_id : solution.dual_vars[old_id]})
+        for old_id, orig_id in inverse_data['constr_map'].items():
+            dual_vars.update({orig_id : solution.dual_vars[old_id]})
 
-        orig_sol.optval = old_sol.optval
-        orig_sol.status = old_sol.status
-
-        orig_sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
-
-        return orig_sol
+        return Solution(solution.status, solution.opt_val, primal_vars, dual_vars)

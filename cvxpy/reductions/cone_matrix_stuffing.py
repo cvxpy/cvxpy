@@ -1,13 +1,14 @@
-
-from cvxpy.atoms import reshape
-from cvxpy.reductions.reduction import Reduction
-from cvxpy.expressions.variables import Variable
-from cvxpy.problems.problem import Problem
-from cvxpy.problems.objective import Minimize
-from cvxpy.utilities import QuadCoeffExtractor
-from cvxpy.reductions.solution import Solution
-import cvxpy.settings as s
 import numpy as np
+
+import cvxpy.settings as s
+from cvxpy.atoms import reshape
+from cvxpy.expressions.variables import Variable
+from cvxpy.problems.objective import Minimize
+from cvxpy.problems.problem import Problem
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
+from cvxpy.utilities import CoeffExtractor
+from cvxpy.reductions.inverse_data import InverseData
 
 
 class ConeMatrixStuffing(Reduction):
@@ -30,43 +31,18 @@ class ConeMatrixStuffing(Reduction):
             all([arg.is_affine() for c in problem.constraints for arg in c.args])
         )
 
-    # TODO(mwytock): Refactor inversion data and re-use with QPMatrixStuffing
-    # which is identical.
-    def get_sym_data(self, objective, constraints, cached_data=None):
-        class SymData(object):
-            def __init__(self, objective, constraints):
-                self.constr_map = {s.EQ: constraints}
-                vars_ = objective.variables()
-                for c in constraints:
-                    vars_ += c.variables()
-                vars_ = list(set(vars_))
-                self.vars_ = vars_
-                self.var_offsets, self.var_shapes, self.x_length = self.get_var_offsets(vars_)
-
-            def get_var_offsets(self, variables):
-                var_offsets = {}
-                var_shapes = {}
-                vert_offset = 0
-                for x in variables:
-                    var_shapes[x.id] = x.shape
-                    var_offsets[x.id] = vert_offset
-                    vert_offset += x.shape[0]*x.shape[1]
-                return (var_offsets, var_shapes, vert_offset)
-
-        return SymData(objective, constraints)
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
         """
         objective = problem.objective
         constraints = problem.constraints
 
-        sym_data = self.get_sym_data(objective, constraints)
+        inverse_data = InverseData(problem)
 
-        id_map = sym_data.var_offsets
-        N = sym_data.x_length
+        id_map = inverse_data.var_offsets
+        N = inverse_data.x_length
 
-        extractor = QuadCoeffExtractor(id_map, N)
+        extractor = CoeffExtractor(id_map, N)
 
         # Extract the coefficients
         _, C, R = extractor.get_coeffs(objective.args[0])
@@ -89,10 +65,10 @@ class ConeMatrixStuffing(Reduction):
             con_map[con.id] = new_cons[-1].id
 
         # Map of old constraint id to new constraint id.
-        sym_data.con_map = con_map
-        sym_data.minimize = type(problem.objective) == Minimize
+        inverse_data.con_map = con_map
+        inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = Problem(Minimize(new_obj), new_cons)
-        return (new_prob, sym_data)
+        return (new_prob, inverse_data)
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

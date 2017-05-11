@@ -70,6 +70,12 @@ class Atom(Expression):
         """
         return NotImplemented
 
+    @property
+    def expr(self):
+        if not len(self.args) == 1:
+            raise ValueError("'expr' is ambiguous; more than one element in arguments")
+        return self.args[0]
+
     @clru_cache(maxsize=100)
     def is_positive(self):
         """Is the expression positive?

@@ -26,7 +26,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from numpy import linalg as LA
 
 
-class QuadCoeffExtractor(object):
+class CoeffExtractor(object):
 
     def __init__(self, id_map, N):
         self.id_map = id_map
@@ -44,27 +44,27 @@ class QuadCoeffExtractor(object):
     # R: NumPy array
     def get_coeffs(self, expr):
         if expr.is_constant():
-            return self._coeffs_constant(expr)
+            return self.constant(expr)
         elif expr.is_affine():
-            return self._coeffs_affine(expr)
+            return self.affine(expr)
         elif isinstance(expr, cvx.affine_prod):
-            return self._coeffs_affine_prod(expr)
+            return self.affine_prod(expr)
         elif isinstance(expr, cvx.quad_over_lin):
-            return self._coeffs_quad_over_lin(expr)
+            return self.quad_over_lin(expr)
         elif isinstance(expr, cvx.power):
-            return self._coeffs_power(expr)
+            return self.power(expr)
         elif isinstance(expr, cvx.matrix_frac):
-            return self._coeffs_matrix_frac(expr)
+            return self.matrix_frac(expr)
         elif isinstance(expr, cvx.affine.affine_atom.AffAtom):
-            return self._coeffs_affine_atom(expr)
+            return self.affine_atom(expr)
         elif expr.is_quadratic():
-            return self._coeffs_quad_form(expr)
+            return self.quad_form(expr)
         else:
             raise Exception("Unknown expression type %s." % type(expr))
 
     # TODO: determine the best sparse format for each of the
     #       quadratic atoms
-    def _coeffs_constant(self, expr):
+    def constant(self, expr):
         if expr.is_scalar():
             sz = 1
             R = np.array([expr.value])
@@ -75,7 +75,7 @@ class QuadCoeffExtractor(object):
         Q = sp.csr_matrix((sz, self.N))
         return (Ps, Q, R)
 
-    def _coeffs_affine(self, expr):
+    def affine(self, expr):
         sz = expr.shape[0]*expr.shape[1]
         s, _ = expr.canonical_form
         V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
@@ -83,9 +83,9 @@ class QuadCoeffExtractor(object):
         Ps = [sp.csr_matrix((self.N, self.N)) for i in range(sz)]
         return (Ps, Q, R.flatten())
 
-    def _coeffs_affine_prod(self, expr):
-        (_, XQ, XR) = self._coeffs_affine(expr.args[0])
-        (_, YQ, YR) = self._coeffs_affine(expr.args[1])
+    def affine_prod(self, expr):
+        (_, XQ, XR) = self.affine(expr.args[0])
+        (_, YQ, YR) = self.affine(expr.args[1])
 
         m, p = expr.args[0].shape
         n = expr.args[1].shape[1]
@@ -116,19 +116,19 @@ class QuadCoeffExtractor(object):
 
         return (Ps, Q.tocsr(), R)
 
-    def _coeffs_quad_over_lin(self, expr):
-        (_, A, b) = self._coeffs_affine(expr.args[0])
+    def quad_over_lin(self, expr):
+        (_, A, b) = self.affine(expr.args[0])
         P = A.T*A
         q = sp.csr_matrix(2*b.T*A)
         r = np.dot(b.T, b)
         y = float(expr.args[1].value)
         return ([P/y], q/y, np.array([r/y]))
 
-    def _coeffs_power(self, expr):
+    def power(self, expr):
         if expr.p == 1:
             return self.get_coeffs(expr.args[0])
         elif expr.p == 2:
-            (_, A, b) = self._coeffs_affine(expr.args[0])
+            (_, A, b) = self.affine(expr.args[0])
             Ps = [(A[i, :].T*A[i, :]).tocsr() for i in range(A.shape[0])]
             Q = 2*(sp.diags(b, 0)*A).tocsr()
             R = np.power(b, 2)
@@ -136,8 +136,8 @@ class QuadCoeffExtractor(object):
         else:
             raise Exception("Error while processing power(x, %f)." % expr.p)
 
-    def _coeffs_matrix_frac(self, expr):
-        (_, A, b) = self._coeffs_affine(expr.args[0])
+    def matrix_frac(self, expr):
+        (_, A, b) = self.affine(expr.args[0])
         m, n = expr.args[0].shape
         Pinv = np.asarray(LA.inv(expr.args[1].value))
 
@@ -155,7 +155,7 @@ class QuadCoeffExtractor(object):
 
         return ([M.tocsr()], Q.tocsr(), np.array([R]))
 
-    def _coeffs_affine_atom(self, expr):
+    def affine_atom(self, expr):
         sz = expr.shape[0]*expr.shape[1]
         Ps = [sp.lil_matrix((self.N, self.N)) for i in range(sz)]
         Q = sp.lil_matrix((sz, self.N))
@@ -193,8 +193,8 @@ class QuadCoeffExtractor(object):
         Ps = [P.tocsr() for P in Ps]
         return (Ps, Q.tocsr(), R)
 
-    def _coeffs_quad_form(self, expr):
-        (_, P_diag, _) = self._coeffs_affine(expr.args[0])
+    def quad_form(self, expr):
+        (_, P_diag, _) = self.affine(expr.args[0])
         Ps = [sp.diags(P_diag.toarray().flatten()).tocsr()]
         Q = sp.csr_matrix((1, self.N))
         R = np.zeros(1)

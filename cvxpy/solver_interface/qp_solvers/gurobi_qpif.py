@@ -39,26 +39,48 @@ class GUROBI(ReductionSolver):
     def accepts(self, problem):
         return problem.is_qp()
 
-    def apply(self):
-        return NotImplemented
+    def apply(self, problem):
+        data = namedtuple("qp_struct", ['P', 'q', 'A', 'lb', 'ub'])
+        obj = problem.objective
+        data.P = obj.args[0].args[0].args[1].value
+        data.q = obj.args[0].args[1].args[0].value.flatten()
+        data.A, b = ConicSolver.get_coeff_offset(problem.constraints[0].args[0])
+        data.uA = -b
+        data.lA = -grb.GRB.INFINITY*np.ones(b.shape)
+        inverse_data = {self.VAR_ID: problem.variables()[0].id}
+        inverse_data[self.EQ_CONSTR] = None # Gurobi does not accept equality constraints
+        inverse_data[self.NEQ_CONSTR] = problem.constraints[0].id
+        
+        return data, inverse_data
 
-    def invert():
-        return NotImplemented
+    def invert(self, solution, inverse_data):
+        status = self.STATUS_MAP.get(solution.Status, s.SOLVER_ERROR)
+        cputime = solution.Runtime
+        attr = {s.SOLVE_TIME:cputime}
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution.objVal
+            primal_vars = {inverse_data[self.VAR_ID]: np.array(solution.x)}
+            constrs = solution.getConstrs()
+            dual_vars = {} 
+            # Gurobi uses swapped signs (-1) for dual variables
+            dual_vars[inverse_data[self.NEQ_CONSTR]] = -np.array([constrs[i].Pi for i in range(len(constrs))])
+            total_iter = solution.BarIterCount
+            attr[s.NUM_ITERS] = total_iter
+        else: # no solution
+            primal_vars = None
+            dual_vars = None 
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+        return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve(self, problem, warm_start, verbose, solver_opts):
-        # return self._solve(problem.objective, problem.constraints, {self.name():ProblemData()}, \
-            # warm_start, verbose, solver_opts)
-        obj = problem.objective
-        p = namedtuple("qp_struct", ['P', 'q', 'A', 'lb', 'ub'])
-        p.P = obj.args[0].args[0].args[1].value
-        p.q = obj.args[0].args[1].args[0].value.flatten()
-        p.A, b = ConicSolver.get_coeff_offset(problem.constraints[0].args[0])
-        p.uA = -b
-        p.lA = -grb.GRB.INFINITY*np.ones(b.shape)
-        self.options = solver_opts
-        return self._solve(p)
+        data, inverse_data = self.apply(problem)
+        solution = self._solve(data, solver_opts)
+        return self.invert(solution, inverse_data)
 
-    def _solve(self, p):
+    def _solve(self, p, options):
 
         # Convert Matrices in CSR format
         p.A = p.A.tocsr()
@@ -102,7 +124,7 @@ class GUROBI(ReductionSolver):
         model.update()
 
         # Set parameters
-        for param, value in self.options.iteritems():
+        for param, value in options.iteritems():
             if param == "verbose":
                 if value == 0:
                     model.setParam("OutputFlag", 0)
@@ -119,38 +141,4 @@ class GUROBI(ReductionSolver):
         except:  # Error in the solution
             print "Error in Gurobi solution\n"
 
-        # TODO: Define results dictionary
-        results_dict = model
-        return self.format_results(results_dict)
-
-    def format_results(self, results_dict):
-        # Return results
-        # Get status
-        status = self.STATUS_MAP.get(results_dict.Status, s.SOLVER_ERROR)
-
-        if (status != s.SOLVER_ERROR) & (status != s.INFEASIBLE):
-            # Get objective value
-            objval = results_dict.objVal
-
-            # Get solution
-            sol = np.array(results_dict.x)
-
-            # Get dual variables  (Gurobi uses swapped signs (-1))
-            constrs = results_dict.getConstrs()
-            dual = -np.array([constrs[i].Pi for i in range(len(constrs))])
-
-            # Get computation time
-            cputime = results_dict.Runtime
-
-            # Total Number of iterations
-            total_iter = results_dict.BarIterCount
-
-            # TODO: Add results structure
-            return Solution(status, objval, sol, dual,
-                                    {s.SOLVE_TIME:cputime, s.NUM_ITERS:total_iter})
-        else:  # Error
-            # Get computation time
-            cputime = results_dict.Runtime
-
-            # TODO: Add results structure
-            return Solution(status, None, None, None, {s.SOLVE_TIME:cputime})
+        return model

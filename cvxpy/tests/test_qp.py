@@ -54,10 +54,13 @@ class TestQp(BaseTest):
         print(p.value)
 
     def test_qp(self):
-        p = Problem(Minimize(quad_over_lin(norm1(self.x-1), 1)), [])
+        p = Problem(Minimize(quad_over_lin(norm1(self.x-1), 1)))
         self.assertTrue(Quadratic2QuadForm().accepts(p))
-        canon_p = Quadratic2QuadForm().apply(p)
+        canon_p, canon_inverse = Quadratic2QuadForm().apply(p)
         self.assertTrue(QpMatrixStuffing().accepts(canon_p))
-        stuffed_p = QpMatrixStuffing().apply(canon_p)
-        solution = GUROBI().solve(stuffed_p, False, False, {})
-        print(solution)
+        stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
+        GUROBI_solution = GUROBI().solve(stuffed_p, False, False, {})
+        stuffed_solution = QpMatrixStuffing().invert(GUROBI_solution, stuffed_inverse)
+        canon_solution = Quadratic2QuadForm().invert(stuffed_solution, canon_inverse)
+        for var in p.variables():
+            self.assertItemsAlmostEqual(numpy.array([1., 1.]), canon_solution.primal_vars[var.id])

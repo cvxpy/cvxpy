@@ -21,7 +21,7 @@ import cvxpy.interface as intf
 from cvxpy.error import SolverError
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
-from cvxpy.utilities import QuadCoeffExtractor
+from cvxpy.utilities import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as SLA
@@ -143,7 +143,7 @@ class LS(Solver):
         id_map = sym_data.var_offsets
         N = sym_data.x_length
 
-        extractor = QuadCoeffExtractor(id_map, N)
+        extractor = CoeffExtractor(id_map, N)
 
         # Extract the coefficients
         (Ps, Q, R) = extractor.get_coeffs(objective.args[0])
