@@ -33,7 +33,7 @@ def pnorm_canon(expr, args):
     if p >= 1:
         # TODO(akshayka): Express this more naturally (recursively), in terms
         # of the other atoms
-        abs_expr = abs(Variable(*x.shape))
+        abs_expr = abs(x)
         abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
         x = abs_x
         constraints += abs_constraints
