@@ -24,8 +24,8 @@ from cvxpy.atoms import *
 from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
-from cvxpy.reductions.qp_matrix_stuffing import QpMatrixStuffing
-from cvxpy.reductions.qp2quad_form import Qp2QuadForm
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.qp2quad_form.qp2quad_form import Qp2QuadForm
 from cvxpy.solver_interface.qp_solvers.gurobi_qpif import GUROBI
 from cvxpy.tests.base_test import BaseTest
 

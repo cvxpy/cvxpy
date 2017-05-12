@@ -1,5 +1,6 @@
 # GUROBI interface to solve QP problems
 import numpy as np
+import scipy.sparse as sp
 import gurobipy as grb
 from cvxpy.problems.problem_data.problem_data import ProblemData
 import cvxpy.settings as s
@@ -7,6 +8,7 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
 from collections import namedtuple
+from cvxpy.constraints import Zero, NonPos
 
 class GUROBI(ReductionSolver):
     """
@@ -40,16 +42,25 @@ class GUROBI(ReductionSolver):
         return problem.is_qp()
 
     def apply(self, problem):
+        # assumes matrix stuffed problem
         data = namedtuple("qp_struct", ['P', 'q', 'A', 'lb', 'ub'])
         obj = problem.objective
-        data.P = obj.args[0].args[0].args[1].value
-        data.q = obj.args[0].args[1].args[0].value.flatten()
-        data.A, b = ConicSolver.get_coeff_offset(problem.constraints[0].args[0])
-        data.uA = -b
-        data.lA = -grb.GRB.INFINITY*np.ones(b.shape)
-        inverse_data = {self.VAR_ID: problem.variables()[0].id}
-        inverse_data[self.EQ_CONSTR] = None # Gurobi does not accept equality constraints
-        inverse_data[self.NEQ_CONSTR] = problem.constraints[0].id
+        eq_constraints = [c for c in problem.constraints if type(c) == Zero]
+        ineq_constraints = [c for c in problem.constraints if type(c) == NonPos]
+        
+        data.P = obj.expr.args[0].args[1].value
+        data.q = obj.expr.args[1].args[0].value.flatten()
+        A, b = ConicSolver.get_coeff_offset(ineq_constraints[0].expr)
+        F, g = ConicSolver.get_coeff_offset(eq_constraints[0].expr)
+        data.A = sp.vstack([A, F])
+        data.uA = np.concatenate((-b, -g))
+        lbA = -grb.GRB.INFINITY*np.ones(b.shape)
+        data.lA = np.concatenate([lbA, -g]) 
+
+        inverse_data = {self.VAR_ID: problem.variables()[0].id}   
+        inverse_data[self.EQ_CONSTR] = eq_constraints[0].id
+        inverse_data[self.NEQ_CONSTR] = ineq_constraints[0].id
+        inverse_data['ineq_offset'] = b.shape[0]
         
         return data, inverse_data
 
@@ -63,7 +74,10 @@ class GUROBI(ReductionSolver):
             constrs = solution.getConstrs()
             dual_vars = {} 
             # Gurobi uses swapped signs (-1) for dual variables
-            dual_vars[inverse_data[self.NEQ_CONSTR]] = -np.array([constrs[i].Pi for i in range(len(constrs))])
+            ineq_constr_id = inverse_data[self.NEQ_CONSTR]
+            eq_constr_id = inverse_data[self.EQ_CONSTR]
+            dual_vars[ineq_constr_id] = -np.array([constrs[i].Pi for i in range(inverse_data['ineq_offset'])])
+            dual_vars[eq_constr_id] = -np.array([constrs[i].Pi for i in range(inverse_data['ineq_offset'], len(constrs))])
             total_iter = solution.BarIterCount
             attr[s.NUM_ITERS] = total_iter
         else: # no solution
