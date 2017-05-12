@@ -1,4 +1,3 @@
-#from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant
 
@@ -8,7 +7,7 @@ def canonicalize_constr(constr, canon_methods):
     arg_exprs = []
     constrs = []
     for a in constr.args:
-        e, c = canonicalize_tree(a, canon_methods=canon_methods)
+        e, c = canonicalize_tree(a, canon_methods)
         constrs += c
         arg_exprs += [e]
     # Feed the linear expressions into a constraint of the same type (assumed a cone):
@@ -20,11 +19,10 @@ def canonicalize_tree(expr, canon_methods):
     canon_args = []
     constrs = []
     for arg in expr.args:
-        canon_arg, c = canonicalize_tree(arg, canon_methods=canon_methods)
+        canon_arg, c = canonicalize_tree(arg, canon_methods)
         canon_args += [canon_arg]
         constrs += c
-    canon_expr, c = canonicalize_expr(expr, canon_args,
-                                    canon_methods=canon_methods)
+    canon_expr, c = canonicalize_expr(expr, canon_args, canon_methods)
     constrs += c
     return canon_expr, constrs
 

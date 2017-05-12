@@ -43,32 +43,27 @@ QP_CANON_METHODS[pnorm] = CANON_METHODS[pnorm]
 QP_CANON_METHODS[quad_over_lin] = quad_over_lin_QPcanon
 QP_CANON_METHODS[power] = power_QPcanon
 
-class Quadratic2QuadForm(Reduction):
-    def __init__(self):
-        self.old_var_ids = dict() # A list of the old variable IDs.
-        self.constr_map = dict()  # Maps the new constraint IDs to the old constraint IDs.
+class Qp2QuadForm(Reduction):
 
-    def accepts(self, prob):
-        return prob.is_qp()
+    def accepts(self, problem):
+        return problem.is_qp()
 
-    def apply(self, prob):
-        self.old_var_ids = [v.id for v in prob.variables()]
+    def apply(self, problem):
+        inverse_data = InverseData(problem)
 
-        obj_expr, new_constrs = canonicalize_tree(prob.objective.args[0],
-                                            canon_methods=QP_CANON_METHODS)
-        if isinstance(prob.objective, cvxpy.Minimize):
+        obj_expr, new_constrs = canonicalize_tree(problem.objective.args[0], QP_CANON_METHODS)
+        if isinstance(problem.objective, cvxpy.Minimize):
            new_obj = cvxpy.Minimize(obj_expr)
-        elif isinstance(prob.objective, cvxpy.Maximize):
+        elif isinstance(problem.objective, cvxpy.Maximize):
            new_obj = cvxpy.Maximize(obj_expr)
 
-        for c in prob.constraints:
-            top_constr, canon_constrs = canonicalize_constr(c,
-                                                canon_methods=QP_CANON_METHODS)
+        for c in problem.constraints:
+            top_constr, canon_constrs = canonicalize_constr(c, QP_CANON_METHODS)
             new_constrs += canon_constrs + [top_constr]
-            self.constr_map.update({ top_constr.id : c.id })
+            inverse_data.cons_id_map.update({ top_constr.id : c.id })
 
-        new_prob = cvxpy.Problem(new_obj, new_constrs)
-        return new_prob, {'old_var_ids': self.old_var_ids, 'constr_map': self.constr_map}
+        new_problem = cvxpy.Problem(new_obj, new_constrs)
+        return new_problem, inverse_data
 
 
     def invert(self, solution, inverse_data):
@@ -76,10 +71,10 @@ class Quadratic2QuadForm(Reduction):
         primal_vars = dict()
         dual_vars = dict()
         for id, val in solution.primal_vars.items():
-            if id in inverse_data['old_var_ids']:
+            if id in inverse_data.id_map.keys():
                 primal_vars.update({id: val})
 
-        for old_id, orig_id in inverse_data['constr_map'].items():
+        for old_id, orig_id in inverse_data.cons_id_map.items():
             dual_vars.update({orig_id : solution.dual_vars[old_id]})
 
         return Solution(solution.status, solution.opt_val, primal_vars, dual_vars)

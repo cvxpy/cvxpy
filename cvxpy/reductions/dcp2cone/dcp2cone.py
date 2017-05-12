@@ -4,55 +4,38 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
 import cvxpy
 
-
 class Dcp2Cone(Reduction):
-    def __init__(self):
-        self.old_var_ids = dict() # A list of the old variable IDs.
-        self.constr_map = dict()  # Maps the new constraint IDs to the old constraint IDs.
 
-    def accepts(self, prob):
-        return prob.is_dcp()
+    def accepts(self, problem):
+        return problem.is_dcp()
 
-    def apply(self, prob):
-        self.old_var_ids = [v.id for v in prob.variables()]
+    def apply(self, problem):
+        inverse_data = InverseData(problem)
 
-        obj_expr, new_constrs = canonicalize_tree(prob.objective.args[0],
+        obj_expr, new_constrs = canonicalize_tree(problem.objective.args[0],
                                             canon_methods=CANON_METHODS)
-        if isinstance(prob.objective, cvxpy.Minimize):
+        if isinstance(problem.objective, cvxpy.Minimize):
            new_obj = cvxpy.Minimize(obj_expr)
-        elif isinstance(prob.objective, cvxpy.Maximize):
+        elif isinstance(problem.objective, cvxpy.Maximize):
            new_obj = cvxpy.Maximize(obj_expr)
 
-        for c in prob.constraints:
+        for c in problem.constraints:
             top_constr, canon_constrs = canonicalize_constr(c,
                                                 canon_methods=CANON_METHODS)
-            #print(canon_constrs)
             new_constrs += canon_constrs + [top_constr]
-            self.constr_map.update({ top_constr.id : c.id })
+            inverse_data.cons_id_map.update({ top_constr.id : c.id })
 
-        new_prob = cvxpy.Problem(new_obj, new_constrs)
-        return new_prob
-
-
-    #@staticmethod
-    #def canonicalize_expr(expr):
-    #    canon_args = []
-    #    for arg in expr.args:
-    #        canon_args += [canonicalize_expr]
-    #    canon_expr = CANON[type(expr)](expr)
-    #    return canon_expr
-
-
-
+        new_problem = cvxpy.Problem(new_obj, new_constrs)
+        return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
 
         pvars = dict()
         for id, val in solution.primal_vars.items():
-            if id in self.old_var_ids:
+            if id in inverse_data.id_map.keys():
                 pvars.update({id: val})
 
-        for old_id, orig_id in self.constr_map.items:
+        for old_id, orig_id in inverse_data.cons_id_map.items():
             orig_sol.update({orig_id : solution.dual_vars[old_id]})
 
         orig_sol.optval = old_sol.optval

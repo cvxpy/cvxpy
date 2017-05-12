@@ -25,7 +25,7 @@ from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
 from cvxpy.reductions.qp_matrix_stuffing import QpMatrixStuffing
-from cvxpy.reductions.quadratic2quad_form import Quadratic2QuadForm
+from cvxpy.reductions.qp2quad_form import Qp2QuadForm
 from cvxpy.solver_interface.qp_solvers.gurobi_qpif import GUROBI
 from cvxpy.tests.base_test import BaseTest
 
@@ -54,13 +54,13 @@ class TestQp(BaseTest):
         print(p.value)
 
     def test_qp(self):
-        p = Problem(Minimize(quad_over_lin(norm1(self.x-1), 1)))
-        self.assertTrue(Quadratic2QuadForm().accepts(p))
-        canon_p, canon_inverse = Quadratic2QuadForm().apply(p)
+        p = Problem(Minimize(quad_over_lin(norm1(self.x-1), 1)), [self.x <= -1])
+        self.assertTrue(Qp2QuadForm().accepts(p))
+        canon_p, canon_inverse = Qp2QuadForm().apply(p)
         self.assertTrue(QpMatrixStuffing().accepts(canon_p))
         stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
         GUROBI_solution = GUROBI().solve(stuffed_p, False, False, {})
         stuffed_solution = QpMatrixStuffing().invert(GUROBI_solution, stuffed_inverse)
-        canon_solution = Quadratic2QuadForm().invert(stuffed_solution, canon_inverse)
+        canon_solution = Qp2QuadForm().invert(stuffed_solution, canon_inverse)
         for var in p.variables():
-            self.assertItemsAlmostEqual(numpy.array([1., 1.]), canon_solution.primal_vars[var.id])
+            self.assertItemsAlmostEqual(numpy.array([-1., -1.]), canon_solution.primal_vars[var.id])
