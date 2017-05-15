@@ -38,6 +38,7 @@ setup(
                       "toolz",
                       "numpy >= 1.9",
                       "scipy >= 0.15",
-                      "CVXcanon >= 0.0.22"],
+                      "CVXcanon >= 0.0.22",
+                      "mathprogbasepy >= 0.1.1"],
     use_2to3=True,
 )

@@ -26,7 +26,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2quad_form import Qp2QuadForm
-from cvxpy.solver_interface.qp_solvers.gurobi_qpif import GUROBI
+from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -59,8 +59,22 @@ class TestQp(BaseTest):
         canon_p, canon_inverse = Qp2QuadForm().apply(p)
         self.assertTrue(QpMatrixStuffing().accepts(canon_p))
         stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
-        GUROBI_solution = GUROBI().solve(stuffed_p, False, False, {})
-        stuffed_solution = QpMatrixStuffing().invert(GUROBI_solution, stuffed_inverse)
+        qp_solution = QpSolver('GUROBI').solve(stuffed_p, False, False, {})
+        stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
         canon_solution = Qp2QuadForm().invert(stuffed_solution, canon_inverse)
         for var in p.variables():
             self.assertItemsAlmostEqual(numpy.array([-1., -1.]), canon_solution.primal_vars[var.id])
+        for con in p.constraints:
+            self.assertItemsAlmostEqual(numpy.array([4., 4.]), canon_solution.dual_vars[con.id])
+
+    # def test_power(self):
+    #     p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
+    #     self.assertTrue(Qp2QuadForm().accepts(p))
+    #     canon_p, canon_inverse = Qp2QuadForm().apply(p)
+    #     self.assertTrue(QpMatrixStuffing().accepts(canon_p))
+    #     stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
+    #     qp_solution = QpSolver('GUROBI').solve(stuffed_p, False, False, {})
+    #     stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
+    #     canon_solution = Qp2QuadForm().invert(stuffed_solution, canon_inverse)
+    #     for var in p.variables():
+    #         self.assertItemsAlmostEqual(0., canon_solution.primal_vars[var.id])

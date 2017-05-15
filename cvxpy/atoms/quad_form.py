@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Robin Verschueren
 
 This file is part of CVXPY.
 

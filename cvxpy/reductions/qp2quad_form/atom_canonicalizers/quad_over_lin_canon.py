@@ -9,5 +9,4 @@ def quad_over_lin_canon(expr, args):
     shape = expr.shape
     size = shape[0]*shape[1]
     t = Variable(size, 1)
-    constraints = [reshape(t, shape) == x]
-    return QuadForm(t, eye(size)/y.value), constraints
+    return QuadForm(t, eye(size)/y.value), [reshape(t, shape) == x]
