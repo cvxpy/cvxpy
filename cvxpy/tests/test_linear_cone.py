@@ -25,7 +25,7 @@ from cvxpy.constraints import SOC, ExpCone
 from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
-from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
 from cvxpy.solver_interface.conic_solvers.gurobi_conif import GUROBI
 from cvxpy.solver_interface.conic_solvers.mosek_conif import MOSEK

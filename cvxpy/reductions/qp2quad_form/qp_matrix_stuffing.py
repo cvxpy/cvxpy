@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy
 from cvxpy.reductions.reduction import Reduction
-from cvxpy.utilities import CoeffExtractor
+from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 import cvxpy.settings as s
@@ -60,11 +60,10 @@ class QpMatrixStuffing(Reduction):
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
 
-        extractor = CoeffExtractor(inverse_data.var_offsets, inverse_data.x_length)
+        extractor = CoeffExtractor(inverse_data.var_offsets, inverse_data.var_shapes, inverse_data.x_length)
         objective = problem.objective
         # extract to x.T * P * x + q.T * x + r
-        ([P], Q, r) = extractor.quad_form(objective.expr)
-        q = np.asarray(Q.todense()).flatten()
+        (P, q, r) = extractor.quad_form(objective.expr)
         new_obj = QuadForm(x, P) + q.T*x + r
 
         constraints = problem.constraints

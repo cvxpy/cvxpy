@@ -7,7 +7,7 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
-from cvxpy.utilities import CoeffExtractor
+from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.reductions.inverse_data import InverseData
 
 
@@ -42,7 +42,7 @@ class ConeMatrixStuffing(Reduction):
         id_map = inverse_data.var_offsets
         N = inverse_data.x_length
 
-        extractor = CoeffExtractor(id_map, N)
+        extractor = CoeffExtractor(id_map, None, N)
 
         # Extract the coefficients
         C, R = extractor.get_coeffs(objective.args[0])

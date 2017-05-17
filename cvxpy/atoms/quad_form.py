@@ -18,9 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import division
+from cvxpy.atoms.atom import Atom
 import cvxpy.interface as intf
 import warnings
-from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 from .sum_squares import sum_squares
@@ -39,7 +39,6 @@ class QuadForm(Atom):
             self.P_eigvals = LA.eigvals(P) # cache eigenvalues
         except:
             self.P_eigvals = LA.eigvals(P.todense())
-
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -104,6 +103,41 @@ class QuadForm(Atom):
     
     def shape_from_args(self):
         return (1, 1)
+
+class SymbolicQuadForm(Atom):
+    """
+    Symbolic form of QuadForm when quadratic matrix is not known (yet).
+    """
+    def __init__(self, x, expr):
+        self.original_expression = expr
+        super(SymbolicQuadForm, self).__init__(x)
+
+    def _grad(self, values):
+        return NotImplemented
+    
+    def graph_implementation(self, arg_objs, shape, data=None):
+        return NotImplemented
+    
+    def is_atom_concave(self):
+        return self.original_expression.is_atom_concave()
+
+    def is_atom_convex(self):
+        return self.original_expression.is_atom_convex()
+
+    def is_decr(self, idx):
+        return self.original_expression.is_decr(idx)
+
+    def is_incr(self, idx):
+        return self.original_expression.is_incr(idx)
+
+    def shape_from_args(self):
+        return self.original_expression.shape_from_args()
+    
+    def sign_from_args(self):
+        return self.original_expression.sign_from_args()
+
+    def is_quadratic(self):
+        return True
 
 def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
