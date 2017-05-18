@@ -13,4 +13,4 @@ def power_canon(expr, args):
     if p != 2:
         raise ValueError("quadratic form can only have power 2")
     t = Variable(x.size, 1)
-    return SymbolicQuadForm(t, expr), [reshape(t, x.shape) == x]
+    return SymbolicQuadForm(t, None, expr), [reshape(t, x.shape) == x]

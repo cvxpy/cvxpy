@@ -73,20 +73,22 @@ class QpMatrixStuffing(Reduction):
         if ineq_cons:
             A = sp.vstack([C[0] for C in ineq_cons])
             b = np.array([C[1] for C in ineq_cons]).flatten()
-            new_cons += [A*x + b <= 0]
+            new_eq = A*x + b <= 0
+            new_cons += [new_eq]
         if eq_cons:
             F = sp.vstack([C[0] for C in eq_cons])
             g = np.array([C[1] for C in eq_cons]).flatten()
-            new_cons += [F*x + g == 0]
+            new_ineq = F*x + g == 0
+            new_cons += [new_ineq]
 
         offset = {s.INEQ_CONSTR: 0, s.EQ_CONSTR: 0}
         inverse_data.new_var_id = x.id
         for c in constraints:
             if type(c) == NonPos:
-                inverse_data.cons_id_map[c.constr_id] = (new_cons[0].constr_id, offset[s.INEQ_CONSTR], c.shape)
+                inverse_data.cons_id_map[c.constr_id] = (new_eq.constr_id, offset[s.INEQ_CONSTR], c.shape)
                 offset[s.INEQ_CONSTR] += c.shape[0]*c.shape[1]
             elif type(c) == Zero:
-                inverse_data.cons_id_map[c.constr_id] = (new_cons[1].constr_id, offset[s.EQ_CONSTR], c.shape)
+                inverse_data.cons_id_map[c.constr_id] = (new_ineq.constr_id, offset[s.EQ_CONSTR], c.shape)
                 offset[s.EQ_CONSTR] += c.shape[0]*c.shape[1]
             else:
                 raise ValueError("Type", type(c), "not allowed in QP")
@@ -107,8 +109,8 @@ class QpMatrixStuffing(Reduction):
                 dual_vars[old_id] = val.reshape(shape, order='F')
             for old_id, tup in inverse_data.id_map.items():
                 offset, size = tup
+                shape = inverse_data.var_shapes[old_id]
                 new_id = inverse_data.new_var_id
-                size = shape[0]*shape[1]
                 val = solution.primal_vars[new_id][offset:offset+size]
                 primal_vars[old_id] = val.reshape(shape, order='F')
             ret = Solution(s.OPTIMAL, solution.opt_val, primal_vars, dual_vars)

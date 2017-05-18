@@ -29,6 +29,7 @@ from cvxpy.atoms import quad_over_lin, matrix_frac, power, huber, affine_prod
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.expressions.constants import Constant
 import operator
+import copy
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor(object):
@@ -193,48 +194,54 @@ class CoeffExtractor(object):
         Ps = [P.tocsr() for P in Ps]
         return Ps, Q.tocsr(), R
 
-    def symbolic_to_quad_form(self, expr, idx, root_expr, coeffs):           
-        if isinstance(expr.original_expression, quad_over_lin):
-            y = expr.original_expression.args[1]
-            expr.args[idx] = Constant(np.eye(1))/y
-            c, b = self.affine(root_expr)
-            coeffs[1] += [c]
-            coeffs[2] += [b]
-            return coeffs
-        elif isinstance(expr.original_expression, power):
-            pass
-        else:
-            raise RuntimeError("Symbolic Quadform does not have a known type")
+    def symbolic_to_quad_form(self, expr, idx, root_expr, coeffs):
+        quad_form = expr.args[idx]
+        var_id = quad_form.args[0].id
+        n = quad_form.args[0].shape[0]
+        expr.args[idx] = quad_form.args[0]
+        c, b = self.affine(root_expr)
+        coeffs['P'][var_id] += [sp.diags(c.toarray().flatten())]
+        coeffs['q'][var_id] += [np.zeros((self.N, 1))]
+        coeffs['r'][var_id] += [b]
+        return coeffs
 
     def eliminate_symbolic_quadform(self, expr, root_expr, coeffs):
-        if isinstance(expr, SymbolicQuadForm):
-            n = expr.args[0].shape[0]
-            coeffs['P'][expr.args[0].id] = sp.eye(n)
-            coeffs['q'][expr.args[0].id] = np.zeros((n, 1))
-            coeffs['r'][expr.args[0].id] = 0.
-            return coeffs
-        else:
-            for idx, arg in enumerate(expr.args):
-                if isinstance(arg, SymbolicQuadForm):
-                    return self.symbolic_to_quad_form(expr, idx, root_expr, coeffs)
-                else:
-                    return self.eliminate_symbolic_quadform(arg, root_expr, coeffs)
+        for idx, arg in enumerate(expr.args):
+            if isinstance(arg, SymbolicQuadForm):
+                return self.symbolic_to_quad_form(expr, idx, root_expr, coeffs)
+            else:
+                return self.eliminate_symbolic_quadform(arg, root_expr, coeffs)
 
     def quad_form(self, expr):
-        coeffs_dict = self.eliminate_symbolic_quadform(expr, expr, {'P':{}, 'q':{}, 'r':{}})
+        coeffs = {'P':{}, 'q':{}, 'r':{}}
+        for var in self.id_map.keys():
+            coeffs['P'][var] = []
+            coeffs['q'][var] = []
+            coeffs['r'][var] = []
+        if isinstance(expr, SymbolicQuadForm):
+            P = sp.csr_matrix((self.N, self.N))
+            coeffs['q'][expr.args[0].id] = [np.zeros((self.N, 1))]
+            coeffs['r'][expr.args[0].id] = [0]
+            for var_id in self.id_map.keys():
+                if var_id == expr.args[0].id:
+                    offset = self.id_map[var_id]
+                    shape = self.var_shapes[var_id]
+                    size = shape[0]*shape[1]
+                    P[offset:offset+size, offset:offset+size] = np.eye(size)
+                    coeffs['P'][expr.args[0].id] = [P]
+
+        else:
+            expr = copy.deepcopy(expr)
+            coeffs = self.eliminate_symbolic_quadform(expr, expr, coeffs)
         sorted_shapes = sorted(self.var_shapes.items(), key=operator.itemgetter(1))
-        P = sp.csr_matrix((0, 0))
-        q = np.zeros((0, 1))
+        P = sp.csr_matrix((self.N, self.N))
+        q = np.zeros((self.N, 1))
         r = 0.
         for var_id, shape in sorted_shapes:
-            try:
-                P = sp.block_diag([P, coeffs_dict['P'][var_id]])
-                q = np.vstack((q, coeffs_dict['q'][var_id]))
-                r += coeffs_dict['r'][var_id]
-            except KeyError:
-                P = sp.block_diag([P, sp.csr_matrix((shape[0], shape[0]))])
-                q = np.vstack((q, np.zeros((shape[0], 1))))
-                r += 0
+            if coeffs['P'][var_id] and coeffs['q'][var_id] and coeffs['r'][var_id]:
+                P += coeffs['P'][var_id][0]
+                q += coeffs['q'][var_id][0]
+                r += coeffs['r'][var_id][0]
         
         if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
             raise RuntimeError("Resulting quadratic form does not have appropriate dimensions")

@@ -53,21 +53,28 @@ class QpSolver(ReductionSolver):
         # assumes matrix stuffed problem
         import mathprogbasepy as qp
         obj = problem.objective
-        eq_constraints = [c for c in problem.constraints if type(c) == Zero]
-        ineq_constraints = [c for c in problem.constraints if type(c) == NonPos]
+        eq = [c for c in problem.constraints if type(c) == Zero]
+        ineq = [c for c in problem.constraints if type(c) == NonPos]
         
-        P = obj.expr.args[0].args[1].value
+        P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
-        A, b = ConicSolver.get_coeff_offset(ineq_constraints[0].expr)
-        F, g = ConicSolver.get_coeff_offset(eq_constraints[0].expr)
+        n = P.shape[0]
+        inverse_data = {self.VAR_ID: problem.variables()[0].id}   
+        if ineq:
+            inverse_data[self.NEQ_CONSTR] = ineq[0].id
+            A, b = ConicSolver.get_coeff_offset(ineq[0].expr)
+        else:
+            A, b = sp.csr_matrix((0, n)), np.array([])
+        if eq:
+            inverse_data[self.EQ_CONSTR] = eq[0].id
+            F, g = ConicSolver.get_coeff_offset(eq[0].expr)
+        else:
+            F, g = sp.csr_matrix((0, n)), np.array([])
         A = sp.vstack([A, F])
         u = np.concatenate((-b, -g))
         lbA = -grb.GRB.INFINITY*np.ones(b.shape)
         l = np.concatenate([lbA, -g]) 
 
-        inverse_data = {self.VAR_ID: problem.variables()[0].id}   
-        inverse_data[self.EQ_CONSTR] = eq_constraints[0].id
-        inverse_data[self.NEQ_CONSTR] = ineq_constraints[0].id
         inverse_data['ineq_offset'] = b.shape[0]
         
         return qp.QuadprogProblem(P, q, A, l, u), inverse_data
@@ -79,11 +86,13 @@ class QpSolver(ReductionSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.obj_val
             primal_vars = {inverse_data[self.VAR_ID]: np.array(solution.x)}
-            dual_vars = {} 
-            ineq_constr_id = inverse_data[self.NEQ_CONSTR]
-            eq_constr_id = inverse_data[self.EQ_CONSTR]
-            dual_vars[ineq_constr_id] = solution.y[:inverse_data['ineq_offset']]
-            dual_vars[eq_constr_id] = solution.y[inverse_data['ineq_offset']:]
+            dual_vars = {}
+            if self.NEQ_CONSTR in inverse_data:
+                ineq_constr_id = inverse_data[self.NEQ_CONSTR]
+                dual_vars[ineq_constr_id] = solution.y[:inverse_data['ineq_offset']]
+            if self.EQ_CONSTR in inverse_data:
+                eq_constr_id = inverse_data[self.EQ_CONSTR]
+                dual_vars[eq_constr_id] = solution.y[inverse_data['ineq_offset']:]
             total_iter = solution.total_iter
             attr[s.NUM_ITERS] = total_iter
         else: # no solution

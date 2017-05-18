@@ -65,16 +65,19 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual(numpy.array([-1., -1.]), canon_solution.primal_vars[var.id])
         for con in p.constraints:
-            self.assertItemsAlmostEqual(numpy.array([4., 4.]), canon_solution.dual_vars[con.id])
+            self.assertItemsAlmostEqual(numpy.array([8., 8.]), canon_solution.dual_vars[con.id])
 
-    # def test_power(self):
-    #     p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
-    #     self.assertTrue(Qp2QuadForm().accepts(p))
-    #     canon_p, canon_inverse = Qp2QuadForm().apply(p)
-    #     self.assertTrue(QpMatrixStuffing().accepts(canon_p))
-    #     stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
-    #     qp_solution = QpSolver('GUROBI').solve(stuffed_p, False, False, {})
-    #     stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
-    #     canon_solution = Qp2QuadForm().invert(stuffed_solution, canon_inverse)
-    #     for var in p.variables():
-    #         self.assertItemsAlmostEqual(0., canon_solution.primal_vars[var.id])
+    def test_power(self):
+        p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
+        var_id = p.objective.variables()[0].id
+        self.assertTrue(Qp2QuadForm().accepts(p))
+        self.assertEqual(var_id, p.objective.variables()[0].id)
+        canon_p, canon_inverse = Qp2QuadForm().apply(p)
+        self.assertEqual(var_id, p.objective.variables()[0].id)
+        self.assertTrue(QpMatrixStuffing().accepts(canon_p))
+        stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
+        qp_solution = QpSolver('GUROBI').solve(stuffed_p, False, False, {})
+        stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
+        canon_solution = Qp2QuadForm().invert(stuffed_solution, canon_inverse)
+        for var in p.variables():
+            self.assertItemsAlmostEqual(0., canon_solution.primal_vars[var.id])

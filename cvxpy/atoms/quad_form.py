@@ -108,7 +108,7 @@ class SymbolicQuadForm(Atom):
     """
     Symbolic form of QuadForm when quadratic matrix is not known (yet).
     """
-    def __init__(self, x, expr):
+    def __init__(self, x, P, expr):
         self.original_expression = expr
         super(SymbolicQuadForm, self).__init__(x)
 
