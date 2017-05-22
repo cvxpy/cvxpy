@@ -1,16 +1,16 @@
-from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.vstack import vstack
+from numpy import ones
+
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variables import Variable
 
-import numpy as np
-
 def power_canon(expr, args):
-    x = args[0]
+    affine_expr = args[0]
     p = expr.p
-    w = expr.w
-
-    if p != 2:
-        raise ValueError("quadratic form can only have power 2")
-    t = Variable(x.size, 1)
-    return SymbolicQuadForm(t, None, expr), [reshape(t, x.shape) == x]
+    if p == 0:
+        return ones(affine_expr.shape), []
+    elif p == 1:
+        return affine_expr, []
+    elif p == 2:
+        t = Variable(*affine_expr.shape)
+        return SymbolicQuadForm(t, None, expr), [affine_expr == t]
+    raise ValueError("quadratic form can only have power 2")

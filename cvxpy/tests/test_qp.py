@@ -56,25 +56,25 @@ class TestQp(BaseTest):
         stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
         return Qp2QuadForm().invert(stuffed_solution, canon_inverse)
 
-    # def test_ls(self):
-        # A = numpy.random.randn(10,2)
-        # b = numpy.random.randn(10,1)
-        # p = Problem(Minimize(sum_squares(A*self.x-b)))
-        # p.solve('LS')
-
     def test_quad_over_lin(self):
-        p = Problem(Minimize(0.5 * quad_over_lin(norm1(self.x-1), 1)), [self.x <= -1])
+        p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)), [self.x <= -1])
         s = self.solve_QP(p, 'GUROBI')
         for var in p.variables():
             self.assertItemsAlmostEqual(numpy.array([-1., -1.]), s.primal_vars[var.id])
         for con in p.constraints:
-            self.assertItemsAlmostEqual(numpy.array([4., 4.]), s.dual_vars[con.id])
+            self.assertItemsAlmostEqual(numpy.array([2., 2.]), s.dual_vars[con.id])
 
     def test_power(self):
         p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
         s = self.solve_QP(p, 'GUROBI')
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
+
+    def test_power_matrix(self):
+        p = Problem(Minimize(sum_entries(power(self.A - 3., 2))), [])
+        s = self.solve_QP(p, 'GUROBI')
+        for var in p.variables():
+            self.assertItemsAlmostEqual([3., 3., 3., 3.], s.primal_vars[var.id])
 
     def test_square_affine(self):
         A = numpy.random.randn(10,2)
@@ -94,4 +94,6 @@ class TestQp(BaseTest):
         s = self.solve_QP(p, 'GUROBI')
         for var in p.variables():
             self.assertItemsAlmostEqual(z, s.primal_vars[var.id])
+
+    
 

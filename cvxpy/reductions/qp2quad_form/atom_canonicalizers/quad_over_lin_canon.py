@@ -1,13 +1,9 @@
 from cvxpy.expressions.variables import Variable
-from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.atoms.elementwise import sqrt
 from numpy import eye
 
 def quad_over_lin_canon(expr, args):
-    x = args[0]
+    affine_expr = args[0]
     y = args[1]
-    shape = x.shape
-    size = shape[0]*shape[1]
-    t = Variable(size, 1)
-    return SymbolicQuadForm(t, eye(size)/y, expr), [reshape(t, shape) == x]
+    t = Variable(*affine_expr.shape)
+    return SymbolicQuadForm(t, eye(affine_expr.size)/y, expr), [affine_expr == t]

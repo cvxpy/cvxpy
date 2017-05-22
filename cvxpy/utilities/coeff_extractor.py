@@ -229,6 +229,7 @@ class CoeffExtractor(object):
                 coeffs[var.id] = dict()
                 coeffs[var.id]['P'] = sp.csr_matrix((n,n))
                 coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
+        old_problem = ReplaceQuadForms().invert(affine_problem, quad_forms)
         P = sp.csr_matrix((0, 0))
         q = np.zeros(0)
         sorted_shapes = sorted(self.var_shapes.items(), key=operator.itemgetter(1))
@@ -237,10 +238,10 @@ class CoeffExtractor(object):
                 P = sp.block_diag([P, coeffs[var_id]['P']])
                 q = np.concatenate([q, coeffs[var_id]['q']])
             else:
-                P = sp.block_diag([P, sp.csr_matrix((shape[0], shape[0]))])
-                q = np.concatenate([q, np.zeros(shape[0])])
+                size = shape[0]*shape[1]
+                P = sp.block_diag([P, sp.csr_matrix((size, size))])
+                q = np.concatenate([q, np.zeros(size)])
 
         if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
             raise RuntimeError("Resulting quadratic form does not have appropriate dimensions")
-        old_problem = ReplaceQuadForms().invert(affine_problem, quad_forms)
         return P.tocsr(), q, b
