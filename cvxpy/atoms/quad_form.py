@@ -110,6 +110,7 @@ class SymbolicQuadForm(Atom):
     """
     def __init__(self, x, P, expr):
         self.original_expression = expr
+        self.P = P
         super(SymbolicQuadForm, self).__init__(x)
 
     def _grad(self, values):

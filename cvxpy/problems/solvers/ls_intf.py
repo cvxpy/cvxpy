@@ -21,7 +21,7 @@ import cvxpy.interface as intf
 from cvxpy.error import SolverError
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
+# from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as SLA

@@ -23,27 +23,33 @@ import numpy as np
 import scipy.sparse as sp
 import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.lin_ops.lin_op import NO_OP
+from cvxpy.lin_ops.lin_op import LinOp
 from numpy import linalg as LA
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.atoms import quad_over_lin, matrix_frac, power, huber, affine_prod
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.variables import Variable
 import operator
 import copy
+from cvxpy.reductions.qp2quad_form.replace_quad_forms import ReplaceQuadForms
+from cvxpy.reductions.inverse_data import InverseData
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor(object):
 
-    def __init__(self, id_map, var_shapes, N):
-        self.id_map = id_map
-        self.N = N
-        self.var_shapes = var_shapes
+    def __init__(self, inverse_data):
+        self.id_map = inverse_data.var_offsets
+        self.N = inverse_data.x_length
+        self.var_shapes = inverse_data.var_shapes
 
     # Given a quadratic expression expr of shape m*n, extracts
     # the coefficients. Returns (Ps, Q, R) such that the (i, j)
     # entry of expr is given by
     #   x.T*Ps[k]*x + Q[k, :]*x + R[k],
-    # where k = i + j*m. x is the vectorized variables indexed
+    # where k 
+    # V= i + j*m. x is the vectorized variables indexed
     # by id_map.
     #
     # Ps: array of SciPy sparse matrices
@@ -194,55 +200,47 @@ class CoeffExtractor(object):
         Ps = [P.tocsr() for P in Ps]
         return Ps, Q.tocsr(), R
 
-    def symbolic_to_quad_form(self, expr, idx, root_expr, coeffs):
-        quad_form = expr.args[idx]
-        var_id = quad_form.args[0].id
-        n = quad_form.args[0].shape[0]
-        expr.args[idx] = quad_form.args[0]
-        c, b = self.affine(root_expr)
-        coeffs['P'][var_id] += [sp.diags(c.toarray().flatten())]
-        coeffs['q'][var_id] += [np.zeros((self.N, 1))]
-        coeffs['r'][var_id] += [b]
-        return coeffs
-
-    def eliminate_symbolic_quadform(self, expr, root_expr, coeffs):
-        for idx, arg in enumerate(expr.args):
-            if isinstance(arg, SymbolicQuadForm):
-                return self.symbolic_to_quad_form(expr, idx, root_expr, coeffs)
+    def quad_form(self, problem):
+        affine_problem, quad_forms = ReplaceQuadForms().apply(problem)
+        affine_inverse_data = InverseData(affine_problem)
+        affine_id_map = affine_inverse_data.id_map
+        affine_var_shapes = affine_inverse_data.var_shapes
+        extractor = CoeffExtractor(affine_inverse_data)
+        c, b = extractor.affine(affine_problem.objective.expr)
+        coeffs = {}
+        for var in affine_problem.variables():
+            if var.id in quad_forms:
+                var_id = var.id
+                orig_id = quad_forms[var_id][2].args[0].id
+                var_offset = affine_id_map[var_id][0]
+                var_size = affine_id_map[var_id][1]
+                if quad_forms[var_id][2].P is not None:
+                    P = c[0, var_offset:var_offset+var_size].toarray().flatten() * quad_forms[var_id][2].P.value
+                else:
+                    P = sp.diags(c[0, var_offset:var_offset+var_size].toarray().flatten())
+                coeffs[orig_id] = dict()
+                coeffs[orig_id]['P'] = P
+                coeffs[orig_id]['q'] = np.zeros(P.shape[0])
             else:
-                return self.eliminate_symbolic_quadform(arg, root_expr, coeffs)
-
-    def quad_form(self, expr):
-        coeffs = {'P':{}, 'q':{}, 'r':{}}
-        for var in self.id_map.keys():
-            coeffs['P'][var] = []
-            coeffs['q'][var] = []
-            coeffs['r'][var] = []
-        if isinstance(expr, SymbolicQuadForm):
-            P = sp.csr_matrix((self.N, self.N))
-            coeffs['q'][expr.args[0].id] = [np.zeros((self.N, 1))]
-            coeffs['r'][expr.args[0].id] = [0]
-            for var_id in self.id_map.keys():
-                if var_id == expr.args[0].id:
-                    offset = self.id_map[var_id]
-                    shape = self.var_shapes[var_id]
-                    size = shape[0]*shape[1]
-                    P[offset:offset+size, offset:offset+size] = np.eye(size)
-                    coeffs['P'][expr.args[0].id] = [P]
-
-        else:
-            expr = copy.deepcopy(expr)
-            coeffs = self.eliminate_symbolic_quadform(expr, expr, coeffs)
+                var_offset = affine_id_map[var.id][0]
+                var_shape = affine_var_shapes[var.id]
+                n = var_shape[0]
+                var_size = var_shape[0]*var_shape[1]
+                coeffs[var.id] = dict()
+                coeffs[var.id]['P'] = sp.csr_matrix((n,n))
+                coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
+        P = sp.csr_matrix((0, 0))
+        q = np.zeros(0)
         sorted_shapes = sorted(self.var_shapes.items(), key=operator.itemgetter(1))
-        P = sp.csr_matrix((self.N, self.N))
-        q = np.zeros((self.N, 1))
-        r = 0.
         for var_id, shape in sorted_shapes:
-            if coeffs['P'][var_id] and coeffs['q'][var_id] and coeffs['r'][var_id]:
-                P += coeffs['P'][var_id][0]
-                q += coeffs['q'][var_id][0]
-                r += coeffs['r'][var_id][0]
-        
+            if var_id in coeffs:
+                P = sp.block_diag([P, coeffs[var_id]['P']])
+                q = np.concatenate([q, coeffs[var_id]['q']])
+            else:
+                P = sp.block_diag([P, sp.csr_matrix((shape[0], shape[0]))])
+                q = np.concatenate([q, np.zeros(shape[0])])
+
         if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
             raise RuntimeError("Resulting quadratic form does not have appropriate dimensions")
-        return P.tocsr(), q, r
+        old_problem = ReplaceQuadForms().invert(affine_problem, quad_forms)
+        return P.tocsr(), q, b

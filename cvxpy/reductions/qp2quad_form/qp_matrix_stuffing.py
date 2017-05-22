@@ -29,6 +29,7 @@ from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.solution import Solution
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.reductions.inverse_data import InverseData
+from .replace_quad_forms import ReplaceQuadForms
 
 
 class QpMatrixStuffing(Reduction):
@@ -57,13 +58,12 @@ class QpMatrixStuffing(Reduction):
         """Returns a new problem and data for inverting the new solution.
         """
         inverse_data = InverseData(problem)
+        extractor = CoeffExtractor(inverse_data)
+        # extract to x.T * P * x + q.T * x + r
+        (P, q, r) = extractor.quad_form(problem)
+        
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
-
-        extractor = CoeffExtractor(inverse_data.var_offsets, inverse_data.var_shapes, inverse_data.x_length)
-        objective = problem.objective
-        # extract to x.T * P * x + q.T * x + r
-        (P, q, r) = extractor.quad_form(objective.expr)
         new_obj = QuadForm(x, P) + q.T*x + r
 
         constraints = problem.constraints

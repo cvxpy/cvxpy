@@ -38,11 +38,9 @@ class ConeMatrixStuffing(Reduction):
         constraints = problem.constraints
 
         inverse_data = InverseData(problem)
-
-        id_map = inverse_data.var_offsets
         N = inverse_data.x_length
 
-        extractor = CoeffExtractor(id_map, None, N)
+        extractor = CoeffExtractor(inverse_data)
 
         # Extract the coefficients
         C, R = extractor.get_coeffs(objective.args[0])
