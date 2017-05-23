@@ -33,21 +33,16 @@ from .replace_quad_forms import ReplaceQuadForms
 
 
 class QpMatrixStuffing(Reduction):
-    """Linearly constrained least squares solver via SciPy.
+    """Fills in numeric values for this problem instance.
     """
 
     def accepts(self, prob):
-        """Temporary method to determine whether the given Problem object is suitable for LS solver.
-        """
-        import cvxpy.constraints.zero as eqc
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
 
-        # TODO: handle affine objective
         return (
             prob.is_dcp() and
             prob.objective.args[0].is_quadratic() and
-            not prob.objective.args[0].is_affine() and
             all([arg.is_affine() for c in prob.constraints for arg in c.args]) and
             all([type(v) in allowedVariables for v in prob.variables()]) and
             all([not v.domain for v in prob.variables()])  # no implicit variable domains
@@ -72,12 +67,12 @@ class QpMatrixStuffing(Reduction):
         eq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == Zero]
         if ineq_cons:
             A = sp.vstack([C[0] for C in ineq_cons])
-            b = np.array([C[1] for C in ineq_cons]).flatten()
+            b = np.concatenate([C[1] for C in ineq_cons]).flatten()
             new_eq = A*x + b <= 0
             new_cons += [new_eq]
         if eq_cons:
             F = sp.vstack([C[0] for C in eq_cons])
-            g = np.array([C[1] for C in eq_cons]).flatten()
+            g = np.concatenate([C[1] for C in eq_cons]).flatten()
             new_ineq = F*x + g == 0
             new_cons += [new_ineq]
 

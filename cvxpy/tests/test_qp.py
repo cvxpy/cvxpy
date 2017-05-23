@@ -95,5 +95,12 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual(z, s.primal_vars[var.id])
 
-    
-
+    def test_affine_problem(self):
+        A = numpy.random.randn(5,2)
+        A = numpy.maximum(A, 0)
+        b = numpy.random.randn(5,1)
+        b = numpy.maximum(b, 0)
+        p = Problem(Minimize(sum_entries(self.x)), [self.x >= 0, A*self.x <= b])
+        s = self.solve_QP(p, 'GUROBI')
+        for var in p.variables():
+            self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])

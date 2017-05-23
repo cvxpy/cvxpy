@@ -18,23 +18,25 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import division
-import cvxpy as cvx
+
+import copy
+import operator
+
 import numpy as np
 import scipy.sparse as sp
-import canonInterface
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.lin_ops.lin_op import NO_OP
-from cvxpy.lin_ops.lin_op import LinOp
 from numpy import linalg as LA
-from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.atoms import quad_over_lin, matrix_frac, power, huber, affine_prod
-from cvxpy.atoms.quad_form import QuadForm
+
+import canonInterface
+import cvxpy as cvx
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms import affine_prod, huber, matrix_frac, power, quad_over_lin
+from cvxpy.atoms.quad_form import QuadForm, SymbolicQuadForm
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
-import operator
-import copy
-from cvxpy.reductions.qp2quad_form.replace_quad_forms import ReplaceQuadForms
+from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.qp2quad_form.replace_quad_forms import ReplaceQuadForms
+
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor(object):
@@ -200,8 +202,7 @@ class CoeffExtractor(object):
         Ps = [P.tocsr() for P in Ps]
         return Ps, Q.tocsr(), R
 
-    def quad_form(self, problem):
-        affine_problem, quad_forms = ReplaceQuadForms().apply(problem)
+    def fill_in_quad_forms(self, affine_problem, quad_forms):
         affine_inverse_data = InverseData(affine_problem)
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes
@@ -229,19 +230,27 @@ class CoeffExtractor(object):
                 coeffs[var.id] = dict()
                 coeffs[var.id]['P'] = sp.csr_matrix((n,n))
                 coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
-        old_problem = ReplaceQuadForms().invert(affine_problem, quad_forms)
+        return coeffs, b
+
+    def quad_form(self, problem):
+        """ Extract quadratic, linear and constant part of a quadratic objective
+        """
+        affine_problem, quad_forms = ReplaceQuadForms().apply(problem)
+        coeffs, constant = self.fill_in_quad_forms(affine_problem, quad_forms)
+        ReplaceQuadForms().invert(affine_problem, quad_forms)
         P = sp.csr_matrix((0, 0))
         q = np.zeros(0)
-        sorted_shapes = sorted(self.var_shapes.items(), key=operator.itemgetter(1))
-        for var_id, shape in sorted_shapes:
+        offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
+        for var_id, offset in offsets:
             if var_id in coeffs:
                 P = sp.block_diag([P, coeffs[var_id]['P']])
                 q = np.concatenate([q, coeffs[var_id]['q']])
             else:
+                shape = self.var_shapes[var_id]
                 size = shape[0]*shape[1]
                 P = sp.block_diag([P, sp.csr_matrix((size, size))])
                 q = np.concatenate([q, np.zeros(size)])
 
         if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
             raise RuntimeError("Resulting quadratic form does not have appropriate dimensions")
-        return P.tocsr(), q, b
+        return P.tocsr(), q, constant
