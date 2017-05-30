@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.utilities as u
 import cvxpy.settings as s
-import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.utilities import format_axis
@@ -43,24 +42,6 @@ class SOC(u.Canonical, Constraint):
 
     def __str__(self):
         return "SOC(%s, %s)" % (self.args[0], self.args[1])
-
-    def format(self, eq_constr, leq_constr, dims, solver):
-        """Formats SOC constraints as inequalities for the solver.
-
-        Parameters
-        ----------
-        eq_constr : list
-            A list of the equality constraints in the canonical problem.
-        leq_constr : list
-            A list of the inequality constraints in the canonical problem.
-        dims : dict
-            A dict with the dimensions of the conic constraints.
-        solver : str
-            The solver being called.
-        """
-        leq_constr += self.__format[1]
-        # Update dims.
-        dims[s.SOC_DIM].append(self.size[0])
 
     def format(self, eq_constr, leq_constr, dims, solver):
         """Formats SOC constraints as inequalities for the solver.
@@ -122,9 +103,8 @@ class SOC(u.Canonical, Constraint):
         """
         return all([arg.is_affine() for arg in self.args])
 
-    #TODO hack
+    # TODO hack
     def canonicalize(self):
-        constr = []
         t, t_cons = self.args[0].canonical_form
         X, X_cons = self.args[1].canonical_form
         new_soc = SOC(t, X, self.axis)

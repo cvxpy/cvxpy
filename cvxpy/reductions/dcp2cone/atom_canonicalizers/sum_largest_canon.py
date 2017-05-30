@@ -1,6 +1,5 @@
 from cvxpy.atoms.affine.sum_entries import sum_entries
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
 
 
 def sum_largest_canon(expr, args):

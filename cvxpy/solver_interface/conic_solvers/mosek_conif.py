@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SDP, SOC, NonPos, Zero
@@ -99,7 +98,7 @@ class MOSEK(ConicSolver):
         sd_constr = [c for c in problem.constraints if type(c) == SDP]
         inv_data[MOSEK.NEQ_CONSTR] = leq_constr + soc_constr + sd_constr
         return data, inv_data
-    
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -108,8 +107,12 @@ class MOSEK(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value']
             primal_vars = {inverse_data[MOSEK.VAR_ID]: solution['primal']}
-            eq_dual = ConicSolver.get_dual_values(solution['eq_dual'], inverse_data[MOSEK.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(solution['ineq_dual'], inverse_data[MOSEK.NEQ_CONSTR])
+            eq_dual = ConicSolver.get_dual_values(
+                solution['eq_dual'],
+                inverse_data[MOSEK.EQ_CONSTR])
+            leq_dual = ConicSolver.get_dual_values(
+                solution['ineq_dual'],
+                inverse_data[MOSEK.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
         else:
@@ -129,8 +132,13 @@ class MOSEK(ConicSolver):
         solver = MOSEK_OLD()
         _, inv_data = self.apply(problem)
         objective, _ = problem.objective.canonical_form
-        constraints = [constraint for c in problem.constraints for constraint in c.canonical_form[1]]
-        sol = solver.solve(objective, constraints, {self.name():ProblemData()}, \
-            warm_start, verbose, solver_opts)
-        
+        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
+        sol = solver.solve(
+            objective,
+            constraints,
+            {self.name(): ProblemData()},
+            warm_start,
+            verbose,
+            solver_opts)
+
         return self.invert(sol, inv_data)

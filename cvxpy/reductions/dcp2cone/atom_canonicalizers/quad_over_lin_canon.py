@@ -14,9 +14,8 @@ def quad_over_lin_canon(expr, args):
     # (y+t, y-t, 2*x) must lie in the second-order cone,
     # where y+t is the scalar part of the second-order
     # cone constraint.
-    constraints = [SOC(t=y+t,
-                    X=vstack(
-                        y-t,
-                        reshape(2*x, (x.shape[0] * x.shape[1], 1))),
-                    axis=0), y >= 0]
+    constraints = [SOC(
+                        t=y+t,
+                        X=vstack(y-t, reshape(2*x, (x.shape[0] * x.shape[1], 1))), axis=0
+                        ), y >= 0]
     return t, constraints

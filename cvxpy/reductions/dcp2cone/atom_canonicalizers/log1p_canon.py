@@ -1,4 +1,3 @@
-from cvxpy.expressions.variables.variable import Variable
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import log_canon
 
 

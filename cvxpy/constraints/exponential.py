@@ -24,7 +24,6 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
 import math
 

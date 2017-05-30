@@ -51,7 +51,7 @@ class Constant(Leaf):
         """
         # Reduce from a 1x1 matrix to a scalar.
         if self.is_scalar():
-            return str(self.value[0,0])
+            return str(self.value[0, 0])
         else:
             return str(self.value)
 

@@ -1,8 +1,7 @@
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import \
-    exp_canon
+import numpy as np
+
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
 
 
 def max_entries_canon(expr, args):

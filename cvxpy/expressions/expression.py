@@ -28,6 +28,7 @@ from cvxpy.expressions import cvxtypes
 import abc
 import numpy as np
 
+
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
 

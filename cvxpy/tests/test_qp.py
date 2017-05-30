@@ -19,16 +19,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy
 
-from cvxpy import Maximize, Minimize, Problem
-from cvxpy.atoms import *
-from cvxpy.error import SolverError
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables import Bool, Semidef, Symmetric, Variable
+from cvxpy.atoms import quad_over_lin, sum_entries, power, sum_squares, QuadForm, abs
+from cvxpy import Minimize, Problem
+from cvxpy.expressions.variables import Variable
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2quad_form import Qp2QuadForm
 from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
 from scipy.linalg import lstsq
+
 
 class TestQp(BaseTest):
     """ Unit tests for the domain module. """
@@ -77,8 +76,8 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual([3., 3., 3., 3.], s.primal_vars[var.id])
 
     def test_square_affine(self):
-        A = numpy.random.randn(10,2)
-        b = numpy.random.randn(10,1)
+        A = numpy.random.randn(10, 2)
+        b = numpy.random.randn(10, 1)
         p = Problem(Minimize(sum_squares(A*self.x - b)))
         s = self.solve_QP(p, 'GUROBI')
         for var in p.variables():
@@ -86,8 +85,8 @@ class TestQp(BaseTest):
 
     def test_quad_form(self):
         numpy.random.seed(0)
-        A = numpy.random.randn(5,5)
-        z = numpy.random.randn(5,1)
+        A = numpy.random.randn(5, 5)
+        z = numpy.random.randn(5, 1)
         P = A.T.dot(A)
         q = -2*P.dot(z)
         p = Problem(Minimize(QuadForm(self.w, P) + q.T*self.w))
@@ -96,9 +95,9 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(z, s.primal_vars[var.id])
 
     def test_affine_problem(self):
-        A = numpy.random.randn(5,2)
+        A = numpy.random.randn(5, 2)
         A = numpy.maximum(A, 0)
-        b = numpy.random.randn(5,1)
+        b = numpy.random.randn(5, 1)
         b = numpy.maximum(b, 0)
         p = Problem(Minimize(sum_entries(self.x)), [self.x >= 0, A*self.x <= b])
         s = self.solve_QP(p, 'GUROBI')

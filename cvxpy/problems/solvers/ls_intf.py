@@ -140,10 +140,10 @@ class LS(Solver):
 
         sym_data = self.get_sym_data(objective, constraints)
 
-        id_map = sym_data.var_offsets
+        # id_map = sym_data.var_offsets
         N = sym_data.x_length
 
-        extractor = CoeffExtractor(id_map, None, N)
+        extractor = None  # broken
 
         # Extract the coefficients
         (Ps, Q, R) = extractor.get_coeffs(objective.args[0])

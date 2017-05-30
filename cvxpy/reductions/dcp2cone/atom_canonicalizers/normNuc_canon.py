@@ -1,5 +1,4 @@
 from cvxpy.atoms.affine.trace import trace
-#from cvxpy.constraints.semidefinite import SDP
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variables.variable import Variable
 

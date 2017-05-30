@@ -19,13 +19,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 
+
 class InverseData(object):
     def __init__(self, problem):
         obj, con = problem.objective, problem.constraints
         self.constr_map = {s.EQ: con}
         all_variables = obj.variables() + [var for c in con for var in c.variables()]
-        all_variables = list(set(all_variables))
-        self.id_map, self.var_offsets, self.x_length, self.var_shapes = self.get_var_offsets(all_variables)
+        varis = list(set(all_variables))
+        self.id_map, self.var_offsets, self.x_length, self.var_shapes = self.get_var_offsets(varis)
         self.cons_id_map = dict()
 
     def get_var_offsets(self, variables):

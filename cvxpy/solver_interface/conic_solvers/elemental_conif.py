@@ -17,14 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.solvers.elemental_intf import Elemental as ElementalOld
-from cvxpy.reductions.solution import Solution
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
 
 from .conic_solver import ConicSolver
 
@@ -77,4 +72,10 @@ class Elemental(ConicSolver):
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         old_solver = ElementalOld()
-        return old_solver.solve(problem.objective, problem.constraints, {}, warm_start, verbose, solver_opts)
+        return old_solver.solve(
+            problem.objective,
+            problem.constraints,
+            {},
+            warm_start,
+            verbose,
+            solver_opts)

@@ -31,12 +31,13 @@ import numpy as np
 class CvxPyDomainError(Exception):
     pass
 
+
 class QuadForm(Atom):
 
     def __init__(self, x, P):
         super(QuadForm, self).__init__(x, P)
         try:
-            self.P_eigvals = LA.eigvals(P) # cache eigenvalues
+            self.P_eigvals = LA.eigvals(P)  # cache eigenvalues
         except:
             self.P_eigvals = LA.eigvals(P.todense())
 
@@ -85,7 +86,7 @@ class QuadForm(Atom):
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return np.count_nonzero(P) == 0
+        return np.count_nonzero(self.P) == 0
 
     def get_data(self):
         return [self.x, self.P]
@@ -94,15 +95,16 @@ class QuadForm(Atom):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.x,
                                self.P)
-    
+
     def _grad(self):
         return self.P * self.x
 
     def graph_implementation(self):
         return NotImplemented
-    
+
     def shape_from_args(self):
         return (1, 1)
+
 
 class SymbolicQuadForm(Atom):
     """
@@ -115,10 +117,10 @@ class SymbolicQuadForm(Atom):
 
     def _grad(self, values):
         return NotImplemented
-    
+
     def graph_implementation(self, arg_objs, shape, data=None):
         return NotImplemented
-    
+
     def is_atom_concave(self):
         return self.original_expression.is_atom_concave()
 
@@ -133,12 +135,13 @@ class SymbolicQuadForm(Atom):
 
     def shape_from_args(self):
         return self.original_expression.shape_from_args()
-    
+
     def sign_from_args(self):
         return self.original_expression.sign_from_args()
 
     def is_quadratic(self):
         return True
+
 
 def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
@@ -195,6 +198,7 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2
 
+
 def quad_form(x, P):
     """ Alias for :math:`x^T P x`.
 
@@ -222,4 +226,3 @@ def quad_form(x, P):
         return ret
     else:
         raise Exception("At least one argument to quad_form must be constant.")
-

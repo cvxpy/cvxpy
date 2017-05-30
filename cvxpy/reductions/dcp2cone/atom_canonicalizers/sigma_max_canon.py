@@ -1,8 +1,8 @@
-#from cvxpy.constraints.semidefinite import SDP
+import numpy as np
+
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
 
 
 def sigma_max_canon(expr, args):

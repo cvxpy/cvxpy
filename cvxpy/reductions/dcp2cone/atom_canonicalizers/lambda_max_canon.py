@@ -1,4 +1,3 @@
-#from cvxpy.constraints.semidefinite import SDP
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable

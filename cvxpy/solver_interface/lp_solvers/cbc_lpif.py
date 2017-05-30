@@ -18,13 +18,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
 
 
 class CBC(ReductionSolver):
@@ -105,11 +105,11 @@ class CBC(ReductionSolver):
 
         # Order and group constraints.
         eq_constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[GUROBI.EQ_CONSTR] = eq_constr
+        inv_data[self.EQ_CONSTR] = eq_constr
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        inv_data[GUROBI.NEQ_CONSTR] = leq_constr
+        inv_data[self.NEQ_CONSTR] = leq_constr
         return data, inv_data
-    
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -117,9 +117,11 @@ class CBC(ReductionSolver):
 
         if status in s.SOLUTION_PRESENT:
             opt_val = solution[s.VALUE]
-            primal_vars = {inverse_data[GUROBI.VAR_ID]: solution[s.PRIMAL]}
-            eq_dual = ConicSolver.get_dual_values(solution[s.EQ_DUAL], inverse_data[GUROBI.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(solution[s.INEQ_DUAL], inverse_data[GUROBI.NEQ_CONSTR])
+            primal_vars = {inverse_data[self.VAR_ID]: solution[s.PRIMAL]}
+            eq_dual = ConicSolver.get_dual_values(solution[s.EQ_DUAL], inverse_data[self.EQ_CONSTR])
+            leq_dual = ConicSolver.get_dual_values(
+                solution[s.INEQ_DUAL],
+                inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
         else:
@@ -139,8 +141,13 @@ class CBC(ReductionSolver):
         solver = CBC_OLD()
         _, inv_data = self.apply(problem)
         objective, _ = problem.objective.canonical_form
-        constraints = [constraint for c in problem.constraints for constraint in c.canonical_form[1]]
-        sol = solver.solve(objective, constraints, {self.name():ProblemData()}, \
-            warm_start, verbose, solver_opts)
-        
+        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
+        sol = solver.solve(
+            objective,
+            constraints,
+            {self.name(): ProblemData()},
+            warm_start,
+            verbose,
+            solver_opts)
+
         return self.invert(sol, inv_data)

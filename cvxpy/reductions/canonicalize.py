@@ -35,7 +35,7 @@ def canonicalize_expr(expr, args, canon_methods):
     elif expr.is_atom_convex() and expr.is_atom_concave():
         try:
             expr = type(expr)(*args)
-        except TypeError: # Probably AddExpression
+        except TypeError:  # Probably AddExpression
             expr = type(expr)(args)
         return expr, []
     else:

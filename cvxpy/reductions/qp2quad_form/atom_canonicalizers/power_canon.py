@@ -3,6 +3,7 @@ from numpy import ones
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.variables import Variable
 
+
 def power_canon(expr, args):
     affine_expr = args[0]
     p = expr.p

@@ -1,9 +1,9 @@
+import numpy as np
+
 from cvxpy.atoms.affine.sum_entries import sum_entries
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import \
-    exp_canon
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import exp_canon
 
 
 def log_sum_exp_canon(expr, args):
@@ -22,7 +22,7 @@ def log_sum_exp_canon(expr, args):
 
     exp_expr = x - promoted_t
     obj, constraints = exp_canon(exp_expr, exp_expr.args)
-    obj = sum_entries(obj, axis=axis) 
+    obj = sum_entries(obj, axis=axis)
     ones = Constant(np.ones(shape))
     constraints.append(obj <= ones)
     return t, constraints

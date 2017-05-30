@@ -3,8 +3,6 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import power_canon
-from cvxpy.utilities.power_tools import gm_constrs
-import numpy as np
 
 
 def huber_canon(expr, args):

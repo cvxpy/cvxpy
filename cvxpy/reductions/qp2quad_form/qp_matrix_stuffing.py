@@ -17,19 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy
-from cvxpy.reductions.reduction import Reduction
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy
 import cvxpy.settings as s
-from cvxpy.problems.problem import Problem
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
-from cvxpy.reductions.solution import Solution
-from cvxpy.atoms.quad_form import QuadForm
+from cvxpy.problems.problem import Problem
 from cvxpy.reductions.inverse_data import InverseData
-from .replace_quad_forms import ReplaceQuadForms
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
+from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
 class QpMatrixStuffing(Reduction):
@@ -56,7 +56,7 @@ class QpMatrixStuffing(Reduction):
         extractor = CoeffExtractor(inverse_data)
         # extract to x.T * P * x + q.T * x + r
         (P, q, r) = extractor.quad_form(problem)
-        
+
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
         new_obj = QuadForm(x, P) + q.T*x + r
@@ -80,10 +80,16 @@ class QpMatrixStuffing(Reduction):
         inverse_data.new_var_id = x.id
         for c in constraints:
             if type(c) == NonPos:
-                inverse_data.cons_id_map[c.constr_id] = (new_eq.constr_id, offset[s.INEQ_CONSTR], c.shape)
+                inverse_data.cons_id_map[c.constr_id] = (
+                    new_eq.constr_id,
+                    offset[s.INEQ_CONSTR],
+                    c.shape)
                 offset[s.INEQ_CONSTR] += c.shape[0]*c.shape[1]
             elif type(c) == Zero:
-                inverse_data.cons_id_map[c.constr_id] = (new_ineq.constr_id, offset[s.EQ_CONSTR], c.shape)
+                inverse_data.cons_id_map[c.constr_id] = (
+                    new_ineq.constr_id,
+                    offset[s.EQ_CONSTR],
+                    c.shape)
                 offset[s.EQ_CONSTR] += c.shape[0]*c.shape[1]
             else:
                 raise ValueError("Type", type(c), "not allowed in QP")

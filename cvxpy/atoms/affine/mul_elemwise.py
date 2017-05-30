@@ -77,7 +77,6 @@ class mul_elemwise(AffAtom):
         """
         return self.args[1].is_qpwa()
 
-
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Multiply the expressions elementwise.

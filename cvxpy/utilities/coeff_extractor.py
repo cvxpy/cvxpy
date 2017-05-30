@@ -19,21 +19,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
 
-import copy
 import operator
 
+import canonInterface
 import numpy as np
 import scipy.sparse as sp
 from numpy import linalg as LA
 
-import canonInterface
 import cvxpy as cvx
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.atoms import affine_prod, huber, matrix_frac, power, quad_over_lin
-from cvxpy.atoms.quad_form import QuadForm, SymbolicQuadForm
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables import Variable
-from cvxpy.lin_ops.lin_op import NO_OP, LinOp
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.qp2quad_form.replace_quad_forms import ReplaceQuadForms
 
@@ -50,7 +44,7 @@ class CoeffExtractor(object):
     # the coefficients. Returns (Ps, Q, R) such that the (i, j)
     # entry of expr is given by
     #   x.T*Ps[k]*x + Q[k, :]*x + R[k],
-    # where k 
+    # where k
     # V= i + j*m. x is the vectorized variables indexed
     # by id_map.
     #
@@ -216,7 +210,8 @@ class CoeffExtractor(object):
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
                 if quad_forms[var_id][2].P is not None:
-                    P = c[0, var_offset:var_offset+var_size].toarray().flatten() * quad_forms[var_id][2].P.value
+                    c_part = c[0, var_offset:var_offset+var_size].toarray().flatten()
+                    P = c_part * quad_forms[var_id][2].P.value
                 else:
                     P = sp.diags(c[0, var_offset:var_offset+var_size].toarray().flatten())
                 coeffs[orig_id] = dict()
@@ -228,7 +223,7 @@ class CoeffExtractor(object):
                 n = var_shape[0]
                 var_size = var_shape[0]*var_shape[1]
                 coeffs[var.id] = dict()
-                coeffs[var.id]['P'] = sp.csr_matrix((n,n))
+                coeffs[var.id]['P'] = sp.csr_matrix((n, n))
                 coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
         return coeffs, b
 

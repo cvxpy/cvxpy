@@ -1,6 +1,5 @@
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
 
 
 def kl_div_canon(expr, args):

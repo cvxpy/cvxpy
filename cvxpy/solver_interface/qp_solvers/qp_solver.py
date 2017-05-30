@@ -17,15 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from collections import namedtuple
-
+import gurobipy as grb
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-import gurobipy as grb
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
 from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
@@ -41,7 +38,7 @@ class QpSolver(ReductionSolver):
 
     def name(self):
         return self.name
-    
+
     def import_solver(self):
         import mathprogbasepy as qp
         qp
@@ -55,11 +52,11 @@ class QpSolver(ReductionSolver):
         obj = problem.objective
         eq = [c for c in problem.constraints if type(c) == Zero]
         ineq = [c for c in problem.constraints if type(c) == NonPos]
-        
+
         P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
         n = P.shape[0]
-        inverse_data = {self.VAR_ID: problem.variables()[0].id}   
+        inverse_data = {self.VAR_ID: problem.variables()[0].id}
         if ineq:
             inverse_data[self.NEQ_CONSTR] = ineq[0].id
             A, b = ConicSolver.get_coeff_offset(ineq[0].expr)
@@ -73,16 +70,16 @@ class QpSolver(ReductionSolver):
         A = sp.vstack([A, F])
         u = np.concatenate((-b, -g))
         lbA = -grb.GRB.INFINITY*np.ones(b.shape)
-        l = np.concatenate([lbA, -g]) 
+        l = np.concatenate([lbA, -g])
 
         inverse_data['ineq_offset'] = b.shape[0]
-        
+
         return qp.QuadprogProblem(P, q, A, l, u), inverse_data
 
     def invert(self, solution, inverse_data):
         status = solution.status
         cputime = solution.cputime
-        attr = {s.SOLVE_TIME:cputime}
+        attr = {s.SOLVE_TIME: cputime}
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.obj_val
             primal_vars = {inverse_data[self.VAR_ID]: np.array(solution.x)}
@@ -95,9 +92,9 @@ class QpSolver(ReductionSolver):
                 dual_vars[eq_constr_id] = solution.y[inverse_data['ineq_offset']:]
             total_iter = solution.total_iter
             attr[s.NUM_ITERS] = total_iter
-        else: # no solution
+        else:  # no solution
             primal_vars = None
-            dual_vars = None 
+            dual_vars = None
             if status == s.INFEASIBLE:
                 opt_val = np.inf
             elif status == s.UNBOUNDED:
@@ -106,5 +103,5 @@ class QpSolver(ReductionSolver):
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         data, inverse_data = self.apply(problem)
-        solution = data.solve(solver = self.name, verbose=verbose)
+        solution = data.solve(solver=self.name, verbose=verbose)
         return self.invert(solution, inverse_data)

@@ -118,9 +118,10 @@ class ConicSolver(ReductionSolver):
             return -sp.vstack(mat_arr), offset
         elif type(constr) == ExpCone:
             for i, coeff in enumerate(coeffs):
-                mat = ConicSolver.get_spacing_matrix((height, coeff.shape[0]),
-                                              len(exp_cone_order),
-                                              exp_cone_order[i])
+                mat = ConicSolver.get_spacing_matrix(
+                                                (height, coeff.shape[0]),
+                                                len(exp_cone_order),
+                                                exp_cone_order[i])
                 offsets[i] = mat*offsets[i]
                 coeffs[i] = -mat*coeffs[i]
             return sum(coeffs), sum(offsets)
