@@ -51,6 +51,11 @@ class TestQp(BaseTest):
     def test_all_solvers(self):
         for solver in self.solvers:
             self.quad_over_lin(solver)
+            self.power(solver)
+            self.power_matrix(solver)
+            self.square_affine(solver)
+            self.quad_form(solver)
+            self.affine_problem(solver)
 
     def solve_QP(self, problem, solver):
         self.assertTrue(Qp2QuadForm().accepts(problem))
