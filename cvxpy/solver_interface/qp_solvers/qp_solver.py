@@ -95,9 +95,8 @@ class QpSolver(ReductionSolver):
         else:  # no solution
             primal_vars = None
             dual_vars = None
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
+            opt_val = np.inf
+            if status == s.UNBOUNDED:
                 opt_val = -np.inf
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 

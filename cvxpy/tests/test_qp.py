@@ -46,6 +46,12 @@ class TestQp(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
+        self.solvers = ['GUROBI', 'MOSEK', 'qpOASES', 'OSQP']
+
+    def test_all_solvers(self):
+        for solver in self.solvers:
+            self.quad_over_lin(solver)
+
     def solve_QP(self, problem, solver):
         self.assertTrue(Qp2QuadForm().accepts(problem))
         canon_p, canon_inverse = Qp2QuadForm().apply(problem)
@@ -55,51 +61,51 @@ class TestQp(BaseTest):
         stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
         return Qp2QuadForm().invert(stuffed_solution, canon_inverse)
 
-    def test_quad_over_lin(self):
+    def quad_over_lin(self, solver):
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)), [self.x <= -1])
-        s = self.solve_QP(p, 'GUROBI')
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(numpy.array([-1., -1.]), s.primal_vars[var.id])
         for con in p.constraints:
             self.assertItemsAlmostEqual(numpy.array([2., 2.]), s.dual_vars[con.id])
 
-    def test_power(self):
+    def power(self, solver):
         p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
-        s = self.solve_QP(p, 'GUROBI')
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
 
-    def test_power_matrix(self):
+    def power_matrix(self, solver):
         p = Problem(Minimize(sum_entries(power(self.A - 3., 2))), [])
-        s = self.solve_QP(p, 'GUROBI')
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([3., 3., 3., 3.], s.primal_vars[var.id])
 
-    def test_square_affine(self):
+    def square_affine(self, solver):
         A = numpy.random.randn(10, 2)
         b = numpy.random.randn(10, 1)
         p = Problem(Minimize(sum_squares(A*self.x - b)))
-        s = self.solve_QP(p, 'GUROBI')
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), s.primal_vars[var.id], places=1)
 
-    def test_quad_form(self):
+    def quad_form(self, solver):
         numpy.random.seed(0)
         A = numpy.random.randn(5, 5)
         z = numpy.random.randn(5, 1)
         P = A.T.dot(A)
         q = -2*P.dot(z)
         p = Problem(Minimize(QuadForm(self.w, P) + q.T*self.w))
-        s = self.solve_QP(p, 'GUROBI')
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, s.primal_vars[var.id])
 
-    def test_affine_problem(self):
+    def affine_problem(self, solver):
         A = numpy.random.randn(5, 2)
         A = numpy.maximum(A, 0)
         b = numpy.random.randn(5, 1)
         b = numpy.maximum(b, 0)
         p = Problem(Minimize(sum_entries(self.x)), [self.x >= 0, A*self.x <= b])
-        s = self.solve_QP(p, 'GUROBI')
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
