@@ -23,10 +23,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.problem import Problem
-from cvxpy.reductions.canonicalize import canonicalize_tree
-from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.reduction import Reduction
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions import InverseData, Reduction, Solution
 
 
 class Canonicalization(Reduction):
@@ -40,13 +37,13 @@ class Canonicalization(Reduction):
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
-        new_obj, new_constrs = canonicalize_tree(problem.objective, self.canon_methods)
-        for con in problem.constraints:
-            top_constr, canon_constrs = canonicalize_tree(con, self.canon_methods)
-            new_constrs += canon_constrs + [top_constr]
-            inverse_data.cons_id_map.update({con.id: top_constr.id})
+        new_objective, new_constraints = self.canonicalize_tree(problem.objective)
+        for constraint in problem.constraints:
+            constraint_copy, canon_constraints = self.canonicalize_tree(constraint)
+            new_constraints += canon_constraints + [constraint_copy]
+            inverse_data.cons_id_map.update({constraint.id: constraint_copy.id})
 
-        new_problem = Problem(new_obj, new_constrs)
+        new_problem = Problem(new_objective, new_constraints)
         return new_problem, [inverse_data]
 
     def invert(self, solution, inverse_data):
@@ -55,18 +52,18 @@ class Canonicalization(Reduction):
         dvars = {orig_id: solution.dual_vars[id] for orig_id, id in inv.cons_id_map.items()}
         return Solution(solution.status, solution.opt_val, pvars, dvars)
 
-    def canonicalize_tree(self, expr, canon_methods):
+    def canonicalize_tree(self, expr):
         canon_args = []
         constrs = []
         for arg in expr.args:
-            canon_arg, c = canonicalize_tree(arg, canon_methods)
+            canon_arg, c = self.canonicalize_tree(arg)
             canon_args += [canon_arg]
             constrs += c
-        canon_expr, c = self.canonicalize_expr(expr, canon_args, canon_methods)
+        canon_expr, c = self.canonicalize_expr(expr, canon_args)
         constrs += c
         return canon_expr, constrs
 
-    def canonicalize_expr(self, expr, args, canon_methods):
+    def canonicalize_expr(self, expr, args):
         if isinstance(expr, Minimize):
             return Minimize(*args), []
         elif isinstance(expr, Maximize):
@@ -84,4 +81,4 @@ class Canonicalization(Reduction):
                 expr = type(expr)(*args)
             return expr, []
         else:
-            return canon_methods[type(expr)](expr, args)
+            return self.canon_methods[type(expr)](expr, args)
