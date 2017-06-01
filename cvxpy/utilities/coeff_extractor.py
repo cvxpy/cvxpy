@@ -209,22 +209,33 @@ class CoeffExtractor(object):
                 orig_id = quad_forms[var_id][2].args[0].id
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
-                if quad_forms[var_id][2].P is not None:
+                if quad_forms[var_id][2].P.value[0, 0] is not None:
                     c_part = c[0, var_offset:var_offset+var_size].toarray().flatten()
-                    P = c_part * quad_forms[var_id][2].P.value
+                    P = quad_forms[var_id][2].P.value
+                    if sp.issparse(P):
+                        P = P.toarray()
+                    P = c_part * P
                 else:
                     P = sp.diags(c[0, var_offset:var_offset+var_size].toarray().flatten())
-                coeffs[orig_id] = dict()
-                coeffs[orig_id]['P'] = P
-                coeffs[orig_id]['q'] = np.zeros(P.shape[0])
+                if orig_id in coeffs:
+                    coeffs[orig_id]['P'] += P
+                    coeffs[orig_id]['q'] += np.zeros(P.shape[0])
+                else:
+                    coeffs[orig_id] = dict()
+                    coeffs[orig_id]['P'] = P
+                    coeffs[orig_id]['q'] = np.zeros(P.shape[0])
             else:
                 var_offset = affine_id_map[var.id][0]
                 var_shape = affine_var_shapes[var.id]
                 n = var_shape[0]
                 var_size = var_shape[0]*var_shape[1]
-                coeffs[var.id] = dict()
-                coeffs[var.id]['P'] = sp.csr_matrix((n, n))
-                coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
+                if var.id in coeffs:
+                    coeffs[var.id]['P'] += sp.csr_matrix((n, n))
+                    coeffs[var.id]['q'] += c[0, var_offset:var_offset+var_size].toarray().flatten()
+                else:
+                    coeffs[var.id] = dict()
+                    coeffs[var.id]['P'] = sp.csr_matrix((n, n))
+                    coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
         return coeffs, b
 
     def quad_form(self, problem):

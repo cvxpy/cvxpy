@@ -27,6 +27,7 @@ from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.qp2quad_form.qp2quad_form import Qp2QuadForm
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
@@ -52,16 +53,20 @@ class QpMatrixStuffing(Reduction):
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
         """
-        inverse_data = InverseData(problem)
+        qp, inverse_data_stack = Qp2QuadForm().apply(problem)
+
+        if not self.accepts(qp):
+            raise ValueError("This QP can not be stuffed")
+        inverse_data = InverseData(qp)
         extractor = CoeffExtractor(inverse_data)
         # extract to x.T * P * x + q.T * x + r
-        (P, q, r) = extractor.quad_form(problem)
+        (P, q, r) = extractor.quad_form(qp)
 
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
         new_obj = QuadForm(x, P) + q.T*x + r
 
-        constraints = problem.constraints
+        constraints = qp.constraints
         new_cons = []
         ineq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == NonPos]
         eq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == Zero]
@@ -95,11 +100,13 @@ class QpMatrixStuffing(Reduction):
                 raise ValueError("Type", type(c), "not allowed in QP")
 
         new_prob = Problem(cvxpy.Minimize(new_obj), new_cons)
-        return (new_prob, inverse_data)
+        inverse_data_stack.append(inverse_data)
+        return new_prob, inverse_data_stack
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data_stack):
         """Returns the solution to the original problem given the inverse_data.
         """
+        inverse_data = inverse_data_stack.pop()
         if solution.status == s.OPTIMAL:
             primal_vars = dict()
             dual_vars = dict()
@@ -117,4 +124,4 @@ class QpMatrixStuffing(Reduction):
             ret = Solution(s.OPTIMAL, solution.opt_val, primal_vars, dual_vars)
         else:
             ret = solution
-        return ret
+        return Qp2QuadForm().invert(ret, inverse_data_stack)

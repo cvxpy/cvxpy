@@ -23,6 +23,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.solution import Solution
 from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
@@ -47,16 +48,19 @@ class QpSolver(ReductionSolver):
         return problem.is_qp()
 
     def apply(self, problem):
-        # assumes matrix stuffed problem
+        stuffed_problem, inverse_data_stack = QpMatrixStuffing().apply(problem)
+        if not self.accepts(stuffed_problem):
+            raise ValueError("QP solver reduction is not applicable to problem")
+
         import mathprogbasepy as qp
-        obj = problem.objective
-        eq = [c for c in problem.constraints if type(c) == Zero]
-        ineq = [c for c in problem.constraints if type(c) == NonPos]
+        obj = stuffed_problem.objective
+        eq = [c for c in stuffed_problem.constraints if type(c) == Zero]
+        ineq = [c for c in stuffed_problem.constraints if type(c) == NonPos]
 
         P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
         n = P.shape[0]
-        inverse_data = {self.VAR_ID: problem.variables()[0].id}
+        inverse_data = {self.VAR_ID: stuffed_problem.variables()[0].id}
         if ineq:
             inverse_data[self.NEQ_CONSTR] = ineq[0].id
             A, b = ConicSolver.get_coeff_offset(ineq[0].expr)
@@ -73,10 +77,11 @@ class QpSolver(ReductionSolver):
         l = np.concatenate([lbA, -g])
 
         inverse_data['ineq_offset'] = b.shape[0]
+        inverse_data_stack.append(inverse_data)
+        return qp.QuadprogProblem(P, q, A, l, u), inverse_data_stack
 
-        return qp.QuadprogProblem(P, q, A, l, u), inverse_data
-
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data_stack):
+        inverse_data = inverse_data_stack.pop()
         status = solution.status
         cputime = solution.cputime
         attr = {s.SOLVE_TIME: cputime}
@@ -98,7 +103,8 @@ class QpSolver(ReductionSolver):
             opt_val = np.inf
             if status == s.UNBOUNDED:
                 opt_val = -np.inf
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+        sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
+        return QpMatrixStuffing().invert(sol, inverse_data_stack)
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         data, inverse_data = self.apply(problem)

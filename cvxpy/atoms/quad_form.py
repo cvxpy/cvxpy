@@ -18,14 +18,19 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import division
-from cvxpy.atoms.atom import Atom
-import cvxpy.interface as intf
+
 import warnings
+
+import numpy as np
+import scipy.sparse as sp
+from scipy import linalg as LA
+
+import cvxpy.interface as intf
+from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
+
 from .sum_squares import sum_squares
-from scipy import linalg as LA
-import numpy as np
 
 
 class CvxPyDomainError(Exception):
@@ -36,10 +41,12 @@ class QuadForm(Atom):
 
     def __init__(self, x, P):
         super(QuadForm, self).__init__(x, P)
-        try:
-            self.P_eigvals = LA.eigvals(P)  # cache eigenvalues
-        except:
+        # Cache eigenvalues
+        if sp.issparse(P):
             self.P_eigvals = LA.eigvals(P.todense())
+        else:
+            self.P_eigvals = LA.eigvals(P)
+        self.P = self.args[1]
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -112,8 +119,8 @@ class SymbolicQuadForm(Atom):
     """
     def __init__(self, x, P, expr):
         self.original_expression = expr
-        self.P = P
-        super(SymbolicQuadForm, self).__init__(x)
+        super(SymbolicQuadForm, self).__init__(x, P)
+        self.P = self.args[1]
 
     def _grad(self, values):
         return NotImplemented

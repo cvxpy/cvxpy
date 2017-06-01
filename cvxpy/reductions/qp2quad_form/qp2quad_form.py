@@ -18,7 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy
-from cvxpy.reductions.canonicalize import canonicalize_constr, canonicalize_tree
+from cvxpy.reductions.canonicalize import (canonicalize_constr,
+                                           canonicalize_tree)
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
@@ -50,9 +51,10 @@ class Qp2QuadForm(Reduction):
             inverse_data.cons_id_map.update({top_constr.id: c.id})
 
         new_problem = cvxpy.Problem(new_obj, new_constrs)
-        return new_problem, inverse_data
+        return new_problem, [inverse_data]
 
-    def invert(self, solution, inverse_data):
+    def invert(self, solution, inverse_data_stack):
+        inverse_data = inverse_data_stack.pop()
         primal_vars = dict()
         dual_vars = dict()
         for id, val in solution.primal_vars.items():
