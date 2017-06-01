@@ -1,7 +1,7 @@
 #!/bin/bash
 # http://stackoverflow.com/questions/151677/tool-for-adding-license-headers-to-source-files
-DIRECTORY=$1
-for i in $DIRECTORY/*.py # or whatever other pattern...
+DIRECTORY=$*
+for i in $DIRECTORY # or whatever other pattern...
 do
   if ! grep -q Copyright $i
   then
