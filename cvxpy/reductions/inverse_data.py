@@ -22,9 +22,9 @@ import cvxpy.settings as s
 
 class InverseData(object):
     def __init__(self, problem):
-        obj, con = problem.objective, problem.constraints
-        self.constr_map = {s.EQ: con}
-        all_variables = obj.variables() + [var for c in con for var in c.variables()]
+        obj, cons = problem.objective, problem.constraints
+        self.constr_map = {s.EQ: cons}
+        all_variables = obj.variables() + [var for c in cons for var in c.variables()]
         varis = list(set(all_variables))
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = self.get_var_offsets(varis)
         self.cons_id_map = dict()

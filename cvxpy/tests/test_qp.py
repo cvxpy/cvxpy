@@ -21,8 +21,7 @@ import numpy
 from scipy.linalg import lstsq
 
 from cvxpy import Minimize, Problem
-from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum_entries,
-                         sum_squares)
+from cvxpy.atoms import QuadForm, abs, power, quad_over_lin, sum_entries, sum_squares
 from cvxpy.expressions.variables import Variable
 from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest

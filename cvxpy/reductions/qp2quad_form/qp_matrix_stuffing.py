@@ -51,8 +51,7 @@ class QpMatrixStuffing(Reduction):
         )
 
     def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
-        """
+        """ Returns a new problem and data for inverting the new solution. """
         qp, inverse_data_stack = Qp2QuadForm().apply(problem)
 
         if not self.accepts(qp):
