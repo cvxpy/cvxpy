@@ -27,7 +27,7 @@ from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.qp2quad_form.qp2quad_form import Qp2QuadForm
+from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
@@ -52,7 +52,7 @@ class QpMatrixStuffing(Reduction):
 
     def apply(self, problem):
         """ Returns a new problem and data for inverting the new solution. """
-        qp, inverse_data_stack = Qp2QuadForm().apply(problem)
+        qp, inverse_data_stack = Qp2SymbolicQp().apply(problem)
 
         if not self.accepts(qp):
             raise ValueError("This QP can not be stuffed")
@@ -123,4 +123,4 @@ class QpMatrixStuffing(Reduction):
             ret = Solution(s.OPTIMAL, solution.opt_val, primal_vars, dual_vars)
         else:
             ret = solution
-        return Qp2QuadForm().invert(ret, inverse_data_stack)
+        return Qp2SymbolicQp().invert(ret, inverse_data_stack)

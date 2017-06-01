@@ -17,13 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-
 
 class InverseData(object):
     def __init__(self, problem):
         obj, cons = problem.objective, problem.constraints
-        self.constr_map = {s.EQ: cons}
         all_variables = obj.variables() + [var for c in cons for var in c.variables()]
         varis = list(set(all_variables))
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = self.get_var_offsets(varis)

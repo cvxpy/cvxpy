@@ -196,12 +196,15 @@ class CoeffExtractor(object):
         Ps = [P.tocsr() for P in Ps]
         return Ps, Q.tocsr(), R
 
-    def fill_in_quad_forms(self, affine_problem, quad_forms):
+    def extract_quadratic_coeffs(self, affine_problem, quad_forms):
+        # Extract affine data.
         affine_inverse_data = InverseData(affine_problem)
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes
         extractor = CoeffExtractor(affine_inverse_data)
         c, b = extractor.affine(affine_problem.objective.expr)
+
+        # Combine affine data with quadforms.
         coeffs = {}
         for var in affine_problem.variables():
             if var.id in quad_forms:
@@ -239,14 +242,19 @@ class CoeffExtractor(object):
         return coeffs, b
 
     def quad_form(self, problem):
-        """ Extract quadratic, linear and constant part of a quadratic objective
-        """
+        """ Extract quadratic, linear and constant part of a quadratic objective """
+        # Replace quadratic forms with dummy variables.
         affine_problem, quad_forms = ReplaceQuadForms().apply(problem)
-        coeffs, constant = self.fill_in_quad_forms(affine_problem, quad_forms)
-        ReplaceQuadForms().invert(affine_problem, quad_forms)
+
+        # Calculate affine parts and combine them with quadratic forms to get the coefficients.
+        coeffs, constant = self.extract_quadratic_coeffs(affine_problem, quad_forms)
+
+        # Sort variables corresponding to their starting indices, in ascending order.
+        offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
+
+        # Concatenate quadratic matrices and vectors
         P = sp.csr_matrix((0, 0))
         q = np.zeros(0)
-        offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
         for var_id, offset in offsets:
             if var_id in coeffs:
                 P = sp.block_diag([P, coeffs[var_id]['P']])
