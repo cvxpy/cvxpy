@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, 2017 Robin Verschueren
+Copyright 2013 Steven Diamond, 2017 Akshay Agrawal, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -18,22 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import Maximize, Minimize
-
-
-# TODO this assumes all possible constraint sets are cones:
-def canonicalize_constr(constr, canon_methods):
-    arg_exprs = []
-    constrs = []
-    for a in constr.args:
-        e, c = canonicalize_tree(a, canon_methods)
-        constrs += c
-        arg_exprs += [e]
-    # Feed the linear expressions into a constraint of the same type (assumed a cone):
-    constr = type(constr)(*arg_exprs)
-    return constr, constrs
 
 
 def canonicalize_tree(expr, canon_methods):
@@ -57,6 +45,8 @@ def canonicalize_expr(expr, args, canon_methods):
         return expr, []
     elif isinstance(expr, Constant):
         return expr, []
+    elif isinstance(expr, Constraint):
+        return type(expr)(*args), []
     elif expr.is_atom_convex() and expr.is_atom_concave():
         if isinstance(expr, AddExpression):
             expr = type(expr)(args)

@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.problems.problem import Problem
-from cvxpy.reductions.canonicalize import canonicalize_constr, canonicalize_tree
+from cvxpy.reductions.canonicalize import canonicalize_tree
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
@@ -42,7 +42,7 @@ class Qp2SymbolicQp(Reduction):
 
         new_obj, new_constrs = canonicalize_tree(problem.objective, qp_canon_methods)
         for constr in problem.constraints:
-            top_constr, canon_constrs = canonicalize_constr(constr, qp_canon_methods)
+            top_constr, canon_constrs = canonicalize_tree(constr, qp_canon_methods)
             new_constrs += canon_constrs + [top_constr]
             inverse_data.cons_id_map[constr.id] = top_constr.id
 

@@ -1,9 +1,28 @@
-from cvxpy.reductions.reduction import Reduction
-from ..canonicalize import canonicalize_constr, canonicalize_tree
-from cvxpy.reductions.solution import Solution
-from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
+"""
+Copyright 2013 Steven Diamond, 2017 Akshay Agrawal, 2017 Robin Verschueren
+
+This file is part of CVXPY.
+
+CVXPY is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+CVXPY is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+from cvxpy.problems.problem import Problem
+from cvxpy.reductions.canonicalize import canonicalize_tree
+from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.inverse_data import InverseData
-import cvxpy
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
 
 
 class Dcp2Cone(Reduction):
@@ -14,24 +33,13 @@ class Dcp2Cone(Reduction):
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
-        obj_expr, new_constrs = canonicalize_tree(
-            problem.objective.args[0],
-            canon_methods=CANON_METHODS
-        )
-        if isinstance(problem.objective, cvxpy.Minimize):
-            new_obj = cvxpy.Minimize(obj_expr)
-        elif isinstance(problem.objective, cvxpy.Maximize):
-            new_obj = cvxpy.Maximize(obj_expr)
-
-        for c in problem.constraints:
-            top_constr, canon_constrs = canonicalize_constr(
-                c,
-                canon_methods=CANON_METHODS
-            )
+        new_obj, new_constrs = canonicalize_tree(problem.objective, cone_canon_methods)
+        for con in problem.constraints:
+            top_constr, canon_constrs = canonicalize_tree(con, cone_canon_methods)
             new_constrs += canon_constrs + [top_constr]
-            inverse_data.cons_id_map.update({top_constr.id: c.id})
+            inverse_data.cons_id_map.update({top_constr.id: con.id})
 
-        new_problem = cvxpy.Problem(new_obj, new_constrs)
+        new_problem = Problem(new_obj, new_constrs)
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
