@@ -80,5 +80,5 @@ class QpMatrixStuffing(MatrixStuffing):
         """Returns the solution to the original problem given the inverse_data.
         """
         inv = inverse_data_stack.pop()
-        solution = MatrixStuffing().invert(solution, inv)
+        solution = super(QpMatrixStuffing, self).invert(solution, inv)
         return Qp2SymbolicQp().invert(solution, inverse_data_stack)

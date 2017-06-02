@@ -25,11 +25,10 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
-from cvxpy.reductions.reduction import Reduction
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
-class ConeMatrixStuffing(Reduction):
+class ConeMatrixStuffing(MatrixStuffing):
     """Construct matrices for linear cone problems.
 
     Linear cone problems are assumed to have a linear objective and cone
@@ -85,4 +84,4 @@ class ConeMatrixStuffing(Reduction):
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        return MatrixStuffing().invert(solution, inverse_data)
+        return super(ConeMatrixStuffing, self).invert(solution, inverse_data)

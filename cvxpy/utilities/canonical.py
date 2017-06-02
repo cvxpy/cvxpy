@@ -81,7 +81,7 @@ class Canonical(object):
         const_dict = {id(constant): constant for constant in const_list}
         return list(const_dict.values())
 
-    def copy_tree(self):
+    def tree_copy(self):
         new_args = []
         for arg in self.args:
             new_args += [arg.copy_tree()]

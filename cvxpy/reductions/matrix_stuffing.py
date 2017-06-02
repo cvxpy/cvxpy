@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import abc
 import numpy as np
 
 import cvxpy.settings as s
@@ -24,6 +25,7 @@ from cvxpy.reductions import Reduction, Solution
 
 
 class MatrixStuffing(Reduction):
+    __metaclass__ = abc.ABCMeta
 
     def accepts(self):
         return NotImplementedError
