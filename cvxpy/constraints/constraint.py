@@ -52,9 +52,3 @@ class Constraint(object):
         """Wrapper for compatibility with variables.
         """
         return self.constr_id
-
-    @property
-    def expr(self):
-        if not len(self.args) == 1:
-            raise ValueError("'expr' is ambiguous; more than one element in arguments")
-        return self.args[0]

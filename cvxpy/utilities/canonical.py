@@ -28,6 +28,12 @@ class Canonical(object):
 
     __metaclass__ = abc.ABCMeta
 
+    @property
+    def expr(self):
+        if not len(self.args) == 1:
+            raise ValueError("'expr' is ambiguous, there should be only one argument")
+        return self.args[0]
+
     @abc.abstractmethod
     def canonicalize(self):
         """Returns the graph implementation of the object.

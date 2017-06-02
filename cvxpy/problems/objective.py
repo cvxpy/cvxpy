@@ -127,12 +127,6 @@ class Minimize(u.Canonical):
         """
         return result
 
-    @property
-    def expr(self):
-        if not len(self.args) == 1:
-            raise ValueError("'expr' is ambiguous; more than one element in arguments")
-        return self.args[0]
-
 
 class Maximize(Minimize):
     """An optimization objective for maximization.
