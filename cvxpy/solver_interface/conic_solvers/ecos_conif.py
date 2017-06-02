@@ -18,12 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.reductions.solution import Solution
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
 
 from .conic_solver import ConicSolver
 
@@ -111,7 +109,7 @@ class ECOS(ConicSolver):
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
         constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[ECOS.EQ_CONSTR] = constr
+        inv_data[self.EQ_CONSTR] = constr
         data[s.A], data[s.B] = ConicSolver.group_coeff_offset(constr, ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
@@ -123,13 +121,12 @@ class ECOS(ConicSolver):
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         data[s.DIMS]['e'] = sum([cons.num_cones() for cons in exp_constr])
         other_constr = leq_constr + soc_constr + exp_constr
-        inv_data[ECOS.NEQ_CONSTR] = other_constr
+        inv_data[self.NEQ_CONSTR] = other_constr
         data[s.G], data[s.H] = ConicSolver.group_coeff_offset(other_constr, ECOS.EXP_CONE_ORDER)
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         status = self.STATUS_MAP[solution['info']['exitFlag']]
 
         # Timing data
@@ -141,9 +138,9 @@ class ECOS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pcost']
             opt_val = primal_val + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[ECOS.VAR_ID]: solution['x']}
-            eq_dual = ConicSolver.get_dual_values(solution['y'], inverse_data[ECOS.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(solution['z'], inverse_data[ECOS.NEQ_CONSTR])
+            primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
+            eq_dual = ConicSolver.get_dual_values(solution['y'], inverse_data[self.EQ_CONSTR])
+            leq_dual = ConicSolver.get_dual_values(solution['z'], inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
         else:

@@ -28,6 +28,12 @@ class Canonical(object):
 
     __metaclass__ = abc.ABCMeta
 
+    @property
+    def expr(self):
+        if not len(self.args) == 1:
+            raise ValueError("'expr' is ambiguous, there should be only one argument")
+        return self.args[0]
+
     @abc.abstractmethod
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -74,6 +80,12 @@ class Canonical(object):
         # Remove duplicates:
         const_dict = {id(constant): constant for constant in const_list}
         return list(const_dict.values())
+
+    def tree_copy(self):
+        new_args = []
+        for arg in self.args:
+            new_args += [arg.copy_tree()]
+        return self.copy(args=new_args)
 
     def copy(self, args=None):
         """Returns a shallow copy of the object.

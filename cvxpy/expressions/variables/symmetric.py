@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.expressions import cvxtypes
-import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 
 

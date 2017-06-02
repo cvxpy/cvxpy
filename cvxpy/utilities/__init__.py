@@ -21,4 +21,3 @@ from .canonical import Canonical
 from . import grad
 from . import shape
 from . import sign
-from .quadratic import QuadCoeffExtractor

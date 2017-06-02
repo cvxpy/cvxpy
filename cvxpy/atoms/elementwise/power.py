@@ -237,7 +237,6 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
-
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 

@@ -60,7 +60,7 @@ class SCS(ConicSolver):
         """
         import scs
         scs  # For flake8
-    
+
     def accepts(self, problem):
         """Can SCS solve the problem?
         """
@@ -150,7 +150,9 @@ class SCS(ConicSolver):
         """
         import scs
         data, inv_data = self.apply(problem)
-        solution = scs.solve(data, data[s.DIMS],
-                                verbose=verbose,
-                                **solver_opts)
+        solution = scs.solve(
+            data,
+            data[s.DIMS],
+            verbose=verbose,
+            **solver_opts)
         return self.invert(solution, inv_data)

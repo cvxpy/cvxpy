@@ -34,6 +34,7 @@ def wrap_bin_op(method):
             return method(self, other)
     return new_method
 
+
 for method_name in BIN_OPS:
     method = getattr(spmatrix, method_name)
     new_method = wrap_bin_op(method)

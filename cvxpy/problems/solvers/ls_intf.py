@@ -21,7 +21,7 @@ import cvxpy.interface as intf
 from cvxpy.error import SolverError
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
-from cvxpy.utilities import QuadCoeffExtractor
+# from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as SLA
@@ -116,7 +116,7 @@ class LS(Solver):
                 for x in variables:
                     var_sizes[x.id] = x.size
                     var_offsets[x.id] = vert_offset
-                    vert_offset += x.size[0]*x.size[1]
+                    vert_offset += x.shape[0]*x.shape[1]
                 return (var_offsets, var_sizes, vert_offset)
 
         return FakeSymData(objective, constraints)
@@ -140,10 +140,10 @@ class LS(Solver):
 
         sym_data = self.get_sym_data(objective, constraints)
 
-        id_map = sym_data.var_offsets
+        # id_map = sym_data.var_offsets
         N = sym_data.x_length
 
-        extractor = QuadCoeffExtractor(id_map, N)
+        extractor = None  # broken
 
         # Extract the coefficients
         (Ps, Q, R) = extractor.get_coeffs(objective.args[0])

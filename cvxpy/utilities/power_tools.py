@@ -30,10 +30,8 @@ import numbers
 def gm(t, x, y):
     length = t.shape[0]*t.shape[1]
     return SOC(t=reshape(x+y, (length, 1)),
-                X=vstack(
-                    reshape(x-y, (1, length)),
-                    reshape(2*t, (1, length))),
-                axis=0)
+               X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
+               axis=0)
 
 
 def gm_constrs(t, x_list, p):

@@ -137,7 +137,10 @@ class huber(Elementwise):
             M = lu.create_const(M.value, (1, 1))
 
         # n**2 + 2*M*|s|
-        n2, constr_sq = power.graph_implementation([n], shape, (2, (Fraction(1, 2), Fraction(1, 2))))
+        n2, constr_sq = power.graph_implementation(
+            [n],
+            shape, (2, (Fraction(1, 2), Fraction(1, 2)))
+        )
         abs_s, constr_abs = abs.graph_implementation([s], shape)
         M_abs_s = lu.mul_expr(M, abs_s, shape)
         obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, shape)])

@@ -62,7 +62,6 @@ class PSD(NonPos):
         """
         obj, constraints = self.args[0].canonical_form
         half = lu.create_const(0.5, (1, 1))
-        symm = lu.mulargs[0](half, lu.sumargs[0]([obj, lu.transpose(obj)]),
-                           obj.shape)
+        symm = lu.mulargs[0](half, lu.sumargs[0]([obj, lu.transpose(obj)]), obj.shape)
         dual_holder = SDP(symm, enforce_sym=False, constr_id=self.id)
         return (None, constraints + [dual_holder])

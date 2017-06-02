@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -18,18 +18,136 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import division
-import cvxpy.interface as intf
+
 import warnings
+
+import numpy as np
+import scipy.sparse as sp
+from scipy import linalg as LA
+
+import cvxpy.interface as intf
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
+
 from .sum_squares import sum_squares
-from scipy import linalg as LA
-import numpy as np
 
 
 class CvxPyDomainError(Exception):
     pass
+
+
+class QuadForm(Atom):
+
+    def __init__(self, x, P):
+        super(QuadForm, self).__init__(x, P)
+        # Cache eigenvalues
+        if sp.issparse(P):
+            self.P_eigvals = LA.eigvals(P.todense())
+        else:
+            self.P_eigvals = LA.eigvals(P)
+        self.P = self.args[1]
+
+    @Atom.numpy_numeric
+    def numeric(self, values):
+        return np.dot(np.dot(values[0], values[1]), values[0])
+
+    def validate_arguments(self):
+        super(QuadForm, self).validate_arguments()
+        if not self.args[1].is_constant():
+            raise ValueError("P must be a constant matrix.")
+        n = self.args[1].shape[0]
+        if self.args[1].shape[1] != n or self.args[0].shape != (n, 1):
+            raise ValueError("Invalid dimensions for arguments.")
+
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        return (self.is_atom_convex(), self.is_atom_concave())
+
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return np.all(self.P_eigvals >= 0)
+
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return np.all(self.P_eigvals <= 0)
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.is_pwl()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.is_pwl()
+
+    def is_quadratic(self):
+        """Is the atom quadratic?
+        """
+        return True
+
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return np.count_nonzero(self.P) == 0
+
+    def get_data(self):
+        return [self.x, self.P]
+
+    def name(self):
+        return "%s(%s, %s)" % (self.__class__.__name__,
+                               self.x,
+                               self.P)
+
+    def _grad(self):
+        return self.P * self.x
+
+    def graph_implementation(self):
+        return NotImplemented
+
+    def shape_from_args(self):
+        return (1, 1)
+
+
+class SymbolicQuadForm(Atom):
+    """
+    Symbolic form of QuadForm when quadratic matrix is not known (yet).
+    """
+    def __init__(self, x, P, expr):
+        self.original_expression = expr
+        super(SymbolicQuadForm, self).__init__(x, P)
+        self.P = self.args[1]
+
+    def _grad(self, values):
+        return NotImplemented
+
+    def graph_implementation(self, arg_objs, shape, data=None):
+        return NotImplemented
+
+    def is_atom_concave(self):
+        return self.original_expression.is_atom_concave()
+
+    def is_atom_convex(self):
+        return self.original_expression.is_atom_convex()
+
+    def is_decr(self, idx):
+        return self.original_expression.is_decr(idx)
+
+    def is_incr(self, idx):
+        return self.original_expression.is_incr(idx)
+
+    def shape_from_args(self):
+        return self.original_expression.shape_from_args()
+
+    def sign_from_args(self):
+        return self.original_expression.sign_from_args()
+
+    def is_quadratic(self):
+        return True
 
 
 def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
@@ -87,6 +205,7 @@ def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     M2 = V[:, maskn] * np.sqrt(-w_scaled[maskn])
     return scale, M1, M2
 
+
 def quad_form(x, P):
     """ Alias for :math:`x^T P x`.
 
@@ -107,67 +226,10 @@ def quad_form(x, P):
         P = (P + P.T) / 2.0
         scale, M1, M2 = _decomp_quad(P)
         ret = 0
-        if M1.shape > 0:
+        if all([s > 0 for s in M1.shape]):
             ret += scale * sum_squares(Constant(M1.T) * x)
-        if M2.shape > 0:
+        if all([s > 0 for s in M2.shape]):
             ret -= scale * sum_squares(Constant(M2.T) * x)
         return ret
     else:
         raise Exception("At least one argument to quad_form must be constant.")
-
-class QuadForm(Atom):
-
-    def __init__(self, x, P):
-        self.x = x
-        self.P = P
-        self.P_eigvals = LA.eigvals(P) # cache eigenvalues
-
-    @Atom.numpy_numeric
-    def numeric(self, values):
-        return np.dot(np.dot(values[0], values[1]), values[0])
-
-    def validate_arguments(self):
-        super(Quadratic, self).validate_arguments()
-        if not P.is_constant():
-            raise ValueError("P must be a constant matrix.")
-        n = P.shape[0]
-        if P.shape[1] != n or x.shape != (n, 1):
-            raise ValueError("Invalid dimensions for arguments.")
-
-    def sign_from_args(self):
-        """Returns sign (is positive, is negative) of the expression.
-        """
-        return (self.is_atom_convex(), self.is_atom_concave())
-
-    def is_atom_convex(self):
-        """Is the atom convex?
-        """
-        return np.all(self.P_eigvals >= 0)
-
-    def is_atom_concave(self):
-        """Is the atom concave?
-        """
-        return np.all(self.P_eigvals <= 0)
-
-    def is_incr(self, idx):
-        """Is the composition non-decreasing in argument idx?
-        """
-        return self.is_pwl()
-
-    def is_decr(self, idx):
-        """Is the composition non-increasing in argument idx?
-        """
-        return self.is_pwl()
-
-    def is_pwl(self):
-        """Is the atom piecewise linear?
-        """
-        return np.count_nonzero(P) == 0
-
-    def get_data(self):
-        return [self.x, self.P]
-
-    def name(self):
-        return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.x,
-                               self.P)

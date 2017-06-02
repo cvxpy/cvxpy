@@ -17,13 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
-from cvxpy.reductions.solution import Solution
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
 
 from .conic_solver import ConicSolver
 
@@ -72,11 +67,16 @@ class CVXOPT(ConicSolver):
 
     def apply(self, problem):
         pass
-    
+
     def invert(self, solution, inverse_data):
         pass
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_old
-        return CVXOPT_old.solve(problem.objective, problem.constraints, {}, \
-             warm_start, verbose, solver_opts)
+        return CVXOPT_old.solve(
+            problem.objective,
+            problem.constraints,
+            {},
+            warm_start,
+            verbose,
+            solver_opts)

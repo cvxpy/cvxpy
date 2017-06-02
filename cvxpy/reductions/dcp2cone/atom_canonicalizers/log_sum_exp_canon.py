@@ -1,9 +1,28 @@
+"""
+Copyright 2013 Steven Diamond
+
+This file is part of CVXPY.
+
+CVXPY is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+CVXPY is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+import numpy as np
+
 from cvxpy.atoms.affine.sum_entries import sum_entries
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import \
-    exp_canon
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import exp_canon
 
 
 def log_sum_exp_canon(expr, args):
@@ -22,7 +41,7 @@ def log_sum_exp_canon(expr, args):
 
     exp_expr = x - promoted_t
     obj, constraints = exp_canon(exp_expr, exp_expr.args)
-    obj = sum_entries(obj, axis=axis) 
+    obj = sum_entries(obj, axis=axis)
     ones = Constant(np.ones(shape))
     constraints.append(obj <= ones)
     return t, constraints
