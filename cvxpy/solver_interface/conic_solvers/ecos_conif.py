@@ -126,8 +126,7 @@ class ECOS(ConicSolver):
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
+        """Returns the solution to the original problem given the inverse_data."""
         status = self.STATUS_MAP[solution['info']['exitFlag']]
 
         # Timing data

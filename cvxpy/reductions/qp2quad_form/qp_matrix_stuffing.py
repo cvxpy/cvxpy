@@ -17,23 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
 import cvxpy
-import cvxpy.settings as s
-from cvxpy.atoms.quad_form import QuadForm
-from cvxpy.constraints.nonpos import NonPos
-from cvxpy.constraints.zero import Zero
+from cvxpy.atoms import QuadForm, reshape
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
-from cvxpy.reductions.reduction import Reduction
-from cvxpy.reductions.solution import Solution
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.problems.objective import Minimize
 
 
-class QpMatrixStuffing(Reduction):
+class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
     """
 
@@ -51,13 +45,15 @@ class QpMatrixStuffing(Reduction):
         )
 
     def apply(self, problem):
-        """ Returns a new problem and data for inverting the new solution. """
+        """Returns a new problem and data for inverting the new solution."""
         qp, inverse_data_stack = Qp2SymbolicQp().apply(problem)
 
         if not self.accepts(qp):
             raise ValueError("This QP can not be stuffed")
+
         inverse_data = InverseData(qp)
         extractor = CoeffExtractor(inverse_data)
+
         # extract to x.T * P * x + q.T * x + r
         (P, q, r) = extractor.quad_form(qp)
 
@@ -67,37 +63,15 @@ class QpMatrixStuffing(Reduction):
 
         constraints = qp.constraints
         new_cons = []
-        ineq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == NonPos]
-        eq_cons = [extractor.affine(c.expr) for c in constraints if type(c) == Zero]
-        if ineq_cons:
-            A = sp.vstack([C[0] for C in ineq_cons])
-            b = np.concatenate([C[1] for C in ineq_cons]).flatten()
-            new_eq = A*x + b <= 0
-            new_cons += [new_eq]
-        if eq_cons:
-            F = sp.vstack([C[0] for C in eq_cons])
-            g = np.concatenate([C[1] for C in eq_cons]).flatten()
-            new_ineq = F*x + g == 0
-            new_cons += [new_ineq]
+        for constraint in constraints:
+            assert len(constraint.args) == 1
+            A, b = extractor.affine(constraint.expr)
+            arg = reshape(A*x+b, constraint.args[0].shape)
+            new_con = type(constraint)(arg)
+            new_cons += [new_con]
+            inverse_data.cons_id_map[constraint.id] = new_con.id
 
-        offset = {s.INEQ_CONSTR: 0, s.EQ_CONSTR: 0}
-        inverse_data.new_var_id = x.id
-        for c in constraints:
-            if type(c) == NonPos:
-                inverse_data.cons_id_map[c.constr_id] = (
-                    new_eq.constr_id,
-                    offset[s.INEQ_CONSTR],
-                    c.shape)
-                offset[s.INEQ_CONSTR] += c.shape[0]*c.shape[1]
-            elif type(c) == Zero:
-                inverse_data.cons_id_map[c.constr_id] = (
-                    new_ineq.constr_id,
-                    offset[s.EQ_CONSTR],
-                    c.shape)
-                offset[s.EQ_CONSTR] += c.shape[0]*c.shape[1]
-            else:
-                raise ValueError("Type", type(c), "not allowed in QP")
-
+        inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = Problem(cvxpy.Minimize(new_obj), new_cons)
         inverse_data_stack.append(inverse_data)
         return new_prob, inverse_data_stack
@@ -105,22 +79,6 @@ class QpMatrixStuffing(Reduction):
     def invert(self, solution, inverse_data_stack):
         """Returns the solution to the original problem given the inverse_data.
         """
-        inverse_data = inverse_data_stack.pop()
-        if solution.status == s.OPTIMAL:
-            primal_vars = dict()
-            dual_vars = dict()
-            for old_id, tup in inverse_data.cons_id_map.items():
-                new_id, offset, shape = tup
-                size = shape[0]*shape[1]
-                val = solution.dual_vars[new_id][offset:offset+size]
-                dual_vars[old_id] = val.reshape(shape, order='F')
-            for old_id, tup in inverse_data.id_map.items():
-                offset, size = tup
-                shape = inverse_data.var_shapes[old_id]
-                new_id = inverse_data.new_var_id
-                val = solution.primal_vars[new_id][offset:offset+size]
-                primal_vars[old_id] = val.reshape(shape, order='F')
-            ret = Solution(s.OPTIMAL, solution.opt_val, primal_vars, dual_vars)
-        else:
-            ret = solution
-        return Qp2SymbolicQp().invert(ret, inverse_data_stack)
+        inv = inverse_data_stack.pop()
+        solution = MatrixStuffing().invert(solution, inv)
+        return Qp2SymbolicQp().invert(solution, inverse_data_stack)

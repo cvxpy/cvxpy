@@ -88,8 +88,7 @@ class ConicSolver(ReductionSolver):
         Returns:
           (SciPy CSR sparse matrix, NumPy 1D array)
         """
-        coeffs = []
-        offsets = []
+        coeffs, offsets = [], []
         for arg in constr.args:
             coeff, offset = ConicSolver.get_coeff_offset(arg)
             coeffs.append(coeff.tocsr())
@@ -138,18 +137,15 @@ class ConicSolver(ReductionSolver):
         Returns:
           (SciPy CSC sparse matrix, NumPy 1D array)
         """
-        matrices = []
-        offsets = []
+        if not constraints:
+            return None, None
+        matrices, offsets = [], []
         for cons in constraints:
             coeff, offset = ConicSolver.format_constr(cons, exp_cone_order)
             matrices.append(coeff)
             offsets.append(offset)
-        if len(constraints) > 0:
-            coeff = sp.vstack(matrices).tocsc()
-            offset = np.hstack(offsets)
-        else:
-            coeff = None
-            offset = None
+        coeff = sp.vstack(matrices).tocsc()
+        offset = np.hstack(offsets)
         return coeff, offset
 
     @staticmethod

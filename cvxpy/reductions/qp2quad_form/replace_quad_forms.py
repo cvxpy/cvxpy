@@ -26,8 +26,7 @@ from cvxpy.reductions.reduction import Reduction
 
 
 class ReplaceQuadForms(Reduction):
-    """Replaces symbolic quadratic forms in the objective by ordinary variables
-    """
+    """Replaces symbolic quadratic forms in the objective by ordinary variables"""
 
     def accepts(self, problem):
         return problem.objective.is_quadratic() or problem.objective.is_affine()
