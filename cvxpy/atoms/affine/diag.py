@@ -43,7 +43,7 @@ def diag(expr):
             return diag_vec(expr)
         # Convert a row vector to a column vector.
         else:
-            expr = reshape(expr, expr.shape[1], 1)
+            expr = reshape(expr, (expr.shape[1], 1))
             return diag_vec(expr)
     elif expr.shape[0] == expr.shape[1]:
         return diag_mat(expr)
