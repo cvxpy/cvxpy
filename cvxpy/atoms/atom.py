@@ -111,7 +111,7 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    # @clru_cache(maxsize=100)
+    @clru_cache(maxsize=100)
     def is_convex(self):
         """Is the expression convex?
         """
@@ -128,7 +128,7 @@ class Atom(Expression):
         else:
             return False
 
-    # @clru_cache(maxsize=100)
+    @clru_cache(maxsize=100)
     def is_concave(self):
         """Is the expression concave?
         """
