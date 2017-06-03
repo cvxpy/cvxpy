@@ -36,7 +36,7 @@ class test_lin_ops(BaseTest):
         """Test creating a variable.
         """
         var = create_var((5, 4), var_id=1)
-        self.assertEqual(var.size, (5, 4))
+        self.assertEqual(var.shape, (5, 4))
         self.assertEqual(var.data, 1)
         self.assertEqual(len(var.args), 0)
         self.assertEqual(var.type, VARIABLE)
@@ -46,7 +46,7 @@ class test_lin_ops(BaseTest):
         """
         A = Parameter(5, 4)
         var = create_param(A, (5, 4))
-        self.assertEqual(var.size, (5, 4))
+        self.assertEqual(var.shape, (5, 4))
         self.assertEqual(len(var.args), 0)
         self.assertEqual(var.type, PARAM)
 
@@ -54,25 +54,25 @@ class test_lin_ops(BaseTest):
         """Test creating a constant.
         """
         # Scalar constant.
-        size = (1, 1)
-        mat = create_const(1.0, size)
-        self.assertEqual(mat.size, size)
+        shape = (1, 1)
+        mat = create_const(1.0, shape)
+        self.assertEqual(mat.shape, shape)
         self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, SCALAR_CONST)
         assert mat.data == 1.0
 
         # Dense matrix constant.
-        size = (5, 4)
-        mat = create_const(np.ones(size), size)
-        self.assertEqual(mat.size, size)
+        shape = (5, 4)
+        mat = create_const(np.ones(shape), shape)
+        self.assertEqual(mat.shape, shape)
         self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, DENSE_CONST)
-        assert (mat.data == np.ones(size)).all()
+        assert (mat.data == np.ones(shape)).all()
 
         # Sparse matrix constant.
-        size = (5, 5)
-        mat = create_const(sp.eye(5), size, sparse=True)
-        self.assertEqual(mat.size, size)
+        shape = (5, 5)
+        mat = create_const(sp.eye(5), shape, sparse=True)
+        self.assertEqual(mat.shape, shape)
         self.assertEqual(len(mat.args), 0)
         self.assertEqual(mat.type, SPARSE_CONST)
         assert (mat.data.todense() == sp.eye(5).todense()).all()
@@ -80,25 +80,25 @@ class test_lin_ops(BaseTest):
     def test_add_expr(self):
         """Test adding lin expr.
         """
-        size = (5, 4)
-        x = create_var(size)
-        y = create_var(size)
+        shape = (5, 4)
+        x = create_var(shape)
+        y = create_var(shape)
         # Expanding dict.
         add_expr = sum_expr([x, y])
-        self.assertEqual(add_expr.size, size)
+        self.assertEqual(add_expr.shape, shape)
         assert len(add_expr.args) == 2
 
     def test_get_vars(self):
         """Test getting vars from an expression.
         """
-        size = (5, 4)
-        x = create_var(size)
-        y = create_var(size)
-        A = create_const(np.ones(size), size)
+        shape = (5, 4)
+        x = create_var(shape)
+        y = create_var(shape)
+        A = create_const(np.ones(shape), shape)
         # Expanding dict.
         add_expr = sum_expr([x, y, A])
         vars_ = get_expr_vars(add_expr)
-        ref = [(x.data, size), (y.data, size)]
+        ref = [(x.data, shape), (y.data, shape)]
         if PY2:
             self.assertItemsEqual(vars_, ref)
         else:
@@ -107,26 +107,26 @@ class test_lin_ops(BaseTest):
     def test_neg_expr(self):
         """Test negating an expression.
         """
-        size = (5, 4)
-        var = create_var(size)
+        shape = (5, 4)
+        var = create_var(shape)
         expr = neg_expr(var)
         assert len(expr.args) == 1
-        self.assertEqual(expr.size, size)
+        self.assertEqual(expr.shape, shape)
         self.assertEqual(expr.type, NEG)
 
     def test_eq_constr(self):
         """Test creating an equality constraint.
         """
-        size = (5, 5)
-        x = create_var(size)
-        y = create_var(size)
+        shape = (5, 5)
+        x = create_var(shape)
+        y = create_var(shape)
         lh_expr = sum_expr([x, y])
-        value = np.ones(size)
-        rh_expr = create_const(value, size)
+        value = np.ones(shape)
+        rh_expr = create_const(value, shape)
         constr = create_eq(lh_expr, rh_expr)
-        self.assertEqual(constr.size, size)
+        self.assertEqual(constr.shape, shape)
         vars_ = get_expr_vars(constr.expr)
-        ref = [(x.data, size), (y.data, size)]
+        ref = [(x.data, shape), (y.data, shape)]
         if PY2:
             self.assertItemsEqual(vars_, ref)
         else:
@@ -135,16 +135,16 @@ class test_lin_ops(BaseTest):
     def test_leq_constr(self):
         """Test creating a less than or equal constraint.
         """
-        size = (5, 5)
-        x = create_var(size)
-        y = create_var(size)
+        shape = (5, 5)
+        x = create_var(shape)
+        y = create_var(shape)
         lh_expr = sum_expr([x, y])
-        value = np.ones(size)
-        rh_expr = create_const(value, size)
+        value = np.ones(shape)
+        rh_expr = create_const(value, shape)
         constr = create_leq(lh_expr, rh_expr)
-        self.assertEqual(constr.size, size)
+        self.assertEqual(constr.shape, shape)
         vars_ = get_expr_vars(constr.expr)
-        ref = [(x.data, size), (y.data, size)]
+        ref = [(x.data, shape), (y.data, shape)]
         if PY2:
             self.assertItemsEqual(vars_, ref)
         else:
@@ -153,9 +153,9 @@ class test_lin_ops(BaseTest):
     def test_sum_entries(self):
         """Test sum entries op.
         """
-        size = (5, 5)
-        x = create_var(size)
+        shape = (5, 5)
+        x = create_var(shape)
         expr = sum_entries(x)
-        self.assertEqual(expr.size, (1, 1))
+        self.assertEqual(expr.shape, (1, 1))
         self.assertEqual(len(expr.args), 1)
         self.assertEqual(expr.type, lo.SUM_ENTRIES)

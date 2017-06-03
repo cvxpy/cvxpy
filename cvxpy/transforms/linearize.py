@@ -50,7 +50,7 @@ def linearize(expr):
                 return None
             elif var.is_matrix():
                 flattened = Constant(grad_map[var]).T*vec(var - var.value)
-                tangent = tangent + reshape(flattened, *expr.size)
+                tangent = tangent + reshape(flattened, expr.shape)
             else:
                 tangent = tangent + Constant(grad_map[var]).T*(var - var.value)
         return tangent
