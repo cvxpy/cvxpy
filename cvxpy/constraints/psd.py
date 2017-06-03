@@ -35,6 +35,9 @@ class PSD(NonPos):
             )
         super(PSD, self).__init__(expr)
 
+    def name(self):
+        return "%s >> 0" % self.args[0]
+
     def is_dcp(self):
         """Both sides must be affine.
         """
