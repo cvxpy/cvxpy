@@ -231,7 +231,7 @@ class TestConstraints(BaseTest):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
         constr = SOC(scalar_exp, exp)
-        self.assertEqual(constr.size, (3, 1))
+        self.assertEqual(constr.shape, (3, 1))
 
     def test_chained_constraints(self):
         """Tests that chaining constraints raises an error.

@@ -170,7 +170,7 @@ class Atom(Expression):
             graph_obj, graph_constr = self.graph_implementation(arg_objs,
                                                                 self.shape,
                                                                 data)
-            return (graph_obj, constraints + graph_constr)
+            return graph_obj, constraints + graph_constr
 
     @abc.abstractmethod
     def graph_implementation(self, arg_objs, shape, data=None):
