@@ -42,7 +42,7 @@ class SDP(Constraint):
     def __init__(self, A, enforce_sym=True, constr_id=None):
         self.A = A
         self.enforce_sym = enforce_sym
-        super(SDP, self).__init__(constr_id)
+        super(SDP, self).__init__([A], constr_id=constr_id)
 
     def __str__(self):
         return "SDP(%s)" % self.A

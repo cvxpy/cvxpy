@@ -1488,15 +1488,15 @@ class TestProblem(BaseTest):
         """
         if s.CVXOPT in installed_solvers():
             # Test the dual values with cvxopt.
-            C = Symmetric(2, 2)
+            C = Symmetric(2, name='C')
             obj = Maximize(C[0, 0])
             constraints = [C << [[2, 0], [0, 2]]]
             prob = Problem(obj, constraints)
             result = prob.solve(solver=s.CVXOPT)
             self.assertAlmostEqual(result, 2)
 
-            psd_constr_dual = constraints[0].dual_value
-            C = Symmetric(2, 2)
+            psd_constr_dual = constraints[0].dual_value.copy()
+            C = Symmetric(2, name='C')
             X = Semidef(2)
             obj = Maximize(C[0, 0])
             constraints = [X == [[2, 0], [0, 2]] - C]
