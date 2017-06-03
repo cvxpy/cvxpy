@@ -30,6 +30,7 @@ from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
 from cvxpy.solver_interface.conic_solvers.gurobi_conif import GUROBI
 from cvxpy.solver_interface.conic_solvers.mosek_conif import MOSEK
 from cvxpy.solver_interface.conic_solvers.scs_conif import SCS
+from cvxpy.solver_interface.conic_solvers.cvxopt_conif import CVXOPT
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -49,7 +50,7 @@ class TestLinearCone(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
-        self.solvers = [ECOS(), GUROBI(), MOSEK(), SCS()]
+        self.solvers = [ECOS(), GUROBI(), MOSEK(), SCS(), CVXOPT()]
 
     def test_all_solvers(self):
         for solver in self.solvers:
@@ -274,7 +275,7 @@ class TestLinearCone(BaseTest):
         pmod = Problem(Minimize(self.b), [ExpCone(self.a/2 + self.c, Constant(1), self.b+5),
                                           self.a >= 1, self.c == 5])
         self.assertTrue(ConeMatrixStuffing().accepts(pmod))
-        result = p.solve(solver.name())
+        result = p.solve(solver.name(), verbose=True)
         p_new = ConeMatrixStuffing().apply(pmod)
         sltn = solver.solve(p_new[0], False, False, {})
         self.assertAlmostEqual(sltn.opt_val, result, places=0)

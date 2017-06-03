@@ -43,8 +43,14 @@ class ConicSolver(ReductionSolver):
         if type(expr) == reshape:
             expr = expr.args[0]
         # Convert data to float64.
-        offset = expr.args[1].value.ravel().astype(np.float64)
-        coeff = expr.args[0].args[0].value.astype(np.float64)
+        if len(expr.args[0].args) == 0:
+            # expr is c.T*x
+            offset = 0
+            coeff = expr.args[0].value.astype(np.float64)
+        else:
+            # expr is c.T*x + d
+            offset = expr.args[1].value.ravel().astype(np.float64)
+            coeff = expr.args[0].args[0].value.astype(np.float64)
         # Convert scalars to sparse matrices.
         if np.isscalar(coeff):
             coeff = sp.coo_matrix(([coeff], ([0], [0])), shape=(1, 1))
