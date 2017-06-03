@@ -300,7 +300,7 @@ class TestGrad(BaseTest):
 
         self.A.value = [[1, 2], [3, 4]]
         lin_expr = linearize(expr)
-        manual = expr.value + 2*reshape(diag(vec(self.A)).value*vec(self.A - self.A.value), 2, 2)
+        manual = expr.value + 2*reshape(diag(vec(self.A)).value*vec(self.A - self.A.value), (2, 2))
         self.assertItemsAlmostEqual(lin_expr.value, expr.value)
         self.A.value = [[-5, -5], [8.2, 4.4]]
         assert (lin_expr.value <= expr.value).all()

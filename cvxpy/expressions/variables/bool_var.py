@@ -32,7 +32,7 @@ class Bool(Variable):
     def __repr__(self):
         """String to recreate the object.
         """
-        return "Bool(%d, %d)" % self.size
+        return "Bool(%d, %d)" % self.shape
 
     def is_positive(self):
         """Is the expression positive?
