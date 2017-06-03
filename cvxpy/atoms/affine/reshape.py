@@ -46,7 +46,7 @@ class reshape(AffAtom):
         new_len = np.prod(self._shape)
         if not old_len == new_len:
             raise ValueError(
-                "Invalid reshape dimensions %s, %s." % self._shape
+                "Invalid reshape dimensions %s." % (self._shape,)
             )
 
     def shape_from_args(self):
