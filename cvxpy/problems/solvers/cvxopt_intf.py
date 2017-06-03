@@ -31,6 +31,7 @@ import copy
 class CVXOPT(Solver):
     """An interface for the CVXOPT solver.
     """
+    NL_DUAL = 'nl_dual'
 
     # Solver capabilities.
     LP_CAPABLE = True
@@ -387,6 +388,7 @@ class CVXOPT(Solver):
             new_results[s.EQ_DUAL] = results_dict['y']
             if data[s.DIMS][s.EXP_DIM]:
                 new_results[s.INEQ_DUAL] = results_dict['zl']
+                new_results[self.NL_DUAL] = results_dict['znl']
             else:
                 new_results[s.INEQ_DUAL] = results_dict['z']
             # Need to multiply duals by Q and P_leq.
@@ -414,5 +416,8 @@ class CVXOPT(Solver):
 
             for key in [s.PRIMAL, s.EQ_DUAL, s.INEQ_DUAL]:
                 new_results[key] = intf.cvxopt2dense(new_results[key])
+            if data[s.DIMS][s.EXP_DIM]:
+                nl_dual = intf.cvxopt2dense(new_results[self.NL_DUAL])
+                new_results[s.INEQ_DUAL] = np.vstack([new_results[s.INEQ_DUAL], nl_dual])
 
         return new_results

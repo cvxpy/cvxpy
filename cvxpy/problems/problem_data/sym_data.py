@@ -210,7 +210,7 @@ class SymData(object):
         # If CVXOPT is the solver, some of the variables are
         # in NonLinearConstraints.
         for constr in nonlinear:
-            for nonlin_var in constr.variables():
+            for nonlin_var in constr.args:
                 vars_ += lu.get_expr_vars(nonlin_var)
 
         var_offsets = OrderedDict()

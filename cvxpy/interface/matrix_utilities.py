@@ -75,7 +75,7 @@ def sparse2cvxopt(value):
     elif sp.issparse(value):
         value = value.tocoo()
         return cvxopt.spmatrix(value.data.tolist(), value.row.tolist(),
-                               value.col.tolist(), shape=value.shape, tc='d')
+                               value.col.tolist(), size=value.shape, tc='d')
 
 
 def dense2cvxopt(value):
