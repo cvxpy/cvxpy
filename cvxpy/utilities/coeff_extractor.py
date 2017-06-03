@@ -73,7 +73,7 @@ class CoeffExtractor(object):
 
     def constant(self, expr):
         size = expr.shape[0]*expr.shape[1]
-        return sp.csr_matrix((size, self.N)), expr.value.reshape(size, order='F')
+        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size, 1), order='F')
 
     def affine(self, expr):
         """ If expression is A*x + b, return A, b
