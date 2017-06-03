@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from fractions import Fraction
 import cvxpy.settings as s
 from cvxpy.atoms import *
+from cvxpy.constraints import NonPos, Zero
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
 from cvxpy.problems.objective import *
@@ -73,8 +74,8 @@ class TestProblem(BaseTest):
         self.assertEqual(repr(prob), "Problem(%s, %s)" % (repr(obj), repr(constraints)))
 
         # Test str.
-        result = "minimize %(name)s\nsubject to %(name)s == 0\n           0 <= %(name)s" % {"name": self.a.name()}
-        prob = Problem(Minimize(self.a), [self.a == 0, self.a >= 0])
+        result = "minimize %(name)s\nsubject to %(name)s == 0\n           %(name)s <= 0" % {"name": self.a.name()}
+        prob = Problem(Minimize(self.a), [Zero(self.a), NonPos(self.a)])
         self.assertEqual(str(prob), result)
 
     def test_variables(self):
@@ -112,7 +113,7 @@ class TestProblem(BaseTest):
         ref = [c1, c2]
         self.assertEqual(len(ref), len(constants_))
         for c, r in zip(constants_, ref):
-            self.assertTupleEqual(c.size, r.shape)
+            self.assertTupleEqual(c.shape, r.shape)
             self.assertTrue((c.value == r).all())
             # Allows comparison between numpy matrices and numpy arrays
             # Necessary because of the way cvxpy handles numpy arrays and constants
@@ -123,7 +124,7 @@ class TestProblem(BaseTest):
         ref = [numpy.matrix(1)]
         self.assertEqual(len(ref), len(constants_))
         for c, r in zip(constants_, ref):
-            self.assertEqual(c.size, r.shape) and \
+            self.assertEqual(c.shape, r.shape) and \
             self.assertTrue((c.value == r).all())
             # Allows comparison between numpy matrices and numpy arrays
             # Necessary because of the way cvxpy handles numpy arrays and constants
@@ -140,10 +141,12 @@ class TestProblem(BaseTest):
         c2 = numpy.random.randn(1, 2)
         constants = [2, c2.dot(c1)]
 
-        p = Problem(Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + constants[0], self.c == constants[1]])
+        p = Problem(Minimize(p1), [self.a + p1 <= p2,
+                                   self.b <= p3 + p3 + constants[0],
+                                   self.c == constants[1]])
         # num_scalar_variables
         n_variables = p.size_metrics.num_scalar_variables
-        ref = numpy.prod(self.a.size) + numpy.prod(self.b.size) + numpy.prod(self.c.size)
+        ref = self.a.size + self.b.size + self.c.size
         if PY2:
             self.assertEqual(n_variables, ref)
         else:
@@ -166,7 +169,7 @@ class TestProblem(BaseTest):
 
         # max_data_dimension
         max_data_dim = p.size_metrics.max_data_dimension
-        ref = max(p3.size)
+        ref = max(p3.shape)
         self.assertEqual(max_data_dim, ref)
 
     def test_solver_stats(self):
@@ -398,7 +401,7 @@ class TestProblem(BaseTest):
         exp = norm(self.x, 2)
         prob = Problem(Minimize(0), [exp <= 1, exp <= 2])
         result = prob.solve(method="test")
-        self.assertEqual(result, (0, 4))
+        self.assertEqual(result, (0, 3))
 
     # Test the is_dcp method.
     def test_is_dcp(self):
@@ -642,8 +645,8 @@ class TestProblem(BaseTest):
                      self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 26, places=3)
-        obj = c.T*self.x.value + self.a.value
-        self.assertAlmostEqual(obj[0, 0], result)
+        obj = (c.T*self.x + self.a).value
+        self.assertAlmostEqual(obj, result)
         self.assertItemsAlmostEqual(self.x.value, [8, 8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2, 2], places=3)
 

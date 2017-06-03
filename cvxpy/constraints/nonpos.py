@@ -144,7 +144,7 @@ class NonPos(u.Canonical, Constraint):
         -------
         Expression
         """
-        return cvxtypes.neg()(self.args[0])
+        return cvxtypes.pos()(self.args[0])
 
     @property
     def violation(self):

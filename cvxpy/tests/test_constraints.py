@@ -39,22 +39,22 @@ class TestConstraints(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
-    def test_constr_str(self):
-        """Test string representations of the constraints.
-        """
-        constr = self.x <= self.x
-        self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(self.x)))
-        constr = self.x <= 2*self.x
-        self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
-        constr = 2*self.x >= self.x
-        self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
+    # def test_constr_str(self):
+    #     """Test string representations of the constraints.
+    #     """
+    #     constr = self.x <= self.x
+    #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(self.x)))
+    #     constr = self.x <= 2*self.x
+    #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
+    #     constr = 2*self.x >= self.x
+    #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
 
     def test_zero(self):
         """Test the Zero class.
         """
         constr = self.x == self.z
-        self.assertEqual(constr.name(), "x == z")
-        self.assertEqual(constr.size, (2, 1))
+        self.assertEqual(constr.name(), "x + -z == 0")
+        self.assertEqual(constr.shape, (2, 1))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -88,17 +88,16 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.A, self.B])
+        copy = constr.copy(args=[self.A])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
-        self.assertTrue(copy.args[1] is self.B)
 
     def test_nonpos(self):
         """Test the NonPos class.
         """
         constr = self.x <= self.z
-        self.assertEqual(constr.name(), "x <= z")
-        self.assertEqual(constr.size, (2, 1))
+        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.shape, (2, 1))
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
@@ -132,17 +131,16 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.A, self.B])
+        copy = constr.copy(args=[self.A])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
-        self.assertTrue(copy.args[1] is self.B)
 
     def test_psd_constraint(self):
         """Test the PSD constraint <<.
         """
         constr = self.A >> self.B
-        self.assertEqual(constr.name(), "A >> B")
-        self.assertEqual(constr.size, (2, 2))
+        self.assertEqual(constr.name(), "A + -B >> 0")
+        self.assertEqual(constr.shape, (2, 2))
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
@@ -158,7 +156,7 @@ class TestConstraints(BaseTest):
         self.assertAlmostEqual(constr.residual.value, 1)
 
         with self.assertRaises(Exception) as cm:
-            (self.x >> self.y)
+            (self.x >> 0)
         self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
 
         # Test copy with args=None
@@ -169,17 +167,16 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.B, self.A])
+        copy = constr.copy(args=[self.B])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.B)
-        self.assertTrue(copy.args[1] is self.A)
 
     def test_nsd_constraint(self):
         """Test the PSD constraint <<.
         """
         constr = self.A << self.B
-        self.assertEqual(constr.name(), "B >> A")
-        self.assertEqual(constr.size, (2, 2))
+        self.assertEqual(constr.name(), "B + -A >> 0")
+        self.assertEqual(constr.shape, (2, 2))
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
@@ -190,15 +187,15 @@ class TestConstraints(BaseTest):
         assert not constr.value
 
         with self.assertRaises(Exception) as cm:
-            (self.x << self.y)
+            (self.x << 0)
         self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
 
     def test_lt(self):
         """Test the < operator.
         """
         constr = self.x < self.z
-        self.assertEqual(constr.name(), "x <= z")
-        self.assertEqual(constr.size, (2, 1))
+        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.shape, (2, 1))
 
         with self.assertRaises(Exception) as cm:
             (self.x < self.y)
@@ -208,8 +205,8 @@ class TestConstraints(BaseTest):
         """Test the >= operator.
         """
         constr = self.z >= self.x
-        self.assertEqual(constr.name(), "x <= z")
-        self.assertEqual(constr.size, (2, 1))
+        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.shape, (2, 1))
 
         with self.assertRaises(Exception) as cm:
             (self.y >= self.x)
@@ -219,8 +216,8 @@ class TestConstraints(BaseTest):
         """Test the > operator.
         """
         constr = self.z > self.x
-        self.assertEqual(constr.name(), "x <= z")
-        self.assertEqual(constr.size, (2, 1))
+        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.shape, (2, 1))
 
         with self.assertRaises(Exception) as cm:
             (self.y > self.x)
@@ -231,7 +228,7 @@ class TestConstraints(BaseTest):
         exp = self.x + self.z
         scalar_exp = self.a + self.b
         constr = SOC(scalar_exp, exp)
-        self.assertEqual(constr.shape, (3, 1))
+        self.assertEqual(constr.size, 3)
 
     def test_chained_constraints(self):
         """Tests that chaining constraints raises an error.

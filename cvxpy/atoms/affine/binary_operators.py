@@ -60,7 +60,10 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        return values[0].dot(values[1])
+        if self.args[0].is_scalar() or self.args[1].is_scalar():
+            return values[0] * values[1]
+        else:
+            return values[0].dot(values[1])
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.

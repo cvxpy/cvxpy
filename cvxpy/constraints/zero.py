@@ -23,8 +23,8 @@ import cvxpy.lin_ops.lin_utils as lu
 
 
 class Zero(NonPos):
-    OP_NAME = "=="
-    # Both sides must be affine.
+    def name(self):
+        return "%s == 0" % self.args[0]
 
     def is_dcp(self):
         return self.args[0].is_affine()
