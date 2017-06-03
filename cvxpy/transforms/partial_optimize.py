@@ -188,7 +188,7 @@ class PartialProblem(Expression):
             for constr in self._prob.constraints:
                 # TODO: better way to get constraint expressions.
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
-                lagr += trace(lagr_multiplier.T*constr._expr)
+                lagr += trace(lagr_multiplier.T*constr.expr)
             grad_map = lagr.grad
             result = {var: grad_map[var] for var in self.variables()}
         else:  # Unbounded, infeasible, or solver error.

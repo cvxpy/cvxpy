@@ -65,7 +65,7 @@ class quad_over_lin(Atom):
             Dy = -np.square(X).sum()/np.square(y)
             Dy = sp.csc_matrix(Dy)
             DX = 2.0*X/y
-            DX = np.reshape(DX, (self.args[0].shape[0]*self.args[0].shape[1], 1))
+            DX = np.reshape(DX, (self.args[0].size, 1))
             DX = scipy.sparse.csc_matrix(DX)
             return [DX, Dy]
 

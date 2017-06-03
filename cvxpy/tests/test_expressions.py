@@ -159,8 +159,8 @@ class TestExpressions(BaseTest):
 
     # Test the Constant class.
     def test_constants(self):
-        c = Constant(2)
-        self.assertEqual(c.name(), str(2))
+        c = Constant(2.0)
+        self.assertEqual(c.name(), str(2.0))
 
         c = Constant(2)
         self.assertEqual(c.value, 2)
