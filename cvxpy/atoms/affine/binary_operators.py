@@ -57,6 +57,11 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+    def numeric(self, values):
+        """Matrix multiplication.
+        """
+        return values[0].dot(values[1])
+
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
