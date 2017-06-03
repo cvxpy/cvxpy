@@ -34,7 +34,7 @@ def gm(t, x, y):
     length = t.shape[0]*t.shape[1]
     if isinstance(t, Expression):
         return SOC(t=reshape(x+y, (length, 1)),
-                X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
+                X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
                 axis=0)
     else:
         two = lu.create_const(2, (1, 1))
