@@ -89,7 +89,7 @@ class NonlinearConstraint(Constraint):
             var_Df = Df[:, horiz_offset:horiz_offset+var_shape]
             self.block_add(big_Df, var_Df,
                            vert_offset, var_offsets[var.data],
-                           self.size, var_shape)
+                           self.num_cones(), var_shape)
             horiz_offset += var_shape
 
     def place_H(self, big_H, H, var_offsets):

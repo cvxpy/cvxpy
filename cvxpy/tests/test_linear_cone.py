@@ -53,7 +53,7 @@ class TestLinearCone(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
-        self.solvers = [ECOS(), GUROBI(), MOSEK(), SCS(), CVXOPT(), GLPK(), CBC()]
+        self.solvers = [ECOS(), GUROBI(), MOSEK(), SCS(), CVXOPT(), GLPK()]
 
     def test_all_solvers(self):
         for solver in self.solvers:
