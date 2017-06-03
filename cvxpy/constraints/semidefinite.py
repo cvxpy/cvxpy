@@ -74,11 +74,11 @@ class SDP(Constraint):
             # upper_tri(A) == upper_tri(A.T)
             eq_constr += new_eq_constr
             # Update dims.
-            dims[s.EQ_DIM] += (self.size[0]*(self.size[1] - 1))//2
+            dims[s.EQ_DIM] += (self.shape[0]*(self.shape[1] - 1))//2
         # 0 <= A
         leq_constr += new_leq_constr
         # Update dims.
-        dims[s.SDP_DIM].append(self.size[0])
+        dims[s.SDP_DIM].append(self.shape[0])
 
     @pu.lazyprop
     def __SCS_format(self):
@@ -96,7 +96,7 @@ class SDP(Constraint):
             Scales the strictly lower triangular entries by
             sqrt(2) as required by SCS.
         """
-        rows = cols = self.size[0]
+        rows = cols = self.shape[0]
         entries = rows*(cols + 1)//2
         val_arr = []
         row_arr = []
@@ -145,7 +145,7 @@ class SDP(Constraint):
         return lu.create_eq(upper_tri, lower_tri)
 
     @property
-    def size(self):
+    def shape(self):
         """The dimensions of the semidefinite cone.
         """
-        return self.A.size
+        return self.A.shape
