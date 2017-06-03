@@ -30,7 +30,7 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.error import SolverError
 import cvxpy.interface as intf
-from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 import numpy as np
 import numpy.linalg as LA

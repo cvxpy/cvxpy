@@ -123,7 +123,7 @@ class PartialProblem(Expression):
         return self.args[0].objective.args[0].is_negative()
 
     @property
-    def size(self):
+    def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
         return (1, 1)

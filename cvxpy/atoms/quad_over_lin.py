@@ -138,8 +138,8 @@ class quad_over_lin(Atom):
         y = arg_objs[1]  # Known to be a scalar.
         v = lu.create_var((1, 1))
         two = lu.create_const(2, (1, 1))
-        constraints = [SOC(lu.sum_expr([y, v]),
-                           [lu.sub_expr(y, v),
-                            lu.mul_expr(two, x, x.shape)]),
-                       lu.create_geq(y)]
+        t = lu.sum_expr([y, v])
+        X_shape = (y.shape[0] + x.shape[0], 1)
+        X = lu.vstack([lu.sub_expr(y, v), lu.mul_expr(two, x, x.shape)], X_shape)
+        constraints = [SOC(t, X), lu.create_geq(y)]
         return (v, constraints)

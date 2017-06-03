@@ -38,12 +38,12 @@ class TestConvolution(BaseTest):
         f_conv_g = [0., 1., 2.5,  4., 1.5]
         expr = conv(f, g)
         assert expr.is_constant()
-        self.assertEqual(expr.size, (5, 1))
+        self.assertEqual(expr.shape, (5, 1))
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         expr = conv(f, x)
         assert expr.is_affine()
-        self.assertEqual(expr.size, (5, 1))
+        self.assertEqual(expr.shape, (5, 1))
         # Matrix stuffing.
         t = Variable()
         prob = Problem(Minimize(norm(expr, 1)),

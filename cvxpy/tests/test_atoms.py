@@ -65,7 +65,7 @@ class TestAtoms(BaseTest):
         exp = self.x+self.y
         atom = normInf(exp)
         # self.assertEqual(atom.name(), "normInf(x + y)")
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         assert atom.is_convex()
         assert (-atom).is_concave()
@@ -77,7 +77,7 @@ class TestAtoms(BaseTest):
         exp = self.x+self.y
         atom = norm1(exp)
         # self.assertEqual(atom.name(), "norm1(x + y)")
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(norm1(atom).curvature, s.CONVEX)
         self.assertEqual(norm1(-atom).curvature, s.CONVEX)
@@ -87,14 +87,14 @@ class TestAtoms(BaseTest):
         exp = self.x+self.y
         atom = norm2(exp)
         # self.assertEqual(atom.name(), "norm2(x + y)")
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(norm2(atom).curvature, s.CONVEX)
         self.assertEqual(norm2(-atom).curvature, s.CONVEX)
 
         # Test with axis arg.
         expr = norm(self.A, 2, axis=0)
-        self.assertEqual(expr.size, (1, 2))
+        self.assertEqual(expr.shape, (1, 2))
 
     def test_quad_form(self):
         """Test quad_form atom.
@@ -108,15 +108,15 @@ class TestAtoms(BaseTest):
     def test_power(self):
         from fractions import Fraction
 
-        for size in (1, 1), (3, 1), (2, 3):
-            x = Variable(*size)
-            y = Variable(*size)
+        for shape in (1, 1), (3, 1), (2, 3):
+            x = Variable(*shape)
+            y = Variable(*shape)
             exp = x + y
 
             for p in 0, 1, 2, 3, 2.7, .67, -1, -2.3, Fraction(4, 5):
                 atom = power(exp, p)
 
-                self.assertEqual(atom.size, size)
+                self.assertEqual(atom.shape, shape)
 
                 if p > 1 or p < 0:
                     self.assertEqual(atom.curvature, s.CONVEX)
@@ -159,7 +159,7 @@ class TestAtoms(BaseTest):
     # Test the geo_mean class.
     def test_geo_mean(self):
         atom = geo_mean(self.x)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
         # Test copy with args=None
@@ -179,64 +179,64 @@ class TestAtoms(BaseTest):
     # Test the harmonic_mean class.
     def test_harmonic_mean(self):
         atom = harmonic_mean(self.x)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
 
     # Test the pnorm class.
     def test_pnorm(self):
         atom = pnorm(self.x, p=1.5)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=1)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=2)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p='inf')
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p='Inf')
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=np.inf)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=.5)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=.7)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=-.1)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=-1)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
 
         atom = pnorm(self.x, p=-1.3)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.POSITIVE)
 
@@ -264,7 +264,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.curvature, s.UNKNOWN)
         assert not atom.is_dcp()
 
-        # Test quad_over_lin size validation.
+        # Test quad_over_lin shape validation.
         with self.assertRaises(Exception) as cm:
             quad_over_lin(self.x, self.x)
         self.assertEqual(str(cm.exception),
@@ -289,9 +289,9 @@ class TestAtoms(BaseTest):
         """Test for the matrix_frac atom.
         """
         atom = matrix_frac(self.x, self.A)
-        self.assertEqual(atom.size, (1, 1))
+        self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
-        # Test matrix_frac size validation.
+        # Test matrix_frac shape validation.
         with self.assertRaises(Exception) as cm:
             matrix_frac(self.x, self.C)
         self.assertEqual(str(cm.exception),
@@ -312,10 +312,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(max_entries(0).sign, s.ZERO)
 
         # Test with axis argument.
-        self.assertEqual(max_entries(Variable(2), axis=0).size, (1, 1))
-        self.assertEqual(max_entries(Variable(2), axis=1).size, (2, 1))
-        self.assertEqual(max_entries(Variable(2, 3), axis=0).size, (1, 3))
-        self.assertEqual(max_entries(Variable(2, 3), axis=1).size, (2, 1))
+        self.assertEqual(max_entries(Variable(2), axis=0).shape, (1, 1))
+        self.assertEqual(max_entries(Variable(2), axis=1).shape, (2, 1))
+        self.assertEqual(max_entries(Variable(2, 3), axis=0).shape, (1, 3))
+        self.assertEqual(max_entries(Variable(2, 3), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
@@ -333,10 +333,10 @@ class TestAtoms(BaseTest):
         self.assertEqual(min_entries(0).sign, s.ZERO)
 
         # Test with axis argument.
-        self.assertEqual(min_entries(Variable(2), axis=0).size, (1, 1))
-        self.assertEqual(min_entries(Variable(2), axis=1).size, (2, 1))
-        self.assertEqual(min_entries(Variable(2, 3), axis=0).size, (1, 3))
-        self.assertEqual(min_entries(Variable(2, 3), axis=1).size, (2, 1))
+        self.assertEqual(min_entries(Variable(2), axis=0).shape, (1, 1))
+        self.assertEqual(min_entries(Variable(2), axis=1).shape, (2, 1))
+        self.assertEqual(min_entries(Variable(2, 3), axis=0).shape, (1, 3))
+        self.assertEqual(min_entries(Variable(2, 3), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
@@ -368,7 +368,7 @@ class TestAtoms(BaseTest):
         # Promotion.
         self.assertEqual(max_elemwise(1, Variable(2)).sign,
                          s.POSITIVE)
-        self.assertEqual(max_elemwise(1, Variable(2)).size,
+        self.assertEqual(max_elemwise(1, Variable(2)).shape,
                          (2, 1))
 
     # Test sign logic for min_elemwise.
@@ -395,7 +395,7 @@ class TestAtoms(BaseTest):
         # Promotion.
         self.assertEqual(min_elemwise(-1, Variable(2)).sign,
                          s.NEGATIVE)
-        self.assertEqual(min_elemwise(-1, Variable(2)).size,
+        self.assertEqual(min_elemwise(-1, Variable(2)).shape,
                          (2, 1))
 
     def test_sum_entries(self):
@@ -405,17 +405,17 @@ class TestAtoms(BaseTest):
         self.assertEqual(sum_entries([1, -1]).sign, s.UNKNOWN)
         self.assertEqual(sum_entries([1, -1]).curvature, s.CONSTANT)
         self.assertEqual(sum_entries(Variable(2)).sign, s.UNKNOWN)
-        self.assertEqual(sum_entries(Variable(2)).size, (1, 1))
+        self.assertEqual(sum_entries(Variable(2)).shape, (1, 1))
         self.assertEqual(sum_entries(Variable(2)).curvature, s.AFFINE)
         # Mixed curvature.
         mat = np.mat("1 -1")
         self.assertEqual(sum_entries(mat*square(Variable(2))).curvature, s.UNKNOWN)
 
         # Test with axis argument.
-        self.assertEqual(sum_entries(Variable(2), axis=0).size, (1, 1))
-        self.assertEqual(sum_entries(Variable(2), axis=1).size, (2, 1))
-        self.assertEqual(sum_entries(Variable(2, 3), axis=0).size, (1, 3))
-        self.assertEqual(sum_entries(Variable(2, 3), axis=1).size, (2, 1))
+        self.assertEqual(sum_entries(Variable(2), axis=0).shape, (1, 1))
+        self.assertEqual(sum_entries(Variable(2), axis=1).shape, (2, 1))
+        self.assertEqual(sum_entries(Variable(2, 3), axis=0).shape, (1, 3))
+        self.assertEqual(sum_entries(Variable(2, 3), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
@@ -428,7 +428,7 @@ class TestAtoms(BaseTest):
         """
         self.assertEqual(mul_elemwise([1, -1], self.x).sign, s.UNKNOWN)
         self.assertEqual(mul_elemwise([1, -1], self.x).curvature, s.AFFINE)
-        self.assertEqual(mul_elemwise([1, -1], self.x).size, (2, 1))
+        self.assertEqual(mul_elemwise([1, -1], self.x).shape, (2, 1))
         pos_param = Parameter(2, sign="positive")
         neg_param = Parameter(2, sign="negative")
         self.assertEqual(mul_elemwise(pos_param, pos_param).sign, s.POSITIVE)
@@ -438,8 +438,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(mul_elemwise(neg_param, square(self.x)).curvature, s.CONCAVE)
 
         # Test promotion.
-        self.assertEqual(mul_elemwise([1, -1], 1).size, (2, 1))
-        self.assertEqual(mul_elemwise(1, self.C).size, self.C.size)
+        self.assertEqual(mul_elemwise([1, -1], 1).shape, (2, 1))
+        self.assertEqual(mul_elemwise(1, self.C).shape, self.C.shape)
 
         with self.assertRaises(Exception) as cm:
             mul_elemwise(self.x, [1, -1])
@@ -450,15 +450,15 @@ class TestAtoms(BaseTest):
     def test_vstack(self):
         atom = vstack(self.x, self.y, self.x)
         self.assertEqual(atom.name(), "vstack(x, y, x)")
-        self.assertEqual(atom.size, (6, 1))
+        self.assertEqual(atom.shape, (6, 1))
 
         atom = vstack(self.A, self.C, self.B)
         self.assertEqual(atom.name(), "vstack(A, C, B)")
-        self.assertEqual(atom.size, (7, 2))
+        self.assertEqual(atom.shape, (7, 2))
 
         entries = []
-        for i in range(self.x.size[0]):
-            for j in range(self.x.size[1]):
+        for i in range(self.x.shape[0]):
+            for j in range(self.x.shape[1]):
                 entries.append(self.x[i, j])
         atom = vstack(*entries)
         # self.assertEqual(atom[1,0].name(), "vstack(x[0,0], x[1,0])[1,0]")
@@ -476,21 +476,21 @@ class TestAtoms(BaseTest):
     def test_reshape(self):
         """Test the reshape class.
         """
-        expr = reshape(self.A, 4, 1)
+        expr = reshape(self.A, (4, 1))
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.size, (4, 1))
+        self.assertEqual(expr.shape, (4, 1))
 
-        expr = reshape(expr, 2, 2)
-        self.assertEqual(expr.size, (2, 2))
+        expr = reshape(expr, (2, 2))
+        self.assertEqual(expr.shape, (2, 2))
 
-        expr = reshape(square(self.x), 1, 2)
+        expr = reshape(square(self.x), (1, 2))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertEqual(expr.curvature, s.CONVEX)
-        self.assertEqual(expr.size, (1, 2))
+        self.assertEqual(expr.shape, (1, 2))
 
         with self.assertRaises(Exception) as cm:
-            reshape(self.C, 5, 4)
+            reshape(self.C, (5, 4))
         self.assertEqual(str(cm.exception),
                          "Invalid reshape dimensions (5, 4).")
 
@@ -500,15 +500,15 @@ class TestAtoms(BaseTest):
         expr = vec(self.C)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.size, (6, 1))
+        self.assertEqual(expr.shape, (6, 1))
 
         expr = vec(self.x)
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
 
         expr = vec(square(self.a))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertEqual(expr.curvature, s.CONVEX)
-        self.assertEqual(expr.size, (1, 1))
+        self.assertEqual(expr.shape, (1, 1))
 
     def test_diag(self):
         """Test the diag atom.
@@ -516,17 +516,17 @@ class TestAtoms(BaseTest):
         expr = diag(self.x)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.size, (2, 2))
+        self.assertEqual(expr.shape, (2, 2))
 
         expr = diag(self.A)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
 
         expr = diag(self.x.T)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.size, (2, 2))
+        self.assertEqual(expr.shape, (2, 2))
 
         with self.assertRaises(Exception) as cm:
             diag(self.C)
@@ -539,7 +539,7 @@ class TestAtoms(BaseTest):
         expr = trace(self.A)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.size, (1, 1))
+        self.assertEqual(expr.shape, (1, 1))
 
         with self.assertRaises(Exception) as cm:
             trace(self.C)
@@ -552,7 +552,7 @@ class TestAtoms(BaseTest):
         expr = log1p(1)
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertEqual(expr.curvature, s.CONSTANT)
-        self.assertEqual(expr.size, (1, 1))
+        self.assertEqual(expr.shape, (1, 1))
         expr = log1p(-0.5)
         self.assertEqual(expr.sign, s.NEGATIVE)
 
@@ -659,8 +659,8 @@ class TestAtoms(BaseTest):
         """Test the copy function for index.
         """
         # Test copy with args=None
-        size = (5, 4)
-        A = Variable(*size)
+        shape = (5, 4)
+        A = Variable(*shape)
         atom = A[0:2, 0:1]
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
@@ -681,7 +681,7 @@ class TestAtoms(BaseTest):
         """
         v_np = np.ones((3, 1))
         expr = bmat([[v_np, v_np], [[0, 0], [1, 2]]])
-        self.assertEqual(expr.size, (5, 2))
+        self.assertEqual(expr.shape, (5, 2))
         const = np.bmat([[v_np, v_np],
                          [np.zeros((2, 1)), np.mat([1, 2]).T]])
         self.assertItemsAlmostEqual(expr.value, const)
@@ -693,7 +693,7 @@ class TestAtoms(BaseTest):
         b = Parameter(2, sign='positive')
         expr = conv(a, b)
         assert expr.is_positive()
-        self.assertEqual(expr.size, (4, 1))
+        self.assertEqual(expr.shape, (4, 1))
         b = Parameter(2, sign='negative')
         expr = conv(a, b)
         assert expr.is_negative()
@@ -713,7 +713,7 @@ class TestAtoms(BaseTest):
         b = Parameter(2, sign='positive')
         expr = kron(a, b)
         assert expr.is_positive()
-        self.assertEqual(expr.size, (6, 2))
+        self.assertEqual(expr.shape, (6, 2))
         b = Parameter(2, sign='negative')
         expr = kron(a, b)
         assert expr.is_negative()
