@@ -99,34 +99,6 @@ class MOSEK(ConicSolver):
         inv_data[MOSEK.NEQ_CONSTR] = leq_constr + soc_constr + sd_constr
         return data, inv_data
 
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        status = solution['status']
-
-        if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            primal_vars = {inverse_data[MOSEK.VAR_ID]: solution['primal']}
-            eq_dual = ConicSolver.get_dual_values(
-                solution['eq_dual'],
-                inverse_data[MOSEK.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(
-                solution['ineq_dual'],
-                inverse_data[MOSEK.NEQ_CONSTR])
-            eq_dual.update(leq_dual)
-            dual_vars = eq_dual
-        else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, None)
-
     def solve(self, problem, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.mosek_intf import MOSEK as MOSEK_OLD
         solver = MOSEK_OLD()

@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-import cvxpy.interface as intf
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
@@ -41,7 +40,7 @@ class CVXOPT(ConicSolver):
     STATUS_MAP = {'optimal': s.OPTIMAL,
                   'infeasible': s.INFEASIBLE,
                   'unbounded': s.UNBOUNDED,
-                  'unknown': s.SOLVER_ERROR}
+                  'solver_error': s.SOLVER_ERROR}
 
     def name(self):
         """The name of the solver.
@@ -88,33 +87,6 @@ class CVXOPT(ConicSolver):
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         inv_data[CVXOPT.NEQ_CONSTR] = leq_constr + soc_constr + sdp_constr + exp_constr
         return data, inv_data
-
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        status = self.STATUS_MAP[solution['status']]
-        if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            eq_dual = ConicSolver.get_dual_values(
-                solution[s.EQ_DUAL],
-                inverse_data[CVXOPT.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(
-                solution[s.INEQ_DUAL],
-                inverse_data[CVXOPT.NEQ_CONSTR])
-            eq_dual.update(leq_dual)
-            dual_vars = eq_dual
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-        else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, None)
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_OLD

@@ -18,7 +18,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
+from cvxpy.constraints import NonPos, Zero
+from cvxpy.solver_interface.conic_solvers.cvxopt_conif import CVXOPT
+from cvxpy.problems.problem_data.problem_data import ProblemData
 
 
 class GLPK(CVXOPT):
@@ -43,60 +45,32 @@ class GLPK(CVXOPT):
         from cvxopt import glpk
         glpk  # For flake8
 
-    def solve(self, objective, constraints, cached_data,
-              warm_start, verbose, solver_opts):
-        """Returns the result of the call to the solver.
-
-        Parameters
-        ----------
-        objective : LinOp
-            The canonicalized objective.
-        constraints : list
-            The list of canonicalized cosntraints.
-        cached_data : dict
-            A map of solver name to cached problem data.
-        warm_start : bool
-            Not used.
-        verbose : bool
-            Should the solver print output?
-        solver_opts : dict
-            Additional arguments for the solver.
-
-        Returns
-        -------
-        tuple
-            (status, optimal value, primal, equality dual, inequality dual)
+    def accepts(self, problem):
+        """Can CVXOPT solve the problem?
         """
-        import cvxopt
-        import cvxopt.solvers
-        data = self.get_problem_data(objective, constraints, cached_data)
-        # Save original cvxopt solver options.
-        old_options = cvxopt.solvers.options.copy()
-        # Silence cvxopt if verbose is False.
-        if verbose:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
-        else:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
+        # TODO check if is matrix stuffed.
+        if not problem.objective.args[0].is_affine():
+            return False
+        for constr in problem.constraints:
+            if type(constr) not in [Zero, NonPos]:
+                return False
+            for arg in constr.args:
+                if not arg.is_affine():
+                    return False
+        return True
 
-        # Apply any user-specific options.
-        # Rename max_iters to maxiters.
-        if "max_iters" in solver_opts:
-            solver_opts["maxiters"] = solver_opts["max_iters"]
-        for key, value in solver_opts.items():
-            cvxopt.solvers.options[key] = value
+    def solve(self, problem, warm_start, verbose, solver_opts):
+        from cvxpy.problems.solvers.glpk_intf import GLPK as GLPK_OLD
+        solver = GLPK_OLD()
+        _, inv_data = self.apply(problem)
+        objective, _ = problem.objective.canonical_form
+        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
+        sol = solver.solve(
+            objective,
+            constraints,
+            {self.name(): ProblemData()},
+            warm_start,
+            verbose,
+            solver_opts)
 
-        try:
-            results_dict = cvxopt.solvers.lp(data[s.C],
-                                             data[s.G],
-                                             data[s.H],
-                                             data[s.A],
-                                             data[s.B],
-                                             solver="glpk")
-
-        # Catch exceptions in CVXOPT and convert them to solver errors.
-        except ValueError:
-            results_dict = {"status": "unknown"}
-
-        # Restore original cvxopt solver options.
-        self._restore_solver_options(old_options)
-        return self.format_results(results_dict, data, cached_data)
+        return self.invert(sol, inv_data)

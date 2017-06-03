@@ -20,9 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy.settings as s
 from cvxpy.atoms import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.reductions.solution import Solution
+import numpy as np
 
 
 class ConicSolver(ReductionSolver):
@@ -177,3 +180,31 @@ class ConicSolver(ReductionSolver):
             dual_vars[constr.id] = result_vec[offset:offset + constr.size]
             offset += constr.size
         return dual_vars
+
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = solution['status']
+
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value']
+            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            eq_dual = ConicSolver.get_dual_values(
+                solution['eq_dual'],
+                inverse_data[self.EQ_CONSTR])
+            leq_dual = ConicSolver.get_dual_values(
+                solution['ineq_dual'],
+                inverse_data[self.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
+        else:
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+            else:
+                opt_val = None
+            primal_vars = None
+            dual_vars = None
+
+        return Solution(status, opt_val, primal_vars, dual_vars, None)
