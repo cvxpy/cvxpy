@@ -169,7 +169,7 @@ def op_mul(lin_op, args):
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, args[0])
     elif lin_op.type is lo.PROMOTE:
-        result = np.ones(lin_op.size)*args[0]
+        result = np.ones(lin_op.shape)*args[0]
     elif lin_op.type is lo.DIAG_VEC:
         val = intf.from_2D_to_1D(args[0])
         result = np.diag(val)
@@ -388,8 +388,8 @@ def prune_constants(constraints):
         is_constant = prune_expr(expr)
         # Replace a constant root with a NO_OP.
         if is_constant:
-            expr = lo.LinOp(lo.NO_OP, expr.size, [], None)
-        pruned = constr_type(expr, constr.constr_id, constr.size)
+            expr = lo.LinOp(lo.NO_OP, expr.shape, [], None)
+        pruned = constr_type(expr, constr.constr_id, constr.shape)
         pruned_constraints.append(pruned)
     return pruned_constraints
 

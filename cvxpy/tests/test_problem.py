@@ -1305,14 +1305,14 @@ class TestProblem(BaseTest):
         """Tests problems with reshape.
         """
         # Test on scalars.
-        self.assertEqual(reshape(1, 1, 1).value, 1)
+        self.assertEqual(reshape(1, (1, 1)).value, 1)
 
         # Test vector to matrix.
         x = Variable(4)
         mat = numpy.matrix([[1, -1], [2, -2]]).T
         vec = numpy.matrix([1, 2, 3, 4]).T
         vec_mat = numpy.matrix([[1, 2], [3, 4]]).T
-        expr = reshape(x, 2, 2)
+        expr = reshape(x, (2, 2))
         obj = Minimize(sum_entries(mat*expr))
         prob = Problem(obj, [x == vec])
         result = prob.solve()
@@ -1320,17 +1320,17 @@ class TestProblem(BaseTest):
 
         # Test on matrix to vector.
         c = [1, 2, 3, 4]
-        expr = reshape(self.A, 4, 1)
+        expr = reshape(self.A, (4, 1))
         obj = Minimize(expr.T*c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
         result = prob.solve()
         self.assertAlmostEqual(result, 20)
         self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
-        self.assertItemsAlmostEqual(reshape(expr, 2, 2).value, [-1, -2, 3, 4])
+        self.assertItemsAlmostEqual(reshape(expr, (2, 2)).value, [-1, -2, 3, 4])
 
         # Test matrix to matrix.
-        expr = reshape(self.C, 2, 3)
+        expr = reshape(self.C, (2, 3))
         mat = numpy.matrix([[1, -1], [2, -2]])
         C_mat = numpy.matrix([[1, 4], [2, 5], [3, 6]])
         obj = Minimize(sum_entries(mat*expr))
@@ -1342,14 +1342,14 @@ class TestProblem(BaseTest):
 
         # Test promoted expressions.
         c = numpy.matrix([[1, -1], [2, -2]]).T
-        expr = reshape(c*self.a, 1, 4)
+        expr = reshape(c*self.a, (1, 4))
         obj = Minimize(expr*[1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve()
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
-        expr = reshape(c*self.a, 4, 1)
+        expr = reshape(c*self.a, (4, 1))
         obj = Minimize(expr.T*[1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve()
