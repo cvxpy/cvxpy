@@ -328,7 +328,6 @@ def test_constant_atoms():
                         # Atoms with Constant arguments.
                         const_args = [Constant(arg) for arg in args]
                         problem = Problem(objective_type(atom(*const_args)[row, col]))
-                        problem, _ = reduction(problem)
                         yield (run_atom,
                                atom,
                                problem,
@@ -342,7 +341,7 @@ def test_constant_atoms():
                             constraints.append(variables[-1] == expr)
                         objective = objective_type(atom(*variables)[row, col])
                         problem = Problem(objective, constraints)
-                        problem, _ = reduction(problem)
+                        problem, inv_data = reduction(problem)
                         yield (run_atom,
                                atom,
                                problem,
