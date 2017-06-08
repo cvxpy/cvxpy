@@ -32,6 +32,7 @@ class ReplaceQuadForms(Reduction):
         return problem.objective.is_quadratic() or problem.objective.is_affine()
 
     def apply(self, problem):
+        # expr = problem.objective.expr.tree_copy()
         expr = problem.objective.expr
         # Insert no-op such that root is never a quadratic form
         root = LinOp(NO_OP, expr.shape, [expr], [])

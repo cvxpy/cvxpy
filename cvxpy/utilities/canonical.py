@@ -84,7 +84,7 @@ class Canonical(object):
     def tree_copy(self):
         new_args = []
         for arg in self.args:
-            new_args += [arg.copy_tree()]
+            new_args += [arg.tree_copy()]
         return self.copy(args=new_args)
 
     def copy(self, args=None):
