@@ -22,7 +22,8 @@ import scipy.sparse as sp
 from scipy.linalg import lstsq
 
 from cvxpy import Minimize, Problem
-from cvxpy.atoms import QuadForm, abs, power, quad_over_lin, sum_entries, sum_squares, norm, matrix_frac
+from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum_entries, sum_squares, norm,
+                         matrix_frac)
 from cvxpy.expressions.variables import Variable
 from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
@@ -204,7 +205,7 @@ class TestQp(BaseTest):
         y_data = x_data_expanded * true_coeffs + 0.5 * numpy.random.rand(n, 1)
         y_data = numpy.asmatrix(y_data)
 
-        quadratic = self.offset + x_data * self.slope + self.quadratic_coeff * numpy.power(x_data, 2)
+        quadratic = self.offset + x_data*self.slope + self.quadratic_coeff*numpy.power(x_data, 2)
         residuals = quadratic - y_data
         fit_error = sum_squares(residuals)
         p = Problem(Minimize(fit_error), [])
@@ -226,15 +227,15 @@ class TestQp(BaseTest):
         constraints = []
         # Add constraints on our variables
         for i in range(T - 1):
-            constraints.append(self.position[:, i + 1] == self.position[:, i] + h * self.velocity[:, i])
+            constraints += [self.position[:, i + 1] == self.position[:, i] + h*self.velocity[:, i]]
             acceleration = self.force[:, i]/mass + g - drag * self.velocity[:, i]
-            constraints.append(self.velocity[:, i + 1] == self.velocity[:, i] + h * acceleration)
+            constraints += [self.velocity[:, i + 1] == self.velocity[:, i] + h * acceleration]
         # Add position constraints
-        constraints.append(self.position[:, 0] == 0)
-        constraints.append(self.position[:, -1] == final_position)
+        constraints += [self.position[:, 0] == 0]
+        constraints += [self.position[:, -1] == final_position]
         # Add velocity constraints
-        constraints.append(self.velocity[:, 0] == initial_velocity)
-        constraints.append(self.velocity[:, -1] == 0)
+        constraints += [self.velocity[:, 0] == initial_velocity]
+        constraints += [self.velocity[:, -1] == 0]
         # Solve the problem
         p = Problem(Minimize(sum_squares(self.force)), constraints)
         s = QpSolver(solver).solve(p, False, False, {})

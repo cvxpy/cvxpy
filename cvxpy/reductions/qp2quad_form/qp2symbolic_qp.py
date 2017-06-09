@@ -19,6 +19,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers import CANON_METHODS as qp_canon_methods
+from cvxpy.problems.objective import Minimize
+from cvxpy.constraints import NonPos, Zero
+from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 
 
 class Qp2SymbolicQp(Canonicalization):
@@ -27,8 +30,20 @@ class Qp2SymbolicQp(Canonicalization):
     and symbolic quadratic forms.
     """
 
+    preconditions = {
+                        (Minimize, 'is_qpwa'),
+                        (NonPos, 'is_affine'),
+                        (Zero, 'is_affine')
+                    }
+
+    postconditions = {
+                        (Minimize, 'is_quadratic'),
+                        (NonPos, 'is_affine'),
+                        (Zero, 'is_affine')
+                    }
+
     def accepts(self, problem):
-        return problem.is_qp()
+        return ProblemAnalyzer(problem).check(self.preconditions)
 
     def apply(self, problem):
         if not self.accepts(problem):
