@@ -103,6 +103,10 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    @property
+    def expr(self):
+        return self
+
     # Curvature properties.
 
     @property

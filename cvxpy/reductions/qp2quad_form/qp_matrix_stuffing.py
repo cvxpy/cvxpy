@@ -31,6 +31,12 @@ class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
     """
 
+    preconditions = {
+        (),
+        (),
+        ()
+    }
+
     def accepts(self, prob):
         import cvxpy.expressions.variables as var
         allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)

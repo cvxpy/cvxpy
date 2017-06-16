@@ -25,7 +25,8 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.problems.problem_analyzer import ProblemAnalyzer
-from cvxpy.constraints import NonPos
+from cvxpy.expressions.attributes import is_affine, is_quadratic
+from cvxpy.constraints import NonPos, Zero
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 
 
@@ -39,8 +40,14 @@ class TestProblemAnalyzer(BaseTest):
 
     def test_quadratic_program(self):
         pa = ProblemAnalyzer(self.problem)
-        self.assertEquals(True, (Minimize, 'is_quadratic') in pa.type)
-        self.assertEquals(True, (NonPos, 'is_affine') in pa.type)
+        self.assertEquals(True, (Minimize, is_quadratic, True) in pa.type)
+        self.assertEquals(True, (NonPos, is_affine, True) in pa.type)
 
-    def test_quadratic_program_reduction(self):
+    def test_quadratic_program_preconditions(self):
         self.assertEquals(True, Qp2SymbolicQp().accepts(self.problem))
+
+    def test_quadratic_program_postconditions(self):
+        pc = Qp2SymbolicQp().get_postconditions(self.problem)
+        self.assertEquals(True, (Minimize, is_quadratic, True) in pc)
+        self.assertEquals(True, (NonPos, is_affine, True) in pc)
+        self.assertEquals(False, any(type(c[0]) == Zero for c in pc))

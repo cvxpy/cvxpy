@@ -17,27 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import operator
+from cvxpy.problems.attributes import attributes as problem_attributes
+from cvxpy.expressions.attributes import attributes as expression_attributes
 
 
 class ProblemAnalyzer(object):
 
-    attributes_to_check = {'is_affine', 'is_quadratic', 'is_qpwa'}
-
     def __init__(self, problem):
         self.type = []
-        self.type.extend(attr for con in problem.constraints for attr in self.analyze(con))
-        self.type.extend(self.analyze(problem.objective))
+        self.type.extend(self.analyze(problem, problem_attributes()))
+        self.type.extend(attr for c in problem.constraints
+                         for attr in self.analyze(c, expression_attributes()))
+        self.type.extend(self.analyze(problem.objective, expression_attributes()))
 
-    def analyze(self, item):
-        """Go through all of the attributes and return an attribute if it holds for the given
-        expression.
+    def analyze(self, item, attributes):
+        """Go through all of the attributes matching the type and return a tuple
+        (Type, Attribute, Result).
         """
-        expr = item.expr
-        for attr in self.attributes_to_check:
-            method = operator.methodcaller(attr)
-            if method(expr):
-                yield (type(item), attr)
+        for attr in attributes:
+            yield (type(item), attr, attr(item))
 
     def check(self, preconditions):
         """Checks if all preconditions hold for the problem that is being analyzed."""
