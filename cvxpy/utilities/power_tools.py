@@ -34,15 +34,15 @@ def gm(t, x, y):
     length = t.shape[0]*t.shape[1]
     if isinstance(t, Expression):
         return SOC(t=reshape(x+y, (length, 1)),
-                X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
-                axis=0)
+                   X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
+                   axis=0)
     else:
         two = lu.create_const(2, (1, 1))
         return SOC(t=lu.reshape(lu.sum_expr([x, y]), (length, 1)),
-                X=lu.vstack([lu.reshape(lu.sub_expr(x, y), (1, length)),
-                             lu.reshape(lu.mul_expr(two, t, t.shape), (1, length))],
-                            (2, length)),
-                axis=0)
+                   X=lu.vstack([lu.reshape(lu.sub_expr(x, y), (1, length)),
+                                lu.reshape(lu.mul_expr(two, t, t.shape), (1, length))],
+                               (2, length)),
+                   axis=0)
 
 
 def gm_constrs(t, x_list, p):

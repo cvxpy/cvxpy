@@ -17,12 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as np
-
 import cvxpy.settings as s
 from cvxpy.constraints import SDP, SOC, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
-from cvxpy.reductions.solution import Solution
 
 from .conic_solver import ConicSolver
 

@@ -20,7 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import inspect
 import sys
 
-from cvxpy.constraints import NonPos, Zero
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms import QuadForm
 
 
 def attributes():
@@ -31,25 +33,14 @@ def attributes():
             name != 'attributes')]
 
 
-def has_constraints(problem):
-    return len(problem.constraints) != 0
-
-
-def has_affine_inequality_constraints(problem):
-    for constraint in problem.constraints:
-        if type(constraint) == NonPos:
-            return True
-
-
-def has_affine_equality_constraints(problem):
-    for constraint in problem.constraints:
-        if type(constraint) == Zero:
-            return True
-
-
-# def nb_affine_inequality_constraints(problem):
-#     return len([c for c in problem.constraints if type(c) == NonPos])
-
-
-# def nb_affine_equality_constraints(problem):
-#     return len([c for c in problem.constraints if type(c) == Zero])
+def is_qp_objective(objective):
+    expr = objective.expr
+    if not type(expr) == AddExpression:
+        return False
+    if not len(expr.args) == 2:
+        return False
+    if not type(expr.args[0]) == QuadForm or not type(expr.args[1]) == MulExpression:
+        return False
+    if not expr.args[1].is_affine():
+        return False
+    return True

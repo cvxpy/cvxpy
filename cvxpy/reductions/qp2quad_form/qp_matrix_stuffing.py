@@ -25,6 +25,14 @@ from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.problems.objective import Minimize
+from cvxpy.expressions.attributes import is_quadratic, is_affine
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.problems.problem_analyzer import ProblemAnalyzer
+from cvxpy.problems.attributes import (has_affine_equality_constraints,
+                                       has_affine_inequality_constraints)
+from cvxpy.constraints.attributes import is_qp_constraint
+from cvxpy.constraints import NonPos, Zero
+from cvxpy.problems.objective_attributes import is_qp_objective
 
 
 class QpMatrixStuffing(MatrixStuffing):
@@ -32,23 +40,22 @@ class QpMatrixStuffing(MatrixStuffing):
     """
 
     preconditions = {
-        (),
-        (),
-        ()
+        (Minimize, is_quadratic, True),
+        (Constraint, is_affine, True),
+        (Constraint, is_qp_constraint, True)
     }
 
-    def accepts(self, prob):
-        import cvxpy.expressions.variables as var
-        allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
+    def accepts(self, problem):
+        return ProblemAnalyzer(problem).matches(self.preconditions)
 
-        return (
-            prob.is_dcp() and
-            prob.objective.args[0].is_quadratic() and
-            all([arg.is_affine() for c in prob.constraints for arg in c.args]) and
-            all([type(v) in allowedVariables for v in prob.variables()]) and
-            all([not v.domain for v in prob.variables()])  # no implicit variable domains
-            # (TODO: domains are not implemented yet)
-        )
+    def postconditions(self, problem):
+        problem_type = ProblemAnalyzer(problem).type
+        post_conditions = [(Minimize, is_qp_objective, True)]
+        if (Problem, has_affine_inequality_constraints, True) in problem_type:
+            post_conditions += [(NonPos, is_affine, True)]
+        if (Problem, has_affine_equality_constraints, True) in problem_type:
+            post_conditions += [(Zero, is_affine, True)]
+        return post_conditions
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution."""
@@ -60,12 +67,14 @@ class QpMatrixStuffing(MatrixStuffing):
         inverse_data = InverseData(qp)
         extractor = CoeffExtractor(inverse_data)
 
-        # extract to x.T * P * x + q.T * x + r
+        # extract to x.T * P * x + q.T * x, store r
         (P, q, r) = extractor.quad_form(qp)
 
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
-        new_obj = QuadForm(x, P) + q.T*x + r
+        new_obj = QuadForm(x, P) + q.T*x
+
+        inverse_data.r = r
 
         constraints = qp.constraints
         new_cons = []

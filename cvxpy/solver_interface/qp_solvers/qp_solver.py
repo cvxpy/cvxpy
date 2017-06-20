@@ -27,12 +27,24 @@ from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.problems.objective import Minimize
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.problems.objective_attributes import is_qp_objective
+from cvxpy.expressions.attributes import is_affine
+from cvxpy.constraints.attributes import is_qp_constraint
+from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 
 
 class QpSolver(ReductionSolver):
     """
     A QP solver interface.
     """
+
+    preconditions = {
+        (Minimize, is_qp_objective, True),
+        (Constraint, is_qp_constraint, True),
+        (Constraint, is_affine, True)
+    }
 
     def __init__(self, solver_name):
         self.name = solver_name
@@ -45,7 +57,7 @@ class QpSolver(ReductionSolver):
         qp
 
     def accepts(self, problem):
-        return problem.is_qp()
+        return ProblemAnalyzer(problem).matches(self.preconditions)
 
     def apply(self, problem):
         stuffed_problem, inverse_data_stack = QpMatrixStuffing().apply(problem)
@@ -55,6 +67,7 @@ class QpSolver(ReductionSolver):
         inverse_data = InverseData(problem)
 
         obj = stuffed_problem.objective
+        # quadratic part of objective is x.T * P * X but solvers expect 0.5*x.T * P * x.
         P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
         n = P.shape[0]

@@ -19,6 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.problems.attributes import attributes as problem_attributes
 from cvxpy.expressions.attributes import attributes as expression_attributes
+from cvxpy.constraints.attributes import attributes as constraint_attributes
+from cvxpy.problems.objective_attributes import attributes as objective_attributes
 
 
 class ProblemAnalyzer(object):
@@ -26,9 +28,11 @@ class ProblemAnalyzer(object):
     def __init__(self, problem):
         self.type = []
         self.type.extend(self.analyze(problem, problem_attributes()))
+        con_attributes = expression_attributes() + constraint_attributes()
         self.type.extend(attr for c in problem.constraints
-                         for attr in self.analyze(c, expression_attributes()))
-        self.type.extend(self.analyze(problem.objective, expression_attributes()))
+                         for attr in self.analyze(c, con_attributes))
+        obj_attributes = expression_attributes() + objective_attributes()
+        self.type.extend(self.analyze(problem.objective, obj_attributes))
 
     def analyze(self, item, attributes):
         """Go through all of the attributes matching the type and return a tuple
@@ -37,10 +41,11 @@ class ProblemAnalyzer(object):
         for attr in attributes:
             yield (type(item), attr, attr(item))
 
-    def check(self, preconditions):
+    def matches(self, preconditions):
         """Checks if all preconditions hold for the problem that is being analyzed."""
-        attribute_types = set(attr[0] for attr in self.type)
-        preconditions_to_check = (pre for pre in preconditions if pre[0] in attribute_types)
-        if all(pre in self.type for pre in preconditions_to_check):
-            return True
-        return False
+        for pre in preconditions:
+            properties_to_check = (prop for prop in self.type if
+                                   issubclass(prop[0], pre[0]) and prop[1] == pre[1])
+            if any(prop[2] != pre[2] for prop in properties_to_check):
+                return False
+        return True

@@ -57,4 +57,10 @@ class MatrixStuffing(Reduction):
         for old_con, new_con in con_map.items():
             dual_vars[old_con] = solution.dual_vars[new_con]
 
+        # Add constant part
+        # if inverse_data.minimize:
+        #     opt_val -= inverse_data.r
+        # else:
+        #     opt_val += inverse_data.r
+
         return Solution(solution.status, opt_val, primal_vars, dual_vars)

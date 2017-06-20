@@ -26,7 +26,7 @@ from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.expressions.variables.variable import Variable
 from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 from cvxpy.expressions.attributes import is_affine, is_quadratic
-from cvxpy.constraints import NonPos, Zero
+from cvxpy.constraints import NonPos, Zero, PSD
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 
 
@@ -35,16 +35,20 @@ class TestProblemAnalyzer(BaseTest):
 
     def setUp(self):
         self.x = Variable(2, name='x')
-        Q = np.eye(2)
-        self.problem = Problem(Minimize(QuadForm(self.x, Q)), [self.x <= -1])
+        self.Q = np.eye(2)
+        self.problem = Problem(Minimize(QuadForm(self.x, self.Q)), [self.x <= -1])
 
     def test_quadratic_program(self):
         pa = ProblemAnalyzer(self.problem)
         self.assertEquals(True, (Minimize, is_quadratic, True) in pa.type)
         self.assertEquals(True, (NonPos, is_affine, True) in pa.type)
 
-    def test_quadratic_program_preconditions(self):
+    def test_qp_constraints_valid_case(self):
         self.assertEquals(True, Qp2SymbolicQp().accepts(self.problem))
+
+    def test_constraints_invalid_constraint_type(self):
+        self.problem.constraints += [PSD(Variable(2, 2))]
+        self.assertEquals(False, Qp2SymbolicQp().accepts(self.problem))
 
     def test_quadratic_program_postconditions(self):
         pc = Qp2SymbolicQp().get_postconditions(self.problem)

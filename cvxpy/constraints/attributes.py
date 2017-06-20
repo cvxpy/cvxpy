@@ -19,8 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
 import sys
-
-from cvxpy.constraints import NonPos, Zero
+from cvxpy.constraints import Zero, NonPos
 
 
 def attributes():
@@ -31,25 +30,7 @@ def attributes():
             name != 'attributes')]
 
 
-def has_constraints(problem):
-    return len(problem.constraints) != 0
-
-
-def has_affine_inequality_constraints(problem):
-    for constraint in problem.constraints:
-        if type(constraint) == NonPos:
-            return True
-
-
-def has_affine_equality_constraints(problem):
-    for constraint in problem.constraints:
-        if type(constraint) == Zero:
-            return True
-
-
-# def nb_affine_inequality_constraints(problem):
-#     return len([c for c in problem.constraints if type(c) == NonPos])
-
-
-# def nb_affine_equality_constraints(problem):
-#     return len([c for c in problem.constraints if type(c) == Zero])
+def is_qp_constraint(constraint):
+    if type(constraint) == Zero or type(constraint) == NonPos:
+        return True
+    return False
