@@ -81,7 +81,3 @@ class ConeMatrixStuffing(MatrixStuffing):
         inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = Problem(Minimize(new_obj), new_cons)
         return new_prob, inverse_data
-
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data."""
-        return super(ConeMatrixStuffing, self).invert(solution, inverse_data)

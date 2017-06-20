@@ -44,12 +44,13 @@ class Canonicalization(Reduction):
             inverse_data.cons_id_map.update({constraint.id: constraint_copy.id})
 
         new_problem = Problem(new_objective, new_constraints)
-        return new_problem, [inverse_data]
+        return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        inv = inverse_data.pop()
-        pvars = {id: solution.primal_vars[id] for id in inv.id_map if id in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[id] for orig_id, id in inv.cons_id_map.items()}
+        pvars = {id: solution.primal_vars[id] for id in inverse_data.id_map
+                 if id in solution.primal_vars}
+        dvars = {orig_id: solution.dual_vars[id]
+                 for orig_id, id in inverse_data.cons_id_map.items()}
         return Solution(solution.status, solution.opt_val, pvars, dvars)
 
     def canonicalize_tree(self, expr):

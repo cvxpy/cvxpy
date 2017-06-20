@@ -27,6 +27,8 @@ from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum_entries, sum_s
 from cvxpy.expressions.variables import Variable
 from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 
 
 class TestQp(BaseTest):
@@ -61,6 +63,15 @@ class TestQp(BaseTest):
 
         self.solvers = ['GUROBI']
 
+    def solve_QP(self, problem, solver):
+        self.assertTrue(Qp2SymbolicQp().accepts(problem))
+        canon_p, canon_inverse = Qp2SymbolicQp().apply(problem)
+        self.assertTrue(QpMatrixStuffing().accepts(canon_p))
+        stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
+        qp_solution = QpSolver(solver).solve(stuffed_p, False, False, {})
+        stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
+        return Qp2SymbolicQp().invert(stuffed_solution, canon_inverse)
+
     def test_all_solvers(self):
         for solver in self.solvers:
             self.quad_over_lin(solver)
@@ -85,7 +96,7 @@ class TestQp(BaseTest):
 
     def quad_over_lin(self, solver):
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)), [self.x <= -1])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(numpy.array([-1., -1.]), s.primal_vars[var.id])
         for con in p.constraints:
@@ -93,13 +104,13 @@ class TestQp(BaseTest):
 
     def power(self, solver):
         p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
 
     def power_matrix(self, solver):
         p = Problem(Minimize(sum_entries(power(self.A - 3., 2))), [])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([3., 3., 3., 3.], s.primal_vars[var.id])
 
@@ -107,7 +118,7 @@ class TestQp(BaseTest):
         A = numpy.random.randn(10, 2)
         b = numpy.random.randn(10, 1)
         p = Problem(Minimize(sum_squares(A*self.x - b)))
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), s.primal_vars[var.id], places=1)
 
@@ -118,7 +129,7 @@ class TestQp(BaseTest):
         P = A.T.dot(A)
         q = -2*P.dot(z)
         p = Problem(Minimize(QuadForm(self.w, P) + q.T*self.w))
-        qp_solution = QpSolver(solver).solve(p, False, False, {})
+        qp_solution = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, qp_solution.primal_vars[var.id])
 
@@ -128,7 +139,7 @@ class TestQp(BaseTest):
         b = numpy.random.randn(5, 1)
         b = numpy.maximum(b, 0)
         p = Problem(Minimize(sum_entries(self.x)), [self.x >= 0, A*self.x <= b])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
 
@@ -136,7 +147,7 @@ class TestQp(BaseTest):
         A = numpy.random.randn(10, 5)
         b = numpy.random.randn(10, 1)
         p = Problem(Minimize(norm(A*self.w - b, 2)))
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), s.primal_vars[var.id], places=1)
 
@@ -144,7 +155,7 @@ class TestQp(BaseTest):
         A = numpy.random.randn(5, 3)
         B = numpy.random.randn(5, 2)
         p = Problem(Minimize(norm(A*self.C - B, 2)))
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, B)[0], s.primal_vars[var.id], places=1)
 
@@ -155,7 +166,7 @@ class TestQp(BaseTest):
         P = A.T.dot(A)
         q = -2*P.dot(z)
         p = Problem(Minimize(0.5*QuadForm(self.w, P) + q.T*self.w))
-        qp_solution = QpSolver(solver).solve(p, False, False, {})
+        qp_solution = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, qp_solution.primal_vars[var.id])
 
@@ -166,7 +177,7 @@ class TestQp(BaseTest):
         r = 1
         y_star = numpy.matrix([[1], [1/2], [-1]])
         p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T*self.y + r), [self.y >= -1, self.y <= 1])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(y_star, s.primal_vars[var.id])
 
@@ -188,7 +199,7 @@ class TestQp(BaseTest):
         residuals = line - y_data
         fit_error = sum_squares(residuals)
         p = Problem(Minimize(fit_error), [])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         self.assertAlmostEqual(s.opt_val, 1171.60037715)
 
     def regression_2(self, solver):
@@ -209,7 +220,7 @@ class TestQp(BaseTest):
         residuals = quadratic - y_data
         fit_error = sum_squares(residuals)
         p = Problem(Minimize(fit_error), [])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         self.assertAlmostEqual(s.opt_val, 139.225660756)
 
     def control(self, solver):
@@ -238,12 +249,12 @@ class TestQp(BaseTest):
         constraints += [self.velocity[:, -1] == 0]
         # Solve the problem
         p = Problem(Minimize(sum_squares(self.force)), constraints)
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         self.assertAlmostEqual(s.opt_val, 17850.0, places=0)
 
     def control_simple(self, solver):
         p = Problem(Minimize(sum_squares(self.force)), [self.velocity[:, 0] == 0])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         self.assertAlmostEqual(s.opt_val, 17850.0, places=0)
 
     def sparse_system(self, solver):
@@ -256,7 +267,7 @@ class TestQp(BaseTest):
         b = numpy.random.randn(m, 1)
 
         p = Problem(Minimize(sum_squares(A*self.xs - b)), [self.xs == 0])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         self.assertAlmostEqual(s.opt_val, 6071.830658)
 
     def smooth_ridge(self, solver):
@@ -270,7 +281,7 @@ class TestQp(BaseTest):
         b = numpy.random.rand(k, 1)
         obj = sum_squares(A*self.xsr - b) + eta*sum_squares(self.xsr[:-1]-self.xsr[1:])
         p = Problem(Minimize(obj), [])
-        s = QpSolver(solver).solve(p, False, False, {})
+        s = self.solve_QP(p, solver)
         self.assertAlmostEqual(s.opt_val, 0.24989717371)
 
     def equivalent_forms_1(self, solver):
@@ -293,7 +304,7 @@ class TestQp(BaseTest):
         cons = [G*self.xef == h]
 
         p1 = Problem(Minimize(obj1), cons)
-        s = QpSolver(solver).solve(p1, False, False, {})
+        s = self.solve_QP(p1, solver)
         self.assertAlmostEqual(s.optval, 681.119420108)
 
     def equivalent_forms_2(self, solver):
@@ -316,7 +327,7 @@ class TestQp(BaseTest):
         cons = [G*self.xef == h]
 
         p2 = Problem(Minimize(obj2), cons)
-        s = QpSolver(solver).solve(p2, False, False, {})
+        s = self.solve_QP(p2, solver)
         self.assertAlmostEqual(s.optval, 681.119420108)
 
     def equivalent_forms_3(self, solver):
@@ -339,5 +350,5 @@ class TestQp(BaseTest):
         cons = [G*self.xef == h]
 
         p3 = Problem(Minimize(obj3), cons)
-        s = QpSolver(solver).solve(p3, False, False, {})
+        s = self.solve_QP(p3, solver)
         self.assertAlmostEqual(s.optval, 681.119420108)

@@ -22,7 +22,6 @@ from cvxpy.atoms import QuadForm, reshape
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
-from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.problems.objective import Minimize
 from cvxpy.expressions.attributes import is_quadratic, is_affine
@@ -59,16 +58,11 @@ class QpMatrixStuffing(MatrixStuffing):
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution."""
-        qp, inverse_data_stack = Qp2SymbolicQp().apply(problem)
-
-        if not self.accepts(qp):
-            raise ValueError("This QP can not be stuffed")
-
-        inverse_data = InverseData(qp)
+        inverse_data = InverseData(problem)
         extractor = CoeffExtractor(inverse_data)
 
         # extract to x.T * P * x + q.T * x, store r
-        (P, q, r) = extractor.quad_form(qp)
+        (P, q, r) = extractor.quad_form(problem)
 
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
@@ -76,7 +70,7 @@ class QpMatrixStuffing(MatrixStuffing):
 
         inverse_data.r = r
 
-        constraints = qp.constraints
+        constraints = problem.constraints
         new_cons = []
         for constraint in constraints:
             assert len(constraint.args) == 1
@@ -88,12 +82,4 @@ class QpMatrixStuffing(MatrixStuffing):
 
         inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = Problem(cvxpy.Minimize(new_obj), new_cons)
-        inverse_data_stack.append(inverse_data)
-        return new_prob, inverse_data_stack
-
-    def invert(self, solution, inverse_data_stack):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        inv = inverse_data_stack.pop()
-        solution = super(QpMatrixStuffing, self).invert(solution, inv)
-        return Qp2SymbolicQp().invert(solution, inverse_data_stack)
+        return new_prob, inverse_data
