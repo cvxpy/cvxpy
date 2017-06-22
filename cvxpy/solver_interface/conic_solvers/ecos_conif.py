@@ -22,6 +22,12 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.reductions.solution import Solution
+from cvxpy.problems.objective import Minimize
+from cvxpy.problems.objective_attributes import is_cone_objective
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.attributes import is_ecos_constraint
+from cvxpy.expressions.attributes import is_affine
+from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 
 from .conic_solver import ConicSolver
 
@@ -29,6 +35,13 @@ from .conic_solver import ConicSolver
 class ECOS(ConicSolver):
     """An interface for the ECOS solver.
     """
+
+    preconditions = {
+        (Minimize, is_cone_objective, True),
+        (Constraint, is_ecos_constraint, True),
+        (Zero, is_affine, True),
+        (NonPos, is_affine, True),
+    }
 
     # Solver capabilities.
     LP_CAPABLE = True
@@ -75,24 +88,10 @@ class ECOS(ConicSolver):
         """
         return s.ECOS
 
-    def is_mat_stuffed(self, expr):
-        """Returns whether the expression is reshape(A*x + b).
-        """
-        # TODO
-
     def accepts(self, problem):
         """Can ECOS solve the problem?
         """
-        # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
-            return False
-        for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos, SOC, ExpCone]:
-                return False
-            for arg in constr.args:
-                if not arg.is_affine():
-                    return False
-        return True
+        return ProblemAnalyzer(problem).matches(self.preconditions)
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.

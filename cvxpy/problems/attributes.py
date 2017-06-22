@@ -21,6 +21,7 @@ import inspect
 import sys
 
 from cvxpy.constraints import NonPos, Zero
+from cvxpy.problems.objective import Minimize
 
 
 def attributes():
@@ -46,6 +47,11 @@ def has_affine_equality_constraints(problem):
         if type(constraint) == Zero:
             return True
 
+
+def is_minimization(problem):
+    if type(problem.objective) != Minimize:
+        return False
+    return True
 
 # def nb_affine_inequality_constraints(problem):
 #     return len([c for c in problem.constraints if type(c) == NonPos])

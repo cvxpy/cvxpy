@@ -28,6 +28,7 @@ from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 from cvxpy.expressions.attributes import is_affine, is_quadratic
 from cvxpy.constraints import NonPos, Zero, PSD
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
+from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
 
 
 class TestProblemAnalyzer(BaseTest):
@@ -36,22 +37,31 @@ class TestProblemAnalyzer(BaseTest):
     def setUp(self):
         self.x = Variable(2, name='x')
         self.Q = np.eye(2)
-        self.problem = Problem(Minimize(QuadForm(self.x, self.Q)), [self.x <= -1])
+        self.c = np.array([1, 0.5])
+        self.qp = Problem(Minimize(QuadForm(self.x, self.Q)), [self.x <= -1])
+        self.cp = Problem(Minimize(self.c.T * self.x + 1), [self.x >= 0])
 
     def test_quadratic_program(self):
-        pa = ProblemAnalyzer(self.problem)
+        pa = ProblemAnalyzer(self.qp)
         self.assertEquals(True, (Minimize, is_quadratic, True) in pa.type)
         self.assertEquals(True, (NonPos, is_affine, True) in pa.type)
 
     def test_qp_constraints_valid_case(self):
-        self.assertEquals(True, Qp2SymbolicQp().accepts(self.problem))
+        self.assertEquals(True, Qp2SymbolicQp().accepts(self.qp))
 
     def test_constraints_invalid_constraint_type(self):
-        self.problem.constraints += [PSD(Variable(2, 2))]
-        self.assertEquals(False, Qp2SymbolicQp().accepts(self.problem))
+        self.qp.constraints += [PSD(Variable(2, 2))]
+        self.assertEquals(False, Qp2SymbolicQp().accepts(self.qp))
 
     def test_quadratic_program_postconditions(self):
-        pc = Qp2SymbolicQp().get_postconditions(self.problem)
+        pc = Qp2SymbolicQp().get_postconditions(self.qp)
         self.assertEquals(True, (Minimize, is_quadratic, True) in pc)
         self.assertEquals(True, (NonPos, is_affine, True) in pc)
         self.assertEquals(False, any(type(c[0]) == Zero for c in pc))
+
+    def test_ecos_preconditions(self):
+        self.assertEquals(True, ECOS().accepts(self.cp))
+
+    def test_ecos_preconditions_invalid_case(self):
+        self.cp.constraints += [PSD(Variable(2, 2))]
+        self.assertEquals(False, ECOS().accepts(self.cp))

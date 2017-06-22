@@ -23,6 +23,7 @@ import sys
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.atoms import QuadForm
+from cvxpy.expressions.constants import Constant
 
 
 def attributes():
@@ -42,5 +43,18 @@ def is_qp_objective(objective):
     if not type(expr.args[0]) == QuadForm or not type(expr.args[1]) == MulExpression:
         return False
     if not expr.args[1].is_affine():
+        return False
+    return True
+
+
+def is_cone_objective(objective):
+    expr = objective.expr
+    if not expr.is_affine():
+        return False
+    if not type(expr) == AddExpression:
+        return False
+    if not len(expr.args) == 2:
+        return False
+    if not type(expr.args[0]) == MulExpression or not type(expr.args[1]) == Constant:
         return False
     return True

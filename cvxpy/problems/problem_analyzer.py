@@ -39,7 +39,10 @@ class ProblemAnalyzer(object):
         (Type, Attribute, Result).
         """
         for attr in attributes:
-            yield (type(item), attr, attr(item))
+            try:
+                yield (type(item), attr, attr(item))
+            except:
+                continue
 
     def matches(self, preconditions):
         """Checks if all preconditions hold for the problem that is being analyzed."""

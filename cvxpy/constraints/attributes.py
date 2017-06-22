@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
 import sys
-from cvxpy.constraints import Zero, NonPos
+from cvxpy.constraints import Zero, NonPos, SOC, ExpCone, PSD
 
 
 def attributes():
@@ -31,6 +31,18 @@ def attributes():
 
 
 def is_qp_constraint(constraint):
-    if type(constraint) == Zero or type(constraint) == NonPos:
+    if type(constraint) in {Zero, NonPos}:
+        return True
+    return False
+
+
+def is_cone_constraint(constraint):
+    if type(constraint) in {Zero, NonPos, SOC, ExpCone, PSD}:
+        return True
+    return False
+
+
+def is_ecos_constraint(constraint):
+    if type(constraint) in {Zero, NonPos, SOC, ExpCone}:
         return True
     return False
