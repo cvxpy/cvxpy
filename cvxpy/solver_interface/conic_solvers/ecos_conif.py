@@ -27,7 +27,6 @@ from cvxpy.problems.objective_attributes import is_cone_objective
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.attributes import is_ecos_constraint
 from cvxpy.expressions.attributes import is_affine
-from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 
 from .conic_solver import ConicSolver
 
@@ -87,11 +86,6 @@ class ECOS(ConicSolver):
         """The name of the solver.
         """
         return s.ECOS
-
-    def accepts(self, problem):
-        """Can ECOS solve the problem?
-        """
-        return ProblemAnalyzer(problem).matches(self.preconditions)
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.

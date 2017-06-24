@@ -19,12 +19,25 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS as cone_canon_methods
 from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.problems.problem import Problem
+from cvxpy.problems.attributes import is_dcp, is_minimization, is_constrained
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.attributes import is_affine
 
 
 class Dcp2Cone(Canonicalization):
 
-    def accepts(self, problem):
-        return problem.is_dcp()
+    preconditions = {
+        (Problem, is_dcp, True),
+        (Problem, is_minimization, True)
+    }
+
+    @staticmethod
+    def postconditions(problem_type):
+        postconditions = Dcp2Cone.preconditions
+        if (Problem, is_constrained, True) in problem_type:
+            postconditions = postconditions.union({(Constraint, is_affine, True)})
+        return postconditions
 
     def apply(self, problem):
         if not self.accepts(problem):

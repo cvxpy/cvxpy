@@ -46,3 +46,7 @@ def is_ecos_constraint(constraint):
     if type(constraint) in {Zero, NonPos, SOC, ExpCone}:
         return True
     return False
+
+
+def are_arguments_affine(constraint):
+    return all(arg.is_affine for arg in constraint.args)

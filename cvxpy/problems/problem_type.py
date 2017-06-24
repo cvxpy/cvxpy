@@ -21,18 +21,26 @@ from cvxpy.problems.attributes import attributes as problem_attributes
 from cvxpy.expressions.attributes import attributes as expression_attributes
 from cvxpy.constraints.attributes import attributes as constraint_attributes
 from cvxpy.problems.objective_attributes import attributes as objective_attributes
+from cvxpy.problems.problem import Problem
 
 
-class ProblemAnalyzer(object):
+class ProblemType(object):
 
     def __init__(self, problem):
-        self.type = []
-        self.type.extend(self.analyze(problem, problem_attributes()))
-        con_attributes = expression_attributes() + constraint_attributes()
-        self.type.extend(attr for c in problem.constraints
-                         for attr in self.analyze(c, con_attributes))
-        obj_attributes = expression_attributes() + objective_attributes()
-        self.type.extend(self.analyze(problem.objective, obj_attributes))
+        if isinstance(problem, Problem):
+            self.type = []
+            self.type.extend(self.analyze(problem, problem_attributes()))
+            con_attributes = expression_attributes() + constraint_attributes()
+            self.type.extend(attr for c in problem.constraints
+                             for attr in self.analyze(c, con_attributes))
+            obj_attributes = expression_attributes() + objective_attributes()
+            self.type.extend(self.analyze(problem.objective, obj_attributes))
+        else:
+            self.type = problem
+        self.type = set(self.type)
+
+    def __iter__(self):
+        return iter(self.type)
 
     def analyze(self, item, attributes):
         """Go through all of the attributes matching the type and return a tuple
@@ -47,8 +55,13 @@ class ProblemAnalyzer(object):
     def matches(self, preconditions):
         """Checks if all preconditions hold for the problem that is being analyzed."""
         for pre in preconditions:
-            properties_to_check = (prop for prop in self.type if
-                                   issubclass(prop[0], pre[0]) and prop[1] == pre[1])
-            if any(prop[2] != pre[2] for prop in properties_to_check):
+            properties_to_check = [prop for prop in self.type
+                                   if prop[0] == pre[0] or issubclass(prop[0], pre[0])]
+            if not properties_to_check:
+                continue
+            attribute = pre[1] if pre[1] in [prop[1] for prop in properties_to_check] else None
+            if not attribute:
+                return False
+            if any(prop[2] != pre[2] for prop in properties_to_check if prop[1] == attribute):
                 return False
         return True

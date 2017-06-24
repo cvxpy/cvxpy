@@ -32,7 +32,7 @@ def attributes():
             name != 'attributes')]
 
 
-def has_constraints(problem):
+def is_constrained(problem):
     return len(problem.constraints) != 0
 
 
@@ -52,6 +52,11 @@ def is_minimization(problem):
     if type(problem.objective) != Minimize:
         return False
     return True
+
+
+def is_dcp(problem):
+    return problem.is_dcp()
+
 
 # def nb_affine_inequality_constraints(problem):
 #     return len([c for c in problem.constraints if type(c) == NonPos])

@@ -22,6 +22,11 @@ import numpy as np
 from cvxpy.expressions.variables import Variable
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.problems.objective import Minimize
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.attributes import is_affine
+from cvxpy.constraints.attributes import is_cone_constraint, are_arguments_affine
+from cvxpy.problems.objective_attributes import is_cone_objective
 
 
 class ConeMatrixStuffing(MatrixStuffing):
@@ -37,12 +42,15 @@ class ConeMatrixStuffing(MatrixStuffing):
                cone_constrK(A_i*x + b_i, ...)
     """
 
-    def accepts(self, problem):
-        return (
-            problem.is_dcp() and
-            problem.objective.args[0].is_affine() and
-            all([arg.is_affine() for c in problem.constraints for arg in c.args])
-        )
+    preconditions = {
+        (Minimize, is_affine, True),
+        (Constraint, is_cone_constraint, True),
+        (Constraint, are_arguments_affine, True)
+    }
+
+    @staticmethod
+    def postconditions(problem_type):
+        return ConeMatrixStuffing.preconditions + [(Minimize, is_cone_objective, True)]
 
     def stuffed_objective(self, problem, inverse_data):
         extractor = CoeffExtractor(inverse_data)

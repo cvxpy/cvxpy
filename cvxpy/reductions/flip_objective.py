@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.reductions import Reduction
-from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.attributes import is_minimization
@@ -30,13 +29,11 @@ class FlipObjective(Reduction):
         (Problem, is_minimization, False)
     }
 
-    def accepts(self, problem):
-        return ProblemAnalyzer(problem).matches(self.preconditions)
+    @staticmethod
+    def postconditions(problem_type):
+        return (Problem, is_minimization, True)
 
     def apply(self, problem):
         if type(problem.objective) == Maximize:
             return Problem(Minimize(-problem.objective.expr), problem.constraints)
         return problem
-
-    def postconditions(self, problem):
-        return (Problem, is_minimization, True)

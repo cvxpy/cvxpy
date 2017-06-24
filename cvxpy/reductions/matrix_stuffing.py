@@ -31,9 +31,6 @@ from cvxpy.problems.problem import Problem
 class MatrixStuffing(Reduction):
     __metaclass__ = abc.ABCMeta
 
-    def accepts(self):
-        return NotImplementedError
-
     def apply(self, problem):
         inverse_data = InverseData(problem)
 

@@ -18,17 +18,20 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
+from cvxpy.problems.problem_type import ProblemType
 
 
 class Reduction(object):
     """ Abstract base class for reductions. """
     __metaclass__ = abc.ABCMeta
 
+    @property
     @abc.abstractmethod
+    def preconditions(self):
+        raise NotImplementedError
+
     def accepts(self, problem):
-        """Returns whether the reduction applies to the problem.
-        """
-        return NotImplemented
+        return ProblemType(problem).matches(self.preconditions)
 
     @abc.abstractmethod
     def apply(self, problem):

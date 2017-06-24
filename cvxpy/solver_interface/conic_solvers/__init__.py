@@ -16,3 +16,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+from .ecos_conif import ECOS
+from .gurobi_conif import GUROBI
+from .mosek_conif import MOSEK
+from .scs_conif import SCS
+from .cvxopt_conif import CVXOPT
+from .glpk_conif import GLPK
+from .cbc_conif import CBC
+from .elemental_conif import Elemental

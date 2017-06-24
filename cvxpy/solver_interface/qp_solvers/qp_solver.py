@@ -31,7 +31,6 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.problems.objective_attributes import is_qp_objective
 from cvxpy.expressions.attributes import is_affine
 from cvxpy.constraints.attributes import is_qp_constraint
-from cvxpy.problems.problem_analyzer import ProblemAnalyzer
 
 
 class QpSolver(ReductionSolver):
@@ -54,9 +53,6 @@ class QpSolver(ReductionSolver):
     def import_solver(self):
         import mathprogbasepy as qp
         qp
-
-    def accepts(self, problem):
-        return ProblemAnalyzer(problem).matches(self.preconditions)
 
     def apply(self, problem):
         inverse_data = InverseData(problem)

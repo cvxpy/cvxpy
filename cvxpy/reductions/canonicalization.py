@@ -31,9 +31,6 @@ class Canonicalization(Reduction):
     def __init__(self, canon_methods=None):
         self.canon_methods = canon_methods
 
-    def accepts(self, problem):
-        raise NotImplementedError
-
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
