@@ -27,6 +27,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
 from cvxpy.atoms import QuadForm
 from cvxpy.problems.problem_type import ProblemType
+from cvxpy.reductions import QpMatrixStuffing
 
 
 class TestPathFinder(BaseTest):
@@ -40,5 +41,6 @@ class TestPathFinder(BaseTest):
         self.cp = Problem(Minimize(self.c.T * self.x + 1), [self.x >= 0])
 
     def test_reduction_path_qp(self):
-        path = PathFinder().reduction_path(ProblemType(self.qp), [QpSolver('GUROBI')])
+        path = PathFinder().reduction_path(ProblemType(self.qp), [QpSolver])
         self.assertEquals(2, len(path))
+        self.assertEquals(path[1], QpMatrixStuffing)

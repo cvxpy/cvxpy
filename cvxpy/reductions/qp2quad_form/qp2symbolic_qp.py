@@ -44,11 +44,11 @@ class Qp2SymbolicQp(Canonicalization):
 
     @staticmethod
     def postconditions(problem_type):
-        post_conditions = [(Minimize, is_quadratic, True)]
+        post_conditions = {(Minimize, is_quadratic, True)}
         if (Problem, has_affine_inequality_constraints, True) in problem_type:
-            post_conditions += [(NonPos, is_affine, True)]
+            post_conditions.add((NonPos, is_affine, True))
         if (Problem, has_affine_equality_constraints, True) in problem_type:
-            post_conditions += [(Zero, is_affine, True)]
+            post_conditions.add((Zero, is_affine, True))
         return post_conditions
 
     def apply(self, problem):

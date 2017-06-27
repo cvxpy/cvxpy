@@ -50,7 +50,7 @@ class ConeMatrixStuffing(MatrixStuffing):
 
     @staticmethod
     def postconditions(problem_type):
-        return ConeMatrixStuffing.preconditions + [(Minimize, is_cone_objective, True)]
+        return ConeMatrixStuffing.preconditions.union({(Minimize, is_cone_objective, True)})
 
     def stuffed_objective(self, problem, inverse_data):
         extractor = CoeffExtractor(inverse_data)
