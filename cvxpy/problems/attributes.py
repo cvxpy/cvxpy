@@ -22,6 +22,9 @@ import sys
 
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.objective import Minimize
+from cvxpy.atoms.affine_prod import affine_prod
+from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms import abs, max_elemwise, sum_largest, max_entries
 
 
 def attributes():
@@ -64,3 +67,11 @@ def is_dcp(problem):
 
 # def nb_affine_equality_constraints(problem):
 #     return len([c for c in problem.constraints if type(c) == Zero])
+
+
+def has_pwl_atoms(problem):
+    atom_types = [type(atom) for atom in problem.atoms()]
+    pwl_types = [abs, affine_prod, max_elemwise, sum_largest, max_entries, pnorm]
+    if any(atom in pwl_types for atom in atom_types):
+        return True
+    return False

@@ -22,6 +22,7 @@ from cvxpy.expressions.attributes import attributes as expression_attributes
 from cvxpy.constraints.attributes import attributes as constraint_attributes
 from cvxpy.problems.objective_attributes import attributes as objective_attributes
 from cvxpy.problems.problem import Problem
+from cvxpy.problems.objective import Objective
 
 
 class ProblemType(object):
@@ -58,7 +59,10 @@ class ProblemType(object):
             properties_to_check = [prop for prop in self.type
                                    if prop[0] == pre[0] or issubclass(prop[0], pre[0])]
             if not properties_to_check:
-                continue
+                if isinstance(pre[0], Problem) or isinstance(pre[0], Objective):
+                    return False
+                else:
+                    continue
             attribute = pre[1] if pre[1] in [prop[1] for prop in properties_to_check] else None
             if not attribute:
                 return False

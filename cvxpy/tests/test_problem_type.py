@@ -66,3 +66,7 @@ class TestProblemType(BaseTest):
     def test_ECOSaccepts_PSD_False(self):
         self.cp.constraints += [PSD(Variable(2, 2))]
         self.assertEquals(False, ECOS().accepts(self.cp))
+
+    def test_atoms(self):
+        atoms = self.qp.atoms()
+        self.assertEquals(2, len(atoms))

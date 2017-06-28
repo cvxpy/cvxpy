@@ -26,11 +26,13 @@ from cvxpy.constraints import NonPos, Zero
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
-from cvxpy.problems.objective import Minimize
+from cvxpy.problems.objective import Objective
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.problems.objective_attributes import is_qp_objective
 from cvxpy.expressions.attributes import is_affine
 from cvxpy.constraints.attributes import is_qp_constraint
+from cvxpy.problems.problem import Problem
+from cvxpy.problems.attributes import is_minimization
 
 
 class QpSolver(ReductionSolver):
@@ -39,7 +41,8 @@ class QpSolver(ReductionSolver):
     """
 
     preconditions = {
-        (Minimize, is_qp_objective, True),
+        (Problem, is_minimization, True),
+        (Objective, is_qp_objective, True),
         (Constraint, is_qp_constraint, True),
         (Constraint, is_affine, True)
     }

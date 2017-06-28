@@ -118,3 +118,16 @@ class Canonical(object):
         list
         """
         return None
+
+    def atoms(self):
+        """Returns all the atoms present in the args.
+
+        Returns
+        -------
+        list
+        """
+        atom_list = []
+        for arg in self.args:
+            atom_list += arg.atoms()
+        # Remove duplicates.
+        return list(set(atom_list))

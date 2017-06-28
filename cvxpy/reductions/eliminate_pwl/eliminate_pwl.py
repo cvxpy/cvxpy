@@ -17,28 +17,23 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.reductions import Reduction
+from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.problems.attributes import has_pwl_atoms
 from cvxpy.problems.problem import Problem
-from cvxpy.problems.objective import Maximize, Minimize
-from cvxpy.problems.attributes import is_minimization
+from .atom_canonicalizers import CANON_METHODS as elim_pwl_methods
 
 
-class FlipObjective(Reduction):
+class EliminatePwl(Canonicalization):
 
     preconditions = {
-        (Problem, is_minimization, False)
+        (Problem, has_pwl_atoms, True)
     }
 
     @staticmethod
     def postconditions(problem_type):
-        postconditions = set(t for t in problem_type if t != (Problem, is_minimization, False))
-        for c in postconditions:
-            if c[0] == Maximize:
-                postconditions.remove(c)
-                postconditions.add((Minimize, c[1], c[2]))
-        return postconditions.union({(Problem, is_minimization, True)})
+        return {(Problem, has_pwl_atoms, False)}
 
     def apply(self, problem):
-        if type(problem.objective) == Maximize:
-            return Problem(Minimize(-problem.objective.expr), problem.constraints)
-        return problem
+        if not self.accepts(problem):
+            raise ValueError("Cannot canonicalize pwl atoms away")
+        return Canonicalization(elim_pwl_methods).apply(problem)
