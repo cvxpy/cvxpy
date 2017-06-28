@@ -81,13 +81,13 @@ class Canonical(object):
         const_dict = {id(constant): constant for constant in const_list}
         return list(const_dict.values())
 
-    def tree_copy(self):
+    def tree_copy(self, id_objects={}):
         new_args = []
         for arg in self.args:
-            new_args += [arg.tree_copy()]
-        return self.copy(args=new_args)
+            new_args += [arg.tree_copy(id_objects)]
+        return self.copy(args=new_args, id_objects=id_objects)
 
-    def copy(self, args=None):
+    def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the object.
 
         Used to reconstruct an object tree.

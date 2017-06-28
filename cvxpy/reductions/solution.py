@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import copy
-
 
 class Solution(object):
     """A solution object.
@@ -38,4 +36,8 @@ class Solution(object):
         self.attr = attr
 
     def copy(self):
-        return copy.deepcopy(self)
+        return Solution(self.status,
+                        self.opt_val,
+                        self.primal_vars,
+                        self.dual_vars,
+                        self.attr)

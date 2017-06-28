@@ -38,6 +38,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon, affine_prod_canon,
 	 max_elemwise_canon, max_entries_canon, pnorm_canon, sum_largest_canon)
 
+# TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
 		affine_prod : affine_prod_canon,
 		geo_mean : geo_mean_canon,

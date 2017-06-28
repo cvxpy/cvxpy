@@ -280,7 +280,7 @@ class power(Elementwise):
     def get_data(self):
         return [self.p, self.w]
 
-    def copy(self, args=None):
+    def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the power atom.
 
         Parameters

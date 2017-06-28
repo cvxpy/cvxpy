@@ -26,6 +26,8 @@ from cvxpy.expressions.attributes import is_quadratic, is_affine
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.attributes import is_qp_constraint
 from cvxpy.problems.objective_attributes import is_qp_objective
+from cvxpy.problems.problem import Problem
+from cvxpy.reductions import InverseData
 
 
 class QpMatrixStuffing(MatrixStuffing):
@@ -43,9 +45,13 @@ class QpMatrixStuffing(MatrixStuffing):
         return QpMatrixStuffing.preconditions.union({(Minimize, is_qp_objective, True)})
 
     def stuffed_objective(self, problem, inverse_data):
-        extractor = CoeffExtractor(inverse_data)
+        # We need to copy the problem, because we are changing atoms in the expression tree
+        problem_copy = Problem(Minimize(problem.objective.expr.tree_copy()),
+                               [con.tree_copy() for con in problem.constraints])
+        inverse_data_of_copy = InverseData(problem_copy)
+        extractor = CoeffExtractor(inverse_data_of_copy)
         # extract to x.T * P * x + q.T * x, store r
-        (P, q, r) = extractor.quad_form(problem)
+        P, q, r = extractor.quad_form(problem_copy.objective.expr)
 
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)

@@ -59,6 +59,7 @@ class ProblemType(object):
             properties_to_check = [prop for prop in self.type
                                    if prop[0] == pre[0] or issubclass(prop[0], pre[0])]
             if not properties_to_check:
+                # exception for Problem and Objective types. Not sure if absolutely necessary.
                 if (pre[0] is Problem
                    or pre[0] is Objective
                    or issubclass(pre[0], Objective)):

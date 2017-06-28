@@ -25,6 +25,8 @@ from cvxpy.reductions.qp2quad_form.atom_canonicalizers.quad_form_canon import *
 
 CANON_METHODS = {}
 
+# TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
+
 # reuse cone canonicalization methods
 CANON_METHODS[affine_prod] = CONE_METHODS[affine_prod]
 CANON_METHODS[abs] = CONE_METHODS[abs]
