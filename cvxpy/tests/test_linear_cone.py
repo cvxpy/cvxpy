@@ -35,6 +35,7 @@ from cvxpy.solver_interface.conic_solvers.glpk_conif import GLPK
 from cvxpy.solver_interface.conic_solvers.cbc_conif import CBC
 from cvxpy.solver_interface.conic_solvers.elemental_conif import Elemental
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.reductions.flip_objective import FlipObjective
 
 
 class TestLinearCone(BaseTest):
@@ -128,16 +129,20 @@ class TestLinearCone(BaseTest):
 
         # Infeasible problems.
         p = Problem(Maximize(self.a), [self.a >= 2, self.a <= 1])
-        self.assertTrue(ConeMatrixStuffing().accepts(p))
         result = p.solve(solver.name())
-        p_new = ConeMatrixStuffing().apply(p)
+        self.assertTrue(FlipObjective().accepts(p))
+        p_min = FlipObjective().apply(p)
+        self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
+        p_new = ConeMatrixStuffing().apply(p_min[0])
         result_new = p_new[0].solve(solver.name())
         self.assertAlmostEqual(result, -result_new)
         self.assertTrue(solver.accepts(p_new[0]))
         sltn = solver.solve(p_new[0], False, False, {})
         self.assertAlmostEqual(sltn.opt_val, -result)
         inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
-        self.assertAlmostEqual(inv_sltn.opt_val, result)
+        self.assertAlmostEqual(inv_sltn.opt_val, -result)
+        inv_flipped_sltn = FlipObjective().invert(inv_sltn, p_min[1])
+        self.assertAlmostEqual(inv_flipped_sltn.opt_val, result)
 
     # Test vector LP problems.
     def vector_lp(self, solver):
@@ -298,13 +303,17 @@ class TestLinearCone(BaseTest):
                        C == C.T,
                        C >> 0]
         prob = Problem(obj, constraints)
-        self.assertTrue(ConeMatrixStuffing().accepts(prob))
+        self.assertTrue(FlipObjective().accepts(prob))
+        p_min = FlipObjective().apply(prob)
+        self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
 
         C = Variable(2, 2)
         obj = Maximize(C[0, 1])
         constraints = [C == 1, C >> [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
-        self.assertTrue(ConeMatrixStuffing().accepts(prob))
+        self.assertTrue(FlipObjective().accepts(prob))
+        p_min = FlipObjective().apply(prob)
+        self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
 
         C = Symmetric(2, 2)
         obj = Minimize(C[0, 0])

@@ -26,8 +26,6 @@ from cvxpy.expressions.attributes import is_quadratic, is_affine
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.attributes import is_qp_constraint
 from cvxpy.problems.objective_attributes import is_qp_objective
-from cvxpy.problems.problem import Problem
-from cvxpy.problems.attributes import is_minimization
 
 
 class QpMatrixStuffing(MatrixStuffing):
@@ -35,7 +33,6 @@ class QpMatrixStuffing(MatrixStuffing):
     """
 
     preconditions = {
-        (Problem, is_minimization, True),
         (Minimize, is_quadratic, True),
         (Constraint, is_affine, True),
         (Constraint, is_qp_constraint, True)

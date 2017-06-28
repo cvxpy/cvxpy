@@ -27,6 +27,9 @@ class PathFinder(object):
         self.reductions = set(reductions)
 
     def reduction_path(self, current_type, current_path):
+        """A reduction path is like a stack: the first element (0) is the end of the reduction
+        path (e.g. solver), the first reduction to apply to the problem is path.pop().
+        """
         if self.is_valid_reduction_path(current_type, current_path):
             return current_path
         for reduction in self.applicable_reductions(current_type):

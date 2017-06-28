@@ -21,6 +21,7 @@ from cvxpy.reductions import Reduction
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.attributes import is_minimization
+from cvxpy.reductions.inverse_data import InverseData
 
 
 class FlipObjective(Reduction):
@@ -39,6 +40,12 @@ class FlipObjective(Reduction):
         return postconditions.union({(Problem, is_minimization, True)})
 
     def apply(self, problem):
+        inverse_data = InverseData(problem)
         if type(problem.objective) == Maximize:
-            return Problem(Minimize(-problem.objective.expr), problem.constraints)
-        return problem
+            problem = Problem(Minimize(-problem.objective.expr), problem.constraints)
+        return problem, inverse_data
+
+    def invert(self, solution, inverse_data):
+        new_solution = solution.copy()
+        new_solution.opt_val = -solution.opt_val
+        return new_solution
