@@ -80,19 +80,20 @@ class TestQp(BaseTest):
             self.square_affine(solver)
             self.quad_form(solver)
             self.affine_problem(solver)
+            # Do we need the following functionality?
             # self.norm_2(solver)
             # self.mat_norm_2(solver)
-            # self.quad_form_coeff(solver)
-            # self.quad_form_bound(solver)
-            # self.regression_1(solver)
-            # self.regression_2(solver)
+            self.quad_form_coeff(solver)
+            self.quad_form_bound(solver)
+            self.regression_1(solver)
+            self.regression_2(solver)
+            # slow tests:
             # self.control(solver)
-            # self.control_simple(solver)
             # self.sparse_system(solver)
-            # self.smooth_ridge(solver)
-            # self.equivalent_forms_1(solver)
-            # self.equivalent_forms_2(solver)
-            # self.equivalent_forms_3(solver)
+            self.smooth_ridge(solver)
+            self.equivalent_forms_1(solver)
+            self.equivalent_forms_2(solver)
+            self.equivalent_forms_3(solver)
 
     def quad_over_lin(self, solver):
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)), [self.x <= -1])
@@ -165,17 +166,16 @@ class TestQp(BaseTest):
         z = numpy.random.randn(5, 1)
         P = A.T.dot(A)
         q = -2*P.dot(z)
-        p = Problem(Minimize(0.5*QuadForm(self.w, P) + q.T*self.w))
+        p = Problem(Minimize(QuadForm(self.w, P) + q.T*self.w))
         qp_solution = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, qp_solution.primal_vars[var.id])
 
     def quad_form_bound(self, solver):
-        n = 3
         P = numpy.matrix([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
         q = numpy.matrix([[-22], [-14.5], [13]])
         r = 1
-        y_star = numpy.matrix([[1], [1/2], [-1]])
+        y_star = numpy.matrix([[1], [0.5], [-1]])
         p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T*self.y + r), [self.y >= -1, self.y <= 1])
         s = self.solve_QP(p, solver)
         for var in p.variables():
@@ -200,7 +200,7 @@ class TestQp(BaseTest):
         fit_error = sum_squares(residuals)
         p = Problem(Minimize(fit_error), [])
         s = self.solve_QP(p, solver)
-        self.assertAlmostEqual(s.opt_val, 1171.60037715)
+        self.assertAlmostEqual(1171.60037715, s.opt_val)
 
     def regression_2(self, solver):
         numpy.random.seed(1)
@@ -221,7 +221,7 @@ class TestQp(BaseTest):
         fit_error = sum_squares(residuals)
         p = Problem(Minimize(fit_error), [])
         s = self.solve_QP(p, solver)
-        self.assertAlmostEqual(s.opt_val, 139.225660756)
+        self.assertAlmostEqual(139.225660756, s.opt_val)
 
     def control(self, solver):
         # Some constraints on our motion
@@ -234,7 +234,6 @@ class TestQp(BaseTest):
         drag = 0.1  # Drag on object
         g = numpy.matrix('0; -9.8')  # Gravity on object
         # Create a problem instance
-        mu = 1
         constraints = []
         # Add constraints on our variables
         for i in range(T - 1):
@@ -250,17 +249,11 @@ class TestQp(BaseTest):
         # Solve the problem
         p = Problem(Minimize(sum_squares(self.force)), constraints)
         s = self.solve_QP(p, solver)
-        self.assertAlmostEqual(s.opt_val, 17850.0, places=0)
-
-    def control_simple(self, solver):
-        p = Problem(Minimize(sum_squares(self.force)), [self.velocity[:, 0] == 0])
-        s = self.solve_QP(p, solver)
-        self.assertAlmostEqual(s.opt_val, 17850.0, places=0)
+        self.assertAlmostEqual(17850.0, s.opt_val)
 
     def sparse_system(self, solver):
         m = 1000
         n = 800
-        r = 700
         numpy.random.seed(1)
         density = 0.2
         A = sp.rand(m, n, density)
@@ -268,21 +261,20 @@ class TestQp(BaseTest):
 
         p = Problem(Minimize(sum_squares(A*self.xs - b)), [self.xs == 0])
         s = self.solve_QP(p, solver)
-        self.assertAlmostEqual(s.opt_val, 6071.830658)
+        self.assertAlmostEqual(b.T.dot(b), s.opt_val)
 
     def smooth_ridge(self, solver):
         numpy.random.seed(1)
         n = 500
         k = 50
-        delta = 1
         eta = 1
 
-        A = numpy.random.rand(k, n)
-        b = numpy.random.rand(k, 1)
+        A = numpy.ones((k, n))
+        b = numpy.ones((k, 1))
         obj = sum_squares(A*self.xsr - b) + eta*sum_squares(self.xsr[:-1]-self.xsr[1:])
         p = Problem(Minimize(obj), [])
         s = self.solve_QP(p, solver)
-        self.assertAlmostEqual(s.opt_val, 0.24989717371)
+        self.assertAlmostEqual(0, s.opt_val)
 
     def equivalent_forms_1(self, solver):
         m = 100
@@ -294,18 +286,12 @@ class TestQp(BaseTest):
         G = numpy.random.randn(r, n)
         h = numpy.random.randn(r, 1)
 
-        # ||Ax-b||^2 = x^T (A^T A) x - 2(A^T b)^T x + ||b||^2
-        P = numpy.dot(A.T, A)
-        q = -2*numpy.dot(A.T, b)
-        r = numpy.dot(b.T, b)
-        Pinv = numpy.linalg.inv(P)
-
         obj1 = sum_entries((A*self.xef - b) ** 2)
         cons = [G*self.xef == h]
 
         p1 = Problem(Minimize(obj1), cons)
         s = self.solve_QP(p1, solver)
-        self.assertAlmostEqual(s.optval, 681.119420108)
+        self.assertAlmostEqual(s.opt_val, 681.119420108)
 
     def equivalent_forms_2(self, solver):
         m = 100
@@ -321,14 +307,13 @@ class TestQp(BaseTest):
         P = numpy.dot(A.T, A)
         q = -2*numpy.dot(A.T, b)
         r = numpy.dot(b.T, b)
-        Pinv = numpy.linalg.inv(P)
 
         obj2 = QuadForm(self.xef, P)+q.T*self.xef+r
         cons = [G*self.xef == h]
 
         p2 = Problem(Minimize(obj2), cons)
         s = self.solve_QP(p2, solver)
-        self.assertAlmostEqual(s.optval, 681.119420108)
+        self.assertAlmostEqual(s.opt_val, 681.119420108)
 
     def equivalent_forms_3(self, solver):
         m = 100
@@ -351,4 +336,4 @@ class TestQp(BaseTest):
 
         p3 = Problem(Minimize(obj3), cons)
         s = self.solve_QP(p3, solver)
-        self.assertAlmostEqual(s.optval, 681.119420108)
+        self.assertAlmostEqual(s.opt_val, 681.119420108)
