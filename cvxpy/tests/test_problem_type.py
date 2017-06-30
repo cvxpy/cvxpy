@@ -29,6 +29,7 @@ from cvxpy.expressions.attributes import is_affine, is_quadratic
 from cvxpy.constraints import NonPos, Zero, PSD
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
+from cvxpy.constraints.attributes import are_arguments_affine
 
 
 class TestProblemType(BaseTest):
@@ -57,7 +58,7 @@ class TestProblemType(BaseTest):
         pa = ProblemType(self.qp)
         pc = Qp2SymbolicQp.postconditions(pa.type)
         self.assertEquals(True, (Minimize, is_quadratic, True) in pc)
-        self.assertEquals(True, (NonPos, is_affine, True) in pc)
+        self.assertEquals(True, (NonPos, are_arguments_affine, True) in pc)
         self.assertEquals(False, any(type(c[0]) == Zero for c in pc))
 
     def test_ECOSaccepts_standardCP_True(self):

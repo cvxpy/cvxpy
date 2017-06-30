@@ -57,7 +57,9 @@ class ProblemType(object):
         """Checks if all preconditions hold for the problem that is being analyzed."""
         for pre in preconditions:
             properties_to_check = [prop for prop in self.type
-                                   if prop[0] == pre[0] or issubclass(prop[0], pre[0])]
+                                   if prop[0] == pre[0]
+                                   or issubclass(prop[0], pre[0])
+                                   or issubclass(pre[0], prop[0])]
             if not properties_to_check:
                 # exception for Problem and Objective types. Not sure if absolutely necessary.
                 if (pre[0] is Problem

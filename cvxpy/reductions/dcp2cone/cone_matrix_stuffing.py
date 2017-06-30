@@ -25,7 +25,8 @@ from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.problems.objective import Minimize
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.attributes import is_affine
-from cvxpy.constraints.attributes import is_cone_constraint, are_arguments_affine
+from cvxpy.constraints.attributes import (is_cone_constraint, is_ecos_constraint,
+                                          are_arguments_affine)
 from cvxpy.problems.objective_attributes import is_cone_objective
 
 
@@ -50,7 +51,9 @@ class ConeMatrixStuffing(MatrixStuffing):
 
     @staticmethod
     def postconditions(problem_type):
-        return ConeMatrixStuffing.preconditions.union({(Minimize, is_cone_objective, True)})
+        post = set(cond for cond in problem_type if cond[1] == is_ecos_constraint)
+        post = post.union(ConeMatrixStuffing.preconditions)
+        return post.union({(Minimize, is_cone_objective, True)})
 
     def stuffed_objective(self, problem, inverse_data):
         extractor = CoeffExtractor(inverse_data)

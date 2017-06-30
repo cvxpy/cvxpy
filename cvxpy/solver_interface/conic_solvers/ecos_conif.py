@@ -25,10 +25,7 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.objective_attributes import is_cone_objective
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import is_ecos_constraint
-from cvxpy.expressions.attributes import is_affine
-from cvxpy.problems.problem import Problem
-from cvxpy.problems.attributes import is_minimization
+from cvxpy.constraints.attributes import is_ecos_constraint, are_arguments_affine
 
 from .conic_solver import ConicSolver
 
@@ -38,11 +35,10 @@ class ECOS(ConicSolver):
     """
 
     preconditions = {
-        (Problem, is_minimization, True),
         (Minimize, is_cone_objective, True),
         (Constraint, is_ecos_constraint, True),
-        (Zero, is_affine, True),
-        (NonPos, is_affine, True),
+        (Zero, are_arguments_affine, True),
+        (NonPos, are_arguments_affine, True),
     }
 
     # Solver capabilities.

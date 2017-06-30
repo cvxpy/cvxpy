@@ -22,10 +22,10 @@ from cvxpy.reductions.qp2quad_form.atom_canonicalizers import CANON_METHODS as q
 from cvxpy.problems.objective import Minimize
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.problem import Problem
-from cvxpy.expressions.attributes import is_affine, is_quadratic, is_qpwa, is_pwl
+from cvxpy.expressions.attributes import is_quadratic, is_qpwa, is_pwl
 from cvxpy.problems.attributes import (has_affine_equality_constraints,
                                        has_affine_inequality_constraints)
-from cvxpy.constraints.attributes import is_qp_constraint
+from cvxpy.constraints.attributes import is_qp_constraint, are_arguments_affine
 from cvxpy.constraints.constraint import Constraint
 
 
@@ -38,7 +38,7 @@ class Qp2SymbolicQp(Canonicalization):
     preconditions = {
         (Minimize, is_qpwa, True),
         (NonPos, is_pwl, True),
-        (Zero, is_affine, True),
+        (Zero, are_arguments_affine, True),
         (Constraint, is_qp_constraint, True)
     }
 
@@ -46,9 +46,9 @@ class Qp2SymbolicQp(Canonicalization):
     def postconditions(problem_type):
         post_conditions = {(Minimize, is_quadratic, True)}
         if (Problem, has_affine_inequality_constraints, True) in problem_type:
-            post_conditions.add((NonPos, is_affine, True))
+            post_conditions.add((NonPos, are_arguments_affine, True))
         if (Problem, has_affine_equality_constraints, True) in problem_type:
-            post_conditions.add((Zero, is_affine, True))
+            post_conditions.add((Zero, are_arguments_affine, True))
         return post_conditions
 
     def apply(self, problem):

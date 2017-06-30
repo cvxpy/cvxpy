@@ -22,9 +22,9 @@ from cvxpy.atoms import QuadForm
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.problems.objective import Minimize
-from cvxpy.expressions.attributes import is_quadratic, is_affine
+from cvxpy.expressions.attributes import is_quadratic
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import is_qp_constraint
+from cvxpy.constraints.attributes import is_qp_constraint, are_arguments_affine
 from cvxpy.problems.objective_attributes import is_qp_objective
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions import InverseData
@@ -36,7 +36,7 @@ class QpMatrixStuffing(MatrixStuffing):
 
     preconditions = {
         (Minimize, is_quadratic, True),
-        (Constraint, is_affine, True),
+        (Constraint, are_arguments_affine, True),
         (Constraint, is_qp_constraint, True)
     }
 

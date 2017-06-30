@@ -25,9 +25,9 @@ from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize, Maximize
-from cvxpy.atoms import QuadForm
+from cvxpy.atoms import QuadForm, sum_squares
 from cvxpy.problems.problem_type import ProblemType
-from cvxpy.reductions import QpMatrixStuffing, ECOS, FlipObjective
+from cvxpy.reductions import QpMatrixStuffing, ECOS, FlipObjective, ConeMatrixStuffing, Dcp2Cone
 
 
 class TestPathFinder(BaseTest):
@@ -45,12 +45,21 @@ class TestPathFinder(BaseTest):
         self.assertEquals(2, len(path))
         self.assertEquals(path[1], QpMatrixStuffing)
 
-    def test_qp_maximization_reduction_path(self):
-        qp_maximization = Problem(Maximize(QuadForm(self.x, self.Q)), [self.x <= -1])
+    def test_qp_maximization_reduction_path_qp_solver(self):
+        qp_maximization = Problem(Maximize(QuadForm(self.x, -self.Q)), [self.x <= -1])
         path = PathFinder().reduction_path(ProblemType(qp_maximization), [QpSolver])
         self.assertEquals(3, len(path))
         self.assertEquals(path[1], QpMatrixStuffing)
         self.assertEquals(path[2], FlipObjective)
+
+    def test_qp_maximization_reduction_path_ecos(self):
+        qp_maximization = Problem(Maximize(-sum_squares(self.x)), [self.x <= -1])
+        self.assertTrue(qp_maximization.is_dcp())
+        path = PathFinder().reduction_path(ProblemType(qp_maximization), [ECOS])
+        self.assertEquals(4, len(path))
+        self.assertEquals(path[1], ConeMatrixStuffing)
+        self.assertEquals(path[2], Dcp2Cone)
+        self.assertEquals(path[3], FlipObjective)
 
     def test_cone_reduction_path_valid_as_is(self):
         path = PathFinder().reduction_path(ProblemType(self.cp), [ECOS])

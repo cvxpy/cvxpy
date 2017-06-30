@@ -29,8 +29,7 @@ from cvxpy.solver_interface.reduction_solver import ReductionSolver
 from cvxpy.problems.objective import Minimize
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.problems.objective_attributes import is_qp_objective
-from cvxpy.expressions.attributes import is_affine
-from cvxpy.constraints.attributes import is_qp_constraint
+from cvxpy.constraints.attributes import is_qp_constraint, are_arguments_affine
 
 
 class QpSolver(ReductionSolver):
@@ -41,7 +40,7 @@ class QpSolver(ReductionSolver):
     preconditions = {
         (Minimize, is_qp_objective, True),
         (Constraint, is_qp_constraint, True),
-        (Constraint, is_affine, True)
+        (Constraint, are_arguments_affine, True)
     }
 
     def __init__(self, solver_name):

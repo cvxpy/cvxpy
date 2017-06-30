@@ -24,22 +24,25 @@ from cvxpy.problems.attributes import is_dcp, is_minimization, is_constrained
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.attributes import is_affine
 from cvxpy.problems.objective import Minimize
+from cvxpy.constraints.attributes import (is_cone_constraint, is_ecos_constraint,
+                                          are_arguments_affine)
 
 
 class Dcp2Cone(Canonicalization):
 
     preconditions = {
         (Problem, is_dcp, True),
-        (Problem, is_minimization, True)
+        (Problem, is_minimization, True),
+        (Constraint, is_cone_constraint, True)
     }
 
     @staticmethod
     def postconditions(problem_type):
-        postconditions = set()
+        postconditions = set(cond for cond in problem_type if cond[1] == is_ecos_constraint)
         postconditions.update(Dcp2Cone.preconditions)
         postconditions.add((Minimize, is_affine, True))
         if (Problem, is_constrained, True) in problem_type:
-            postconditions.add((Constraint, is_affine, True))
+            postconditions.add((Constraint, are_arguments_affine, True))
         return postconditions
 
     def apply(self, problem):

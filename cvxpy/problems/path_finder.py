@@ -36,6 +36,10 @@ class PathFinder(object):
             self.reductions.remove(reduction)
             current_path.insert(1, reduction)
             old_type = current_type
+            if not hasattr(reduction, 'postconditions'):
+                current_path.pop(1)
+                current_type = old_type
+                continue
             current_type = ProblemType(reduction.postconditions(current_type))
             candidate_path = self.reduction_path(current_type, current_path)
             if candidate_path:
