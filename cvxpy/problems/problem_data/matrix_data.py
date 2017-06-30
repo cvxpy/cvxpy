@@ -252,9 +252,9 @@ class MatrixData(object):
             if x is None:
                 return rows, big_x
             big_f = cvxopt.matrix(0., (rows, 1))
-            big_Df = cvxopt.spmatrix(0., [], [], shape=(rows, cols))
+            big_Df = cvxopt.spmatrix(0., [], [], size=(rows, cols))
             if z:
-                big_H = cvxopt.spmatrix(0., [], [], shape=(cols, cols))
+                big_H = cvxopt.spmatrix(0., [], [], size=(cols, cols))
             offset = 0
             for constr in nonlin_constr:
                 constr_entries = constr.shape[0]*constr.shape[1]

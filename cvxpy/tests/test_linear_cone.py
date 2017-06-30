@@ -30,6 +30,10 @@ from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
 from cvxpy.solver_interface.conic_solvers.gurobi_conif import GUROBI
 from cvxpy.solver_interface.conic_solvers.mosek_conif import MOSEK
 from cvxpy.solver_interface.conic_solvers.scs_conif import SCS
+from cvxpy.solver_interface.conic_solvers.cvxopt_conif import CVXOPT
+from cvxpy.solver_interface.conic_solvers.glpk_conif import GLPK
+from cvxpy.solver_interface.conic_solvers.cbc_conif import CBC
+from cvxpy.solver_interface.conic_solvers.elemental_conif import Elemental
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -49,7 +53,7 @@ class TestLinearCone(BaseTest):
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
 
-        self.solvers = [ECOS(), GUROBI(), MOSEK(), SCS()]
+        self.solvers = [ECOS(), GUROBI(), MOSEK(), SCS(), CVXOPT(), GLPK()]
 
     def test_all_solvers(self):
         for solver in self.solvers:
@@ -186,7 +190,7 @@ class TestLinearCone(BaseTest):
     # Test matrix LP problems.
     def matrix_lp(self, solver):
         T = Constant(numpy.ones((2, 2))).value
-        p = Problem(Minimize(1), [self.A == T])
+        p = Problem(Minimize(1 + self.a), [self.A == T + self.a, self.a >= 0])
         self.assertTrue(ConeMatrixStuffing().accepts(p))
         result = p.solve(solver.name())
         p_new = ConeMatrixStuffing().apply(p)
@@ -223,8 +227,10 @@ class TestLinearCone(BaseTest):
         p = Problem(Minimize(self.b), [norm2(self.x) <= self.b])
         pmod = Problem(Minimize(self.b), [SOC(self.b, self.x)])
         self.assertTrue(ConeMatrixStuffing().accepts(pmod))
-        result = p.solve(solver.name())
         p_new = ConeMatrixStuffing().apply(pmod)
+        if not solver.accepts(p_new[0]):
+            return
+        result = p.solve(solver.name())
         sltn = solver.solve(p_new[0], False, False, {})
         self.assertAlmostEqual(sltn.opt_val, result)
         inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
@@ -269,10 +275,13 @@ class TestLinearCone(BaseTest):
                                         var.value, places=1)
 
         # More complex.
+        # TODO CVXOPT fails here.
+        if solver.name() == 'CVXOPT':
+            return
         p = Problem(Minimize(self.b), [exp(self.a/2 + self.c) <= self.b+5,
-                                       self.a >= 1, self.c == 5])
+                                       self.a >= 1, self.c >= 5])
         pmod = Problem(Minimize(self.b), [ExpCone(self.a/2 + self.c, Constant(1), self.b+5),
-                                          self.a >= 1, self.c == 5])
+                                          self.a >= 1, self.c >= 5])
         self.assertTrue(ConeMatrixStuffing().accepts(pmod))
         result = p.solve(solver.name())
         p_new = ConeMatrixStuffing().apply(pmod)

@@ -695,6 +695,7 @@ def replace_params_with_consts(expr):
         # Data could also be a parameter.
         if isinstance(expr.data, lo.LinOp) and expr.data.type == lo.PARAM:
             data_lin_op = expr.data
+            assert isinstance(data_lin_op.shape, tuple)
             val = check_param_val(data_lin_op.data)
             data = create_const(val, data_lin_op.shape)
         else:

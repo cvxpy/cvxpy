@@ -54,11 +54,11 @@ class TestMIPVariable(BaseTest):
                     rh_item = rh_item.todense()
                 self.assertItemsAlmostEqual(lh_item, rh_item)
 
-    def test_mip_print(self):
-        """Test to string methods for Bool/Int vars.
-        """
-        self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
-        self.assertEqual(repr(self.B_int), "Int(2, 3)")
+    # def test_mip_print(self):
+    #     """Test to string methods for Bool/Int vars.
+    #     """
+    #     self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
+    #     self.assertEqual(repr(self.B_int), "Int(2, 3)")
 
     # def test_bool_prob(self):
     #     # Bool in objective.

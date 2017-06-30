@@ -30,7 +30,7 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.error import SolverError
 import cvxpy.interface as intf
-from cvxpy.reductions.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 import numpy as np
 import numpy.linalg as LA
@@ -310,7 +310,15 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
             assert (atom, solver) in KNOWN_SOLVER_ERRORS
 
 
-def run_atom_helper(reduction=None):
+def reduction(problem):
+    d2c = Dcp2Cone()
+    assert d2c.accepts(problem)
+    reduced_problem, _ = d2c.apply(problem)
+    assert ConeMatrixStuffing().accepts(reduced_problem)
+    return ConeMatrixStuffing().apply(reduced_problem)
+
+
+def test_constant_atoms():
     tests = []
     for atom_list, objective_type in atoms:
         for atom, size, args, obj_val in atom_list:
@@ -319,15 +327,12 @@ def run_atom_helper(reduction=None):
                     for solver in SOLVERS_TO_TRY:
                         # Atoms with Constant arguments.
                         const_args = [Constant(arg) for arg in args]
-                        problem = Problem(objective_type(
-                            atom(*const_args)[row, col]))
-                        if reduction is not None:
-                            problem = reduction(problem)
-                        tests.append((run_atom,
+                        problem = Problem(objective_type(atom(*const_args)[row, col]))
+                        yield (run_atom,
                                atom,
                                problem,
                                obj_val[row, col].value,
-                               solver))
+                               solver)
                         # Atoms with Variable arguments.
                         variables = []
                         constraints = []
@@ -336,32 +341,21 @@ def run_atom_helper(reduction=None):
                             constraints.append(variables[-1] == expr)
                         objective = objective_type(atom(*variables)[row, col])
                         problem = Problem(objective, constraints)
-                        if reduction is not None:
-                            problem = reduction(problem)
-                        tests.append((run_atom,
+                        problem, inv_data = reduction(problem)
+                        yield (run_atom,
                                atom,
                                problem,
                                obj_val[row, col].value,
-                               solver))
+                               solver)
                         # Atoms with Parameter arguments.
                         parameters = []
                         for expr in args:
                             parameters.append(Parameter(*intf.shape(expr)))
                             parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
                         objective = objective_type(atom(*parameters)[row, col])
-                        tests.append((run_atom,
+                        yield (run_atom,
                                atom,
                                Problem(objective),
                                obj_val[row, col].value,
-                               solver))
-    return tests
+                               solver)
 
-
-def test_dcp2cone_atom():
-    def reduction(problem):
-        d2c = Dcp2Cone()
-        assert d2c.accepts(problem)
-        return d2c.apply(problem)
-        assert ConeMatrixStuffing().accepts(reduced_problem)
-        return ConeMatrixStuffing().apply(reduced_problem)
-    yield run_atom_helper(reduction=reduction)

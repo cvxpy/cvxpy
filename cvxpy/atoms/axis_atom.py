@@ -82,9 +82,11 @@ class AxisAtom(Atom):
                     d = self._column_grad(value).T
                     if d is None:
                         return [None]
+                    else:
+                        d = d.flatten()
                     row = np.linspace(i*n, i*n+m-1, m)  # [i*n, i*n+1, ..., i*n+m-1]
                     col = np.ones((m))*i
-                    D = D + sp.csc_matrix((np.array(d)[0], (row, col)),
+                    D = D + sp.csc_matrix((d, (row, col)),
                                           shape=(m*n, n))  # d must be 1-D
             else:  # function apply to each row
                 values = np.transpose(values[0])

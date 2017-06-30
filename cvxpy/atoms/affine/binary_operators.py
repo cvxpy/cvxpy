@@ -57,6 +57,14 @@ class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
 
+    def numeric(self, values):
+        """Matrix multiplication.
+        """
+        if self.args[0].is_scalar() or self.args[1].is_scalar():
+            return values[0] * values[1]
+        else:
+            return values[0].dot(values[1])
+
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
@@ -95,11 +103,15 @@ class MulExpression(BinaryOperator):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # Promote the right hand side to a diagonal matrix if necessary.
-        if shape[1] != 1 and arg_objs[1].shape == (1, 1):
+        # Promote the right hand side to a matrix if necessary.
+        if shape[0] != 1 and shape[1] != 1 and arg_objs[1].shape == (1, 1):
+            # promote to full matrix
+            arg_objs[1] = lu.promote(arg_objs[1], shape)
+        elif shape[1] != 1 and arg_objs[1].shape == (1, 1):
+            # promote to diagonal matrix
             arg = lu.promote(arg_objs[1], (shape[1], 1))
             arg_objs[1] = lu.diag_vec(arg)
-        return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
+        return lu.mul_expr(arg_objs[0], arg_objs[1], shape), []
 
 
 class RMulExpression(MulExpression):

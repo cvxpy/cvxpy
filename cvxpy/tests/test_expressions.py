@@ -60,10 +60,10 @@ class TestExpressions(BaseTest):
         x = Variable(2, name='x')
         y = Variable()
         self.assertEqual(x.name(), 'x')
-        self.assertEqual(x.size, (2, 1))
-        self.assertEqual(y.size, (1, 1))
+        self.assertEqual(x.shape, (2, 1))
+        self.assertEqual(y.shape, (1, 1))
         self.assertEqual(x.curvature, s.AFFINE)
-        self.assertEqual(x.canonical_form[0].size, (2, 1))
+        self.assertEqual(x.canonical_form[0].shape, (2, 1))
         self.assertEqual(x.canonical_form[1], [])
 
         self.assertEqual(repr(self.x), "Variable(2, 1)")
@@ -127,14 +127,14 @@ class TestExpressions(BaseTest):
     def test_transpose_variable(self):
         var = self.a.T
         self.assertEqual(var.name(), "a")
-        self.assertEqual(var.size, (1, 1))
+        self.assertEqual(var.shape, (1, 1))
 
         self.a.save_value(2)
         self.assertEqual(var.value, 2)
 
         var = self.x.T
         self.assertEqual(var.name(), "x.T")
-        self.assertEqual(var.size, (1, 2))
+        self.assertEqual(var.shape, (1, 2))
 
         self.x.save_value(np.matrix([1, 2]).T)
         self.assertEqual(var.value[0, 0], 1)
@@ -142,34 +142,34 @@ class TestExpressions(BaseTest):
 
         var = self.C.T
         self.assertEqual(var.name(), "C.T")
-        self.assertEqual(var.size, (2, 3))
+        self.assertEqual(var.shape, (2, 3))
 
         # coeffs = var.canonical_form[0].coefficients()
         # mat = coeffs.values()[0][0]
-        # self.assertEqual(mat.size, (2,6))
+        # self.assertEqual(mat.shape, (2,6))
         # self.assertEqual(mat[1,3], 1)
 
         index = var[1, 0]
         self.assertEqual(index.name(), "C.T[1, 0]")
-        self.assertEqual(index.size, (1, 1))
+        self.assertEqual(index.shape, (1, 1))
 
         var = self.x.T.T
         self.assertEqual(var.name(), "x.T.T")
-        self.assertEqual(var.size, (2, 1))
+        self.assertEqual(var.shape, (2, 1))
 
     # Test the Constant class.
     def test_constants(self):
-        c = Constant(2)
-        self.assertEqual(c.name(), str(2))
+        c = Constant(2.0)
+        self.assertEqual(c.name(), str(2.0))
 
         c = Constant(2)
         self.assertEqual(c.value, 2)
-        self.assertEqual(c.size, (1, 1))
+        self.assertEqual(c.shape, (1, 1))
         self.assertEqual(c.curvature, s.CONSTANT)
         self.assertEqual(c.sign, s.POSITIVE)
         self.assertEqual(Constant(-2).sign, s.NEGATIVE)
         self.assertEqual(Constant(0).sign, s.ZERO)
-        self.assertEqual(c.canonical_form[0].size, (1, 1))
+        self.assertEqual(c.canonical_form[0].shape, (1, 1))
         self.assertEqual(c.canonical_form[1], [])
 
         # coeffs = c.coefficients()
@@ -178,7 +178,7 @@ class TestExpressions(BaseTest):
 
         # Test the sign.
         c = Constant([[2], [2]])
-        self.assertEqual(c.size, (1, 2))
+        self.assertEqual(c.shape, (1, 2))
         self.assertEqual(c.sign, s.POSITIVE)
         self.assertEqual((-c).sign, s.NEGATIVE)
         self.assertEqual((0*c).sign, s.ZERO)
@@ -206,13 +206,13 @@ class TestExpressions(BaseTest):
         p = Parameter(2)
         p.value = [1, 1]
         self.assertEqual((c*p).value, 3)
-        self.assertEqual((c*self.x).size, (1, 1))
+        self.assertEqual((c*self.x).shape, (1, 1))
 
     # Test the Parameter class.
     def test_parameters(self):
         p = Parameter(name='p')
         self.assertEqual(p.name(), "p")
-        self.assertEqual(p.size, (1, 1))
+        self.assertEqual(p.shape, (1, 1))
 
         p = Parameter(4, 3, sign="positive")
         with self.assertRaises(Exception) as cm:
@@ -264,10 +264,10 @@ class TestExpressions(BaseTest):
         exp = self.x + c
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
-        self.assertEqual(exp.canonical_form[0].size, (2, 1))
+        self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " + " + c.name())
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
 
         z = Variable(2, name='z')
         exp = exp + z + self.x
@@ -279,7 +279,7 @@ class TestExpressions(BaseTest):
         # Matrices
         exp = self.A + self.B
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (2, 2))
+        self.assertEqual(exp.shape, (2, 2))
 
         with self.assertRaises(Exception) as cm:
             (self.A + self.C)
@@ -303,10 +303,10 @@ class TestExpressions(BaseTest):
         exp = self.x - c
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
-        self.assertEqual(exp.canonical_form[0].size, (2, 1))
+        self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " - " + Constant([2,2]).name())
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
 
         z = Variable(2, name='z')
         exp = exp - z - self.x
@@ -318,7 +318,7 @@ class TestExpressions(BaseTest):
         # Matrices
         exp = self.A - self.B
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (2, 2))
+        self.assertEqual(exp.shape, (2, 2))
 
         with self.assertRaises(Exception) as cm:
             (self.A - self.C)
@@ -334,10 +334,10 @@ class TestExpressions(BaseTest):
         exp = c*self.x
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual((c[0]*self.x).sign, s.UNKNOWN)
-        self.assertEqual(exp.canonical_form[0].size, (1, 1))
+        self.assertEqual(exp.canonical_form[0].shape, (1, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         with self.assertRaises(Exception) as cm:
             ([2, 2, 3]*self.x)
@@ -365,7 +365,7 @@ class TestExpressions(BaseTest):
         T = Constant([[1, 2, 3], [3, 5, 5]])
         exp = (T + T) * self.B
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (3, 2))
+        self.assertEqual(exp.shape, (3, 2))
 
         # Expression that would break sign multiplication without promotion.
         c = Constant([[2], [2], [-2]])
@@ -389,10 +389,10 @@ class TestExpressions(BaseTest):
             exp = c.__matmul__(self.x)
             self.assertEqual(exp.curvature, s.AFFINE)
             self.assertEqual(exp.sign, s.UNKNOWN)
-            self.assertEqual(exp.canonical_form[0].size, (1, 1))
+            self.assertEqual(exp.canonical_form[0].shape, (1, 1))
             self.assertEqual(exp.canonical_form[1], [])
             # self.assertEqual(exp.name(), c.name() + " .__matmul__( " + self.x.name())
-            self.assertEqual(exp.size, (1, 1))
+            self.assertEqual(exp.shape, (1, 1))
 
             with self.assertRaises(Exception) as cm:
                 self.x.__matmul__(2)
@@ -424,7 +424,7 @@ class TestExpressions(BaseTest):
             T = Constant([[1, 2, 3], [3, 5, 5]])
             exp = (T + T) .__matmul__(self.B)
             self.assertEqual(exp.curvature, s.AFFINE)
-            self.assertEqual(exp.size, (3, 2))
+            self.assertEqual(exp.shape, (3, 2))
 
             # Expression that would break sign multiplication without promotion.
             c = Constant([[2], [2], [-2]])
@@ -439,10 +439,10 @@ class TestExpressions(BaseTest):
         exp = self.x/2
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
-        self.assertEqual(exp.canonical_form[0].size, (2, 1))
+        self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
 
         with self.assertRaises(Exception) as cm:
             (self.x/[2, 2, 3])
@@ -453,7 +453,7 @@ class TestExpressions(BaseTest):
         c = Constant(2)
         exp = c/(3 - 5)
         self.assertEqual(exp.curvature, s.CONSTANT)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
         self.assertEqual(exp.sign, s.NEGATIVE)
 
         # Parameters.
@@ -479,15 +479,15 @@ class TestExpressions(BaseTest):
         assert exp.is_affine()
         self.assertEqual(exp.sign, s.UNKNOWN)
         assert not exp.is_positive()
-        self.assertEqual(exp.canonical_form[0].size, (2, 1))
+        self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), "-%s" % self.x.name())
-        self.assertEqual(exp.size, self.x.size)
+        self.assertEqual(exp.shape, self.x.shape)
 
         # Matrices
         exp = -self.C
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (3, 2))
+        self.assertEqual(exp.shape, (3, 2))
 
     # Test promotion of scalar constants.
     def test_scalar_const_promotion(self):
@@ -497,23 +497,23 @@ class TestExpressions(BaseTest):
         assert exp.is_affine()
         self.assertEqual(exp.sign, s.UNKNOWN)
         assert not exp.is_negative()
-        self.assertEqual(exp.canonical_form[0].size, (2, 1))
+        self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
 
-        self.assertEqual((4 - self.x).size, (2, 1))
-        self.assertEqual((4 * self.x).size, (2, 1))
-        self.assertEqual((4 <= self.x).size, (2, 1))
-        self.assertEqual((4 == self.x).size, (2, 1))
-        self.assertEqual((self.x >= 4).size, (2, 1))
+        self.assertEqual((4 - self.x).shape, (2, 1))
+        self.assertEqual((4 * self.x).shape, (2, 1))
+        self.assertEqual((4 <= self.x).shape, (2, 1))
+        self.assertEqual((4 == self.x).shape, (2, 1))
+        self.assertEqual((self.x >= 4).shape, (2, 1))
 
         # Matrices
         exp = (self.A + 2) + 4
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual((3 * self.A).size, (2, 2))
+        self.assertEqual((3 * self.A).shape, (2, 2))
 
-        self.assertEqual(exp.size, (2, 2))
+        self.assertEqual(exp.shape, (2, 2))
 
     # Test indexing expression.
     def test_index_expression(self):
@@ -522,7 +522,7 @@ class TestExpressions(BaseTest):
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         assert exp.is_affine()
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
         # coeff = exp.canonical_form[0].coefficients()[self.x][0]
         # self.assertEqual(coeff[0,1], 1)
         self.assertEqual(exp.value, None)
@@ -530,7 +530,7 @@ class TestExpressions(BaseTest):
         exp = self.x[1, 0].T
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         with self.assertRaises(Exception) as cm:
             (self.x[2, 0])
@@ -539,19 +539,19 @@ class TestExpressions(BaseTest):
         # Slicing
         exp = self.C[0:2, 1]
         # self.assertEqual(exp.name(), "C[0:2,1]")
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
         exp = self.C[0:, 0:2]
         # self.assertEqual(exp.name(), "C[0:,0:2]")
-        self.assertEqual(exp.size, (3, 2))
+        self.assertEqual(exp.shape, (3, 2))
         exp = self.C[0::2, 0::2]
         # self.assertEqual(exp.name(), "C[0::2,0::2]")
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
         exp = self.C[:3, :1:2]
         # self.assertEqual(exp.name(), "C[0:3,0]")
-        self.assertEqual(exp.size, (3, 1))
+        self.assertEqual(exp.shape, (3, 1))
         exp = self.C[0:, 0]
         # self.assertEqual(exp.name(), "C[0:,0]")
-        self.assertEqual(exp.size, (3, 1))
+        self.assertEqual(exp.shape, (3, 1))
 
         c = Constant([[1, -2], [0, 4]])
         exp = c[1, 1]
@@ -559,58 +559,58 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.UNKNOWN)
         self.assertEqual(c[0, 1].sign, s.UNKNOWN)
         self.assertEqual(c[1, 0].sign, s.UNKNOWN)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
         self.assertEqual(exp.value, 4)
 
         c = Constant([[1, -2, 3], [0, 4, 5], [7, 8, 9]])
         exp = c[0:3, 0:4:2]
         self.assertEqual(exp.curvature, s.CONSTANT)
         assert exp.is_constant()
-        self.assertEqual(exp.size, (3, 2))
+        self.assertEqual(exp.shape, (3, 2))
         self.assertEqual(exp[0, 1].value, 7)
 
         # Slice of transpose
         exp = self.C.T[0:2, 1]
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
 
         # Arithmetic expression indexing
         exp = (self.x + self.z)[1, 0]
         # self.assertEqual(exp.name(), "x[1,0] + z[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         exp = (self.x + self.a)[1, 0]
         # self.assertEqual(exp.name(), "x[1,0] + a")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         exp = (self.x - self.z)[1, 0]
         # self.assertEqual(exp.name(), "x[1,0] - z[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         exp = (self.x - self.a)[1, 0]
         # self.assertEqual(exp.name(), "x[1,0] - a")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         exp = (-self.x)[1, 0]
         # self.assertEqual(exp.name(), "-x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         c = Constant([[1, 2], [3, 4]])
         exp = (c*self.x)[1, 0]
         # self.assertEqual(exp.name(), "[[2], [4]] * x[0:,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
         c = Constant([[1, 2], [3, 4]])
         exp = (c*self.a)[1, 0]
         # self.assertEqual(exp.name(), "2 * a")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
 
     def test_neg_indices(self):
         """Test negative indices.
@@ -618,39 +618,39 @@ class TestExpressions(BaseTest):
         c = Constant([[1, 2], [3, 4]])
         exp = c[-1, -1]
         self.assertEqual(exp.value, 4)
-        self.assertEqual(exp.size, (1, 1))
+        self.assertEqual(exp.shape, (1, 1))
         self.assertEqual(exp.curvature, s.CONSTANT)
 
         c = Constant([1, 2, 3, 4])
         exp = c[1:-1]
         self.assertItemsAlmostEqual(exp.value, [2, 3])
-        self.assertEqual(exp.size, (2, 1))
+        self.assertEqual(exp.shape, (2, 1))
         self.assertEqual(exp.curvature, s.CONSTANT)
 
         c = Constant([1, 2, 3, 4])
         exp = c[::-1]
         self.assertItemsAlmostEqual(exp.value, [4, 3, 2, 1])
-        self.assertEqual(exp.size, (4, 1))
+        self.assertEqual(exp.shape, (4, 1))
         self.assertEqual(exp.curvature, s.CONSTANT)
 
         x = Variable(4)
         Problem(Minimize(0), [x[::-1] == c]).solve()
         self.assertItemsAlmostEqual(x.value, [4, 3, 2, 1])
-        self.assertEqual(x[::-1].size, (4, 1))
+        self.assertEqual(x[::-1].shape, (4, 1))
 
         x = Variable(2)
-        self.assertEqual(x[::-1].size, (2, 1))
+        self.assertEqual(x[::-1].shape, (2, 1))
 
         x = Variable(100, name="x")
         self.assertEqual("x[:-1, 0]", str(x[:-1]))
 
         c = Constant([[1, 2], [3, 4]])
         expr = c[0, 2:0:-1]
-        self.assertEqual(expr.size, (1, 1))
+        self.assertEqual(expr.shape, (1, 1))
         self.assertAlmostEqual(expr.value, 3)
 
         expr = c[0, 2::-1]
-        self.assertEqual(expr.size, (1, 2))
+        self.assertEqual(expr.shape, (1, 2))
         self.assertItemsAlmostEqual(expr.value, [3, 1])
 
     def test_logical_indices(self):
@@ -661,37 +661,37 @@ class TestExpressions(BaseTest):
 
         # Boolean array.
         expr = C[A <= 2]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[A <= 2], expr.value)
 
         expr = C[A % 2 == 0]
-        self.assertEqual(expr.size, (6, 1))
+        self.assertEqual(expr.shape, (6, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[A % 2 == 0], expr.value)
 
         # Boolean array for rows, index for columns.
         expr = C[np.array([True, False, True]), 3]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([True, False, True]), 3], expr.value)
 
         # Index for row, boolean array for columns.
         expr = C[1, np.array([True, False, False, True])]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1, np.array([True, False, False, True])],
                                     expr.value)
 
         # Boolean array for rows, slice for columns.
         expr = C[np.array([True, True, True]), 1:3]
-        self.assertEqual(expr.size, (3, 2))
+        self.assertEqual(expr.shape, (3, 2))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([True, True, True]), 1:3], expr.value)
 
         # Slice for row, boolean array for columns.
         expr = C[1:-1, np.array([True, False, True, True])]
-        self.assertEqual(expr.size, (1, 3))
+        self.assertEqual(expr.shape, (1, 3))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1:-1, np.array([True, False, True, True])],
                                     expr.value)
@@ -700,7 +700,7 @@ class TestExpressions(BaseTest):
         # Not sure what this does.
         expr = C[np.array([True, True, True]),
                  np.array([True, False, True, True])]
-        self.assertEqual(expr.size, (3, 1))
+        self.assertEqual(expr.shape, (3, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([True, True, True]),
                                       np.array([True, False, True, True])], expr.value)
@@ -713,49 +713,49 @@ class TestExpressions(BaseTest):
 
         # List for rows.
         expr = C[[1, 2]]
-        self.assertEqual(expr.size, (2, 4))
+        self.assertEqual(expr.shape, (2, 4))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[1, 2]], expr.value)
 
         # List for rows, index for columns.
         expr = C[[0, 2], 3]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[0, 2], 3], expr.value)
 
         # Index for row, list for columns.
         expr = C[1, [0, 2]]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1, [0, 2]], expr.value)
 
         # List for rows, slice for columns.
         expr = C[[0, 2], 1:3]
-        self.assertEqual(expr.size, (2, 2))
+        self.assertEqual(expr.shape, (2, 2))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[0, 2], 1:3], expr.value)
 
         # Slice for row, list for columns.
         expr = C[1:-1, [0, 2]]
-        self.assertEqual(expr.size, (1, 2))
+        self.assertEqual(expr.shape, (1, 2))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[1:-1, [0, 2]], expr.value)
 
         # Lists for rows and columns.
         expr = C[[0, 1], [1, 3]]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[[0, 1], [1, 3]], expr.value)
 
         # Ndarray for rows, list for columns.
         expr = C[np.array([0, 1]), [1, 3]]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([0, 1]), [1, 3]], expr.value)
 
         # Ndarrays for rows and columns.
         expr = C[np.array([0, 1]), np.array([1, 3])]
-        self.assertEqual(expr.size, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
         self.assertEqual(expr.sign, s.POSITIVE)
         self.assertItemsAlmostEqual(A[np.array([0, 1]), np.array([1, 3])], expr.value)
 
@@ -783,19 +783,19 @@ class TestExpressions(BaseTest):
         """
         x = Variable(3, 4, name="x")
         y = x.copy()
-        self.assertEqual(y.size, (3, 4))
+        self.assertEqual(y.shape, (3, 4))
         self.assertEqual(y.name(), "x")
 
         x = Semidef(5, name="x")
         y = x.copy()
-        self.assertEqual(y.size, (5, 5))
+        self.assertEqual(y.shape, (5, 5))
 
     def test_param_copy(self):
         """Test the copy function for Parameters.
         """
         x = Parameter(3, 4, name="x", sign="positive")
         y = x.copy()
-        self.assertEqual(y.size, (3, 4))
+        self.assertEqual(y.shape, (3, 4))
         self.assertEqual(y.name(), "x")
         self.assertEqual(y.sign, "POSITIVE")
 
@@ -804,7 +804,7 @@ class TestExpressions(BaseTest):
         """
         x = Constant(2)
         y = x.copy()
-        self.assertEqual(y.size, (1, 1))
+        self.assertEqual(y.shape, (1, 1))
         self.assertEqual(y.value, 2)
 
     def test_is_pwl(self):

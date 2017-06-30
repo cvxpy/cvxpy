@@ -32,12 +32,6 @@ class NonPos(u.Canonical, Constraint):
         self.dual_variable = cvxtypes.variable()(*expr.shape)
         super(NonPos, self).__init__([expr])
 
-    @property
-    def id(self):
-        """Wrapper for compatibility with variables.
-        """
-        return self.constr_id
-
     def name(self):
         return "%s <= 0" % self.args[0]
 
@@ -144,7 +138,7 @@ class NonPos(u.Canonical, Constraint):
         -------
         Expression
         """
-        return cvxtypes.neg()(self.args[0])
+        return cvxtypes.pos()(self.args[0])
 
     @property
     def violation(self):

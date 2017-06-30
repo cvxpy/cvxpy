@@ -42,7 +42,7 @@ class BoolConstr(Constraint):
             self.noncvx_var = lin_op
         else:
             self.noncvx_var = lu.create_var(self.lin_op.shape)
-        super(BoolConstr, self).__init__()
+        super(BoolConstr, self).__init__([lin_op])
 
     def __str__(self):
         return "BoolConstr(%s)" % self.lin_op

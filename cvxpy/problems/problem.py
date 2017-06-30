@@ -76,7 +76,7 @@ class Problem(u.Canonical):
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
-        self._shape_metrics = SizeMetrics(self)
+        self._size_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
 
@@ -169,10 +169,10 @@ class Problem(u.Canonical):
         return list(const_dict.values())
 
     @property
-    def shape_metrics(self):
-        """Returns an object containing information about the shape of the problem.
+    def size_metrics(self):
+        """Returns an object containing information about the size of the problem.
         """
-        return self._shape_metrics
+        return self._size_metrics
 
     @property
     def solver_stats(self):

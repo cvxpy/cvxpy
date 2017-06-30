@@ -63,7 +63,7 @@ class max_entries(AxisAtom):
         # Grad: 1 for a largest index.
         value = np.matrix(value).A.ravel(order='F')
         idx = np.argmax(value)
-        D = np.zeros((value.shape, 1))
+        D = np.zeros((value.size, 1))
         D[idx] = 1
         return D
 

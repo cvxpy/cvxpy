@@ -54,10 +54,10 @@ def mul(lin_op, val_dict, is_abs=False):
                 return val_dict[lin_op.data]
         # Defaults to zero if no value given.
         else:
-            return np.mat(np.zeros(lin_op.size))
+            return np.mat(np.zeros(lin_op.shape))
     # Return all zeros for NO_OP.
     elif lin_op.type is lo.NO_OP:
-        return np.mat(np.zeros(lin_op.size))
+        return np.mat(np.zeros(lin_op.shape))
     else:
         eval_args = []
         for arg in lin_op.args:
@@ -169,7 +169,7 @@ def op_mul(lin_op, args):
     elif lin_op.type is lo.CONV:
         result = conv_mul(lin_op, args[0])
     elif lin_op.type is lo.PROMOTE:
-        result = np.ones(lin_op.size)*args[0]
+        result = np.ones(lin_op.shape)*args[0]
     elif lin_op.type is lo.DIAG_VEC:
         val = intf.from_2D_to_1D(args[0])
         result = np.diag(val)
@@ -242,15 +242,15 @@ def op_tmul(lin_op, value):
         divisor = mul(lin_op.data, {})
         result = value/divisor
     elif lin_op.type is lo.SUM_ENTRIES:
-        result = np.mat(np.ones(lin_op.args[0].size))*value
+        result = np.mat(np.ones(lin_op.args[0].shape))*value
     elif lin_op.type is lo.INDEX:
         row_slc, col_slc = lin_op.data
-        result = np.mat(np.zeros(lin_op.args[0].size))
+        result = np.mat(np.zeros(lin_op.args[0].shape))
         result[row_slc, col_slc] = value
     elif lin_op.type is lo.TRANSPOSE:
         result = value.T
     elif lin_op.type is lo.PROMOTE:
-        result = np.ones(lin_op.size[0]).dot(value)
+        result = np.ones(lin_op.shape[0]).dot(value)
     elif lin_op.type is lo.DIAG_VEC:
         # The return type in numpy versions < 1.10 was ndarray.
         result = np.diag(value)
@@ -388,8 +388,8 @@ def prune_constants(constraints):
         is_constant = prune_expr(expr)
         # Replace a constant root with a NO_OP.
         if is_constant:
-            expr = lo.LinOp(lo.NO_OP, expr.size, [], None)
-        pruned = constr_type(expr, constr.constr_id, constr.size)
+            expr = lo.LinOp(lo.NO_OP, expr.shape, [], None)
+        pruned = constr_type(expr, constr.constr_id, constr.shape)
         pruned_constraints.append(pruned)
     return pruned_constraints
 

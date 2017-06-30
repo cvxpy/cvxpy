@@ -23,12 +23,13 @@ from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
 import cvxpy.utilities.performance_utils as pu
-from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
+import numpy as np
 import math
 
 
-class ExpCone(u.Canonical, Constraint):
+class ExpCone(u.Canonical, NonlinearConstraint):
     """A reformulated exponential cone constraint.
 
     Operates elementwise on x, y, z.
@@ -52,9 +53,12 @@ class ExpCone(u.Canonical, Constraint):
         self.y = y
         self.z = z
         self.shape = (int(self.x.shape[0]), int(self.x.shape[1]))
-        super(ExpCone, self).__init__([self.x, self.y, self.z])
+        super(ExpCone, self).__init__(self._solver_hook, [self.x, self.y, self.z])
 
     def __str__(self):
+        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
+
+    def __repr__(self):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
     def format(self, eq_constr, leq_constr, dims, solver):
@@ -80,7 +84,7 @@ class ExpCone(u.Canonical, Constraint):
         else:
             raise SolverError("Solver does not support exponential cone.")
         # Update dims.
-        dims[s.EXP_DIM] += self.shape[0]*self.shape[1]
+        dims[s.EXP_DIM] += self.num_cones()
 
     @property
     def size(self):
@@ -92,7 +96,7 @@ class ExpCone(u.Canonical, Constraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.args[0].shape[0]*self.args[0].shape[1]
+        return np.prod(self.args[0].shape)
 
     def cone_sizes(self):
         """The dimensions of the exponential cones.
@@ -102,16 +106,22 @@ class ExpCone(u.Canonical, Constraint):
         list
             A list of the sizes of the elementwise cones.
         """
-        return [3]*self.args[0].size
+        return [3]*self.num_cones()
 
     def is_dcp(self):
         """Is the constraint DCP?
         """
         return all([arg.is_affine() for arg in self.args])
 
-    # TODO hack
     def canonicalize(self):
-        return None
+        """Canonicalizes by converting expressions to LinOps.
+        """
+        arg_objs = []
+        arg_constr = []
+        for arg in self.args:
+            arg_objs.append(arg.canonical_form[0])
+            arg_constr + arg.canonical_form[1]
+        return 0, [ExpCone(*arg_objs)] + arg_constr
 
     @pu.lazyprop
     def __ECOS_format(self):
@@ -177,7 +187,7 @@ class ExpCone(u.Canonical, Constraint):
         if scaling is None:
             return f, Df
         # Compute the Hessian.
-        big_H = cvxopt.spmatrix(0, [], [], shape=(3*entries, 3*entries))
+        big_H = cvxopt.spmatrix(0, [], [], size=(3*entries, 3*entries))
         for i in range(entries):
             H = cvxopt.matrix([
                     [0.0, 0.0, 0.0],

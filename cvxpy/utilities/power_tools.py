@@ -21,17 +21,28 @@ from fractions import Fraction
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variables.variable import Variable
+import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict
 import numbers
 
 
 def gm(t, x, y):
+    # HACK until we get rid of old canonicalization.
     length = t.shape[0]*t.shape[1]
-    return SOC(t=reshape(x+y, (length, 1)),
-               X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
-               axis=0)
+    if isinstance(t, Expression):
+        return SOC(t=reshape(x+y, (length, 1)),
+                X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
+                axis=0)
+    else:
+        two = lu.create_const(2, (1, 1))
+        return SOC(t=lu.reshape(lu.sum_expr([x, y]), (length, 1)),
+                X=lu.vstack([lu.reshape(lu.sub_expr(x, y), (1, length)),
+                             lu.reshape(lu.mul_expr(two, t, t.shape), (1, length))],
+                            (2, length)),
+                axis=0)
 
 
 def gm_constrs(t, x_list, p):
@@ -64,7 +75,11 @@ def gm_constrs(t, x_list, p):
     w = dyad_completion(p)
 
     tree = decompose(w)
-    d = defaultdict(lambda: Variable(*t.shape))
+    # HACK until old canonicalization removed.
+    if isinstance(t, Expression):
+        d = defaultdict(lambda: Variable(*t.shape))
+    else:
+        d = defaultdict(lambda: lu.create_var(t.shape))
     d[w] = t
 
     if len(x_list) < len(w):

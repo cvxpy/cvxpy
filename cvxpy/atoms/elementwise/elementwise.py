@@ -52,7 +52,7 @@ class Elementwise(Atom):
             A SciPy CSC sparse matrix.
         """
         if not np.isscalar(value):
-            value = value.A.ravel(order='F')
+            value = value.ravel(order='F')
         return sp.dia_matrix((value, [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod

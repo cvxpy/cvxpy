@@ -242,7 +242,7 @@ class pnorm(AxisAtom):
         else:
             nominator = np.power(value, self.p - 1)
             frac = np.divide(nominator, denominator)
-            return np.reshape(frac.A, (frac.shape, 1))
+            return np.reshape(frac.A, (frac.size, 1))
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

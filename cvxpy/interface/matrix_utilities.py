@@ -75,7 +75,7 @@ def sparse2cvxopt(value):
     elif sp.issparse(value):
         value = value.tocoo()
         return cvxopt.spmatrix(value.data.tolist(), value.row.tolist(),
-                               value.col.tolist(), shape=value.shape, tc='d')
+                               value.col.tolist(), size=value.shape, tc='d')
 
 
 def dense2cvxopt(value):
@@ -153,7 +153,7 @@ def is_scalar(constant):
 def from_2D_to_1D(constant):
     """Convert 2D Numpy matrices or arrays to 1D.
     """
-    if isinstance(constant, np.ndarray):
+    if isinstance(constant, np.ndarray) and constant.ndim == 2:
         return np.asarray(constant)[:, 0]
     else:
         return constant

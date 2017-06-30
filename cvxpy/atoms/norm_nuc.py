@@ -52,7 +52,7 @@ class normNuc(Atom):
         # Grad UV^T
         U, _, V = np.linalg.svd(values[0])
         D = U.dot(V)
-        return [sp.csc_matrix(D.A.ravel(order='F')).T]
+        return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.

@@ -35,11 +35,11 @@ PY35 = sys.version_info >= (3, 5)
 class TestMatrices(unittest.TestCase):
     """ Unit tests for testing different forms of matrices as constants. """
 
-    def assertExpression(self, expr, size):
-        """Asserts that expr is an Expression with dimension size.
+    def assertExpression(self, expr, shape):
+        """Asserts that expr is an Expression with dimension shape.
         """
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)
-        self.assertEqual(expr.size, size)
+        self.assertEqual(expr.shape, shape)
 
     def setUp(self):
         self.a = Variable(name='a')

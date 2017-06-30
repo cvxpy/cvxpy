@@ -99,10 +99,10 @@ class index(AffAtom):
         if select_mat.ndim == 2:
             final_shape = select_mat.shape
         else:  # Always cast 1d arrays as column vectors.
-            final_shape = (select_mat.shape, 1)
-        select_vec = np.reshape(select_mat, select_mat.shape, order='F')
+            final_shape = (select_mat.size, 1)
+        select_vec = np.reshape(select_mat, select_mat.size, order='F')
         # Select the chosen entries from expr.
-        identity = sp.eye(expr.shape[0]*expr.shape[1]).tocsc()
+        identity = sp.eye(expr.size).tocsc()
         return reshape(identity[select_vec]*vec(expr), final_shape)
 
     @staticmethod

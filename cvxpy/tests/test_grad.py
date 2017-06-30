@@ -300,7 +300,7 @@ class TestGrad(BaseTest):
 
         self.A.value = [[1, 2], [3, 4]]
         lin_expr = linearize(expr)
-        manual = expr.value + 2*reshape(diag(vec(self.A)).value*vec(self.A - self.A.value), 2, 2)
+        manual = expr.value + 2*reshape(diag(vec(self.A)).value*vec(self.A - self.A.value), (2, 2))
         self.assertItemsAlmostEqual(lin_expr.value, expr.value)
         self.A.value = [[-5, -5], [8.2, 4.4]]
         assert (lin_expr.value <= expr.value).all()
@@ -520,7 +520,7 @@ class TestGrad(BaseTest):
         expr = kl_div(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3.5, 2.3]]
-        div = (self.A.value/self.B.value).A.ravel(order='F')
+        div = (self.A.value/self.B.value).ravel(order='F')
         val = np.zeros((4, 4)) + np.diag(np.log(div))
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
         val = np.zeros((4, 4)) + np.diag(1 - div)
@@ -566,7 +566,7 @@ class TestGrad(BaseTest):
         expr = max_elemwise(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3, 2.3]]
-        div = (self.A.value/self.B.value).A.ravel(order='F')
+        div = (self.A.value/self.B.value).ravel(order='F')
         val = np.zeros((4, 4)) + np.diag([0, 1, 1, 1])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
         val = np.zeros((4, 4)) + np.diag([1, 0, 0, 0])
@@ -612,7 +612,7 @@ class TestGrad(BaseTest):
         expr = min_elemwise(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3, 2.3]]
-        div = (self.A.value/self.B.value).A.ravel(order='F')
+        div = (self.A.value/self.B.value).ravel(order='F')
         val = np.zeros((4, 4)) + np.diag([1, 0, 1, 0])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
         val = np.zeros((4, 4)) + np.diag([0, 1, 0, 1])

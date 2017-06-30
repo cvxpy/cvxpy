@@ -39,7 +39,7 @@ class NonlinearConstraint(Constraint):
         cols = self.vars_[0].shape[1]
         rows = sum(var.shape[0] for var in self.vars_)
         self.x_shape = (rows*cols, 1)
-        super(NonlinearConstraint, self).__init__()
+        super(NonlinearConstraint, self).__init__(self.vars_)
 
     def variables(self):
         """Returns the variables involved in the function
@@ -73,7 +73,7 @@ class NonlinearConstraint(Constraint):
         """
         m, x0 = self.f()
         offset = 0
-        for var in self.variables():
+        for var in self.args:
             var_shape = var.shape[0]*var.shape[1]
             var_x0 = x0[offset:offset+var_shape]
             self.block_add(big_x, var_x0, var_offsets[var.data],
@@ -84,19 +84,19 @@ class NonlinearConstraint(Constraint):
         """Place Df in the gradient of all functions.
         """
         horiz_offset = 0
-        for var in self.variables():
+        for var in self.args:
             var_shape = var.shape[0]*var.shape[1]
             var_Df = Df[:, horiz_offset:horiz_offset+var_shape]
             self.block_add(big_Df, var_Df,
                            vert_offset, var_offsets[var.data],
-                           self.shape[0]*self.shape[1], var_shape)
+                           self.num_cones(), var_shape)
             horiz_offset += var_shape
 
     def place_H(self, big_H, H, var_offsets):
         """Place H in the Hessian of all functions.
         """
         offset = 0
-        for var in self.variables():
+        for var in self.args:
             var_shape = var.shape[0]*var.shape[1]
             var_H = H[offset:offset+var_shape, offset:offset+var_shape]
             self.block_add(big_H, var_H,
@@ -110,7 +110,7 @@ class NonlinearConstraint(Constraint):
         import cvxopt
         local_x = cvxopt.matrix(0., self.x_shape)
         offset = 0
-        for var in self.variables():
+        for var in self.args:
             var_shape = var.shape[0]*var.shape[1]
             value = x[var_offsets[var.data]:var_offsets[var.data]+var_shape]
             self.block_add(local_x, value, offset, 0, var_shape, 1)

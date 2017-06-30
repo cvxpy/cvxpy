@@ -73,12 +73,12 @@ class Canonicalization(Reduction):
         elif isinstance(expr, Constant):
             return expr, []
         elif isinstance(expr, Constraint):
-            return type(expr)(*args), []
+            return expr.copy(args), []
         elif expr.is_atom_convex() and expr.is_atom_concave():
             if isinstance(expr, AddExpression):
                 expr = type(expr)(args)
             else:
-                expr = type(expr)(*args)
+                expr = expr.copy(args)
             return expr, []
         else:
             return self.canon_methods[type(expr)](expr, args)

@@ -21,8 +21,6 @@ import cvxpy as cvx
 import numpy.random as r
 import numpy as np
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-from cvxpy.settings import ECOS
-from cvxpy.tests.test_constant_atoms import atoms, run_atom, test_atom
 
 
 n = 5
