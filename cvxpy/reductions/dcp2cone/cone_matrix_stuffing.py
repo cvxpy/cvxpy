@@ -19,13 +19,15 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
 
-from cvxpy.atoms import reshape
 from cvxpy.expressions.variables import Variable
-from cvxpy.problems.objective import Minimize
-from cvxpy.problems.problem import Problem
-from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.problems.objective import Minimize
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.attributes import is_affine
+from cvxpy.constraints.attributes import (is_cone_constraint, is_ecos_constraint,
+                                          are_arguments_affine)
+from cvxpy.problems.objective_attributes import is_cone_objective
 
 
 class ConeMatrixStuffing(MatrixStuffing):
@@ -41,47 +43,26 @@ class ConeMatrixStuffing(MatrixStuffing):
                cone_constrK(A_i*x + b_i, ...)
     """
 
-    def accepts(self, problem):
-        return (
-            problem.is_dcp() and
-            problem.objective.args[0].is_affine() and
-            all([arg.is_affine() for c in problem.constraints for arg in c.args])
-        )
+    preconditions = {
+        (Minimize, is_affine, True),
+        (Constraint, is_cone_constraint, True),
+        (Constraint, are_arguments_affine, True)
+    }
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution."""
-        objective = problem.objective
-        constraints = problem.constraints
+    @staticmethod
+    def postconditions(problem_type):
+        post = set(cond for cond in problem_type if cond[1] == is_ecos_constraint)
+        post = post.union(ConeMatrixStuffing.preconditions)
+        return post.union({(Minimize, is_cone_objective, True)})
 
-        inverse_data = InverseData(problem)
-        N = inverse_data.x_length
-
+    def stuffed_objective(self, problem, inverse_data):
         extractor = CoeffExtractor(inverse_data)
+        # Extract to c.T * x, store r
+        C, R = extractor.get_coeffs(problem.objective.expr)
 
-        # Extract the coefficients
-        C, R = extractor.get_coeffs(objective.args[0])
         c = np.asarray(C.todense()).flatten()
-        r = R[0]
-        x = Variable(N)
-        if type(objective) == Minimize:
-            new_obj = c.T*x + r
-        else:
-            new_obj = (-c).T*x + -r
-        # Form the constraints
-        new_cons = []
-        for con in constraints:
-            arg_list = []
-            for arg in con.args:
-                A, b = extractor.get_coeffs(arg)
-                arg_list.append(reshape(A*x + b, arg.shape))
-            new_cons.append(type(con)(*arg_list))
-            inverse_data.cons_id_map[con.id] = new_cons[-1].id
+        x = Variable(inverse_data.x_length)
+        new_obj = c.T * x + 0
 
-        # Map of old constraint id to new constraint id.
-        inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = Problem(Minimize(new_obj), new_cons)
-        return new_prob, inverse_data
-
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data."""
-        return super(ConeMatrixStuffing, self).invert(solution, inverse_data)
+        inverse_data.r = R[0]
+        return new_obj, x

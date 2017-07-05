@@ -18,8 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.abs_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.affine_prod_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.geo_mean_canon import *
@@ -32,15 +30,15 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_sum_exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log1p_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.logistic_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.matrix_frac_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.max_elemwise_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.max_entries_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.normNuc_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.pnorm_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.sum_largest_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon, affine_prod_canon,
+	 max_elemwise_canon, max_entries_canon, pnorm_canon, sum_largest_canon)
+
+# TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
 		affine_prod : affine_prod_canon,
 		geo_mean : geo_mean_canon,

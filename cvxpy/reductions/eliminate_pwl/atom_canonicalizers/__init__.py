@@ -17,20 +17,21 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from numpy import eye, ones
 
-from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.expressions.variables import Variable
+from cvxpy.atoms import *
+from abs_canon import *
+from affine_prod_canon import *
+from max_elemwise_canon import *
+from max_entries_canon import *
+from pnorm_canon import *
+from sum_largest_canon import *
 
 
-def power_canon(expr, args):
-    affine_expr = args[0]
-    p = expr.p
-    if p == 0:
-        return ones(affine_expr.shape), []
-    elif p == 1:
-        return affine_expr, []
-    elif p == 2:
-        t = Variable(*affine_expr.shape)
-        return SymbolicQuadForm(t, eye(t.size), expr), [affine_expr == t]
-    raise ValueError("quadratic form can only have power 2")
+CANON_METHODS = {
+    abs : abs_canon,
+    affine_prod : affine_prod,
+    max_elemwise : max_elemwise_canon,
+    max_entries : max_entries_canon,
+    pnorm : pnorm_canon,
+    sum_largest : sum_largest_canon
+}

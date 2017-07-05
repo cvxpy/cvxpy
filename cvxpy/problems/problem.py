@@ -168,6 +168,12 @@ class Problem(u.Canonical):
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 
+    def atoms(self):
+        atoms = self.objective.atoms()
+        for constr in self.constraints:
+            atoms += constr.atoms()
+        return list(set(atoms))
+
     @property
     def size_metrics(self):
         """Returns an object containing information about the size of the problem.

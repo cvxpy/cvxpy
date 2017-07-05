@@ -17,20 +17,22 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from numpy import eye, ones
-
-from cvxpy.atoms.quad_form import SymbolicQuadForm
+from cvxpy.atoms.quad_form import SymbolicQuadForm, QuadForm
 from cvxpy.expressions.variables import Variable
 
 
-def power_canon(expr, args):
-    affine_expr = args[0]
-    p = expr.p
-    if p == 0:
-        return ones(affine_expr.shape), []
-    elif p == 1:
-        return affine_expr, []
-    elif p == 2:
-        t = Variable(*affine_expr.shape)
-        return SymbolicQuadForm(t, eye(t.size), expr), [affine_expr == t]
-    raise ValueError("quadratic form can only have power 2")
+def replace_quad_forms(expr, quad_forms):
+    for idx, arg in enumerate(expr.args):
+        if isinstance(arg, SymbolicQuadForm) or isinstance(arg, QuadForm):
+            quad_forms = replace_quad_form(expr, idx, quad_forms)
+        else:
+            quad_forms = replace_quad_forms(arg, quad_forms)
+    return quad_forms
+
+
+def replace_quad_form(expr, idx, quad_forms):
+    quad_form = expr.args[idx]
+    placeholder = Variable(*quad_form.shape)
+    expr.args[idx] = placeholder
+    quad_forms[placeholder.id] = (expr, idx, quad_form)
+    return quad_forms

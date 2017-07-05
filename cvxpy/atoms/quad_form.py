@@ -122,6 +122,9 @@ class SymbolicQuadForm(Atom):
         super(SymbolicQuadForm, self).__init__(x, P)
         self.P = self.args[1]
 
+    def get_data(self):
+        return [self.original_expression]
+
     def _grad(self, values):
         return NotImplemented
 

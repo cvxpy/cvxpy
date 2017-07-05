@@ -306,3 +306,6 @@ class Atom(Expression):
             result = numeric_func(self, values)
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
+
+    def atoms(self):
+        return [self]

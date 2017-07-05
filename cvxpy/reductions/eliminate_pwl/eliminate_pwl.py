@@ -17,20 +17,23 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from numpy import eye, ones
+from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.problems.attributes import has_pwl_atoms
+from cvxpy.problems.problem import Problem
+from .atom_canonicalizers import CANON_METHODS as elim_pwl_methods
 
-from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.expressions.variables import Variable
 
+class EliminatePwl(Canonicalization):
 
-def power_canon(expr, args):
-    affine_expr = args[0]
-    p = expr.p
-    if p == 0:
-        return ones(affine_expr.shape), []
-    elif p == 1:
-        return affine_expr, []
-    elif p == 2:
-        t = Variable(*affine_expr.shape)
-        return SymbolicQuadForm(t, eye(t.size), expr), [affine_expr == t]
-    raise ValueError("quadratic form can only have power 2")
+    preconditions = {
+        (Problem, has_pwl_atoms, True)
+    }
+
+    @staticmethod
+    def postconditions(problem_type):
+        return {(Problem, has_pwl_atoms, False)}
+
+    def apply(self, problem):
+        if not self.accepts(problem):
+            raise ValueError("Cannot canonicalize pwl atoms away")
+        return Canonicalization(elim_pwl_methods).apply(problem)
