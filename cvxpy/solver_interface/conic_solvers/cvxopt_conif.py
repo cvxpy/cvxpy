@@ -20,9 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
-from cvxpy.reductions.solution import Solution
 from .conic_solver import ConicSolver
-import numpy as np
 
 
 class CVXOPT(ConicSolver):

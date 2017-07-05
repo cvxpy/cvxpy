@@ -29,7 +29,10 @@ from numpy import linalg as LA
 import cvxpy as cvx
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.qp2quad_form.replace_quad_forms import ReplaceQuadForms
+from cvxpy.utilities.replace_quad_forms import replace_quad_forms
+from cvxpy.lin_ops.lin_op import LinOp, NO_OP
+from cvxpy.problems.problem import Problem
+from cvxpy.problems.objective import Minimize
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
@@ -40,17 +43,7 @@ class CoeffExtractor(object):
         self.N = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
 
-    # Given a quadratic expression expr of shape m*n, extracts
-    # the coefficients. Returns (Ps, Q, R) such that the (i, j)
-    # entry of expr is given by
-    #   x.T*Ps[k]*x + Q[k, :]*x + R[k],
-    # where k
-    # V= i + j*m. x is the vectorized variables indexed
-    # by id_map.
-    #
-    # Ps: array of SciPy sparse matrices
-    # Q: SciPy sparse matrix
-    # R: NumPy array
+    # TODO: remove this and following functions, except for affine() and quad_form() and affiliates
     def get_coeffs(self, expr):
         if expr.is_constant():
             return self.constant(expr)
@@ -196,8 +189,9 @@ class CoeffExtractor(object):
         Ps = [P.tocsr() for P in Ps]
         return Ps, Q.tocsr(), R
 
-    def extract_quadratic_coeffs(self, affine_problem, quad_forms):
+    def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         # Extract affine data.
+        affine_problem = Problem(Minimize(affine_expr), [])
         affine_inverse_data = InverseData(affine_problem)
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes
@@ -241,13 +235,16 @@ class CoeffExtractor(object):
                     coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
         return coeffs, b
 
-    def quad_form(self, problem):
+    def quad_form(self, expr):
         """ Extract quadratic, linear and constant part of a quadratic objective """
+        # Insert no-op such that root is never a quadratic form, for easier processing
+        root = LinOp(NO_OP, expr.shape, [expr], [])
+
         # Replace quadratic forms with dummy variables.
-        affine_problem, quad_forms = ReplaceQuadForms().apply(problem)
+        quad_forms = replace_quad_forms(root, {})
 
         # Calculate affine parts and combine them with quadratic forms to get the coefficients.
-        coeffs, constant = self.extract_quadratic_coeffs(affine_problem, quad_forms)
+        coeffs, constant = self.extract_quadratic_coeffs(root.args[0], quad_forms)
 
         # Sort variables corresponding to their starting indices, in ascending order.
         offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
@@ -267,4 +264,6 @@ class CoeffExtractor(object):
 
         if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
             raise RuntimeError("Resulting quadratic form does not have appropriate dimensions")
-        return P.tocsr(), q, constant
+        if constant.size != 1:
+            raise RuntimeError("Constant must be a scalar")
+        return P.tocsr(), q, constant[0]

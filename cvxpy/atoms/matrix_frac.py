@@ -24,9 +24,17 @@ from cvxpy.constraints.semidefinite import SDP
 from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
+from cvxpy.atoms.quad_form import QuadForm
 
 
-class matrix_frac(Atom):
+def matrix_frac(X, P):
+    if isinstance(P, np.ndarray):
+        return QuadForm(X, LA.inv(P))
+    else:
+        return MatrixFrac(X, P)
+
+
+class MatrixFrac(Atom):
     """ tr X.T*P^-1*X """
 
     def __init__(self, X, P):

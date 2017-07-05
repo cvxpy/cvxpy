@@ -103,6 +103,10 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    @property
+    def expr(self):
+        return self
+
     # Curvature properties.
 
     @property
@@ -299,6 +303,15 @@ class Expression(u.Canonical):
                self.shape[1] != self.shape[0] and \
                isinstance(self, cvxtypes.constant()) and self.is_1D_array:
                 self = self.T
+            # Handle promotion of right hand side.
+            if other.is_scalar() and self.shape[1] != 1:
+                lh_arg = cvxtypes.reshape()(self, (self.size, 1))
+                prod = cvxtypes.mul_expr()(lh_arg, other)
+                return cvxtypes.reshape()(prod, self.shape)
+            elif self.is_scalar() and other.shape[0] != 1:
+                rh_arg = cvxtypes.reshape()(other, (other.size, 1))
+                prod = cvxtypes.mul_expr()(self, rh_arg)
+                return cvxtypes.reshape()(prod, other.shape)
             return cvxtypes.mul_expr()(self, other)
         elif other.is_constant():
             # Having the constant on the left is more efficient.

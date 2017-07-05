@@ -25,7 +25,6 @@ from cvxpy.atoms import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.solver_interface.reduction_solver import ReductionSolver
 from cvxpy.reductions.solution import Solution
-import numpy as np
 
 
 class ConicSolver(ReductionSolver):

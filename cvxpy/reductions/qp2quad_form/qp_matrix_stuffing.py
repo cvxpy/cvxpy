@@ -18,67 +18,44 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy
-from cvxpy.atoms import QuadForm, reshape
-from cvxpy.problems.problem import Problem
-from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.atoms import QuadForm
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
-from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.problems.objective import Minimize
+from cvxpy.expressions.attributes import is_quadratic
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.constraints.attributes import is_qp_constraint, are_arguments_affine
+from cvxpy.problems.objective_attributes import is_qp_objective
+from cvxpy.problems.problem import Problem
+from cvxpy.reductions import InverseData
 
 
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
     """
 
-    def accepts(self, prob):
-        import cvxpy.expressions.variables as var
-        allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
+    preconditions = {
+        (Minimize, is_quadratic, True),
+        (Constraint, are_arguments_affine, True),
+        (Constraint, is_qp_constraint, True)
+    }
 
-        return (
-            prob.is_dcp() and
-            prob.objective.args[0].is_quadratic() and
-            all([arg.is_affine() for c in prob.constraints for arg in c.args]) and
-            all([type(v) in allowedVariables for v in prob.variables()]) and
-            all([not v.domain for v in prob.variables()])  # no implicit variable domains
-            # (TODO: domains are not implemented yet)
-        )
+    @staticmethod
+    def postconditions(problem_type):
+        return QpMatrixStuffing.preconditions.union({(Minimize, is_qp_objective, True)})
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution."""
-        qp, inverse_data_stack = Qp2SymbolicQp().apply(problem)
-
-        if not self.accepts(qp):
-            raise ValueError("This QP can not be stuffed")
-
-        inverse_data = InverseData(qp)
-        extractor = CoeffExtractor(inverse_data)
-
-        # extract to x.T * P * x + q.T * x + r
-        (P, q, r) = extractor.quad_form(qp)
+    def stuffed_objective(self, problem, inverse_data):
+        # We need to copy the problem, because we are changing atoms in the expression tree
+        problem_copy = Problem(Minimize(problem.objective.expr.tree_copy()),
+                               [con.tree_copy() for con in problem.constraints])
+        inverse_data_of_copy = InverseData(problem_copy)
+        extractor = CoeffExtractor(inverse_data_of_copy)
+        # extract to x.T * P * x + q.T * x, store r
+        P, q, r = extractor.quad_form(problem_copy.objective.expr)
 
         # concatenate all variables in one vector
         x = cvxpy.Variable(inverse_data.x_length)
-        new_obj = QuadForm(x, P) + q.T*x + r
+        new_obj = QuadForm(x, P) + q.T*x
 
-        constraints = qp.constraints
-        new_cons = []
-        for constraint in constraints:
-            assert len(constraint.args) == 1
-            A, b = extractor.affine(constraint.expr)
-            arg = reshape(A*x+b, constraint.args[0].shape)
-            new_con = type(constraint)(arg)
-            new_cons += [new_con]
-            inverse_data.cons_id_map[constraint.id] = new_con.id
-
-        inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = Problem(cvxpy.Minimize(new_obj), new_cons)
-        inverse_data_stack.append(inverse_data)
-        return new_prob, inverse_data_stack
-
-    def invert(self, solution, inverse_data_stack):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        inv = inverse_data_stack.pop()
-        solution = super(QpMatrixStuffing, self).invert(solution, inv)
-        return Qp2SymbolicQp().invert(solution, inverse_data_stack)
+        inverse_data.r = r
+        return new_obj, x

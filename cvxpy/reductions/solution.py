@@ -34,3 +34,10 @@ class Solution(object):
         self.primal_vars = primal_vars
         self.dual_vars = dual_vars
         self.attr = attr
+
+    def copy(self):
+        return Solution(self.status,
+                        self.opt_val,
+                        self.primal_vars,
+                        self.dual_vars,
+                        self.attr)

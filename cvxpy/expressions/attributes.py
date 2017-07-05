@@ -17,20 +17,29 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from numpy import eye, ones
-
-from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.expressions.variables import Variable
+import inspect
+import sys
 
 
-def power_canon(expr, args):
-    affine_expr = args[0]
-    p = expr.p
-    if p == 0:
-        return ones(affine_expr.shape), []
-    elif p == 1:
-        return affine_expr, []
-    elif p == 2:
-        t = Variable(*affine_expr.shape)
-        return SymbolicQuadForm(t, eye(t.size), expr), [affine_expr == t]
-    raise ValueError("quadratic form can only have power 2")
+def attributes():
+    """Return all attributes, i.e. all functions in this module except this function"""
+    this_module_name = __name__
+    return [obj for name, obj in inspect.getmembers(sys.modules[this_module_name])
+            if (inspect.isfunction(obj) and
+            name != 'attributes')]
+
+
+def is_affine(item):
+    return item.expr.is_affine()
+
+
+def is_quadratic(item):
+    return item.expr.is_quadratic()
+
+
+def is_qpwa(item):
+    return item.expr.is_qpwa()
+
+
+def is_pwl(item):
+    return item.expr.is_pwl()
