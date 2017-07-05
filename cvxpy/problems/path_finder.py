@@ -17,14 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.reductions import REDUCTIONS as reductions
+from cvxpy.reductions.utilities import REDUCTIONS
 from cvxpy.problems.problem_type import ProblemType
 
 
 class PathFinder(object):
 
     def __init__(self):
-        self.reductions = set(reductions)
+        self.reductions = set(REDUCTIONS)
 
     def reduction_path(self, current_type, current_path):
         """A reduction path is like a stack: the first element (0) is the end of the reduction
