@@ -21,6 +21,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.affine.vec import vec
 
 
 def norm(x, p=2, axis=None):
@@ -47,7 +48,7 @@ def norm(x, p=2, axis=None):
     elif p == "nuc":
         return normNuc(x)
     elif p == "fro":
-        return pnorm(x, 2, axis)
+        return pnorm(vec(x), 2)
     elif p == 2:
         if axis is None and x.is_matrix():
             return sigma_max(x)
