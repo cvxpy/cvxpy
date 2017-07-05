@@ -38,7 +38,7 @@ class MatrixFrac(Atom):
     """ tr X.T*P^-1*X """
 
     def __init__(self, X, P):
-        super(matrix_frac, self).__init__(X, P)
+        super(MatrixFrac, self).__init__(X, P)
 
     @Atom.numpy_numeric
     def numeric(self, values):

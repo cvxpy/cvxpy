@@ -35,8 +35,9 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon, affine_prod_canon,
-	 max_elemwise_canon, max_entries_canon, pnorm_canon, sum_largest_canon)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon,
+    affine_prod_canon, max_elemwise_canon, max_entries_canon, pnorm_canon,
+    sum_largest_canon)
 
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
@@ -45,7 +46,7 @@ CANON_METHODS = {
 		lambda_max : lambda_max_canon,
 		log_det : log_det_canon,
 		log_sum_exp : log_sum_exp_canon,
-		matrix_frac : matrix_frac_canon,
+		MatrixFrac : matrix_frac_canon,
 		max_entries : max_entries_canon,
 		normNuc : normNuc_canon,
 		pnorm : pnorm_canon,

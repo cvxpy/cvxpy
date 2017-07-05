@@ -27,6 +27,7 @@ from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.matrix_frac import matrix_frac
+from cvxpy.atoms.matrix_frac import MatrixFrac
 from cvxpy.atoms.max_entries import max_entries
 from cvxpy.atoms.min_entries import min_entries
 from cvxpy.atoms.norm import norm
