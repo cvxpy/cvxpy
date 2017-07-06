@@ -17,14 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.affine.promote import promote
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.variables.variable import Variable
 
 
 def kl_div_canon(expr, args):
-    x = args[0]
-    y = args[1]
     shape = expr.shape
+    x = promote(args[0], shape)
+    y = promote(args[1], shape)
     t = Variable(*shape)
     constraints = [ExpCone(t, x, y), y >= 0]
     obj = y - x - t

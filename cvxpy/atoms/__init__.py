@@ -53,6 +53,7 @@ from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.kron import kron
 from cvxpy.atoms.affine.mul_elemwise import mul_elemwise
+from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum_entries import sum_entries
 from cvxpy.atoms.affine.trace import trace
