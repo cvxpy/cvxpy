@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.cumsum_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.geo_mean_canon import *
@@ -42,6 +43,7 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon,
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
 		affine_prod : affine_prod_canon,
+		cumsum : cumsum_canon,
 		geo_mean : geo_mean_canon,
 		lambda_max : lambda_max_canon,
 		log_det : log_det_canon,

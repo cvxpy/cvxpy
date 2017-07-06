@@ -29,7 +29,6 @@ class NonPos(u.Canonical, Constraint):
     TOLERANCE = 1e-8
 
     def __init__(self, expr):
-        self.dual_variable = cvxtypes.variable()(*expr.shape)
         super(NonPos, self).__init__([expr])
 
     def name(self):
@@ -153,7 +152,7 @@ class NonPos(u.Canonical, Constraint):
     # The value of the dual variable.
     @property
     def dual_value(self):
-        return self.dual_variable.value
+        return self.dual_variables[0].value
 
     def save_value(self, value):
         """Save the value of the dual variable for the constraint's parent.
@@ -161,4 +160,4 @@ class NonPos(u.Canonical, Constraint):
         Args:
             value: The value of the dual variable.
         """
-        self.dual_variable.save_value(value)
+        self.dual_variables[0].save_value(value)

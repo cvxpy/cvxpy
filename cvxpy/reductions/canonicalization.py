@@ -62,21 +62,7 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if isinstance(expr, Minimize):
-            return Minimize(*args), []
-        elif isinstance(expr, Maximize):
-            return Maximize(*args), []
-        elif isinstance(expr, Variable):
-            return expr, []
-        elif isinstance(expr, Constant):
-            return expr, []
-        elif isinstance(expr, Constraint):
-            return expr.copy(args), []
-        elif expr.is_atom_convex() and expr.is_atom_concave():
-            if isinstance(expr, AddExpression):
-                expr = type(expr)(args)
-            else:
-                expr = expr.copy(args)
-            return expr, []
-        else:
+        if type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
+        else:
+            return expr.copy(args), []

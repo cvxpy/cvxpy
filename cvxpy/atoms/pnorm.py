@@ -146,9 +146,9 @@ class pnorm(AxisAtom):
 
     def validate_arguments(self):
         super(pnorm, self).validate_arguments()
-        if self.axis is not None and self.p != 2:
+        if self.axis is not None and self.p not in [1, 2]:
             raise ValueError(
-                "The axis parameter is only supported for p=2.")
+                "The axis parameter is only supported for p=1,2.")
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -356,7 +356,7 @@ class pnorm(AxisAtom):
             x = absx
 
         if p == 1:
-            return lu.sum_entries(x), constraints
+            return lu.sum_entries(x, axis=axis), constraints
 
         # now, we take care of the remaining convex and concave branches
         # to create the rational powers, we need a new variable, r, and

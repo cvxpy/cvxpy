@@ -34,7 +34,7 @@ class max_entries(AxisAtom):
     def numeric(self, values):
         """Returns the largest entry in x.
         """
-        return values[0].max(axis=self.axis)
+        return values[0].max(axis=self.axis, keepdims=True)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

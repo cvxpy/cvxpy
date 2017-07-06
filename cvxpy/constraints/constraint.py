@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.expressions import cvxtypes
 import abc
 
 
@@ -45,6 +46,7 @@ class Constraint(object):
             self.constr_id = lu.get_id()
         else:
             self.constr_id = constr_id
+        self.dual_variables = [cvxtypes.variable()(*arg.shape) for arg in args]
         super(Constraint, self).__init__()
 
     @property
@@ -52,3 +54,11 @@ class Constraint(object):
         """Wrapper for compatibility with variables.
         """
         return self.constr_id
+
+    def save_value(self, value):
+        """Save the value of the dual variable for the constraint's parent.
+
+        Args:
+            value: The value of the dual variable.
+        """
+        pass

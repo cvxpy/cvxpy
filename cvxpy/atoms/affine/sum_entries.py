@@ -39,7 +39,7 @@ class sum_entries(AxisAtom, AffAtom):
     def numeric(self, values):
         """Sums the entries of value.
         """
-        return np.sum(values[0], axis=self.axis)
+        return np.sum(values[0], axis=self.axis, keepdims=True)
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
