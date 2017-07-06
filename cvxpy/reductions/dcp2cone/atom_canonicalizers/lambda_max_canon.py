@@ -28,6 +28,5 @@ def lambda_max_canon(expr, args):
     shape = expr.shape
     t = Variable(*shape)
     # SDP constraint: I*t - A
-    # TODO(akshayka): Is there a more efficient way to represent I*t - A?
     expr = Constant(np.eye(A.shape[0])) * t - A
     return t, [PSD(expr)]
