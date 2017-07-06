@@ -27,7 +27,8 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.atoms import QuadForm, sum_squares
 from cvxpy.problems.problem_type import ProblemType
-from cvxpy.reductions import QpMatrixStuffing, ECOS, FlipObjective, ConeMatrixStuffing, Dcp2Cone
+from cvxpy.reductions.utilities import (QpMatrixStuffing, ECOS, FlipObjective,
+                                        ConeMatrixStuffing, Dcp2Cone)
 
 
 class TestPathFinder(BaseTest):
