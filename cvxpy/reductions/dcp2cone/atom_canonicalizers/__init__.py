@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
+from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.cumsum_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
@@ -33,6 +34,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.logistic_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.matrix_frac_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.normNuc_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.semidef_upper_tri_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 
@@ -53,6 +55,7 @@ CANON_METHODS = {
 		normNuc : normNuc_canon,
 		pnorm : pnorm_canon,
 		quad_over_lin : quad_over_lin_canon,
+        SemidefUpperTri : semidef_upper_tri_canon,
 		sigma_max : sigma_max_canon,
 		sum_largest : sum_largest_canon,
 		abs : abs_canon,

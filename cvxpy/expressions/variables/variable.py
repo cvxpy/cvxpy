@@ -29,10 +29,13 @@ class Variable(Leaf):
     # rows - variable height.
     # cols - variable width.
 
-    def __init__(self, rows=1, cols=1, name=None):
+    def __init__(self, rows=1, cols=1, name=None, var_id=None):
         self._rows = rows
         self._cols = cols
-        self.id = lu.get_id()
+        if var_id is None:
+            self.id = lu.get_id()
+        else:
+            self.id = var_id
         if name is None:
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         else:

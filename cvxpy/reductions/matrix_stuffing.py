@@ -44,7 +44,7 @@ class MatrixStuffing(Reduction):
             for arg in con.args:
                 A, b = extractor.get_coeffs(arg)
                 arg_list.append(reshape(A*new_var + b, arg.shape))
-            new_cons.append(type(con)(*arg_list))
+            new_cons.append(con.copy(arg_list))
             inverse_data.cons_id_map[con.id] = new_cons[-1].id
 
         # Map of old constraint id to new constraint id.

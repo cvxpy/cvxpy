@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.constants import Constant
@@ -39,11 +41,11 @@ def pnorm_canon(expr, args):
     if p == 2:
         if axis is None:
             assert shape == (1, 1)
-            return t, [SOC(t, x)]
+            return t, [SOC(t, vec(x))]
         else:
-            return t, [SOC(reshape(t, (shape[0] * shape[1], 1)), x, axis)]
+            return t, [SOC(vec(t), x, axis)]
     if p == np.inf:
-        promoted_t = Constant(np.ones(x.shape)) * t
+        promoted_t = promote(t, x.shape)
         return t, [x <= promoted_t, x + promoted_t >= 0]
 
     # we need an absolute value constraint for the symmetric convex branches
@@ -58,7 +60,7 @@ def pnorm_canon(expr, args):
         constraints += abs_constraints
 
     if p == 1:
-        return sum_entries(x), constraints
+        return sum_entries(x, axis=axis), constraints
 
     # now, we take care of the remaining convex and concave branches
     # to create the rational powers, we need a new variable, r, and

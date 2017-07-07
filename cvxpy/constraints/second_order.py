@@ -43,6 +43,15 @@ class SOC(u.Canonical, Constraint):
     def __str__(self):
         return "SOC(%s, %s)" % (self.args[0], self.args[1])
 
+    def get_data(self):
+        """Returns info needed to reconstruct the object besides the args.
+
+        Returns
+        -------
+        list
+        """
+        return [self.axis]
+
     def format(self, eq_constr, leq_constr, dims, solver):
         """Formats SOC constraints as inequalities for the solver.
 
@@ -70,6 +79,7 @@ class SOC(u.Canonical, Constraint):
         tuple
             (equality constraints, inequality constraints)
         """
+        print "format", self.axis
         return ([], format_axis(self.args[0], self.args[1], self.axis))
 
     def num_cones(self):

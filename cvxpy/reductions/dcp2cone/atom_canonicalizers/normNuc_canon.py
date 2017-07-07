@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.constraints.psd import PSD
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variables import Symmetric
 
 
 def normNuc_canon(expr, args):
@@ -30,7 +30,7 @@ def normNuc_canon(expr, args):
     #   minimize (trace(U) + trace(V))/2
     #   subject to:
     #            [U A; A.T V] is positive semidefinite
-    X = Variable(m+n, m+n)
+    X = Symmetric(m+n)
     constraints = []
 
     # Fix X using the fact that A must be affine by the DCP rules.

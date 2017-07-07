@@ -61,4 +61,4 @@ def tv(value, *args):
             ]
         length = diffs[0].shape[0]*diffs[1].shape[1]
         stacked = vstack(*[reshape(diff, (1, length)) for diff in diffs])
-        return sum_entries(norm(stacked, p='fro', axis=0))
+        return sum_entries(norm(stacked, p=2, axis=0))

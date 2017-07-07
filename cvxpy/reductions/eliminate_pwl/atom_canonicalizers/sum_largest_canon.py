@@ -29,8 +29,8 @@ def sum_largest_canon(expr, args):
     # min sum_entries(t) + kq
     # s.t. x <= t + q
     #      0 <= t
-    t = Variable(*shape)
-    q = Variable(1)
+    t = Variable(*x.shape)
+    q = Variable()
     obj = sum_entries(t) + k*q
     constraints = [x <= t + q, t >= 0]
     return obj, constraints

@@ -17,16 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables.variable import Variable
-import numpy as np
+import scipy.sparse as sp
 
 
 def lambda_max_canon(expr, args):
     A = args[0]
-    shape = expr.shape
-    t = Variable(*shape)
+    t = Variable()
     # SDP constraint: I*t - A
-    expr = Constant(np.eye(A.shape[0])) * t - A
-    return t, [PSD(expr)]
+    constr = [Constant(sp.eye(A.shape[0])) * t >> A]
+    return t, constr

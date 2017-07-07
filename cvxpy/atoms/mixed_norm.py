@@ -23,7 +23,7 @@ from cvxpy.atoms.affine.hstack import hstack
 
 
 def mixed_norm(X, p=2, q=1):
-    """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert )^q/p)^{1/q}`.
+    """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert^p )^q/p)^{1/q}`.
 
     Parameters
     ----------
@@ -44,4 +44,4 @@ def mixed_norm(X, p=2, q=1):
     # inner norms
     vecnorms = norm(X, p, axis=1)
     # outer norm
-    return norm(vecnorms.T, q)
+    return norm(vecnorms, q)

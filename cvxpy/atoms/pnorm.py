@@ -110,12 +110,12 @@ class pnorm(AxisAtom):
         else:
             raise ValueError('Invalid p: {}'.format(p))
 
-        super(pnorm, self).__init__(x, axis=axis)
-
         if self.p == np.inf:
             self.approx_error = 0
         else:
             self.approx_error = float(abs(self.p - p_old))
+
+        super(pnorm, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -133,16 +133,7 @@ class pnorm(AxisAtom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        retval = np.linalg.norm(values, float(self.p), axis=self.axis)
-
-        # NOTE: workaround for NumPy <=1.9 and no keepdims for norm()
-        if self.axis is not None:
-            if self.axis == 0:
-                retval = np.reshape(retval, (1, self.args[0].shape[1]))
-            else:  # self.axis == 1:
-                retval = np.reshape(retval, (self.args[0].shape[0], 1))
-
-        return retval
+        return np.linalg.norm(values, float(self.p), axis=self.axis, keepdims=True)
 
     def validate_arguments(self):
         super(pnorm, self).validate_arguments()
