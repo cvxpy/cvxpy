@@ -686,7 +686,7 @@ class TestGrad(BaseTest):
             # Optimize over a.
             fix_prob = Problem(obj, [self.x + self.a >= [5, 8], self.x == 0])
             fix_prob.solve()
-            dual_val = fix_prob.constraints[0].dual_variable.value
+            dual_val = fix_prob.constraints[0].dual_variables[0].value
             expr = cvxpy.partial_optimize(prob, opt_vars=[self.a])
             self.x.value = [0, 0]
             grad = expr.grad

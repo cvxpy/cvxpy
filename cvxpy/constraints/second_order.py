@@ -79,7 +79,6 @@ class SOC(u.Canonical, Constraint):
         tuple
             (equality constraints, inequality constraints)
         """
-        print "format", self.axis
         return ([], format_axis(self.args[0], self.args[1], self.axis))
 
     def num_cones(self):

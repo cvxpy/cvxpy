@@ -880,7 +880,7 @@ class TestAtoms(BaseTest):
         g = cvxpy.partial_optimize(p2, [y], [x])
         x.value = xval
         y.value = 42
-        constr[0].dual_variable.value = 42
+        constr[0].dual_variables[0].value = 42
         result = g.value
         self.assertAlmostEqual(result, p1.value)
         self.assertAlmostEqual(y.value, 42)
@@ -891,7 +891,7 @@ class TestAtoms(BaseTest):
         g = cvxpy.partial_optimize(p2, [], [x, y])
         x.value = xval
         y.value = 42
-        p2.constraints[0].dual_variable.value = 42
+        p2.constraints[0].dual_variables[0].value = 42
         result = g.value
         self.assertAlmostEqual(result, y.value)
         self.assertAlmostEqual(y.value, 42)

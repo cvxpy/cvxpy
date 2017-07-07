@@ -347,7 +347,7 @@ class pnorm(AxisAtom):
             x = absx
 
         if p == 1:
-            return lu.sum_entries(x, axis=axis), constraints
+            return lu.sum_entries(x), constraints
 
         # now, we take care of the remaining convex and concave branches
         # to create the rational powers, we need a new variable, r, and
