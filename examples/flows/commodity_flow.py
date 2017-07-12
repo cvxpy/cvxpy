@@ -16,6 +16,10 @@ class MultiEdge(Edge):
         self.in_flow = Variable(COMMODITIES)
         self.out_flow = Variable(COMMODITIES)
 
+    def connect(self, in_node, out_node):
+        in_node.edge_flows.append(self.in_flow)
+        out_node.edge_flows.append(self.out_flow)
+
     # Returns the edge's internal constraints.
     def constraints(self):
         return [self.in_flow + self.out_flow == 0,
