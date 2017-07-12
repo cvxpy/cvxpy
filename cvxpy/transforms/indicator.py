@@ -18,6 +18,7 @@ from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+
 class indicator(Expression):
     """The indicator I(constraints) = 0 if constraints hold, +\infty otherwise.
     """
@@ -76,8 +77,7 @@ class indicator(Expression):
         Returns:
             A numpy matrix or a scalar.
         """
-        total_violation = sum([cons.violation for cons in self.args])
-        if total_violation <= self.err_tol:
+        if all([cons.value for cons in self.args]):
             return 0
         else:
             return np.infty

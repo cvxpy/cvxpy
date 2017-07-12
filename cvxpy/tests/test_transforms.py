@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
 from cvxpy.expressions.constants import Parameter
+import cvxpy.transforms.scalarize as scalarize
 import cvxpy.utilities as u
 import numpy as np
 import unittest
@@ -38,6 +39,47 @@ class TestTransforms(BaseTest):
         self.A = Variable(2, 2, name='A')
         self.B = Variable(2, 2, name='B')
         self.C = Variable(3, 2, name='C')
+
+    def test_scalarize(self):
+        """Test scalarize functions.
+        """
+        min_objs = [cvxpy.Minimize(self.x[0]**2), cvxpy.Minimize(self.x[1] + 3)]
+        mixed_objs = [cvxpy.Minimize(self.x[0]**2), cvxpy.Maximize(self.x[1] + 3)]
+
+        single_obj = scalarize.weighted_sum(min_objs, [2, 1])
+        result = Problem(single_obj, [self.x == 2]).solve()
+        self.assertAlmostEqual(13, result)
+
+        single_obj = scalarize.weighted_sum(mixed_objs, [2, -1])
+        result = Problem(single_obj, [self.x == 2]).solve()
+        self.assertAlmostEqual(3, result)
+
+        single_obj = scalarize.max(min_objs, [2, 1])
+        result = Problem(single_obj, [self.x == 2]).solve()
+        self.assertAlmostEqual(8, result)
+
+        single_obj = scalarize.log_sum_exp(mixed_objs, [2, -4], gamma=1)
+        result = Problem(single_obj, [self.x[0] == -2, self.x[1] == -5]).solve()
+        self.assertAlmostEqual(8 + np.log(2), result)
+
+        single_obj = scalarize.targets_and_priorities(min_objs, [2, 1], [5, 3], off_target=1e-9)
+        result = Problem(single_obj, [self.x == 2]).solve()
+        self.assertAlmostEqual(2, result)
+
+        single_obj = scalarize.targets_and_priorities(min_objs, [2, 1], [0, 3], limits=[4, 2], off_target=1e-9)
+        result = Problem(single_obj, [self.x[0] == self.x[1]]).solve()
+        self.assertItemsAlmostEqual([-1, -1], self.x.value)
+        self.assertAlmostEqual(2, result)
+
+        single_obj = scalarize.targets_and_priorities(mixed_objs, [2, -1], [1, 10], off_target=0)
+        result = Problem(single_obj, [self.x == 2]).solve()
+        self.assertAlmostEqual(1, result)
+
+        single_obj = scalarize.targets_and_priorities(min_objs, [-2, -1], [0, 3], limits=[4, 2], off_target=0)
+        result = Problem(single_obj, [self.x[0] == self.x[1]]).solve()
+        self.assertItemsAlmostEqual([-1, -1], self.x.value)
+        self.assertAlmostEqual(-2, result)
+
 
     def test_indicator(self):
         """Test indicator transform.
