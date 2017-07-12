@@ -30,13 +30,3 @@ class Bool(Variable):
         """String to recreate the object.
         """
         return "Bool(%d, %d)" % self.size
-
-    def is_positive(self):
-        """Is the expression positive?
-        """
-        return True
-
-    def is_negative(self):
-        """Is the expression negative?
-        """
-        return False
