@@ -65,12 +65,12 @@ class TestConstraints(BaseTest):
         self.x.value = [2, 1]
         self.z.value = [2, 2]
         assert not constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 1])
+        self.assertAlmostEqual(constr.violation, 1)
         self.assertItemsAlmostEqual(constr.residual.value, [0, 1])
 
         self.z.value = [2, 1]
         assert constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 0])
+        self.assertAlmostEqual(constr.violation, 0)
         self.assertItemsAlmostEqual(constr.residual.value, [0, 0])
 
         with self.assertRaises(Exception) as cm:
@@ -109,12 +109,12 @@ class TestConstraints(BaseTest):
         self.x.value = [2, 1]
         self.z.value = [2, 0]
         assert not constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 1])
+        self.assertAlmostEqual(constr.violation, 1)
         self.assertItemsAlmostEqual(constr.residual.value, [0, 1])
 
         self.z.value = [2, 2]
         assert constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 0])
+        self.assertAlmostEqual(constr.violation, 0)
         self.assertItemsAlmostEqual(constr.residual.value, [0, 0])
 
         with self.assertRaises(Exception) as cm:
