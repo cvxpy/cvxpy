@@ -49,4 +49,4 @@ def is_ecos_constraint(constraint):
 
 
 def are_arguments_affine(constraint):
-    return all(arg.is_affine for arg in constraint.args)
+    return all(arg.is_affine() for arg in constraint.args)
