@@ -27,7 +27,7 @@ from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, JULIA_OPT,
                             ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
-from cvxpy.transforms import linearize, partial_optimize
+from cvxpy.transforms import linearize, partial_optimize, indicator
 
 # Legacy names.
 from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite
