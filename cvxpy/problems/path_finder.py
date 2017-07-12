@@ -27,8 +27,9 @@ class PathFinder(object):
         self.reductions = set(REDUCTIONS)
 
     def reduction_path(self, current_type, current_path):
-        """A reduction path is like a stack: the first element (0) is the end of the reduction
-        path (e.g. solver), the first reduction to apply to the problem is path.pop().
+        """A reduction path is like a stack: the first element (0) is the end
+        of the reduction path (e.g. solver), the first reduction to apply to
+        the problem is path.pop().
         """
         if self.is_valid_reduction_path(current_type, current_path):
             return current_path
@@ -42,12 +43,13 @@ class PathFinder(object):
                 continue
             current_type = ProblemType(reduction.postconditions(current_type))
             candidate_path = self.reduction_path(current_type, current_path)
-            if candidate_path:
+            if candidate_path is not None:
                 return candidate_path
             else:
                 self.reductions.add(reduction)
                 current_path.pop(1)
                 current_type = old_type
+        return None
 
     def is_valid_reduction_path(self, problem_type, reduction_path):
         solver_preconditions = reduction_path[0].preconditions

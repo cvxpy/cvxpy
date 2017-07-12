@@ -25,7 +25,9 @@ from cvxpy.reductions.solution import Solution
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.objective_attributes import is_cone_objective
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import is_ecos_constraint, are_arguments_affine
+from cvxpy.constraints.attributes import (is_ecos_constraint,
+                                          are_arguments_affine,
+                                          is_stuffed_cone_constraint)
 
 from .conic_solver import ConicSolver
 
@@ -37,6 +39,7 @@ class ECOS(ConicSolver):
     preconditions = {
         (Minimize, is_cone_objective, True),
         (Constraint, is_ecos_constraint, True),
+        (Constraint, is_stuffed_cone_constraint, True),
         (Zero, are_arguments_affine, True),
         (NonPos, are_arguments_affine, True),
     }
@@ -96,29 +99,33 @@ class ECOS(ConicSolver):
         """
         data = {}
         inv_data = {self.VAR_ID: problem.variables()[0].id}
-        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(problem.objective.args[0])
+        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
+            problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
         constr = [c for c in problem.constraints if type(c) == Zero]
         inv_data[self.EQ_CONSTR] = constr
-        data[s.A], data[s.B] = ConicSolver.group_coeff_offset(constr, ECOS.EXP_CONE_ORDER)
+        data[s.A], data[s.B] = ConicSolver.group_coeff_offset(constr,
+            ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
         data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
         soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        data[s.DIMS]['q'] = [size for cons in soc_constr for size in cons.cone_sizes()]
+        data[s.DIMS]['q'] = [size for cons in soc_constr
+            for size in cons.cone_sizes()]
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         data[s.DIMS]['e'] = sum([cons.num_cones() for cons in exp_constr])
         other_constr = leq_constr + soc_constr + exp_constr
         inv_data[self.NEQ_CONSTR] = other_constr
-        data[s.G], data[s.H] = ConicSolver.group_coeff_offset(other_constr, ECOS.EXP_CONE_ORDER)
+        data[s.G], data[s.H] = ConicSolver.group_coeff_offset(other_constr,
+            ECOS.EXP_CONE_ORDER)
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data."""
+        """Returns solution to original problem, given inverse_data."""
         status = self.STATUS_MAP[solution['info']['exitFlag']]
 
         # Timing data
