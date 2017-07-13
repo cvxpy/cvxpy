@@ -27,7 +27,7 @@ from cvxpy.problems.path_finder import PathFinder
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.problem_type import ProblemType
 from cvxpy.reductions.utilities import (QpMatrixStuffing, ECOS, FlipObjective,
-                                        ConeMatrixStuffing, Dcp2Cone)
+                                        ConeMatrixStuffing, Dcp2Cone, Qp2SymbolicQp)
 from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
 
@@ -45,42 +45,43 @@ class TestPathFinder(BaseTest):
             self.x)])
 
     def test_qp_reduction_path(self):
-        path = PathFinder().reduction_path(ProblemType(self.qp), [QpSolver])
-        self.assertEquals(2, len(path))
+        path = PathFinder().reduction_path(ProblemType(self.qp), [], QpSolver)
+        self.assertEquals(3, len(path))
         self.assertEquals(path[1], QpMatrixStuffing)
+        self.assertEquals(path[0], Qp2SymbolicQp)
 
     def test_qp_maximization_reduction_path_qp_solver(self):
         qp_maximization = Problem(Maximize(QuadForm(self.x, -self.Q)),
             [self.x <= -1])
-        path = PathFinder().reduction_path(ProblemType(qp_maximization),
-            [QpSolver])
-        self.assertEquals(3, len(path))
-        self.assertEquals(path[1], QpMatrixStuffing)
-        self.assertEquals(path[2], FlipObjective)
+        path = PathFinder().reduction_path(ProblemType(qp_maximization), [],
+            QpSolver)
+        self.assertEquals(4, len(path))
+        self.assertEquals(path[2], QpMatrixStuffing)
+        self.assertEquals(path[1], Qp2SymbolicQp)
+        self.assertEquals(path[0], FlipObjective)
 
     def test_qp_maximization_reduction_path_ecos(self):
         qp_maximization = Problem(Maximize(-sum_squares(self.x)),
             [self.x <= -1])
         self.assertTrue(qp_maximization.is_dcp())
-        path = PathFinder().reduction_path(ProblemType(qp_maximization),
-            [ECOS])
+        path = PathFinder().reduction_path(ProblemType(qp_maximization), [], ECOS)
         self.assertEquals(4, len(path))
-        self.assertEquals(path[1], ConeMatrixStuffing)
-        self.assertEquals(path[2], Dcp2Cone)
-        self.assertEquals(path[3], FlipObjective)
+        self.assertEquals(path[2], ConeMatrixStuffing)
+        self.assertEquals(path[1], Dcp2Cone)
+        self.assertEquals(path[0], FlipObjective)
 
     def test_cone_reduction_path(self):
-        path = PathFinder().reduction_path(ProblemType(self.cp), [ECOS])
+        path = PathFinder().reduction_path(ProblemType(self.cp), [], ECOS)
         self.assertLessEqual(len(path), 3)
         self.assertGreater(len(path), 1)
         if len(path) == 3:
-            self.assertEquals(path[0], ECOS)
+            self.assertEquals(path[2], ECOS)
             self.assertEquals(path[1], ConeMatrixStuffing)
-            self.assertEquals(path[2], Dcp2Cone)
+            self.assertEquals(path[0], Dcp2Cone)
         elif len(path) == 2:
-            self.assertEquals(path[0], ECOS)
-            self.assertEquals(path[1], ConeMatrixStuffing)
+            self.assertEquals(path[1], ECOS)
+            self.assertEquals(path[0], ConeMatrixStuffing)
 
     def test_path_nonexistence(self):
-        path = PathFinder().reduction_path(ProblemType(self.cp), [QpSolver])
+        path = PathFinder().reduction_path(ProblemType(self.cp), [], QpSolver)
         self.assertEquals(None, path)

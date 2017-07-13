@@ -22,7 +22,6 @@ from cvxpy.expressions.attributes import attributes as expression_attributes
 from cvxpy.constraints.attributes import attributes as constraint_attributes
 from cvxpy.problems.objective_attributes import attributes as objective_attributes
 from cvxpy.problems.problem import Problem
-from cvxpy.problems.objective import Objective
 
 
 class ProblemType(object):
@@ -54,23 +53,22 @@ class ProblemType(object):
                 continue
 
     def matches(self, preconditions):
-        """Checks if all preconditions hold for the problem that is being analyzed."""
+        """Checks if all preconditions hold for the problem that is being analyzed.
+
+        Fails if a property of a type in preconditions exists but no property with the right condition exists
+        or the condition exists but evaluates to the wrong boolean.
+        """
         for pre in preconditions:
-            properties_to_check = [prop for prop in self.type
-                                   if prop[0] == pre[0]
-                                   or issubclass(prop[0], pre[0])
-                                   or issubclass(pre[0], prop[0])]
-            if not properties_to_check:
-                # exception for Problem and Objective types. Not sure if absolutely necessary.
-                if (pre[0] is Problem
-                   or pre[0] is Objective
-                   or issubclass(pre[0], Objective)):
-                    return False
-                else:
-                    continue
-            attribute = pre[1] if pre[1] in [prop[1] for prop in properties_to_check] else None
-            if not attribute:
-                return False
-            if any(prop[2] != pre[2] for prop in properties_to_check if prop[1] == attribute):
+            type_present = False
+            found_match = False
+            for prop in self.type:
+                if issubclass(prop[0], pre[0]):
+                    type_present = True
+                    if prop[1] == pre[1]:
+                        if prop[2] == pre[2]:
+                            found_match = True
+                        else:
+                            return False
+            if type_present and not found_match:
                 return False
         return True

@@ -42,4 +42,4 @@ def is_qpwa(item):
 
 
 def is_pwl(item):
-    return item.expr.is_pwl()
+    return item.expr.is_pwl() or item.expr.is_affine()

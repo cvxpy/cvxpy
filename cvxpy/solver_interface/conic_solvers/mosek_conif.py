@@ -18,7 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SDP, SOC, NonPos, Zero
+from cvxpy.constraints import PSD, SOC, NonPos, Zero
+from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.problem_data.problem_data import ProblemData
 
 from .conic_solver import ConicSolver
@@ -29,11 +30,7 @@ class MOSEK(ConicSolver):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = False
-    EXP_CAPABLE = False
-    MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC, PSD, Bool, Int]
 
     # Map of Mosek status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,

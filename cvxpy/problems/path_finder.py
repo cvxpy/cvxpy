@@ -26,34 +26,28 @@ class PathFinder(object):
     def __init__(self):
         self.reductions = set(REDUCTIONS)
 
-    def reduction_path(self, current_type, current_path):
-        """A reduction path is like a stack: the first element (0) is the end
-        of the reduction path (e.g. solver), the first reduction to apply to
-        the problem is path.pop().
+    def reduction_path(self, current_type, current_path, solver):
+        """Depth first search to target solver.
         """
-        if self.is_valid_reduction_path(current_type, current_path):
-            return current_path
         for reduction in self.applicable_reductions(current_type):
             self.reductions.remove(reduction)
-            current_path.insert(1, reduction)
-            old_type = current_type
+            current_path.append(reduction)
+            if reduction == solver:
+                return current_path
+            # HACK need better way of distinguishing solvers.
             if not hasattr(reduction, 'postconditions'):
-                current_path.pop(1)
-                current_type = old_type
+                current_path.pop()
                 continue
+            old_type = current_type
             current_type = ProblemType(reduction.postconditions(current_type))
-            candidate_path = self.reduction_path(current_type, current_path)
+            candidate_path = self.reduction_path(current_type, current_path, solver)
             if candidate_path is not None:
                 return candidate_path
             else:
                 self.reductions.add(reduction)
-                current_path.pop(1)
+                current_path.pop()
                 current_type = old_type
         return None
-
-    def is_valid_reduction_path(self, problem_type, reduction_path):
-        solver_preconditions = reduction_path[0].preconditions
-        return problem_type.matches(solver_preconditions)
 
     def applicable_reductions(self, problem_type):
         return [red for red in self.reductions if problem_type.matches(red.preconditions)]

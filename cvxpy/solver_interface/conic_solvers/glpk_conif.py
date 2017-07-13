@@ -28,11 +28,7 @@ class GLPK(CVXOPT):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = False
-    SDP_CAPABLE = False
-    EXP_CAPABLE = False
-    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
 
     def name(self):
         """The name of the solver.

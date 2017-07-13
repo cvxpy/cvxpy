@@ -21,6 +21,7 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonPos, Zero
+from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
 
@@ -32,11 +33,7 @@ class GUROBI(ConicSolver):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = False
-    EXP_CAPABLE = False
-    MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC, Bool, Int]
 
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,

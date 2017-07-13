@@ -28,11 +28,7 @@ class CVXOPT(ConicSolver):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = True
-    EXP_CAPABLE = True
-    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC, PSD, ExpCone]
 
     # Map of CVXOPT status to CVXPY status.
     STATUS_MAP = {'optimal': s.OPTIMAL,

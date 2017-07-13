@@ -23,10 +23,13 @@ from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.problems.objective import Minimize
 from cvxpy.expressions.attributes import is_quadratic
+from cvxpy.constraints import ExpCone, PSD, SOC, NonPos, Zero
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import is_qp_constraint, are_arguments_affine
+from cvxpy.constraints.attributes import (are_arguments_affine,
+                                          is_stuffed_cone_constraint, exists)
 from cvxpy.problems.objective_attributes import is_qp_objective
 from cvxpy.problems.problem import Problem
+from cvxpy.problems.attributes import is_minimization, is_dcp
 from cvxpy.reductions import InverseData
 
 
@@ -35,14 +38,28 @@ class QpMatrixStuffing(MatrixStuffing):
     """
 
     preconditions = {
+        (Problem, is_dcp, True),
+        (Problem, is_minimization, True),
         (Minimize, is_quadratic, True),
         (Constraint, are_arguments_affine, True),
-        (Constraint, is_qp_constraint, True)
+        (PSD, exists, False),
+        (SOC, exists, False),
+        (ExpCone, exists, False)
     }
 
     @staticmethod
     def postconditions(problem_type):
-        return QpMatrixStuffing.preconditions.union({(Minimize, is_qp_objective, True)})
+        post = {
+            (Problem, is_dcp, True),
+            (Problem, is_minimization, True),
+            (Minimize, is_qp_objective, True),
+            (Constraint, are_arguments_affine, True),
+            (Zero, exists, True)
+        }
+        cond = (NonPos, exists, True)
+        if cond in problem_type:
+            post.add(cond)
+        return post
 
     def stuffed_objective(self, problem, inverse_data):
         # We need to copy the problem, because we are changing atoms in the expression tree

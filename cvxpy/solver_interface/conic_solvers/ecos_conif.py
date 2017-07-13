@@ -21,13 +21,8 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.expressions.variables import Bool, Int
 from cvxpy.reductions.solution import Solution
-from cvxpy.problems.objective import Minimize
-from cvxpy.problems.objective_attributes import is_cone_objective
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import (is_ecos_constraint,
-                                          are_arguments_affine,
-                                          is_stuffed_cone_constraint)
 
 from .conic_solver import ConicSolver
 
@@ -36,20 +31,8 @@ class ECOS(ConicSolver):
     """An interface for the ECOS solver.
     """
 
-    preconditions = {
-        (Minimize, is_cone_objective, True),
-        (Constraint, is_ecos_constraint, True),
-        (Constraint, is_stuffed_cone_constraint, True),
-        (Zero, are_arguments_affine, True),
-        (NonPos, are_arguments_affine, True),
-    }
-
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = False
-    EXP_CAPABLE = True
-    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos, ExpCone, Bool, Int]
 
     # EXITCODES from ECOS
     # ECOS_OPTIMAL  (0)   Problem solved to optimality
