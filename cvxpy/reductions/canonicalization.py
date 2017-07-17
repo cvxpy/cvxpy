@@ -27,6 +27,7 @@ from cvxpy.reductions import InverseData, Reduction, Solution
 
 
 class Canonicalization(Reduction):
+    """TODO(akshayka): Document this class."""
 
     def __init__(self, canon_methods=None):
         self.canon_methods = canon_methods

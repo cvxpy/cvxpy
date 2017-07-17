@@ -20,29 +20,20 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.reductions import Reduction
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
-from cvxpy.problems.attributes import is_minimization
 from cvxpy.reductions.inverse_data import InverseData
 
 
 class FlipObjective(Reduction):
+    """Flip a minimization objective to a maximization."""
 
-    preconditions = {
-        (Problem, is_minimization, False)
-    }
-
-    @staticmethod
-    def postconditions(problem_type):
-        postconditions = set(t for t in problem_type if t != (Problem, is_minimization, False))
-        for c in postconditions:
-            if c[0] == Maximize:
-                postconditions.remove(c)
-                postconditions.add((Minimize, c[1], c[2]))
-        return postconditions.union({(Problem, is_minimization, True)})
+    def accepts(self, problem):
+        return type(problem.objective) == Maximize
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
         if type(problem.objective) == Maximize:
-            problem = Problem(Minimize(-problem.objective.expr), problem.constraints)
+            problem = Problem(Minimize(-problem.objective.expr),
+                              problem.constraints)
         return problem, inverse_data
 
     def invert(self, solution, inverse_data):

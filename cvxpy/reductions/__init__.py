@@ -20,3 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
+
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
+from cvxpy.reductions.flip_objective import FlipObjective
+
+REDUCTIONS = {FlipObjective, ConeMatrixStuffing, Dcp2Cone,
+              Qp2SymbolicQp, QpMatrixStuffing}

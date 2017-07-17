@@ -21,13 +21,11 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
-from cvxpy.reductions.solution import Solution
 from cvxpy.problems.objective import Minimize
-from cvxpy.problems.objective_attributes import is_cone_objective
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import (is_ecos_constraint,
-                                          are_arguments_affine,
-                                          is_stuffed_cone_constraint)
+from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.utilities import (are_args_affine,
+                                        is_stuffed_cone_constraint,
+                                        is_stuffed_cone_objective)
 
 from .conic_solver import ConicSolver
 
@@ -35,14 +33,6 @@ from .conic_solver import ConicSolver
 class ECOS(ConicSolver):
     """An interface for the ECOS solver.
     """
-
-    preconditions = {
-        (Minimize, is_cone_objective, True),
-        (Constraint, is_ecos_constraint, True),
-        (Constraint, is_stuffed_cone_constraint, True),
-        (Zero, are_arguments_affine, True),
-        (NonPos, are_arguments_affine, True),
-    }
 
     # Solver capabilities.
     LP_CAPABLE = True
@@ -77,6 +67,16 @@ class ECOS(ConicSolver):
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 2, 1]
+
+    def accepts(self, problem):
+        return (type(problem.objective) == Minimize
+                and is_stuffed_cone_objective(problem.objective)
+                and all(is_stuffed_cone_constraint(c) for c in
+                        problem.constraints)
+                and all(type(c) in [Zero, NonPos, SOC, ExpCone] for c in
+                        problem.constraints)
+                and are_args_affine([c for c in problem.constraints if
+                                     type(c) == Zero or type(c) == NonPos]))
 
     def import_solver(self):
         """Imports the solver.

@@ -17,52 +17,38 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy
 from cvxpy.atoms import QuadForm
-from cvxpy.reductions.matrix_stuffing import MatrixStuffing
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.constraints import NonPos, Zero
+from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.expressions.attributes import is_quadratic
-from cvxpy.constraints import ExpCone, PSD, SOC, NonPos, Zero
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.attributes import (are_arguments_affine,
-                                          is_stuffed_cone_constraint, exists)
-from cvxpy.problems.objective_attributes import is_qp_objective
 from cvxpy.problems.problem import Problem
-from cvxpy.problems.attributes import is_minimization, is_dcp
 from cvxpy.reductions import InverseData
+from cvxpy.reductions.matrix_stuffing import MatrixStuffing
+from cvxpy.reductions.utilities import are_args_affine
+from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
+
+       Outputs a DCP-compliant minimization problem with an objective
+       of the form
+           QuadForm(x, p) + q.T * x
+       and Zero/NonPos constraints, both of which exclusively carry
+       affine arguments.
     """
 
-    preconditions = {
-        (Problem, is_dcp, True),
-        (Problem, is_minimization, True),
-        (Minimize, is_quadratic, True),
-        (Constraint, are_arguments_affine, True),
-        (PSD, exists, False),
-        (SOC, exists, False),
-        (ExpCone, exists, False)
-    }
-
-    @staticmethod
-    def postconditions(problem_type):
-        post = {
-            (Problem, is_dcp, True),
-            (Problem, is_minimization, True),
-            (Minimize, is_qp_objective, True),
-            (Constraint, are_arguments_affine, True),
-            (Zero, exists, True)
-        }
-        cond = (NonPos, exists, True)
-        if cond in problem_type:
-            post.add(cond)
-        return post
+    def accepts(self, problem):
+        return (type(problem.objective) == Minimize
+                and problem.objective.is_quadratic()
+                and problem.is_dcp()
+                and all(type(c) == Zero or type(c) == NonPos
+                        for c in problem.constraints)
+                and are_args_affine(problem.constraints))
 
     def stuffed_objective(self, problem, inverse_data):
-        # We need to copy the problem, because we are changing atoms in the expression tree
+        # We need to copy the problem because we are changing atoms in the
+        # expression tree
         problem_copy = Problem(Minimize(problem.objective.expr.tree_copy()),
                                [con.tree_copy() for con in problem.constraints])
         inverse_data_of_copy = InverseData(problem_copy)
@@ -71,7 +57,7 @@ class QpMatrixStuffing(MatrixStuffing):
         P, q, r = extractor.quad_form(problem_copy.objective.expr)
 
         # concatenate all variables in one vector
-        x = cvxpy.Variable(inverse_data.x_length)
+        x = Variable(inverse_data.x_length)
         new_obj = QuadForm(x, P) + q.T*x
 
         inverse_data.r = r
