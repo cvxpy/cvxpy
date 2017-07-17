@@ -71,9 +71,9 @@ class ECOS(ConicSolver):
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
                 and is_stuffed_cone_objective(problem.objective)
-                and all(is_stuffed_cone_constraint(c) for c in
-                        problem.constraints)
                 and all(type(c) in [Zero, NonPos, SOC, ExpCone] for c in
+                        problem.constraints)
+                and all(is_stuffed_cone_constraint(c) for c in
                         problem.constraints)
                 and are_args_affine([c for c in problem.constraints if
                                      type(c) == Zero or type(c) == NonPos]))
