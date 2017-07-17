@@ -17,51 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-from cvxpy.atoms import reshape
-from cvxpy.constraints import SOC, ExpCone, NonPos, Zero, PSD
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.problems.problem import Problem
-from cvxpy.problems.objective import Minimize
-from cvxpy.problems.attributes import is_mixed_integer
-from cvxpy.problems.objective_attributes import is_cone_objective
-from cvxpy.expressions.variables import Bool, Int
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
-from cvxpy.reductions.solution import Solution
-from cvxpy.constraints.attributes import (exists, is_stuffed_cone_constraint)
-import abc
 import numpy as np
 import scipy.sparse as sp
 
-
-class ConicSolverMetaclass(abc.ABCMeta):
-    """A metaclass to autogenerate preconditions for solvers.
-    """
-    def __new__(cls, classname, bases, classdict):
-        """Initialize preconditions upon class creation.
-        """
-        constraints = classdict['SUPPORTED_CONSTRAINTS']
-        preconditions = {
-            (Minimize, is_cone_objective, True),
-            (Constraint, is_stuffed_cone_constraint, True),
-            (NonPos, exists, NonPos in constraints),
-            (SOC, exists, SOC in constraints),
-            (ExpCone, exists, ExpCone in constraints),
-            (PSD, exists, PSD in constraints),
-        }
-        if Bool not in constraints or Int not in constraints:
-            preconditions.add((Problem, is_mixed_integer, False))
-        classdict["preconditions"] = preconditions
-        return super(ConicSolverMetaclass, cls).__new__(cls, classname, bases, classdict)
+import cvxpy.settings as s
+from cvxpy.atoms import reshape
+from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.reductions.solution import Solution
 
 
 class ConicSolver(ReductionSolver):
     """Conic solver class with reduction semantics
     """
-    __metaclass__ = ConicSolverMetaclass
-
-    # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
 
     @staticmethod
     def get_coeff_offset(expr):

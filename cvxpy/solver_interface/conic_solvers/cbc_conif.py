@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.problem_data.problem_data import ProblemData
 
 from .conic_solver import ConicSolver
@@ -30,7 +29,11 @@ class CBC(ConicSolver):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, Bool, Int]
+    LP_CAPABLE = True
+    SOCP_CAPABLE = False
+    SDP_CAPABLE = False
+    EXP_CAPABLE = False
+    MIP_CAPABLE = True
 
     # Map of GLPK MIP status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,

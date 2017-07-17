@@ -29,7 +29,11 @@ class Elemental(ConicSolver):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC]
+    LP_CAPABLE = True
+    SOCP_CAPABLE = True
+    SDP_CAPABLE = False
+    EXP_CAPABLE = False
+    MIP_CAPABLE = False
 
     # Map of Elemental status to CVXPY status.
     # TODO

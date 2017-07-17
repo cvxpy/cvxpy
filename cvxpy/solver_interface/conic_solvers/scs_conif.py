@@ -31,7 +31,11 @@ class SCS(ConicSolver):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC, PSD, ExpCone]
+    LP_CAPABLE = True
+    SOCP_CAPABLE = True
+    SDP_CAPABLE = True
+    EXP_CAPABLE = True
+    MIP_CAPABLE = False
 
     # Map of SCS status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,

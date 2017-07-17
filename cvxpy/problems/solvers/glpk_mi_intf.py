@@ -19,8 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos, Zero
-from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.solvers.glpk_intf import GLPK
 
 
@@ -29,7 +27,11 @@ class GLPK_MI(GLPK):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, Bool, Int]
+    LP_CAPABLE = True
+    SOCP_CAPABLE = False
+    SDP_CAPABLE = False
+    EXP_CAPABLE = False
+    MIP_CAPABLE = True
 
     # Map of GLPK MIP status to CVXPY status.
     STATUS_MAP = {'optimal': s.OPTIMAL,
