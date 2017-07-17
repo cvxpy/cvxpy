@@ -63,8 +63,8 @@ class TestExpressions(BaseTest):
         self.assertEqual(x.canonical_form[0].size, (2, 1))
         self.assertEqual(x.canonical_form[1], [])
 
-        self.assertEqual(repr(self.x), "Variable(2, 1)")
-        self.assertEqual(repr(self.A), "Variable(2, 2)")
+        self.assertEqual(repr(self.x), "Variable(2, 1, 'x')")
+        self.assertEqual(repr(self.A), "Variable(2, 2, 'A')")
 
         # # Scalar variable
         # coeff = self.a.coefficients()
@@ -84,6 +84,20 @@ class TestExpressions(BaseTest):
         # mat = coeffs[self.A.id][1]
         # self.assertEqual(mat.shape, (2,4))
         # self.assertEqual(mat[0,2], 1)
+
+    def test_variable_repr(self):
+        x = Variable(name='x')
+        y = NonNegative(name='y')
+
+        self.assertEqual(repr(x), "Variable(1, 1, 'x')")
+        self.assertEqual(repr(y), "NonNegative(1, 1, 'y')")
+
+        x = Variable()
+        y = NonNegative()
+
+        self.assertEqual(repr(x), "Variable(1, 1)")
+        self.assertEqual(repr(y), "NonNegative(1, 1)")
+
 
     def test_assign_var_value(self):
         """Test assigning a value to a variable.

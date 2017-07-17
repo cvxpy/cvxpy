@@ -29,4 +29,7 @@ class Int(Variable):
     def __repr__(self):
         """String to recreate the object.
         """
-        return "Int(%d, %d)" % self.size
+        if self._name_given:
+            return "Int(%d, %d, '%s')" % (self._rows, self._cols, self._name)
+        else:
+            return "Int(%d, %d)" % self.size

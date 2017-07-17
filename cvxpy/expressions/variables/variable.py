@@ -31,8 +31,10 @@ class Variable(Leaf):
         self._cols = cols
         self.id = lu.get_id()
         if name is None:
+            self._name_given = False
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         else:
+            self._name_given = True
             self._name = name
         self.primal_value = None
         super(Variable, self).__init__()
@@ -105,4 +107,8 @@ class Variable(Leaf):
     def __repr__(self):
         """String to recreate the object.
         """
-        return "Variable(%d, %d)" % self.size
+        if self._name_given:
+            return "Variable(%d, %d, '%s')" % (self._rows, self._cols,
+                                               self._name)
+        else:
+            return "Variable(%d, %d)" % self.size

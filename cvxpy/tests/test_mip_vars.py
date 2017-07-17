@@ -23,10 +23,10 @@ class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
     def setUp(self):
-        self.x_bool = Bool()
+        self.x_bool = Bool(name='x')
         self.y_int = Int()
         self.A_bool = Bool(3, 2)
-        self.B_int = Int(2, 3)
+        self.B_int = Int(2, 3, name='B')
 
     def test_mip_consistency(self):
         """Test that MIP problems are deterministic.
@@ -54,8 +54,14 @@ class TestMIPVariable(BaseTest):
     def test_mip_print(self):
         """Test to string methods for Bool/Int vars.
         """
-        self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
-        self.assertEqual(repr(self.B_int), "Int(2, 3)")
+        self.assertEqual(repr(self.x_bool), "Bool(1, 1, 'x')")
+        self.assertEqual(repr(self.B_int), "Int(2, 3, 'B')")
+
+        x = Bool()
+        B = Int(2, 3)
+
+        self.assertEqual(repr(x), "Bool(1, 1)")
+        self.assertEqual(repr(B), "Int(2, 3)")
 
     # def test_bool_prob(self):
     #     # Bool in objective.
