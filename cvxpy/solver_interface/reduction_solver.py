@@ -51,3 +51,12 @@ class ReductionSolver(Reduction):
         """Imports the solver.
         """
         return NotImplemented
+
+    def is_installed(self):
+        """Is the solver installed?
+        """
+        try:
+            self.import_solver()
+            return True
+        except ImportError:
+            return False
