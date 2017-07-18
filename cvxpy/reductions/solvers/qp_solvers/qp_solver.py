@@ -104,7 +104,5 @@ class QpSolver(Solver):
                 opt_val = -np.inf
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        data, inverse_data = self.apply(problem)
-        solution = data.solve(solver=self.name, verbose=verbose)
-        return self.invert(solution, inverse_data)
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        return data.solve(solver=self.name, verbose=verbose)

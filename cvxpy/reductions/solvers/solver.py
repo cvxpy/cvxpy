@@ -23,7 +23,7 @@ from cvxpy.reductions.reduction import Reduction
 
 
 class Solver(Reduction):
-    """Generic interface for a solver that uses the reduction semantics
+    """Generic interface for a solver that uses reduction semantics
     """
 
     __metaclass__ = abc.ABCMeta
@@ -60,3 +60,17 @@ class Solver(Reduction):
             return True
         except ImportError:
             return False
+
+    @abc.abstractmethod
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        """Solve a problem represented by data returned from apply.
+        """
+        return NotImplemented
+
+    def solve(self, problem, warm_start, verbose, solver_opts):
+        """Solve the problem and return a Solution object.
+        """
+        data, inv_data = self.apply(problem)
+        solution = self.solve_via_data(self, data, warm_start, verbose,
+                                       solver_opts)
+        return self.invert(solution, inv_data)

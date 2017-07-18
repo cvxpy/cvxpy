@@ -74,6 +74,11 @@ class CVXOPT(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
+        objective, _ = problem.objective.canonical_form
+        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
+        data["objective"] = objective
+        data["constraints"] = constraints
+
         inv_data = {self.VAR_ID: problem.variables()[0].id}
 
         # Order and group constraints.
@@ -86,18 +91,13 @@ class CVXOPT(ConicSolver):
         inv_data[CVXOPT.NEQ_CONSTR] = leq_constr + soc_constr + sdp_constr + exp_constr
         return data, inv_data
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_OLD
         solver = CVXOPT_OLD()
-        _, inv_data = self.apply(problem)
-        objective, _ = problem.objective.canonical_form
-        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        sol = solver.solve(
-            objective,
-            constraints,
+        return solver.solve(
+            data["objective"],
+            data["constraints"],
             {self.name(): ProblemData()},
             warm_start,
             verbose,
             solver_opts)
-
-        return self.invert(sol, inv_data)

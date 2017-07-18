@@ -136,7 +136,7 @@ class SCS(ConicSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -149,10 +149,8 @@ class SCS(ConicSolver):
         ...
         """
         import scs
-        data, inv_data = self.apply(problem)
-        solution = scs.solve(
+        return scs.solve(
             data,
             data[s.DIMS],
             verbose=verbose,
             **solver_opts)
-        return self.invert(solution, inv_data)

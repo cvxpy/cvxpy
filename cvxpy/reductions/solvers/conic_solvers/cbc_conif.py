@@ -80,27 +80,26 @@ class CBC(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        objective, _ = problem.objective.canonical_form
+        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
+        data["objective"] = objective
+        data["constraints"] = constraints
 
         # Order and group constraints.
+        inv_data = {self.VAR_ID: problem.variables()[0].id}
         eq_constr = [c for c in problem.constraints if type(c) == Zero]
         inv_data[self.EQ_CONSTR] = eq_constr
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
         inv_data[self.NEQ_CONSTR] = leq_constr
         return data, inv_data
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.cbc_intf import CBC as CBC_OLD
         solver = CBC_OLD()
-        _, inv_data = self.apply(problem)
-        objective, _ = problem.objective.canonical_form
-        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        sol = solver.solve(
-            objective,
-            constraints,
+        return solver.solve(
+            data["objective"],
+            data["constraints"],
             {self.name(): ProblemData()},
             warm_start,
             verbose,
             solver_opts)
-
-        return self.invert(sol, inv_data)

@@ -154,22 +154,10 @@ class ECOS(ConicSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        """Returns the result of the call to the solver.
-
-        Parameters
-        ----------
-        ...
-
-        Returns
-        -------
-        tuple
-        ...
-        """
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         import ecos
-        data, inv_data = self.apply(problem)
         solution = ecos.solve(data[s.C], data[s.G], data[s.H],
                               data[s.DIMS], data[s.A], data[s.B],
                               verbose=verbose,
                               **solver_opts)
-        return self.invert(solution, inv_data)
+        return solution
