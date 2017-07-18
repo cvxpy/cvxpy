@@ -23,11 +23,11 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.atoms import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solution import Solution
 
 
-class ConicSolver(ReductionSolver):
+class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
 

@@ -26,11 +26,11 @@ from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.utilities import is_stuffed_qp_objective
-from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.solver import Solver
 
 
-class QpSolver(ReductionSolver):
+class QpSolver(Solver):
     """
     A QP solver interface.
     """

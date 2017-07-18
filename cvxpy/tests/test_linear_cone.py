@@ -27,14 +27,14 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Symmetric, Variable
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.flip_objective import FlipObjective
-from cvxpy.solver_interface.conic_solvers.cbc_conif import CBC
-from cvxpy.solver_interface.conic_solvers.cvxopt_conif import CVXOPT
-from cvxpy.solver_interface.conic_solvers.ecos_conif import ECOS
-from cvxpy.solver_interface.conic_solvers.elemental_conif import Elemental
-from cvxpy.solver_interface.conic_solvers.glpk_conif import GLPK
-from cvxpy.solver_interface.conic_solvers.gurobi_conif import GUROBI
-from cvxpy.solver_interface.conic_solvers.mosek_conif import MOSEK
-from cvxpy.solver_interface.conic_solvers.scs_conif import SCS
+from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC
+from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
+from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
+from cvxpy.reductions.solvers.conic_solvers.elemental_conif import Elemental
+from cvxpy.reductions.solvers.conic_solvers.glpk_conif import GLPK
+from cvxpy.reductions.solvers.conic_solvers.gurobi_conif import GUROBI
+from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS
 from cvxpy.tests.base_test import BaseTest
 
 

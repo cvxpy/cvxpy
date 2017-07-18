@@ -22,7 +22,7 @@ import abc
 from cvxpy.reductions.reduction import Reduction
 
 
-class ReductionSolver(Reduction):
+class Solver(Reduction):
     """Generic interface for a solver that uses the reduction semantics
     """
 

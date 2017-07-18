@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.solver_interface.conic_solvers.cvxopt_conif import CVXOPT
+from cvxpy.reductions.solvers.conic_solvers import CVXOPT
 from cvxpy.problems.problem_data.problem_data import ProblemData
 
 
