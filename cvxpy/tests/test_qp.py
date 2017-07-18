@@ -27,7 +27,7 @@ from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum_entries,
 from cvxpy.expressions.variables import Variable
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
-from cvxpy.solver_interface.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
 
 
