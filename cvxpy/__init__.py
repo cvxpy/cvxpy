@@ -31,4 +31,3 @@ from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, JULIA_OPT,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 from cvxpy.transforms import linearize, partial_optimize
-from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite

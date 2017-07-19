@@ -81,7 +81,7 @@ class LS(Solver):
         import cvxpy.constraints.zero as eqc
 
         import cvxpy.expressions.variables as var
-        allowedVariables = (var.variable.Variable, var.symmetric.SymmetricUpperTri)
+        allowedVariables = (var.variable.Variable)
 
         # TODO: handle affine objective
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic() and

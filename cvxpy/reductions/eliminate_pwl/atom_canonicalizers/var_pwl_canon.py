@@ -1,4 +1,3 @@
-
 """
 Copyright 2013 Steven Diamond, Eric Chu
 
@@ -20,14 +19,25 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.variables.symmetric import upper_tri_to_full
+from cvxpy.expressions.variable import Variable, upper_tri_to_full
 
 
-def semidef_upper_tri_canon(expr, args):
-    """ The upper triangular part of a positive semidefinite variable. """
-    upper_tri = Variable(expr.shape[0], 1, var_id=expr.id)
-    fill_coeff = Constant(upper_tri_to_full(expr.n))
-    full_mat = fill_coeff*upper_tri
-    full_mat = reshape(full_mat, (expr.n, expr.n))
-    return (upper_tri, [full_mat >> 0])
+def var_pwl_canon(expr, args):
+    """Expand implicit constraints on variable.
+    """
+    if expr.attributes['symmetric']:
+        n = expr.shape[0]
+        shape = (n*(n+1)//2, 1)
+        upper_tri = Variable(shape[0], var_id=expr.id)
+        fill_coeff = Constant(upper_tri_to_full(n))
+        full_mat = fill_coeff*upper_tri
+        obj = reshape(full_mat, (n, n))
+    else:
+        obj = expr
+
+    constr = []
+    if expr.is_nonneg():
+        constr.append(obj >= 0)
+    elif expr.is_nonpos():
+        constr.append(obj <= 0)
+    return (obj, constr)

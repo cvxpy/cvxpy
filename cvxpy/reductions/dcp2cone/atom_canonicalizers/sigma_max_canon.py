@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables import Symmetric
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.variable import Variable
 import scipy.sparse as sp
 
@@ -27,7 +27,7 @@ import scipy.sparse as sp
 def sigma_max_canon(expr, args):
     A = args[0]
     n, m = A.shape
-    X = Symmetric(n+m)
+    X = Variable((n+m, n+m), symmetric=True)
 
     shape = expr.shape
     t = Variable(shape)

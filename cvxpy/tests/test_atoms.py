@@ -914,7 +914,7 @@ class TestAtoms(BaseTest):
 
     # Test the NonNegative Variable class.
     def test_nonnegative_variable(self):
-        x = NonNegative()
+        x = Variable(nonneg=True)
         p = Problem(Minimize(5+x), [x >= 3])
         p.solve()
         self.assertAlmostEqual(p.value, 8)

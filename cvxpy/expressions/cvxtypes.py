@@ -36,7 +36,7 @@ def constant():
 
 
 def variable():
-    from cvxpy.expressions import variables
+    from cvxpy.expressions import variable
     return variable.Variable
 
 

@@ -88,7 +88,7 @@ To constrain a matrix expression to be symmetric, simply write
     # expr must be symmetric.
     constr = (expr == expr.T)
 
-You can also use ``Symmetric(n)`` to create an ``n`` by ``n`` variable constrained to be symmetric.
+You can also use ``Variable((n, n), symmetric=True)`` to create an ``n`` by ``n`` variable constrained to be symmetric.
 
 .. _mip:
 

@@ -114,7 +114,7 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(A.value, np.ones((3, 2)))
 
         # Test assigning negative val to nonnegative variable.
-        x = NonNegative()
+        x = Variable(nonneg=True)
         with self.assertRaises(Exception) as cm:
             x.value = -2
         self.assertEqual(str(cm.exception), "Invalid sign for NonNegative value.")

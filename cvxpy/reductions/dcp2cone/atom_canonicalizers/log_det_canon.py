@@ -23,7 +23,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.constraints.psd import PSD
-from cvxpy.expressions.variables import Symmetric
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_canon import log_canon
 
@@ -68,14 +68,13 @@ def log_det_canon(expr, args):
     """
     A = args[0]  # n by n matrix.
     n, _ = A.shape
-    # TODO(akshayka): Verify that the below is equivalent
-    # to Semidef(2*n).canonicalize
     # Require that X and A are PSD.
-    X = Symmetric(2*n)
+    X = Variable((2*n, 2*n), symmetric=True)
     constraints = [PSD(X)]
     constraints += [PSD(A)]
 
     # Fix Z as upper triangular
+    # TODO represent Z as upper tri vector.
     Z = Variable((n, n))
     Z_lower_tri = upper_tri(transpose(Z))
     constraints.append(Z_lower_tri == 0)

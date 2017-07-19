@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms import QuadForm
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions import InverseData

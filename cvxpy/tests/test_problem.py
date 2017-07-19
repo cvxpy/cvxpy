@@ -1476,7 +1476,7 @@ class TestProblem(BaseTest):
         result = prob.solve()
         self.assertEqual(prob.status, s.INFEASIBLE)
 
-        C = Symmetric(2)
+        C = Variable((2, 2), symmetric=True)
         obj = Minimize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
@@ -1488,7 +1488,7 @@ class TestProblem(BaseTest):
         """
         if s.CVXOPT in installed_solvers():
             # Test the dual values with cvxopt.
-            C = Symmetric(2, name='C')
+            C = Variable((2, 2), symmetric=True, name='C')
             obj = Maximize(C[0, 0])
             constraints = [C << [[2, 0], [0, 2]]]
             prob = Problem(obj, constraints)
@@ -1496,7 +1496,7 @@ class TestProblem(BaseTest):
             self.assertAlmostEqual(result, 2)
 
             psd_constr_dual = constraints[0].dual_value.copy()
-            C = Symmetric(2, name='C')
+            C = Variable((2, 2), symmetric=True, name='C')
             X = Variable((2, 2), PSD=True)
             obj = Maximize(C[0, 0])
             constraints = [X == [[2, 0], [0, 2]] - C]
@@ -1505,7 +1505,7 @@ class TestProblem(BaseTest):
             self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
         # Test the dual values with SCS.
-        C = Symmetric(2)
+        C = Variable((2, 2), symmetric=True)
         obj = Maximize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
@@ -1513,7 +1513,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 2, places=4)
 
         psd_constr_dual = constraints[0].dual_value
-        C = Symmetric(2)
+        C = Variable((2, 2), symmetric=True)
         X = Variable((2, 2), PSD=True)
         obj = Maximize(C[0, 0])
         constraints = [X == [[2, 0], [0, 2]] - C]
@@ -1522,7 +1522,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
         # Test dual values with SCS that have off-diagonal entries.
-        C = Symmetric(2)
+        C = Variable((2, 2), symmetric=True)
         obj = Maximize(C[0, 1] + C[1, 0])
         constraints = [C << [[2, 0], [0, 2]], C >= 0]
         prob = Problem(obj, constraints)
@@ -1530,7 +1530,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 4, places=3)
 
         psd_constr_dual = constraints[0].dual_value
-        C = Symmetric(2)
+        C = Variable((2, 2), symmetric=True)
         X = Variable((2, 2), PSD=True)
         obj = Maximize(C[0, 1] + C[1, 0])
         constraints = [X == [[2, 0], [0, 2]] - C, C >= 0]

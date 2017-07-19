@@ -18,9 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import Semidef
-from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite
-from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
+from cvxpy.expressions.variable import Variable
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
 import unittest
@@ -33,11 +31,6 @@ class TestSemidefiniteVariable(BaseTest):
         self.X = Variable((2, 2), PSD=True)
         self.Y = Variable((2, 2))
         self.F = np.matrix([[1, 0], [0, -1]])
-
-    def test_sdp_print(self):
-        """Test to string methods for SDP vars.
-        """
-        self.assertEqual(repr(SemidefUpperTri(2)), "SemidefUpperTri(2)")
 
     def test_sdp_problem(self):
         # SDP in objective.
@@ -77,12 +70,3 @@ class TestSemidefiniteVariable(BaseTest):
         self.assertAlmostEqual(self.X.value[0, 1], 2, places=2)
         self.assertAlmostEqual(self.X.value[1, 0], 2, places=2)
         self.assertAlmostEqual(self.X.value[1, 1], 4, places=3)
-
-    def test_legacy(self):
-        """Test that the legacy name semidefinite works.
-        """
-        X = semidefinite(2)
-        obj = Minimize(sum_entries(square(X - self.F)))
-        p = Problem(obj, [])
-        result = p.solve()
-        self.assertAlmostEqual(result, 1, places=4)

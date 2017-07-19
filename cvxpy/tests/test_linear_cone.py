@@ -318,7 +318,7 @@ class TestLinearCone(BaseTest):
         p_min = FlipObjective().apply(prob)
         self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
 
-        C = Symmetric(2, 2)
+        C = Variable((2, 2), symmetric=True)
         obj = Minimize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)

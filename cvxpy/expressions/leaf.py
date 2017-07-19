@@ -121,6 +121,11 @@ class Leaf(expression.Expression):
         """
         return self.attributes['nonpos']
 
+    def is_symmetric(self):
+        """Is the Leaf symmetric.
+        """
+        return any([self.attributes[key] for key in ['symmetric', 'PSD', 'NSD']])
+
     @property
     def domain(self):
         """A list of constraints describing the closure of the region

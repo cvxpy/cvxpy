@@ -28,6 +28,7 @@ class InverseData(object):
         varis = list(set(all_variables))
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
                                                 self.get_var_offsets(varis))
+        self.id2var = {id: var.id for var in varis}
         self.cons_id_map = dict()
 
     def get_var_offsets(self, variables):
