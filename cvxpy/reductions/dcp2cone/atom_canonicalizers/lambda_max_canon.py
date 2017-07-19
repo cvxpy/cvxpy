@@ -25,6 +25,6 @@ import scipy.sparse as sp
 def lambda_max_canon(expr, args):
     A = args[0]
     t = Variable()
-    # SDP constraint: I*t - A
+    # PSD constraint: I*t - A
     constr = [Constant(sp.eye(A.shape[0])) * t >> A]
     return t, constr

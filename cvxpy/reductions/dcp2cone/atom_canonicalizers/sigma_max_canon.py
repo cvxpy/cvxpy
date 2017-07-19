@@ -43,7 +43,7 @@ def sigma_max_canon(expr, args):
     # X[n:n+m, n:n+m] == I_m*t
     constraints.append(X[n:n+m, n:n+m] == Constant(sp.eye(m)) * t)
 
-    # SDP constraint
+    # PSD constraint
     constraints.append(PSD(X))
 
     return t, constraints

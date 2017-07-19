@@ -39,6 +39,6 @@ def matrix_frac_canon(expr, args):
     constraints.append(M[n:n+m, 0:n] == X.T)
     # M[n:n+m, n:n+m] == T
     constraints.append(M[n:n+m, n:n+m] == T)
-    # Add SDP constraint.
+    # Add PSD constraint.
     constraints.append(PSD(M))
     return trace(T), constraints
