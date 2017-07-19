@@ -26,12 +26,7 @@ class Bool(Variable):
         obj, constr = super(Bool, self).canonicalize()
         return (obj, constr + [BoolConstr(obj)])
 
-    def is_positive(self):
-        """Is the expression positive?
+    def __repr__(self):
+        """String to recreate the object.
         """
-        return True
-
-    def is_negative(self):
-        """Is the expression negative?
-        """
-        return False
+        return "Bool(%d, %d)" % self.size
