@@ -71,6 +71,5 @@ class Solver(Reduction):
         """Solve the problem and return a Solution object.
         """
         data, inv_data = self.apply(problem)
-        solution = self.solve_via_data(self, data, warm_start, verbose,
-                                       solver_opts)
+        solution = self.solve_via_data(data, warm_start, verbose, solver_opts)
         return self.invert(solution, inv_data)
