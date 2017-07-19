@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.ecos_bb_conif import ECOS_BB
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
@@ -32,8 +33,14 @@ from cvxpy.reductions.solvers.conic_solvers.julia_opt_conif import JuliaOpt
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                GLPK_MI(), CBC(), SCS(), GUROBI(),
                Elemental(), MOSEK(), JuliaOpt()]
-SOLVERS = {solver.name(): solver for solver in solver_intf}
+SOLVER_MAP = {solver.name(): solver for solver in solver_intf}
 INSTALLED_SOLVERS = installed_solvers()
+# CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
+# preference. QP_SOLVERS are those for which we have written interfaces
+# and are supported by QpSolver.
+CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SCS, s.GUROBI, s.GLPK,
+                 s.GLPK_MI, s.CBC, s.ELEMENTAL, s.JULIA_OPT, s.CVXOPT]
+QP_SOLVERS = [s.MOSEK, s.GUROBI]
 
 
 def installed_solvers():
