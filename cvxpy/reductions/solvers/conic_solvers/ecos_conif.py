@@ -23,8 +23,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import Solution
-from cvxpy.reductions.utilities import (are_args_affine,
-                                        is_stuffed_cone_constraint,
+from cvxpy.reductions.utilities import (is_stuffed_cone_constraint,
                                         is_stuffed_cone_objective)
 
 from .conic_solver import ConicSolver
@@ -71,9 +70,7 @@ class ECOS(ConicSolver):
                 and all(type(c) in ECOS.SUPPORTED_CONSTRAINTS for c in
                         problem.constraints)
                 and all(is_stuffed_cone_constraint(c) for c in
-                        problem.constraints)
-                and are_args_affine([c for c in problem.constraints if
-                                     type(c) == Zero or type(c) == NonPos]))
+                        problem.constraints))
 
     def import_solver(self):
         """Imports the solver.
