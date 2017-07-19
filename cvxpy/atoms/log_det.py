@@ -22,7 +22,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.affine.index import index
 from cvxpy.constraints.semidefinite import SDP
-from cvxpy.expressions.variables.semidef_var import Semidef
+from cvxpy.expressions.variable import Variable
 import numpy as np
 from numpy import linalg as LA
 import scipy.sparse as sp
@@ -156,7 +156,7 @@ class log_det(Atom):
         A = arg_objs[0]  # n by n matrix.
         n, _ = A.shape
         X = lu.create_var((2*n, 2*n))
-        X, constraints = Semidef(2*n).canonical_form
+        X, constraints = Variable((2*n, 2*n), PSD=True).canonical_form
         Z = lu.create_var((n, n))
         D = lu.create_var((n, 1))
         # Require that X and A are PSD.

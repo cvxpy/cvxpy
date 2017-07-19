@@ -37,7 +37,7 @@ def constant():
 
 def variable():
     from cvxpy.expressions import variables
-    return variables.Variable
+    return variable.Variable
 
 
 def index():

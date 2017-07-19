@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def quad_over_lin_canon(expr, args):

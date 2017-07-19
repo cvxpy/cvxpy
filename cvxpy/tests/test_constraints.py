@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.second_order import SOC
 from cvxpy.tests.base_test import BaseTest
 import numpy as np

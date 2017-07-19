@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.sum_entries import sum_entries
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def sum_largest_canon(expr, args):

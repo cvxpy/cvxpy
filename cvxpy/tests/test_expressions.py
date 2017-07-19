@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variables import Variable, Semidef, NonNegative
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
@@ -786,7 +786,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(y.shape, (3, 4))
         self.assertEqual(y.name(), "x")
 
-        x = Semidef(5, name="x")
+        x = Variable((5, 5), PSD=True, name="x")
         y = x.copy()
         self.assertEqual(y.shape, (5, 5))
 

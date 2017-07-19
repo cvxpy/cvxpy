@@ -22,7 +22,7 @@ import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.expressions.variables import Variable, Semidef, Bool, Symmetric
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.solvers.utilities import SOLVERS, installed_solvers
@@ -391,7 +391,7 @@ class TestProblem(BaseTest):
         self.assertEqual(result, (1, 1))
 
         # Internal constraints.
-        X = Semidef(2)
+        X = Variable((2, 2), PSD=True)
         obj = sum_entries(X + X)
         p = Problem(Minimize(obj))
         result = p.solve(method="test")
@@ -1379,7 +1379,7 @@ class TestProblem(BaseTest):
         constraints = [diag(C) == 1,
                        C[0, 1] == 0.6,
                        C[1, 2] == -0.3,
-                       C == Semidef(3)]
+                       C == Variable((3, 3), PSD=True)]
         prob = Problem(obj, constraints)
         result = prob.solve()
         self.assertAlmostEqual(result, 0.583151, places=2)
@@ -1497,7 +1497,7 @@ class TestProblem(BaseTest):
 
             psd_constr_dual = constraints[0].dual_value.copy()
             C = Symmetric(2, name='C')
-            X = Semidef(2)
+            X = Variable((2, 2), PSD=True)
             obj = Maximize(C[0, 0])
             constraints = [X == [[2, 0], [0, 2]] - C]
             prob = Problem(obj, constraints)
@@ -1514,7 +1514,7 @@ class TestProblem(BaseTest):
 
         psd_constr_dual = constraints[0].dual_value
         C = Symmetric(2)
-        X = Semidef(2)
+        X = Variable((2, 2), PSD=True)
         obj = Maximize(C[0, 0])
         constraints = [X == [[2, 0], [0, 2]] - C]
         prob = Problem(obj, constraints)
@@ -1531,7 +1531,7 @@ class TestProblem(BaseTest):
 
         psd_constr_dual = constraints[0].dual_value
         C = Symmetric(2)
-        X = Semidef(2)
+        X = Variable((2, 2), PSD=True)
         obj = Maximize(C[0, 1] + C[1, 0])
         constraints = [X == [[2, 0], [0, 2]] - C, C >= 0]
         prob = Problem(obj, constraints)

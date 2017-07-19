@@ -83,7 +83,7 @@ class TestSCS(BaseTest):
         """Test sdp var.
         """
         const = Constant([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        X = Semidef(3)
+        X = Variable((3, 3), PSD=True)
         prob = Problem(Minimize(0), [X == const])
         prob.solve(verbose=True, solver=SCS)
         self.assertEqual(prob.status, INFEASIBLE)

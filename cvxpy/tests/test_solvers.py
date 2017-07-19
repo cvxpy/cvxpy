@@ -435,7 +435,7 @@ class TestSolvers(BaseTest):
             Z = Variable(n, n)
             d = Variable(n)
             D = diag(d)
-            constr = [Art*D*Art.T - np.eye(n) == Semidef(n), Semidef(n) == t*np.eye(n) - Art*D*Art.T, d >= 0]
+            constr = [Art*D*Art.T - np.eye(n) == Variable((n, n), PSD=True), Variable((n, n), PSD=True) == t*np.eye(n) - Art*D*Art.T, d >= 0]
             prob = Problem(Minimize(t), constr)
             prob.solve(solver=MOSEK)
         else:

@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 import numpy as np

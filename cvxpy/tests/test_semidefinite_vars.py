@@ -30,7 +30,7 @@ class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
     def setUp(self):
-        self.X = Semidef(2)
+        self.X = Variable((2, 2), PSD=True)
         self.Y = Variable((2, 2))
         self.F = np.matrix([[1, 0], [0, -1]])
 
@@ -54,7 +54,7 @@ class TestSemidefiniteVariable(BaseTest):
         # SDP in constraint.
         # ECHU: note to self, apparently this is a source of redundancy
         obj = Minimize(sum_entries(square(self.Y - self.F)))
-        p = Problem(obj, [self.Y == Semidef(2)])
+        p = Problem(obj, [self.Y == Variable((2, 2), PSD=True)])
         result = p.solve()
         self.assertAlmostEqual(result, 1, places=2)
 

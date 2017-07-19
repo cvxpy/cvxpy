@@ -12,7 +12,6 @@ setup(
               'cvxpy.constraints',
               'cvxpy.expressions',
               'cvxpy.expressions.constants',
-              'cvxpy.expressions.variables',
               'cvxpy.interface',
               'cvxpy.interface.numpy_interface',
               'cvxpy.lin_ops',

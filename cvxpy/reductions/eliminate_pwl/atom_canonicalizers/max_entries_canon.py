@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def max_entries_canon(expr, args):

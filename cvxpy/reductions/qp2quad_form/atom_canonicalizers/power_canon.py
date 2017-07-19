@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from numpy import eye, ones
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def power_canon(expr, args):

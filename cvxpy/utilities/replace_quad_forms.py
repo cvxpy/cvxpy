@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm, QuadForm
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def replace_quad_forms(expr, quad_forms):

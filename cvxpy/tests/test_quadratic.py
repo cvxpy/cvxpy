@@ -21,7 +21,7 @@ from cvxpy.atoms import affine_prod, quad_form, quad_over_lin, matrix_frac, sum_
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.expression import *
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy import Problem, Minimize
 import unittest
 from cvxpy.tests.base_test import BaseTest

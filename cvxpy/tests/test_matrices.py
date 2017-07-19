@@ -21,7 +21,7 @@ from cvxpy.atoms import *
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import *
 from cvxpy.expressions.constants import *
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf

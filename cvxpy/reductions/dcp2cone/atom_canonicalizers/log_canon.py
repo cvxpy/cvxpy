@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 import numpy as np
 
 

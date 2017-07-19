@@ -21,7 +21,7 @@ import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.problem import Problem
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace
 import copy

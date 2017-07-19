@@ -23,7 +23,7 @@ from cvxpy.atoms import exp
 from cvxpy.atoms import promote
 from cvxpy.atoms import sum_entries
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import exp_canon
 
 

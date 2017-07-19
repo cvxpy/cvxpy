@@ -21,7 +21,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.binary_operators import MulExpression, RMulExpression
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp

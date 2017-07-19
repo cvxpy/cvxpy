@@ -22,7 +22,7 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict

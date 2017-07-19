@@ -62,9 +62,18 @@ class Leaf(expression.Expression):
         self._shape = shape
 
         # Process attributes.
-        self._nonneg = nonneg
-        self._nonpos = nonpos
-        self._boolean = boolean
+        self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
+                           'real': real, 'imag': imag,
+                           'symmetric': symmetric, 'diag': diag,
+                           'PSD': PSD, 'NSD': NSD,
+                           'Hermitian': Hermitian, 'boolean': boolean,
+                           'integer':  integer, 'sparsity': sparsity}
+        # Only one attribute besides real can be True (except can be nonneg and nonpos).
+        true_attr = sum([1 for k, v in self.attributes.items() if k != 'real' and v])
+        if nonneg and nonpos:
+            true_attr -= 1
+        if true_attr > 1:
+            raise ValueError("Cannot set more than one special attribute in %s." % self.__class__)
 
         if value is not None:
             self.value = value
@@ -105,13 +114,12 @@ class Leaf(expression.Expression):
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
-        return self._nonneg
+        return self.attributes['nonneg']
 
     def is_nonpos(self):
         """Is the expression nonpositive?
         """
-        return self._nonpos
-
+        return self.attributes['nonpos']
 
     @property
     def domain(self):

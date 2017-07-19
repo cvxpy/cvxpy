@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variables import Semidef
+from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.affine.trace import trace
 
@@ -48,5 +48,5 @@ def lambda_sum_largest(X, k):
     We have equality when s = lambda_k and Z diagonal
     with Z_{ii} = (lambda_i - lambda_k)_+
     """
-    Z = Semidef(X.shape[0])
+    Z = Variable((X.shape[0], X.shape[0]), PSD=True)
     return k*lambda_max(X - Z) + trace(Z)

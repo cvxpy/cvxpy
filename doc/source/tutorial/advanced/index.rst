@@ -53,12 +53,12 @@ Semidefinite matrices
 Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs).
 You can do this in CVXPY in two ways.
 The first way is to use
-``Semidef(n)`` to create an ``n`` by ``n`` variable constrained to be symmetric and positive semidefinite. For example,
+``Variable((n, n), PSD=True)`` to create an ``n`` by ``n`` variable constrained to be symmetric and positive semidefinite. For example,
 
 .. code:: python
 
     # Creates a 100 by 100 positive semidefinite variable.
-    X = Semidef(100)
+    X = Variable((100, 100), PSD=True)
 
     # You can use X anywhere you would use
     # a normal CVXPY variable.

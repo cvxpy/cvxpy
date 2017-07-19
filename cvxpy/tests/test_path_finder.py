@@ -21,7 +21,7 @@ import numpy as np
 
 from cvxpy.atoms import QuadForm, sum_squares, norm
 from cvxpy.constraints.second_order import SOC
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.path_finder import PathFinder
 from cvxpy.problems.problem import Problem

@@ -21,7 +21,7 @@ from __future__ import division
 import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
-from cvxpy.expressions.variables import Variable, NonNegative, Bool, Int
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
 from cvxpy.transforms import linearize

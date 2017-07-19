@@ -23,7 +23,7 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
 from cvxpy.atoms.quad_form import QuadForm
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem_type import ProblemType
 from cvxpy.expressions.attributes import is_affine, is_quadratic
 from cvxpy.constraints import NonPos, Zero, PSD

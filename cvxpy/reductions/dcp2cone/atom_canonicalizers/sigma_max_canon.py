@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Symmetric
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 import scipy.sparse as sp
 
 

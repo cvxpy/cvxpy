@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def kl_div_canon(expr, args):

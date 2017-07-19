@@ -36,7 +36,7 @@ class Parameter(Leaf):
             self._name = name
         # Initialize with value if provided.
         self._value = None
-        super(Parameter, self).__init__(shape, **kwargs)
+        super(Parameter, self).__init__(shape, value, **kwargs)
 
     def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the object.
@@ -47,7 +47,7 @@ class Parameter(Leaf):
             args = self.args
         data = self.get_data()
         if data is not None:
-            new_obj = type(self)(*(args + data))
+            new_obj = type(self)(*(args + data[:-1]), **data[-1])
         else:
             new_obj = type(self)(*args)
         id_objects[self.id] = new_obj
@@ -56,7 +56,7 @@ class Parameter(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.shape, self._name, self.value]
+        return [self.shape, self._name, self.value, self.attributes]
 
     def name(self):
         return self._name

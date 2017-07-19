@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.variables.symmetric import upper_tri_to_full
 
 

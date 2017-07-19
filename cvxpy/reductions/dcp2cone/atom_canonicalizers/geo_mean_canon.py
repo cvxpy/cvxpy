@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 from cvxpy.utilities.power_tools import gm_constrs
 
 
