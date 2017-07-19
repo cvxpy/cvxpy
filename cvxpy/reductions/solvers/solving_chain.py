@@ -1,5 +1,7 @@
+from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import DCPError, SolverError
+from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing)
@@ -76,16 +78,18 @@ def construct_solving_chain(problem, solver=None):
                           "(%s)." % candidates)
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
-    # and EXP atoms.
+    # and exponential atoms.
     atoms = problem.atoms()
     cones = []
-    # TODO(akshayka): Define SOC_ATOMS somewhere and import it into this file;
-    # similarly for PSD_ATOMS and EXP_ATOMS
-    if any(type(atom) in SOC_ATOMS for atom in atoms):
+    if any(type(atom) in SOC_ATOMS for atom in atoms) or
+            any(type(c) == SOC for c in problem.constraints):
         cones.append(SOC)
-    if any(type(atom) in EXP_ATOMS for atom in atoms):
+    if any(type(atom) in EXP_ATOMS for atom in atoms) or
+            any(type(c) == ExpCone for c in problem.constraints):
         cones.append(ExpCone)
-    if any(type(atom) in PSD_ATOMS for atom in atoms):
+    if any(type(atom) in PSD_ATOMS for atom in atoms) or
+            any(type(c) == PSD for c in problem.constraints) or
+            any(type(v) == SemidefUpperTri for v in problem.variables()):
         cones.append(PSD)
 
     for solver in sorted(candidate_conic_solvers,

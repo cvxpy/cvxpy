@@ -78,3 +78,29 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
+
+SOC_ATOMS = [
+    geo_mean,
+    pnorm,
+    QuadForm,
+    quad_over_lin,
+    power,
+]
+
+EXP_ATOMS = [
+    log_sum_exp,
+    entr,
+    exp,
+    kl_div,
+    log,
+    log1p,
+    logistic,
+]
+
+PSD_ATOMS = [
+    lambda_max,
+    log_det,
+    MatrixFrac,
+    normNuc,
+    sigma_max,
+]
