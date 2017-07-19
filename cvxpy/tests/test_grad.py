@@ -40,9 +40,9 @@ class TestGrad(BaseTest):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2,2), name='A')
+        self.B = Variable((2,2), name='B')
+        self.C = Variable((3,2), name='C')
 
     def test_affine_prod(self):
         """Test gradient for affine_prod
@@ -195,7 +195,7 @@ class TestGrad(BaseTest):
         self.A.value = -np.matrix([[1, 2], [3, 4]])
         self.assertAlmostEqual(expr.grad[self.A], None)
 
-        K = Variable(8, 8)
+        K = Variable((8, 8))
         expr = log_det(K[[1,2]][:,[1,2]])
         K.value = np.eye(8)
         val = np.zeros((8,8))

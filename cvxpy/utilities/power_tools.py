@@ -77,7 +77,7 @@ def gm_constrs(t, x_list, p):
     tree = decompose(w)
     # HACK until old canonicalization removed.
     if isinstance(t, Expression):
-        d = defaultdict(lambda: Variable(*t.shape))
+        d = defaultdict(lambda: Variable(t.shape))
     else:
         d = defaultdict(lambda: lu.create_var(t.shape))
     d[w] = t

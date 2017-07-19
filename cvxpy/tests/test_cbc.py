@@ -33,9 +33,9 @@ class TestSolvers(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2,2), name='A')
+        self.B = Variable((2,2), name='B')
+        self.C = Variable((3,2), name='C')
 
     def test_lp(self):
         """Tests basic LPs. (from test_elemental.py)

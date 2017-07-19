@@ -63,7 +63,7 @@ D = cvxopt.matrix(D)
 nopts = 10
 lambdas = np.linspace(0, 50, nopts)
 # Frame the problem with a parameter
-lamb = Parameter(sign="positive")
+lamb = Parameter(nonneg=True)
 x = Variable(n)
 p = Problem( Minimize( norm(x-corrupt) + norm(D*x) * lamb ) )
 

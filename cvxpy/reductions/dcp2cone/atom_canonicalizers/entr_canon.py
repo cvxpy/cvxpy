@@ -26,7 +26,7 @@ import numpy as np
 def entr_canon(expr, args):
     x = args[0]
     shape = expr.shape
-    t = Variable(*shape)
+    t = Variable(shape)
     # -x\log(x) >= t <=> x\exp(t/x) <= 1
     # TODO(akshayka): ExpCone requires each of its inputs to be a Variable;
     # is this something that we want to change?

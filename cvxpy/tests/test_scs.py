@@ -33,9 +33,9 @@ class TestSCS(BaseTest):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     # Overriden method to assume lower accuracy.
     def assertItemsAlmostEqual(self, a, b, places=2):
@@ -109,7 +109,7 @@ class TestSCS(BaseTest):
         npSPriors = npSPriors/sum(npSPriors)
 
         #Reference distribution
-        p_refProb = cp.Parameter(kK, 1, sign='positive')
+        p_refProb = cp.Parameter(kK, 1, nonneg=True)
         #Distribution to be estimated
         v_prob = cp.Variable(kK, 1)
         objkl = 0.0

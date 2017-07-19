@@ -51,7 +51,7 @@ std = 1
 noise = np.random.normal(scale=std, size=n+m-1)
 noisy_signal = conv(kernel, signal) #+ noise
 
-gamma = Parameter(sign="positive")
+gamma = Parameter(nonneg=True)
 fit = norm(conv(kernel, x) - noisy_signal, 2)
 regularization = norm(x, 1)
 constraints = [x >= 0]

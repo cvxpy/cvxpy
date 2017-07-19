@@ -30,7 +30,7 @@ def sigma_max_canon(expr, args):
     X = Symmetric(n+m)
 
     shape = expr.shape
-    t = Variable(*shape)
+    t = Variable(shape)
     constraints = []
 
     # Fix X using the fact that A must be affine by the DCP rules.

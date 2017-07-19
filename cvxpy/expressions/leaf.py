@@ -30,8 +30,52 @@ class Leaf(expression.Expression):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, shape, value=None, nonneg=False, nonpos=False,
+                 real=True, imag=False,
+                 symmetric=False, diag=False, PSD=False,
+                 NSD=False, Hermitian=False,
+                 boolean=False, integer=False, sparsity=None):
+        """
+        Args:
+          shape: The leaf dimensions.
+          value: A value to assign to the leaf.
+          nonneg: Is the variable constrained to be nonnegative?
+          nonpos: Is the variable constrained to be nonpositive?
+          real: Does the variable have a real part?
+          imag: Does the variable have an imaginary part?
+          symmetric: Is the variable symmetric?
+          diag: Is the variable diagonal?
+          PSD: Is the variable constrained to be positive semidefinite?
+          NSD: Is the variable constrained to be negative semidefinite?
+          Hermitian: Is the variable Hermitian?
+          boolean: Is the variable boolean?
+          integer: Is the variable integer?
+          sparsity: Fixed sparsity pattern for the variable.
+        """
+        # TODO remove after adding 0D and 1D support.
+        if isinstance(shape, int):
+            shape = (shape, 1)
+        elif len(shape) == 0:
+            shape = (1, 1)
+        elif len(shape) == 1:
+            shape = (shape[0], 1)
+        self._shape = shape
+
+        # Process attributes.
+        self._nonneg = nonneg
+        self._nonpos = nonpos
+        self._boolean = boolean
+
+        if value is not None:
+            self.value = value
+
         self.args = []
+
+    @property
+    def shape(self):
+        """Returns the dimensions of the expression.
+        """
+        return self._shape
 
     def variables(self):
         """Default is empty list of Variables.
@@ -57,6 +101,17 @@ class Leaf(expression.Expression):
         """Is the expression concave?
         """
         return True
+
+    def is_nonneg(self):
+        """Is the expression nonnegative?
+        """
+        return self._nonneg
+
+    def is_nonpos(self):
+        """Is the expression nonpositive?
+        """
+        return self._nonpos
+
 
     @property
     def domain(self):
@@ -91,15 +146,15 @@ class Leaf(expression.Expression):
             # All signs are valid if sign is unknown.
             # Otherwise value sign must match declared sign.
             pos_val, neg_val = intf.sign(val)
-            if self.is_positive() and not pos_val or \
-               self.is_negative() and not neg_val:
+            if self.is_nonneg() and not pos_val or \
+               self.is_nonpos() and not neg_val:
                 raise ValueError(
                     "Invalid sign for %s value." % self.__class__.__name__
                 )
             # Round to correct sign.
-            elif self.is_positive():
+            elif self.is_nonneg():
                 val = np.maximum(val, 0)
-            elif self.is_negative():
+            elif self.is_nonpos():
                 val = np.minimum(val, 0)
         return val
 

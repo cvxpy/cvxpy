@@ -38,9 +38,9 @@ class TestAtoms(BaseTest):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2,2), name='A')
+        self.B = Variable((2,2), name='B')
+        self.C = Variable((3,2), name='C')
 
     def test_add_expr_copy(self):
         """Test the copy function for AddExpresion class.
@@ -99,7 +99,7 @@ class TestAtoms(BaseTest):
     def test_quad_form(self):
         """Test quad_form atom.
         """
-        P = Parameter(2,2)
+        P = Parameter((2,2))
         with self.assertRaises(Exception) as cm:
             quad_form(self.x, P)
         self.assertEqual(str(cm.exception), "P cannot be a parameter.")
@@ -109,8 +109,8 @@ class TestAtoms(BaseTest):
         from fractions import Fraction
 
         for shape in (1, 1), (3, 1), (2, 3):
-            x = Variable(*shape)
-            y = Variable(*shape)
+            x = Variable(shape)
+            y = Variable(shape)
             exp = x + y
 
             for p in 0, 1, 2, 3, 2.7, .67, -1, -2.3, Fraction(4, 5):
@@ -314,8 +314,8 @@ class TestAtoms(BaseTest):
         # Test with axis argument.
         self.assertEqual(max_entries(Variable(2), axis=0).shape, (1, 1))
         self.assertEqual(max_entries(Variable(2), axis=1).shape, (2, 1))
-        self.assertEqual(max_entries(Variable(2, 3), axis=0).shape, (1, 3))
-        self.assertEqual(max_entries(Variable(2, 3), axis=1).shape, (2, 1))
+        self.assertEqual(max_entries(Variable((2, 3)), axis=0).shape, (1, 3))
+        self.assertEqual(max_entries(Variable((2, 3)), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
@@ -335,8 +335,8 @@ class TestAtoms(BaseTest):
         # Test with axis argument.
         self.assertEqual(min_entries(Variable(2), axis=0).shape, (1, 1))
         self.assertEqual(min_entries(Variable(2), axis=1).shape, (2, 1))
-        self.assertEqual(min_entries(Variable(2, 3), axis=0).shape, (1, 3))
-        self.assertEqual(min_entries(Variable(2, 3), axis=1).shape, (2, 1))
+        self.assertEqual(min_entries(Variable((2, 3)), axis=0).shape, (1, 3))
+        self.assertEqual(min_entries(Variable((2, 3)), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
@@ -414,8 +414,8 @@ class TestAtoms(BaseTest):
         # Test with axis argument.
         self.assertEqual(sum_entries(Variable(2), axis=0).shape, (1, 1))
         self.assertEqual(sum_entries(Variable(2), axis=1).shape, (2, 1))
-        self.assertEqual(sum_entries(Variable(2, 3), axis=0).shape, (1, 3))
-        self.assertEqual(sum_entries(Variable(2, 3), axis=1).shape, (2, 1))
+        self.assertEqual(sum_entries(Variable((2, 3)), axis=0).shape, (1, 3))
+        self.assertEqual(sum_entries(Variable((2, 3)), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
@@ -429,8 +429,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(mul_elemwise([1, -1], self.x).sign, s.UNKNOWN)
         self.assertEqual(mul_elemwise([1, -1], self.x).curvature, s.AFFINE)
         self.assertEqual(mul_elemwise([1, -1], self.x).shape, (2, 1))
-        pos_param = Parameter(2, sign="positive")
-        neg_param = Parameter(2, sign="negative")
+        pos_param = Parameter(2, nonneg=True)
+        neg_param = Parameter(2, nonpos=True)
         self.assertEqual(mul_elemwise(pos_param, pos_param).sign, s.POSITIVE)
         self.assertEqual(mul_elemwise(pos_param, neg_param).sign, s.NEGATIVE)
         self.assertEqual(mul_elemwise(neg_param, neg_param).sign, s.POSITIVE)
@@ -577,13 +577,13 @@ class TestAtoms(BaseTest):
                          "M must be a non-negative scalar constant.")
 
         # M parameter.
-        M = Parameter(sign="positive")
+        M = Parameter(nonneg=True)
         # Valid.
         huber(self.x, M)
         M.value = 1
         self.assertAlmostEquals(huber(2, M).value, 3)
         # Invalid.
-        M = Parameter(sign="negative")
+        M = Parameter(nonpos=True)
         with self.assertRaises(Exception) as cm:
             huber(self.x, M)
         self.assertEqual(str(cm.exception),
@@ -619,7 +619,7 @@ class TestAtoms(BaseTest):
                          "First argument must be a square matrix.")
 
         with self.assertRaises(Exception) as cm:
-            lambda_sum_largest(Variable(2, 2), 2.4)
+            lambda_sum_largest(Variable((2, 2)), 2.4)
         self.assertEqual(str(cm.exception),
                          "Second argument must be a positive integer.")
 
@@ -638,7 +638,7 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
         # Test copy with lambda_sum_largest, which is in fact an AddExpression
-        atom = lambda_sum_largest(Variable(2, 2), 2)
+        atom = lambda_sum_largest(Variable((2, 2)), 2)
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
 
@@ -651,7 +651,7 @@ class TestAtoms(BaseTest):
                          "Second argument must be a positive integer.")
 
         with self.assertRaises(Exception) as cm:
-            lambda_sum_smallest(Variable(2, 2), 2.4)
+            lambda_sum_smallest(Variable((2, 2)), 2.4)
         self.assertEqual(str(cm.exception),
                          "Second argument must be a positive integer.")
 
@@ -660,7 +660,7 @@ class TestAtoms(BaseTest):
         """
         # Test copy with args=None
         shape = (5, 4)
-        A = Variable(*shape)
+        A = Variable(shape)
         atom = A[0:2, 0:1]
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
@@ -670,7 +670,7 @@ class TestAtoms(BaseTest):
         self.assertFalse(copy.args is atom.args)
         self.assertEqual(copy.get_data(), atom.get_data())
         # Test copy with new args
-        B = Variable(4, 5)
+        B = Variable((4, 5))
         copy = atom.copy(args=[B])
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is B)
@@ -690,13 +690,13 @@ class TestAtoms(BaseTest):
         """Test the conv atom.
         """
         a = np.ones((3, 1))
-        b = Parameter(2, sign='positive')
+        b = Parameter(2, nonneg=True)
         expr = conv(a, b)
-        assert expr.is_positive()
+        assert expr.is_nonneg()
         self.assertEqual(expr.shape, (4, 1))
-        b = Parameter(2, sign='negative')
+        b = Parameter(2, nonpos=True)
         expr = conv(a, b)
-        assert expr.is_negative()
+        assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
             conv(self.x, -1)
         self.assertEqual(str(cm.exception),
@@ -710,13 +710,13 @@ class TestAtoms(BaseTest):
         """Test the kron atom.
         """
         a = np.ones((3, 2))
-        b = Parameter(2, sign='positive')
+        b = Parameter(2, nonneg=True)
         expr = kron(a, b)
-        assert expr.is_positive()
+        assert expr.is_nonneg()
         self.assertEqual(expr.shape, (6, 2))
-        b = Parameter(2, sign='negative')
+        b = Parameter(2, nonpos=True)
         expr = kron(a, b)
-        assert expr.is_negative()
+        assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
             kron(self.x, -1)
         self.assertEqual(str(cm.exception),

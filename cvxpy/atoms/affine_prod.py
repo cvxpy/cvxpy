@@ -59,12 +59,12 @@ class affine_prod(Atom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[1-idx].is_positive()
+        return self.args[1-idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[1-idx].is_negative()
+        return self.args[1-idx].is_nonpos()
 
     def validate_arguments(self):
         """Check dimensions of arguments and linearity.

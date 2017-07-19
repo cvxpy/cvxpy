@@ -91,7 +91,7 @@ The sign of an expression is stored as ``expr.sign``:
 .. code:: python
 
     x = Variable()
-    a = Parameter(sign="negative")
+    a = Parameter(nonpos=True)
     c = numpy.array([1, -1])
 
     print "sign of x:", x.sign
@@ -168,7 +168,7 @@ The curvature of an expression is stored as ``expr.curvature``:
 .. code:: python
 
     x = Variable()
-    a = Parameter(sign="positive")
+    a = Parameter(nonneg=True)
 
     print "curvature of x:", x.curvature
     print "curvature of a:", a.curvature

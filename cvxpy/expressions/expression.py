@@ -177,9 +177,9 @@ class Expression(u.Canonical):
         """
         if self.is_zero():
             sign_str = s.ZERO
-        elif self.is_positive():
+        elif self.is_nonneg():
             sign_str = s.POSITIVE
-        elif self.is_negative():
+        elif self.is_nonpos():
             sign_str = s.NEGATIVE
         else:
             sign_str = s.UNKNOWN
@@ -188,17 +188,17 @@ class Expression(u.Canonical):
     def is_zero(self):
         """Is the expression all zero?
         """
-        return self.is_positive() and self.is_negative()
+        return self.is_nonneg() and self.is_nonpos()
 
     @abc.abstractmethod
-    def is_positive(self):
-        """Is the expression positive?
+    def is_nonneg(self):
+        """Is the expression nonnegative?
         """
         return NotImplemented
 
     @abc.abstractmethod
-    def is_negative(self):
-        """Is the expression negative?
+    def is_nonpos(self):
+        """Is the expression nonpositive?
         """
         return NotImplemented
 

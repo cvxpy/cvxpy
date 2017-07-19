@@ -52,12 +52,12 @@ class abs(Elementwise):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[idx].is_positive()
+        return self.args[idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[idx].is_negative()
+        return self.args[idx].is_nonpos()
 
     def is_pwl(self):
         """Is the atom piecewise linear?

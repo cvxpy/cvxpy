@@ -59,9 +59,9 @@ class TestProblem(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     def test_to_str(self):
         """Test string representations.
@@ -93,8 +93,8 @@ class TestProblem(BaseTest):
         """Test the parameters method.
         """
         p1 = Parameter()
-        p2 = Parameter(3, sign="negative")
-        p3 = Parameter(4, 4, sign="positive")
+        p2 = Parameter(3, nonpos=True)
+        p3 = Parameter((4, 4), nonneg=True)
         p = Problem(Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         params = p.parameters()
         ref = [p1, p2, p3]
@@ -134,8 +134,8 @@ class TestProblem(BaseTest):
         """Test the size_metrics method.
         """
         p1 = Parameter()
-        p2 = Parameter(3, sign="negative")
-        p3 = Parameter(4, 4, sign="positive")
+        p2 = Parameter(3, nonpos=True)
+        p3 = Parameter((4, 4), nonneg=True)
 
         c1 = numpy.random.randn(2, 1)
         c2 = numpy.random.randn(1, 2)
@@ -712,8 +712,8 @@ class TestProblem(BaseTest):
         """Test problems with parameters.
         """
         p1 = Parameter()
-        p2 = Parameter(3, sign="negative")
-        p3 = Parameter(4, 4, sign="positive")
+        p2 = Parameter(3, nonpos=True)
+        p3 = Parameter((4, 4), nonneg=True)
         p = Problem(Maximize(p1*self.a), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         p1.value = 2
         p2.value = -numpy.ones((3, 1))
@@ -922,7 +922,7 @@ class TestProblem(BaseTest):
         n = 10
         A = numpy.arange(n*n)
         A = numpy.reshape(A, (n, n))
-        x = Variable(n, n)
+        x = Variable((n, n))
         p = Problem(Minimize(sum_entries(x)), [x == A])
         result = p.solve()
         answer = n*n*(n*n+1)/2 - n*n
@@ -1076,7 +1076,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
-        D = Variable(3, 3)
+        D = Variable((3, 3))
         expr = hstack(self.C, D)
         p = Problem(Minimize(expr[0, 1] + sum_entries(hstack(expr, expr))),
                     [self.C >= 0,
@@ -1374,7 +1374,7 @@ class TestProblem(BaseTest):
     def test_diag_prob(self):
         """Test a problem with diag.
         """
-        C = Variable(3, 3)
+        C = Variable((3, 3))
         obj = Maximize(C[0, 2])
         constraints = [diag(C) == 1,
                        C[0, 1] == 0.6,
@@ -1402,7 +1402,7 @@ class TestProblem(BaseTest):
         """Test presolve with parameters.
         """
         # Test with parameters.
-        gamma = Parameter(sign="positive")
+        gamma = Parameter(nonneg=True)
         x = Variable()
         obj = Minimize(x)
         prob = Problem(obj, [gamma == 1, x >= 0])
@@ -1458,7 +1458,7 @@ class TestProblem(BaseTest):
     def test_psd_constraints(self):
         """Test positive definite constraints.
         """
-        C = Variable(3, 3)
+        C = Variable((3, 3))
         obj = Maximize(C[0, 2])
         constraints = [diag(C) == 1,
                        C[0, 1] == 0.6,
@@ -1469,14 +1469,14 @@ class TestProblem(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, 0.583151, places=2)
 
-        C = Variable(2, 2)
+        C = Variable((2, 2))
         obj = Maximize(C[0, 1])
         constraints = [C == 1, C >> [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
         result = prob.solve()
         self.assertEqual(prob.status, s.INFEASIBLE)
 
-        C = Symmetric(2, 2)
+        C = Symmetric(2)
         obj = Minimize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
@@ -1505,7 +1505,7 @@ class TestProblem(BaseTest):
             self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
         # Test the dual values with SCS.
-        C = Symmetric(2, 2)
+        C = Symmetric(2)
         obj = Maximize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
@@ -1513,7 +1513,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 2, places=4)
 
         psd_constr_dual = constraints[0].dual_value
-        C = Symmetric(2, 2)
+        C = Symmetric(2)
         X = Semidef(2)
         obj = Maximize(C[0, 0])
         constraints = [X == [[2, 0], [0, 2]] - C]
@@ -1522,7 +1522,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
 
         # Test dual values with SCS that have off-diagonal entries.
-        C = Symmetric(2, 2)
+        C = Symmetric(2)
         obj = Maximize(C[0, 1] + C[1, 0])
         constraints = [C << [[2, 0], [0, 2]], C >= 0]
         prob = Problem(obj, constraints)
@@ -1530,7 +1530,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 4, places=3)
 
         psd_constr_dual = constraints[0].dual_value
-        C = Symmetric(2, 2)
+        C = Symmetric(2)
         X = Semidef(2)
         obj = Maximize(C[0, 1] + C[1, 0])
         constraints = [X == [[2, 0], [0, 2]] - C, C >= 0]
@@ -1552,14 +1552,14 @@ class TestProblem(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(x.value, [.5, .5])
 
-        x = Variable(3, 3)
+        x = Variable((3, 3))
         self.assertRaises(ValueError, geo_mean, x)
 
-        x = Variable(3, 1)
+        x = Variable((3, 1))
         g = geo_mean(x)
         self.assertSequenceEqual(g.w, [Fraction(1, 3)]*3)
 
-        x = Variable(1, 5)
+        x = Variable((1, 5))
         g = geo_mean(x)
         self.assertSequenceEqual(g.w, [Fraction(1, 5)]*5)
 

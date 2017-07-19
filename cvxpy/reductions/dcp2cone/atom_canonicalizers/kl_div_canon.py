@@ -26,7 +26,7 @@ def kl_div_canon(expr, args):
     shape = expr.shape
     x = promote(args[0], shape)
     y = promote(args[1], shape)
-    t = Variable(*shape)
+    t = Variable(shape)
     constraints = [ExpCone(t, x, y), y >= 0]
     obj = y - x - t
     return obj, constraints

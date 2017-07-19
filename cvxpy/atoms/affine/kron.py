@@ -58,12 +58,12 @@ class kron(AffAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_positive()
+        return self.args[0].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_negative()
+        return self.args[0].is_nonpos()
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

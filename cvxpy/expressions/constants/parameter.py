@@ -28,20 +28,15 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, rows=1, cols=1, name=None, sign="unknown", value=None):
+    def __init__(self, shape=(), name=None, value=None, **kwargs):
         self.id = lu.get_id()
-        self._rows = rows
-        self._cols = cols
-        self._sign_str = sign
         if name is None:
             self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
         else:
             self._name = name
         # Initialize with value if provided.
         self._value = None
-        if value is not None:
-            self.value = value
-        super(Parameter, self).__init__()
+        super(Parameter, self).__init__(shape, **kwargs)
 
     def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the object.
@@ -61,26 +56,10 @@ class Parameter(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._rows, self._cols, self._name, self._sign_str, self.value]
+        return [self.shape, self._name, self.value]
 
     def name(self):
         return self._name
-
-    @property
-    def shape(self):
-        """Returns the (row, col) dimensions of the expression.
-        """
-        return (self._rows, self._cols)
-
-    def is_positive(self):
-        """Is the expression positive?
-        """
-        return self._sign_str == s.ZERO or self._sign_str.upper() == s.POSITIVE
-
-    def is_negative(self):
-        """Is the expression negative?
-        """
-        return self._sign_str == s.ZERO or self._sign_str.upper() == s.NEGATIVE
 
     # Getter and setter for parameter value.
     @property
@@ -119,6 +98,4 @@ class Parameter(Leaf):
     def __repr__(self):
         """String to recreate the object.
         """
-        return 'Parameter(%d, %d, sign="%s")' % (self._rows,
-                                                 self._cols,
-                                                 self.sign)
+        return 'Parameter(%s)' % (self.shape,)

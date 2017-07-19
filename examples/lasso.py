@@ -27,7 +27,7 @@ n = 10
 m = 5
 A = cvxopt.normal(n,m)
 b = cvxopt.normal(n)
-gamma = Parameter(sign="positive")
+gamma = Parameter(nonneg=True)
 
 # Construct the problem.
 x = Variable(m)

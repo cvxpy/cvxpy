@@ -76,7 +76,7 @@ def log_det_canon(expr, args):
     constraints += [PSD(A)]
 
     # Fix Z as upper triangular
-    Z = Variable(n, n)
+    Z = Variable((n, n))
     Z_lower_tri = upper_tri(transpose(Z))
     constraints.append(Z_lower_tri == 0)
 

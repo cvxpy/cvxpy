@@ -25,7 +25,7 @@ def geo_mean_canon(expr, args):
     x = args[0]
     w = expr.w
     shape = expr.shape
-    t = Variable(*shape)
+    t = Variable(shape)
 
     x_list = [x[i] for i in range(len(w))]
 

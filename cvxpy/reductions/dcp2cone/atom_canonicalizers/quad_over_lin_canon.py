@@ -29,7 +29,7 @@ def quad_over_lin_canon(expr, args):
     y = args[1]
     shape = expr.shape
     # precondition: shape == (1,)
-    t = Variable(*shape)
+    t = Variable(shape)
     # (y+t, y-t, 2*x) must lie in the second-order cone,
     # where y+t is the scalar part of the second-order
     # cone constraint.

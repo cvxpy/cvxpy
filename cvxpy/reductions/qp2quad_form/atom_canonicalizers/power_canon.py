@@ -31,6 +31,6 @@ def power_canon(expr, args):
     elif p == 1:
         return affine_expr, []
     elif p == 2:
-        t = Variable(*affine_expr.shape)
+        t = Variable(affine_expr.shape)
         return SymbolicQuadForm(t, eye(t.size), expr), [affine_expr == t]
     raise ValueError("quadratic form can only have power 2")

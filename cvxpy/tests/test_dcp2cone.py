@@ -32,11 +32,11 @@ b = r.rand(n,1)
 l = np.random.randn(5, 4)
 c = [cvx.abs(A*x + b) <= 2, cvx.abs(y) + x[0] <= 1, cvx.log1p(x) >= 5]
 c.append(cvx.log_sum_exp(l, axis=0) <= 10)
-X = cvx.Variable(5, 5)
+X = cvx.Variable((5, 5))
 c.append(cvx.log_det(X) >= 10)
 cvx.Minimize(x[0])
 prob = cvx.Problem(cvx.Minimize(x[0] + x[1] + y), c)
- 
+
 d2c = Dcp2Cone()
 d2c.accepts(prob)
 new_prob = d2c.apply(prob)

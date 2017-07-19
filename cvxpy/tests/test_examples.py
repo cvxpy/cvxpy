@@ -148,18 +148,18 @@ class TestExamples(BaseTest):
         x = Variable(5)
 
         # Matrix variable with 4 rows and 7 columns.
-        A = Variable(4, 7)
+        A = Variable((4, 7))
 
         ####################################################
 
         # Positive scalar parameter.
-        m = Parameter(sign="positive")
+        m = Parameter(nonneg=True)
 
         # Column vector parameter with unknown sign (by default).
         c = Parameter(5)
 
         # Matrix parameter with negative entries.
-        G = Parameter(4, 7, sign="negative")
+        G = Parameter((4, 7), nonpos=True)
 
         # Assigns a constant value to G.
         G.value = -numpy.ones((4, 7))
@@ -188,7 +188,7 @@ class TestExamples(BaseTest):
         m = 5
         A = np.random.randn(n, m)
         b = np.random.randn(n)
-        gamma = Parameter(sign="positive")
+        gamma = Parameter(nonneg=True)
 
         # Construct the problem.
         x = Variable(m)
@@ -211,7 +211,7 @@ class TestExamples(BaseTest):
         mu = np.random.randn(1, n)
         sigma = np.random.randn(n, n)
         sigma = sigma.T.dot(sigma)
-        gamma = Parameter(sign="positive")
+        gamma = Parameter(nonneg=True)
         gamma.value = 1
         x = Variable(n)
 
@@ -248,7 +248,7 @@ class TestExamples(BaseTest):
             data += [(-1, np.random.normal(loc=-1.0, scale=2.0, size=n))]
 
         # Construct problem.
-        gamma = Parameter(sign="positive")
+        gamma = Parameter(nonneg=True)
         gamma.value = 0.1
         # 'a' is a variable constrained to have at most 6 non-zero entries.
         a = Variable(n)  # mi.SparseVar(n, nonzeros=6)
@@ -331,7 +331,7 @@ class TestExamples(BaseTest):
         (n, m) = x.shape
 
         # Create and solve the model
-        A = Variable(n, n);
+        A = Variable((n, n));
         b = Variable(n);
         obj = Maximize(log_det(A))
         constraints = []
@@ -486,7 +486,7 @@ class TestExamples(BaseTest):
         x = Variable(5)
 
         # Matrix variable with 4 rows and 7 columns.
-        A = Variable(4, 7)
+        A = Variable((4, 7))
 
         ########################################
         import numpy
@@ -512,24 +512,24 @@ class TestExamples(BaseTest):
 
         ########################################
         # Positive scalar parameter.
-        m = Parameter(sign="positive")
+        m = Parameter(nonneg=True)
 
         # Column vector parameter with unknown sign (by default).
         c = Parameter(5)
 
         # Matrix parameter with negative entries.
-        G = Parameter(4, 7, sign="negative")
+        G = Parameter((4, 7), nonpos=True)
 
         # Assigns a constant value to G.
         G.value = -numpy.ones((4, 7))
         ########################################
 
         # Create parameter, then assign value.
-        rho = Parameter(sign="positive")
+        rho = Parameter(nonneg=True)
         rho.value = 2
 
         # Initialize parameter with a value.
-        rho = Parameter(sign="positive", value=2)
+        rho = Parameter(nonneg=True, value=2)
 
         ########################################
 
@@ -542,7 +542,7 @@ class TestExamples(BaseTest):
         A = numpy.random.randn(n, m)
         b = numpy.random.randn(n, 1)
         # gamma must be positive due to DCP rules.
-        gamma = Parameter(sign="positive")
+        gamma = Parameter(nonneg=True)
 
         # Construct the problem.
         x = Variable(m)
@@ -567,7 +567,7 @@ class TestExamples(BaseTest):
         ########################################
         import numpy
 
-        X = Variable(5, 4)
+        X = Variable((5, 4))
         A = numpy.ones((3, 5))
 
         # Use expr.size to get the dimensions.
@@ -601,7 +601,7 @@ class TestExamples(BaseTest):
                     Known[i, j] = 1
         Ucorr = Known*Uorig
         # Recover the original image using total variation in-painting.
-        U = Variable(rows, cols)
+        U = Variable((rows, cols))
         obj = Minimize(tv(U))
         constraints = [mul_elemwise(Known, U) == mul_elemwise(Known, Ucorr)]
         prob = Problem(obj, constraints)

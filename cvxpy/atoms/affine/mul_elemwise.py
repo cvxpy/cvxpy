@@ -60,12 +60,12 @@ class mul_elemwise(AffAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_positive()
+        return self.args[0].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_negative()
+        return self.args[0].is_nonpos()
 
     def is_quadratic(self):
         """Quadratic if x is quadratic.

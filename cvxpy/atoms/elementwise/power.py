@@ -169,7 +169,7 @@ class power(Elementwise):
         """
         if self.p == 1:
             # Same as input.
-            return (self.args[0].is_positive(), self.args[0].is_negative())
+            return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
         else:
             # Always positive.
             return (True, False)
@@ -198,7 +198,7 @@ class power(Elementwise):
             return True
         elif self.p > 1:
             if is_power2(self.p):
-                return self.args[idx].is_positive()
+                return self.args[idx].is_nonneg()
             else:
                 return True
         else:
@@ -211,7 +211,7 @@ class power(Elementwise):
             return True
         elif self.p > 1:
             if is_power2(self.p):
-                return self.args[idx].is_negative()
+                return self.args[idx].is_nonpos()
             else:
                 return False
         else:

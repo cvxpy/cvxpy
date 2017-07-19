@@ -25,13 +25,8 @@ import scipy.sparse as sp
 
 class Variable(Leaf):
     """ The base variable class """
-    # name - unique identifier.
-    # rows - variable height.
-    # cols - variable width.
 
-    def __init__(self, rows=1, cols=1, name=None, var_id=None):
-        self._rows = rows
-        self._cols = cols
+    def __init__(self, shape=(), name=None, var_id=None, **kwargs):
         if var_id is None:
             self.id = lu.get_id()
         else:
@@ -41,23 +36,8 @@ class Variable(Leaf):
         else:
             self._name = name
         self.primal_value = None
-        super(Variable, self).__init__()
 
-    def is_positive(self):
-        """Is the expression positive?
-        """
-        return False
-
-    def is_negative(self):
-        """Is the expression negative?
-        """
-        return False
-
-    @property
-    def shape(self):
-        """Returns the (row, col) dimensions of the expression.
-        """
-        return (self._rows, self._cols)
+        super(Variable, self).__init__(shape, **kwargs)
 
     def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the object.
@@ -77,7 +57,7 @@ class Variable(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._rows, self._cols, self._name]
+        return [self.shape, self._name]
 
     def name(self):
         return self._name
@@ -126,4 +106,4 @@ class Variable(Leaf):
     def __repr__(self):
         """String to recreate the object.
         """
-        return "Variable(%d, %d)" % self.shape
+        return "Variable(%s)" % (self.shape,)

@@ -33,9 +33,9 @@ class TestSolvers(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     # TODO this works on some machines.
     # def test_solver_errors(self):
@@ -484,7 +484,7 @@ class TestSolvers(BaseTest):
         if GUROBI in installed_solvers():
             import numpy as np
 
-            A = Parameter(2, 2)
+            A = Parameter((2, 2))
             b = Parameter(2)
             h = Parameter(2)
             c = Parameter(2)

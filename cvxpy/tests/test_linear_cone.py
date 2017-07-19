@@ -50,9 +50,9 @@ class TestLinearCone(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
         self.solvers = [ECOS()]#, GUROBI(), MOSEK(), SCS(), CVXOPT(), GLPK()]
 
@@ -295,7 +295,7 @@ class TestLinearCone(BaseTest):
     def test_psd_constraints(self):
         """ Test positive semi-definite constraints
         """
-        C = Variable(3, 3)
+        C = Variable((3, 3))
         obj = Maximize(C[0, 2])
         constraints = [diag(C) == 1,
                        C[0, 1] == 0.6,
@@ -307,7 +307,7 @@ class TestLinearCone(BaseTest):
         p_min = FlipObjective().apply(prob)
         self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
 
-        C = Variable(2, 2)
+        C = Variable((2, 2))
         obj = Maximize(C[0, 1])
         constraints = [C == 1, C >> [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)

@@ -28,8 +28,8 @@ def huber_canon(expr, args):
     M = expr.M
     x = args[0]
     shape = expr.shape
-    n = Variable(*shape)
-    s = Variable(*shape)
+    n = Variable(shape)
+    s = Variable(shape)
 
     # n**2 + 2*M*|s|
     # TODO(akshayka): Make use of recursion inherent to canonicalization

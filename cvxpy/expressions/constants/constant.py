@@ -42,9 +42,8 @@ class Constant(Leaf):
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
-        self._shape = intf.shape(self.value)
-        self._is_pos, self._is_neg = intf.sign(self.value)
-        super(Constant, self).__init__()
+        is_nonneg, is_nonpos = intf.sign(self.value)
+        super(Constant, self).__init__(intf.shape(self.value), nonneg=is_nonneg, nonpos=is_nonpos)
 
     def name(self):
         """The value as a string.
@@ -85,16 +84,6 @@ class Constant(Leaf):
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape
-
-    def is_positive(self):
-        """Is the expression positive?
-        """
-        return self._is_pos
-
-    def is_negative(self):
-        """Is the expression negative?
-        """
-        return self._is_neg
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

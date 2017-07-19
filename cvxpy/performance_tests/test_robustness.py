@@ -95,7 +95,7 @@ class TestProblem(unittest.TestCase):
         SHAPE = (256, 256)
         rows = SHAPE[0]
         cols = SHAPE[1]
-        X = Variable(*SHAPE)
+        X = Variable(SHAPE)
         Z = Variable(rows+cols, rows+cols)
         prob = Problem(Minimize(0.5*at.trace(Z)),
                        [X[0, 0] >= 1, Z[0:rows, rows:rows+cols] == X, Z >> 0, Z == Z.T])

@@ -71,14 +71,14 @@ class Atom(Expression):
         return NotImplemented
 
     @clru_cache(maxsize=100)
-    def is_positive(self):
-        """Is the expression positive?
+    def is_nonneg(self):
+        """Is the expression nonnegative?
         """
         return self.sign_from_args()[0]
 
     @clru_cache(maxsize=100)
-    def is_negative(self):
-        """Is the expression negative?
+    def is_nonpos(self):
+        """Is the expression nonpositive?
         """
         return self.sign_from_args()[1]
 
@@ -152,8 +152,7 @@ class Atom(Expression):
         if self.is_constant():
             # Parameterized expressions are evaluated later.
             if self.parameters():
-                rows, cols = self.shape
-                param = CallbackParam(lambda: self.value, rows, cols)
+                param = CallbackParam(lambda: self.value, self.shape)
                 return param.canonical_form
             # Non-parameterized expressions are evaluated immediately.
             else:

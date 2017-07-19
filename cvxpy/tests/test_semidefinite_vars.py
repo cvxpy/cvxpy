@@ -31,7 +31,7 @@ class TestSemidefiniteVariable(BaseTest):
 
     def setUp(self):
         self.X = Semidef(2)
-        self.Y = Variable(2, 2)
+        self.Y = Variable((2, 2))
         self.F = np.matrix([[1, 0], [0, -1]])
 
     def test_sdp_print(self):

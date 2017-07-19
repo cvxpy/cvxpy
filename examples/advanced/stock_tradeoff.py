@@ -31,7 +31,7 @@ mu = cvxopt.exp( cvxopt.normal(num_assets) )
 F = cvxopt.normal(num_assets, num_factors)
 D = cvxopt.spdiag( cvxopt.uniform(num_assets) )
 x = Variable(num_assets)
-gamma = Parameter(sign="positive")
+gamma = Parameter(nonneg=True)
 
 expected_return = mu.T * x
 variance = square(norm2(F.T*x)) + square(norm2(D*x))

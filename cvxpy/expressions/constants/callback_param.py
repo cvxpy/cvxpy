@@ -26,9 +26,9 @@ class CallbackParam(Parameter):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, callback, rows=1, cols=1, name=None, sign="unknown"):
+    def __init__(self, callback, shape=(), name=None, sign="unknown"):
         self._callback = callback
-        super(CallbackParam, self).__init__(rows, cols, name, sign)
+        super(CallbackParam, self).__init__(shape, name, sign)
 
     @property
     def value(self):
@@ -39,5 +39,5 @@ class CallbackParam(Parameter):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._callback, self._rows, self._cols,
+        return [self._callback, self.shape,
                 self._name, self.sign_str]

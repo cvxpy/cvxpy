@@ -62,7 +62,7 @@ def proj(cvx_set, value):
 # in the form (normal, offset) where normal.T*x == offset
 # for all x on the hyperplane.
 def sep_hyp(lh_set, rh_set):
-    w = cvx.Variable(*lh_set.size)
+    w = cvx.Variable(lh_set.size)
     p = cvx.Problem(cvx.Minimize(cvx.norm(w, 2)), [lh_set - rh_set == w])
     p.solve(solver=cvx.CVXOPT)
     # Normal vector to the hyperplane.

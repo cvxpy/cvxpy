@@ -26,8 +26,7 @@ import numpy as np
 
 def exp_canon(expr, args):
     x = promote(args[0], expr.shape)
-    shape = expr.shape
-    t = Variable(*shape)
-    ones = Constant(np.ones(shape))
+    t = Variable(expr.shape)
+    ones = Constant(np.ones(expr.shape))
     constraints = [ExpCone(x, ones, t)]
     return t, constraints

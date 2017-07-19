@@ -73,7 +73,7 @@ class sum_largest(Atom):
         """Returns sign (is positive, is negative) of the expression.
         """
         # Same as argument.
-        return (self.args[0].is_positive(), self.args[0].is_negative())
+        return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def is_atom_convex(self):
         """Is the atom convex?

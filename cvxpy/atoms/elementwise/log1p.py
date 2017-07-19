@@ -39,7 +39,7 @@ class log1p(log):
     def sign_from_args(self):
         """The same sign as the argument.
         """
-        return (self.args[0].is_positive(), self.args[0].is_negative())
+        return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

@@ -37,7 +37,7 @@ class TestWarmstart(unittest.TestCase):
         A = numpy.random.randn(n, m)
         b = numpy.random.randn(n, 1)
         # gamma must be positive due to DCP rules.
-        gamma = Parameter(sign="positive")
+        gamma = Parameter(nonneg=True)
 
         # Construct the problem.
         x = Variable(m)

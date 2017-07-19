@@ -44,7 +44,7 @@ The objective is to minimize  -∑log(α_i+x_i) subject to the constraint ∑x_i
   '''
   # Declare variables and parameters
   x = cvx.Variable(n)
-  alpha = cvx.Parameter(n,sign='positive')
+  alpha = cvx.Parameter(n,nonneg=True)
   alpha.value = a
   #alpha.value = np.ones(n)
   # Choose objective function. Interpret as maximising the total communication rate of all the channels

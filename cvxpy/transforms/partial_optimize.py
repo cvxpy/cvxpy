@@ -112,15 +112,15 @@ class PartialProblem(Expression):
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
-    def is_positive(self):
-        """Is the expression positive?
+    def is_nonneg(self):
+        """Is the expression nonnegative?
         """
-        return self.args[0].objective.args[0].is_positive()
+        return self.args[0].objective.args[0].is_nonneg()
 
-    def is_negative(self):
-        """Is the expression negative?
+    def is_nonpos(self):
+        """Is the expression nonpositive?
         """
-        return self.args[0].objective.args[0].is_negative()
+        return self.args[0].objective.args[0].is_nonpos()
 
     @property
     def shape(self):

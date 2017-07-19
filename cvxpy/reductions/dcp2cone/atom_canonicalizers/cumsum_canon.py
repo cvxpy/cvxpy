@@ -33,7 +33,7 @@ def cumsum_canon(expr, args):
     axis = expr.axis
     # Implicit O(n) definition:
     # X = Y[:1,:] - Y[1:,:]
-    Y = Variable(*expr.shape)
+    Y = Variable(expr.shape)
     if axis == 0:
         constr = [X[1:,:] == Y[1:,:] - Y[:-1,:], Y[0,:] == X[0,:]]
     else:

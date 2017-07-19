@@ -74,7 +74,7 @@ class SymmetricUpperTri(Variable):
 
     def __init__(self, n, name=None):
         self.n = n
-        super(SymmetricUpperTri, self).__init__(n*(n+1)//2, 1, name)
+        super(SymmetricUpperTri, self).__init__((n*(n+1)//2, 1), name)
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.

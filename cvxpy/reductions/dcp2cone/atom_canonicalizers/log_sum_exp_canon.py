@@ -31,7 +31,7 @@ def log_sum_exp_canon(expr, args):
     x = args[0]
     shape = expr.shape
     axis = expr.axis
-    t = Variable(*shape)
+    t = Variable(shape)
 
     # log(sum(exp(x))) <= t <=> sum(exp(x-t)) <= 1
     if axis is None:  # shape = (1, 1)

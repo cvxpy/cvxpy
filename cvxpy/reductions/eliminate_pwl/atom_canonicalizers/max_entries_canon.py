@@ -27,7 +27,7 @@ def max_entries_canon(expr, args):
     x = args[0]
     shape = expr.shape
     axis = expr.axis
-    t = Variable(*shape)
+    t = Variable(shape)
 
     if axis is None:  # shape = (1, 1)
         promoted_t = Constant(np.ones(x.shape)) * t

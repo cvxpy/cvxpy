@@ -39,9 +39,9 @@ class TestDomain(BaseTest):
         self.y = Variable(2, name='y')
         self.z = Variable(3, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2,2), name='A')
+        self.B = Variable((2,2), name='B')
+        self.C = Variable((3,2), name='C')
 
     def test_partial_problem(self):
         """Test domain for partial minimization/maximization problems.

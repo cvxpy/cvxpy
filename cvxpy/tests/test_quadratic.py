@@ -68,8 +68,8 @@ class TestExpressions(BaseTest):
         self.assertTrue(w.is_dcp())
 
     def test_matrix_multiplication(self):
-        x = Variable(3, 5)
-        y = Variable(3, 5)
+        x = Variable((3, 5))
+        y = Variable((3, 5))
         self.assertFalse(x.is_constant())
         self.assertTrue(x.is_affine())
         self.assertTrue(x.is_quadratic())
@@ -83,8 +83,8 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_dcp())
 
     def test_quad_over_lin(self):
-        x = Variable(3, 5)
-        y = Variable(3, 5)
+        x = Variable((3, 5))
+        y = Variable((3, 5))
         z = Variable()
         s = quad_over_lin(x-y, z)
         self.assertFalse(s.is_constant())
@@ -100,7 +100,7 @@ class TestExpressions(BaseTest):
 
     def test_matrix_frac(self):
         x = Variable(5)
-        M = np.asmatrix(np.random.randn(5, 5))
+        M = np.eye(5)
         P = M.T*M
         s = matrix_frac(x, P)
         self.assertFalse(s.is_constant())
@@ -110,8 +110,8 @@ class TestExpressions(BaseTest):
 
     def test_quadratic_form(self):
         x = Variable(5)
-        P = np.asmatrix(np.random.randn(5, 5))
-        q = np.asmatrix(np.random.randn(5, 1))
+        P = np.eye(5) - 2*np.ones((5, 5))
+        q = np.asmatrix(np.ones((5, 1)))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             s = x.T*P*x + q.T*x
@@ -121,10 +121,10 @@ class TestExpressions(BaseTest):
         self.assertFalse(s.is_dcp())
 
     def test_sum_squares(self):
-        X = Variable(5, 4)
-        P = np.asmatrix(np.random.randn(3, 5))
-        Q = np.asmatrix(np.random.randn(4, 7))
-        M = np.asmatrix(np.random.randn(3, 7))
+        X = Variable((5, 4))
+        P = np.ones((3, 5))
+        Q = np.ones((4, 7))
+        M = np.ones((3, 7))
 
         y = P*X*Q + M
         self.assertFalse(y.is_constant())
@@ -177,7 +177,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(t.is_quadratic())
 
     def test_affine_prod(self):
-        x = Variable(3, 5)
+        x = Variable((3, 5))
         y = Variable(5, 4)
 
         with warnings.catch_warnings():

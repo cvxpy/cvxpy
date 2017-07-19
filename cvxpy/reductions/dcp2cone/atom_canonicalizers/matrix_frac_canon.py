@@ -27,8 +27,8 @@ def matrix_frac_canon(expr, args):
     P = args[1]  # n by n matrix.
     n, m = X.shape
     # Create a matrix with Schur complement T - X.T*P^-1*X.
-    M = Variable(n+m, n+m)
-    T = Variable(m, m)
+    M = Variable((n+m, n+m))
+    T = Variable((m, m))
     constraints = []
     # Fix M using the fact that P must be affine by the DCP rules.
     # M[0:n, 0:n] == P.

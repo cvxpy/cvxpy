@@ -51,7 +51,7 @@ class TestProblemType(BaseTest):
         self.assertEquals(True, Qp2SymbolicQp().accepts(self.qp))
 
     def test_QPcanonaccepts_PSD_False(self):
-        self.qp.constraints += [PSD(Variable(2, 2))]
+        self.qp.constraints += [PSD(Variable((2, 2)))]
         self.assertEquals(False, Qp2SymbolicQp().accepts(self.qp))
 
     def test_QPcanon_postconditions(self):
@@ -65,7 +65,7 @@ class TestProblemType(BaseTest):
         self.assertEquals(True, ECOS().accepts(self.cp))
 
     def test_ECOSaccepts_PSD_False(self):
-        self.cp.constraints += [PSD(Variable(2, 2))]
+        self.cp.constraints += [PSD(Variable((2, 2)))]
         self.assertEquals(False, ECOS().accepts(self.cp))
 
     def test_atoms(self):

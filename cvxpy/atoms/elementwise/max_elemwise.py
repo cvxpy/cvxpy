@@ -49,8 +49,8 @@ class max_elemwise(Elementwise):
         #     ZERO, NEGATIVE = ZERO
         #     UNKNOWN, NEGATIVE = UNKNOWN
         #     NEGATIVE, NEGATIVE = NEGATIVE
-        is_pos = any([arg.is_positive() for arg in self.args])
-        is_neg = all([arg.is_negative() for arg in self.args])
+        is_pos = any([arg.is_nonneg() for arg in self.args])
+        is_neg = all([arg.is_nonpos() for arg in self.args])
         return (is_pos, is_neg)
 
     def is_atom_convex(self):

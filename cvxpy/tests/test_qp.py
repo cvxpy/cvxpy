@@ -44,18 +44,18 @@ class TestQp(BaseTest):
         self.z = Variable(2, name='z')
         self.w = Variable(5, name='w')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
         self.slope = Variable(1, name='slope')
         self.offset = Variable(1, name='offset')
         self.quadratic_coeff = Variable(1, name='quadratic_coeff')
 
         T = 100
-        self.position = Variable(2, T, name='position')
-        self.velocity = Variable(2, T, name='velocity')
-        self.force = Variable(2, T - 1, name='force')
+        self.position = Variable((2, T), name='position')
+        self.velocity = Variable((2, T), name='velocity')
+        self.force = Variable((2, T - 1), name='force')
 
         self.xs = Variable(800, name='xs')
         self.xsr = Variable(500, name='xsr')

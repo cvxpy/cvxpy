@@ -34,12 +34,12 @@ class NonNegative(Variable):
     def __repr__(self):
         return "NonNegative(%d, %d)" % self.size
 
-    def is_positive(self):
-        """Is the expression positive?
+    def is_nonneg(self):
+        """Is the expression nonnegative?
         """
         return True
 
-    def is_negative(self):
-        """Is the expression negative?
+    def is_nonpos(self):
+        """Is the expression nonpositive?
         """
         return False

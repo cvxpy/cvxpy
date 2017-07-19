@@ -103,7 +103,7 @@ class cumsum(AffAtom, AxisAtom):
         for i in range(dim):
             for j in range(i+1):
                 mat[i, j] = 1
-        var = Variable(*self.args[0].shape)
+        var = Variable(self.args[0].shape)
         if self.axis == 0:
             grad = MulExpression(mat, var)._grad(values)[1]
         else:

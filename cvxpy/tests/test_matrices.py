@@ -50,9 +50,9 @@ class TestMatrices(unittest.TestCase):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     # Test numpy arrays
     def test_numpy_arrays(self):
@@ -158,7 +158,7 @@ class TestMatrices(unittest.TestCase):
         self.assertEqual(Aidx[0, 1], 0)
 
         # Linear ops.
-        var = Variable(4, 2)
+        var = Variable((4, 2))
         A = numpy.matrix(numpy.arange(8).reshape((4, 2)))
         A = sp.csc_matrix(A)
         B = sp.hstack([A, A])

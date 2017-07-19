@@ -36,7 +36,7 @@ def power_canon(expr, args):
     if p == 0:
         return ones, []
     else:
-        t = Variable(*shape)
+        t = Variable(shape)
         # TODO(akshayka): gm_constrs requires each of its inputs to be a Variable;
         # is this something that we want to change?
         if 0 < p < 1:

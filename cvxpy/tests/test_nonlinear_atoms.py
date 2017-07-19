@@ -31,9 +31,9 @@ class TestNonlinearAtoms(BaseTest):
         self.x = Variable(2, name='x')
         self.y = Variable(2, name='y')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     def test_log_problem(self):
         # Log in objective.
@@ -87,9 +87,9 @@ class TestNonlinearAtoms(BaseTest):
         npSPriors = npSPriors/np.sum(npSPriors)
 
         #Reference distribution
-        p_refProb = cp.Parameter(kK, 1, sign='positive')
+        p_refProb = cp.Parameter((kK, 1), nonneg=True)
         #Distribution to be estimated
-        v_prob = cp.Variable(kK, 1)
+        v_prob = cp.Variable((kK, 1))
         objkl = 0.0
         for k in range(kK):
             objkl += cp.kl_div(v_prob[k, 0], p_refProb[k, 0])
@@ -172,9 +172,9 @@ class TestNonlinearAtoms(BaseTest):
 
             kD = 2
             Sk = cp.semidefinite(kD)
-            Rsk = cp.Parameter(kD, kD)
-            mk = cp.Variable(kD, 1)
-            musk = cp.Parameter(kD, 1)
+            Rsk = cp.Parameter((kD, kD))
+            mk = cp.Variable((kD, 1))
+            musk = cp.Parameter((kD, 1))
 
             logpart = -0.5*cp.log_det(Sk)+0.5*cp.matrix_frac(mk, Sk)+(kD/2.)*np.log(2*np.pi)
             linpart = mk.T*musk-0.5*cp.trace(Sk*Rsk)

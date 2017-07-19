@@ -37,7 +37,7 @@ for i in xrange(M):
     data += [(-1, np.random.normal(-1.0, 2.0, (n, 1)))]
 
 # Construct problem.
-gamma = Parameter(sign="positive")
+gamma = Parameter(nonneg=True)
 gamma.value = 0.1
 # 'a' is a variable constrained to have at most 6 non-zero entries.
 a = Card(n, k=6)

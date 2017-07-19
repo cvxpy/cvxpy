@@ -270,13 +270,13 @@ parameter was created.
 .. code:: python
 
     # Positive scalar parameter.
-    m = Parameter(sign="positive")
+    m = Parameter(nonneg=True)
 
     # Column vector parameter with unknown sign (by default).
     c = Parameter(5)
 
     # Matrix parameter with negative entries.
-    G = Parameter(4, 7, sign="negative")
+    G = Parameter(4, 7, nonpos=True)
 
     # Assigns a constant value to G.
     G.value = -numpy.ones((4, 7))
@@ -286,11 +286,11 @@ You can initialize a parameter with a value. The following code segments are equ
 .. code:: python
 
     # Create parameter, then assign value.
-    rho = Parameter(sign="positive")
+    rho = Parameter(nonneg=True)
     rho.value = 2
 
     # Initialize parameter with a value.
-    rho = Parameter(sign="positive", value=2)
+    rho = Parameter(nonneg=True, value=2)
 
 Computing trade-off curves is a common use of parameters. The example below
 computes a trade-off curve for a LASSO problem.
@@ -308,7 +308,7 @@ computes a trade-off curve for a LASSO problem.
     A = numpy.random.randn(n, m)
     b = numpy.random.randn(n, 1)
     # gamma must be positive due to DCP rules.
-    gamma = Parameter(sign="positive")
+    gamma = Parameter(nonneg=True)
 
     # Construct the problem.
     x = Variable(m)

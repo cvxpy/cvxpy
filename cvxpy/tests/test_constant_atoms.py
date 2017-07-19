@@ -340,7 +340,7 @@ def test_constant_atoms():
                         variables = []
                         constraints = []
                         for idx, expr in enumerate(args):
-                            variables.append(Variable(*intf.shape(expr)))
+                            variables.append(Variable(intf.shape(expr)))
                             constraints.append(variables[-1] == expr)
                         objective = objective_type(atom(*variables)[row, col])
                         prob_val = obj_val[row, col].value
@@ -357,7 +357,7 @@ def test_constant_atoms():
                         # Atoms with Parameter arguments.
                         parameters = []
                         for expr in args:
-                            parameters.append(Parameter(*intf.shape(expr)))
+                            parameters.append(Parameter(intf.shape(expr)))
                             parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
                         objective = objective_type(atom(*parameters)[row, col])
                         yield (run_atom,

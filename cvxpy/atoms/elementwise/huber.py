@@ -70,12 +70,12 @@ class huber(Elementwise):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[idx].is_positive()
+        return self.args[idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[idx].is_negative()
+        return self.args[idx].is_nonpos()
 
     def get_data(self):
         """Returns the parameter M.
@@ -85,7 +85,7 @@ class huber(Elementwise):
     def validate_arguments(self):
         """Checks that M >= 0 and is constant.
         """
-        if not (self.M.is_positive() and self.M.is_constant() and self.M.is_scalar()):
+        if not (self.M.is_nonneg() and self.M.is_constant() and self.M.is_scalar()):
             raise ValueError("M must be a non-negative scalar constant.")
 
     def _grad(self, values):

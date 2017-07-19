@@ -50,7 +50,7 @@ class NegExpression(UnaryOperator):
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        return (self.args[0].is_negative(), self.args[0].is_positive())
+        return (self.args[0].is_nonpos(), self.args[0].is_nonneg())
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?

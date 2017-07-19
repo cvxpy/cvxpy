@@ -46,9 +46,9 @@ class TestExpressions(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2,2), name='A')
+        self.B = Variable((2,2), name='B')
+        self.C = Variable((3,2), name='C')
         self.intf = intf.DEFAULT_INTF
 
     # Test the Variable class.
@@ -66,8 +66,8 @@ class TestExpressions(BaseTest):
         self.assertEqual(x.canonical_form[0].shape, (2, 1))
         self.assertEqual(x.canonical_form[1], [])
 
-        self.assertEqual(repr(self.x), "Variable(2, 1)")
-        self.assertEqual(repr(self.A), "Variable(2, 2)")
+        self.assertEqual(repr(self.x), "Variable((2, 1))")
+        self.assertEqual(repr(self.A), "Variable((2, 2))")
 
         # # Scalar variable
         # coeff = self.a.coefficients()
@@ -109,7 +109,7 @@ class TestExpressions(BaseTest):
         x.value = [2, 1]
         self.assertItemsAlmostEqual(x.value, [2, 1])
         # Matrix variable.
-        A = Variable(3, 2)
+        A = Variable((3, 2))
         A.value = np.ones((3, 2))
         self.assertItemsAlmostEqual(A.value, np.ones((3, 2)))
 
@@ -214,7 +214,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(p.name(), "p")
         self.assertEqual(p.shape, (1, 1))
 
-        p = Parameter(4, 3, sign="positive")
+        p = Parameter((4, 3), nonneg=True)
         with self.assertRaises(Exception) as cm:
             p.value = 1
         self.assertEqual(str(cm.exception), "Invalid dimensions (1, 1) for Parameter value.")
@@ -222,18 +222,18 @@ class TestExpressions(BaseTest):
         val = -np.ones((4, 3))
         val[0, 0] = 2
 
-        p = Parameter(4, 3, sign="positive")
+        p = Parameter((4, 3), nonneg=True)
         with self.assertRaises(Exception) as cm:
             p.value = val
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
-        p = Parameter(4, 3, sign="negative")
+        p = Parameter((4, 3), nonpos=True)
         with self.assertRaises(Exception) as cm:
             p.value = val
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
         # No error for unknown sign.
-        p = Parameter(4, 3)
+        p = Parameter((4, 3))
         p.value = val
 
         # Initialize a parameter with a value.
@@ -246,16 +246,16 @@ class TestExpressions(BaseTest):
         assert p.value is None
 
         with self.assertRaises(Exception) as cm:
-            p = Parameter(2, 1, sign="negative", value=[2, 1])
+            p = Parameter(2, 1, nonpos=True, value=[2, 1])
         self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
 
         with self.assertRaises(Exception) as cm:
-            p = Parameter(4, 3, sign="positive", value=[1, 2])
+            p = Parameter((4, 3), nonneg=True, value=[1, 2])
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 1) for Parameter value.")
 
         # Test repr.
-        p = Parameter(4, 3, sign="negative")
-        self.assertEqual(repr(p), 'Parameter(4, 3, sign="NEGATIVE")')
+        p = Parameter((4, 3), nonpos=True)
+        self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
 
     # Test the AddExpresion class.
     def test_add_expression(self):
@@ -457,12 +457,12 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.NEGATIVE)
 
         # Parameters.
-        p = Parameter(sign="positive")
+        p = Parameter(nonneg=True)
         exp = 2/p
         p.value = 2
         self.assertEqual(exp.value, 1)
 
-        rho = Parameter(sign="positive")
+        rho = Parameter(nonneg=True)
         rho.value = 1
 
         self.assertEqual(rho.sign, s.POSITIVE)
@@ -478,7 +478,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.AFFINE)
         assert exp.is_affine()
         self.assertEqual(exp.sign, s.UNKNOWN)
-        assert not exp.is_positive()
+        assert not exp.is_nonneg()
         self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), "-%s" % self.x.name())
@@ -496,7 +496,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.AFFINE)
         assert exp.is_affine()
         self.assertEqual(exp.sign, s.UNKNOWN)
-        assert not exp.is_negative()
+        assert not exp.is_nonpos()
         self.assertEqual(exp.canonical_form[0].shape, (2, 1))
         self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), self.x.name() + " + " + Constant(2).name())
@@ -781,7 +781,7 @@ class TestExpressions(BaseTest):
     def test_var_copy(self):
         """Test the copy function for variable types.
         """
-        x = Variable(3, 4, name="x")
+        x = Variable((3,4), name="x")
         y = x.copy()
         self.assertEqual(y.shape, (3, 4))
         self.assertEqual(y.name(), "x")
@@ -793,7 +793,7 @@ class TestExpressions(BaseTest):
     def test_param_copy(self):
         """Test the copy function for Parameters.
         """
-        x = Parameter(3, 4, name="x", sign="positive")
+        x = Parameter((3, 4), name="x", nonneg=True)
         y = x.copy()
         self.assertEqual(y.shape, (3, 4))
         self.assertEqual(y.name(), "x")
@@ -810,8 +810,8 @@ class TestExpressions(BaseTest):
     def test_is_pwl(self):
         """Test is_pwl()
         """
-        A = np.random.randn(2, 3)
-        b = np.random.randn(2)
+        A = np.ones((2, 3))
+        b = np.ones(2)
 
         expr = A * self.y - b
         self.assertEqual(expr.is_pwl(), True)

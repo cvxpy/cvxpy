@@ -93,12 +93,12 @@ class quad_over_lin(Atom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return (idx == 0) and self.args[idx].is_positive()
+        return (idx == 0) and self.args[idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return ((idx == 0) and self.args[idx].is_negative()) or (idx == 1)
+        return ((idx == 0) and self.args[idx].is_nonpos()) or (idx == 1)
 
     def validate_arguments(self):
         """Check dimensions of arguments.
