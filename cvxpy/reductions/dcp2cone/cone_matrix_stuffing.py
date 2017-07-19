@@ -20,18 +20,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 
 from cvxpy.expressions.variable import Variable
+from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
-from cvxpy.problems.objective import Minimize
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.attributes import is_affine
-from cvxpy.constraints.attributes import (exists,
-                                          is_cone_constraint,
-                                          are_arguments_affine,
-                                          is_stuffed_cone_constraint)
-from cvxpy.problems.objective_attributes import is_cone_objective
-from cvxpy.problems.problem import Problem
-from cvxpy.problems.attributes import is_minimization
+from cvxpy.reductions.utilities import are_args_affine
 
 
 class ConeMatrixStuffing(MatrixStuffing):
@@ -47,19 +39,10 @@ class ConeMatrixStuffing(MatrixStuffing):
                cone_constrK(A_i*x + b_i, ...)
     """
 
-    preconditions = {
-        (Problem, is_minimization, True),
-        (Minimize, is_affine, True),
-        (Constraint, is_cone_constraint, True),
-        (Constraint, are_arguments_affine, True)
-    }
-
-    @staticmethod
-    def postconditions(problem_type):
-        post = set(cond for cond in problem_type if cond[1] == exists)
-        post = post.union(ConeMatrixStuffing.preconditions)
-        post = post.union({(Constraint, is_stuffed_cone_constraint, True)})
-        return post.union({(Minimize, is_cone_objective, True)})
+    def accepts(self, problem):
+        return (type(problem.objective) == Minimize
+                and problem.objective.expr.is_affine()
+                and are_args_affine(problem.constraints))
 
     def stuffed_objective(self, problem, inverse_data):
         extractor = CoeffExtractor(inverse_data)

@@ -1,5 +1,5 @@
 """
-Copyright 2015 Enzo Busseti, 2017 Robin Verschueren
+Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -17,22 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import numpy as np
+
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, NonPos, Zero
-from cvxpy.expressions.variables import Bool, Int
+from cvxpy.constraints import SOC, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.reductions.solution import Solution
 
 from .conic_solver import ConicSolver
 
 
-class MOSEK(ConicSolver):
-    """An interface for the Mosek solver.
+class GUROBI(ConicSolver):
+    """An interface for the Gurobi solver.
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC, PSD, Bool, Int]
+    MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
-    # Map of Mosek status to CVXPY status.
+    # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   5: s.UNBOUNDED,
@@ -48,25 +51,25 @@ class MOSEK(ConicSolver):
                   12: s.SOLVER_ERROR,
                   13: s.SOLVER_ERROR}
 
-    def import_solver(self):
-        """Imports the solver.
-        """
-        import mosek
-        mosek  # For flake8
-
     def name(self):
         """The name of the solver.
         """
-        return s.MOSEK
+        return s.GUROBI
+
+    def import_solver(self):
+        """Imports the solver.
+        """
+        import gurobipy
+        gurobipy  # For flake8
 
     def accepts(self, problem):
-        """Can Mosek solve the problem?
+        """Can Gurobi solve the problem?
         """
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos, SOC, SDP]:
+            if type(constr) not in GUROBI.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
@@ -82,26 +85,54 @@ class MOSEK(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
-
-        # Order and group constraints.
-        eq_constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[MOSEK.EQ_CONSTR] = eq_constr
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        sd_constr = [c for c in problem.constraints if type(c) == SDP]
-        inv_data[MOSEK.NEQ_CONSTR] = leq_constr + soc_constr + sd_constr
-        return data, inv_data
-
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        from cvxpy.problems.solvers.mosek_intf import MOSEK as MOSEK_OLD
-        solver = MOSEK_OLD()
-        _, inv_data = self.apply(problem)
         objective, _ = problem.objective.canonical_form
         constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        sol = solver.solve(
-            objective,
-            constraints,
+        data["objective"] = objective
+        data["constraints"] = constraints
+
+        # Order and group constraints.
+        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        eq_constr = [c for c in problem.constraints if type(c) == Zero]
+        inv_data[GUROBI.EQ_CONSTR] = eq_constr
+        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
+        soc_constr = [c for c in problem.constraints if type(c) == SOC]
+        inv_data[GUROBI.NEQ_CONSTR] = leq_constr + soc_constr
+        return data, inv_data
+
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = solution['status']
+
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value']
+            primal_vars = {inverse_data[GUROBI.VAR_ID]: solution['primal']}
+            eq_dual = ConicSolver.get_dual_values(
+                solution['eq_dual'],
+                inverse_data[GUROBI.EQ_CONSTR])
+            leq_dual = ConicSolver.get_dual_values(
+                solution['ineq_dual'],
+                inverse_data[GUROBI.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
+        else:
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+            else:
+                opt_val = None
+            primal_vars = None
+            dual_vars = None
+
+        return Solution(status, opt_val, primal_vars, dual_vars, None)
+
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        from cvxpy.problems.solvers.gurobi_intf import GUROBI as GUROBI_OLD
+        solver = GUROBI_OLD()
+        return solver.solve(
+            data["objective"],
+            data["constraints"],
             {self.name(): ProblemData()},
             warm_start,
             verbose,

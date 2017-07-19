@@ -22,33 +22,18 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 import mathprogbasepy as qp
-from cvxpy.constraints import NonPos, Zero, PSD, SOC, ExpCone
-from cvxpy.reductions import InverseData, Solution
-from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
+from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.objective import Minimize
-from cvxpy.problems.problem import Problem
-from cvxpy.problems.attributes import is_minimization, is_dcp
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.problems.objective_attributes import is_qp_objective
-from cvxpy.expressions.attributes import is_affine
-from cvxpy.constraints.attributes import (exists, are_arguments_affine)
+from cvxpy.reductions import InverseData, Solution
+from cvxpy.reductions.utilities import is_stuffed_qp_objective
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.solver import Solver
 
 
-class QpSolver(ReductionSolver):
+class QpSolver(Solver):
     """
     A QP solver interface.
     """
-
-    preconditions = {
-        (Problem, is_dcp, True),
-        (Problem, is_minimization, True),
-        (Minimize, is_qp_objective, True),
-        (Constraint, are_arguments_affine, True),
-        (PSD, exists, False),
-        (SOC, exists, False),
-        (ExpCone, exists, False)
-    }
 
     def __init__(self, solver_name):
         self.name = solver_name
@@ -60,6 +45,13 @@ class QpSolver(ReductionSolver):
         import mathprogbasepy as qp
         qp
 
+    def accepts(self, problem):
+        return (type(problem.objective) == Minimize
+                and is_stuffed_qp_objective(problem.objective)
+                and all(type(c) == Zero or type(c) == NonPos
+                        for c in problem.constraints)
+                and are_args_affine(problem.constraints))
+
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
@@ -69,6 +61,8 @@ class QpSolver(ReductionSolver):
         q = obj.expr.args[1].args[0].value.flatten()
         n = P.shape[0]
 
+        # TODO(akshayka): This dependence on ConicSolver is hacky; something
+        # should change here.
         ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
         if ineq_cons:
             ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr) for con in ineq_cons])
@@ -110,7 +104,5 @@ class QpSolver(ReductionSolver):
                 opt_val = -np.inf
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        data, inverse_data = self.apply(problem)
-        solution = data.solve(solver=self.name, verbose=verbose)
-        return self.invert(solution, inverse_data)
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        return data.solve(solver=self.name, verbose=verbose)

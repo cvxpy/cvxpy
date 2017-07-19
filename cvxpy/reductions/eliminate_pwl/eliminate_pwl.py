@@ -17,23 +17,25 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.problems.attributes import has_pwl_atoms
+from cvxpy.atoms import abs, max_elemwise, sum_largest, max_entries, QuadForm
+from cvxpy.atoms.affine_prod import affine_prod
+from cvxpy.atoms.pnorm import pnorm
 from cvxpy.problems.problem import Problem
-from .atom_canonicalizers import CANON_METHODS as elim_pwl_methods
+from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (CANON_METHODS
+                                                        as elim_pwl_methods)
 
 
 class EliminatePwl(Canonicalization):
+    """Eliminates piecewise linear atoms."""
 
-    preconditions = {
-        (Problem, has_pwl_atoms, True)
-    }
-
-    @staticmethod
-    def postconditions(problem_type):
-        return {(Problem, has_pwl_atoms, False)}
+    def accepts(self, problem):
+        atom_types = [type(atom) for atom in problem.atoms()]
+        pwl_types = [abs, affine_prod, max_elemwise, sum_largest, max_entries,
+                     pnorm]
+        return any(atom in pwl_types for atom in atom_types)
 
     def apply(self, problem):
         if not self.accepts(problem):
-            raise ValueError("Cannot canonicalize pwl atoms away")
+            raise ValueError("Cannot canonicalize away pwl atoms.")
         return Canonicalization(elim_pwl_methods).apply(problem)

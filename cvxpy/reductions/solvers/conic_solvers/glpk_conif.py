@@ -19,8 +19,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.solver_interface.conic_solvers.cvxopt_conif import CVXOPT
+from cvxpy.reductions.solvers.conic_solvers import CVXOPT
 from cvxpy.problems.problem_data.problem_data import ProblemData
+
+from .conic_solver import ConicSolver
 
 
 class GLPK(CVXOPT):
@@ -28,7 +30,8 @@ class GLPK(CVXOPT):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     def name(self):
         """The name of the solver.
@@ -48,25 +51,20 @@ class GLPK(CVXOPT):
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos]:
+            if type(constr) not in GLPK.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
                     return False
         return True
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.glpk_intf import GLPK as GLPK_OLD
         solver = GLPK_OLD()
-        _, inv_data = self.apply(problem)
-        objective, _ = problem.objective.canonical_form
-        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        sol = solver.solve(
-            objective,
-            constraints,
+        return solver.solve(
+            data["objective"],
+            data["constraints"],
             {self.name(): ProblemData()},
             warm_start,
             verbose,
             solver_opts)
-
-        return self.invert(sol, inv_data)

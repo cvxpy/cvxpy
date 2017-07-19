@@ -23,11 +23,11 @@ import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
-from cvxpy.solver_interface.reduction_solver import ReductionSolver
-from cvxpy.solver_interface.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.conic_solvers import ConicSolver
 
 
-class CBC(ReductionSolver):
+class CBC(Solver):
     """ An interface to the CBC solver
     """
 

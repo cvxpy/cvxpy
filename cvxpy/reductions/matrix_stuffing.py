@@ -29,6 +29,7 @@ from cvxpy.problems.problem import Problem
 
 
 class MatrixStuffing(Reduction):
+    """TODO(akshayka): Document this class."""
     __metaclass__ = abc.ABCMeta
 
     def apply(self, problem):
@@ -71,7 +72,8 @@ class MatrixStuffing(Reduction):
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape, order='F')
+            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
+                                             order='F')
         # Remap dual variables.
         for old_con, new_con in con_map.items():
             dual_vars[old_con] = solution.dual_vars[new_con]

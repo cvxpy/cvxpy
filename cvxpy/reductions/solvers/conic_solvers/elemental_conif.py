@@ -1,5 +1,5 @@
 """
-Copyright 2016 Sascha-Dominic Schnug
+Copyright 2013 Steven Diamond
 
 This file is part of CVXPY.
 
@@ -18,50 +18,43 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos, Zero
-from cvxpy.expressions.variables import Bool, Int
+from cvxpy.constraints import SOC, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 
 from .conic_solver import ConicSolver
 
 
-class CBC(ConicSolver):
-    """ An interface to the CBC solver
+class Elemental(ConicSolver):
+    """An interface for the Elemental solver.
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, Bool, Int]
+    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
-    # Map of GLPK MIP status to CVXPY status.
-    STATUS_MAP_MIP = {'solution': s.OPTIMAL,
-                      'relaxation infeasible': s.INFEASIBLE,
-                      'stopped on user event': s.SOLVER_ERROR}
-
-    STATUS_MAP_LP = {'optimal': s.OPTIMAL,
-                     'primal infeasible': s.INFEASIBLE,
-                     'stopped due to errors': s.SOLVER_ERROR,
-                     'stopped by event handler (virtual int '
-                     'ClpEventHandler::event())': s.SOLVER_ERROR}
-
-    def name(self):
-        """The name of the solver.
-        """
-        return s.CBC
+    # Map of Elemental status to CVXPY status.
+    # TODO
+    STATUS_MAP = {0: s.OPTIMAL}
 
     def import_solver(self):
         """Imports the solver.
         """
-        from cylp.cy import CyClpSimplex
-        CyClpSimplex  # For flake8
+        import El
+        El  # For flake8
+
+    def name(self):
+        """The name of the solver.
+        """
+        return s.ELEMENTAL
 
     def accepts(self, problem):
-        """Can Cbc solve the problem?
+        """Can Elemental solve the problem?
         """
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos]:
+            if type(constr) not in Elemental.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
@@ -77,6 +70,10 @@ class CBC(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
+        objective, _ = problem.objective.canonical_form
+        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
+        data["objective"] = objective
+        data["constraints"] = constraints
         inv_data = {self.VAR_ID: problem.variables()[0].id}
 
         # Order and group constraints.
@@ -86,18 +83,13 @@ class CBC(ConicSolver):
         inv_data[self.NEQ_CONSTR] = leq_constr
         return data, inv_data
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        from cvxpy.problems.solvers.cbc_intf import CBC as CBC_OLD
-        solver = CBC_OLD()
-        _, inv_data = self.apply(problem)
-        objective, _ = problem.objective.canonical_form
-        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        sol = solver.solve(
-            objective,
-            constraints,
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        from cvxpy.problems.solvers.elemental_intf import Elemental as EL_OLD
+        solver = EL_OLD()
+        return solver.solve(
+            data["objective"],
+            data["constraints"],
             {self.name(): ProblemData()},
             warm_start,
             verbose,
             solver_opts)
-
-        return self.invert(sol, inv_data)

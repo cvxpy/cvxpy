@@ -27,10 +27,6 @@ class GLPK_MI(GLPK):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = False
-    SDP_CAPABLE = False
-    EXP_CAPABLE = False
     MIP_CAPABLE = True
 
     # Map of GLPK MIP status to CVXPY status.

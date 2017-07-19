@@ -27,6 +27,7 @@ from cvxpy.reductions import InverseData, Reduction, Solution
 
 
 class Canonicalization(Reduction):
+    """TODO(akshayka): Document this class."""
 
     def __init__(self, canon_methods=None):
         self.canon_methods = canon_methods
@@ -64,5 +65,10 @@ class Canonicalization(Reduction):
     def canonicalize_expr(self, expr, args):
         if type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
+        elif isinstance(expr, Variable):
+            # TODO(akshayka): One of the QP reductions, likely
+            # QpMatrixStuffing, breaks if variables are copied; further
+            # investigation is warranted to see why.
+            return expr, []
         else:
             return expr.copy(args), []

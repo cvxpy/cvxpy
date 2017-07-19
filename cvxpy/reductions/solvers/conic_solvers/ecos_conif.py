@@ -21,8 +21,10 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
-from cvxpy.expressions.variables import Bool, Int
+from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.utilities import (is_stuffed_cone_constraint,
+                                        is_stuffed_cone_objective)
 
 from .conic_solver import ConicSolver
 
@@ -32,7 +34,8 @@ class ECOS(ConicSolver):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, ExpCone, Bool, Int]
+    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone]
 
     # EXITCODES from ECOS
     # ECOS_OPTIMAL  (0)   Problem solved to optimality
@@ -60,6 +63,14 @@ class ECOS(ConicSolver):
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 2, 1]
+
+    def accepts(self, problem):
+        return (type(problem.objective) == Minimize
+                and is_stuffed_cone_objective(problem.objective)
+                and all(type(c) in ECOS.SUPPORTED_CONSTRAINTS for c in
+                        problem.constraints)
+                and all(is_stuffed_cone_constraint(c) for c in
+                        problem.constraints))
 
     def import_solver(self):
         """Imports the solver.
@@ -137,22 +148,10 @@ class ECOS(ConicSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        """Returns the result of the call to the solver.
-
-        Parameters
-        ----------
-        ...
-
-        Returns
-        -------
-        tuple
-        ...
-        """
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         import ecos
-        data, inv_data = self.apply(problem)
         solution = ecos.solve(data[s.C], data[s.G], data[s.H],
                               data[s.DIMS], data[s.A], data[s.B],
                               verbose=verbose,
                               **solver_opts)
-        return self.invert(solution, inv_data)
+        return solution

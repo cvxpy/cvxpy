@@ -31,7 +31,10 @@ class SCS(ConicSolver):
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC, PSD, ExpCone]
+    MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
+                                                                 ExpCone,
+                                                                 PSD]
 
     # Map of SCS status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,
@@ -64,7 +67,7 @@ class SCS(ConicSolver):
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos, SOC, PSD, ExpCone]:
+            if type(constr) not in SCS.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
@@ -132,7 +135,7 @@ class SCS(ConicSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.
 
         Parameters
@@ -145,10 +148,8 @@ class SCS(ConicSolver):
         ...
         """
         import scs
-        data, inv_data = self.apply(problem)
-        solution = scs.solve(
+        return scs.solve(
             data,
             data[s.DIMS],
             verbose=verbose,
             **solver_opts)
-        return self.invert(solution, inv_data)

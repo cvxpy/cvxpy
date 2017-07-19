@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2015 Enzo Busseti, 2017 Robin Verschueren
 
 This file is part of CVXPY.
 
@@ -18,42 +18,55 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, NonPos, Zero
+from cvxpy.constraints import SDP, SOC, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 
 from .conic_solver import ConicSolver
 
 
-class Elemental(ConicSolver):
-    """An interface for the Elemental solver.
+class MOSEK(ConicSolver):
+    """An interface for the Mosek solver.
     """
 
     # Solver capabilities.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos, SOC]
+    MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
-    # Map of Elemental status to CVXPY status.
-    # TODO
-    STATUS_MAP = {0: s.OPTIMAL}
+    # Map of Mosek status to CVXPY status.
+    STATUS_MAP = {2: s.OPTIMAL,
+                  3: s.INFEASIBLE,
+                  5: s.UNBOUNDED,
+                  4: s.SOLVER_ERROR,
+                  6: s.SOLVER_ERROR,
+                  7: s.SOLVER_ERROR,
+                  8: s.SOLVER_ERROR,
+                  # TODO could be anything.
+                  # means time expired.
+                  9: s.OPTIMAL_INACCURATE,
+                  10: s.SOLVER_ERROR,
+                  11: s.SOLVER_ERROR,
+                  12: s.SOLVER_ERROR,
+                  13: s.SOLVER_ERROR}
 
     def import_solver(self):
         """Imports the solver.
         """
-        import El
-        El  # For flake8
+        import mosek
+        mosek  # For flake8
 
     def name(self):
         """The name of the solver.
         """
-        return s.ELEMENTAL
+        return s.MOSEK
 
     def accepts(self, problem):
-        """Can Elemental solve the problem?
+        """Can Mosek solve the problem?
         """
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos, SOC]:
+            if type(constr) not in MOSEK.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
@@ -69,27 +82,28 @@ class Elemental(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
-
-        # Order and group constraints.
-        eq_constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[self.EQ_CONSTR] = eq_constr
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        inv_data[self.NEQ_CONSTR] = leq_constr
-        return data, inv_data
-
-    def solve(self, problem, warm_start, verbose, solver_opts):
-        from cvxpy.problems.solvers.elemental_intf import Elemental as EL_OLD
-        solver = EL_OLD()
-        _, inv_data = self.apply(problem)
         objective, _ = problem.objective.canonical_form
         constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        sol = solver.solve(
-            objective,
-            constraints,
+        data["objective"] = objective
+        data["constraints"] = constraints
+
+        # Order and group constraints.
+        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        eq_constr = [c for c in problem.constraints if type(c) == Zero]
+        inv_data[MOSEK.EQ_CONSTR] = eq_constr
+        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
+        soc_constr = [c for c in problem.constraints if type(c) == SOC]
+        sd_constr = [c for c in problem.constraints if type(c) == SDP]
+        inv_data[MOSEK.NEQ_CONSTR] = leq_constr + soc_constr + sd_constr
+        return data, inv_data
+
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        from cvxpy.problems.solvers.mosek_intf import MOSEK as MOSEK_OLD
+        solver = MOSEK_OLD()
+        return solver.solve(
+            data["objective"],
+            data["constraints"],
             {self.name(): ProblemData()},
             warm_start,
             verbose,
             solver_opts)
-
-        return self.invert(sol, inv_data)
