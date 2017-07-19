@@ -29,10 +29,6 @@ class Solver(Reduction):
     __metaclass__ = abc.ABCMeta
 
     # Solver capabilities.
-    LP_CAPABLE = False
-    SOCP_CAPABLE = False
-    SDP_CAPABLE = False
-    EXP_CAPABLE = False
     MIP_CAPABLE = False
 
     # Keys for inverse data.
@@ -73,3 +69,6 @@ class Solver(Reduction):
         data, inv_data = self.apply(problem)
         solution = self.solve_via_data(data, warm_start, verbose, solver_opts)
         return self.invert(solution, inv_data)
+
+    def __str__(self):
+        print self.name

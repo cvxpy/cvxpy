@@ -31,6 +31,9 @@ class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
 
+    # Every conic solver must support Zero and NonPos constraints.
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+
     @staticmethod
     def get_coeff_offset(expr):
         """Return the coefficient and offset in A*x + b.

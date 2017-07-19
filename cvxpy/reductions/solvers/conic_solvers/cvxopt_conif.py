@@ -28,11 +28,10 @@ class CVXOPT(ConicSolver):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = True
-    EXP_CAPABLE = True
     MIP_CAPABLE = False
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
+                                                                 ExpCone,
+                                                                 PSD]
 
     # Map of CVXOPT status to CVXPY status.
     STATUS_MAP = {'optimal': s.OPTIMAL,
@@ -58,7 +57,7 @@ class CVXOPT(ConicSolver):
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in [Zero, NonPos, SOC, PSD, ExpCone]:
+            if type(constr) not in self.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
