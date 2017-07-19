@@ -28,13 +28,6 @@ class NonNegative(Variable):
         obj, constr = super(NonNegative, self).canonicalize()
         return (obj, constr + [lu.create_geq(obj)])
 
-    def __repr__(self):
-        if self._name_given:
-            return "NonNegative(%d, %d, '%s')" % (self._rows, self._cols,
-                                                  self._name)
-        else:
-            return "NonNegative(%d, %d)" % self.size
-
     def is_positive(self):
         """Is the expression positive?
         """

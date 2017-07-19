@@ -108,7 +108,8 @@ class Variable(Leaf):
         """String to recreate the object.
         """
         if self._name_given:
-            return "Variable(%d, %d, '%s')" % (self._rows, self._cols,
-                                               self._name)
+            return "%s(%d, %d, '%s')" % (self.__class__.__name__, self.size[0],
+                                         self.size[1], self._name)
         else:
-            return "Variable(%d, %d)" % self.size
+            return "%s(%d, %d)" % (self.__class__.__name__, self.size[0],
+                                   self.size[1])
