@@ -26,12 +26,11 @@ import numpy as np
 import scipy.sparse as sp
 from numpy import linalg as LA
 
-import cvxpy as cvx
+import cvxpy
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP
-from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
 
 
@@ -49,15 +48,15 @@ class CoeffExtractor(object):
             return self.constant(expr)
         elif expr.is_affine():
             return self.affine(expr)
-        elif isinstance(expr, cvx.affine_prod):
+        elif isinstance(expr, cvxpy.affine_prod):
             return self.affine_prod(expr)
-        elif isinstance(expr, cvx.quad_over_lin):
+        elif isinstance(expr, cvxpy.quad_over_lin):
             return self.quad_over_lin(expr)
-        elif isinstance(expr, cvx.power):
+        elif isinstance(expr, cvxpy.power):
             return self.power(expr)
-        elif isinstance(expr, cvx.matrix_frac):
+        elif isinstance(expr, cvxpy.matrix_frac):
             return self.matrix_frac(expr)
-        elif isinstance(expr, cvx.affine.affine_atom.AffAtom):
+        elif isinstance(expr, cvxpy.affine.affine_atom.AffAtom):
             return self.affine_atom(expr)
         elif expr.is_quadratic():
             return self.quad_form(expr)
@@ -191,7 +190,7 @@ class CoeffExtractor(object):
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         # Extract affine data.
-        affine_problem = Problem(Minimize(affine_expr), [])
+        affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
         affine_inverse_data = InverseData(affine_problem)
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes

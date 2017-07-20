@@ -34,7 +34,7 @@ solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                GLPK_MI(), CBC(), SCS(), GUROBI(),
                Elemental(), MOSEK(), JuliaOpt()]
 SOLVER_MAP = {solver.name(): solver for solver in solver_intf}
-INSTALLED_SOLVERS = installed_solvers()
+
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
@@ -47,7 +47,9 @@ def installed_solvers():
     """List the installed solvers.
     """
     installed = []
-    for name, solver in SOLVERS.items():
+    for name, solver in SOLVER_MAP.items():
         if solver.is_installed():
             installed.append(name)
     return installed
+
+INSTALLED_SOLVERS = installed_solvers()

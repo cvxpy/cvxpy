@@ -21,7 +21,7 @@ from cvxpy.atoms import QuadForm
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.problems.problem import Problem
+from cvxpy import problems
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
@@ -49,8 +49,9 @@ class QpMatrixStuffing(MatrixStuffing):
     def stuffed_objective(self, problem, inverse_data):
         # We need to copy the problem because we are changing atoms in the
         # expression tree
-        problem_copy = Problem(Minimize(problem.objective.expr.tree_copy()),
-                               [con.tree_copy() for con in problem.constraints])
+        problem_copy = problems.problem.Problem(
+                                Minimize(problem.objective.expr.tree_copy()),
+                                [con.tree_copy() for con in problem.constraints])
         inverse_data_of_copy = InverseData(problem_copy)
         extractor = CoeffExtractor(inverse_data_of_copy)
         # extract to x.T * P * x + q.T * x, store r

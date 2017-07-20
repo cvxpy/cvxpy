@@ -18,34 +18,31 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-import cvxpy.utilities as u
 import cvxpy.interface as intf
-from cvxpy.error import SolverError, DCPError
+from cvxpy.error import DCPError, SolverError
+from cvxpy.expressions.variables import Bool, Int
 from cvxpy.constraints import Zero, NonPos, PSD
 from cvxpy.problems.objective import Minimize, Maximize
-from cvxpy.problems.solvers.solver import Solver
-from cvxpy.problems.solvers.utilities import SOLVERS
-from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
+# TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
 # a circular import (cvxpy.transforms imports Problem). Hence we need to import
 # cvxpy here.
 import cvxpy
 import cvxpy.constraints.zero as eqc
 
+from collections import namedtuple
 import multiprocess as multiprocessing
 import numpy as np
-from collections import namedtuple
 
-# Used in self._cached_data to check if problem's objective or constraints have
-# changed.
-CachedProblem = namedtuple('CachedProblem', ['objective', 'constraints'])
-
+# TODO(akshayka): This is only used by _parallel_solve, and as such
+# its definition should be restricted to its scope.
 # Used by pool.map to send solve result back.
 SolveResult = namedtuple(
     'SolveResult', ['opt_value', 'status', 'primal_values', 'dual_values'])
 
 
-class Problem(u.Canonical):
+class Problem(object):
     """A convex optimization problem.
 
     Attributes
@@ -70,9 +67,6 @@ class Problem(u.Canonical):
         self.constraints = constraints
         self._value = None
         self._status = None
-        # Cached processed data for each solver.
-        self._cached_data = {}
-        self._reset_cache()
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
@@ -80,12 +74,6 @@ class Problem(u.Canonical):
         # Benchmarks reported by the solver:
         self._solver_stats = None
 
-    def _reset_cache(self):
-        """Resets the cached data.
-        """
-        for solver_name in SOLVERS.keys():
-            self._cached_data[solver_name] = ProblemData()
-        self._cached_data[s.PARALLEL] = CachedProblem(None, None)
 
     @property
     def value(self):
@@ -120,23 +108,9 @@ class Problem(u.Canonical):
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
-    def canonicalize(self):
-        """Computes the graph implementation of the problem.
-
-        Returns
-        -------
-        tuple
-            (affine objective,
-             constraints dict)
-        """
-        canon_constr = []
-        obj, constr = self.objective.canonical_form
-        canon_constr += constr
-
-        for constr in self.constraints:
-            canon_constr += constr.canonical_form[1]
-
-        return (obj, canon_constr)
+    def is_mixed_integer(self):
+        return any(isinstance(v, Bool) or isinstance(v, Int)
+                   for v in self.variables())
 
     def variables(self):
         """Returns a list of the variables in the problem.
@@ -144,7 +118,6 @@ class Problem(u.Canonical):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
-        # Remove duplicates.
         return list(set(vars_))
 
     def parameters(self):
@@ -153,7 +126,6 @@ class Problem(u.Canonical):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
-        # Remove duplicates.
         return list(set(params))
 
     def constants(self):
@@ -163,8 +135,8 @@ class Problem(u.Canonical):
         constants_ = self.objective.constants()
         for constr in self.constraints:
             constants_ += constr.constants()
-        # Remove duplicates.
-        # Note that numpy matrices are not hashable, so we use the buildin function id
+        # Note that numpy matrices are not hashable, so we use the built-in
+        # function "id"
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 
@@ -176,13 +148,13 @@ class Problem(u.Canonical):
 
     @property
     def size_metrics(self):
-        """Returns an object containing information about the size of the problem.
+        """Returns an object containing information about the problem's size.
         """
         return self._size_metrics
 
     @property
     def solver_stats(self):
-        """Returns an object containing additional information returned by the solver.
+        """Returns additional information returned by the solver.
         """
         return self._solver_stats
 
@@ -207,13 +179,32 @@ class Problem(u.Canonical):
         float
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
+
+        Raises
+        ------
+        DCPError
+            Raised if the problem is not DCP.
+        SolverError
+            Raised if no suitable solver exists among the installed solvers,
+            or if an unanticipated error is encountered.
         """
+        def try_solve(solve_func, *args, **kwargs):
+            try:
+                return solve_func(*args, **kwargs)
+            except (DCPError, SolverError):
+                raise
+            except:
+                import traceback
+                traceback.print_exc()
+                #raise SolverError("Unexpected exception; see traceback.")
+                raise
+            
         func_name = kwargs.pop("method", None)
         if func_name is not None:
             func = Problem.REGISTERED_SOLVE_METHODS[func_name]
-            return func(self, *args, **kwargs)
+            return try_solve(func, self, *args, **kwargs)
         else:
-            return self._solve(*args, **kwargs)
+            return try_solve(self._solve, *args, **kwargs)
 
     @classmethod
     def register_solve(cls, name, func):
@@ -224,10 +215,13 @@ class Problem(u.Canonical):
         name : str
             The keyword for the method.
         func : function
-            The function that executes the solve method.
+            The function that executes the solve method. This function must
+            take as its first argument the problem instance to solve.
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
+    # TODO(akshayka): This needs to be reimplemented / recast in terms of
+    # solving chains.
     def get_problem_data(self, solver):
         """Returns the problem data used in the call to the solver.
 
@@ -263,6 +257,7 @@ class Problem(u.Canonical):
         solver : str, optional
             The solver to use. Defaults to ECOS.
         ignore_dcp : bool, optional
+            TODO(akshayka): This option will probably be eliminated.
             Overrides the default of raising an exception if the problem is not
             DCP.
         warm_start : bool, optional
@@ -282,64 +277,24 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-        if not self.is_dcp():
-            if ignore_dcp:
-                print("Problem does not follow DCP rules. "
-                      "Solving a convex relaxation.")
-            else:
-                raise DCPError("Problem does not follow DCP rules.")
-
-        if solver == s.LS:
-            solver = SOLVERS[s.LS]
-            solver.validate_solver(self)
-
-            objective = self.objective
-            constraints = self.constraints
-
-            sym_data = solver.get_sym_data(objective, constraints)
-            results_dict = solver.solve(objective, constraints,
-                                        self._cached_data, warm_start, verbose,
-                                        kwargs)
-            self._update_problem_state(results_dict, sym_data, solver)
-            return self.value
-
-        # Standard cone problem
-        objective, constraints = self.canonicalize()
-
-        # Solve in parallel
+        if solver is not None and solver not in s.SOLVERS:
+            raise SolverError("Unknown solver %s" % solver)
         if parallel:
-            # Check if the objective or constraint has changed
-
-            if (objective != self._cached_data[s.PARALLEL].objective or
-                    constraints != self._cached_data[s.PARALLEL].constraints):
-                self._separable_problems = cvxpy.transforms.get_separable_problems(self)
-                self._cached_data[s.PARALLEL] = CachedProblem(objective,
-                                                              constraints)
+            self._separable_problems = (
+                cvxpy.transforms.get_separable_problems(self))
             if len(self._separable_problems) > 1:
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
-
-        # Choose a solver/check the chosen solver.
-        if solver is None:
-            solver_name = Solver.choose_solver(constraints)
-            solver = SOLVERS[solver_name]
-        elif solver in SOLVERS:
-            solver = SOLVERS[solver]
-            solver.validate_solver(constraints)
-        else:
-            raise SolverError("Unknown solver.")
-
-        sym_data = solver.get_sym_data(objective, constraints,
-                                       self._cached_data)
-        # Presolve couldn't solve the problem.
-        if sym_data.presolve_status is None:
-            results_dict = solver.solve(objective, constraints,
-                                        self._cached_data, warm_start, verbose,
-                                        kwargs)
-        # Presolve determined problem was unbounded or infeasible.
-        else:
-            results_dict = {s.STATUS: sym_data.presolve_status}
-        self._update_problem_state(results_dict, sym_data, solver)
+        try:
+            solving_chain = construct_solving_chain(self, solver=solver)
+        except (DCPError, SolverError):
+            raise
+        except:
+            raise
+        data, inverse_data = solving_chain.apply(self)
+        solution = solving_chain.solve_via_data(data, warm_start, verbose,
+                                                kwargs)
+        self.unpack_results(solving_chain, solution, inverse_data)
         return self.value
 
     def _parallel_solve(self,
@@ -415,147 +370,40 @@ class Problem(u.Canonical):
                 self._status = s.OPTIMAL
         return self._value
 
-    def _update_problem_state(self, results_dict, sym_data, solver):
+    def unpack_results(self, chain, solution, inverse_data):
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of
         primal and dual variables.
 
         Parameters
-        ----------
-        results_dict : dict
-            A dictionary containing the solver results.
-        sym_data : SymData
-            The symbolic data for the problem.
-        solver : Solver
-            The solver type used to obtain the results.
+        __________
+        chain : SolvingChain
+            A SolvingChain that was used to solve the problem.
+        solution : Solution
+            The solution returned by applying the chain to the problem
+            and invoking the solver on the resulting data.
+        inverse_data : list
+            The inverse data returned by applying the chain to the problem.
         """
-        if results_dict[s.STATUS] in s.SOLUTION_PRESENT:
-            self._save_values(results_dict[s.PRIMAL], self.variables(),
-                              sym_data.var_offsets)
-            # Not all solvers provide dual variables.
-            if s.EQ_DUAL in results_dict:
-                self._save_dual_values(results_dict[s.EQ_DUAL],
-                                       sym_data.constr_map[s.EQ],
-                                       [Zero])
-            if s.INEQ_DUAL in results_dict:
-                self._save_dual_values(results_dict[s.INEQ_DUAL],
-                                       sym_data.constr_map[s.LEQ],
-                                       [NonPos, PSD])
-            # Correct optimal value if the objective was Maximize.
-            value = results_dict[s.VALUE]
-            self._value = self.objective.primal_to_result(value)
-        # Infeasible or unbounded.
-        elif results_dict[s.STATUS] in s.INF_OR_UNB:
-            self._handle_no_solution(results_dict[s.STATUS])
-        # Solver failed to solve.
+        solution = chain.invert(solution, inverse_data)
+        self._value = solution.opt_val
+        if solution.status in s.SOLUTION_PRESENT:
+            for v in self.variables():
+                v.save_value(solution.primal_vars[v.id])
+            for c in self.constraints:
+                if c.id in solution.dual_vars:
+                    c.save_value(solution.dual_vars[c.id])
+        elif solution.status in s.INF_OR_UNB:
+            for v in self.variables():
+                v.save_value(None)
+            for constr in self.constraints:
+                constr.save_value(None)
         else:
-            raise SolverError(
-                "Solver '%s' failed. Try another solver." % solver.name())
-        self._status = results_dict[s.STATUS]
-        self._solver_stats = SolverStats(results_dict, solver.name())
-
-    def unpack_results(self, solver_name, results_dict):
-        """Parses the output from a solver and updates the problem state.
-
-        Updates problem.status, problem.value and value of
-        primal and dual variables.
-
-        Assumes the results are from the given solver.
-
-        Parameters
-        ----------
-        solver_name : str
-            The name of the solver being used.
-        results_dict : dict
-            The solver output.
-        """
-        if solver_name not in SOLVERS:
-            raise SolverError("Unknown solver.")
-        solver = SOLVERS[solver_name]
-
-        objective, constraints = self.canonicalize()
-        sym_data = solver.get_sym_data(objective, constraints,
-                                       self._cached_data)
-        data = {s.DIMS: sym_data.dims, s.OFFSET: 0}
-        results_dict = solver.format_results(results_dict, data,
-                                             self._cached_data)
-        self._update_problem_state(results_dict, sym_data, solver)
-
-    def _handle_no_solution(self, status):
-        """Updates value fields when the problem is infeasible or unbounded.
-
-        Parameters
-        ----------
-        status: str
-            The status of the solver.
-        """
-        # Set all primal and dual variable values to None.
-        for var_ in self.variables():
-            var_.save_value(None)
-        for constr in self.constraints:
-            constr.save_value(None)
-        # Set the problem value.
-        if status in [s.INFEASIBLE, s.INFEASIBLE_INACCURATE]:
-            self._value = self.objective.primal_to_result(np.inf)
-        elif status in [s.UNBOUNDED, s.UNBOUNDED_INACCURATE]:
-            self._value = self.objective.primal_to_result(-np.inf)
-
-    def _save_dual_values(self, result_vec, constraints, constr_types):
-        """Saves the values of the dual variables.
-
-        Parameters
-        ----------
-        result_vec : array_like
-            A vector containing the dual variable values.
-        constraints : list
-            A list of the LinEqConstr/LinLeqConstr in the problem.
-        constr_types : type
-            A list of constraint types to consider.
-        """
-        constr_offsets = {}
-        offset = 0
-        for constr in constraints:
-            constr_offsets[constr.constr_id] = offset
-            offset += constr.shape[0] * constr.shape[1]
-        active_constraints = []
-        for constr in self.constraints:
-            # Ignore constraints of the wrong type.
-            if type(constr) in constr_types:
-                active_constraints.append(constr)
-        self._save_values(result_vec, active_constraints, constr_offsets)
-
-    def _save_values(self, result_vec, objects, offset_map):
-        """Saves the values of the optimal primal/dual variables.
-
-        Parameters
-        ----------
-        results_vec : array_like
-            A vector containing the variable values.
-        objects : list
-            The variables or constraints where the values will be stored.
-        offset_map : dict
-            A map of object id to offset in the results vector.
-        """
-        if len(result_vec) > 0:
-            # Cast to desired matrix type.
-            result_vec = intf.DEFAULT_INTF.const_to_matrix(result_vec)
-        for obj in objects:
-            rows, cols = obj.shape
-            if obj.id in offset_map:
-                offset = offset_map[obj.id]
-                # Handle scalars
-                if (rows, cols) == (1, 1):
-                    value = intf.index(result_vec, (offset, 0))
-                else:
-                    value = intf.DEFAULT_INTF.zeros(rows, cols)
-                    intf.DEFAULT_INTF.block_add(
-                        value, result_vec[offset:offset + rows * cols], 0, 0,
-                        rows, cols)
-                offset += rows * cols
-            else:  # The variable was multiplied by zero.
-                value = intf.DEFAULT_INTF.zeros(rows, cols)
-            obj.save_value(value)
+            raise SolverError("Solver '%s' failed. Try another solver." %
+                              chain.solver.name())
+        self._status = solution.status
+        # TODO(akshayka): save solver stats
 
     def __str__(self):
         if len(self.constraints) == 0:
@@ -616,6 +464,7 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
+# TODO(akshayka): Consider moving this to another file
 class SolverStats(object):
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
@@ -644,6 +493,7 @@ class SolverStats(object):
             self.num_iters = results_dict[s.NUM_ITERS]
 
 
+# TODO(akshayka): Consider moving this to another file
 class SizeMetrics(object):
     """Reports various metrics regarding the problem
 

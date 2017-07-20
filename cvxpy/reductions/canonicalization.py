@@ -21,8 +21,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variables import Variable
-from cvxpy.problems.objective import Maximize, Minimize
-from cvxpy.problems.problem import Problem
+from cvxpy import problems
 from cvxpy.reductions import InverseData, Reduction, Solution
 
 
@@ -41,14 +40,15 @@ class Canonicalization(Reduction):
             new_constraints += canon_constraints + [constraint_copy]
             inverse_data.cons_id_map.update({constraint.id: constraint_copy.id})
 
-        new_problem = Problem(new_objective, new_constraints)
+        new_problem = problems.problem.Problem(new_objective, new_constraints)
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        pvars = {id: solution.primal_vars[id] for id in inverse_data.id_map
-                 if id in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[id]
-                 for orig_id, id in inverse_data.cons_id_map.items()}
+        pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
+                 if vid in solution.primal_vars}
+        dvars = {orig_id: solution.dual_vars[vid]
+                 for orig_id, vid in inverse_data.cons_id_map.items()
+                 if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars, dvars)
 
     def canonicalize_tree(self, expr):

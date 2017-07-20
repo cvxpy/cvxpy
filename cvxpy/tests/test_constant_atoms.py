@@ -20,18 +20,17 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 # Tests atoms by calling them with a constant value.
 from cvxpy.settings import (SCS, ECOS, CVXOPT, GLPK, ELEMENTAL,
                             OPTIMAL, OPTIMAL_INACCURATE, ROBUST_KKTSOLVER, MOSEK)
-from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
-from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.error import SolverError
 import cvxpy.interface as intf
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
+from cvxpy.reductions.solvers.utilities import SOLVER_MAP, INSTALLED_SOLVERS
 import numpy as np
 import numpy.linalg as LA
 import math
@@ -42,18 +41,18 @@ SOLVER_TO_TOL = {SCS: 1e-2,
 }
 SOLVERS_TO_TRY = [ECOS, SCS]
 # Test CVXOPT if installed.
-if CVXOPT in installed_solvers():
+if CVXOPT in INSTALLED_SOLVERS:
     SOLVERS_TO_TRY += [CVXOPT, ROBUST_CVXOPT]
     SOLVER_TO_TOL[CVXOPT] = 1e-7
     SOLVER_TO_TOL[ROBUST_CVXOPT] = 1e-7
 
 # Test elemental if installed.
-if ELEMENTAL in installed_solvers():
+if ELEMENTAL in INSTALLED_SOLVERS:
     SOLVERS_TO_TRY.append(ELEMENTAL)
     SOLVER_TO_TOL[ELEMENTAL] = 1e-7
 
 # Test MOSEK if installed.
-if MOSEK in installed_solvers():
+if MOSEK in INSTALLED_SOLVERS:
     SOLVERS_TO_TRY.append(MOSEK)
     SOLVER_TO_TOL[MOSEK] = 1e-6
 
@@ -270,21 +269,17 @@ atoms = [
 def check_solver(prob, solver_name):
     """Can the solver solve the problem?
     """
-    objective, constraints = prob.canonicalize()
-    if solver_name == ROBUST_CVXOPT:
-        solver_name = CVXOPT
-    # TODO(akshayka): SOLVERS needs now contain the interfaces that were
-    # rewritten for each solver (i.e., the ones that lie in reductions/solvers/).
-    solver = SOLVERS[solver_name]
     try:
-        solver.validate_solver(constraints)
+        if solver_name == ROBUST_CVXOPT:
+            solver_name = CVXOPT
+        chain = construct_solving_chain(prob, solver=solver_name)
         return True
-    except Exception as e:
+    except SolverError:
         return False
+    except:
+        raise
 
 # Tests numeric version of atoms.
-
-
 def run_atom(atom, problem, obj_val, solver, verbose=False):
     assert problem.is_dcp()
     if verbose:
@@ -296,7 +291,8 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
 
         try:
             if solver == ROBUST_CVXOPT:
-                result = problem.solve(solver=CVXOPT, verbose=verbose, kktsolver=ROBUST_KKTSOLVER)
+                result = problem.solve(solver=CVXOPT, verbose=verbose,
+                                       kktsolver=ROBUST_KKTSOLVER)
             else:
                 result = problem.solve(solver=solver, verbose=verbose)
         except SolverError as e:
@@ -312,15 +308,6 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
         else:
             assert (atom, solver) in KNOWN_SOLVER_ERRORS
 
-
-def reduction(problem):
-    d2c = Dcp2Cone()
-    assert d2c.accepts(problem)
-    reduced_problem, _ = d2c.apply(problem)
-    assert ConeMatrixStuffing().accepts(reduced_problem)
-    return ConeMatrixStuffing().apply(reduced_problem)
-
-
 def test_constant_atoms():
     tests = []
     for atom_list, objective_type in atoms:
@@ -330,7 +317,8 @@ def test_constant_atoms():
                     for solver in SOLVERS_TO_TRY:
                         # Atoms with Constant arguments.
                         const_args = [Constant(arg) for arg in args]
-                        problem = Problem(objective_type(atom(*const_args)[row, col]))
+                        problem = Problem(
+                            objective_type(atom(*const_args)[row, col]))
                         yield (run_atom,
                                atom,
                                problem,
@@ -348,7 +336,6 @@ def test_constant_atoms():
                             objective = -objective
                             prob_val = -prob_val
                         problem = Problem(objective, constraints)
-                        problem, inv_data = reduction(problem)
                         yield (run_atom,
                                atom,
                                problem,
@@ -365,4 +352,3 @@ def test_constant_atoms():
                                Problem(objective),
                                obj_val[row, col].value,
                                solver)
-

@@ -24,8 +24,8 @@ import cvxpy.settings as s
 from cvxpy.reductions import Reduction, Solution, InverseData
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
+from cvxpy import problems
 from cvxpy.problems.objective import Minimize
-from cvxpy.problems.problem import Problem
 
 
 class MatrixStuffing(Reduction):
@@ -50,7 +50,7 @@ class MatrixStuffing(Reduction):
 
         # Map of old constraint id to new constraint id.
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = Problem(Minimize(new_obj), new_cons)
+        new_prob = problems.problem.Problem(Minimize(new_obj), new_cons)
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):
@@ -62,10 +62,9 @@ class MatrixStuffing(Reduction):
         if solution.status not in s.ERROR and not inverse_data.minimize:
             opt_val = -solution.opt_val
 
-        if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, None, None)
-
         primal_vars, dual_vars = {}, {}
+        if solution.status not in s.SOLUTION_PRESENT:
+            return Solution(solution.status, opt_val, primal_vars, dual_vars)
 
         # Split vectorized variable into components.
         x_opt = solution.primal_vars.values()[0]
@@ -76,6 +75,8 @@ class MatrixStuffing(Reduction):
                                              order='F')
         # Remap dual variables.
         for old_con, new_con in con_map.items():
+            # TODO(akshayka): This line results in key errors often,
+            # determine why
             dual_vars[old_con] = solution.dual_vars[new_con]
 
         # Add constant part
