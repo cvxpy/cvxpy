@@ -221,7 +221,7 @@ class PartialProblem(Expression):
                 return None
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(self.args[0].objective.copy(self), fix_vars)
+        prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
         result = prob.solve()
         # Restore the original values to the variables.
         for var in self.variables():

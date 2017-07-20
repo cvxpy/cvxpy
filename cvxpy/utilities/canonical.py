@@ -84,7 +84,13 @@ class Canonical(object):
     def tree_copy(self, id_objects={}):
         new_args = []
         for arg in self.args:
-            new_args += [arg.tree_copy(id_objects)]
+            if isinstance(arg, list):
+                arg_list = []
+                for elem in arg:
+                    arg_list += [elem.tree_copy(id_objects)]
+                new_args.append(arg_list)
+            else:
+                new_args += [arg.tree_copy(id_objects)]
         return self.copy(args=new_args, id_objects=id_objects)
 
     def copy(self, args=None, id_objects={}):
@@ -102,6 +108,8 @@ class Canonical(object):
         -------
         Expression
         """
+        if id(self) in id_objects:
+            return id_objects[id(self)]
         if args is None:
             args = self.args
         data = self.get_data()

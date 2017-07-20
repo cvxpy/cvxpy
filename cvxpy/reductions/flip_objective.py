@@ -27,16 +27,16 @@ class FlipObjective(Reduction):
     """Flip a minimization objective to a maximization."""
 
     def accepts(self, problem):
-        return type(problem.objective) == Maximize
+        return True
 
     def apply(self, problem):
-        inverse_data = InverseData(problem)
-        if type(problem.objective) == Maximize:
+        is_maximize = type(problem.objective) == Maximize
+        if is_maximize:
             problem = Problem(Minimize(-problem.objective.expr),
                               problem.constraints)
-        return problem, inverse_data
+        return problem, is_maximize
 
-    def invert(self, solution, inverse_data):
-        new_solution = solution.copy()
-        new_solution.opt_val = -solution.opt_val
-        return new_solution
+    def invert(self, solution, is_maximize):
+        if is_maximize:
+            solution.opt_val = -solution.opt_val
+        return solution

@@ -26,7 +26,6 @@ from max_elemwise_canon import *
 from max_entries_canon import *
 from pnorm_canon import *
 from sum_largest_canon import *
-from var_pwl_canon import *
 
 
 CANON_METHODS = {
@@ -36,5 +35,4 @@ CANON_METHODS = {
     max_entries : max_entries_canon,
     pnorm : pnorm_canon,
     sum_largest : sum_largest_canon,
-    Variable : var_pwl_canon,
 }

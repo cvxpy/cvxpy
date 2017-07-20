@@ -45,6 +45,11 @@ def index():
     return index.index
 
 
+def minimize():
+    from cvxpy.problems import objective
+    return objective.Minimize
+
+
 def mul_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.MulExpression
@@ -90,9 +95,19 @@ def neg():
     return neg.neg
 
 
+def partial_optimize():
+    from cvxpy.transforms import partial_optimize
+    return partial_optimize
+
+
 def power():
     from cvxpy.atoms.elementwise import power
     return power.power
+
+
+def problem():
+    from cvxpy.problems import problem
+    return problem.Problem
 
 
 def reshape():

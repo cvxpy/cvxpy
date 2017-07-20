@@ -79,6 +79,7 @@ class Problem(u.Canonical):
         self._size_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
+        self.args = [objective, constraints]
 
     def _reset_cache(self):
         """Resets the cached data.

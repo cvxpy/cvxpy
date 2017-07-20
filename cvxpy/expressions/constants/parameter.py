@@ -38,21 +38,6 @@ class Parameter(Leaf):
         self._value = None
         super(Parameter, self).__init__(shape, value, **kwargs)
 
-    def copy(self, args=None, id_objects={}):
-        """Returns a shallow copy of the object.
-        """
-        if self.id in id_objects:
-            return id_objects[self.id]
-        if args is None:
-            args = self.args
-        data = self.get_data()
-        if data is not None:
-            new_obj = type(self)(*(args + data[:-1]), **data[-1])
-        else:
-            new_obj = type(self)(*args)
-        id_objects[self.id] = new_obj
-        return new_obj
-
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """

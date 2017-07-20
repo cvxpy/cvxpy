@@ -80,6 +80,25 @@ class Leaf(expression.Expression):
 
         self.args = []
 
+    def copy(self, args=None, id_objects={}):
+        """Returns a shallow copy of the object.
+
+        Used to reconstruct an object tree.
+
+        Parameters
+        ----------
+        args : list, optional
+            The arguments to reconstruct the object. If args=None, use the
+            current args of the object.
+
+        Returns
+        -------
+        Expression
+        """
+        if id(self) in id_objects:
+            return id_objects[id(self)]
+        return self  # Leaves are not deep copied.
+
     @property
     def shape(self):
         """Returns the dimensions of the expression.

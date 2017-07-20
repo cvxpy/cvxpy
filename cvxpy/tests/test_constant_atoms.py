@@ -32,6 +32,7 @@ from cvxpy.error import SolverError
 import cvxpy.interface as intf
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 import numpy as np
 import numpy.linalg as LA
 import math
@@ -101,8 +102,8 @@ atoms = [
         # (lambda_max, (1, 1), [[[2, 0, 0], [0, 3, 0], [0, 0, 1]]], Constant([3])),
 
         # (lambda_max, (1, 1), [[[5, 7], [7, -3]]], Constant([9.06225775])),
-        # (lambda x: lambda_sum_largest(x, 2), (1, 1), [[[1, 2, 3], [2, 4, 5], [3, 5, 6]]], Constant([11.51572947])),
-        (log_sum_exp, (1, 1), [[[5, 7], [0, -3]]], Constant([7.1277708268])),
+        (lambda x: lambda_sum_largest(x, 2), (1, 1), [[[1, 2, 3], [2, 4, 5], [3, 5, 6]]], Constant([11.51572947])),
+        # (log_sum_exp, (1, 1), [[[5, 7], [0, -3]]], Constant([7.1277708268])),
         # (log_sum_exp_axis_0, (1, 2), [[[5, 7, 1], [0, -3, 6]]], Constant([7.12910890, 6.00259878]).T),
         # (log_sum_exp_axis_1, (3, 1), [[[5, 7, 1], [0, -3, 6]]], Constant([5.00671535, 7.0000454, 6.0067153])),
         # (logistic, (2, 2),
@@ -314,6 +315,8 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
 
 
 def reduction(problem):
+    elim_attr = CvxAttr2Constr()
+    problem, _ = elim_attr.apply(problem)
     d2c = Dcp2Cone()
     assert d2c.accepts(problem)
     reduced_problem, _ = d2c.apply(problem)

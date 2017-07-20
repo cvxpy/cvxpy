@@ -72,6 +72,11 @@ class diag_vec(AffAtom):
         rows, _ = self.args[0].shape
         return (rows, rows)
 
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        return True
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Convolve two vectors.

@@ -24,6 +24,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions import InverseData, Reduction, Solution
+from cvxpy.transforms.partial_optimize import PartialProblem
 
 
 class Canonicalization(Reduction):
@@ -52,23 +53,23 @@ class Canonicalization(Reduction):
         return Solution(solution.status, solution.opt_val, pvars, dvars)
 
     def canonicalize_tree(self, expr):
-        canon_args = []
-        constrs = []
-        for arg in expr.args:
-            canon_arg, c = self.canonicalize_tree(arg)
-            canon_args += [canon_arg]
+        if type(expr) == PartialProblem:
+            canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr)
+            for constr in expr.args[0].constraints:
+                constrs += self.canonicalize_tree(constr)[1]
+        else:
+            canon_args = []
+            constrs = []
+            for arg in expr.args:
+                canon_arg, c = self.canonicalize_tree(arg)
+                canon_args += [canon_arg]
+                constrs += c
+            canon_expr, c = self.canonicalize_expr(expr, canon_args)
             constrs += c
-        canon_expr, c = self.canonicalize_expr(expr, canon_args)
-        constrs += c
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
         if type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
-        elif isinstance(expr, Variable):
-            # TODO(akshayka): One of the QP reductions, likely
-            # QpMatrixStuffing, breaks if variables are copied; further
-            # investigation is warranted to see why.
-            return expr, []
         else:
             return expr.copy(args), []

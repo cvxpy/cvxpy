@@ -158,6 +158,12 @@ class Expression(u.Canonical):
         # Defaults to false
         return False
 
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        # Defaults to false unless scalar.
+        return self.is_scalar()
+
     def is_pwl(self):
         """Is the expression piecewise linear?
         """
@@ -192,13 +198,13 @@ class Expression(u.Canonical):
 
     @abc.abstractmethod
     def is_nonneg(self):
-        """Is the expression nonnegative?
+        """Is the expression positive?
         """
         return NotImplemented
 
     @abc.abstractmethod
     def is_nonpos(self):
-        """Is the expression nonpositive?
+        """Is the expression negative?
         """
         return NotImplemented
 

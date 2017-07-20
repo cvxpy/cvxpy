@@ -51,6 +51,7 @@ class PSD(NonPos):
         -------
         Expression
         """
+        # TODO wrong. Also requires symmetry.
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
         return cvxtypes.neg()(min_eig)
 
@@ -64,7 +65,6 @@ class PSD(NonPos):
             A tuple of (affine expression, [constraints]).
         """
         obj, constraints = self.args[0].canonical_form
-        half = lu.create_const(0.5, (1, 1))
-        symm = lu.mul_expr(half, lu.sum_expr([obj, lu.transpose(obj)]), obj.shape)
-        dual_holder = SDP(symm, enforce_sym=False, constr_id=self.id)
+        dual_holder = SDP(obj, enforce_sym=not self.args[0].is_symmetric(),
+                          constr_id=self.id)
         return (None, constraints + [dual_holder])

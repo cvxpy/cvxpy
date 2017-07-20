@@ -18,13 +18,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression, RMulExpression
 from cvxpy.expressions.variable import Variable
-import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
-import scipy.sparse as sp
+
 
 def cumsum_canon(expr, args):
     """Cumulative sum.
@@ -32,10 +27,10 @@ def cumsum_canon(expr, args):
     X = args[0]
     axis = expr.axis
     # Implicit O(n) definition:
-    # X = Y[:1,:] - Y[1:,:]
+    # X = Y[:1,:] - Y[1:, :]
     Y = Variable(expr.shape)
     if axis == 0:
-        constr = [X[1:,:] == Y[1:,:] - Y[:-1,:], Y[0,:] == X[0,:]]
+        constr = [X[1:, :] == Y[1:, :] - Y[:-1, :], Y[0, :] == X[0,:]]
     else:
-        constr = [X[:,1:] == Y[:,1:] - Y[:,:-1], Y[:,0] == X[:,0]]
+        constr = [X[:, 1:] == Y[:, 1:] - Y[:, :-1], Y[:, 0] == X[:, 0]]
     return (Y, constr)

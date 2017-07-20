@@ -35,19 +35,3 @@ class Dcp2Cone(Canonicalization):
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to cone program")
         return Canonicalization(cone_canon_methods).apply(problem)
-
-    def invert(self, solution, inverse_data):
-        pvars = {}
-        for id, var in inverse_data.id2var.items():
-            # Need to map from constrained to symmetric variable.
-            if id in solution.primal_vars:
-                if var.is_symmetric():
-                    n = var.shape[0]
-                    value = np.zeros(var.shape)
-                    value[:n*(n+1)//2] = solution.primal_vars[id]
-                    pvars[id] = value + value.T
-                else:
-                    pvars[id] = solution.primal_vars[id]
-        dvars = {orig_id: solution.dual_vars[id]
-                 for orig_id, id in inverse_data.cons_id_map.items()}
-        return Solution(solution.status, solution.opt_val, pvars, dvars)

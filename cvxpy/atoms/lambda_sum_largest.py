@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.cvxtypes import minimize, partial_optimize, problem
 from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.affine.trace import trace
@@ -49,4 +50,5 @@ def lambda_sum_largest(X, k):
     with Z_{ii} = (lambda_i - lambda_k)_+
     """
     Z = Variable((X.shape[0], X.shape[0]), PSD=True)
-    return k*lambda_max(X - Z) + trace(Z)
+    expr = k*lambda_max(X - Z) + trace(Z)
+    return partial_optimize()(problem()(minimize()(expr)), opt_vars=[Z])
