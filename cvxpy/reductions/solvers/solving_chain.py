@@ -90,25 +90,26 @@ def construct_solving_chain(problem, solver=None):
     # and exponential atoms.
     atoms = problem.atoms()
     cones = []
-    if (any(type(atom) in SOC_ATOMS for atom in atoms)
+    if (any(atom in SOC_ATOMS for atom in atoms)
             or any(type(c) == SOC for c in problem.constraints)):
         cones.append(SOC)
-    if (any(type(atom) in EXP_ATOMS for atom in atoms)
+    if (any(atom in EXP_ATOMS for atom in atoms)
             or any(type(c) == ExpCone for c in problem.constraints)):
         cones.append(ExpCone)
-    if (any(type(atom) in PSD_ATOMS for atom in atoms)
+    if (any(atom in PSD_ATOMS for atom in atoms)
             or any(type(c) == PSD for c in problem.constraints)
             or any(type(v) == SemidefUpperTri for v in problem.variables())):
         cones.append(PSD)
 
     for solver in sorted(candidate_conic_solvers,
                          key=lambda s: CONIC_SOLVERS.index(s)):
-        if all(c in SLV_MAP[s].SUPPORTED_CONSTRAINTS for c in cones):
+        if all(c in SLV_MAP[solver].SUPPORTED_CONSTRAINTS for c in cones):
             reductions += [Dcp2Cone(), ConeMatrixStuffing(), SLV_MAP[solver]]
             return SolvingChain(reductions=reductions)
     raise SolverError("Candidate conic solvers (%s) do not support the cones "
-                      "output by the problem (%s)." % (candidate_conic_solvers,
-                                                        ', '.join(cones)))
+                      "output by the problem (%s)." % (
+                      candidate_conic_solvers,
+                      ', '.join([cone.__class__.__name__ for cone in cones])))
 
 
 class SolvingChain(Chain):

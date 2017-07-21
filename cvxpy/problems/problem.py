@@ -142,6 +142,8 @@ class Problem(object):
         return list(const_dict.values())
 
     def atoms(self):
+        """Returns a list of the atom types present in the problem.
+        """
         atoms = self.objective.atoms()
         for constr in self.constraints:
             atoms += constr.atoms()
