@@ -6,6 +6,7 @@ from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.utilities import (SOLVER_MAP as SLV_MAP,
                                                 INSTALLED_SOLVERS,
@@ -14,7 +15,10 @@ from cvxpy.reductions.solvers.utilities import (SOLVER_MAP as SLV_MAP,
 
 
 def construct_solving_chain(problem, solver=None):
-    """Build a reduction chain from a problem to an installed solver
+    """Build a reduction chain from a problem to an installed solver.
+
+    Note that if the supplied problem has 0 variables, then the solver
+    parameter will be ignored.
 
     Parameters
     ----------
@@ -23,7 +27,8 @@ def construct_solving_chain(problem, solver=None):
     solver : string
         The name of the solver with which to terminate the chain. If no solver
         is supplied (i.e., if solver is None), then the targeted solver may be
-        any of those that are installed.
+        any of those that are installed. If the problem is variable-free,
+        then this parameter is ignored.
 
     Returns
     -------
@@ -35,15 +40,18 @@ def construct_solving_chain(problem, solver=None):
     DCPError
         Raised if the problem is not DCP.
     SolverError
-        Raised if no suitable solver exists among the installed solvers.
+        Raised if no suitable solver exists among the installed solvers, or
+        if the target solver is not installed.
     """
-
     if solver is not None:
         if solver not in INSTALLED_SOLVERS:
             raise SolverError("Solver %s is not installed" % solver)
         candidates = [solver]
     else:
         candidates = INSTALLED_SOLVERS
+
+    if len(problem.variables()) == 0:
+        return SolvingChain([ConstantSolver()])
 
     # Presently, we have but two reduction chains:
     #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> QpSolver,
