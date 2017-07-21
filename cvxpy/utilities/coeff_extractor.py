@@ -74,7 +74,8 @@ class CoeffExtractor(object):
             raise ValueError("Expression is not affine")
         size = expr.shape[0]*expr.shape[1]
         s, _ = expr.canonical_form
-        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)], self.id_map)
+        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)],
+                                                       self.id_map)
         A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
         return A, b.flatten()
 
@@ -189,6 +190,9 @@ class CoeffExtractor(object):
         return Ps, Q.tocsr(), R
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
+        # TODO(akshayka): What are the assumptions on the affine expression
+        # supplied to this method?
+
         # Extract affine data.
         affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
         affine_inverse_data = InverseData(affine_problem)
@@ -222,30 +226,35 @@ class CoeffExtractor(object):
                     coeffs[orig_id]['q'] = np.zeros(P.shape[0])
             else:
                 var_offset = affine_id_map[var.id][0]
-                var_shape = affine_var_shapes[var.id]
-                n = var_shape[0]
-                var_size = var_shape[0]*var_shape[1]
+                var_size = np.prod(affine_var_shapes[var.id])
                 if var.id in coeffs:
-                    coeffs[var.id]['P'] += sp.csr_matrix((n, n))
-                    coeffs[var.id]['q'] += c[0, var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
+                    coeffs[var.id]['q'] += c[0,
+                        var_offset:var_offset+var_size].toarray().flatten()
                 else:
                     coeffs[var.id] = dict()
-                    coeffs[var.id]['P'] = sp.csr_matrix((n, n))
-                    coeffs[var.id]['q'] = c[0, var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
+                    coeffs[var.id]['q'] = c[0,
+                        var_offset:var_offset+var_size].toarray().flatten()
         return coeffs, b
 
     def quad_form(self, expr):
-        """ Extract quadratic, linear and constant part of a quadratic objective """
-        # Insert no-op such that root is never a quadratic form, for easier processing
+        """Extract quadratic, linear constant parts of a quadratic objective.
+        """
+        # Insert no-op such that root is never a quadratic form, for easier
+        # processing
         root = LinOp(NO_OP, expr.shape, [expr], [])
 
         # Replace quadratic forms with dummy variables.
         quad_forms = replace_quad_forms(root, {})
 
-        # Calculate affine parts and combine them with quadratic forms to get the coefficients.
-        coeffs, constant = self.extract_quadratic_coeffs(root.args[0], quad_forms)
+        # Calculate affine parts and combine them with quadratic forms to get
+        # the coefficients.
+        coeffs, constant = self.extract_quadratic_coeffs(root.args[0],
+                                                         quad_forms)
 
-        # Sort variables corresponding to their starting indices, in ascending order.
+        # Sort variables corresponding to their starting indices, in ascending
+        # order.
         offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
 
         # Concatenate quadratic matrices and vectors
@@ -261,8 +270,10 @@ class CoeffExtractor(object):
                 P = sp.block_diag([P, sp.csr_matrix((size, size))])
                 q = np.concatenate([q, np.zeros(size)])
 
+        # TODO(akshayka): This chain of != smells of a bug.
         if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
-            raise RuntimeError("Resulting quadratic form does not have appropriate dimensions")
+            raise RuntimeError("Resulting quadratic form does not have "
+                               "appropriate dimensions")
         if constant.size != 1:
             raise RuntimeError("Constant must be a scalar")
         return P.tocsr(), q, constant[0]

@@ -91,9 +91,27 @@ class QpSolver(Solver):
         status = solution.status
         attr = {s.SOLVE_TIME: solution.cputime}
 
+        # Map mathprogbasepy statuses back to CVXPY statuses
+        if status == qp.quadprog.problem.OPTIMAL:
+            status = s.OPTIMAL
+        elif status == qp.quadprog.problem.OPTIMAL_INACCURATE:
+            status = s.OPTIMAL_INACCURATE
+        elif status == qp.quadprog.problem.PRIMAL_INFEASIBLE:
+            status = s.INFEASIBLE
+        elif status == qp.quadprog.problem.PRIMAL_INFEASIBLE_INACCURATE:
+            status = s.INFEASIBLE_INACCURATE
+        elif status == qp.quadprog.problem.DUAL_INFEASIBLE:
+            status = s.UNBOUNDED
+        elif status == qp.quadprog.problem.DUAL_INFEASIBLE_INACCURATE:
+            status = s.UNBOUNDED_INACCURATE
+        else:
+            status = s.SOLVER_ERROR
+
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.obj_val
             primal_vars = {inverse_data.id_map.keys()[0]: np.array(solution.x)}
+            # TODO(akshayka): This dependence is not nice. Refactoring
+            # is necessary.
             dual_vars = ConicSolver.get_dual_values(solution.y, inverse_data.sorted_constraints)
             attr[s.NUM_ITERS] = solution.total_iter
         else:
