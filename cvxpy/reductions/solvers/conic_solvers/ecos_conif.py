@@ -36,6 +36,7 @@ class ECOS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone]
+    MIN_CONSTRAINTS = 0
 
     # EXITCODES from ECOS
     # ECOS_OPTIMAL  (0)   Problem solved to optimality
@@ -67,6 +68,7 @@ class ECOS(ConicSolver):
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
                 and is_stuffed_cone_objective(problem.objective)
+                and len(problem.constraints) >= ECOS.MIN_CONSTRAINTS
                 and all(type(c) in ECOS.SUPPORTED_CONSTRAINTS for c in
                         problem.constraints)
                 and all(is_stuffed_cone_constraint(c) for c in

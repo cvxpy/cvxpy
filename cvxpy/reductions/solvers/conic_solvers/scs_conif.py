@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
@@ -35,6 +36,7 @@ class SCS(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
                                                                  ExpCone,
                                                                  PSD]
+    MIN_CONSTRAINTS = 1
 
     # Map of SCS status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,
@@ -63,16 +65,11 @@ class SCS(ConicSolver):
     def accepts(self, problem):
         """Can SCS solve the problem?
         """
-        # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
-            return False
-        for constr in problem.constraints:
-            if type(constr) not in SCS.SUPPORTED_CONSTRAINTS:
-                return False
-            for arg in constr.args:
-                if not arg.is_affine():
-                    return False
-        return True
+        return (type(problem.objective) == Minimize
+                and is_stuffed_cone_objective(problem.objective)
+                and len(problem.constraints) >= SCS.MIN_CONSTRAINTS
+                and all(type(c) in SCS.SUPPORTED_CONSTRAINTS for c in
+                        problem.constraints))
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -84,7 +81,8 @@ class SCS(ConicSolver):
         """
         data = {}
         inv_data = {self.VAR_ID: problem.variables()[0].id}
-        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(problem.objective.args[0])
+        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
+            problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
@@ -98,12 +96,14 @@ class SCS(ConicSolver):
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
         data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
         soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        data[s.DIMS]['q'] = [size for cons in soc_constr for size in cons.cone_sizes()]
+        data[s.DIMS]['q'] = [size for cons in soc_constr
+                                  for size in cons.cone_sizes()]
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         data[s.DIMS]['ep'] = sum([cons.num_cones() for cons in exp_constr])
         constr = zero_constr + leq_constr + soc_constr + exp_constr
         inv_data[SCS.NEQ_CONSTR] = constr
-        data[s.A], data[s.B] = self.group_coeff_offset(constr, self.EXP_CONE_ORDER)
+        data[s.A], data[s.B] = self.group_coeff_offset(constr,
+                                                       self.EXP_CONE_ORDER)
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -121,7 +121,8 @@ class SCS(ConicSolver):
             primal_val = solution['info']['pobj']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[SCS.VAR_ID]: solution['x']}
-            ineq_dual = ConicSolver.get_dual_values(solution['y'], inverse_data[SCS.NEQ_CONSTR])
+            ineq_dual = ConicSolver.get_dual_values(
+                solution['y'], inverse_data[SCS.NEQ_CONSTR])
             dual_vars = ineq_dual
         else:
             if status == s.INFEASIBLE:

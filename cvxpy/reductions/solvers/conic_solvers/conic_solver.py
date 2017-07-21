@@ -33,6 +33,7 @@ class ConicSolver(Solver):
 
     # Every conic solver must support Zero and NonPos constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+    MIN_CONSTRAINTS = 0
 
     @staticmethod
     def get_coeff_offset(expr):

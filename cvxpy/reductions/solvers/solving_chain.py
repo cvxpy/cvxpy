@@ -103,11 +103,15 @@ def construct_solving_chain(problem, solver=None):
 
     for solver in sorted(candidate_conic_solvers,
                          key=lambda s: CONIC_SOLVERS.index(s)):
-        if all(c in SLV_MAP[solver].SUPPORTED_CONSTRAINTS for c in cones):
+        # Here, we make use of the observation that canonicalization only
+        # increases the number of constraints in our problem.
+        if (all(c in SLV_MAP[solver].SUPPORTED_CONSTRAINTS for c in cones) and
+                len(problem.constraints) > SLV_MAP[solver].MIN_CONSTRAINTS):
             reductions += [Dcp2Cone(), ConeMatrixStuffing(), SLV_MAP[solver]]
             return SolvingChain(reductions=reductions)
-    raise SolverError("Candidate conic solvers (%s) do not support the cones "
-                      "output by the problem (%s)." % (
+    raise SolverError("Either candidate conic solvers (%s) do not support the "
+                      "cones output by the problem (%s), or there are not "
+                      "enough constraints in the problem."  % (
                       candidate_conic_solvers,
                       ', '.join([cone.__class__.__name__ for cone in cones])))
 
