@@ -64,7 +64,8 @@ class MatrixStuffing(Reduction):
 
         primal_vars, dual_vars = {}, {}
         if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars)
+            return Solution(solution.status, opt_val, primal_vars, dual_vars,
+                            solution.attr)
 
         # Split vectorized variable into components.
         x_opt = solution.primal_vars.values()[0]
@@ -85,7 +86,8 @@ class MatrixStuffing(Reduction):
         else:
             opt_val -= inverse_data.r
 
-        return Solution(solution.status, opt_val, primal_vars, dual_vars)
+        return Solution(solution.status, opt_val, primal_vars, dual_vars,
+                        solution.attr)
 
     def stuffed_objective(self, problem, inverse_data):
         return NotImplementedError

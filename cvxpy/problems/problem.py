@@ -420,7 +420,7 @@ class Problem(object):
             raise SolverError("Solver '%s' failed. Try another solver." %
                               chain.solver.name())
         self._status = solution.status
-        # TODO(akshayka): save solver stats
+        self._solver_stats = SolverStats(solution.attr, chain.solver.name())
 
     def __str__(self):
         if len(self.constraints) == 0:

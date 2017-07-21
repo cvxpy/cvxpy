@@ -29,8 +29,7 @@ class Solution(object):
         dual_vars: dict of id to NumPy ndarray
         attr: dict of other attributes.
     """
-    def __init__(self, status=None, opt_val=None, primal_vars=None,
-                 dual_vars=None, attr=None):
+    def __init__(self, status, opt_val, primal_vars, dual_vars, attr):
         self.status = status
         self.opt_val = opt_val
         self.primal_vars = primal_vars

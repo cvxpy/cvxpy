@@ -36,10 +36,10 @@ class QpSolver(Solver):
     """
 
     def __init__(self, solver_name):
-        self.name = solver_name
+        self.solver_name = solver_name
 
     def name(self):
-        return self.name
+        return self.solver_name
 
     def import_solver(self):
         import mathprogbasepy as qp
@@ -125,4 +125,4 @@ class QpSolver(Solver):
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
-        return data.solve(solver=self.name, verbose=verbose)
+        return data.solve(solver=self.solver_name, verbose=verbose)

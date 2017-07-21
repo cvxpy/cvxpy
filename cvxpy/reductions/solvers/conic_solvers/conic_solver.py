@@ -210,4 +210,4 @@ class ConicSolver(Solver):
             primal_vars = None
             dual_vars = None
 
-        return Solution(status, opt_val, primal_vars, dual_vars, None)
+        return Solution(status, opt_val, primal_vars, dual_vars, {})

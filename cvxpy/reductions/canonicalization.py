@@ -50,7 +50,8 @@ class Canonicalization(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in inverse_data.cons_id_map.items()
                  if vid in solution.dual_vars}
-        return Solution(solution.status, solution.opt_val, pvars, dvars)
+        return Solution(solution.status, solution.opt_val, pvars, dvars,
+                        solution.attr)
 
     def canonicalize_tree(self, expr):
         canon_args = []
