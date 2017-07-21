@@ -56,7 +56,8 @@ class QpSolver(Solver):
         inverse_data = InverseData(problem)
 
         obj = problem.objective
-        # quadratic part of objective is x.T * P * x but solvers expect 0.5*x.T * P * x.
+        # quadratic part of objective is x.T * P * x but solvers expect
+        # 0.5*x.T * P * x.
         P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
         n = P.shape[0]
@@ -65,7 +66,8 @@ class QpSolver(Solver):
         # should change here.
         ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
         if ineq_cons:
-            ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr) for con in ineq_cons])
+            ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
+                              for con in ineq_cons])
             A = sp.vstack(ineq_coeffs[0])
             b = np.concatenate(ineq_coeffs[1])
         else:

@@ -47,6 +47,7 @@ class QuadForm(Atom):
         else:
             self.P_eigvals = LA.eigvals(P)
         self.P = self.args[1]
+        self.x = x
 
     @Atom.numpy_numeric
     def numeric(self, values):
