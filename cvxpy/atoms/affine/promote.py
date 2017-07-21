@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
@@ -44,8 +45,10 @@ class Promote(AffAtom):
     """
 
     def __init__(self, expr, shape):
+        if isinstance(shape, Constant):
+            shape = tuple(shape.value.flatten())
         self.promoted_shape = shape
-        super(Promote, self).__init__(expr)
+        super(Promote, self).__init__(expr, shape)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
