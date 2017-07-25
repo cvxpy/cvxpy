@@ -30,8 +30,8 @@ from cvxpy.reductions.utilities import are_args_affine
 
 class Qp2SymbolicQp(Canonicalization):
     """
-    Reduces a quadratic problem to a problem that consists of affine expressions
-    and symbolic quadratic forms.
+    Reduces a quadratic problem to a problem that consists of affine
+    expressions and symbolic quadratic forms.
     """
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
