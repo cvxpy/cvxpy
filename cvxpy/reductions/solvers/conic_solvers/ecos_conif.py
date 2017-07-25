@@ -22,7 +22,7 @@ import numpy as np
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
 
 from .conic_solver import ConicSolver
@@ -91,7 +91,7 @@ class ECOS(ConicSolver):
 
         constr_map = group_constraints(problem.constraints)
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        data[s.A], data[s.B] = ConicSolver.group_coeff_offset(constr_map[Zero],
+        data[s.A], data[s.B] = self.group_coeff_offset(constr_map[Zero],
             ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
@@ -103,7 +103,7 @@ class ECOS(ConicSolver):
 
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
         inv_data[self.NEQ_CONSTR] = neq_constr
-        data[s.G], data[s.H] = ConicSolver.group_coeff_offset(neq_constr,
+        data[s.G], data[s.H] = self.group_coeff_offset(neq_constr,
             ECOS.EXP_CONE_ORDER)
 
         return data, inv_data
@@ -129,17 +129,9 @@ class ECOS(ConicSolver):
                 inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
         import ecos

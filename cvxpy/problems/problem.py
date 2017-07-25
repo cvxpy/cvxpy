@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2013 Steven Diamond, 2017 Akshay Agrawal
 
 This file is part of CVXPY.
 

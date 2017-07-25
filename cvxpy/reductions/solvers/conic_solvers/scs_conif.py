@@ -22,7 +22,7 @@ import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
 
 from .conic_solver import ConicSolver
@@ -34,8 +34,7 @@ class SCS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = False
-    # TODO(akshayka): Support for PSD needs to be implemented. Preferably
-    # implement it in the conic solver superclass if possible.
+    # TODO(akshayka): Support for PSD needs to be implemented.
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
                                                                  ExpCone,
                                                                  PSD]
@@ -65,6 +64,13 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
+    def format_constr(self, constr, exp_cone_order):
+        if isinstance(constr, PSD):
+            raise NotImplementedError("SCS formatting of PSD constraints "
+                                      "not yet implemented.")
+        else:
+            return super(SCS, self).format_constr(constr, exp_cone_order)
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -77,7 +83,7 @@ class SCS(ConicSolver):
         inv_data = {self.VAR_ID: problem.variables()[0].id}
 
         # Parse the coefficient vector from the objective.
-        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
+        data[s.C], data[s.OFFSET] = self.get_coeff_offset(
             problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
         inv_data[s.OFFSET] = data[s.OFFSET][0]
@@ -123,27 +129,20 @@ class SCS(ConicSolver):
             primal_val = solution['info']['pobj']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[SCS.VAR_ID]: solution['x']}
-            eq_dual = ConicSolver.get_dual_values(
+            eq_dual_vars = ConicSolver.get_dual_values(
                 solution['y'][:inverse_data[s.DIMS]['f']],
                 inverse_data[SCS.EQ_CONSTR])
             # TODO(akshayka): This is not entirely correct; logic
             # is needed for PSD constraints. See scs_intf.format_results.
-            ineq_dual = ConicSolver.get_dual_values(
+            ineq_dual_vars = ConicSolver.get_dual_values(
                 solution['y'][inverse_data[s.DIMS]['f']:],
                 inverse_data[SCS.NEQ_CONSTR])
             dual_vars = {}
-            dual_vars.update(eq_dual)
-            dual_vars.update(ineq_dual)
+            dual_vars.update(eq_dual_vars)
+            dual_vars.update(ineq_dual_vars)
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
         """Returns the result of the call to the solver.

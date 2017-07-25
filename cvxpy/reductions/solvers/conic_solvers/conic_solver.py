@@ -83,6 +83,30 @@ class ConicSolver(Solver):
                         problem.constraints))
 
     @staticmethod
+    def get_dual_values(result_vec, constraints):
+        """Gets the values of the dual variables.
+
+        Parameters
+        ----------
+        result_vec : array_like
+            A vector containing the dual variable values.
+        constraints : list
+            A list of the constraints in the problem.
+
+        Returns
+        -------
+           A map of constraint id to dual variable value.
+        """
+        # Store dual values.
+        dual_vars = {}
+        offset = 0
+        for constr in constraints:
+            # TODO reshape based on dual variable size.
+            dual_vars[constr.id] = result_vec[offset:offset + constr.size]
+            offset += constr.size
+        return dual_vars
+
+    @staticmethod
     def get_coeff_offset(expr):
         """Return the coefficient and offset in A*x + b.
 
@@ -137,14 +161,15 @@ class ConicSolver(Solver):
             col_arr.append(var_row)
         return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsr()
 
-    @staticmethod
-    def format_constr(constr, exp_cone_order):
+    def format_constr(self, constr, exp_cone_order):
         """Return the coefficient and offset for the constraint in ECOS format.
 
         TODO(akshayka): This function should not be written for ECOS in
         particular, and the documentation should not mention ECOS either.
 
         TODO(akshayka): This function needs to support PSD constraints!
+
+        TODO(akshayka): What is exp_cone_order?
 
         Args:
           constr: A CVXPY constraint.
@@ -158,8 +183,10 @@ class ConicSolver(Solver):
             coeffs.append(coeff.tocsr())
             offsets.append(offset)
         height = sum([c.shape[0] for c in coeffs])
-        # Specialize based on constraint type.
+
         if type(constr) in [NonPos, Zero]:
+            # Both of these constraints have but a single argument.
+            # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
             return coeffs[0], -offsets[0]
         elif type(constr) == SOC:
             # Group each t row with appropriate X rows.
@@ -173,7 +200,8 @@ class ConicSolver(Solver):
                 offset[i*gap] = offsets[0][i]
                 mat_arr.append(coeffs[0][i, :])
                 if constr.axis == 0:
-                    offset[i*gap+1:(i+1)*gap] = offsets[1][i*(gap-1):(i+1)*(gap-1)]
+                    offset[i*gap+1:(i+1)*gap] = offsets[1][
+                        i*(gap-1):(i+1)*(gap-1)]
                     mat_arr.append(coeffs[1][i*(gap-1):(i+1)*(gap-1), :])
                 else:
                     offset[i*gap+1:(i+1)*gap] = offsets[1][i::gap-1]
@@ -189,10 +217,10 @@ class ConicSolver(Solver):
                 coeffs[i] = -mat*coeffs[i]
             return sum(coeffs), sum(offsets)
         else:
+            # subclasses must handle PSD constraints.
             raise ValueError("Unsupported constraint type.")
 
-    @staticmethod
-    def group_coeff_offset(constraints, exp_cone_order):
+    def group_coeff_offset(self, constraints, exp_cone_order):
         """Combine the constraints into a single matrix, offset.
 
         Args:
@@ -205,36 +233,12 @@ class ConicSolver(Solver):
             return None, None
         matrices, offsets = [], []
         for cons in constraints:
-            coeff, offset = ConicSolver.format_constr(cons, exp_cone_order)
+            coeff, offset = self.format_constr(cons, exp_cone_order)
             matrices.append(coeff)
             offsets.append(offset)
         coeff = sp.vstack(matrices).tocsc()
         offset = np.hstack(offsets)
         return coeff, offset
-
-    @staticmethod
-    def get_dual_values(result_vec, constraints):
-        """Gets the values of the dual variables.
-
-        Parameters
-        ----------
-        result_vec : array_like
-            A vector containing the dual variable values.
-        constraints : list
-            A list of the constraints in the problem.
-
-        Returns
-        -------
-           A map of constraint id to dual variable value.
-        """
-        # Store dual values.
-        dual_vars = {}
-        offset = 0
-        for constr in constraints:
-            # TODO reshape based on dual variable size.
-            dual_vars[constr.id] = result_vec[offset:offset + constr.size]
-            offset += constr.size
-        return dual_vars
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

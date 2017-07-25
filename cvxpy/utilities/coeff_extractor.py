@@ -42,22 +42,11 @@ class CoeffExtractor(object):
         self.N = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
 
-    # TODO: remove this and following functions, except for affine() and quad_form() and affiliates
     def get_coeffs(self, expr):
         if expr.is_constant():
             return self.constant(expr)
         elif expr.is_affine():
             return self.affine(expr)
-        elif isinstance(expr, cvxpy.affine_prod):
-            return self.affine_prod(expr)
-        elif isinstance(expr, cvxpy.quad_over_lin):
-            return self.quad_over_lin(expr)
-        elif isinstance(expr, cvxpy.power):
-            return self.power(expr)
-        elif isinstance(expr, cvxpy.matrix_frac):
-            return self.matrix_frac(expr)
-        elif isinstance(expr, cvxpy.affine.affine_atom.AffAtom):
-            return self.affine_atom(expr)
         elif expr.is_quadratic():
             return self.quad_form(expr)
         else:
@@ -65,7 +54,8 @@ class CoeffExtractor(object):
 
     def constant(self, expr):
         size = expr.shape[0]*expr.shape[1]
-        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size, 1), order='F')
+        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size, 1),
+                                                         order='F')
 
     def affine(self, expr):
         """ If expression is A*x + b, return A, b
@@ -78,116 +68,6 @@ class CoeffExtractor(object):
                                                        self.id_map)
         A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
         return A, b.flatten()
-
-    def affine_prod(self, expr):
-        XQ, XR = self.affine(expr.args[0])
-        YQ, YR = self.affine(expr.args[1])
-
-        m, p = expr.args[0].shape
-        n = expr.args[1].shape[1]
-
-        Ps = []
-        Q = sp.csr_matrix((m*n, self.N))
-        R = np.zeros((m*n))
-
-        ind = 0
-        for j in range(n):
-            for i in range(m):
-                M = sp.csr_matrix((self.N, self.N))
-                for k in range(p):
-                    Xind = k*m + i
-                    Yind = j*p + k
-
-                    a = XQ[Xind, :]
-                    b = XR[Xind]
-                    c = YQ[Yind, :]
-                    d = YR[Yind]
-
-                    M += a*c.T
-                    Q[ind, :] += b*c + d*a
-                    R[ind] += b*d
-
-                Ps.append(M.tocsr())
-                ind += 1
-
-        return (Ps, Q.tocsr(), R)
-
-    def quad_over_lin(self, expr):
-        A, b = self.affine(expr.args[0])
-        P = A.T*A
-        q = sp.csr_matrix(2*b.T*A)
-        r = np.dot(b.T, b)
-        y = float(expr.args[1].value)
-        return [P/y], q/y, np.array([r/y])
-
-    def power(self, expr):
-        if expr.p == 1:
-            return self.get_coeffs(expr.args[0])
-        elif expr.p == 2:
-            A, b = self.affine(expr.args[0])
-            Ps = [(A[i, :].T*A[i, :]).tocsr() for i in range(A.shape[0])]
-            Q = 2*(sp.diags(b, 0)*A).tocsr()
-            R = np.power(b, 2)
-            return Ps, Q, R
-        else:
-            raise Exception("Error while processing power(x, %f)." % expr.p)
-
-    def matrix_frac(self, expr):
-        A, b = self.affine(expr.args[0])
-        m, n = expr.args[0].shape
-        Pinv = np.asarray(LA.inv(expr.args[1].value))
-
-        M = sp.lil_matrix((self.N, self.N))
-        Q = sp.lil_matrix((1, self.N))
-        R = 0
-
-        for i in range(0, m*n, m):
-            A2 = A[i:i+m, :]
-            b2 = b[i:i+m]
-
-            M += A2.T*Pinv*A2
-            Q += 2*A2.T.dot(np.dot(Pinv, b2))
-            R += np.dot(b2, np.dot(Pinv, b2))
-
-        return [M.tocsr()], Q.tocsr(), np.array([R])
-
-    def affine_atom(self, expr):
-        sz = expr.shape[0]*expr.shape[1]
-        Ps = [sp.lil_matrix((self.N, self.N)) for i in range(sz)]
-        Q = sp.lil_matrix((sz, self.N))
-        Parg = None
-        Qarg = None
-        Rarg = None
-
-        fake_args = []
-        offsets = {}
-        offset = 0
-        for idx, arg in enumerate(expr.args):
-            if arg.is_constant():
-                fake_args += [lu.create_const(arg.value, arg.shape)]
-            else:
-                if Parg is None:
-                    (Parg, Qarg, Rarg) = self.get_coeffs(arg)
-                else:
-                    (p, q, r) = self.get_coeffs(arg)
-                    Parg += p
-                    Qarg = sp.vstack([Qarg, q])
-                    Rarg = np.vstack([Rarg, r])
-                fake_args += [lu.create_var(arg.shape, idx)]
-                offsets[idx] = offset
-                offset += arg.shape[0]*arg.shape[1]
-        fake_expr, _ = expr.graph_implementation(fake_args, expr.shape, expr.get_data())
-        # Get the matrix representation of the function.
-        V, I, J, R = canonInterface.get_problem_matrix([lu.create_eq(fake_expr)], offsets)
-        R = R.flatten()
-        # return "AX+b"
-        for (v, i, j) in zip(V, I.astype(int), J.astype(int)):
-            Ps[i] += v*Parg[j]
-            Q[i, :] += v*Qarg[j, :]
-            R[i] += v*Rarg[j]
-
-        Ps = [P.tocsr() for P in Ps]
-        return Ps, Q.tocsr(), R
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         # TODO(akshayka): What are the assumptions on the affine expression

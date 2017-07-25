@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import numpy as np
 
 class InverseData(object):
     """ TODO(akshayka): Document this class."""
@@ -39,5 +40,5 @@ class InverseData(object):
             var_shapes[x.id] = x.shape
             var_offsets[x.id] = vert_offset
             id_map[x.id] = (vert_offset, x.size)
-            vert_offset += x.shape[0]*x.shape[1]
+            vert_offset += np.prod(x.shape)
         return (id_map, var_offsets, vert_offset, var_shapes)
