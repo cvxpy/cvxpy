@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.trace import trace
+from cvxpy.expressions.variables import Symmetric
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variables.variable import Variable
 
@@ -27,7 +28,7 @@ def matrix_frac_canon(expr, args):
     P = args[1]  # n by n matrix.
     n, m = X.shape
     # Create a matrix with Schur complement T - X.T*P^-1*X.
-    M = Variable(n+m, n+m)
+    M = Symmetric(n+m)
     T = Variable(m, m)
     constraints = []
     # Fix M using the fact that P must be affine by the DCP rules.

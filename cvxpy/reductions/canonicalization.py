@@ -35,13 +35,22 @@ class Canonicalization(Reduction):
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
-        new_objective, new_constraints = self.canonicalize_tree(problem.objective)
-        for constraint in problem.constraints:
-            constraint_copy, canon_constraints = self.canonicalize_tree(constraint)
-            new_constraints += canon_constraints + [constraint_copy]
-            inverse_data.cons_id_map.update({constraint.id: constraint_copy.id})
+        canon_objective, canon_constraints = self.canonicalize_tree(
+            problem.objective)
 
-        new_problem = problems.problem.Problem(new_objective, new_constraints)
+        for constraint in problem.constraints:
+            # canon_constr is the constraint rexpressed in terms of
+            # its canonaclized arguments, and aux_constr are the constraints
+            # generated while canonicalizing the arguments of the original
+            # constraint
+            canon_constr, aux_constr = self.canonicalize_tree(
+                constraint)
+            canon_constraints += aux_constr + [canon_constr]
+            inverse_data.cons_id_map.update({constraint.id:
+                                             canon_constr.id})
+
+        new_problem = problems.problem.Problem(canon_objective,
+                                               canon_constraints)
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
@@ -54,6 +63,8 @@ class Canonicalization(Reduction):
                         solution.attr)
 
     def canonicalize_tree(self, expr):
+        # TODO(akshayka): The naming is confusing here because expr may
+        # be a constraint, which is not an expression.
         canon_args = []
         constrs = []
         for arg in expr.args:

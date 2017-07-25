@@ -17,14 +17,23 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.atoms.affine.promote import promote
+from cvxpy.atoms.affine.diag import diag_vec
+from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.variables import Symmetric
 from cvxpy.expressions.variables.variable import Variable
 import scipy.sparse as sp
 
 
 def lambda_max_canon(expr, args):
     A = args[0]
+    n = A.shape[0]
     t = Variable()
-    # PSD constraint: I*t - A
-    constr = [Constant(sp.eye(A.shape[0])) * t >> A]
+    # Constrain I*t - A to be PSD; note that this expression must be symmetric,
+    # hence the need for the intermediate variable X below.
+    X = Symmetric(A.shape[0])
+    prom_t = promote(t, (n, 1))
+    tmp_expr = diag_vec(prom_t) - A
+    constr = [X == tmp_expr, PSD(tmp_expr)]
     return t, constr
