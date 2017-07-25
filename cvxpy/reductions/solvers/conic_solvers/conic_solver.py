@@ -20,20 +20,67 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy.settings as s
-from cvxpy.atoms import reshape
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.expressions.constants.constant import Constant
+from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solution import Solution
+import cvxpy.settings as s
+
+
+def is_stuffed_cone_constraint(constraint):
+    """Conic solvers require constraints to be stuffed in the following way.
+    """
+    for arg in constraint.args:
+        if type(arg) == reshape:
+            arg = arg.args[0]
+        if type(arg) == AddExpression:
+            if type(arg.args[0]) != MulExpression:
+                return False
+            if type(arg.args[0].args[0]) != Constant:
+                return False
+            if type(arg.args[1]) != Constant:
+                return False
+        elif type(arg) == MulExpression:
+            if type(arg.args[0]) != Constant:
+                return False
+        else:
+            return False
+    return True
+
+def is_stuffed_cone_objective(objective):
+    """Conic solvers require objectives to be stuffed in the following way.
+    """
+    expr = objective.expr
+    return (expr.is_affine()
+            and type(expr) == AddExpression
+            and len(expr.args) == 2
+            and type(expr.args[0]) == MulExpression
+            and type(expr.args[1]) == Constant)
 
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
-
     # Every conic solver must support Zero and NonPos constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonPos]
-    MIN_CONSTRAINTS = 0
+
+    # Some solvers cannot solve problems that do not have constraints.
+    # For such solvers, REQUIRES_CONSTR should be set to True.
+    REQUIRES_CONSTR = False
+
+    def accepts(self, problem):
+        return (type(problem.objective) == Minimize
+                and (self.MIP_CAPABLE or not problem.is_mixed_integer())
+                and is_stuffed_cone_objective(problem.objective)
+                and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
+                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
+                        problem.constraints)
+                and all(is_stuffed_cone_constraint(c) for c in
+                        problem.constraints))
 
     @staticmethod
     def get_coeff_offset(expr):
@@ -93,6 +140,11 @@ class ConicSolver(Solver):
     @staticmethod
     def format_constr(constr, exp_cone_order):
         """Return the coefficient and offset for the constraint in ECOS format.
+
+        TODO(akshayka): This function should not be written for ECOS in
+        particular, and the documentation should not mention ECOS either.
+
+        TODO(akshayka): This function needs to support PSD constraints!
 
         Args:
           constr: A CVXPY constraint.

@@ -23,8 +23,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import Solution
-from cvxpy.reductions.utilities import (is_stuffed_cone_constraint,
-                                        is_stuffed_cone_objective)
+from cvxpy.reductions.solvers.solver import group_constraints
 
 from .conic_solver import ConicSolver
 
@@ -36,7 +35,6 @@ class ECOS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, ExpCone]
-    MIN_CONSTRAINTS = 0
 
     # EXITCODES from ECOS
     # ECOS_OPTIMAL  (0)   Problem solved to optimality
@@ -65,15 +63,6 @@ class ECOS(ConicSolver):
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 2, 1]
 
-    def accepts(self, problem):
-        return (type(problem.objective) == Minimize
-                and is_stuffed_cone_objective(problem.objective)
-                and len(problem.constraints) >= ECOS.MIN_CONSTRAINTS
-                and all(type(c) in ECOS.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints)
-                and all(is_stuffed_cone_constraint(c) for c in
-                        problem.constraints))
-
     def import_solver(self):
         """Imports the solver.
         """
@@ -100,28 +89,28 @@ class ECOS(ConicSolver):
         data[s.C] = data[s.C].ravel()
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
-        constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[self.EQ_CONSTR] = constr
-        data[s.A], data[s.B] = ConicSolver.group_coeff_offset(constr,
+        constr_map = group_constraints(problem.constraints)
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        data[s.A], data[s.B] = ConicSolver.group_coeff_offset(constr_map[Zero],
             ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
-        soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        data[s.DIMS]['q'] = [size for cons in soc_constr
-            for size in cons.cone_sizes()]
-        exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
-        data[s.DIMS]['e'] = sum([cons.num_cones() for cons in exp_constr])
-        other_constr = leq_constr + soc_constr + exp_constr
-        inv_data[self.NEQ_CONSTR] = other_constr
-        data[s.G], data[s.H] = ConicSolver.group_coeff_offset(other_constr,
+        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in constr_map[NonPos]])
+        data[s.DIMS]['q'] = [sz for c in constr_map[SOC]
+                                  for sz in c.cone_sizes()]
+        data[s.DIMS]['e'] = sum([c.num_cones() for c in constr_map[ExpCone]])
+
+        neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
+        inv_data[self.NEQ_CONSTR] = neq_constr
+        data[s.G], data[s.H] = ConicSolver.group_coeff_offset(neq_constr,
             ECOS.EXP_CONE_ORDER)
+
         return data, inv_data
 
     def invert(self, solution, inverse_data):
-        """Returns solution to original problem, given inverse_data."""
+        """Returns solution to original problem, given inverse_data.
+        """
         status = self.STATUS_MAP[solution['info']['exitFlag']]
 
         # Timing data
@@ -134,8 +123,10 @@ class ECOS(ConicSolver):
             primal_val = solution['info']['pcost']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
-            eq_dual = ConicSolver.get_dual_values(solution['y'], inverse_data[self.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(solution['z'], inverse_data[self.NEQ_CONSTR])
+            eq_dual = ConicSolver.get_dual_values(solution['y'],
+                inverse_data[self.EQ_CONSTR])
+            leq_dual = ConicSolver.get_dual_values(solution['z'],
+                inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
         else:

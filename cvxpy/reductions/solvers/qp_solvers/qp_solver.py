@@ -17,19 +17,33 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import mathprogbasepy as qp
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy.settings as s
-import mathprogbasepy as qp
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.reductions.utilities import is_stuffed_qp_objective
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
+import cvxpy.settings as s
 
 
+
+def is_stuffed_qp_objective(objective):
+    """QPSolver requires objectives to be stuffed in the following way.
+    """
+    # TODO(akshayka): Consider coupling this function with the
+    # QpMatrixStuffing class
+    expr = objective.expr
+    return (type(expr) == AddExpression
+            and len(expr.args) == 2
+            and type(expr.args[0]) == QuadForm
+            and type(expr.args[1]) == MulExpression
+            and expr.args[1].is_affine())
 class QpSolver(Solver):
     """
     A QP solver interface.
@@ -67,7 +81,7 @@ class QpSolver(Solver):
         ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
         if ineq_cons:
             ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
-                              for con in ineq_cons])
+                                for con in ineq_cons])
             A = sp.vstack(ineq_coeffs[0])
             b = np.concatenate(ineq_coeffs[1])
         else:
@@ -75,7 +89,8 @@ class QpSolver(Solver):
 
         eq_cons = [c for c in problem.constraints if type(c) == Zero]
         if eq_cons:
-            eq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr) for con in eq_cons])
+            eq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
+                              for con in eq_cons])
             F = sp.vstack(eq_coeffs[0])
             g = np.concatenate(eq_coeffs[1])
         else:
@@ -114,7 +129,8 @@ class QpSolver(Solver):
             primal_vars = {inverse_data.id_map.keys()[0]: np.array(solution.x)}
             # TODO(akshayka): This dependence is not nice. Refactoring
             # is necessary.
-            dual_vars = ConicSolver.get_dual_values(solution.y, inverse_data.sorted_constraints)
+            dual_vars = ConicSolver.get_dual_values(solution.y,
+                                            inverse_data.sorted_constraints)
             attr[s.NUM_ITERS] = solution.total_iter
         else:
             primal_vars = None

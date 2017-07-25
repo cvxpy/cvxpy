@@ -45,7 +45,7 @@ def construct_solving_chain(problem, solver=None):
     """
     if solver is not None:
         if solver not in INSTALLED_SOLVERS:
-            raise SolverError("Solver %s is not installed" % solver)
+            raise SolverError("The solver %s is not installed." % solver)
         candidates = [solver]
     else:
         candidates = INSTALLED_SOLVERS
@@ -71,6 +71,7 @@ def construct_solving_chain(problem, solver=None):
     if type(problem.objective) == Maximize:
         reductions.append(FlipObjective())
 
+    # Attempt to canonicalize the problem to a linearly constrained QP.
     candidate_qp_solvers = [s for s in QP_SOLVERS if s in candidates]
     if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
         solver = sorted(candidate_qp_solvers,
@@ -85,6 +86,8 @@ def construct_solving_chain(problem, solver=None):
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
+
+    # Attempt to canonicalize the problem to a cone program.
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
     # and exponential atoms.
@@ -101,19 +104,22 @@ def construct_solving_chain(problem, solver=None):
             or any(type(v) == SemidefUpperTri for v in problem.variables())):
         cones.append(PSD)
 
+    # Here, we make use of the observation that canonicalization only
+    # increases the number of constraints in our problem.
+    has_constr = len(cones) > 0 or len(problem.constraints) > 0
+
     for solver in sorted(candidate_conic_solvers,
                          key=lambda s: CONIC_SOLVERS.index(s)):
-        # Here, we make use of the observation that canonicalization only
-        # increases the number of constraints in our problem.
-        if (all(c in SLV_MAP[solver].SUPPORTED_CONSTRAINTS for c in cones) and
-                len(problem.constraints) > SLV_MAP[solver].MIN_CONSTRAINTS):
-            reductions += [Dcp2Cone(), ConeMatrixStuffing(), SLV_MAP[solver]]
+        solver_instance = SLV_MAP[solver]
+        if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
+                and (has_constr or not solver_instance.REQUIRES_CONSTR)):
+            reductions += [Dcp2Cone(), ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "
                       "enough constraints in the problem."  % (
                       candidate_conic_solvers,
-                      ', '.join([cone.__class__.__name__ for cone in cones])))
+                      ', '.join([cone.__name__ for cone in cones])))
 
 
 class SolvingChain(Chain):

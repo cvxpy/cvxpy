@@ -23,6 +23,7 @@ import scipy.sparse as sp
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers.solver import group_constraints
 
 from .conic_solver import ConicSolver
 
@@ -33,10 +34,12 @@ class SCS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = False
+    # TODO(akshayka): Support for PSD needs to be implemented. Preferably
+    # implement it in the conic solver superclass if possible.
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
                                                                  ExpCone,
                                                                  PSD]
-    MIN_CONSTRAINTS = 1
+    REQUIRES_CONSTR = True
 
     # Map of SCS status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,
@@ -62,15 +65,6 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
-    def accepts(self, problem):
-        """Can SCS solve the problem?
-        """
-        return (type(problem.objective) == Minimize
-                and is_stuffed_cone_objective(problem.objective)
-                and len(problem.constraints) >= SCS.MIN_CONSTRAINTS
-                and all(type(c) in SCS.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints))
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -81,29 +75,37 @@ class SCS(ConicSolver):
         """
         data = {}
         inv_data = {self.VAR_ID: problem.variables()[0].id}
+
+        # Parse the coefficient vector from the objective.
         data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
             problem.objective.args[0])
         data[s.C] = data[s.C].ravel()
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
-        # SCS only has inequalities
-        inv_data[SCS.EQ_CONSTR] = []
-
         # Order and group nonlinear constraints.
+        constr_map = group_constraints(problem.constraints)
         data[s.DIMS] = {}
-        zero_constr = [c for c in problem.constraints if type(c) == Zero]
-        data[s.DIMS]['f'] = sum([np.prod(c.size) for c in zero_constr])
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in leq_constr])
-        soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        data[s.DIMS]['q'] = [size for cons in soc_constr
-                                  for size in cons.cone_sizes()]
-        exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
-        data[s.DIMS]['ep'] = sum([cons.num_cones() for cons in exp_constr])
-        constr = zero_constr + leq_constr + soc_constr + exp_constr
-        inv_data[SCS.NEQ_CONSTR] = constr
-        data[s.A], data[s.B] = self.group_coeff_offset(constr,
-                                                       self.EXP_CONE_ORDER)
+        data[s.DIMS]['f'] = sum([np.prod(c.size) for c in constr_map[Zero]])
+        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in constr_map[NonPos]])
+        data[s.DIMS]['ep'] = sum([c.num_cones() for c in constr_map[ExpCone]])
+        data[s.DIMS]['q'] = [sz for c in constr_map[SOC]
+                                for sz in c.cone_sizes()]
+        # TODO(akshayka): Assemble a list of PSD cone sizes.
+
+        zero_constr = constr_map[Zero]
+        neq_constr = (constr_map[NonPos] + constr_map[SOC]
+                      + constr_map[PSD] + constr_map[ExpCone])
+        inv_data[SCS.NEQ_CONSTR] = neq_constr
+        inv_data[SCS.EQ_CONSTR] = zero_constr
+        inv_data[s.DIMS] = data[s.DIMS]
+
+        # Obtain A, b such that Ax + s = b, s lies in cone.
+        #
+        # Note that scs mandates that the cones MUST be ordered with
+        # zero cones first, then non-nonnegative orthant, then SOC,
+        # then PSD, then exponential.
+        data[s.A], data[s.B] = self.group_coeff_offset(
+            zero_constr + neq_constr, self.EXP_CONE_ORDER)
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -121,9 +123,17 @@ class SCS(ConicSolver):
             primal_val = solution['info']['pobj']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[SCS.VAR_ID]: solution['x']}
+            eq_dual = ConicSolver.get_dual_values(
+                solution['y'][:inverse_data[s.DIMS]['f']],
+                inverse_data[SCS.EQ_CONSTR])
+            # TODO(akshayka): This is not entirely correct; logic
+            # is needed for PSD constraints. See scs_intf.format_results.
             ineq_dual = ConicSolver.get_dual_values(
-                solution['y'], inverse_data[SCS.NEQ_CONSTR])
-            dual_vars = ineq_dual
+                solution['y'][inverse_data[s.DIMS]['f']:],
+                inverse_data[SCS.NEQ_CONSTR])
+            dual_vars = {}
+            dual_vars.update(eq_dual)
+            dual_vars.update(ineq_dual)
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -133,7 +143,6 @@ class SCS(ConicSolver):
                 opt_val = None
             primal_vars = None
             dual_vars = None
-
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
