@@ -28,7 +28,7 @@ class reshape(AffAtom):
     Vectorizes the expression then unvectorizes it into the new shape.
     The entries are stored in column-major order.
 
-    TODO(akshayka): IF we decide to retain Frobenius order, we should state
+    TODO(akshayka): IF we decide to retain Fortran order, we should state
     so explicitly. The default order in NumPy is C.
     """
 
