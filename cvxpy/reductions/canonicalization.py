@@ -40,7 +40,7 @@ class Canonicalization(Reduction):
 
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
-            # its canonaclized arguments, and aux_constr are the constraints
+            # its canonicalized arguments, and aux_constr are the constraints
             # generated while canonicalizing the arguments of the original
             # constraint
             canon_constr, aux_constr = self.canonicalize_tree(
