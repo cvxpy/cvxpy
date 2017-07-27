@@ -260,7 +260,7 @@ class Problem(object):
         except:
             raise
         data, inv_data = solving_chain.apply(self)
-        return data[-1], solving_chain, inv_data
+        return data, solving_chain, inv_data
 
     def _solve(self,
                solver=None,
