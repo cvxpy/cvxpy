@@ -29,21 +29,20 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers import utilities
 import cvxpy.settings as s
-
 
 
 def is_stuffed_qp_objective(objective):
     """QPSolver requires objectives to be stuffed in the following way.
     """
-    # TODO(akshayka): Consider coupling this function with the
-    # QpMatrixStuffing class
     expr = objective.expr
     return (type(expr) == AddExpression
             and len(expr.args) == 2
             and type(expr.args[0]) == QuadForm
             and type(expr.args[1]) == MulExpression
             and expr.args[1].is_affine())
+
 class QpSolver(Solver):
     """
     A QP solver interface.
@@ -127,10 +126,9 @@ class QpSolver(Solver):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.obj_val
             primal_vars = {inverse_data.id_map.keys()[0]: np.array(solution.x)}
-            # TODO(akshayka): This dependence is not nice. Refactoring
-            # is necessary.
-            dual_vars = ConicSolver.get_dual_values(solution.y,
-                                            inverse_data.sorted_constraints)
+            dual_vars = utilities.get_dual_values(solution.y,
+                                               utilities.extract_dual_value,
+                                               inverse_data.sorted_constraints)
             attr[s.NUM_ITERS] = solution.total_iter
         else:
             primal_vars = None

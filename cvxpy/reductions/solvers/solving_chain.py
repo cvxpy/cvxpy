@@ -8,10 +8,10 @@ from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone,
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.utilities import (SOLVER_MAP as SLV_MAP,
-                                                INSTALLED_SOLVERS,
-                                                CONIC_SOLVERS,
-                                                QP_SOLVERS)
+from cvxpy.reductions.solvers.defines import (SOLVER_MAP as SLV_MAP,
+                                              INSTALLED_SOLVERS,
+                                              CONIC_SOLVERS,
+                                              QP_SOLVERS)
 
 
 def construct_solving_chain(problem, solver=None):

@@ -28,12 +28,16 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers import utilities
 import cvxpy.settings as s
 
 
 def is_stuffed_cone_constraint(constraint):
     """Conic solvers require constraints to be stuffed in the following way.
     """
+    # TODO(akshayka): Ensure that there is exactly one variable in the
+    # constraint. The constraint class does not currently expose a variables
+    # method.
     for arg in constraint.args:
         if type(arg) == reshape:
             arg = arg.args[0]
@@ -56,6 +60,7 @@ def is_stuffed_cone_objective(objective):
     """
     expr = objective.expr
     return (expr.is_affine()
+            and len(expr.variables()) == 1
             and type(expr) == AddExpression
             and len(expr.args) == 2
             and type(expr.args[0]) == MulExpression
@@ -81,30 +86,6 @@ class ConicSolver(Solver):
                         problem.constraints)
                 and all(is_stuffed_cone_constraint(c) for c in
                         problem.constraints))
-
-    @staticmethod
-    def get_dual_values(result_vec, constraints):
-        """Gets the values of the dual variables.
-
-        Parameters
-        ----------
-        result_vec : array_like
-            A vector containing the dual variable values.
-        constraints : list
-            A list of the constraints in the problem.
-
-        Returns
-        -------
-           A map of constraint id to dual variable value.
-        """
-        # Store dual values.
-        dual_vars = {}
-        offset = 0
-        for constr in constraints:
-            # TODO reshape based on dual variable size.
-            dual_vars[constr.id] = result_vec[offset:offset + constr.size]
-            offset += constr.size
-        return dual_vars
 
     @staticmethod
     def get_coeff_offset(expr):
@@ -161,7 +142,7 @@ class ConicSolver(Solver):
             col_arr.append(var_row)
         return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsr()
 
-    def format_constr(self, constr, exp_cone_order):
+    def format_constr(self, problem, constr, exp_cone_order):
         """Return the coefficient and offset for the constraint in ECOS format.
 
         TODO(akshayka): This function should not be written for ECOS in
@@ -172,7 +153,10 @@ class ConicSolver(Solver):
         TODO(akshayka): What is exp_cone_order?
 
         Args:
-          constr: A CVXPY constraint.
+          problem : Problem
+            The problem that is the provenance of the constraint.
+          constr : Constraint.
+            The constraint to format.
 
         Returns:
           (SciPy CSR sparse matrix, NumPy 1D array)
@@ -220,20 +204,24 @@ class ConicSolver(Solver):
             # subclasses must handle PSD constraints.
             raise ValueError("Unsupported constraint type.")
 
-    def group_coeff_offset(self, constraints, exp_cone_order):
+    def group_coeff_offset(self, problem, constraints, exp_cone_order):
         """Combine the constraints into a single matrix, offset.
 
-        Args:
-          constraints: A list of CVXPY constraints.
-
-        Returns:
+        Parameters
+        ----------
+          problem: Problem
+            The CVXPY problem that is the provenance of the constraints.
+          constraints: list of Constraint
+            The constraints to process.
+        Returns
+        -------
           (SciPy CSC sparse matrix, NumPy 1D array)
         """
         if not constraints:
             return None, None
         matrices, offsets = [], []
         for cons in constraints:
-            coeff, offset = self.format_constr(cons, exp_cone_order)
+            coeff, offset = self.format_constr(problem, cons, exp_cone_order)
             matrices.append(coeff)
             offsets.append(offset)
         coeff = sp.vstack(matrices).tocsc()
@@ -248,11 +236,13 @@ class ConicSolver(Solver):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value']
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-            eq_dual = ConicSolver.get_dual_values(
+            eq_dual = utilities.get_dual_values(
                 solution['eq_dual'],
+                utilities.extract_dual_value,
                 inverse_data[self.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(
+            leq_dual = utilities.get_dual_values(
                 solution['ineq_dual'],
+                utilities.extract_dual_value,
                 inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual

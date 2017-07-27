@@ -30,7 +30,7 @@ from cvxpy.error import SolverError
 import cvxpy.interface as intf
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
-from cvxpy.reductions.solvers.utilities import SOLVER_MAP, INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import SOLVER_MAP, INSTALLED_SOLVERS
 import numpy as np
 import numpy.linalg as LA
 import math

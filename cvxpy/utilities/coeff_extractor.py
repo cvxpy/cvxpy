@@ -58,7 +58,19 @@ class CoeffExtractor(object):
                                                          order='F')
 
     def affine(self, expr):
-        """ If expression is A*x + b, return A, b
+        """Extract A, b from an expression that is reducable to A*x + b.
+
+        Parameters
+        ----------
+        expr : Expression
+            The expression to process.
+
+        Returns
+        -------
+        SciPy CSR matrix
+            The coefficient matrix A of shape (np.prod(expr.shape), self.N).
+        NumPy.ndarray
+            The offset vector b of shape (np.prod(expr.shape,)).
         """
         if not expr.is_affine():
             raise ValueError("Expression is not affine")

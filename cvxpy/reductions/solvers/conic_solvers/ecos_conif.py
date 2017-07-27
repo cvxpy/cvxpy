@@ -24,6 +24,7 @@ from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
+from cvxpy.reductions.solvers import utilities
 
 from .conic_solver import ConicSolver
 
@@ -91,19 +92,19 @@ class ECOS(ConicSolver):
 
         constr_map = group_constraints(problem.constraints)
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        data[s.A], data[s.B] = self.group_coeff_offset(constr_map[Zero],
-            ECOS.EXP_CONE_ORDER)
+        data[s.A], data[s.B] = self.group_coeff_offset(problem,
+            constr_map[Zero], ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
         data[s.DIMS] = {}
         data[s.DIMS]['l'] = sum([np.prod(c.size) for c in constr_map[NonPos]])
-        data[s.DIMS]['q'] = [sz for c in constr_map[SOC]
-                                  for sz in c.cone_sizes()]
+        data[s.DIMS]['q'] = [dim for c in constr_map[SOC]
+                                 for dim in c.cone_sizes()]
         data[s.DIMS]['e'] = sum([c.num_cones() for c in constr_map[ExpCone]])
 
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
         inv_data[self.NEQ_CONSTR] = neq_constr
-        data[s.G], data[s.H] = self.group_coeff_offset(neq_constr,
+        data[s.G], data[s.H] = self.group_coeff_offset(problem, neq_constr,
             ECOS.EXP_CONE_ORDER)
 
         return data, inv_data
@@ -123,9 +124,11 @@ class ECOS(ConicSolver):
             primal_val = solution['info']['pcost']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
-            eq_dual = ConicSolver.get_dual_values(solution['y'],
+            eq_dual = utilities.get_dual_values(solution['y'],
+                utilities.extract_dual_value,
                 inverse_data[self.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(solution['z'],
+            leq_dual = utilities.get_dual_values(solution['z'],
+                utilities.extract_dual_value,
                 inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
