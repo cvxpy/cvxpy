@@ -500,14 +500,14 @@ class XPRESS (Solver):
         else:
             status = self.status_map_lp  [results_dict ['status']]
 
-        results_dict[s.TROW] = transf2Orig
+        results_dict[s.XPRESS_TROW] = transf2Orig
 
         if status in s.SOLUTION_PRESENT:
             results_dict ['x'] = self.prob_.getSolution ()
             if not self.is_mip (data):
                 results_dict ['y'] = self.prob_.getDual ()
 
-            results_dict[s.IIS] = None # Return no IIS if problem is feasible
+            results_dict[s.XPRESS_IIS] = None # Return no IIS if problem is feasible
 
         elif status == s.INFEASIBLE:
 
@@ -532,20 +532,20 @@ class XPRESS (Solver):
                 if name not in origrow:
                     origrow.append (name)
 
-            results_dict[s.IIS] = [{'orig_row' : origrow,
-                                    'row'      : row,
-                                    'col'      : col,
-                                    'rtype'    : rtype,
-                                    'btype'    : btype,
-                                    'duals'    : duals,
-                                    'redcost'  : rdcs,
-                                    'isolrow'  : isrows,
-                                    'isolcol'  : icols}]
+            results_dict[s.XPRESS_IIS] = [{'orig_row' : origrow,
+                                           'row'      : row,
+                                           'col'      : col,
+                                           'rtype'    : rtype,
+                                           'btype'    : btype,
+                                           'duals'    : duals,
+                                           'redcost'  : rdcs,
+                                           'isolrow'  : isrows,
+                                           'isolcol'  : icols}]
 
             while self.prob_.iisnext () == 0:
                 iisIndex += 1
-                self.prob_.getiisdata (iisIndex, row, col, rtype, btype, duals, rdcs, isrows, icols)
-                results_dict[s.IIS]. append    ((row, col, rtype, btype, duals, rdcs, isrows, icols))
+                self.prob_.getiisdata (iisIndex,     row, col, rtype, btype, duals, rdcs, isrows, icols)
+                results_dict[s.XPRESS_IIS]. append ((row, col, rtype, btype, duals, rdcs, isrows, icols))
 
         return self.format_results (results_dict, data, cached_data)
 
@@ -606,8 +606,8 @@ class XPRESS (Solver):
             if not self.is_mip (data):
                 new_results [s.EQ_DUAL] = results_dict ['y']
 
-        new_results [s.IIS]  = results_dict[s.IIS]
-        new_results [s.TROW] = results_dict[s.TROW]
+        new_results [s.XPRESS_IIS]  = results_dict[s.XPRESS_IIS]
+        new_results [s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
 
         return new_results
 
