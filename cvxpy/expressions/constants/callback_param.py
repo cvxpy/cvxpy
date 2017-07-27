@@ -40,4 +40,4 @@ class CallbackParam(Parameter):
         """Returns info needed to reconstruct the expression besides the args.
         """
         return [self._callback, self._rows, self._cols,
-                self._name, self.sign_str]
+                self._name, self._sign_str]

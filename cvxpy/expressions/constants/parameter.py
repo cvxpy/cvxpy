@@ -61,7 +61,7 @@ class Parameter(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._rows, self._cols, self._name, self._sign_str, self.value]
+        return [self._rows, self._cols, self._name, self._sign_str, self._value]
 
     def name(self):
         return self._name
@@ -82,10 +82,15 @@ class Parameter(Leaf):
         """
         return self._sign_str == s.ZERO or self._sign_str.upper() == s.NEGATIVE
 
+    def is_specified(self):
+        """Has the parameter value been specified?
+        """
+        return self._value is not None
+
     # Getter and setter for parameter value.
     @property
     def value(self):
-        if self._value is None:
+        if not self.is_specified():
             raise ValueError("Parameter value has not been specified.")
         return self._value
 

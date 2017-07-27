@@ -46,6 +46,8 @@ def replace_params_with_consts(expr):
     if not has_params(expr):
         return expr
     elif isinstance(expr, Parameter):
+        if expr.value is None:
+            raise ValueError("Problem contains unspecified parameters.")
         return Constant(expr.value)
     else:
         new_args = []
