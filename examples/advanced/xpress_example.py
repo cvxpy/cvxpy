@@ -18,7 +18,6 @@ from cvxpy import *
 from cvxpy.problems.xpress_problem import XpressProblem
 
 import numpy
-import math
 
 # Problem data.
 n = 2
