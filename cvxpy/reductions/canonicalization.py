@@ -17,13 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.atom import Atom
+from cvxpy import problems
+from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants import CallbackParam, Constant
 from cvxpy.expressions.variables import Variable
-from cvxpy import problems
 from cvxpy.reductions import InverseData, Reduction, Solution
+from cvxpy.utilities import coeff_extractor
 
 
 class Canonicalization(Reduction):
@@ -76,9 +77,10 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if isinstance(expr, Atom) and expr.is_constant():
-            # Parameterized expressions are evaluated later.
-            if expr.parameters():
+        if isinstance(expr, Expression) and expr.is_constant():
+            # Parameterized expressions are evaluated in a subsequent
+            # reduction.
+            if coeff_extractor.has_params(expr):
                 rows, cols = expr.shape
                 param = CallbackParam(lambda: expr.value, rows, cols)
                 return param, []

@@ -85,6 +85,8 @@ class Parameter(Leaf):
     # Getter and setter for parameter value.
     @property
     def value(self):
+        if self._value is None:
+            raise ValueError("Parameter value has not been specified.")
         return self._value
 
     @value.setter
