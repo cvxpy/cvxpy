@@ -28,7 +28,7 @@ def failure_solution(status):
         opt_val = -np.inf
     else:
         opt_val = None
-    return Solution(status, opt_val, None, None, None)
+    return Solution(status, opt_val, {}, {}, {})
 
 class Solution(object):
     """A solution object.
