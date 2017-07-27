@@ -97,8 +97,8 @@ class ConvexHull(ConvexSet):
             for val, theta_var in zip(values, theta):
                 val_aff = val.canonical_form[0]
                 convex_objs.append(
-                    lu.mul_expr(val_aff, 
-                                theta_var, 
+                    lu.mul_expr(val_aff,
+                                theta_var,
                                 val_aff.size)
                 )
             convex_combo = lu.sum_expr(convex_objs)

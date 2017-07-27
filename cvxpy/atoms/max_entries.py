@@ -1,31 +1,29 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
-import scipy.sparse as sp
+
 
 class max_entries(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
+
     def __init__(self, x, axis=None):
         super(max_entries, self).__init__(x, axis=axis)
 
@@ -92,6 +90,11 @@ class max_entries(AxisAtom):
         """
         return False
 
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return self.args[0].is_pwl()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
@@ -119,7 +122,7 @@ class max_entries(AxisAtom):
             const_size = (arg_objs[0].size[0], 1)
             ones = lu.create_const(np.ones(const_size), const_size)
             promoted_t = lu.mul_expr(ones, t, arg_objs[0].size)
-        else: # axis == 1
+        else:  # axis == 1
             t = lu.create_var((arg_objs[0].size[0], 1))
             const_size = (1, arg_objs[0].size[1])
             ones = lu.create_const(np.ones(const_size), const_size)

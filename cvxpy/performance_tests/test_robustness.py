@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.atoms as at
@@ -23,12 +20,14 @@ from cvxpy.expressions.variables import Variable
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
-from cvxopt import matrix
+import numpy as np
 import scipy.sparse as sp
 import unittest
 
+
 class TestProblem(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.a = Variable(name='a')
         self.b = Variable(name='b')
@@ -38,9 +37,9 @@ class TestProblem(unittest.TestCase):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2,2,name='A')
-        self.B = Variable(2,2,name='B')
-        self.C = Variable(3,2,name='C')
+        self.A = Variable(2, 2, name='A')
+        self.B = Variable(2, 2, name='B')
+        self.C = Variable(3, 2, name='C')
 
     # Overriden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
@@ -50,14 +49,15 @@ class TestProblem(unittest.TestCase):
             for i in range(len(a)):
                 self.assertAlmostEqual(a[i], b[i])
         except Exception:
-            super(TestProblem, self).assertAlmostEqual(a,b,places=3)
+            super(TestProblem, self).assertAlmostEqual(a, b, places=3)
 
     def test_large_sum(self):
         """Test large number of variables summed.
         """
         for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n,n))
-            x = Variable(n,n)
+            A = np.arange(n*n)
+            A = np.reshape(A, (n, n))
+            x = Variable(n, n)
             p = Problem(Minimize(at.sum_entries(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
@@ -68,20 +68,21 @@ class TestProblem(unittest.TestCase):
         """Test large number of variables squared.
         """
         for n in [10, 20, 30, 40, 50]:
-            A = matrix(range(n*n), (n,n))
-            x = Variable(n,n)
+            A = np.arange(n*n)
+            A = np.reshape(A, (n, n))
+            x = Variable(n, n)
             p = Problem(Minimize(at.square(x[0, 0])),
-                [x >= A])
+                        [x >= A])
             result = p.solve()
             self.assertAlmostEqual(result, 0)
 
     def test_sdp(self):
         """Test a problem with semidefinite cones.
         """
-        a = sp.rand(100,100,.1, random_state=1)
+        a = sp.rand(100, 100, .1, random_state=1)
         a = a.todense()
-        X = Variable(100,100)
-        obj = at.norm(X, "nuc") + at.norm(X-a,'fro')
+        X = Variable(100, 100)
+        obj = at.norm(X, "nuc") + at.norm(X-a, 'fro')
         p = Problem(Minimize(obj))
         p.solve(solver="SCS")
 
@@ -94,6 +95,6 @@ class TestProblem(unittest.TestCase):
         X = Variable(*SHAPE)
         Z = Variable(rows+cols, rows+cols)
         prob = Problem(Minimize(0.5*at.trace(Z)),
-            [X[0,0] >= 1, Z[0:rows,rows:rows+cols] == X, Z >> 0, Z == Z.T])
+                       [X[0, 0] >= 1, Z[0:rows, rows:rows+cols] == X, Z >> 0, Z == Z.T])
         prob.solve(solver="SCS")
         self.assertAlmostEqual(prob.value, 1.0)

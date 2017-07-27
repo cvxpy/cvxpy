@@ -1,5 +1,6 @@
 .DS_Store
 *.py[cod]
+*#*
 
 # C extensions
 *.so
@@ -44,3 +45,4 @@ env_*
 
 # pycharm
 .idea
+*.pyproj

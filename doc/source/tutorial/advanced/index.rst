@@ -231,13 +231,15 @@ The table below shows the types of problems the solvers can handle.
 | `SCS`_       | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
 
+A special solver LS is also available. It is unable to solve any of the problem types in the table above, but it recognizes and solves linearly constrained least squares problems very quickly.
+
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
 You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems (except mixed-integer programs). `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate. `ECOS_BB`_ is called for mixed-integer LPs and SOCPs.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems (except mixed-integer programs). `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate. `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem has a quadratic objective function and equality constraints only, CVXPY will use LS.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
@@ -310,7 +312,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'LS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -343,7 +345,7 @@ All the solvers can print out information about their progress while solving the
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `ECOS_BB`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -422,6 +424,15 @@ Here's the complete list of solver options.
 ``'mi_rel_eps'``
     relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)
 
+`MOSEK`_ options:
+
+``'mosek_params'``
+    A dictionary of MOSEK parameters. Refer to MOSEK's Python or C API for
+    details. Note that if parameters are given as string-value pairs, parameter
+    names must be of the form ``'MSK_DPAR_BASIS_TOL_X'`` as in the C API.
+    Alternatively, Python enum options like ``'mosek.dparam.basis_tol_x'`` are
+    also supported.
+
 `CVXOPT`_ options:
 
 ``'max_iters'``
@@ -455,11 +466,14 @@ Here's the complete list of solver options.
 ``'alpha'``
     relaxation parameter (default: 1.8).
 
+``'scale'``
+    balance between minimizing primal and dual residual (default: 5.0).
+
 ``'normalize'``
     whether to precondition data matrices (default: True).
 
 ``'use_indirect'``
-    whether to use indirect solver for KKT sytem (instead of direct) (default: False).
+    whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
 ``'warm_start'``
     whether to initialize the solver with the previous solution (default: False).
@@ -514,7 +528,7 @@ For example, the following code is equivalent to solving the problem directly wi
 
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
-.. _ECOS_BB: https://www.embotech.com/ECOS
+.. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/

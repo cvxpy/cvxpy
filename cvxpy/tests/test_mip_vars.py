@@ -1,36 +1,32 @@
 """
-Copyright 2013 Steven Diamond, Eric Chu
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy import *
 from cvxpy.expressions.variables import Bool, Int
-from cvxopt import matrix
-import numpy as np
 from cvxpy.tests.base_test import BaseTest
-import unittest
+
 
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
+
     def setUp(self):
-        self.x_bool = Bool()
+        self.x_bool = Bool(name='x')
         self.y_int = Int()
         self.A_bool = Bool(3, 2)
-        self.B_int = Int(2, 3)
+        self.B_int = Int(2, 3, name='B')
 
     def test_mip_consistency(self):
         """Test that MIP problems are deterministic.
@@ -40,7 +36,7 @@ class TestMIPVariable(BaseTest):
         for i in range(5):
             obj = Minimize(square(self.y_int - 0.2))
             p = Problem(obj, [self.A_bool == 0, self.x_bool == self.B_int])
-            data_recs.append( p.get_problem_data(ECOS_BB) )
+            data_recs.append(p.get_problem_data(ECOS_BB))
             # result_recs.append( p.solve() )
 
         # Check that problem data and result is always the same.
@@ -58,8 +54,14 @@ class TestMIPVariable(BaseTest):
     def test_mip_print(self):
         """Test to string methods for Bool/Int vars.
         """
-        self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
-        self.assertEqual(repr(self.B_int), "Int(2, 3)")
+        self.assertEqual(repr(self.x_bool), "Bool(1, 1, 'x')")
+        self.assertEqual(repr(self.B_int), "Int(2, 3, 'B')")
+
+        x = Bool()
+        B = Int(2, 3)
+
+        self.assertEqual(repr(x), "Bool(1, 1)")
+        self.assertEqual(repr(B), "Int(2, 3)")
 
     # def test_bool_prob(self):
     #     # Bool in objective.

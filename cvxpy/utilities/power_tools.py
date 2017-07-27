@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from fractions import Fraction
@@ -25,6 +22,7 @@ from collections import defaultdict
 import numbers
 
 two = lu.create_const(2, (1, 1))
+
 
 def gm(t, x, y):
     length = t.size[0]*t.size[1]
@@ -223,8 +221,9 @@ def is_weight(w):
     """
     if isinstance(w, np.ndarray):
         w = w.tolist()
-    return (all(v >= 0 and isinstance(v, (numbers.Integral, Fraction)) for v in w)
-            and sum(w) == 1)
+    valid_elems = all(v >= 0 and
+                      isinstance(v, (numbers.Integral, Fraction)) for v in w)
+    return valid_elems and sum(w) == 1
 
 
 def fracify(a, max_denom=1024, force_dyad=False):
@@ -364,8 +363,9 @@ def fracify(a, max_denom=1024, force_dyad=False):
         w_frac = tuple(Fraction(v, total) for v in a)
         d = max(v.denominator for v in w_frac)
         if d > max_denom:
-            msg = "Can't reliably represent the input weight vector."
-            msg += "\nTry increasing `max_denom` or checking the denominators of your input fractions."
+            msg = ("Can't reliably represent the input weight vector."
+                   "\nTry increasing `max_denom` or checking the denominators "
+                   "of your input fractions.")
             raise ValueError(msg)
     else:
         # fall through code

@@ -1,32 +1,28 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.lin_ops.lin_op as lo
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variables import Variable
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace
 import copy
+
 
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
     """Partially optimizes the given problem over the specified variables.
@@ -72,6 +68,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
 
     return PartialProblem(prob, opt_vars, dont_opt_vars)
 
+
 class PartialProblem(Expression):
     """A partial optimization problem.
 
@@ -82,12 +79,13 @@ class PartialProblem(Expression):
     dont_opt_vars : list
         The variables to not optimize over.
     """
+
     def __init__(self, prob, opt_vars, dont_opt_vars):
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.args = [prob]
         # Replace the opt_vars in prob with new variables.
-        id_to_new_var = {var.id:var.copy() for var in self.opt_vars}
+        id_to_new_var = {var.id: var.copy() for var in self.opt_vars}
         new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
         new_constrs = [self._replace_new_vars(con, id_to_new_var)
                        for con in prob.constraints]
@@ -103,13 +101,13 @@ class PartialProblem(Expression):
         """Is the expression convex?
         """
         return self.args[0].is_dcp() and \
-               type(self.args[0].objective) == Minimize
+            type(self.args[0].objective) == Minimize
 
     def is_concave(self):
         """Is the expression concave?
         """
         return self.args[0].is_dcp() and \
-               type(self.args[0].objective) == Maximize
+            type(self.args[0].objective) == Maximize
 
     def is_positive(self):
         """Is the expression positive?
@@ -137,11 +135,6 @@ class PartialProblem(Expression):
         """
         return copy.copy(self.dont_opt_vars)
 
-    def parameters(self):
-        """Returns the parameters in the problem.
-        """
-        return self.args[0].parameters()
-
     @property
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
@@ -164,15 +157,14 @@ class PartialProblem(Expression):
         if self.is_constant():
             return u.grad.constant_grad(self)
 
-        old_vals = {var.id:var.value for var in self.variables()}
+        old_vals = {var.id: var.value for var in self.variables()}
         fix_vars = []
         for var in self.variables():
             if var.value is None:
                 return u.grad.error_grad(self)
             else:
                 fix_vars += [var == var.value]
-        obj_arg = self._prob.objective.args[0]
-        prob = Problem(self.args[0].objective.copy(obj_arg),
+        prob = Problem(self._prob.objective,
                        fix_vars + self._prob.constraints)
         prob.solve()
         # Compute gradient.
@@ -185,8 +177,8 @@ class PartialProblem(Expression):
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
                 lagr += trace(lagr_multiplier.T*constr._expr)
             grad_map = lagr.grad
-            result = {var:grad_map[var] for var in self.variables()}
-        else: # Unbounded, infeasible, or solver error.
+            result = {var: grad_map[var] for var in self.variables()}
+        else:  # Unbounded, infeasible, or solver error.
             result = u.grad.error_grad(self)
         # Restore the original values to the variables.
         for var in self.variables():
@@ -209,7 +201,7 @@ class PartialProblem(Expression):
         Returns:
             A numpy matrix or a scalar.
         """
-        old_vals = {var.id:var.value for var in self.variables()}
+        old_vals = {var.id: var.value for var in self.variables()}
         fix_vars = []
         for var in self.variables():
             if var.value is None:
@@ -247,12 +239,12 @@ class PartialProblem(Expression):
         elif isinstance(obj, PartialProblem):
             prob = obj.args[0]
             new_obj = PartialProblem._replace_new_vars(prob.objective,
-                id_to_new_var)
+                                                       id_to_new_var)
             new_constr = []
             for constr in prob.constraints:
                 new_constr.append(
                     PartialProblem._replace_new_vars(constr,
-                                            id_to_new_var)
+                                                     id_to_new_var)
                 )
             new_args = [Problem(new_obj, new_constr)]
             return obj.copy(new_args)

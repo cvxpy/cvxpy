@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.atoms import *
@@ -23,8 +20,10 @@ from cvxpy.problems.objective import *
 from cvxpy.error import DCPError
 import unittest
 
+
 class TestObjectives(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
+
     def setUp(self):
         self.x = Variable(name='x')
         self.y = Variable(3, name='y')
@@ -48,7 +47,7 @@ class TestObjectives(unittest.TestCase):
         exp = self.x + self.z
         obj = Minimize(exp)
         self.assertEqual(str(obj), "minimize %s" % exp.name())
-        new_obj,constraints = obj.canonical_form
+        new_obj, constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
         self.assertEqual(len(constraints), 0)
@@ -56,7 +55,7 @@ class TestObjectives(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             Minimize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
-            "The 'minimize' objective must resolve to a scalar.")
+                         "The 'minimize' objective must resolve to a scalar.")
 
         # Test copy with args=None
         copy = obj.copy()
@@ -75,7 +74,7 @@ class TestObjectives(unittest.TestCase):
         exp = self.x + self.z
         obj = Maximize(exp)
         self.assertEqual(str(obj), "maximize %s" % exp.name())
-        new_obj,constraints = obj.canonical_form
+        new_obj, constraints = obj.canonical_form
         #self.assertEqual(constraints[0].name(), (new_obj == exp).name())
         # for affine objectives, there should be no constraints
         self.assertEqual(len(constraints), 0)
@@ -83,7 +82,7 @@ class TestObjectives(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             Maximize(self.y).canonical_form
         self.assertEqual(str(cm.exception),
-            "The 'maximize' objective must resolve to a scalar.")
+                         "The 'maximize' objective must resolve to a scalar.")
 
         # Test copy with args=None
         copy = obj.copy()
@@ -114,24 +113,23 @@ class TestObjectives(unittest.TestCase):
 
         # Addition.
 
-        assert ( Minimize(expr1) + Minimize(expr2) ).is_dcp()
+        assert (Minimize(expr1) + Minimize(expr2)).is_dcp()
 
-        assert ( Maximize(-expr1) + Maximize(-expr2) ).is_dcp()
+        assert (Maximize(-expr1) + Maximize(-expr2)).is_dcp()
 
         # Test Minimize + Maximize
         with self.assertRaises(DCPError) as cm:
             Minimize(expr1) + Maximize(-expr2)
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
-        assert ( Minimize(expr1) - Maximize(-expr2) ).is_dcp()
-
+        assert (Minimize(expr1) - Maximize(-expr2)).is_dcp()
 
         # Multiplication (alpha is a positive scalar).
 
-        assert ( alpha*Minimize(expr1) ).is_dcp()
+        assert (alpha*Minimize(expr1)).is_dcp()
 
-        assert ( alpha*Maximize(-expr1) ).is_dcp()
+        assert (alpha*Maximize(-expr1)).is_dcp()
 
-        assert ( -alpha*Maximize(-expr1) ).is_dcp()
+        assert (-alpha*Maximize(-expr1)).is_dcp()
 
-        assert ( -alpha*Maximize(-expr1) ).is_dcp()
+        assert (-alpha*Maximize(-expr1)).is_dcp()

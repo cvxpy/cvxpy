@@ -1,26 +1,23 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
-from cvxpy.expressions.variables import Variable
 from cvxpy.atoms.affine.hstack import hstack
+
 
 def mixed_norm(X, p=2, q=1):
     """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert )^q/p)^{1/q}`.
@@ -42,8 +39,7 @@ def mixed_norm(X, p=2, q=1):
     X = Expression.cast_to_const(X)
 
     # inner norms
-    vecnorms = [ norm(X[i, :], p) for i in range(X.size[0]) ]
+    vecnorms = [norm(X[i, :], p) for i in range(X.size[0])]
 
     # outer norm
     return norm(hstack(*vecnorms), q)
-

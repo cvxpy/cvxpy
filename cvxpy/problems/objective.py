@@ -1,26 +1,24 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
+
 
 class Minimize(u.Canonical):
     """An optimization objective for minimization.
@@ -104,6 +102,11 @@ class Minimize(u.Canonical):
         """
         return self.args[0].parameters()
 
+    def constants(self):
+        """Returns the constants in the objective.
+        """
+        return self.args[0].constants()
+
     def is_dcp(self):
         """The objective must be convex.
         """
@@ -120,6 +123,7 @@ class Minimize(u.Canonical):
         """The value of the objective given the solver primal value.
         """
         return result
+
 
 class Maximize(Minimize):
     """An optimization objective for maximization.
@@ -149,6 +153,11 @@ class Maximize(Minimize):
         """The objective must be concave.
         """
         return self.args[0].is_concave()
+
+    def is_quadratic(self):
+        """Returns if the objective is a quadratic function.
+        """
+        return self.args[0].is_quadratic()
 
     @staticmethod
     def primal_to_result(result):

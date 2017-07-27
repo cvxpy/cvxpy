@@ -1,26 +1,24 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 import numpy as np
+
 
 class Elemental(Solver):
     """An interface for the Elemental solver.
@@ -41,6 +39,7 @@ class Elemental(Solver):
         """Imports the solver.
         """
         import El
+        El  # For flake8
 
     def name(self):
         """The name of the solver.
@@ -107,7 +106,7 @@ class Elemental(Solver):
         height = distr_vec.Height()
         local_vec = np.zeros(height)
         for i in range(local_vec.size):
-             local_vec[i] = distr_vec.Get(i, 0)
+            local_vec[i] = distr_vec.Get(i, 0)
         return local_vec
 
     @staticmethod
@@ -161,8 +160,6 @@ class Elemental(Solver):
         import El
         data = self.get_problem_data(objective, constraints, cached_data)
         El.Initialize()
-        worldRank = El.mpi.WorldRank()
-        worldSize = El.mpi.WorldSize()
         # Package data.
         c = self.distr_vec(data["c"], El.dTag)
         A = self.distr_mat(data["A"])
@@ -199,14 +196,14 @@ class Elemental(Solver):
             ctrl.mehrotraCtrl.time = True
         else:
             ctrl = None
-        El.SOCPAffine(A,G,b,c,h,orders,firstInds,x,y,z,s_var,ctrl)
+        El.SOCPAffine(A, G, b, c, h, orders, firstInds, x, y, z, s_var, ctrl)
         local_c = data['c']
         local_x = self.local_vec(x)
         local_y = self.local_vec(y)
         local_z = self.local_vec(z)
         El.Finalize()
-        results_dict = {'info':{'exitFlag':0, 'pcost': local_c.dot(local_x)},
-                        'x':local_x, 'y':local_y, 'z':local_z}
+        results_dict = {'info': {'exitFlag': 0, 'pcost': local_c.dot(local_x)},
+                        'x': local_x, 'y': local_y, 'z': local_z}
         return self.format_results(results_dict, data, cached_data)
 
     def format_results(self, results_dict, data, cached_data):

@@ -1,25 +1,23 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.ecos_intf import ECOS
 import numpy as np
+
 
 class SCS(ECOS):
     """An interface for the SCS solver.
@@ -51,6 +49,7 @@ class SCS(ECOS):
         """Imports the solver.
         """
         import scs
+        scs  # For flake8
 
     def split_constr(self, constr_map):
         """Extracts the equality, inequality, and nonlinear constraints.
@@ -130,6 +129,12 @@ class SCS(ECOS):
         new_results = {}
         status = self.STATUS_MAP[results_dict["info"]["status"]]
         new_results[s.STATUS] = status
+
+        # Timing and iteration data
+        new_results[s.SOLVE_TIME] = results_dict["info"]["solveTime"]/1000
+        new_results[s.SETUP_TIME] = results_dict["info"]["setupTime"]/1000
+        new_results[s.NUM_ITERS] = results_dict["info"]["iter"]
+
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # Save previous result for possible future warm_start.
             solver_cache.prev_result = {"x": results_dict["x"],
@@ -166,7 +171,7 @@ class SCS(ECOS):
         """Expands n*(n+1)//2 lower triangular to full matrix,
         with off-diagonal entries scaled by 1/sqrt(2).
         """
-        full = np.zeros((n,n))
+        full = np.zeros((n, n))
         for col in range(n):
             for row in range(col, n):
                 idx = row - col + n*(n+1)//2 - (n-col)*(n-col+1)//2

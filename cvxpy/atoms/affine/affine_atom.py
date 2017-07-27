@@ -1,32 +1,27 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-import sys
 import abc
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-import operator as op
+from cvxpy.expressions.constants import Constant
 import canonInterface
 import scipy.sparse as sp
-if sys.version_info >= (3, 0):
-    from functools import reduce
+
 
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
@@ -59,6 +54,12 @@ class AffAtom(Atom):
         # Defaults to increasing.
         return False
 
+    def is_quadratic(self):
+        return all([arg.is_quadratic() for arg in self.args])
+
+    def is_pwl(self):
+        return all([arg.is_pwl() for arg in self.args])
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -77,7 +78,7 @@ class AffAtom(Atom):
         offset = 0
         for idx, arg in enumerate(self.args):
             if arg.is_constant():
-                fake_args += [lu.create_const(arg.value, arg.size)]
+                fake_args += [Constant(arg.value).canonical_form[0]]
             else:
                 fake_args += [lu.create_var(arg.size, idx)]
                 var_offsets[idx] = offset
@@ -96,8 +97,14 @@ class AffAtom(Atom):
         grad_list = []
         start = 0
         for arg in self.args:
-            if not arg.is_constant():
+            if arg.is_constant():
+                grad_shape = (arg.size[0]*arg.size[1], shape[1])
+                if grad_shape == (1, 1):
+                    grad_list += [0]
+                else:
+                    grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
+            else:
                 stop = start + arg.size[0]*arg.size[1]
-                grad_list += [stacked_grad[start:stop,:]]
+                grad_list += [stacked_grad[start:stop, :]]
                 start = stop
         return grad_list

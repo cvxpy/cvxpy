@@ -374,7 +374,7 @@ The function ``sum_entries`` sums all the entries in a single expression. The bu
 Functions along an axis
 -----------------------
 
-The functions ``sum_entries``, ``max_entries``, and ``min_entries`` can be
+The functions ``sum_entries``, ``norm``, ``max_entries``, and ``min_entries`` can be
 applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
@@ -637,6 +637,14 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on |_| c
 
+   * - cumsum(X, axis=0)
+
+     - cumulative sum along given axis.
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - diag(x)
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
      - :math:`x \in\mathbf{R}^{n}`
@@ -651,12 +659,12 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - diff(x, k=1)
+   * - diff(X, k=1, axis=0)
 
        :math:`k \in 0,1,2,\ldots`
-     - vector of kth order differences
-     - :math:`x \in\mathbf{R}^{n}`
-     - same as x
+     - kth order differences along given axis
+     - :math:`X \in\mathbf{R}^{m \times n}`
+     - same as X
      - |affine| affine
      - |incr| incr.
 

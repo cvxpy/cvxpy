@@ -1,23 +1,19 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
@@ -40,9 +36,12 @@ class power(Elementwise):
         p = 0 & f(x) = 1 & \text{constant, positive} \\
         p = 1 & f(x) = x & \text{affine, increasing, same sign as $x$} \\
         p = 2,4,8,\ldots &f(x) = |x|^p  & \text{convex, signed monotonicity, positive} \\
-        p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases} & \text{convex, decreasing, positive} \\
-        0 < p < 1 & f(x) = \begin{cases} x^p & x \geq 0 \\ -\infty & x < 0 \end{cases} & \text{concave, increasing, positive} \\
-        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\ +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
+        p < 0 & f(x) = \begin{cases} x^p & x > 0 \\ +\infty & x \leq 0 \end{cases}
+          & \text{convex, decreasing, positive} \\
+        0 < p < 1 & f(x) = \begin{cases} x^p & x \geq 0 \\ -\infty & x < 0 \end{cases}
+          & \text{concave, increasing, positive} \\
+        p > 1,\ p \neq 2,4,8,\ldots & f(x) = \begin{cases} x^p & x \geq 0 \\
+          +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
         \end{array}
 
     .. note::
@@ -117,6 +116,7 @@ class power(Elementwise):
 
 
     """
+
     def __init__(self, x, p, max_denom=1024):
         p_old = p
 
@@ -129,7 +129,8 @@ class power(Elementwise):
             p, w = pow_neg(p, max_denom)
 
         # note: if, after making the rational approximation, p ends up being 0 or 1,
-        # we default to using the 0 or 1 behavior of the atom, which affects the curvature, domain, etc...
+        # we default to using the 0 or 1 behavior of the atom,
+        # which affects the curvature, domain, etc...
         # maybe unexpected behavior to the user if they put in 1.00001?
 
         if p == 1:
@@ -148,9 +149,15 @@ class power(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        # TODO throw error if negative and power doesn't handle that.
-        if self.p == 0:
-            return np.ones(self.size)
+        # Throw error if negative and power doesn't handle that.
+        if self.p < 0 and values[0].min() <= 0:
+            raise ValueError(
+                "power(x, %.1f) cannot be applied to negative or zero values." % float(self.p)
+            )
+        elif not is_power2(self.p) and self.p != 0 and values[0].min() < 0:
+            raise ValueError(
+                "power(x, %.1f) cannot be applied to negative values." % float(self.p)
+            )
         else:
             return np.power(values[0], float(self.p))
 
@@ -206,6 +213,16 @@ class power(Elementwise):
                 return False
         else:
             return False
+
+    def is_quadratic(self):
+        if self.p == 0:
+            return True
+        elif self.p == 1:
+            return self.args[0].is_quadratic()
+        elif self.p == 2:
+            return self.args[0].is_affine()
+        else:
+            return self.args[0].is_constant()
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -314,5 +331,5 @@ class power(Elementwise):
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
-                                 self.args[0].name(),
-                                 self.p)
+                               self.args[0].name(),
+                               self.p)

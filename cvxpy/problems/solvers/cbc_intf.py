@@ -1,24 +1,20 @@
 """
 Copyright 2016 Sascha-Dominic Schnug
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import importlib
-import numpy as np
 import six
 import cvxpy.interface as intf
 import cvxpy.settings as s
@@ -44,8 +40,8 @@ class CBC(Solver):
     STATUS_MAP_LP = {'optimal': s.OPTIMAL,
                      'primal infeasible': s.INFEASIBLE,
                      'stopped due to errors': s.SOLVER_ERROR,
-                     'stopped by event handler (virtual int ' \
-                                    'ClpEventHandler::event())': s.SOLVER_ERROR}
+                     'stopped by event handler (virtual int '
+                     'ClpEventHandler::event())': s.SOLVER_ERROR}
 
     SUPPORTED_CUT_GENERATORS = {"GomoryCuts": "CyCglGomory",
                                 "MIRCuts": "CyCglMixedIntegerRounding",
@@ -73,6 +69,7 @@ class CBC(Solver):
         """Imports the solver.
         """
         from cylp.cy import CyClpSimplex
+        CyClpSimplex  # For flake8
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
@@ -125,7 +122,6 @@ class CBC(Solver):
         """
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
-        from cylp.py.modeling.CyLPModel import CyLPArray
 
         # Get problem data
         data = self.get_problem_data(objective, constraints, cached_data)
@@ -136,8 +132,6 @@ class CBC(Solver):
         dims = data[s.DIMS]
 
         n = c.shape[0]
-
-        solver_cache = cached_data[self.name()]
 
         # Problem
         model = CyClpSimplex()

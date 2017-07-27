@@ -1,41 +1,34 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 
-from .. import settings as s
 from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant, CallbackParam
-from ..expressions.variables import Variable
 from ..expressions.expression import Expression
 import abc
 import numpy as np
-import sys
-from toolz.functoolz import memoize
-if sys.version_info >= (3, 0):
-    from functools import reduce
+from fastcache import clru_cache
 
 
 class Atom(Expression):
     """ Abstract base class for atoms. """
     __metaclass__ = abc.ABCMeta
     # args are the expressions passed into the Atom constructor.
+
     def __init__(self, *args):
         # Throws error if args is empty.
         if len(args) == 0:
@@ -74,13 +67,13 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_positive(self):
         """Is the expression positive?
         """
         return self.sign_from_args()[0]
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_negative(self):
         """Is the expression negative?
         """
@@ -98,6 +91,11 @@ class Atom(Expression):
         """
         return NotImplemented
 
+    def is_atom_affine(self):
+        """Is the atom affine?
+        """
+        return self.is_atom_concave() and self.is_atom_convex()
+
     @abc.abstractmethod
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
@@ -110,7 +108,7 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_convex(self):
         """Is the expression convex?
         """
@@ -119,15 +117,15 @@ class Atom(Expression):
             return True
         elif self.is_atom_convex():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or \
-                        (arg.is_convex() and self.is_incr(idx)) or \
+                if not (arg.is_affine() or
+                        (arg.is_convex() and self.is_incr(idx)) or
                         (arg.is_concave() and self.is_decr(idx))):
                     return False
             return True
         else:
             return False
 
-    @memoize
+    @clru_cache(maxsize=100)
     def is_concave(self):
         """Is the expression concave?
         """
@@ -136,8 +134,8 @@ class Atom(Expression):
             return True
         elif self.is_atom_concave():
             for idx, arg in enumerate(self.args):
-                if not (arg.is_affine() or \
-                        (arg.is_concave() and self.is_incr(idx)) or \
+                if not (arg.is_affine() or
+                        (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
                     return False
             return True
@@ -152,7 +150,7 @@ class Atom(Expression):
             # Parameterized expressions are evaluated later.
             if self.parameters():
                 rows, cols = self.size
-                param = CallbackParam(lambda: self.value, rows, cols)
+                param = CallbackParam(self, rows, cols)
                 return param.canonical_form
             # Non-parameterized expressions are evaluated immediately.
             else:
@@ -190,24 +188,6 @@ class Atom(Expression):
             (LinOp for objective, list of constraints)
         """
         return NotImplemented
-
-    def variables(self):
-        """Returns all the variables present in the arguments.
-        """
-        var_list = []
-        for arg in self.args:
-            var_list += arg.variables()
-        # Remove duplicates.
-        return list(set(var_list))
-
-    def parameters(self):
-        """Returns all the parameters present in the arguments.
-        """
-        param_list = []
-        for arg in self.args:
-            param_list += arg.parameters()
-        # Remove duplicates.
-        return list(set(param_list))
 
     @property
     def value(self):
@@ -262,9 +242,7 @@ class Atom(Expression):
         grad_self = self._grad(arg_values)
         # The Chain rule.
         result = {}
-        # Derivative w.r.t. constant is zero, so can ignore.
-        non_constants = [arg for arg in self.args if not arg.is_constant()]
-        for idx, arg in enumerate(non_constants):
+        for idx, arg in enumerate(self.args):
             # A dictionary of gradients w.r.t. variables
             # Partial argument / Partial x.
             grad_arg = arg.grad
@@ -275,8 +253,8 @@ class Atom(Expression):
                 else:
                     D = grad_arg[key]*grad_self[idx]
                     # Convert 1x1 matrices to scalars.
-                    if not np.isscalar(D) and D.shape == (1,1):
-                        D = D[0,0]
+                    if not np.isscalar(D) and D.shape == (1, 1):
+                        D = D[0, 0]
 
                     if key in result:
                         result[key] += D
@@ -317,6 +295,7 @@ class Atom(Expression):
         """Wraps an atom's numeric function that requires numpy ndarrays as input.
            Ensures both inputs and outputs are the correct matrix types.
         """
+
         def new_numeric(self, values):
             interface = intf.DEFAULT_INTF
             values = [interface.const_to_matrix(v, convert_scalars=True)

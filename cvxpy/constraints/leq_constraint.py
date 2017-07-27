@@ -1,36 +1,35 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 # Only need Variable from expressions, but that would create a circular import.
-from cvxpy import expressions
+from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.constraint import Constraint
 import numpy as np
+
 
 class LeqConstraint(u.Canonical, Constraint):
     OP_NAME = "<="
     TOLERANCE = 1e-4
+
     def __init__(self, lh_exp, rh_exp):
         self.args = [lh_exp, rh_exp]
         self._expr = lh_exp - rh_exp
-        self.dual_variable = expressions.variables.Variable(*self._expr.size)
+        self.dual_variable = cvxtypes.variable()(*self._expr.size)
         super(LeqConstraint, self).__init__()
 
     @property
@@ -64,7 +63,15 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
-        raise Exception("Cannot evaluate the truth value of a constraint.")
+        return self._chain_constraints()
+
+    def _chain_constraints(self):
+        """Raises an error due to chained constraints.
+        """
+        raise Exception(
+            ("Cannot evaluate the truth value of a constraint or "
+             "chain constraints, e.g., 1 >= x >= 0.")
+        )
 
     def __bool__(self):
         """Raises an exception when called.
@@ -74,7 +81,7 @@ class LeqConstraint(u.Canonical, Constraint):
         Called when evaluating the truth value of the constraint.
         Raising an error here prevents writing chained constraints.
         """
-        raise Exception("Cannot evaluate the truth value of a constraint.")
+        return self._chain_constraints()
 
     @property
     def size(self):
@@ -99,16 +106,6 @@ class LeqConstraint(u.Canonical, Constraint):
         dual_holder = lu.create_leq(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
 
-    def variables(self):
-        """Returns the variables in the compared expressions.
-        """
-        return self._expr.variables()
-
-    def parameters(self):
-        """Returns the parameters in the compared expressions.
-        """
-        return self._expr.parameters()
-
     @property
     def value(self):
         """Does the constraint hold?
@@ -117,10 +114,21 @@ class LeqConstraint(u.Canonical, Constraint):
         -------
         bool
         """
-        if self._expr.value is None:
+        resid = self.residual.value
+        if resid is None:
             return None
         else:
-            return np.all(self._expr.value <= self.TOLERANCE)
+            return np.all(resid <= self.TOLERANCE)
+
+    @property
+    def residual(self):
+        """The residual of the constraint.
+
+        Returns
+        -------
+        Expression
+        """
+        return cvxtypes.pos()(self._expr)
 
     @property
     def violation(self):
@@ -130,10 +138,7 @@ class LeqConstraint(u.Canonical, Constraint):
         -------
         NumPy matrix
         """
-        if self._expr.value is None:
-            return None
-        else:
-            return np.maximum(self._expr.value, 0)
+        return np.sum(self.residual.value)
 
     # The value of the dual variable.
     @property

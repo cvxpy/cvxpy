@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
@@ -26,6 +23,7 @@ from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.soc_axis import SOC_Axis
 from fractions import Fraction
+
 
 class pnorm(AxisAtom):
     r"""The vector p-norm.
@@ -94,6 +92,7 @@ class pnorm(AxisAtom):
     Expression
         An Expression representing the norm.
     """
+
     def __init__(self, x, p=2, axis=None, max_denom=1024):
         p_old = p
         if p in ('inf', 'Inf', np.inf):
@@ -115,7 +114,6 @@ class pnorm(AxisAtom):
             self.approx_error = 0
         else:
             self.approx_error = float(abs(self.p - p_old))
-
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -143,7 +141,6 @@ class pnorm(AxisAtom):
                 retval = np.reshape(retval, (self.args[0].size[0], 1))
 
         return retval
-
 
     def validate_arguments(self):
         super(pnorm, self).validate_arguments()
@@ -177,6 +174,11 @@ class pnorm(AxisAtom):
         """
         return self.p >= 1 and self.args[0].is_negative()
 
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return (self.p == 1 or self.p == np.inf) and self.args[0].is_pwl()
+
     def get_data(self):
         return [self.p, self.axis]
 
@@ -184,6 +186,7 @@ class pnorm(AxisAtom):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p)
+
     def _domain(self):
         """Returns constraints describing the domain of the node.
         """
@@ -292,8 +295,8 @@ class pnorm(AxisAtom):
 
 
 
-        Although the inequalities above are correct, for a few special cases, we can represent the p-norm
-        more efficiently and with fewer variables and inequalities.
+        Although the inequalities above are correct, for a few special cases,
+        we can represent the p-norm more efficiently and with fewer variables and inequalities.
 
         - For :math:`p = 1`, we use the representation
 
@@ -318,8 +321,9 @@ class pnorm(AxisAtom):
 
                 \|x\|_2 \leq t
 
-          Note that we could have used the set of inequalities given above if we wanted an alternate decomposition
-          of a large second-order cone into into several smaller inequalities.
+          Note that we could have used the set of inequalities given above if we wanted
+          an alternate decomposition of a large second-order cone into into several
+          smaller inequalities.
 
         """
         p = data[0]
@@ -371,4 +375,5 @@ class pnorm(AxisAtom):
 
         return t, constraints
 
-        # todo: no need to run gm_constr to form the tree each time. we only need to form the tree once
+        # todo: no need to run gm_constr to form the tree each time.
+        # we only need to form the tree once

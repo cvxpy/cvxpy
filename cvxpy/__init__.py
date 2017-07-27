@@ -1,36 +1,33 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.10"
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import (Variable, Semidef, Symmetric, Bool,
-Int, NonNegative)
+                                         Int, NonNegative)
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.error import SolverError
-from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC,
-ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, XPRESS,
-OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
-OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
-from cvxpy.transforms import linearize, partial_optimize
+from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, JULIA_OPT,
+                            ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS, XPRESS,
+                            OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
+                            OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
+from cvxpy.transforms import linearize, partial_optimize, indicator
 
 # Legacy names.
 from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite

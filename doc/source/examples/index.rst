@@ -46,6 +46,7 @@ Advanced Applications
 
 - `Allocating interdiction effort to catch a smuggler <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/interdiction.ipynb>`_
 - `Antenna array design <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/ant_array_min_beamwidth.ipynb>`_
+- `Channel capacity <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/Channel_capacity_BV4.57.ipynb>`_
 - `Computing a sparse solution of a set of linear inequalities <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_solution.ipynb>`_
 - `Entropy maximization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/max_entropy.ipynb>`_
 - `Fault detection <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fault_detection.ipynb>`_
@@ -54,7 +55,10 @@ Advanced Applications
 - `L1 trend filtering <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb>`_
 - `Nonnegative matrix factorization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb>`_
 - `Optimal parade route <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb>`_
+- `Optimal power and bandwidth allocation in a Gaussian broadcast channel <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb>`_
+- `Power assignment in a wireless communication system <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb>`_
 - `Predicting NBA game wins <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb>`_
 - `Robust Kalman filtering for vehicle tracking <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb>`_
 - `Sizing of clock meshes <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb>`_
 - `Sparse covariance estimation for Gaussian variables <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
+- `Water filling <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_

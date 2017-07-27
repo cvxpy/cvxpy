@@ -1,37 +1,33 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-from cvxpy.expressions.constants.constant import Constant
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.reshape import reshape
-import cvxpy.interface as intf
-import cvxpy.utilities as u
 from cvxpy.utilities import key_utils as ku
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 import numpy as np
 
+
 class index(AffAtom):
     """ Indexing/slicing into a matrix. """
     # expr - the expression indexed/sliced into.
     # key - the index/slicing key (i.e. expr[key[0],key[1]]).
+
     def __init__(self, expr, key):
         # Format and validate key.
         self.key = ku.validate_key(key, expr.size)
@@ -99,7 +95,7 @@ class index(AffAtom):
         select_mat = idx_mat[key]
         if select_mat.ndim == 2:
             final_size = select_mat.shape
-        else: # Always cast 1d arrays as column vectors.
+        else:  # Always cast 1d arrays as column vectors.
             final_size = (select_mat.size, 1)
         select_vec = np.reshape(select_mat, select_mat.size, order='F')
         # Select the chosen entries from expr.

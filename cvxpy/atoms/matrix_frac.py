@@ -1,33 +1,31 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 
+
 class matrix_frac(Atom):
     """ tr X.T*P^-1*X """
+
     def __init__(self, X, P):
         super(matrix_frac, self).__init__(X, P)
 
@@ -45,7 +43,7 @@ class matrix_frac(Atom):
         """
         return [self.args[1] >> 0]
 
-    def _grad(self,values):
+    def _grad(self, values):
         """
         Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
@@ -62,7 +60,7 @@ class matrix_frac(Atom):
         try:
             P_inv = LA.inv(P)
         except LA.LinAlgError:
-            return [None,None]
+            return [None, None]
         # partial_X = (P^-1+P^-T)X
         # partial_P = - (P^-1 * X * X^T * P^-1)^T
         else:
@@ -76,7 +74,6 @@ class matrix_frac(Atom):
             DP = -DP.T
             DP = sp.csc_matrix(DP.T.ravel(order='F')).T
             return [DX, DP]
-
 
     def validate_arguments(self):
         """Checks that the dimensions of x and P match.
@@ -122,6 +119,11 @@ class matrix_frac(Atom):
         """
         return False
 
+    def is_quadratic(self):
+        """Quadratic if x is affine and P is constant.
+        """
+        return self.args[0].is_affine() and self.args[1].is_constant()
+
     @staticmethod
     def graph_implementation(arg_objs, size, data=None):
         """Reduces the atom to an affine expression and list of constraints.
@@ -140,8 +142,8 @@ class matrix_frac(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        X = arg_objs[0] # n by m matrix.
-        P = arg_objs[1] # n by n matrix.
+        X = arg_objs[0]  # n by m matrix.
+        P = arg_objs[1]  # n by n matrix.
         n, m = X.size
         # Create a matrix with Schur complement T - X.T*P^-1*X.
         M = lu.create_var((n + m, n + m))

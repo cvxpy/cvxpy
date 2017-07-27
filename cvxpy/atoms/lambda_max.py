@@ -1,35 +1,32 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.affine.index import index
-from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.constraints.semidefinite import SDP
 from scipy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 
+
 class lambda_max(Atom):
     """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
 
     """
+
     def __init__(self, A):
         super(lambda_max, self).__init__(A)
 
@@ -72,7 +69,7 @@ class lambda_max(Atom):
         """
         if not self.args[0].size[0] == self.args[0].size[1]:
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
-                % self.args[0].name())
+                             % self.args[0].name())
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

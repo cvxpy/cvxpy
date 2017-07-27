@@ -1,25 +1,23 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
+
 
 class ECOS(Solver):
     """An interface for the ECOS solver.
@@ -60,6 +58,7 @@ class ECOS(Solver):
         """Imports the solver.
         """
         import ecos
+        ecos  # For flake8
 
     def name(self):
         """The name of the solver.
@@ -144,6 +143,12 @@ class ECOS(Solver):
         new_results = {}
         status = self.STATUS_MAP[results_dict['info']['exitFlag']]
         new_results[s.STATUS] = status
+
+        # Timing data
+        new_results[s.SOLVE_TIME] = results_dict["info"]["timing"]["tsolve"]
+        new_results[s.SETUP_TIME] = results_dict["info"]["timing"]["tsetup"]
+        new_results[s.NUM_ITERS] = results_dict["info"]["iter"]
+
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['info']['pcost']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]

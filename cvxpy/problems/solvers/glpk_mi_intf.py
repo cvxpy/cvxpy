@@ -1,24 +1,23 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
+import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.glpk_intf import GLPK
+
 
 class GLPK_MI(GLPK):
     """An interface for the GLPK MI solver.
@@ -70,22 +69,24 @@ class GLPK_MI(GLPK):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.glpk
+        import cvxopt
+        import cvxopt.glpk
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
         old_options = cvxopt.glpk.options.copy()
+        # Use presolve by default.
+        cvxopt.solvers.options["glpk"] = {"presolve": "GLP_ON"}
         # Silence cvxopt if verbose is False.
         if verbose:
-            cvxopt.glpk.options["msg_lev"] = "GLP_MSG_ON"
+            cvxopt.solvers.options["glpk"]["msg_lev"] = "GLP_MSG_ON"
         else:
-            cvxopt.glpk.options["msg_lev"] = "GLP_MSG_OFF"
-
+            cvxopt.solvers.options["glpk"]["msg_lev"] = "GLP_MSG_OFF"
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
             solver_opts["maxiters"] = solver_opts["max_iters"]
         for key, value in solver_opts.items():
-            cvxopt.glpk.options[key] = value
+            cvxopt.solvers.options["glpk"][key] = value
 
         try:
             results_tup = cvxopt.glpk.ilp(data[s.C],
@@ -128,8 +129,8 @@ class GLPK_MI(GLPK):
         new_results[s.STATUS] = status
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             # No dual variables.
-            new_results[s.PRIMAL] = results_dict['x']
-            primal_val = (data[s.C].T*new_results[s.PRIMAL])[0]
+            new_results[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
+            primal_val = (data[s.C].T*results_dict['x'])[0]
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
 
         return new_results

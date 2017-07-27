@@ -1,31 +1,28 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import copy
 import numpy as np
-from numpy.fft import fft, ifft
 from scipy.signal import fftconvolve
 
 # Utility functions for treating an expression tree as a matrix
 # and multiplying by it and it's transpose.
+
 
 def mul(lin_op, val_dict, is_abs=False):
     """Multiply the expression tree by a vector.
@@ -67,6 +64,7 @@ def mul(lin_op, val_dict, is_abs=False):
         else:
             return op_mul(lin_op, eval_args)
 
+
 def tmul(lin_op, value, is_abs=False):
     """Multiply the transpose of the expression tree by a vector.
 
@@ -101,6 +99,7 @@ def tmul(lin_op, value, is_abs=False):
         # Sum repeated ids.
         return sum_dicts(result_dicts)
 
+
 def sum_dicts(dicts):
     """Sums the dictionaries entrywise.
 
@@ -123,6 +122,7 @@ def sum_dicts(dicts):
             else:
                 sum_dict[id_] = value
     return sum_dict
+
 
 def op_mul(lin_op, args):
     """Applies the linear operator to the arguments.
@@ -174,6 +174,7 @@ def op_mul(lin_op, args):
         raise Exception("Unknown linear operator.")
     return result
 
+
 def op_abs_mul(lin_op, args):
     """Applies the absolute value of the linear operator to the arguments.
 
@@ -206,6 +207,7 @@ def op_abs_mul(lin_op, args):
     else:
         result = op_mul(lin_op, args)
     return result
+
 
 def op_tmul(lin_op, value):
     """Applies the transpose of the linear operator to the arguments.
@@ -257,6 +259,7 @@ def op_tmul(lin_op, value):
         raise Exception("Unknown linear operator.")
     return result
 
+
 def op_abs_tmul(lin_op, value):
     """Applies the linear operator |A.T| to the arguments.
 
@@ -291,6 +294,7 @@ def op_abs_tmul(lin_op, value):
         result = op_tmul(lin_op, value)
     return result
 
+
 def conv_mul(lin_op, rh_val, transpose=False, is_abs=False):
     """Multiply by a convolution operator.
 
@@ -324,6 +328,7 @@ def conv_mul(lin_op, rh_val, transpose=False, is_abs=False):
         else:
             return fftconvolve(rh_val, constant, mode='full')
 
+
 def get_constant(lin_op):
     """Returns the constant term in the expression.
 
@@ -341,6 +346,7 @@ def get_constant(lin_op):
     const_size = constant.shape[0]*constant.shape[1]
     return np.reshape(constant, const_size, 'F')
 
+
 def get_constr_constant(constraints):
     """Returns the constant term for the constraints matrix.
 
@@ -357,6 +363,7 @@ def get_constr_constant(constraints):
     # TODO what if constraints is empty?
     constants = [get_constant(c.expr) for c in constraints]
     return np.hstack(constants)
+
 
 def prune_constants(constraints):
     """Returns a new list of constraints with constant terms removed.
@@ -382,6 +389,7 @@ def prune_constants(constraints):
         pruned = constr_type(expr, constr.constr_id, constr.size)
         pruned_constraints.append(pruned)
     return pruned_constraints
+
 
 def prune_expr(lin_op):
     """Prunes constant branches from the expression.

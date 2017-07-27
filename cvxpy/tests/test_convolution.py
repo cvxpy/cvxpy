@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond, Eric Chu
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy import *
@@ -23,6 +20,7 @@ from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
 import cvxpy.problems.iterative as iterative
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+
 
 class TestConvolution(BaseTest):
     """ Unit tests for convolution. """
@@ -34,7 +32,7 @@ class TestConvolution(BaseTest):
         x = Variable(n)
         f = [1, 2, 3]
         g = [0, 1, 0.5]
-        f_conv_g = [ 0., 1., 2.5,  4., 1.5]
+        f_conv_g = [0., 1., 2.5,  4., 1.5]
         expr = conv(f, g)
         assert expr.is_constant()
         self.assertEqual(expr.size, (5, 1))
@@ -46,7 +44,7 @@ class TestConvolution(BaseTest):
         # Matrix stuffing.
         t = Variable()
         prob = Problem(Minimize(norm(expr, 1)),
-            [x == g])
+                       [x == g])
         result = prob.solve()
         self.assertAlmostEqual(result, sum(f_conv_g))
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
@@ -112,5 +110,5 @@ class TestConvolution(BaseTest):
         h = np.asmatrix(np.random.randn(2, 1))
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
-        obj = cvx.Minimize(cvx.sum_entries(cvx.mul_elemwise(y,v[0:N])))
+        obj = cvx.Minimize(cvx.sum_entries(cvx.mul_elemwise(y, v[0:N])))
         print(cvx.Problem(obj, []).solve())

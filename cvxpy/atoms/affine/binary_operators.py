@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from __future__ import division
@@ -22,19 +19,18 @@ import sys
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.utilities as u
-import cvxpy.interface as intf
-from cvxpy.expressions.constants import Constant
 import cvxpy.lin_ops.lin_utils as lu
 import operator as op
-import numpy as np
 if sys.version_info >= (3, 0):
     from functools import reduce
+
 
 class BinaryOperator(AffAtom):
     """
     Base class for expressions involving binary operators.
 
     """
+
     def __init__(self, lh_exp, rh_exp):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
@@ -53,9 +49,15 @@ class BinaryOperator(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
+
 class MulExpression(BinaryOperator):
     OP_NAME = "*"
     OP_FUNC = op.mul
+
+    def numeric(self, values):
+        """Multiplication checks for 1D array * 1D array.
+        """
+        return reduce(self.OP_FUNC, values)
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.
@@ -101,6 +103,7 @@ class MulExpression(BinaryOperator):
             arg_objs[1] = lu.diag_vec(arg)
         return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
 
+
 class RMulExpression(MulExpression):
     """Multiplication by a constant on the right.
     """
@@ -139,9 +142,13 @@ class RMulExpression(MulExpression):
             arg_objs[0] = lu.diag_vec(arg)
         return (lu.rmul_expr(arg_objs[0], arg_objs[1], size), [])
 
+
 class DivExpression(BinaryOperator):
     OP_NAME = "/"
-    OP_FUNC = op.__truediv__ if (sys.version_info >= (3,0) ) else op.__div__
+    OP_FUNC = op.__truediv__ if (sys.version_info >= (3, 0)) else op.__div__
+
+    def is_quadratic(self):
+        return self.args[0].is_quadratic() and self.args[1].is_constant()
 
     def size_from_args(self):
         """Returns the (row, col) size of the expression.

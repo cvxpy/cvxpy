@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.lin_ops.lin_utils as lu
@@ -25,6 +22,7 @@ import scipy.special
 import numpy as np
 from .power import power
 from fractions import Fraction
+
 
 class huber(Elementwise):
     """The Huber function
@@ -39,6 +37,7 @@ class huber(Elementwise):
         A CVXPY expression.
     M : int/float or Parameter
     """
+
     def __init__(self, x, M=1):
         self.M = self.cast_to_const(M)
         super(huber, self).__init__(x)
@@ -83,8 +82,7 @@ class huber(Elementwise):
     def validate_arguments(self):
         """Checks that M >= 0 and is constant.
         """
-        if not (self.M.is_positive() and self.M.is_constant() \
-                and self.M.is_scalar()):
+        if not (self.M.is_positive() and self.M.is_constant() and self.M.is_scalar()):
             raise ValueError("M must be a non-negative scalar constant.")
 
     def _grad(self, values):
@@ -132,7 +130,7 @@ class huber(Elementwise):
         two = lu.create_const(2, (1, 1))
         if isinstance(M, Parameter):
             M = lu.create_param(M, (1, 1))
-        else: # M is constant.
+        else:  # M is constant.
             M = lu.create_const(M.value, (1, 1))
 
         # n**2 + 2*M*|s|

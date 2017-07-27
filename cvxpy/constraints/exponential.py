@@ -1,24 +1,20 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.settings as s
-import cvxpy.interface as intf
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.lin_ops.lin_op import VARIABLE
@@ -26,7 +22,7 @@ import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.nonlinear import NonlinearConstraint
 from cvxpy.constraints.utilities import format_elemwise
 import math
-import cvxopt
+
 
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
@@ -46,8 +42,6 @@ class ExpCone(NonlinearConstraint):
         y: Variable y in the exponential cone.
         z: Variable z in the exponential cone.
     """
-    CVXOPT_DENSE_INTF = intf.get_matrix_interface(cvxopt.matrix)
-    CVXOPT_SPARSE_INTF = intf.get_matrix_interface(cvxopt.spmatrix)
 
     def __init__(self, x, y, z):
         self.x = x
@@ -76,7 +70,7 @@ class ExpCone(NonlinearConstraint):
         """
         if solver.name() == s.CVXOPT:
             eq_constr += self.__CVXOPT_format[0]
-        elif solver.name() == s.SCS:
+        elif solver.name() in [s.SCS, s.JULIA_OPT]:
             leq_constr += self.__SCS_format[1]
         elif solver.name() == s.ECOS:
             leq_constr += self.__ECOS_format[1]
@@ -97,7 +91,7 @@ class ExpCone(NonlinearConstraint):
     def __CVXOPT_format(self):
         constraints = []
         for i, var in enumerate(self.vars_):
-            if not var.type is VARIABLE:
+            if var.type is not VARIABLE:
                 lone_var = lu.create_var(var.size)
                 constraints.append(lu.create_eq(lone_var, var))
                 self.vars_[i] = lone_var
@@ -120,6 +114,7 @@ class ExpCone(NonlinearConstraint):
             _solver_hook(x, z) returns the function value, gradient,
             and (z scaled) Hessian at x.
         """
+        import cvxopt  # Not necessary unless using cvxopt solver.
         entries = self.size[0]*self.size[1]
         if vars_ is None:
             x_init = entries*[0.0]
@@ -135,11 +130,11 @@ class ExpCone(NonlinearConstraint):
         if min(y) <= 0.0 or min(z) <= 0.0:
             return None
         # Evaluate the function.
-        f = self.CVXOPT_DENSE_INTF.zeros(entries, 1)
+        f = cvxopt.matrix(0., (entries, 1))
         for i in range(entries):
             f[i] = x[i] - y[i]*math.log(z[i]) + y[i]*math.log(y[i])
         # Compute the gradient.
-        Df = self.CVXOPT_DENSE_INTF.zeros(entries, 3*entries)
+        Df = cvxopt.matrix(0., (entries, 3*entries))
         for i in range(entries):
             Df[i, i] = 1.0
             Df[i, entries+i] = math.log(y[i]) - math.log(z[i]) + 1.0
@@ -148,7 +143,7 @@ class ExpCone(NonlinearConstraint):
         if scaling is None:
             return f, Df
         # Compute the Hessian.
-        big_H = self.CVXOPT_SPARSE_INTF.zeros(3*entries, 3*entries)
+        big_H = cvxopt.spmatrix(0, [], [], size=(3*entries, 3*entries))
         for i in range(entries):
             H = cvxopt.matrix([
                     [0.0, 0.0, 0.0],

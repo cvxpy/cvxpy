@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.settings as s
@@ -30,6 +27,7 @@ from cvxpy.problems.problem_data.problem_data import ProblemData
 # a circular import (cvxpy.transforms imports Problem). Hence we need to import
 # cvxpy here.
 import cvxpy
+import cvxpy.constraints.eq_constraint as eqc
 
 import multiprocess as multiprocessing
 import numpy as np
@@ -61,6 +59,8 @@ class Problem(u.Canonical):
     def __init__(self, objective, constraints=None):
         if constraints is None:
             constraints = []
+        elif not isinstance(constraints, list):
+            raise TypeError("Problem constraints must be a list.")
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
             raise DCPError("Problem objective must be Minimize or Maximize.")
@@ -74,6 +74,10 @@ class Problem(u.Canonical):
         self._reset_cache()
         # List of separable (sub)problems
         self._separable_problems = None
+        # Information about the size of the problem and its constituent parts
+        self._size_metrics = SizeMetrics(self)
+        # Benchmarks reported by the solver:
+        self._solver_stats = None
 
     def _reset_cache(self):
         """Resets the cached data.
@@ -106,6 +110,14 @@ class Problem(u.Canonical):
         """Does the problem satisfy DCP rules?
         """
         return all(exp.is_dcp() for exp in self.constraints + [self.objective])
+
+    def is_qp(self):
+        """Is problem a quadratic program?
+        """
+        for c in self.constraints:
+            if not (isinstance(c, eqc.EqConstraint) or c._expr.is_pwl()):
+                return False
+        return (self.is_dcp() and self.objective.args[0].is_quadratic())
 
     def canonicalize(self):
         """Computes the graph implementation of the problem.
@@ -142,6 +154,30 @@ class Problem(u.Canonical):
             params += constr.parameters()
         # Remove duplicates.
         return list(set(params))
+
+    def constants(self):
+        """Returns a list of the constants in the problem.
+        """
+        const_dict = {}
+        constants_ = self.objective.constants()
+        for constr in self.constraints:
+            constants_ += constr.constants()
+        # Remove duplicates.
+        # Note that numpy matrices are not hashable, so we use the buildin function id
+        const_dict = {id(constant): constant for constant in constants_}
+        return list(const_dict.values())
+
+    @property
+    def size_metrics(self):
+        """Returns an object containing information about the size of the problem.
+        """
+        return self._size_metrics
+
+    @property
+    def solver_stats(self):
+        """Returns an object containing additional information returned by the solver.
+        """
+        return self._solver_stats
 
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
@@ -246,13 +282,29 @@ class Problem(u.Canonical):
             else:
                 raise DCPError("Problem does not follow DCP rules.")
 
+        if solver == s.LS:
+            solver = SOLVERS[s.LS]
+            solver.validate_solver(self)
+
+            objective = self.objective
+            constraints = self.constraints
+
+            sym_data = solver.get_sym_data(objective, constraints)
+            results_dict = solver.solve(objective, constraints,
+                                        self._cached_data, warm_start, verbose,
+                                        kwargs)
+            self._update_problem_state(results_dict, sym_data, solver)
+            return self.value
+
+        # Standard cone problem
         objective, constraints = self.canonicalize()
 
         # Solve in parallel
         if parallel:
             # Check if the objective or constraint has changed
+
             if (objective != self._cached_data[s.PARALLEL].objective or
-                constraints != self._cached_data[s.PARALLEL].constraints):
+                    constraints != self._cached_data[s.PARALLEL].constraints):
                 self._separable_problems = cvxpy.transforms.get_separable_problems(self)
                 self._cached_data[s.PARALLEL] = CachedProblem(objective,
                                                               constraints)
@@ -280,7 +332,6 @@ class Problem(u.Canonical):
         # Presolve determined problem was unbounded or infeasible.
         else:
             results_dict = {s.STATUS: sym_data.presolve_status}
-
         self._update_problem_state(results_dict, sym_data, solver)
         return self.value
 
@@ -347,7 +398,7 @@ class Problem(u.Canonical):
                                              solve_result.primal_values):
                     var.save_value(primal_value)
                 for constr, dual_value in zip(subproblem.constraints,
-                                              solve_results):
+                                              solve_result.dual_values):
                     constr.save_value(dual_value)
             self._value = sum(solve_result.opt_value
                               for solve_result in solve_results)
@@ -395,6 +446,7 @@ class Problem(u.Canonical):
             raise SolverError(
                 "Solver '%s' failed. Try another solver." % solver.name())
         self._status = results_dict[s.STATUS]
+        self._solver_stats = SolverStats(results_dict, solver.name())
 
     def unpack_results(self, solver_name, results_dict):
         """Parses the output from a solver and updates the problem state.
@@ -555,3 +607,97 @@ class Problem(u.Canonical):
         return Problem(self.objective * (1.0 / other), self.constraints)
 
     __truediv__ = __div__
+
+
+class SolverStats(object):
+    """Reports some of the miscellaneous information that is returned
+    by the solver after solving but that is not captured directly by
+    the Problem instance.
+
+    Attributes
+    ----------
+    solve_time : double
+        The time (in seconds) it took for the solver to solve the problem.
+    setup_time : double
+        The time (in seconds) it took for the solver to setup the problem.
+    num_iters : int
+        The number of iterations the solver had to go through to find a solution.
+    """
+    def __init__(self, results_dict, solver_name):
+        self.solver_name = solver_name
+        self.solve_time = None
+        self.setup_time = None
+        self.num_iters = None
+
+        if s.SOLVE_TIME in results_dict:
+            self.solve_time = results_dict[s.SOLVE_TIME]
+        if s.SETUP_TIME in results_dict:
+            self.setup_time = results_dict[s.SETUP_TIME]
+        if s.NUM_ITERS in results_dict:
+            self.num_iters = results_dict[s.NUM_ITERS]
+
+
+class SizeMetrics(object):
+    """Reports various metrics regarding the problem
+
+    Attributes
+    ----------
+
+    Counts:
+        num_scalar_variables : integer
+            The number of scalar variables in the problem.
+        num_scalar_data : integer
+            The number of scalar constants and parameters in the problem. The number of
+            constants used across all matrices, vectors, in the problem.
+            Some constants are not apparent when the problem is constructed: for example,
+            The sum_squares expression is a wrapper for a quad_over_lin expression with a
+            constant 1 in the denominator.
+        num_scalar_eq_constr : integer
+            The number of scalar equality constraints in the problem.
+        num_scalar_leq_constr : integer
+            The number of scalar inequality constraints in the problem.
+
+    Max and min sizes:
+        max_data_dimension : integer
+            The longest dimension of any data block constraint or parameter.
+        max_big_small_squared : integer
+            The maximum value of (big)(small)^2 over all data blocks of the problem, where
+            (big) is the larger dimension and (small) is the smaller dimension
+            for each data block.
+    """
+
+    def __init__(self, problem):
+        # num_scalar_variables
+        self.num_scalar_variables = 0
+        for var in problem.variables():
+            self.num_scalar_variables += np.prod(var.size)
+
+        # num_scalar_data, max_data_dimension, and max_big_small_squared
+        self.max_data_dimension = 0
+        self.num_scalar_data = 0
+        self.max_big_small_squared = 0
+        for const in problem.constants()+problem.parameters():
+            big = 0
+            # Compute number of data
+            self.num_scalar_data += np.prod(const.size)
+            big = max(const.size)
+            small = min(const.size)
+
+            # Get max data dimension:
+            if self.max_data_dimension < big:
+                self.max_data_dimension = big
+
+            if self.max_big_small_squared < big*small*small:
+                self.max_big_small_squared = big*small*small
+
+        # num_scalar_eq_constr
+        self.num_scalar_eq_constr = 0
+        for constraint in problem.constraints:
+            if constraint.__class__.__name__ is "EqConstraint":
+                self.num_scalar_eq_constr += np.prod(constraint._expr.size)
+
+        # num_scalar_leq_constr
+        self.num_scalar_leq_constr = 0
+        for constraint in problem.constraints:
+            if constraint.__class__.__name__ is "LeqConstraint":
+                self.num_scalar_leq_constr += np.prod(constraint._expr.size)

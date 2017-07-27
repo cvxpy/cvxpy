@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # To import sphinx extensions we've put in the repository:
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
-__version__ = "0.4.0"
+__version__ = "0.4.10"
 
 # -- General configuration -----------------------------------------------------
 
@@ -145,6 +145,7 @@ html_theme_options = {
    'github_user': 'cvxgrp',
    'github_repo': 'cvxpy',
    'github_banner': True,
+   'github_type': 'star',
    'travis_button': True,
    'analytics_id': 'UA-50248335-1',
 }

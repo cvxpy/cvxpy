@@ -1,32 +1,28 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.error import DCPError
+import warnings
 import cvxpy.utilities as u
-import cvxpy.interface as intf
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
-from cvxpy.utilities import performance_utils as pu
 from cvxpy.constraints import EqConstraint, LeqConstraint, PSDConstraint
-from cvxpy.expressions import types
+from cvxpy.expressions import cvxtypes
 import abc
-import numpy as np
+
 
 def _cast_other(binary_op):
     """Casts the second argument of a binary operator as an Expression.
@@ -37,12 +33,14 @@ def _cast_other(binary_op):
     Returns:
         A wrapped binary operator that can handle non-Expression arguments.
     """
+
     def cast_op(self, other):
         """A wrapped binary operator that can handle non-Expression arguments.
         """
         other = self.cast_to_const(other)
         return binary_op(self, other)
     return cast_op
+
 
 class Expression(u.Canonical):
     """
@@ -145,6 +143,18 @@ class Expression(u.Canonical):
         """
         return self.is_convex() or self.is_concave()
 
+    def is_quadratic(self):
+        """Is the expression quadratic?
+        """
+        # Defaults to false
+        return False
+
+    def is_pwl(self):
+        """Is the expression piecewise linear?
+        """
+        # Defaults to false
+        return False
+
     # Sign properties.
 
     @property
@@ -205,9 +215,9 @@ class Expression(u.Canonical):
         # Returning self for scalars causes
         # the built-in sum to hang.
         if ku.is_special_slice(key):
-            return types.index().get_special_slice(self, key)
+            return cvxtypes.index().get_special_slice(self, key)
         else:
-            return types.index()(self, key)
+            return cvxtypes.index()(self, key)
 
     @property
     def T(self):
@@ -217,25 +227,25 @@ class Expression(u.Canonical):
         if self.is_scalar():
             return self
         else:
-            return types.transpose()(self)
+            return cvxtypes.transpose()(self)
 
     def __pow__(self, power):
         """The power operator.
         """
-        return types.power()(self, power)
+        return cvxtypes.power()(self, power)
 
     # Arithmetic operators.
     @staticmethod
     def cast_to_const(expr):
         """Converts a non-Expression to a Constant.
         """
-        return expr if isinstance(expr, Expression) else types.constant()(expr)
+        return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
     @_cast_other
     def __add__(self, other):
         """The sum of two expressions.
         """
-        return types.add_expr()([self, other])
+        return cvxtypes.add_expr()([self, other])
 
     @_cast_other
     def __radd__(self, other):
@@ -259,24 +269,37 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """The product of two expressions.
         """
-        # Cannot multiply two non-constant expressions.
-        if not self.is_constant() and \
-           not other.is_constant():
-            raise DCPError("Cannot multiply two non-constants.")
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
-        elif self.is_constant():
+        if self.is_constant():
             # TODO HACK catch c.T*x where c is a NumPy 1D array.
             if self.size[0] == other.size[0] and \
                self.size[1] != self.size[0] and \
-               isinstance(self, types.constant()) and self.is_1D_array:
+               isinstance(self, cvxtypes.constant()) and self.is_1D_array:
                 self = self.T
-            return types.mul_expr()(self, other)
-        # Having the constant on the left is more efficient.
-        elif self.is_scalar() or other.is_scalar():
-            return types.mul_expr()(other, self)
+            return cvxtypes.mul_expr()(self, other)
+        elif other.is_constant():
+            # Having the constant on the left is more efficient.
+            if self.is_scalar() or other.is_scalar():
+                return cvxtypes.mul_expr()(other, self)
+            else:
+                return cvxtypes.rmul_expr()(self, other)
+        # When both expressions are not constant
+        # Allow affine * affine but raise DCPError otherwise
+        # Cannot multiply two non-constant expressions.
+        elif self.is_affine() and other.is_affine():
+            warnings.warn("Forming a nonconvex expression (affine)*(affine).")
+            return cvxtypes.affine_prod_expr()(self, other)
         else:
-            return types.rmul_expr()(self, other)
+            raise DCPError("Cannot multiply %s and %s." % (self.curvature, other.curvature))
+
+    @_cast_other
+    def __matmul__(self, other):
+        """Matrix multiplication of two expressions.
+        """
+        if self.is_scalar() or other.is_scalar():
+            raise ValueError("Scalar operands are not allowed, use '*' instead")
+        return self.__mul__(other)
 
     @_cast_other
     def __truediv__(self, other):
@@ -290,7 +313,7 @@ class Expression(u.Canonical):
         """
         # Can only divide by scalar constants.
         if other.is_constant() and other.is_scalar():
-            return types.div_expr()(self, other)
+            return cvxtypes.div_expr()(self, other)
         else:
             raise DCPError("Can only divide by a scalar constant.")
 
@@ -312,10 +335,16 @@ class Expression(u.Canonical):
         """
         return other * self
 
+    @_cast_other
+    def __rmatmul__(self, other):
+        """Called for matrix @ Expression.
+        """
+        return other.__matmul__(self)
+
     def __neg__(self):
         """The negation of the expression.
         """
-        return types.neg_expr()(self)
+        return cvxtypes.neg_expr()(self)
 
     @_cast_other
     def __rshift__(self, other):

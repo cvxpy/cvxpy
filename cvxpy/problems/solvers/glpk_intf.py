@@ -1,24 +1,22 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
+
 
 class GLPK(CVXOPT):
     """An interface for the GLPK solver.
@@ -39,8 +37,8 @@ class GLPK(CVXOPT):
     def import_solver(self):
         """Imports the solver.
         """
-        import cvxopt
         from cvxopt import glpk
+        glpk  # For flake8
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
@@ -66,22 +64,24 @@ class GLPK(CVXOPT):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
-        import cvxopt, cvxopt.solvers
+        import cvxopt
+        import cvxopt.solvers
         data = self.get_problem_data(objective, constraints, cached_data)
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
+        # Use presolve by default.
+        cvxopt.solvers.options["glpk"] = {"presolve": "GLP_ON"}
         # Silence cvxopt if verbose is False.
         if verbose:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
+            cvxopt.solvers.options["glpk"]["msg_lev"] = "GLP_MSG_ON"
         else:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
-
+            cvxopt.solvers.options["glpk"]["msg_lev"] = "GLP_MSG_OFF"
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
             solver_opts["maxiters"] = solver_opts["max_iters"]
         for key, value in solver_opts.items():
-            cvxopt.solvers.options[key] = value
+            cvxopt.solvers.options["glpk"][key] = value
 
         try:
             results_dict = cvxopt.solvers.lp(data[s.C],
@@ -91,7 +91,7 @@ class GLPK(CVXOPT):
                                              data[s.B],
                                              solver="glpk")
 
-         # Catch exceptions in CVXOPT and convert them to solver errors.
+        # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
             results_dict = {"status": "unknown"}
 
