@@ -198,9 +198,9 @@ class Problem(object):
         if func_name is not None:
             solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
         else:
-            solve_func = self._solve
+            solve_func = Problem._solve
         try:
-            return solve_func(*args, **kwargs)
+            return solve_func(self, *args, **kwargs)
         except:
             raise
 
