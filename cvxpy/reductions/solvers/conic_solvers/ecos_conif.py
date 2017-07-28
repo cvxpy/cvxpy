@@ -27,8 +27,18 @@ from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
 
-from .conic_solver import ConicSolver
+from .conic_solver import ConeDims, ConicSolver
 
+
+# Utility method for formatting a ConeDims instance into a dictionary
+# that can be supplied to ecos.
+def dims_to_solver_dict(cone_dims):
+    cones = {
+        'l': cone_dims.nonpos,
+        'q': cone_dims.soc,
+        'e': cone_dims.exp,
+    }
+    return cones
 
 class ECOS(ConicSolver):
     """An interface for the ECOS solver.
@@ -92,17 +102,13 @@ class ECOS(ConicSolver):
         inv_data[s.OFFSET] = data[s.OFFSET][0]
 
         constr_map = group_constraints(problem.constraints)
+        data[ConicSolver.DIMS] = ConeDims(constr_map)
+
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         data[s.A], data[s.B] = self.group_coeff_offset(problem,
             constr_map[Zero], ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
-        data[s.DIMS] = {}
-        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in constr_map[NonPos]])
-        data[s.DIMS]['q'] = [dim for c in constr_map[SOC]
-                                 for dim in c.cone_sizes()]
-        data[s.DIMS]['e'] = sum([c.num_cones() for c in constr_map[ExpCone]])
-
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
         inv_data[self.NEQ_CONSTR] = neq_constr
         data[s.G], data[s.H] = self.group_coeff_offset(problem, neq_constr,
@@ -141,8 +147,9 @@ class ECOS(ConicSolver):
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
         import ecos
+        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              data[s.DIMS], data[s.A], data[s.B],
+                              cones, data[s.A], data[s.B],
                               verbose=verbose,
                               **solver_opts)
         return solution

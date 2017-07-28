@@ -31,8 +31,19 @@ from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
-from .conic_solver import ConicSolver
+from .conic_solver import ConeDims, ConicSolver
 
+# Utility method for formatting a ConeDims instance into a dictionary
+# that can be supplied to scs.
+def dims_to_solver_dict(cone_dims):
+    cones = {
+        'f': cone_dims.zero,
+        'l': cone_dims.nonpos,
+        'q': cone_dims.soc,
+        'ep': cone_dims.exp,
+        's': cone_dims.psd
+    }
+    return cones
 
 # Utility methods for special handling of semidefinite constraints.
 def scaled_lower_tri(matrix):
@@ -104,7 +115,6 @@ def tri_to_full(lower_tri, n):
             else:
                 full[row, col] = lower_tri[idx]
     return np.reshape(full, n*n, order='F')
-
 
 class SCS(ConicSolver):
     """An interface for the SCS solver.
@@ -182,17 +192,8 @@ class SCS(ConicSolver):
 
         # Order and group nonlinear constraints.
         constr_map = group_constraints(problem.constraints)
-        data[s.DIMS] = {}
-
-        # TODO(akshayka): Raw strings are not nice. Check whether
-        # SCS' python interface exports these strings.
-        data[s.DIMS]['f'] = sum([np.prod(c.size) for c in constr_map[Zero]])
-        data[s.DIMS]['l'] = sum([np.prod(c.size) for c in constr_map[NonPos]])
-        data[s.DIMS]['ep'] = sum([c.num_cones() for c in constr_map[ExpCone]])
-        data[s.DIMS]['q'] = [dim for c in constr_map[SOC]
-                                 for dim in c.cone_sizes()]
-        data[s.DIMS]['s'] = [c.shape[0] for c in constr_map[PSD]]
-        inv_data[s.DIMS] = data[s.DIMS]
+        data[ConicSolver.DIMS] = ConeDims(constr_map)
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
 
         # SCS requires constraints to be specified in the following order:
         # 1. zero cone
@@ -250,12 +251,12 @@ class SCS(ConicSolver):
             }
             eq_dual_vars = utilities.get_dual_values(
                 intf.DEFAULT_INTF.const_to_matrix(
-                    solution['y'][:inverse_data[s.DIMS]['f']]),
+                    solution['y'][:inverse_data[ConicSolver.DIMS].zero]),
                 self.extract_dual_value,
                 inverse_data[SCS.EQ_CONSTR])
             ineq_dual_vars = utilities.get_dual_values(
                 intf.DEFAULT_INTF.const_to_matrix(
-                    solution['y'][inverse_data[s.DIMS]['f']:]),
+                    solution['y'][inverse_data[ConicSolver.DIMS].zero:]),
                 self.extract_dual_value,
                 inverse_data[SCS.NEQ_CONSTR])
             dual_vars = {}
@@ -284,8 +285,10 @@ class SCS(ConicSolver):
         The result returned by a call to scs.solve().
         """
         import scs
+        args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
+        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         return scs.solve(
-            data,
-            data[s.DIMS],
+            args,
+            cones,
             verbose=verbose,
             **solver_opts)

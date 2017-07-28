@@ -20,7 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
-from .conic_solver import ConicSolver
+from cvxpy.reductions.solvers.solver import group_constraints
+from .conic_solver import ConeDims, ConicSolver
 
 
 class CVXOPT(ConicSolver):
@@ -77,6 +78,8 @@ class CVXOPT(ConicSolver):
         constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
         data["objective"] = objective
         data["constraints"] = constraints
+        data[ConicSolver.DIMS] = ConeDims(
+            group_constraints(problem.constraints))
 
         inv_data = {self.VAR_ID: problem.variables()[0].id}
 

@@ -1,5 +1,5 @@
 """
-Copyright 2017 Robin Verschueren
+Copyright 2017 Robin Verschueren, 2017 Akshay Agrawal
 
 This file is part of CVXPY.
 
@@ -23,7 +23,7 @@ import scipy.sparse as sp
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solvers.solver import Solver
@@ -66,10 +66,39 @@ def is_stuffed_cone_objective(objective):
             and type(expr.args[0]) == MulExpression
             and type(expr.args[1]) == Constant)
 
+class ConeDims(object):
+    """Summary of cone dimensions present in constraints.
+
+    Constraints must be formatted as dictionary that maps from
+    constraint type to a list of constraints of that type.
+
+    Attributes
+    ----------
+    zero : int
+        The dimension of the zero cone.
+    nonpos : int
+        The dimension of the non-positive cone.
+    exp : int
+        The dimension of the exponential cone.
+    soc : list of int
+        A list of the second-order cone dimensions.
+    psd : list of int
+        A list of the positive semidefinite cone dimensions, where the
+        dimension of the PSD cone of k by k matrices is k.
+    """
+    def __init__(self, constr_map):
+        self.zero = sum([np.prod(c.size) for c in constr_map[Zero]])
+        self.nonpos = sum([np.prod(c.size) for c in constr_map[NonPos]])
+        self.exp = sum([c.num_cones() for c in constr_map[ExpCone]])
+        self.soc = [dim for c in constr_map[SOC] for dim in c.cone_sizes()]
+        self.psd = [c.shape[0] for c in constr_map[PSD]]
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
+    # The key that maps to ConeDims in the data returned by apply().
+    DIMS = "dims"
+
     # Every conic solver must support Zero and NonPos constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonPos]
 
@@ -148,9 +177,7 @@ class ConicSolver(Solver):
         TODO(akshayka): This function should not be written for ECOS in
         particular, and the documentation should not mention ECOS either.
 
-        TODO(akshayka): This function needs to support PSD constraints!
-
-        TODO(akshayka): What is exp_cone_order?
+        TODO(akshayka): What is exp_cone_order? This should be documented.
 
         Args:
           problem : Problem
