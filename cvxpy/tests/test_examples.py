@@ -444,13 +444,15 @@ class TestExamples(BaseTest):
         ########################################
 
         # Replace the objective.
-        prob.objective = Maximize(x + y)
+        prob = Problem(Maximize(x + y), prob.constraints)
         print("optimal value", prob.solve())
 
         self.assertAlmostEqual(prob.value, 1.0)
 
         # Replace the constraint (x + y == 1).
-        prob.constraints[0] = (x + y <= 3)
+        constraints = prob.constraints
+        constraints[0] = (x + y <= 3)
+        prob = Problem(prob.objective, constraints)
         print("optimal value", prob.solve())
 
         self.assertAlmostEqual(prob.value, 3.0)

@@ -64,10 +64,12 @@ class Problem(object):
         if not isinstance(objective, (Minimize, Maximize)):
             raise DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
-        self.objective = objective
-        self.constraints = constraints
+        self._objective = objective
+        self._constraints = constraints
         self._value = None
         self._status = None
+        # The solving chain with which to solve the problem
+        self._solving_chain = None
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
@@ -95,6 +97,33 @@ class Problem(object):
         str
         """
         return self._status
+
+    @property
+    def objective(self):
+        """The problem's objective.
+
+        Note that the objective cannot be reassigned after creation,
+        and modifying the objective after creation will result in
+        undefined behavior.
+
+        Returns
+        -------
+        Minimize or Maximize
+        """
+        return self._objective
+
+    @property
+    def constraints(self):
+        """A shallow copy of the problem's constraints.
+
+        Note that constraints cannot be reassigned, appended to, or otherwise
+        modified after creation, except through parameters.
+
+        Returns
+        -------
+        list of Constraint
+        """
+        return self._constraints[:]
 
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
@@ -301,14 +330,23 @@ class Problem(object):
             if len(self._separable_problems) > 1:
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
-        try:
-            solving_chain = construct_solving_chain(self, solver=solver)
-        except:
-            raise
-        data, inverse_data = solving_chain.apply(self)
-        solution = solving_chain.solve_via_data(data, warm_start, verbose,
-                                                kwargs)
-        self.unpack_results(solution, solving_chain, inverse_data)
+
+        # If a previous chain does not exist, or if the solver is
+        # specified and it does not match the solver used for the previous
+        # solve, then construct a new solving chain.
+        if (self._solving_chain is None
+                or (solver is not None
+                    and self._solving_chain.solver.name != solver)):
+            try:
+                self._solving_chain = construct_solving_chain(self,
+                                                              solver=solver)
+            except:
+                raise
+
+        data, inverse_data = self._solving_chain.apply(self)
+        solution = self._solving_chain.solve_via_data(data, warm_start, verbose,
+                                                      kwargs)
+        self.unpack_results(solution, self._solving_chain, inverse_data)
         return self.value
 
     def _parallel_solve(self,
