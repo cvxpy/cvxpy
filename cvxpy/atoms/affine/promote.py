@@ -45,10 +45,8 @@ class Promote(AffAtom):
     """
 
     def __init__(self, expr, shape):
-        if isinstance(shape, Constant):
-            shape = tuple(shape.value.flatten())
         self.promoted_shape = shape
-        super(Promote, self).__init__(expr, shape)
+        super(Promote, self).__init__(expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
@@ -60,6 +58,11 @@ class Promote(AffAtom):
         """Returns the (row, col) shape of the expression.
         """
         return self.promoted_shape
+
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.promoted_shape]
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
