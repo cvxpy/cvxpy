@@ -24,6 +24,7 @@ import cvxpy.settings as s
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
 from cvxpy.expressions.constants.constant import Constant
+import cvxpy.interface as intf
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
@@ -243,13 +244,18 @@ class SCS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pobj']
             opt_val = primal_val + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[SCS.VAR_ID]: solution['x']}
+            primal_vars = {
+                inverse_data[SCS.VAR_ID]:
+                intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+            }
             eq_dual_vars = utilities.get_dual_values(
-                solution['y'][:inverse_data[s.DIMS]['f']],
+                intf.DEFAULT_INTF.const_to_matrix(
+                    solution['y'][:inverse_data[s.DIMS]['f']]),
                 self.extract_dual_value,
                 inverse_data[SCS.EQ_CONSTR])
             ineq_dual_vars = utilities.get_dual_values(
-                solution['y'][inverse_data[s.DIMS]['f']:],
+                intf.DEFAULT_INTF.const_to_matrix(
+                    solution['y'][inverse_data[s.DIMS]['f']:]),
                 self.extract_dual_value,
                 inverse_data[SCS.NEQ_CONSTR])
             dual_vars = {}

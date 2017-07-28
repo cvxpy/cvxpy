@@ -23,6 +23,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers import utilities
 
 from .conic_solver import ConicSolver
 
@@ -107,11 +108,13 @@ class GUROBI(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value']
             primal_vars = {inverse_data[GUROBI.VAR_ID]: solution['primal']}
-            eq_dual = ConicSolver.get_dual_values(
+            eq_dual = utilities.get_dual_values(
                 solution['eq_dual'],
+                utilities.extract_dual_value,
                 inverse_data[GUROBI.EQ_CONSTR])
-            leq_dual = ConicSolver.get_dual_values(
+            leq_dual = utilities.get_dual_values(
                 solution['ineq_dual'],
+                utilities.extract_dual_value,
                 inverse_data[GUROBI.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual

@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.problems.solvers.glpk_intf import GLPK
+from cvxpy.reductions.solvers.conic_solvers.glpk_conif import GLPK
 
 
 class GLPK_MI(GLPK):

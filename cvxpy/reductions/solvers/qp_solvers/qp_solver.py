@@ -25,6 +25,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints import NonPos, Zero
+import cvxpy.interface as intf
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -125,10 +126,14 @@ class QpSolver(Solver):
 
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.obj_val
-            primal_vars = {inverse_data.id_map.keys()[0]: np.array(solution.x)}
-            dual_vars = utilities.get_dual_values(solution.y,
-                                               utilities.extract_dual_value,
-                                               inverse_data.sorted_constraints)
+            primal_vars = {
+                inverse_data.id_map.keys()[0]:
+                intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
+            }
+            dual_vars = utilities.get_dual_values(
+                intf.DEFAULT_INTF.const_to_matrix(solution.y),
+                utilities.extract_dual_value,
+                inverse_data.sorted_constraints)
             attr[s.NUM_ITERS] = solution.total_iter
         else:
             primal_vars = None
@@ -139,4 +144,5 @@ class QpSolver(Solver):
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
-        return data.solve(solver=self.solver_name, verbose=verbose)
+        return data.solve(solver=self.solver_name, verbose=verbose,
+                          **solver_opts)

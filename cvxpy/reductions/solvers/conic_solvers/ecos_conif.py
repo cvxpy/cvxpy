@@ -21,6 +21,7 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+import cvxpy.interface as intf
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
@@ -123,7 +124,9 @@ class ECOS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pcost']
             opt_val = primal_val + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
+            primal_vars = {
+                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+            }
             eq_dual = utilities.get_dual_values(solution['y'],
                 utilities.extract_dual_value,
                 inverse_data[self.EQ_CONSTR])
