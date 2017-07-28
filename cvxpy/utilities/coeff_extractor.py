@@ -29,31 +29,12 @@ from numpy import linalg as LA
 import cvxpy
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
-from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP
 from cvxpy.problems.objective import Minimize
 
-
-def has_params(expr):
-    if isinstance(expr, Leaf):
-        return isinstance(expr, Parameter)
-    return any(has_params(arg) for arg in expr.args)
-
-def replace_params_with_consts(expr):
-    if not has_params(expr):
-        return expr
-    elif isinstance(expr, Parameter):
-        if expr.value is None:
-            raise ValueError("Problem contains unspecified parameters.")
-        return Constant(expr.value)
-    else:
-        new_args = []
-        for arg in expr.args:
-            new_args.append(replace_params_with_consts(arg))
-        return expr.copy(new_args)
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor(object):
@@ -64,7 +45,6 @@ class CoeffExtractor(object):
         self.var_shapes = inverse_data.var_shapes
 
     def get_coeffs(self, expr):
-        expr = replace_params_with_consts(expr)
         if expr.is_constant():
             return self.constant(expr)
         elif expr.is_affine():

@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.problems.solvers.ecos_intf import ECOS
+from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 
 
 class ECOS_BB(ECOS):
@@ -26,10 +26,6 @@ class ECOS_BB(ECOS):
     """
 
     # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = False
-    EXP_CAPABLE = False
     MIP_CAPABLE = True
 
     # Exit flags from ECOS_BB

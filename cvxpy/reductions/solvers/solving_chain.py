@@ -3,7 +3,7 @@ from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import DCPError, SolverError
 from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
 from cvxpy.problems.objective import Maximize
-from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone,
+from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
@@ -50,8 +50,14 @@ def construct_solving_chain(problem, solver=None):
     else:
         candidates = INSTALLED_SOLVERS
 
+    reductions = []
+    # Evaluate parameters and short-circuit the solver if the problem
+    # is constant.
+    if problem.parameters():
+        reductions += [EvalParams()]
     if len(problem.variables()) == 0:
-        return SolvingChain([ConstantSolver()])
+        reductions += [ConstantSolver()]
+        return SolvingChain(reductions=reductions)
 
     # Presently, we have but two reduction chains:
     #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> QpSolver,
@@ -67,7 +73,6 @@ def construct_solving_chain(problem, solver=None):
                               candidates)
 
     # Both reduction chains exclusively accept minimization problems.
-    reductions = []
     if type(problem.objective) == Maximize:
         reductions.append(FlipObjective())
 

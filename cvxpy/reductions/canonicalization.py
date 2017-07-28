@@ -24,7 +24,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.constants import CallbackParam, Constant
 from cvxpy.expressions.variables import Variable
 from cvxpy.reductions import InverseData, Reduction, Solution
-from cvxpy.utilities import coeff_extractor
+from cvxpy.reductions import eval_params
 
 
 class Canonicalization(Reduction):
@@ -33,6 +33,9 @@ class Canonicalization(Reduction):
     def __init__(self, canon_methods=None):
         self.canon_methods = canon_methods
 
+    # TODO(akshayka): It appears that this class implicitly assumes that
+    # the number of variables is > 0. This assumption should either be made
+    # explicit or eliminated.
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
@@ -77,10 +80,10 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if isinstance(expr, Expression) and expr.is_constant():
+        if isinstance(expr, Expression) and not expr.variables():
             # Parameterized expressions are evaluated in a subsequent
             # reduction.
-            if coeff_extractor.has_params(expr):
+            if eval_params.has_params(expr):
                 rows, cols = expr.shape
                 param = CallbackParam(lambda: expr.value, rows, cols)
                 return param, []

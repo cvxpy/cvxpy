@@ -28,3 +28,8 @@ class DCPError(Exception):
     """Error thrown for DCP violations.
     """
     pass
+
+class ParameterError(Exception):
+    """Error thrown for accessing the value of an unspecified parameter.
+    """
+    pass

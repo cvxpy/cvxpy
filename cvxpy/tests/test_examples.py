@@ -613,26 +613,26 @@ class TestExamples(BaseTest):
         x = Variable()
         prob = Problem(Minimize(square(x)), [x == 2])
         # Get ECOS arguments.
-        data = prob.get_problem_data(ECOS)
+        data, chain, inverse = prob.get_problem_data(ECOS)
 
         # Get ECOS_BB arguments.
-        data = prob.get_problem_data(ECOS_BB)
+        data, chain, inverse = prob.get_problem_data(ECOS_BB)
 
         # Get CVXOPT arguments.
         if CVXOPT in installed_solvers():
-            data = prob.get_problem_data(CVXOPT)
+            data, chain, inverse = prob.get_problem_data(CVXOPT)
 
         # Get SCS arguments.
-        data = prob.get_problem_data(SCS)
+        data, chain, inverse = prob.get_problem_data(SCS)
 
         import ecos
         # Get ECOS arguments.
-        data = prob.get_problem_data(ECOS)
+        data, chain, inverse = prob.get_problem_data(ECOS)
         # Call ECOS solver.
-        solver_output = ecos.solve(data["c"], data["G"], data["h"],
+        solution = ecos.solve(data["c"], data["G"], data["h"],
                                    data["dims"], data["A"], data["b"])
         # Unpack raw solver output.
-        prob.unpack_results(ECOS, solver_output)
+        prob.unpack_results(solution, chain, inverse)
 
     def test_log_sum_exp(self):
         """Test log_sum_exp function that failed in Github issue.
