@@ -194,18 +194,15 @@ class Problem(object):
         If an exception other than those listed above is encountered, it is
         re-raised.
         """
-        def try_solve(solve_func, *args, **kwargs):
-            try:
-                return solve_func(*args, **kwargs)
-            except:
-                raise
-            
         func_name = kwargs.pop("method", None)
         if func_name is not None:
-            func = Problem.REGISTERED_SOLVE_METHODS[func_name]
-            return try_solve(func, self, *args, **kwargs)
+            solve_func = Problem.REGISTERED_SOLVE_METHODS[func_name]
         else:
-            return try_solve(self._solve, *args, **kwargs)
+            solve_func = self._solve
+        try:
+            return solve_func(*args, **kwargs)
+        except:
+            raise
 
     @classmethod
     def register_solve(cls, name, func):
