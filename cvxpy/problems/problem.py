@@ -36,12 +36,6 @@ from collections import namedtuple
 import multiprocess as multiprocessing
 import numpy as np
 
-# TODO(akshayka): This is only used by _parallel_solve, and as such
-# its definition should be restricted to its scope.
-# Used by pool.map to send solve result back.
-SolveResult = namedtuple(
-    'SolveResult', ['opt_value', 'status', 'primal_values', 'dual_values'])
-
 
 class Problem(object):
     """A convex optimization problem.
@@ -381,6 +375,10 @@ class Problem(object):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+        SolveResult = namedtuple(
+            'SolveResult',
+            ['opt_value', 'status', 'primal_values', 'dual_values'])
+
         def _solve_problem(problem):
             """Solve a problem and then return the optimal value, status,
             primal values, and dual values.
