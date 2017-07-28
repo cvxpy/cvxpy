@@ -30,6 +30,7 @@ CANON_METHODS = {}
 # reuse cone canonicalization methods
 CANON_METHODS[affine_prod] = CONE_METHODS[affine_prod]
 CANON_METHODS[abs] = CONE_METHODS[abs]
+CANON_METHODS[cumsum] = CONE_METHODS[cumsum]
 CANON_METHODS[max_elemwise] = CONE_METHODS[max_elemwise]
 CANON_METHODS[sum_largest] = CONE_METHODS[sum_largest]
 CANON_METHODS[max_entries] = CONE_METHODS[max_entries]
