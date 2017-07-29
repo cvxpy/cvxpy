@@ -60,17 +60,17 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[1] is self.B)
         self.assertEqual(copy.get_data(), atom.get_data())
 
-    # Test the normInf class.
-    def test_normInf(self):
+    # Test the norm_inf class.
+    def test_norm_inf(self):
         exp = self.x+self.y
-        atom = normInf(exp)
-        # self.assertEqual(atom.name(), "normInf(x + y)")
+        atom = norm_inf(exp)
+        # self.assertEqual(atom.name(), "norm_inf(x + y)")
         self.assertEqual(atom.shape, (1, 1))
         self.assertEqual(atom.curvature, s.CONVEX)
         assert atom.is_convex()
         assert (-atom).is_concave()
-        self.assertEqual(normInf(atom).curvature, s.CONVEX)
-        self.assertEqual(normInf(-atom).curvature, s.CONVEX)
+        self.assertEqual(norm_inf(atom).curvature, s.CONVEX)
+        self.assertEqual(norm_inf(-atom).curvature, s.CONVEX)
 
     # Test the norm1 class.
     def test_norm1(self):

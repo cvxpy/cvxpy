@@ -23,7 +23,8 @@ from abs_canon import *
 from affine_prod_canon import *
 from max_elemwise_canon import *
 from max_entries_canon import *
-from pnorm_canon import *
+from norm1_canon import *
+from norm_inf_canon import *
 from sum_largest_canon import *
 
 
@@ -32,6 +33,7 @@ CANON_METHODS = {
     affine_prod : affine_prod,
     max_elemwise : max_elemwise_canon,
     max_entries : max_entries_canon,
-    pnorm : pnorm_canon,
+    norm1 : norm1_canon,
+    norm_inf : norm1_canon,
     sum_largest : sum_largest_canon
 }

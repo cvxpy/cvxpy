@@ -33,10 +33,12 @@ from cvxpy.atoms.min_entries import min_entries
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm2 import norm2
-from cvxpy.atoms.norm_inf import normInf
+from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
-from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm_inf import norm_inf
+from cvxpy.atoms.pnorm import pnorm, Pnorm
 from cvxpy.atoms.quad_form import quad_form, QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max

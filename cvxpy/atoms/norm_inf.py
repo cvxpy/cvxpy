@@ -17,8 +17,98 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.pnorm import pnorm
+import numpy as np
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.axis_atom import AxisAtom
 
 
-def normInf(x, axis=None):
-    return pnorm(x, 'inf', axis)
+class norm_inf(AxisAtom):
+    def __init__(self, x, axis=None):
+        # TODO(akshayka): Disallow axis? pnorm used to do as much, though
+        # I'm unsure why.
+        super(norm_inf, self).__init__(x, axis=axis)
+
+    @Atom.numpy_numeric
+    def numeric(self, values):
+        """Returns the one norm of x.
+        """
+        if self.axis is None:
+            values = np.array(values[0]).flatten()
+        else:
+            values = np.array(values[0])
+        return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=True)
+
+    def sign_from_args(self):
+        """Returns sign (is positive, is negative) of the expression.
+        """
+        # Always positive.
+        return (True, False)
+
+    def is_atom_convex(self):
+        """Is the atom convex?
+        """
+        return True
+
+    def is_atom_concave(self):
+        """Is the atom concave?
+        """
+        return False
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return self.args[0].is_positive()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return self.args[0].is_negative()
+
+    def is_pwl(self):
+        """Is the atom piecewise linear?
+        """
+        return self.args[0].is_pwl()
+
+    def get_data(self):
+        return [self.axis]
+
+    def name(self):
+        return "%s(%s)" % (self.__class__.__name__,
+                               self.args[0].name())
+
+    def _domain(self):
+        """Returns constraints describing the domain of the node.
+        """
+        return []
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return self._axis_grad(values)
+
+    def _column_grad(self, value):
+        """Gives the (sub/super)gradient of the atom w.r.t. a column argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            value: A numeric value for a column.
+
+        Returns:
+            A NumPy ndarray matrix or None.
+        """
+        # TODO(akshayka): Implement this.
+        raise NotImplementedError
+
+    @staticmethod
+    def graph_implementation(arg_objs, shape, data=None):
+        pass

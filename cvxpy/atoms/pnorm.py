@@ -19,6 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm_inf import norm_inf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
@@ -27,13 +29,28 @@ from cvxpy.constraints.second_order import SOC
 from fractions import Fraction
 
 
-class pnorm(AxisAtom):
-    r"""The vector p-norm.
+def pnorm(x, p=2, axis=None, max_denom=1024):
+    """Factory function for a mathematical p-norm.
 
-    If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm
-    of the concatenated columns.
+    TODO(akshayka): Documentation.
+    """
+    if p == 1:
+        return norm1(x, axis=axis)
+    elif p in [np.inf, 'inf', 'Inf']:
+        return norm_inf(x, axis=axis)
+    else:
+        return Pnorm(x, p=p, axis=axis, max_denom=max_denom)
+    
+class Pnorm(AxisAtom):
+    r"""The vector p-norm, for p not equal to 1 or infinity.
 
-    For :math:`p \geq 1`, the p-norm is given by
+    If given a matrix variable, ``pnorm`` will treat it as a vector, and
+    compute the p-norm of the concatenated columns. Only accepts p values
+    that are not equal to 1 or infinity; the norm1 and norm_inf classes
+    handle those norms.
+
+
+    For :math:`p > 1`, the p-norm is given by
 
     .. math::
 
@@ -50,8 +67,7 @@ class pnorm(AxisAtom):
     with domain :math:`x \in \mathbf{R}^n_+`.
 
     - Note that the "p-norm" is actually a **norm** only when
-      :math:`p \geq 1` or :math:`p = +\infty`. For these cases,
-      it is convex.
+      :math:`p > 1`. For these cases, it is convex.
     - The expression is not defined when :math:`p = 0`.
     - Otherwise, when :math:`p < 1`, the expression is
       concave, but it is not a true norm.
@@ -77,14 +93,15 @@ class pnorm(AxisAtom):
     x : cvxpy.Variable
         The value to take the norm of.
 
-    p : int, float, Fraction, or string
-        If ``p`` is an ``int``, ``float``, or ``Fraction`` then we must have :math:`p \geq 1`.
+    p : int, float, or Fraction
+        We require that :math:`p > 1`, but :math:`p \neq \infty`. See the
+        norm1 and norm_inf classes for these norms, or use the pnorm
+        function wrapper to instantiate them.
 
-        The only other valid inputs are ``numpy.inf``, ``float('inf')``, ``float('Inf')``, or
-        the strings ``"inf"`` or ``"inf"``, all of which are equivalent and give the infinity norm.
 
     max_denom : int
-        The maximum denominator considered in forming a rational approximation for ``p``.
+        The maximum denominator considered in forming a rational approximation
+        for ``p``.
 
     axis : 0 or 1
            The axis to apply the norm to.
@@ -96,26 +113,21 @@ class pnorm(AxisAtom):
     """
 
     def __init__(self, x, p=2, axis=None, max_denom=1024):
-        p_old = p
-        if p in ('inf', 'Inf', np.inf):
-            self.p = np.inf
-        elif p < 0:
+        if p < 0:
+            # TODO(akshayka): Why do we accept p < 0?
             self.p, _ = pow_neg(p, max_denom)
         elif 0 < p < 1:
             self.p, _ = pow_mid(p, max_denom)
         elif p > 1:
             self.p, _ = pow_high(p, max_denom)
         elif p == 1:
-            self.p = 1
+            raise ValueError('Use the norm1 class to instantiate a one norm.')
+        elif p == 'inf' or p == 'Inf' or p == np.inf:
+            raise ValueError('Use the norm_inf class to instantiate an '
+                             'infinity norm.')
         else:
             raise ValueError('Invalid p: {}'.format(p))
-
-        if self.p == np.inf:
-            self.approx_error = 0
-        else:
-            self.approx_error = float(abs(self.p - p_old))
-
-        super(pnorm, self).__init__(x, axis=axis)
+        super(Pnorm, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -129,17 +141,19 @@ class pnorm(AxisAtom):
 
         if self.p < 1 and np.any(values < 0):
             return -np.inf
-
         if self.p < 0 and np.any(values == 0):
             return 0.0
-
-        return np.linalg.norm(values, float(self.p), axis=self.axis, keepdims=True)
+        # TODO(akshayka): keepdims should be controlled by an argument to
+        # the atom.
+        return np.linalg.norm(values, float(self.p), axis=self.axis,
+                              keepdims=True)
 
     def validate_arguments(self):
-        super(pnorm, self).validate_arguments()
-        if self.axis is not None and self.p not in [1, 2]:
+        super(Pnorm, self).validate_arguments()
+        # TODO(akshayka): Why is axis not supported for other norms?
+        if self.axis is not None and self.p != 2:
             raise ValueError(
-                "The axis parameter is only supported for p=1,2.")
+                "The axis parameter is only supported for p=2.")
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -150,7 +164,7 @@ class pnorm(AxisAtom):
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return self.p >= 1
+        return self.p > 1
 
     def is_atom_concave(self):
         """Is the atom concave?
@@ -160,17 +174,17 @@ class pnorm(AxisAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.p < 1 or (self.p >= 1 and self.args[0].is_positive())
+        return self.p < 1 or (self.p > 1 and self.args[0].is_positive())
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.p >= 1 and self.args[0].is_negative()
+        return self.p > 1 and self.args[0].is_negative()
 
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return (self.p == 1 or self.p == np.inf) and self.args[0].is_pwl()
+        return False
 
     def get_data(self):
         return [self.p, self.axis]
@@ -218,15 +232,11 @@ class pnorm(AxisAtom):
         if self.p < 1 and np.any(value <= 0):
             return None
         D_null = sp.csc_matrix((rows, 1), dtype='float64')
-        if self.p == 1:
-            D_null += (value > 0)
-            D_null -= (value < 0)
-            return sp.csc_matrix(D_null.A.ravel(order='F')).T
         denominator = np.linalg.norm(value, float(self.p))
         denominator = np.power(denominator, self.p - 1)
         # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
-            if self.p >= 1:
+            if self.p > 1:
                 return D_null
             else:
                 return None

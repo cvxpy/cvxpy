@@ -330,10 +330,10 @@ class TestProblem(BaseTest):
 
     # Test the is_dcp method.
     def test_is_dcp(self):
-        p = Problem(Minimize(normInf(self.a)))
+        p = Problem(Minimize(norm_inf(self.a)))
         self.assertEqual(p.is_dcp(), True)
 
-        p = Problem(Maximize(normInf(self.a)))
+        p = Problem(Maximize(norm_inf(self.a)))
         self.assertEqual(p.is_dcp(), False)
         with self.assertRaises(DCPError) as cm:
             p.solve()
@@ -649,20 +649,20 @@ class TestProblem(BaseTest):
         with self.assertRaises(ParameterError) as cm:
             p.solve()
 
-    # Test problems with normInf
-    def test_normInf(self):
+    # Test problems with norm_inf
+    def test_norm_inf(self):
         # Constant argument.
-        p = Problem(Minimize(normInf(-2)))
+        p = Problem(Minimize(norm_inf(-2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
 
         # Scalar arguments.
-        p = Problem(Minimize(normInf(self.a)), [self.a >= 2])
+        p = Problem(Minimize(norm_inf(self.a)), [self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
-        p = Problem(Minimize(3*normInf(self.a + 2*self.b) + self.c),
+        p = Problem(Minimize(3*norm_inf(self.a + 2*self.b) + self.c),
                     [self.a >= 2, self.b <= -1, self.c == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
@@ -670,13 +670,13 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.c.value, 3)
 
         # Maximize
-        p = Problem(Maximize(-normInf(self.a)), [self.a <= -2])
+        p = Problem(Maximize(-norm_inf(self.a)), [self.a <= -2])
         result = p.solve()
         self.assertAlmostEqual(result, -2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
-        p = Problem(Minimize(normInf(self.x - self.z) + 5),
+        p = Problem(Minimize(norm_inf(self.x - self.z) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
         result = p.solve()
         self.assertAlmostEqual(float(result), 12)
@@ -787,7 +787,7 @@ class TestProblem(BaseTest):
     def test_mixed_atoms(self):
         p = Problem(Minimize(norm2(5 + norm1(self.z)
                                    + norm1(self.x) +
-                                   normInf(self.x - self.z))),
+                                   norm_inf(self.x - self.z))),
                     [self.x >= [2, 3], self.z <= [-1, -4], norm2(self.x + self.z) <= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 22)
@@ -1138,7 +1138,7 @@ class TestProblem(BaseTest):
     # Test getting values for expressions.
     def test_expression_values(self):
         diff_exp = self.x - self.z
-        inf_exp = normInf(diff_exp)
+        inf_exp = norm_inf(diff_exp)
         sum_entries_exp = 5 + norm1(self.z) + norm1(self.x) + inf_exp
         constr_exp = norm2(self.x + self.z)
         obj = norm2(sum_entries_exp)
@@ -1173,7 +1173,7 @@ class TestProblem(BaseTest):
     def test_div(self):
         """Tests a problem with division.
         """
-        obj = Minimize(normInf(self.A/5))
+        obj = Minimize(norm_inf(self.A/5))
         p = Problem(obj, [self.A >= 5])
         result = p.solve()
         self.assertAlmostEqual(result, 1)
@@ -1183,7 +1183,7 @@ class TestProblem(BaseTest):
         """
         c = [[1, -1], [2, -2]]
         expr = mul_elemwise(c, self.A)
-        obj = Minimize(normInf(expr))
+        obj = Minimize(norm_inf(expr))
         p = Problem(obj, [self.A == 5])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
@@ -1194,7 +1194,7 @@ class TestProblem(BaseTest):
         interface = intf.get_matrix_interface(cvxopt.spmatrix)
         c = interface.const_to_matrix([1, 2])
         expr = mul_elemwise(c, self.x)
-        obj = Minimize(normInf(expr))
+        obj = Minimize(norm_inf(expr))
         p = Problem(obj, [self.x == 5])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
@@ -1203,7 +1203,7 @@ class TestProblem(BaseTest):
         # Test promotion.
         c = [[1, -1], [2, -2]]
         expr = mul_elemwise(c, self.a)
-        obj = Minimize(normInf(expr))
+        obj = Minimize(norm_inf(expr))
         p = Problem(obj, [self.a == 5])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
