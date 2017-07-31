@@ -74,7 +74,7 @@ class norm1(AxisAtom):
 
     def name(self):
         return "%s(%s)" % (self.__class__.__name__,
-                               self.args[0].name())
+                           self.args[0].name())
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
@@ -105,11 +105,11 @@ class norm1(AxisAtom):
         Returns:
             A NumPy ndarray matrix or None.
         """
+        rows = self.args[0].size
         D_null = sp.csc_matrix((rows, 1), dtype='float64')
         D_null += (value > 0)
         D_null -= (value < 0)
         return sp.csc_matrix(D_null.A.ravel(order='F')).T
-        raise NotImplementedError
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

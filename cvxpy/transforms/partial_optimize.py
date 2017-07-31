@@ -88,11 +88,12 @@ class PartialProblem(Expression):
         self.dont_opt_vars = dont_opt_vars
         self.args = [prob]
         # Replace the opt_vars in prob with new variables.
-        id_to_new_var = {var.id: var.copy() for var in self.opt_vars}
-        new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
-        new_constrs = [self._replace_new_vars(con, id_to_new_var)
+        id_to_new_var = {id(var): Variable(var.shape, var_id=var.id,
+                                           **var.attributes) for var in self.opt_vars}
+        new_obj = prob.objective.tree_copy(id_to_new_var)
+        new_constrs = [con.tree_copy(id_to_new_var)
                        for con in prob.constraints]
-        self._prob = Problem(new_obj, new_constrs)
+        self.new_var_prob = Problem(new_obj, new_constrs)
         super(PartialProblem, self).__init__()
 
     def get_data(self):
@@ -177,15 +178,15 @@ class PartialProblem(Expression):
                 return u.grad.error_grad(self)
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(self._prob.objective,
-                       fix_vars + self._prob.constraints)
+        prob = Problem(self.new_var_prob.objective,
+                       fix_vars + self.new_var_prob.constraints)
         prob.solve()
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
             sign = self.is_convex() - self.is_concave()
             # Form Lagrangian.
-            lagr = self._prob.objective.args[0]
-            for constr in self._prob.constraints:
+            lagr = self.new_var_prob.objective.args[0]
+            for constr in self.new_var_prob.constraints:
                 # TODO: better way to get constraint expressions.
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
                 lagr += trace(lagr_multiplier.T*constr.expr)
@@ -203,9 +204,9 @@ class PartialProblem(Expression):
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
-        # Variables optimized over are replaced in self._prob.
-        obj_expr = self._prob.objective.args[0]
-        return self._prob.constraints + obj_expr.domain
+        # Variables optimized over are replaced in self.new_var_prob.
+        obj_expr = self.new_var_prob.objective.args[0]
+        return self.new_var_prob.constraints + obj_expr.domain
 
     @property
     def value(self):
@@ -221,54 +222,57 @@ class PartialProblem(Expression):
                 return None
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
+        prob = Problem(self.new_var_prob.objective, fix_vars + self.new_var_prob.constraints)
         result = prob.solve()
+        print [(id(v), v.id) for v in self.variables()]
+        print [(id(v), v.id) for v in prob.variables()]
+        print [(id(v), v.id) for v in self.args[0].variables()]
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]
         return result
 
-    @staticmethod
-    def _replace_new_vars(obj, id_to_new_var):
-        """Replaces the given variables in the object.
+    # @staticmethod
+    # def _replace_new_vars(obj, id_to_new_var):
+    #     """Replaces the given variables in the object.
 
-        Parameters
-        ----------
-        obj : Object
-            The object to replace variables in.
-        id_to_new_var : dict
-            A map of id to new variable.
+    #     Parameters
+    #     ----------
+    #     obj : Object
+    #         The object to replace variables in.
+    #     id_to_new_var : dict
+    #         A map of id to new variable.
 
-        Returns
-        -------
-        Object
-            An object identical to obj, but with the given variables replaced.
-        """
-        if isinstance(obj, Variable) and obj.id in id_to_new_var:
-            return id_to_new_var[obj.id]
-        # Leaves outside of optimized variables are preserved.
-        elif len(obj.args) == 0:
-            return obj
-        elif isinstance(obj, PartialProblem):
-            prob = obj.args[0]
-            new_obj = PartialProblem._replace_new_vars(prob.objective,
-                                                       id_to_new_var)
-            new_constr = []
-            for constr in prob.constraints:
-                new_constr.append(
-                    PartialProblem._replace_new_vars(constr,
-                                                     id_to_new_var)
-                )
-            new_args = [Problem(new_obj, new_constr)]
-            return obj.copy(new_args)
-        # Parent nodes are copied.
-        else:
-            new_args = []
-            for arg in obj.args:
-                new_args.append(
-                    PartialProblem._replace_new_vars(arg, id_to_new_var)
-                )
-            return obj.copy(new_args)
+    #     Returns
+    #     -------
+    #     Object
+    #         An object identical to obj, but with the given variables replaced.
+    #     """
+    #     if isinstance(obj, Variable) and obj.id in id_to_new_var:
+    #         return id_to_new_var[obj.id]
+    #     # Leaves outside of optimized variables are preserved.
+    #     elif len(obj.args) == 0:
+    #         return obj
+    #     elif isinstance(obj, PartialProblem):
+    #         prob = obj.args[0]
+    #         new_obj = PartialProblem._replace_new_vars(prob.objective,
+    #                                                    id_to_new_var)
+    #         new_constr = []
+    #         for constr in prob.constraints:
+    #             new_constr.append(
+    #                 PartialProblem._replace_new_vars(constr,
+    #                                                  id_to_new_var)
+    #             )
+    #         new_args = [Problem(new_obj, new_constr)]
+    #         return obj.copy(new_args)
+    #     # Parent nodes are copied.
+    #     else:
+    #         new_args = []
+    #         for arg in obj.args:
+    #             new_args.append(
+    #                 PartialProblem._replace_new_vars(arg, id_to_new_var)
+    #             )
+    #         return obj.copy(new_args)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -281,7 +285,7 @@ class PartialProblem(Expression):
         """
         # Canonical form for objective and problem switches from minimize
         # to maximize.
-        obj, constrs = self._prob.objective.args[0].canonical_form
-        for cons in self._prob.constraints:
+        obj, constrs = self.new_var_prob.objective.args[0].canonical_form
+        for cons in self.new_var_prob.constraints:
             constrs += cons.canonical_form[1]
         return (obj, constrs)

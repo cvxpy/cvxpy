@@ -229,7 +229,7 @@ class Pnorm(AxisAtom):
         Returns:
             A NumPy ndarray matrix or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
+        rows = self.args[0].size
         value = np.matrix(value)
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):

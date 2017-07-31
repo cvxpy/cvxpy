@@ -81,7 +81,7 @@ class Variable(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.shape, self._name]
+        return [self.shape, self._name, self.id, self.attributes]
 
     def name(self):
         return self._name

@@ -67,9 +67,11 @@ class Canonicalization(Reduction):
 
     def canonicalize_tree(self, expr):
         if type(expr) == cvxtypes.partial_problem():
-            canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr)
-            for constr in expr.args[0].constraints:
-                constrs += self.canonicalize_tree(constr)[1]
+            prob = expr.new_var_prob
+            canon_expr, constrs = self.canonicalize_tree(prob.objective.expr)
+            for constr in prob.constraints:
+                canon_constr, aux_constr = self.canonicalize_tree(constr)
+                constrs += [canon_constr] + aux_constr
         else:
             canon_args = []
             constrs = []
@@ -85,9 +87,9 @@ class Canonicalization(Reduction):
         if isinstance(expr, Expression) and not expr.variables():
             # Parameterized expressions are evaluated in a subsequent
             # reduction.
-            if eval_params.has_params(expr):
+            if expr.parameters():
                 rows, cols = expr.shape
-                param = CallbackParam(lambda: expr.value, rows, cols)
+                param = CallbackParam(lambda: expr.value, (rows, cols))
                 return param, []
             # Non-parameterized expressions are evaluated immediately.
             else:
