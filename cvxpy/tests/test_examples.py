@@ -20,9 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import print_function
 from cvxpy import *
 import cvxpy.interface as intf
-import numpy as np
 from cvxpy.tests.base_test import BaseTest
-import numbers
+from cvxpy.reductions.solvers.conic_solvers import ecos_conif
+import numpy as np
 
 
 class TestExamples(BaseTest):
@@ -632,7 +632,8 @@ class TestExamples(BaseTest):
         data, chain, inverse = prob.get_problem_data(ECOS)
         # Call ECOS solver.
         solution = ecos.solve(data["c"], data["G"], data["h"],
-                                   data["dims"], data["A"], data["b"])
+                              ecos_conif.dims_to_solver_dict(data["dims"]),
+                              data["A"], data["b"])
         # Unpack raw solver output.
         prob.unpack_results(solution, chain, inverse)
 
