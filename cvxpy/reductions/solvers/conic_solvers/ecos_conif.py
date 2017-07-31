@@ -17,17 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as np
-
+from .conic_solver import ConeDims, ConicSolver
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 import cvxpy.interface as intf
-from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
-
-from .conic_solver import ConeDims, ConicSolver
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -39,6 +35,7 @@ def dims_to_solver_dict(cone_dims):
         'e': cone_dims.exp,
     }
     return cones
+
 
 class ECOS(ConicSolver):
     """An interface for the ECOS solver.

@@ -99,6 +99,11 @@ class Leaf(expression.Expression):
             return id_objects[id(self)]
         return self  # Leaves are not deep copied.
 
+    def get_data(self):
+        """Leaves are not copied.
+        """
+        pass
+
     @property
     def shape(self):
         """Returns the dimensions of the expression.
