@@ -57,12 +57,12 @@ class norm1(AxisAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_positive()
+        return self.args[0].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_negative()
+        return self.args[0].is_nonpos()
 
     def is_pwl(self):
         """Is the atom piecewise linear?
@@ -74,7 +74,7 @@ class norm1(AxisAtom):
 
     def name(self):
         return "%s(%s)" % (self.__class__.__name__,
-                               self.args[0].name())
+                           self.args[0].name())
 
     def _domain(self):
         """Returns constraints describing the domain of the node.

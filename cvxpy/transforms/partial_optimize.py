@@ -54,16 +54,16 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
         )
     # If opt_vars is not specified, it's the complement of dont_opt_vars.
     elif opt_vars is None:
-        ids = [id(var) for var in dont_opt_vars]
-        opt_vars = [var for var in prob.variables() if not id(var) in ids]
+        ids = [var.id for var in dont_opt_vars]
+        opt_vars = [var for var in prob.variables() if var.id not in ids]
     # If dont_opt_vars is not specified, it's the complement of opt_vars.
     elif dont_opt_vars is None:
-        ids = [id(var) for var in opt_vars]
-        dont_opt_vars = [var for var in prob.variables() if not id(var) in ids]
+        ids = [var.id for var in opt_vars]
+        dont_opt_vars = [var for var in prob.variables() if var.id not in ids]
     elif opt_vars is not None and dont_opt_vars is not None:
-        ids = [id(var) for var in opt_vars + dont_opt_vars]
+        ids = [var.id for var in opt_vars + dont_opt_vars]
         for var in prob.variables():
-            if id(var) not in ids:
+            if var.id not in ids:
                 raise ValueError(
                     ("If opt_vars and new_opt_vars are both specified, "
                      "they must contain all variables in the problem.")
@@ -92,7 +92,7 @@ class PartialProblem(Expression):
         new_obj = self._replace_new_vars(prob.objective, id_to_new_var)
         new_constrs = [self._replace_new_vars(con, id_to_new_var)
                        for con in prob.constraints]
-        self._prob = Problem(new_obj, new_constrs)
+        self.new_var_prob = Problem(new_obj, new_constrs)
         super(PartialProblem, self).__init__()
 
     def get_data(self):
@@ -177,15 +177,15 @@ class PartialProblem(Expression):
                 return u.grad.error_grad(self)
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(self._prob.objective,
-                       fix_vars + self._prob.constraints)
+        prob = Problem(self.new_var_prob.objective,
+                       fix_vars + self.new_var_prob.constraints)
         prob.solve()
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
             sign = self.is_convex() - self.is_concave()
             # Form Lagrangian.
-            lagr = self._prob.objective.args[0]
-            for constr in self._prob.constraints:
+            lagr = self.new_var_prob.objective.args[0]
+            for constr in self.new_var_prob.constraints:
                 # TODO: better way to get constraint expressions.
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
                 lagr += trace(lagr_multiplier.T*constr.expr)
@@ -203,9 +203,9 @@ class PartialProblem(Expression):
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
-        # Variables optimized over are replaced in self._prob.
-        obj_expr = self._prob.objective.args[0]
-        return self._prob.constraints + obj_expr.domain
+        # Variables optimized over are replaced in self.new_var_prob.
+        obj_expr = self.new_var_prob.objective.args[0]
+        return self.new_var_prob.constraints + obj_expr.domain
 
     @property
     def value(self):
@@ -221,7 +221,7 @@ class PartialProblem(Expression):
                 return None
             else:
                 fix_vars += [var == var.value]
-        prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
+        prob = Problem(self.new_var_prob.objective, fix_vars + self.new_var_prob.constraints)
         result = prob.solve()
         # Restore the original values to the variables.
         for var in self.variables():
@@ -281,7 +281,7 @@ class PartialProblem(Expression):
         """
         # Canonical form for objective and problem switches from minimize
         # to maximize.
-        obj, constrs = self._prob.objective.args[0].canonical_form
-        for cons in self._prob.constraints:
+        obj, constrs = self.new_var_prob.objective.args[0].canonical_form
+        for cons in self.new_var_prob.constraints:
             constrs += cons.canonical_form[1]
         return (obj, constrs)

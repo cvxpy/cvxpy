@@ -1,19 +1,14 @@
 from cvxpy.error import ParameterError
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.leaf import Leaf
 from cvxpy import problems
 from cvxpy.reductions.reduction import Reduction
 
 
-def has_params(expr):
-    if isinstance(expr, Leaf):
-        return isinstance(expr, Parameter)
-    return any(has_params(arg) for arg in expr.args)
-
 def replace_params_with_consts(expr):
-    if not has_params(expr):
+    if isinstance(expr, list):
+        return [replace_params_with_consts(elem) for elem in expr]
+    elif len(expr.parameters()) == 0:
         return expr
     elif isinstance(expr, Parameter):
         if expr.value is None:
@@ -24,6 +19,7 @@ def replace_params_with_consts(expr):
         for arg in expr.args:
             new_args.append(replace_params_with_consts(arg))
         return expr.copy(new_args)
+
 
 class EvalParams(Reduction):
     """Replaces symbolic parameters with their constant values."""
