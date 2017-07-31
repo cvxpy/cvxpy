@@ -273,7 +273,7 @@ class TestProblem(BaseTest):
                             [self.a >= 2, self.x >= 2])
 
                 if SOLVER_MAP[solver].MIP_CAPABLE:
-                    p.constraints.append(Bool() == 0)
+                    p.constraints.append(Variable(boolean=True) == 0)
                     p.solve(verbose=verbose, solver=solver)
 
                 if ExpCone in SOLVER_MAP[solver].SUPPORTED_CONSTRAINTS:
@@ -1277,7 +1277,7 @@ class TestProblem(BaseTest):
         """Tests that errors occur when you use an invalid solver.
         """
         with self.assertRaises(SolverError) as cm:
-            Problem(Minimize(Bool())).solve(solver=s.ECOS)
+            Problem(Minimize(Variable(boolean=True))).solve(solver=s.ECOS)
 
         with self.assertRaises(SolverError) as cm:
             Problem(Minimize(lambda_max(self.a))).solve(solver=s.ECOS)
