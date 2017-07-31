@@ -75,7 +75,7 @@ class norm_inf(AxisAtom):
 
     def name(self):
         return "%s(%s)" % (self.__class__.__name__,
-                               self.args[0].name())
+                           self.args[0].name())
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
