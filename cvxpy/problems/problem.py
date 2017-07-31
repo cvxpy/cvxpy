@@ -35,6 +35,11 @@ import multiprocess as multiprocessing
 import numpy as np
 
 
+SolveResult = namedtuple(
+    'SolveResult',
+    ['opt_value', 'status', 'primal_values', 'dual_values'])
+
+
 class Problem(u.Canonical):
     """A convex optimization problem.
 
@@ -373,10 +378,6 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-        SolveResult = namedtuple(
-            'SolveResult',
-            ['opt_value', 'status', 'primal_values', 'dual_values'])
-
         def _solve_problem(problem):
             """Solve a problem and then return the optimal value, status,
             primal values, and dual values.
