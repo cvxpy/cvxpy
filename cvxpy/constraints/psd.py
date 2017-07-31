@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.semidefinite import SDP
-import cvxpy.lin_ops.lin_utils as lu
 
 
 class PSD(NonPos):
@@ -65,6 +64,6 @@ class PSD(NonPos):
             A tuple of (affine expression, [constraints]).
         """
         obj, constraints = self.args[0].canonical_form
-        dual_holder = SDP(obj, enforce_sym=not self.args[0].is_symmetric(),
+        dual_holder = SDP(obj, enforce_sym=False,
                           constr_id=self.id)
         return (None, constraints + [dual_holder])

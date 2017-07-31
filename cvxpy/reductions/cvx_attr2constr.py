@@ -69,7 +69,6 @@ class CvxAttr2Constr(Reduction):
                 elif var.is_nonpos():
                     constr.append(obj <= 0)
                 elif var.attributes['PSD']:
-                    print var, new_var
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)

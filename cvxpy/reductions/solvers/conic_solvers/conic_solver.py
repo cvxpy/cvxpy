@@ -55,6 +55,7 @@ def is_stuffed_cone_constraint(constraint):
             return False
     return True
 
+
 def is_stuffed_cone_objective(objective):
     """Conic solvers require objectives to be stuffed in the following way.
     """
@@ -65,6 +66,7 @@ def is_stuffed_cone_objective(objective):
             and len(expr.args) == 2
             and type(expr.args[0]) == MulExpression
             and type(expr.args[1]) == Constant)
+
 
 class ConeDims(object):
     """Summary of cone dimensions present in constraints.
@@ -92,6 +94,7 @@ class ConeDims(object):
         self.exp = sum([c.num_cones() for c in constr_map[ExpCone]])
         self.soc = [dim for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [c.shape[0] for c in constr_map[PSD]]
+
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics

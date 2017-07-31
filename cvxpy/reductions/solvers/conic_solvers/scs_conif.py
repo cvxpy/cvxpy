@@ -33,6 +33,7 @@ from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 from .conic_solver import ConeDims, ConicSolver
 
+
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
@@ -44,6 +45,7 @@ def dims_to_solver_dict(cone_dims):
         's': cone_dims.psd
     }
     return cones
+
 
 # Utility methods for special handling of semidefinite constraints.
 def scaled_lower_tri(matrix):
@@ -86,6 +88,7 @@ def scaled_lower_tri(matrix):
     vectorized_matrix = reshape(matrix, (rows*cols, 1))
     return coeff * vectorized_matrix
 
+
 def tri_to_full(lower_tri, n):
     """Expands n*(n+1)//2 lower triangular to full matrix
 
@@ -115,6 +118,7 @@ def tri_to_full(lower_tri, n):
             else:
                 full[row, col] = lower_tri[idx]
     return np.reshape(full, n*n, order='F')
+
 
 class SCS(ConicSolver):
     """An interface for the SCS solver.
