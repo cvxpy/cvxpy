@@ -17,14 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine_prod import affine_prod
-from cvxpy.atoms.pnorm import pnorm
-from cvxpy.atoms import abs, max_elemwise, sum_largest, max_entries, QuadForm
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.qp2quad_form.atom_canonicalizers import (CANON_METHODS
-                                                           as qp_canon_methods)
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
+from cvxpy.reductions.qp2quad_form.atom_canonicalizers import (
+    CANON_METHODS as qp_canon_methods)
 from cvxpy.reductions.utilities import are_args_affine
 
 
@@ -36,6 +34,8 @@ class Qp2SymbolicQp(Canonicalization):
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
                 and problem.objective.expr.is_qpwa()
+                and not set(['PSD', 'NSD']).intersection(convex_attributes(
+                                                         problem.variables()))
                 and all(type(c) == NonPos or type(c) == Zero
                         for c in problem.constraints)
                 and all(c.expr.is_pwl() for c in problem.constraints

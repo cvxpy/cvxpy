@@ -27,6 +27,7 @@ from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers import utilities
 import cvxpy.settings as s
@@ -113,6 +114,7 @@ class ConicSolver(Solver):
         return (type(problem.objective) == Minimize
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
                 and is_stuffed_cone_objective(problem.objective)
+                and not convex_attributes(problem.variables())
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
                 and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
                         problem.constraints)

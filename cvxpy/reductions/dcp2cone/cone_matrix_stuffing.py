@@ -23,6 +23,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.utilities import are_args_affine
 
 
@@ -42,6 +43,7 @@ class ConeMatrixStuffing(MatrixStuffing):
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
                 and problem.objective.expr.is_affine()
+                and not convex_attributes(problem.variables())
                 and are_args_affine(problem.constraints))
 
     def stuffed_objective(self, problem, inverse_data):

@@ -26,6 +26,24 @@ from cvxpy.expressions.variable import Variable, upper_tri_to_full
 import numpy as np
 
 
+# Convex attributes that generate constraints.
+CONVEX_ATTRIBUTES = [
+    'nonneg',
+    'nonpos',
+    'symmetric',
+    'PSD',
+    'NSD',
+]
+
+
+def convex_attributes(variables):
+    """Returns a list of the (constraint-generating) convex attributes present
+       among the variables.
+    """
+    return [attr for attr in CONVEX_ATTRIBUTES if any(v.attributes[attr] for v
+                                                      in variables)]
+
+
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
@@ -33,6 +51,9 @@ class CvxAttr2Constr(Reduction):
         return True
 
     def apply(self, problem):
+        if not convex_attributes(problem.variables()):
+            return problem, ()
+
         # For each unique variable, add constraints.
         id2new_var = {}
         id2new_obj = {}
@@ -43,7 +64,7 @@ class CvxAttr2Constr(Reduction):
                 id2old_var[var.id] = var
                 new_var = False
                 new_attr = var.attributes.copy()
-                for key in ['nonneg', 'nonpos', 'symmetric', 'PSD', 'NSD']:
+                for key in CONVEX_ATTRIBUTES:
                     if new_attr[key]:
                         new_var = True
                         new_attr[key] = False
@@ -83,6 +104,9 @@ class CvxAttr2Constr(Reduction):
         return cvxtypes.problem()(obj, constr), inverse_data
 
     def invert(self, solution, inverse_data):
+        if not inverse_data:
+            return solution
+
         id2new_var, id2old_var, cons_id_map = inverse_data
         pvars = {}
         for id, var in id2old_var.items():

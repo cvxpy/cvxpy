@@ -50,7 +50,7 @@ def construct_solving_chain(problem, solver=None):
     else:
         candidates = INSTALLED_SOLVERS
 
-    reductions = [CvxAttr2Constr()]
+    reductions = []
     # Evaluate parameters and short-circuit the solver if the problem
     # is constant.
     if problem.parameters():
@@ -58,6 +58,9 @@ def construct_solving_chain(problem, solver=None):
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
+
+    # Convert convex attributes to constraints.
+    reductions += [CvxAttr2Constr()]
 
     # Presently, we have but two reduction chains:
     #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> QpSolver,

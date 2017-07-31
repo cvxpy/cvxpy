@@ -23,6 +23,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy import problems
 from cvxpy.reductions import InverseData
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
@@ -42,6 +43,7 @@ class QpMatrixStuffing(MatrixStuffing):
         return (type(problem.objective) == Minimize
                 and problem.objective.is_quadratic()
                 and problem.is_dcp()
+                and not convex_attributes(problem.variables())
                 and all(type(c) == Zero or type(c) == NonPos
                         for c in problem.constraints)
                 and are_args_affine(problem.constraints))
