@@ -21,25 +21,14 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.settings import (SCS, ECOS, CVXOPT, GLPK, ELEMENTAL,
                             OPTIMAL, OPTIMAL_INACCURATE, ROBUST_KKTSOLVER, MOSEK)
 from cvxpy.atoms import *
-from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
-<<<<<<< HEAD
-from cvxpy.problems.solvers.utilities import SOLVERS
 from cvxpy.expressions.variable import Variable
-=======
-from cvxpy.expressions.variables import Variable
->>>>>>> 223be7f8dc3c32628d18350eb5e1d0ceccbc00d4
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.error import SolverError
 import cvxpy.interface as intf
-from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-<<<<<<< HEAD
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
-=======
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
-from cvxpy.reductions.solvers.defines import SOLVER_MAP, INSTALLED_SOLVERS
->>>>>>> 223be7f8dc3c32628d18350eb5e1d0ceccbc00d4
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 import numpy as np
 import numpy.linalg as LA
 import math

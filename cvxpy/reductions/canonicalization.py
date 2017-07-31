@@ -18,10 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import problems
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
 from cvxpy.reductions import InverseData, Reduction, Solution
-from cvxpy.transforms.partial_optimize import PartialProblem
 from cvxpy.expressions.constants import CallbackParam
 from cvxpy.reductions import eval_params
 
@@ -62,11 +62,12 @@ class Canonicalization(Reduction):
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in inverse_data.cons_id_map.items()
                  if vid in solution.dual_vars}
+        print dvars
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 
     def canonicalize_tree(self, expr):
-        if type(expr) == PartialProblem:
+        if type(expr) == cvxtypes.partial_problem():
             canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr)
             for constr in expr.args[0].constraints:
                 constrs += self.canonicalize_tree(constr)[1]
@@ -78,6 +79,7 @@ class Canonicalization(Reduction):
                 canon_args += [canon_arg]
                 constrs += c
             canon_expr, c = self.canonicalize_expr(expr, canon_args)
+            constrs += c
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):

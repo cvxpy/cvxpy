@@ -322,77 +322,75 @@ class TestProblem(BaseTest):
         result = p.solve(1, method="test", b=4)
         self.assertEqual(result, (1, 4))
 
-    def test_consistency(self):
-        """Test that variables and constraints keep a consistent order.
-        """
-        # TODO(akshayka): Adapt this test to the reduction infrastructure.
-        pass
-        import itertools
-        num_solves = 4
-        vars_lists = []
-        ineqs_lists = []
-        var_ids_order_created = []
-        for k in range(num_solves):
-            sum = 0
-            constraints = []
-            var_ids = []
-            for i in range(100):
-                var = Variable(name=str(i))
-                var_ids.append(var.id)
-                sum += var
-                constraints.append(var >= i)
-            var_ids_order_created.append(var_ids)
-            obj = Minimize(sum)
-            p = Problem(obj, constraints)
-            objective, constraints = p.canonicalize()
-            sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
-            # Sort by offset.
-            vars_ = sorted(sym_data.var_offsets.items(),
-                           key=lambda key_val: key_val[1])
-            vars_ = [var_id for (var_id, offset) in vars_]
-            vars_lists.append(vars_)
-            ineqs_lists.append(sym_data.constr_map[s.LEQ])
+    # def test_consistency(self):
+    #     """Test that variables and constraints keep a consistent order.
+    #     """
+    #     # TODO(akshayka): Adapt this test to the reduction infrastructure.
+    #     import itertools
+    #     num_solves = 4
+    #     vars_lists = []
+    #     ineqs_lists = []
+    #     var_ids_order_created = []
+    #     for k in range(num_solves):
+    #         sum = 0
+    #         constraints = []
+    #         var_ids = []
+    #         for i in range(100):
+    #             var = Variable(name=str(i))
+    #             var_ids.append(var.id)
+    #             sum += var
+    #             constraints.append(var >= i)
+    #         var_ids_order_created.append(var_ids)
+    #         obj = Minimize(sum)
+    #         p = Problem(obj, constraints)
+    #         objective, constraints = p.canonicalize()
+    #         sym_data = SymData(objective, constraints, SOLVERS[s.ECOS])
+    #         # Sort by offset.
+    #         vars_ = sorted(sym_data.var_offsets.items(),
+    #                        key=lambda key_val: key_val[1])
+    #         vars_ = [var_id for (var_id, offset) in vars_]
+    #         vars_lists.append(vars_)
+    #         ineqs_lists.append(sym_data.constr_map[s.LEQ])
 
-        # Verify order of variables is consistent.
-        for i in range(num_solves):
-            self.assertEqual(var_ids_order_created[i],
-                             vars_lists[i])
-        for i in range(num_solves):
-            for idx, constr in enumerate(ineqs_lists[i]):
-                var_id, _ = lu.get_expr_vars(constr.expr)[0]
-                self.assertEqual(var_ids_order_created[i][idx],
-                                 var_id)
+    #     # Verify order of variables is consistent.
+    #     for i in range(num_solves):
+    #         self.assertEqual(var_ids_order_created[i],
+    #                          vars_lists[i])
+    #     for i in range(num_solves):
+    #         for idx, constr in enumerate(ineqs_lists[i]):
+    #             var_id, _ = lu.get_expr_vars(constr.expr)[0]
+    #             self.assertEqual(var_ids_order_created[i][idx],
+    #                              var_id)
 
     # Test removing duplicate constraint objects.
-    def test_duplicate_constraints(self):
-        # TODO(akshayka): Adapt this test to the reduction infrastructure.
-        pass
-        eq = (self.x == 2)
-        le = (self.x <= 2)
-        obj = 0
+    # def test_duplicate_constraints(self):
+    #     # TODO(akshayka): Adapt this test to the reduction infrastructure.
+    #     eq = (self.x == 2)
+    #     le = (self.x <= 2)
+    #     obj = 0
 
-        def test(self):
-            objective, constraints = self.canonicalize()
-            sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
-            return (len(sym_data.constr_map[s.EQ]),
-                    len(sym_data.constr_map[s.LEQ]))
-        Problem.register_solve("test", test)
-        p = Problem(Minimize(obj), [eq, eq, le, le])
-        result = p.solve(method="test")
-        self.assertEqual(result, (1, 1))
+    #     def test(self):
+    #         objective, constraints = self.canonicalize()
+    #         sym_data = SymData(objective, constraints, SOLVERS[s.CVXOPT])
+    #         return (len(sym_data.constr_map[s.EQ]),
+    #                 len(sym_data.constr_map[s.LEQ]))
+    #     Problem.register_solve("test", test)
+    #     p = Problem(Minimize(obj), [eq, eq, le, le])
+    #     result = p.solve(method="test")
+    #     self.assertEqual(result, (1, 1))
 
-        # Internal constraints.
-        X = Variable((2, 2), PSD=True)
-        obj = sum_entries(X + X)
-        p = Problem(Minimize(obj))
-        result = p.solve(method="test")
-        self.assertEqual(result, (0, 1))
+    #     # Internal constraints.
+    #     X = Variable((2, 2), PSD=True)
+    #     obj = sum_entries(X + X)
+    #     p = Problem(Minimize(obj))
+    #     result = p.solve(method="test")
+    #     self.assertEqual(result, (0, 1))
 
-        # Duplicates from non-linear constraints.
-        exp = norm(self.x, 2)
-        prob = Problem(Minimize(0), [exp <= 1, exp <= 2])
-        result = prob.solve(method="test")
-        self.assertEqual(result, (0, 3))
+    #     # Duplicates from non-linear constraints.
+    #     exp = norm(self.x, 2)
+    #     prob = Problem(Minimize(0), [exp <= 1, exp <= 2])
+    #     result = prob.solve(method="test")
+    #     self.assertEqual(result, (0, 3))
 
     # Test the is_dcp method.
     def test_is_dcp(self):

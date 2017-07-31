@@ -30,6 +30,7 @@ def failure_solution(status):
         opt_val = None
     return Solution(status, opt_val, {}, {}, {})
 
+
 class Solution(object):
     """A solution object.
 

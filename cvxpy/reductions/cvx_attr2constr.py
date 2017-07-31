@@ -21,6 +21,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.reductions import Reduction, Solution
 from cvxpy.atoms import reshape
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable, upper_tri_to_full
 import numpy as np
 
@@ -62,33 +63,44 @@ class CvxAttr2Constr(Reduction):
                     obj = var
                     id2new_var[var.id] = obj
 
-                id2new_obj[var.id] = obj
-                constr = []
+                id2new_obj[id(var)] = obj
                 if var.is_nonneg():
                     constr.append(obj >= 0)
                 elif var.is_nonpos():
                     constr.append(obj <= 0)
                 elif var.attributes['PSD']:
+                    print var, new_var
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)
 
-        inverse_data = (id2new_var, id2old_var)
-        new_problem = problem.tree_copy(id_objects=id2new_obj)
-        return new_problem, inverse_data
+        # Create new problem.
+        obj = problem.objective.tree_copy(id_objects=id2new_obj)
+        cons_id_map = {}
+        for cons in problem.constraints:
+            constr.append(cons.tree_copy(id_objects=id2new_obj))
+            cons_id_map[cons.id] = constr[-1].id
+        inverse_data = (id2new_var, id2old_var, cons_id_map)
+        return cvxtypes.problem()(obj, constr), inverse_data
 
     def invert(self, solution, inverse_data):
-        id2new_var, id2old_var = inverse_data
+        id2new_var, id2old_var, cons_id_map = inverse_data
         pvars = {}
-        for id, var in id2old_var:
+        for id, var in id2old_var.items():
             new_var = id2new_var[id]
             # Need to map from constrained to symmetric variable.
             if new_var.id in solution.primal_vars:
                 if var.is_symmetric():
                     n = var.shape[0]
-                    value = np.zeros(var.shape)
-                    value[:n*(n+1)//2] = solution.primal_vars[new_var.id]
+                    value = np.zeros(var.size)
+                    value[:n*(n+1)//2] = solution.primal_vars[new_var.id].flatten()
+                    value = np.reshape(value, var.shape, 'F')
                     pvars[id] = value + value.T
                 else:
                     pvars[id] = solution.primal_vars[new_var.id]
-        return Solution(solution.status, solution.opt_val, pvars, solution.dual_vars)
+
+        dvars = {orig_id: solution.dual_vars[vid]
+                 for orig_id, vid in cons_id_map.items()
+                 if vid in solution.dual_vars}
+        return Solution(solution.status, solution.opt_val, pvars,
+                        dvars, solution.attr)

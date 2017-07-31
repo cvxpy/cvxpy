@@ -10,12 +10,12 @@ class Chain(Reduction):
     def __init__(self, reductions=[]):
         self.reductions = reductions
 
-    def accepts(self, problem): 
+    def accepts(self, problem):
         for r in self.reductions:
             if not r.accepts(problem):
                 return False
             problem, _ = r.apply(problem)
-        return True 
+        return True
 
     def apply(self, problem):
         inverse_data = []

@@ -21,7 +21,7 @@ import numpy as np
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variables import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def power_canon(expr, args):

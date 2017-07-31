@@ -18,12 +18,11 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.promote import promote
-from cvxpy.expressions.variables.variable import Variable
+from cvxpy.expressions.variable import Variable
 
 
 def norm_inf_canon(expr, args):
     x = args[0]
-    axis = expr.axis
     shape = expr.shape
     t = Variable(*shape)
 

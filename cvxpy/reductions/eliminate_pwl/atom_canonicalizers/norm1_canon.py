@@ -17,18 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.sum_entries import sum_entries
 from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.expressions.variables.variable import Variable
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
 
 
 def norm1_canon(expr, args):
     x = args[0]
     axis = expr.axis
-    shape = expr.shape
-    t = Variable(*shape)
 
     # we need an absolute value constraint for the symmetric convex branches
     # (p >= 1)

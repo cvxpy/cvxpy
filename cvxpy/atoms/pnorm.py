@@ -175,12 +175,12 @@ class Pnorm(AxisAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.p < 1 or (self.p >= 1 and self.args[0].is_nonneg())
+        return self.p < 1 or (self.p > 1 and self.args[0].is_nonneg())
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.p >= 1 and self.args[0].is_nonpos()
+        return self.p > 1 and self.args[0].is_nonpos()
 
     def is_pwl(self):
         """Is the atom piecewise linear?

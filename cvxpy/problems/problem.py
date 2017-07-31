@@ -18,10 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-import cvxpy.interface as intf
 from cvxpy.error import DCPError, SolverError
-from cvxpy.expressions.variables import Bool, Int
-from cvxpy.constraints import Zero, NonPos, PSD
+# from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 
@@ -31,13 +29,13 @@ from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 # cvxpy here.
 import cvxpy
 import cvxpy.constraints.zero as eqc
-
+import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
 import numpy as np
 
 
-class Problem(object):
+class Problem(u.Canonical):
     """A convex optimization problem.
 
     Attributes
@@ -71,7 +69,6 @@ class Problem(object):
         # Benchmarks reported by the solver:
         self._solver_stats = None
         self.args = [objective, constraints]
-
 
     @property
     def value(self):
@@ -134,7 +131,7 @@ class Problem(object):
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
     def is_mixed_integer(self):
-        return any(isinstance(v, Bool) or isinstance(v, Int)
+        return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())
 
     def variables(self):

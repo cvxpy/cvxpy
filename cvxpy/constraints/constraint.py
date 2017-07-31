@@ -62,3 +62,8 @@ class Constraint(object):
             value: The value of the dual variable.
         """
         pass
+
+    def get_data(self):
+        """Data needed to copy.
+        """
+        return [self.id]

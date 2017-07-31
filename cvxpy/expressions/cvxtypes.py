@@ -100,6 +100,11 @@ def partial_optimize():
     return partial_optimize
 
 
+def partial_problem():
+    from cvxpy.transforms.partial_optimize import PartialProblem
+    return PartialProblem
+
+
 def power():
     from cvxpy.atoms.elementwise import power
     return power.power

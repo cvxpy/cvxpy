@@ -1,10 +1,10 @@
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import DCPError, SolverError
-from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
-                              FlipObjective, Qp2SymbolicQp, QpMatrixStuffing)
+                              FlipObjective, Qp2SymbolicQp, QpMatrixStuffing,
+                              CvxAttr2Constr)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -50,7 +50,7 @@ def construct_solving_chain(problem, solver=None):
     else:
         candidates = INSTALLED_SOLVERS
 
-    reductions = []
+    reductions = [CvxAttr2Constr()]
     # Evaluate parameters and short-circuit the solver if the problem
     # is constant.
     if problem.parameters():
@@ -106,7 +106,8 @@ def construct_solving_chain(problem, solver=None):
         cones.append(ExpCone)
     if (any(atom in PSD_ATOMS for atom in atoms)
             or any(type(c) == PSD for c in problem.constraints)
-            or any(type(v) == SemidefUpperTri for v in problem.variables())):
+            or any(v.attributes['PSD'] or v.attributes['NSD']
+                   for v in problem.variables())):
         cones.append(PSD)
 
     # Here, we make use of the observation that canonicalization only
@@ -122,9 +123,9 @@ def construct_solving_chain(problem, solver=None):
             return SolvingChain(reductions=reductions)
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "
-                      "enough constraints in the problem."  % (
-                      candidate_conic_solvers,
-                      ', '.join([cone.__name__ for cone in cones])))
+                      "enough constraints in the problem." % (
+                          candidate_conic_solvers,
+                          ", ".join([cone.__name__ for cone in cones])))
 
 
 class SolvingChain(Chain):
