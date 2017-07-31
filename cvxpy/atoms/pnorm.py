@@ -128,6 +128,7 @@ class Pnorm(AxisAtom):
                              'infinity norm.')
         else:
             raise ValueError('Invalid p: {}'.format(p))
+        self.approx_error = float(abs(self.p - p))
         super(Pnorm, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
@@ -144,6 +145,7 @@ class Pnorm(AxisAtom):
             return -np.inf
         if self.p < 0 and np.any(values == 0):
             return 0.0
+
         # TODO(akshayka): keepdims should be controlled by an argument to
         # the atom.
         return np.linalg.norm(values, float(self.p), axis=self.axis,

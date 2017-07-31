@@ -34,7 +34,7 @@ def pnorm_canon(expr, args):
     p = expr.p
     axis = expr.axis
     shape = expr.shape
-    t = Variable(*shape)
+    t = Variable(shape)
 
     if p == 2:
         if axis is None:
@@ -57,7 +57,7 @@ def pnorm_canon(expr, args):
     # now, we take care of the remaining convex and concave branches
     # to create the rational powers, we need a new variable, r, and
     # the constraint sum(r) == t
-    r = Variable(*x.shape)
+    r = Variable(x.shape)
     constraints += [sum_entries(r) == t]
 
     # todo: no need to run gm_constr to form the tree each time.

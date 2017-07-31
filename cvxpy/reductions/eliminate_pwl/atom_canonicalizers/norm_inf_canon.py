@@ -24,7 +24,7 @@ from cvxpy.expressions.variable import Variable
 def norm_inf_canon(expr, args):
     x = args[0]
     shape = expr.shape
-    t = Variable(*shape)
+    t = Variable(shape)
 
     promoted_t = promote(t, x.shape)
     return t, [x <= promoted_t, x + promoted_t >= 0]
