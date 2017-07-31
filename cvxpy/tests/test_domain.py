@@ -47,9 +47,9 @@ class TestDomain(BaseTest):
         """Test domain for partial minimization/maximization problems.
         """
         for obj in [Minimize((self.a)**-1), Maximize(log(self.a))]:
-            prob = Problem(obj, [self.x + self.a >= [5, 8]])
+            orig_prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
-            expr = cvxpy.partial_optimize(prob, dont_opt_vars=[self.x, self.a])
+            expr = cvxpy.partial_optimize(orig_prob, dont_opt_vars=[self.x, self.a])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
@@ -59,17 +59,17 @@ class TestDomain(BaseTest):
             assert np.all((self.x + self.a - [5, 8]).value >= -1e-3)
 
             # Optimize over x.
-            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x])
+            expr = cvxpy.partial_optimize(orig_prob, opt_vars=[self.x])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
             prob.solve()
             self.assertAlmostEqual(prob.value, 0)
-            assert self.a.value >= 0
+            assert self.a.value >= -1e-3
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Optimize over x and a.
-            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x, self.a])
+            expr = cvxpy.partial_optimize(orig_prob, opt_vars=[self.x, self.a])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
