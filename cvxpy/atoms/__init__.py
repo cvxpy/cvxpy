@@ -81,6 +81,8 @@ from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
 
+# TODO(akshayka): Perhaps couple this information with the atom classes
+# themselves.
 SOC_ATOMS = [
     geo_mean,
     pnorm,
@@ -91,6 +93,7 @@ SOC_ATOMS = [
 
 EXP_ATOMS = [
     log_sum_exp,
+    log_det,
     entr,
     exp,
     kl_div,
