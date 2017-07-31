@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SDP, SOC, NonPos, Zero
+from cvxpy.constraints import PSD, SOC, NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
 
 from .conic_solver import ConicSolver
@@ -93,8 +93,8 @@ class MOSEK(ConicSolver):
         inv_data[MOSEK.EQ_CONSTR] = eq_constr
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
         soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        sd_constr = [c for c in problem.constraints if type(c) == SDP]
-        inv_data[MOSEK.NEQ_CONSTR] = leq_constr + soc_constr + sd_constr
+        psd_constr = [c for c in problem.constraints if type(c) == PSD]
+        inv_data[MOSEK.NEQ_CONSTR] = leq_constr + soc_constr + psd_constr
         return data, inv_data
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
