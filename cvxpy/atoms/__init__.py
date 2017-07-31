@@ -33,10 +33,12 @@ from cvxpy.atoms.min_entries import min_entries
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm2 import norm2
-from cvxpy.atoms.norm_inf import normInf
+from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
-from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm_inf import norm_inf
+from cvxpy.atoms.pnorm import pnorm, Pnorm
 from cvxpy.atoms.quad_form import quad_form, QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max
@@ -78,3 +80,29 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
+
+SOC_ATOMS = [
+    geo_mean,
+    pnorm,
+    QuadForm,
+    quad_over_lin,
+    power,
+]
+
+EXP_ATOMS = [
+    log_sum_exp,
+    entr,
+    exp,
+    kl_div,
+    log,
+    log1p,
+    logistic,
+]
+
+PSD_ATOMS = [
+    lambda_max,
+    log_det,
+    MatrixFrac,
+    normNuc,
+    sigma_max,
+]

@@ -17,37 +17,35 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.settings as s
-from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
-from cvxpy.reductions.solvers.conic_solvers.ecos_bb_conif import ECOS_BB
-from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
-from cvxpy.reductions.solvers.conic_solvers.glpk_conif import GLPK
-from cvxpy.reductions.solvers.conic_solvers.glpk_mi_conif import GLPK_MI
-from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS
-from cvxpy.reductions.solvers.conic_solvers.gurobi_conif import GUROBI
-from cvxpy.reductions.solvers.conic_solvers.elemental_conif import Elemental
-from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
-from cvxpy.reductions.solvers.conic_solvers.julia_opt_conif import JuliaOpt
+def extract_dual_value(result_vec, offset, constraint):
+    value = result_vec[offset:offset + constraint.size]
+    offset += constraint.size
+    return value, offset
 
-solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
-               GLPK_MI(), CBC(), SCS(), GUROBI(),
-               Elemental(), MOSEK(), JuliaOpt()]
-SOLVER_MAP = {solver.name(): solver for solver in solver_intf}
-INSTALLED_SOLVERS = installed_solvers()
-# CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
-# preference. QP_SOLVERS are those for which we have written interfaces
-# and are supported by QpSolver.
-CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SCS, s.GUROBI, s.GLPK,
-                 s.GLPK_MI, s.CBC, s.ELEMENTAL, s.JULIA_OPT, s.CVXOPT]
-QP_SOLVERS = [s.MOSEK, s.GUROBI]
+def get_dual_values(result_vec, parse_func, constraints):
+    """Gets the values of the dual variables.
 
+    Parameters
+    ----------
+    result_vec : array_like
+        A vector containing the dual variable values.
+    parse_func : function
+        A function that extracts a dual value from the result vector
+        for a particular constraint. The function should accept
+        three arguments: the result vector, an offset, and a
+        constraint, in that order. An example of a parse_func is
+        extract_dual_values, defined in this module. Some solvers
+        may need to implement their own parse functions.
+    constraints : list
+        A list of the constraints in the problem.
 
-def installed_solvers():
-    """List the installed solvers.
+    Returns
+    -------
+       A map of constraint id to dual variable value.
     """
-    installed = []
-    for name, solver in SOLVERS.items():
-        if solver.is_installed():
-            installed.append(name)
-    return installed
+    dual_vars = {}
+    offset = 0
+    for constr in constraints:
+        # TODO reshape based on dual variable size.
+        dual_vars[constr.id], offset = parse_func(result_vec, offset, constr)
+    return dual_vars

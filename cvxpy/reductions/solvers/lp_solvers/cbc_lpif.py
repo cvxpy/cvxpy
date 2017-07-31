@@ -134,7 +134,7 @@ class CBC(Solver):
             primal_vars = None
             dual_vars = None
 
-        return Solution(status, opt_val, primal_vars, dual_vars, None)
+        return Solution(status, opt_val, primal_vars, dual_vars, {})
 
     def solve(self, problem, warm_start, verbose, solver_opts):
         from cvxpy.problems.solvers.cbc_intf import CBC as CBC_OLD

@@ -1,18 +1,24 @@
+from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import DCPError, SolverError
+from cvxpy.expressions.variables.semidef_var import SemidefUpperTri
 from cvxpy.problems.objective import Maximize
-from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone,
+from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing)
-from cvxpy.reductions.solvers.candidate_qp_solvers import QpSolver
-from cvxpy.reductions.solvers import Solver
-from cvxpy.reductions.solvers.utilities import (SOLVER_MAP as SLV_MAP,
-                                                INSTALLED_SOLVERS,
-                                                CONIC_SOLVERS,
-                                                QP_SOLVERS)
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.constant_solver import ConstantSolver
+from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.defines import (SOLVER_MAP as SLV_MAP,
+                                              INSTALLED_SOLVERS,
+                                              CONIC_SOLVERS,
+                                              QP_SOLVERS)
 
 
 def construct_solving_chain(problem, solver=None):
-    """Build a reduction chain from a problem to an installed solver
+    """Build a reduction chain from a problem to an installed solver.
+
+    Note that if the supplied problem has 0 variables, then the solver
+    parameter will be ignored.
 
     Parameters
     ----------
@@ -21,7 +27,8 @@ def construct_solving_chain(problem, solver=None):
     solver : string
         The name of the solver with which to terminate the chain. If no solver
         is supplied (i.e., if solver is None), then the targeted solver may be
-        any of those that are installed.
+        any of those that are installed. If the problem is variable-free,
+        then this parameter is ignored.
 
     Returns
     -------
@@ -33,15 +40,24 @@ def construct_solving_chain(problem, solver=None):
     DCPError
         Raised if the problem is not DCP.
     SolverError
-        Raised if no suitable solver exists among the installed solvers.
+        Raised if no suitable solver exists among the installed solvers, or
+        if the target solver is not installed.
     """
-
     if solver is not None:
         if solver not in INSTALLED_SOLVERS:
-            raise SolverError("Solver %s is not installed" % solver)
+            raise SolverError("The solver %s is not installed." % solver)
         candidates = [solver]
     else:
         candidates = INSTALLED_SOLVERS
+
+    reductions = []
+    # Evaluate parameters and short-circuit the solver if the problem
+    # is constant.
+    if problem.parameters():
+        reductions += [EvalParams()]
+    if len(problem.variables()) == 0:
+        reductions += [ConstantSolver()]
+        return SolvingChain(reductions=reductions)
 
     # Presently, we have but two reduction chains:
     #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> QpSolver,
@@ -49,7 +65,7 @@ def construct_solving_chain(problem, solver=None):
     # Both of these chains require that the problem is DCP.
     if not problem.is_dcp():
         raise DCPError("Problem does not follow DCP rules.")
-    if problem.is_mip():
+    if problem.is_mixed_integer():
         candidates = [s for s in candidates if SLV_MAP[s].MIP_CAPABLE]
         if not candidates:
             raise SolverError("Problem is mixed integer, but candidate "
@@ -57,16 +73,17 @@ def construct_solving_chain(problem, solver=None):
                               candidates)
 
     # Both reduction chains exclusively accept minimization problems.
-    reductions = []
     if type(problem.objective) == Maximize:
         reductions.append(FlipObjective())
 
+    # Attempt to canonicalize the problem to a linearly constrained QP.
     candidate_qp_solvers = [s for s in QP_SOLVERS if s in candidates]
-    if candidate_qp_solvers and problem.is_qp():
-        solver = sorted(candidate_qp_solvers, key s: QP_SOLVERS.index(s))
+    if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
+        solver = sorted(candidate_qp_solvers,
+                        key=lambda s: QP_SOLVERS.index(s))[0]
         reductions += [Qp2SymbolicQp(),
                        QpMatrixStuffing(),
-                       QpSolver(solver.name)]
+                       QpSolver(solver)]
         return SolvingChain(reductions=reductions)
 
     candidate_conic_solvers = [s for s in CONIC_SOLVERS if s in candidates]
@@ -74,28 +91,40 @@ def construct_solving_chain(problem, solver=None):
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
+
+    # Attempt to canonicalize the problem to a cone program.
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
-    # and EXP atoms.
+    # and exponential atoms.
     atoms = problem.atoms()
     cones = []
-    # TODO(akshayka): Define SOC_ATOMS somewhere and import it into this file;
-    # similarly for PSD_ATOMS and EXP_ATOMS
-    if any(type(atom) in SOC_ATOMS for atom in atoms):
+    if (any(atom in SOC_ATOMS for atom in atoms)
+            or any(type(c) == SOC for c in problem.constraints)):
         cones.append(SOC)
-    if any(type(atom) in EXP_ATOMS for atom in atoms):
+    if (any(atom in EXP_ATOMS for atom in atoms)
+            or any(type(c) == ExpCone for c in problem.constraints)):
         cones.append(ExpCone)
-    if any(type(atom) in PSD_ATOMS for atom in atoms):
+    if (any(atom in PSD_ATOMS for atom in atoms)
+            or any(type(c) == PSD for c in problem.constraints)
+            or any(type(v) == SemidefUpperTri for v in problem.variables())):
         cones.append(PSD)
 
+    # Here, we make use of the observation that canonicalization only
+    # increases the number of constraints in our problem.
+    has_constr = len(cones) > 0 or len(problem.constraints) > 0
+
     for solver in sorted(candidate_conic_solvers,
-                    key=lambda s: CONIC_SOLVERS.index(s)):
-        if all(c in s.SUPPORTED_CONSTRAINTS for c in cones):
-            reductions += [Dcp2Cone, ConeMatrixStuffing, SLV_MAP[solver]]
+                         key=lambda s: CONIC_SOLVERS.index(s)):
+        solver_instance = SLV_MAP[solver]
+        if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
+                and (has_constr or not solver_instance.REQUIRES_CONSTR)):
+            reductions += [Dcp2Cone(), ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
-    raise SolverError("Candidate conic solvers (%s) do not support the cones "
-                      "output by the problem (%s)." % (candidate_conic_solvers,
-                                                        ', '.join(cones)))
+    raise SolverError("Either candidate conic solvers (%s) do not support the "
+                      "cones output by the problem (%s), or there are not "
+                      "enough constraints in the problem."  % (
+                      candidate_conic_solvers,
+                      ', '.join([cone.__name__ for cone in cones])))
 
 
 class SolvingChain(Chain):
@@ -103,13 +132,18 @@ class SolvingChain(Chain):
     """
 
     def __init__(self, reductions=[]):
+        super(SolvingChain, self).__init__(reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.problem_reductions = self.reductions[:-1]
         self.solver = self.reductions[-1]
 
-    def solve(problem, warm_start, verbose, solver_opts):
+    def solve(self, problem, warm_start, verbose, solver_opts):
         data, inverse_data = self.apply(problem)
         solution = self.solver.solve_via_data(data, warm_start,
                                               verbose, solver_opts)
         return self.invert(solution, inverse_data)
+
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        return self.solver.solve_via_data(data, warm_start, verbose,
+                                          solver_opts)

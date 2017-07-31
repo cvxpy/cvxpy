@@ -35,8 +35,3 @@ class CallbackParam(Parameter):
         """Evaluate the callback to get the value.
         """
         return self._validate_value(self._callback())
-
-    def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
-        return [self._callback, self.shape, self.attributes]

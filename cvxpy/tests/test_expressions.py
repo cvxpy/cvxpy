@@ -243,7 +243,7 @@ class TestExpressions(BaseTest):
         # Test assigning None.
         p.value = 10
         p.value = None
-        assert p.value is None
+        assert p.value == None
 
         with self.assertRaises(Exception) as cm:
             p = Parameter(2, 1, nonpos=True, value=[2, 1])

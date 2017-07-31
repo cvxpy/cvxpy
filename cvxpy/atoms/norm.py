@@ -17,10 +17,14 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import numpy as np
+
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.norm1 import norm1
+from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.affine.vec import vec
 
 
@@ -42,9 +46,9 @@ def norm(x, p=2, axis=None):
     x = Expression.cast_to_const(x)
     # Norms for scalars same as absolute value.
     if p == 1 or x.is_scalar():
-        return pnorm(x, 1, axis)
-    elif p == "inf":
-        return pnorm(x, 'inf', axis)
+        return norm1(x, axis)
+    elif p in [np.inf, "inf", "Inf"]:
+        return norm_inf(x, axis)
     elif p == "nuc":
         return normNuc(x)
     elif p == "fro":

@@ -199,3 +199,6 @@ class Leaf(expression.Expression):
         """Leaf nodes are always piecewise linear.
         """
         return True
+
+    def atoms(self):
+        return []

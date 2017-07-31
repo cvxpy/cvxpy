@@ -101,11 +101,11 @@ class TestObjectives(unittest.TestCase):
 
     # Test is_dcp for Minimize and Maximize
     def test_is_dcp(self):
-        self.assertEqual(Minimize(normInf(self.x)).is_dcp(), True)
-        self.assertEqual(Minimize(-normInf(self.x)).is_dcp(), False)
+        self.assertEqual(Minimize(norm_inf(self.x)).is_dcp(), True)
+        self.assertEqual(Minimize(-norm_inf(self.x)).is_dcp(), False)
 
-        self.assertEqual(Maximize(normInf(self.x)).is_dcp(), False)
-        self.assertEqual(Maximize(-normInf(self.x)).is_dcp(), True)
+        self.assertEqual(Maximize(norm_inf(self.x)).is_dcp(), False)
+        self.assertEqual(Maximize(-norm_inf(self.x)).is_dcp(), True)
 
     def test_add_problems(self):
         """Test adding objectives.

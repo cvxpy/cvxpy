@@ -17,18 +17,32 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import mathprogbasepy as qp
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy.settings as s
-import mathprogbasepy as qp
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints import NonPos, Zero
+import cvxpy.interface as intf
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.reductions.utilities import is_stuffed_qp_objective
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers import utilities
+import cvxpy.settings as s
 
+
+def is_stuffed_qp_objective(objective):
+    """QPSolver requires objectives to be stuffed in the following way.
+    """
+    expr = objective.expr
+    return (type(expr) == AddExpression
+            and len(expr.args) == 2
+            and type(expr.args[0]) == QuadForm
+            and type(expr.args[1]) == MulExpression
+            and expr.args[1].is_affine())
 
 class QpSolver(Solver):
     """
@@ -36,10 +50,10 @@ class QpSolver(Solver):
     """
 
     def __init__(self, solver_name):
-        self.name = solver_name
+        self.solver_name = solver_name
 
     def name(self):
-        return self.name
+        return self.solver_name
 
     def import_solver(self):
         import mathprogbasepy as qp
@@ -56,7 +70,8 @@ class QpSolver(Solver):
         inverse_data = InverseData(problem)
 
         obj = problem.objective
-        # quadratic part of objective is x.T * P * x but solvers expect 0.5*x.T * P * x.
+        # quadratic part of objective is x.T * P * x but solvers expect
+        # 0.5*x.T * P * x.
         P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
         n = P.shape[0]
@@ -65,7 +80,8 @@ class QpSolver(Solver):
         # should change here.
         ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
         if ineq_cons:
-            ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr) for con in ineq_cons])
+            ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
+                                for con in ineq_cons])
             A = sp.vstack(ineq_coeffs[0])
             b = np.concatenate(ineq_coeffs[1])
         else:
@@ -73,7 +89,8 @@ class QpSolver(Solver):
 
         eq_cons = [c for c in problem.constraints if type(c) == Zero]
         if eq_cons:
-            eq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr) for con in eq_cons])
+            eq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
+                              for con in eq_cons])
             F = sp.vstack(eq_coeffs[0])
             g = np.concatenate(eq_coeffs[1])
         else:
@@ -91,10 +108,32 @@ class QpSolver(Solver):
         status = solution.status
         attr = {s.SOLVE_TIME: solution.cputime}
 
+        # Map mathprogbasepy statuses back to CVXPY statuses
+        if status == qp.quadprog.problem.OPTIMAL:
+            status = s.OPTIMAL
+        elif status == qp.quadprog.problem.OPTIMAL_INACCURATE:
+            status = s.OPTIMAL_INACCURATE
+        elif status == qp.quadprog.problem.PRIMAL_INFEASIBLE:
+            status = s.INFEASIBLE
+        elif status == qp.quadprog.problem.PRIMAL_INFEASIBLE_INACCURATE:
+            status = s.INFEASIBLE_INACCURATE
+        elif status == qp.quadprog.problem.DUAL_INFEASIBLE:
+            status = s.UNBOUNDED
+        elif status == qp.quadprog.problem.DUAL_INFEASIBLE_INACCURATE:
+            status = s.UNBOUNDED_INACCURATE
+        else:
+            status = s.SOLVER_ERROR
+
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.obj_val
-            primal_vars = {inverse_data.id_map.keys()[0]: np.array(solution.x)}
-            dual_vars = ConicSolver.get_dual_values(solution.y, inverse_data.sorted_constraints)
+            primal_vars = {
+                inverse_data.id_map.keys()[0]:
+                intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
+            }
+            dual_vars = utilities.get_dual_values(
+                intf.DEFAULT_INTF.const_to_matrix(solution.y),
+                utilities.extract_dual_value,
+                inverse_data.sorted_constraints)
             attr[s.NUM_ITERS] = solution.total_iter
         else:
             primal_vars = None
@@ -105,4 +144,5 @@ class QpSolver(Solver):
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
-        return data.solve(solver=self.name, verbose=verbose)
+        return data.solve(solver=self.solver_name, verbose=verbose,
+                          **solver_opts)

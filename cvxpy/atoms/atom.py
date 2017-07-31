@@ -307,4 +307,7 @@ class Atom(Expression):
         return new_numeric
 
     def atoms(self):
-        return [self]
+        atom_list = []
+        for arg in self.args:
+            atom_list += arg.atoms()
+        return list(set(atom_list + [type(self)]))

@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
@@ -57,6 +58,11 @@ class Promote(AffAtom):
         """Returns the (row, col) shape of the expression.
         """
         return self.promoted_shape
+
+    def get_data(self):
+        """Returns info needed to reconstruct the expression besides the args.
+        """
+        return [self.promoted_shape]
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

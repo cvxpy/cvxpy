@@ -1,0 +1,62 @@
+from cvxpy.error import ParameterError
+from cvxpy.expressions.constants.constant import Constant
+from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.leaf import Leaf
+from cvxpy import problems
+from cvxpy.reductions.reduction import Reduction
+
+
+def has_params(expr):
+    if isinstance(expr, Leaf):
+        return isinstance(expr, Parameter)
+    return any(has_params(arg) for arg in expr.args)
+
+def replace_params_with_consts(expr):
+    if not has_params(expr):
+        return expr
+    elif isinstance(expr, Parameter):
+        if expr.value is None:
+            raise ParameterError("Problem contains unspecified parameters.")
+        return Constant(expr.value)
+    else:
+        new_args = []
+        for arg in expr.args:
+            new_args.append(replace_params_with_consts(arg))
+        return expr.copy(new_args)
+
+class EvalParams(Reduction):
+    """Replaces symbolic parameters with their constant values."""
+
+    def accepts(self, problem):
+        return True
+
+    def apply(self, problem):
+        obj_expr = replace_params_with_consts(problem.objective.expr)
+        # Do not instantiate a new objective if it does not contain
+        # parameters.
+        if obj_expr != problem.objective.expr:
+            objective = type(problem.objective)(obj_expr)
+        else:
+            objective = problem.objective
+
+        constraints = []
+        for c in problem.constraints:
+            args = []
+            for arg in c.args:
+                args.append(replace_params_with_consts(arg))
+            # Do not instantiate a new constraint object if it did not
+            # contain parameters.
+            if all(id(new) == id(old) for new, old in zip(args, c.args)):
+                constraints.append(c)
+            # Otherwise, create a copy of the constraint.
+            else:
+                data = c.get_data()
+                if data is not None:
+                    constraints.append(type(c)(*(args + data)))
+                else:
+                    constraints.append(type(c)(*args))
+        return problems.problem.Problem(objective, constraints), []
+
+    def invert(self, solution, inverse_data):
+        return solution

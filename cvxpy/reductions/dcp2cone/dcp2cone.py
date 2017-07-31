@@ -17,14 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variable import upper_tri_to_full
-from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import Solution
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import (CANON_METHODS as
                                                            cone_canon_methods)
-import numpy as np
 
 
 class Dcp2Cone(Canonicalization):

@@ -16,7 +16,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
+import numpy as np
 
+import cvxpy.settings as s
+
+
+def failure_solution(status):
+    if status == s.INFEASIBLE:
+        opt_val = np.inf
+    elif status == s.UNBOUNDED:
+        opt_val = -np.inf
+    else:
+        opt_val = None
+    return Solution(status, opt_val, {}, {}, {})
 
 class Solution(object):
     """A solution object.
@@ -28,7 +40,7 @@ class Solution(object):
         dual_vars: dict of id to NumPy ndarray
         attr: dict of other attributes.
     """
-    def __init__(self, status=None, opt_val=None, primal_vars=None, dual_vars=None, attr=None):
+    def __init__(self, status, opt_val, primal_vars, dual_vars, attr):
         self.status = status
         self.opt_val = opt_val
         self.primal_vars = primal_vars

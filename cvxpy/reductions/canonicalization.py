@@ -17,14 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.constraints.constraint import Constraint
+from cvxpy import problems
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variable import Variable
-from cvxpy.problems.objective import Maximize, Minimize
-from cvxpy.problems.problem import Problem
 from cvxpy.reductions import InverseData, Reduction, Solution
 from cvxpy.transforms.partial_optimize import PartialProblem
+from cvxpy.expressions.constants import CallbackParam
+from cvxpy.reductions import eval_params
 
 
 class Canonicalization(Reduction):
@@ -33,24 +32,38 @@ class Canonicalization(Reduction):
     def __init__(self, canon_methods=None):
         self.canon_methods = canon_methods
 
+    # TODO(akshayka): It appears that this class implicitly assumes that
+    # the number of variables is > 0. This assumption should either be made
+    # explicit or eliminated.
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
-        new_objective, new_constraints = self.canonicalize_tree(problem.objective)
-        for constraint in problem.constraints:
-            constraint_copy, canon_constraints = self.canonicalize_tree(constraint)
-            new_constraints += canon_constraints + [constraint_copy]
-            inverse_data.cons_id_map.update({constraint.id: constraint_copy.id})
+        canon_objective, canon_constraints = self.canonicalize_tree(
+            problem.objective)
 
-        new_problem = Problem(new_objective, new_constraints)
+        for constraint in problem.constraints:
+            # canon_constr is the constraint rexpressed in terms of
+            # its canonicalized arguments, and aux_constr are the constraints
+            # generated while canonicalizing the arguments of the original
+            # constraint
+            canon_constr, aux_constr = self.canonicalize_tree(
+                constraint)
+            canon_constraints += aux_constr + [canon_constr]
+            inverse_data.cons_id_map.update({constraint.id:
+                                             canon_constr.id})
+
+        new_problem = problems.problem.Problem(canon_objective,
+                                               canon_constraints)
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        pvars = {id: solution.primal_vars[id] for id in inverse_data.id_map
-                 if id in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[id]
-                 for orig_id, id in inverse_data.cons_id_map.items()}
-        return Solution(solution.status, solution.opt_val, pvars, dvars)
+        pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
+                 if vid in solution.primal_vars}
+        dvars = {orig_id: solution.dual_vars[vid]
+                 for orig_id, vid in inverse_data.cons_id_map.items()
+                 if vid in solution.dual_vars}
+        return Solution(solution.status, solution.opt_val, pvars, dvars,
+                        solution.attr)
 
     def canonicalize_tree(self, expr):
         if type(expr) == PartialProblem:
@@ -65,11 +78,20 @@ class Canonicalization(Reduction):
                 canon_args += [canon_arg]
                 constrs += c
             canon_expr, c = self.canonicalize_expr(expr, canon_args)
-            constrs += c
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if type(expr) in self.canon_methods:
+        if isinstance(expr, Expression) and not expr.variables():
+            # Parameterized expressions are evaluated in a subsequent
+            # reduction.
+            if eval_params.has_params(expr):
+                rows, cols = expr.shape
+                param = CallbackParam(lambda: expr.value, rows, cols)
+                return param, []
+            # Non-parameterized expressions are evaluated immediately.
+            else:
+                return Constant(expr.value), []
+        elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
         else:
             return expr.copy(args), []

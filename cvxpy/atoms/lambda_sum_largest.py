@@ -51,4 +51,5 @@ def lambda_sum_largest(X, k):
     """
     Z = Variable((X.shape[0], X.shape[0]), PSD=True)
     expr = k*lambda_max(X - Z) + trace(Z)
-    return partial_optimize()(problem()(minimize()(expr)), opt_vars=[Z])
+    # return partial_optimize()(problem()(minimize()(expr)), opt_vars=[Z])
+    return expr

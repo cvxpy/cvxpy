@@ -18,9 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.reductions import Reduction
-from cvxpy.problems.problem import Problem
+from cvxpy.problems import Problem
 from cvxpy.problems.objective import Maximize, Minimize
-from cvxpy.reductions.inverse_data import InverseData
 
 
 class FlipObjective(Reduction):

@@ -17,20 +17,24 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from numpy import eye, ones
+import numpy as np
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm
-from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.variables import Variable
 
 
 def power_canon(expr, args):
     affine_expr = args[0]
     p = expr.p
-    if p == 0:
-        return ones(affine_expr.shape), []
+    if expr.is_constant():
+        return Constant(expr.value), []
+    elif p == 0:
+        return np.ones(affine_expr.shape), []
     elif p == 1:
         return affine_expr, []
     elif p == 2:
-        t = Variable(affine_expr.shape)
-        return SymbolicQuadForm(t, eye(t.size), expr), [affine_expr == t]
-    raise ValueError("quadratic form can only have power 2")
+        t = Variable(*affine_expr.shape)
+        return SymbolicQuadForm(t, np.eye(t.size), expr), [affine_expr == t]
+    raise ValueError("non-constant quadratic forms can't be raised to a power "
+                      "greater than 2.")

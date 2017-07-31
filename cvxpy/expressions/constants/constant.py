@@ -34,7 +34,8 @@ class Constant(Leaf):
         self.is_1D_array = False
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
-            self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(value)
+            self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(value,
+                convert_scalars=True)
             self._sparse = True
         else:
             if isinstance(value, np.ndarray) and len(value.shape) == 1:
