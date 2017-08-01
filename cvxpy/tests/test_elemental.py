@@ -55,7 +55,7 @@ class TestSolvers(BaseTest):
         """Test SOCP representable problems.
         """
         if ELEMENTAL in installed_solvers():
-            x = Variable(2, 2)
+            x = Variable((2, 2))
             prob = Problem(Minimize(huber(x)[0, 0]),
                            [x == [[0.5, -1.5], [4, 0]]])
             prob.solve(verbose=False, solver=ELEMENTAL)
@@ -75,21 +75,21 @@ class TestSolvers(BaseTest):
             prob.solve(solver=ELEMENTAL, verbose=False)
             self.assertAlmostEqual(prob.value, 14.746515290825071, places=3)
 
-            x = Variable(2, 2)
+            x = Variable((2, 2))
             expr = inv_pos(x)
             prob = Problem(Minimize(expr[1, 0]), [x == [[1, 2], [3, 4]]])
             prob.solve(solver=ELEMENTAL, verbose=False)
             # Constant([[1,1.0/2],[1.0/3,1.0/4]])),
             self.assertAlmostEqual(prob.value, 0.5)
 
-            x = Variable(2, 2)
+            x = Variable((2, 2))
             expr = sqrt(x)
             constr = [x == [[2, 4], [16, 1]]]
             # Constant([[1.414213562373095,2],[4,1]])),
             prob = Problem(Maximize(expr[0, 0]), constr)
             prob.solve(solver=ELEMENTAL, verbose=False)
 
-            x = Variable(2, 3)
+            x = Variable((2, 3))
             expr = mixed_norm(x, 1, 1)
             constr = [x == [[1, 2], [3, 4], [5, 6]]]
             prob = Problem(Minimize(expr), constr)

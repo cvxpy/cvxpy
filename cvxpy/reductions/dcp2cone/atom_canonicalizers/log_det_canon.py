@@ -69,9 +69,8 @@ def log_det_canon(expr, args):
     A = args[0]  # n by n matrix.
     n, _ = A.shape
     # Require that X and A are PSD.
-    X = Variable((2*n, 2*n), symmetric=True)
-    constraints = [PSD(X)]
-    constraints += [PSD(A)]
+    X = Variable((2*n, 2*n), PSD=True)
+    constraints = [PSD(A)]
 
     # Fix Z as upper triangular
     # TODO represent Z as upper tri vector.
@@ -80,7 +79,7 @@ def log_det_canon(expr, args):
     constraints.append(Z_lower_tri == 0)
 
     # Fix diag(D) = diag(Z): D[i, i] = Z[i, i]
-    D = Variable(n, 1)
+    D = Variable(n)
     constraints.append(D == diag_mat(Z))
     # Fix X using the fact that A must be affine by the DCP rules.
     # X[0:n, 0:n] == D

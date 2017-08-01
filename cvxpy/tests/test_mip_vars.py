@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy import *
-from cvxpy.expressions.variables import Bool, Int
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -26,10 +25,10 @@ class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
     def setUp(self):
-        self.x_bool = Bool()
-        self.y_int = Int()
-        self.A_bool = Bool(3, 2)
-        self.B_int = Int(2, 3)
+        self.x_bool = Variable(boolean=True)
+        self.y_int = Variable(integer=True)
+        self.A_bool = Variable((3, 2), boolean=True)
+        self.B_int = Variable((2, 3), integer=True)
 
     def test_mip_consistency(self):
         """Test that MIP problems are deterministic.
@@ -60,47 +59,47 @@ class TestMIPVariable(BaseTest):
     #     self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
     #     self.assertEqual(repr(self.B_int), "Int(2, 3)")
 
-    # def test_bool_prob(self):
-    #     # Bool in objective.
-    #     obj = Minimize(square(self.x_bool - 0.2))
-    #     p = Problem(obj,[])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0.04)
+    def test_bool_prob(self):
+        # Bool in objective.
+        obj = Minimize(square(self.x_bool - 0.2))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0.04)
 
-    #     self.assertAlmostEqual(self.x_bool.value, 0)
+        self.assertAlmostEqual(self.x_bool.value, 0)
 
-    #     # Bool in constraint.
-    #     t = Variable()
-    #     obj = Minimize(t)
-    #     p = Problem(obj,[square(self.x_bool) <= t])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0)
+        # Bool in constraint.
+        t = Variable()
+        obj = Minimize(t)
+        p = Problem(obj,[square(self.x_bool) <= t])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
 
-    #     self.assertAlmostEqual(self.x_bool.value, 0, places=4)
+        self.assertAlmostEqual(self.x_bool.value, 0, places=4)
 
-    #     # Matrix Bool in objective.
-    #     C = matrix([[0, 1, 0], [1, 1, 1]])
-    #     obj = Minimize(sum_squares(self.A_bool - C))
-    #     p = Problem(obj,[])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0)
+        # Matrix Bool in objective.
+        C = matrix([[0, 1, 0], [1, 1, 1]])
+        obj = Minimize(sum_squares(self.A_bool - C))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
 
-    #     self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
+        self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
-    #     # Matrix Bool in constraint.
-    #     t = Variable()
-    #     obj = Minimize(t)
-    #     p = Problem(obj, [sum_squares(self.A_bool - C) <= t])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0)
+        # Matrix Bool in constraint.
+        t = Variable()
+        obj = Minimize(t)
+        p = Problem(obj, [sum_squares(self.A_bool - C) <= t])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
 
-    #     self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
+        self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
-    # def test_int_prob(self):
-    #     # Int in objective.
-    #     obj = Minimize(square(self.y_int - 0.2))
-    #     p = Problem(obj,[])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 0.04)
+    def test_int_prob(self):
+        # Int in objective.
+        obj = Minimize(square(self.y_int - 0.2))
+        p = Problem(obj,[])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0.04)
 
-    #     self.assertAlmostEqual(self.y_int.value, 0)
+        self.assertAlmostEqual(self.y_int.value, 0)

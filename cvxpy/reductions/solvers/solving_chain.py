@@ -59,10 +59,7 @@ def construct_solving_chain(problem, solver=None):
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
 
-    # Convert convex attributes to constraints.
-    reductions += [CvxAttr2Constr()]
-
-    # Presently, we have but two reduction chains:
+    #  Presently, we have but two reduction chains:
     #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> QpSolver,
     #   (2) Dcp2Cone --> ConeMatrixStuffing --> [a ConicSolver]
     # Both of these chains require that the problem is DCP.
@@ -84,7 +81,8 @@ def construct_solving_chain(problem, solver=None):
     if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: QP_SOLVERS.index(s))[0]
-        reductions += [Qp2SymbolicQp(),
+        reductions += [CvxAttr2Constr(),
+                       Qp2SymbolicQp(),
                        QpMatrixStuffing(),
                        QpSolver(solver)]
         return SolvingChain(reductions=reductions)
@@ -122,7 +120,7 @@ def construct_solving_chain(problem, solver=None):
         solver_instance = SLV_MAP[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
-            reductions += [Dcp2Cone(), ConeMatrixStuffing(), solver_instance]
+            reductions += [Dcp2Cone(), CvxAttr2Constr(), ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "

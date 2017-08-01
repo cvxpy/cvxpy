@@ -40,9 +40,9 @@ class TestProblem(unittest.TestCase):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable(2, 2, name='A')
-        self.B = Variable(2, 2, name='B')
-        self.C = Variable(3, 2, name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     # Overriden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
@@ -60,7 +60,7 @@ class TestProblem(unittest.TestCase):
         for n in [10, 20, 30, 40, 50]:
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))
-            x = Variable(n, n)
+            x = Variable((n, n))
             p = Problem(Minimize(at.sum_entries(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
@@ -73,7 +73,7 @@ class TestProblem(unittest.TestCase):
         for n in [10, 20, 30, 40, 50]:
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))
-            x = Variable(n, n)
+            x = Variable((n, n))
             p = Problem(Minimize(at.square(x[0, 0])),
                         [x >= A])
             result = p.solve()
@@ -84,7 +84,7 @@ class TestProblem(unittest.TestCase):
         """
         a = sp.rand(100, 100, .1, random_state=1)
         a = a.todense()
-        X = Variable(100, 100)
+        X = Variable((100, 100))
         obj = at.norm(X, "nuc") + at.norm(X-a, 'fro')
         p = Problem(Minimize(obj))
         p.solve(solver="SCS")
@@ -96,7 +96,7 @@ class TestProblem(unittest.TestCase):
         rows = SHAPE[0]
         cols = SHAPE[1]
         X = Variable(SHAPE)
-        Z = Variable(rows+cols, rows+cols)
+        Z = Variable((rows+cols, rows+cols))
         prob = Problem(Minimize(0.5*at.trace(Z)),
                        [X[0, 0] >= 1, Z[0:rows, rows:rows+cols] == X, Z >> 0, Z == Z.T])
         prob.solve(solver="SCS")
