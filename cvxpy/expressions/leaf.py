@@ -83,6 +83,15 @@ class Leaf(expression.Expression):
 
         self.args = []
 
+    def _get_attr_str(self):
+        """Get a string representing the attributes.
+        """
+        attr_str = ""
+        for attr, val in self.attributes.items():
+            if attr != 'real' and val:
+                attr_str += ", %s=%s" % (attr, val)
+        return attr_str
+
     def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the object.
 
@@ -191,11 +200,6 @@ class Leaf(expression.Expression):
                 raise ValueError(
                     "Invalid sign for %s value." % self.__class__.__name__
                 )
-            # Round to correct sign.
-            elif self.is_nonneg():
-                val = np.maximum(val, 0)
-            elif self.is_nonpos():
-                val = np.minimum(val, 0)
         return val
 
     def is_quadratic(self):

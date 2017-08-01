@@ -125,4 +125,8 @@ class Variable(Leaf):
     def __repr__(self):
         """String to recreate the object.
         """
-        return "Variable(%s)" % (self.shape,)
+        attr_str = self._get_attr_str()
+        if len(attr_str) > 0:
+            return "Variable(%s%s)" % (self.shape, attr_str)
+        else:
+            return "Variable(%s)" % (self.shape,)

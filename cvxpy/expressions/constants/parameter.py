@@ -83,4 +83,8 @@ class Parameter(Leaf):
     def __repr__(self):
         """String to recreate the object.
         """
-        return 'Parameter(%s)' % (self.shape,)
+        attr_str = self._get_attr_str()
+        if len(attr_str) > 0:
+            return "Parameter(%s%s)" % (self.shape, attr_str)
+        else:
+            return "Parameter(%s)" % (self.shape,)

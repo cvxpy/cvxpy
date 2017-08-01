@@ -117,11 +117,11 @@ class TestExpressions(BaseTest):
         x = Variable(nonneg=True)
         with self.assertRaises(Exception) as cm:
             x.value = -2
-        self.assertEqual(str(cm.exception), "Invalid sign for NonNegative value.")
+        self.assertEqual(str(cm.exception), "Invalid sign for Variable value.")
 
-        # Small negative values are rounded to 0.
+        # Small negative values are NOT rounded to 0.
         x.value = -1e-8
-        self.assertEqual(x.value, 0)
+        self.assertEqual(x.value, -1e-8)
 
     # Test tranposing variables.
     def test_transpose_variable(self):
