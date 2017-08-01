@@ -167,7 +167,7 @@ class TestExamples(BaseTest):
         # Raises an error for assigning a value with invalid sign.
         with self.assertRaises(Exception) as cm:
             G.value = numpy.ones((4, 7))
-        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
 
         ####################################################
         a = Variable()

@@ -88,6 +88,10 @@ class TestExpressions(BaseTest):
         # self.assertEqual(mat.shape, (2,4))
         # self.assertEqual(mat[0,2], 1)
 
+        with self.assertRaises(Exception) as cm:
+            p = Variable((2, 2), diag=True, symmetric=True)
+        self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Variable.")
+
     def test_assign_var_value(self):
         """Test assigning a value to a variable.
         """
@@ -117,11 +121,7 @@ class TestExpressions(BaseTest):
         x = Variable(nonneg=True)
         with self.assertRaises(Exception) as cm:
             x.value = -2
-        self.assertEqual(str(cm.exception), "Invalid sign for Variable value.")
-
-        # Small negative values are NOT rounded to 0.
-        x.value = -1e-8
-        self.assertEqual(x.value, -1e-8)
+        self.assertEqual(str(cm.exception), "Variable value must be nonnegative.")
 
     # Test tranposing variables.
     def test_transpose_variable(self):
@@ -225,12 +225,12 @@ class TestExpressions(BaseTest):
         p = Parameter((4, 3), nonneg=True)
         with self.assertRaises(Exception) as cm:
             p.value = val
-        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+        self.assertEqual(str(cm.exception), "Parameter value must be nonnegative.")
 
         p = Parameter((4, 3), nonpos=True)
         with self.assertRaises(Exception) as cm:
             p.value = val
-        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
 
         # No error for unknown sign.
         p = Parameter((4, 3))
@@ -247,7 +247,7 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             p = Parameter(2, 1, nonpos=True, value=[2, 1])
-        self.assertEqual(str(cm.exception), "Invalid sign for Parameter value.")
+        self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
 
         with self.assertRaises(Exception) as cm:
             p = Parameter((4, 3), nonneg=True, value=[1, 2])
@@ -256,6 +256,30 @@ class TestExpressions(BaseTest):
         # Test repr.
         p = Parameter((4, 3), nonpos=True)
         self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
+
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), diag=True, symmetric=True)
+        self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Parameter.")
+
+        # Diag.
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), diag=True, value=[[1,1], [1,-1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be diagonal.")
+
+        # Symmetric.
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), symmetric=True, value=[[1,1], [-1,-1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be symmetric.")
+
+        # PSD
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), PSD=True, value=[[1,0], [0,-1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be positive semidefinite.")
+
+        # NSD
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), NSD=True, value=[[1,0], [0,-1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
 
     def test_symmetric(self):
         """Test symmetric variables.
@@ -304,7 +328,7 @@ class TestExpressions(BaseTest):
 
         # diag
         v = Variable((2, 2), diag=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]])), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]])).todense(), [1,0,0,0])
 
     # Test the AddExpresion class.
     def test_add_expression(self):

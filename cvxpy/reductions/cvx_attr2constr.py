@@ -19,11 +19,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.reductions import Reduction, Solution
-from cvxpy.atoms import reshape
+from cvxpy.atoms import diag, reshape
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable, upper_tri_to_full
 import numpy as np
+import scipy.sparse as sp
 
 
 # Convex attributes that generate constraints.
@@ -31,6 +32,7 @@ CONVEX_ATTRIBUTES = [
     'nonneg',
     'nonpos',
     'symmetric',
+    'diag',
     'PSD',
     'NSD',
 ]
@@ -77,6 +79,10 @@ class CvxAttr2Constr(Reduction):
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff*upper_tri
                     obj = reshape(full_mat, (n, n))
+                elif var.attributes['diag']:
+                    diag_var = Variable(var.shape[0], **new_attr)
+                    id2new_var[var.id] = diag_var
+                    obj = diag(diag_var)
                 elif new_var:
                     obj = Variable(var.shape, **new_attr)
                     id2new_var[var.id] = obj
@@ -113,7 +119,9 @@ class CvxAttr2Constr(Reduction):
             new_var = id2new_var[id]
             # Need to map from constrained to symmetric variable.
             if new_var.id in solution.primal_vars:
-                if var.is_symmetric():
+                if var.attributes['diag']:
+                    pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten(), [0])
+                elif var.is_symmetric():
                     n = var.shape[0]
                     value = np.zeros(var.shape)
                     idxs = np.triu_indices(n)
@@ -122,7 +130,7 @@ class CvxAttr2Constr(Reduction):
                     value[idxs] = solution.primal_vars[new_var.id].flatten()
                     pvars[id] = value
                 else:
-                    pvars[id] = solution.primal_vars[new_var.id]
+                    pvars[id] = var.round(solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()

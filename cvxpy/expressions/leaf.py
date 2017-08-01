@@ -22,6 +22,7 @@ from cvxpy.expressions import expression
 import cvxpy.interface as intf
 import numpy as np
 import numpy.linalg as LA
+import scipy.sparse as sp
 
 
 class Leaf(expression.Expression):
@@ -77,7 +78,8 @@ class Leaf(expression.Expression):
         if nonneg and nonpos:
             true_attr -= 1
         if true_attr > 1:
-            raise ValueError("Cannot set more than one special attribute in %s." % self.__class__)
+            raise ValueError("Cannot set more than one special attribute in %s."
+                             % self.__class__.__name__)
 
         if value is not None:
             self.value = value
@@ -174,15 +176,23 @@ class Leaf(expression.Expression):
 
     def round(self, val):
         """Project value onto the attribute set of the leaf.
+        Parameters
+        ----------
+        val : numeric type
+            The value assigned.
+
+        Returns
+        -------
+        numeric type
+            The value converted to the proper matrix type.
         """
         # Only one attribute can be active at once (besides real).
         if self.attributes['nonpos']:
             return np.minimum(val, 0)
         elif self.attributes['nonneg']:
             return np.maximum(val, 0)
-            return (val + val.T)/2
         elif self.attributes['diag']:
-            return np.diag(np.diag(val))
+            return sp.diags([np.diag(val)], [0])
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
             val = (val + val.T)/2
@@ -211,21 +221,37 @@ class Leaf(expression.Expression):
             The value converted to the proper matrix type.
         """
         if val is not None:
-            # Convert val to the proper matrix type.
+            # Convert val to ndarray.
             val = intf.DEFAULT_INTF.const_to_matrix(val)
-            shape = intf.shape(val)
-            if shape != self.shape:
+            if val.shape != self.shape:
                 raise ValueError(
-                    "Invalid dimensions (%s, %s) for %s value." %
-                    (shape[0], shape[1], self.__class__.__name__)
+                    "Invalid dimensions %s for %s value." %
+                    (val.shape, self.__class__.__name__)
                 )
-            # All signs are valid if sign is unknown.
-            # Otherwise value sign must match declared sign.
-            pos_val, neg_val = intf.sign(val)
-            if self.is_nonneg() and not pos_val or \
-               self.is_nonpos() and not neg_val:
+            elif self.attributes['nonneg'] and np.min(val) < 0:
                 raise ValueError(
-                    "Invalid sign for %s value." % self.__class__.__name__
+                    "%s value must be nonnegative." % self.__class__.__name__
+                )
+            elif self.attributes['nonpos'] and np.max(val) > 0:
+                raise ValueError(
+                    "%s value must be nonpositive." % self.__class__.__name__
+                )
+            elif self.attributes['diag'] and np.sum(np.abs(val)) != np.sum(np.abs(np.diag(val))):
+                raise ValueError(
+                    "%s value must be diagonal." % self.__class__.__name__
+                )
+            elif any([self.attributes[key] for
+                      key in ['symmetric', 'PSD', 'NSD']]) and np.any(val != val.T):
+                raise ValueError(
+                    "%s value must be symmetric." % self.__class__.__name__
+                )
+            elif self.attributes['PSD'] and np.min(LA.eig(val)[0]) < 0:
+                raise ValueError(
+                    "%s value must be positive semidefinite." % self.__class__.__name__
+                )
+            elif self.attributes['NSD'] and np.max(LA.eig(val)[0]) > 0:
+                raise ValueError(
+                    "%s value must be negative semidefinite." % self.__class__.__name__
                 )
         return val
 
