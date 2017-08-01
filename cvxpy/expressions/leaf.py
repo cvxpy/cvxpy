@@ -21,6 +21,7 @@ import abc
 from cvxpy.expressions import expression
 import cvxpy.interface as intf
 import numpy as np
+import numpy.linalg as LA
 
 
 class Leaf(expression.Expression):
@@ -61,8 +62,8 @@ class Leaf(expression.Expression):
             shape = (shape[0], 1)
         self._shape = shape
 
-        if (PSD or NSD or symmetric) and shape[0] != shape[1]:
-            raise ValueError("Invalid dimensions %s. Must be a square matrix." % shape)
+        if (PSD or NSD or symmetric or diag) and shape[0] != shape[1]:
+            raise ValueError("Invalid dimensions %s. Must be a square matrix." % (shape,))
 
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
@@ -160,7 +161,8 @@ class Leaf(expression.Expression):
     def is_symmetric(self):
         """Is the Leaf symmetric.
         """
-        return any([self.attributes[key] for key in ['symmetric', 'PSD', 'NSD']])
+        return self.is_scalar() or \
+            any([self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD']])
 
     @property
     def domain(self):
@@ -169,6 +171,31 @@ class Leaf(expression.Expression):
         """
         # Default is full domain.
         return []
+
+    def round(self, val):
+        """Project value onto the attribute set of the leaf.
+        """
+        # Only one attribute can be active at once (besides real).
+        if self.attributes['nonpos']:
+            return np.minimum(val, 0)
+        elif self.attributes['nonneg']:
+            return np.maximum(val, 0)
+            return (val + val.T)/2
+        elif self.attributes['diag']:
+            return np.diag(np.diag(val))
+        elif any([self.attributes[key] for
+                  key in ['symmetric', 'PSD', 'NSD']]):
+            val = (val + val.T)/2
+            if self.attributes['symmetric']:
+                return val
+            w, V = LA.eig(val)
+            if self.attributes['PSD']:
+                w = np.maximum(w, 0)
+            else:  # NSD
+                w = np.minimum(w, 0)
+            return V.dot(np.diag(w)).dot(V.T)
+        else:
+            return val
 
     def _validate_value(self, val):
         """Check that the value satisfies the leaf's symbolic attributes.

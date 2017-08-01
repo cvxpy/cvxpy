@@ -257,6 +257,55 @@ class TestExpressions(BaseTest):
         p = Parameter((4, 3), nonpos=True)
         self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
 
+    def test_symmetric(self):
+        """Test symmetric variables.
+        """
+        with self.assertRaises(Exception) as cm:
+            v = Variable((4, 3), symmetric=True)
+        self.assertEqual(str(cm.exception), "Invalid dimensions (4, 3). Must be a square matrix.")
+
+        v = Variable((2,2), symmetric=True)
+        assert v.is_symmetric()
+        v = Variable((2,2), PSD=True)
+        assert v.is_symmetric()
+        v = Variable((2,2), NSD=True)
+        assert v.is_symmetric()
+        v = Variable((2,2), diag=True)
+        assert v.is_symmetric()
+        assert self.a.is_symmetric()
+        assert not self.A.is_symmetric()
+
+    def test_round_attr(self):
+        """Test rounding for attributes.
+        """
+        # Nonpos
+        v = Variable(1, nonpos=True)
+        self.assertAlmostEqual(v.round(1), 0)
+        v = Variable(2, nonpos=True)
+        self.assertItemsAlmostEqual(v.round(np.array([1,-1])), [0,-1])
+
+        # Nonneg
+        v = Variable(1, nonneg=True)
+        self.assertAlmostEqual(v.round(-1), 0)
+        v = Variable(2, nonneg=True)
+        self.assertItemsAlmostEqual(v.round(np.array([1,-1])), [1,0])
+
+        # Symmetric
+        v = Variable((2, 2), symmetric=True)
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]])), [1,0,0,0])
+
+        # PSD
+        v = Variable((2, 2), PSD=True)
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,-1]])), [1,0,0,0])
+
+        # NSD
+        v = Variable((2, 2), NSD=True)
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,-1]])), [0,0,0,-1])
+
+        # diag
+        v = Variable((2, 2), diag=True)
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]])), [1,0,0,0])
+
     # Test the AddExpresion class.
     def test_add_expression(self):
         # Vectors
