@@ -271,11 +271,11 @@ class ConicSolver(Solver):
             eq_dual = utilities.get_dual_values(
                 solution['eq_dual'],
                 utilities.extract_dual_value,
-                inverse_data[self.EQ_CONSTR])
+                inverse_data[Solver.EQ_CONSTR])
             leq_dual = utilities.get_dual_values(
                 solution['ineq_dual'],
                 utilities.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR])
+                inverse_data[Solver.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
         else:

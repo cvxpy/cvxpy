@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 def extract_dual_value(result_vec, offset, constraint):
     value = result_vec[offset:offset + constraint.size]
     offset += constraint.size
     return value, offset
+
 
 def get_dual_values(result_vec, parse_func, constraints):
     """Gets the values of the dual variables.

@@ -171,7 +171,7 @@ class TestNonlinearAtoms(BaseTest):
             import cvxpy as cp
 
             kD = 2
-            Sk = cp.semidefinite(kD)
+            Sk = cp.Variable((kD, kD), PSD=True)
             Rsk = cp.Parameter((kD, kD))
             mk = cp.Variable((kD, 1))
             musk = cp.Parameter((kD, 1))
@@ -179,7 +179,7 @@ class TestNonlinearAtoms(BaseTest):
             logpart = -0.5*cp.log_det(Sk)+0.5*cp.matrix_frac(mk, Sk)+(kD/2.)*np.log(2*np.pi)
             linpart = mk.T*musk-0.5*cp.trace(Sk*Rsk)
             obj = logpart-linpart
-            prob = cp.Problem(cp.Minimize(obj))
+            prob = cp.Problem(cp.Minimize(obj), [Sk == Sk.T])
             musk.value = np.ones((2, 1))
             covsk = np.diag([0.3, 0.5])
             Rsk.value = covsk+(musk.value*musk.value.T)

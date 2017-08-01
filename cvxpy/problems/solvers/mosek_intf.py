@@ -303,6 +303,7 @@ class MOSEK(Solver):
             # it appears signs are inverted
             result_dict[s.EQ_DUAL] = -y[:len(data[s.B])]
             result_dict[s.INEQ_DUAL] = \
-                -y[len(data[s.B]):len(data[s.B])+data[s.DIMS][s.LEQ_DIM]]
+                -y[len(data[s.B]):len(data[s.B])+data[s.DIMS][s.LEQ_DIM] +
+                    sum(data[s.DIMS][s.SOC_DIM])]
 
         return result_dict
