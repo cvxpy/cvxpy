@@ -546,10 +546,11 @@ class TestSolvers(BaseTest):
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """
-        from cvxpy.problems.solvers.utilities import SOLVERS
+        from cvxpy.reductions.solvers.defines import (SOLVER_MAP,
+                                                      INSTALLED_SOLVERS)
         prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
-        for solver in SOLVERS.keys():
-            if solver in installed_solvers():
+        for solver in SOLVER_MAP.keys():
+            if solver in INSTALLED_SOLVERS:
                 try:
                     prob.solve(solver=solver)
                     self.assertItemsAlmostEqual(self.x.value, [0, 0])
