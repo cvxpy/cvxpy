@@ -179,7 +179,7 @@ class TestNonlinearAtoms(BaseTest):
             logpart = -0.5*cp.log_det(Sk)+0.5*cp.matrix_frac(mk, Sk)+(kD/2.)*np.log(2*np.pi)
             linpart = mk.T*musk-0.5*cp.trace(Sk*Rsk)
             obj = logpart-linpart
-            prob = cp.Problem(cp.Minimize(obj))
+            prob = cp.Problem(cp.Minimize(obj), [Sk == Sk.T])
             musk.value = np.ones((2, 1))
             covsk = np.diag([0.3, 0.5])
             Rsk.value = covsk+(musk.value*musk.value.T)
