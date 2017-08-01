@@ -17,9 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.variable import Variable
 import scipy.sparse as sp
 
@@ -27,7 +25,7 @@ import scipy.sparse as sp
 def sigma_max_canon(expr, args):
     A = args[0]
     n, m = A.shape
-    X = Variable((n+m, n+m), symmetric=True)
+    X = Variable((n+m, n+m), PSD=True)
 
     shape = expr.shape
     t = Variable(shape)
@@ -42,8 +40,5 @@ def sigma_max_canon(expr, args):
 
     # X[n:n+m, n:n+m] == I_m*t
     constraints.append(X[n:n+m, n:n+m] == Constant(sp.eye(m)) * t)
-
-    # PSD constraint
-    constraints.append(PSD(X))
 
     return t, constraints

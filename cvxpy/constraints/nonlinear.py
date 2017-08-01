@@ -32,20 +32,14 @@ class NonlinearConstraint(Constraint):
     # f - a nonlinear function
     # vars_ - the variables involved in the function
 
-    def __init__(self, f, vars_):
+    def __init__(self, f, vars_, constr_id=None):
         self.f = f
         self.vars_ = vars_
         # The shape of vars_ in f(vars_)
         cols = self.vars_[0].shape[1]
         rows = sum(var.shape[0] for var in self.vars_)
         self.x_shape = (rows*cols, 1)
-        super(NonlinearConstraint, self).__init__(self.vars_)
-
-    def variables(self):
-        """Returns the variables involved in the function
-           in order, i.e. f(vars_) = f(vstack(variables))
-        """
-        return self.vars_
+        super(NonlinearConstraint, self).__init__(self.vars_, constr_id)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
                   vert_step=1, horiz_step=1):

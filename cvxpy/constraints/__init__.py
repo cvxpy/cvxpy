@@ -24,5 +24,4 @@ from cvxpy.constraints.int_constr import IntConstr
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.semidefinite import SDP
 from cvxpy.constraints.soc_axis import SOC_Axis

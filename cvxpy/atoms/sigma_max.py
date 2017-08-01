@@ -17,10 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.affine.index import index
-from cvxpy.constraints.semidefinite import SDP
 import scipy.sparse as sp
 from numpy import linalg as LA
 import numpy as np
@@ -86,43 +83,3 @@ class sigma_max(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        A = arg_objs[0]  # n by m matrix.
-        n, m = A.shape
-        # Create a matrix with Schur complement I*t - (1/t)*A.T*A.
-        X = lu.create_var((n+m, n+m))
-        t = lu.create_var((1, 1))
-        constraints = []
-        # Fix X using the fact that A must be affine by the DCP rules.
-        # X[0:n, 0:n] == I_n*t
-        prom_t = lu.promote(t, (n, 1))
-        index.block_eq(X, lu.diag_vec(prom_t), constraints,
-                       0, n, 0, n)
-        # X[0:n, n:n+m] == A
-        index.block_eq(X, A, constraints,
-                       0, n, n, n+m)
-        # X[n:n+m, n:n+m] == I_m*t
-        prom_t = lu.promote(t, (m, 1))
-        # prom_t = lu.promote(lu.create_const(1, (1,1)), (m, 1))
-        index.block_eq(X, lu.diag_vec(prom_t), constraints,
-                       n, n+m, n, n+m)
-        # Add SDP constraint.
-        return (t, constraints + [SDP(X)])

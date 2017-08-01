@@ -48,7 +48,7 @@ class BoolConstr(Constraint):
         return "BoolConstr(%s)" % self.lin_op
 
     def format(self, eq_constr, leq_constr, dims, solver):
-        """Formats SDP constraints as inequalities for the solver.
+        """Formats PSD constraints as inequalities for the solver.
 
         Parameters
         ----------

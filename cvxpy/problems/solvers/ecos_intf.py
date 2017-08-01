@@ -29,7 +29,7 @@ class ECOS(Solver):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    SDP_CAPABLE = False
+    PSD_CAPABLE = False
     EXP_CAPABLE = True
     MIP_CAPABLE = False
 

@@ -29,7 +29,7 @@ class SCS(ECOS):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    SDP_CAPABLE = True
+    PSD_CAPABLE = True
     EXP_CAPABLE = True
     MIP_CAPABLE = False
 
@@ -148,15 +148,15 @@ class SCS(ECOS):
             new_results[s.PRIMAL] = results_dict["x"]
             new_results[s.EQ_DUAL] = results_dict["y"][:dims[s.EQ_DIM]]
             y = results_dict["y"][dims[s.EQ_DIM]:]
-            old_sdp_sizes = sum([n*(n+1)//2 for n in dims[s.SDP_DIM]])
-            new_sdp_sizes = sum([n*n for n in dims[s.SDP_DIM]])
+            old_sdp_sizes = sum([n*(n+1)//2 for n in dims[s.PSD_DIM]])
+            new_sdp_sizes = sum([n*n for n in dims[s.PSD_DIM]])
             y_true = np.zeros(y.shape[0] + (new_sdp_sizes - old_sdp_sizes))
             y_offset = dims[s.LEQ_DIM] + sum([n for n in dims[s.SOC_DIM]])
             y_true_offset = y_offset
             y_true[:y_true_offset] = y[:y_offset]
-            # Expand SDP duals from lower triangular to full matrix,
+            # Expand PSD duals from lower triangular to full matrix,
             # scaling off diagonal entries by 1/sqrt(2).
-            for n in dims[s.SDP_DIM]:
+            for n in dims[s.PSD_DIM]:
                 tri = y[y_offset:y_offset+n*(n+1)//2]
                 y_true[y_true_offset:y_true_offset+n*n] = self.tri_to_full(tri, n)
                 y_true_offset += n*n

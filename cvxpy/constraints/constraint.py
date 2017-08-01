@@ -17,16 +17,17 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions import cvxtypes
 import abc
 
 
-class Constraint(object):
+class Constraint(u.Canonical):
     """Abstract super class for constraints.
 
     TODO rationalize constraint classes. Make lin_op versions
-    of SOC, SDP, etc.
+    of SOC, PSD, etc.
 
     Attributes
     ----------

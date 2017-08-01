@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.constraints.semidefinite import SDP
+from cvxpy.constraints.psd import PSD
 import scipy.sparse as sp
 
 
@@ -78,10 +78,6 @@ class Variable(Leaf):
 
         super(Variable, self).__init__(shape, **kwargs)
 
-    def get_data(self):
-        """Returns info needed to reconstruct the expression besides the args.
-        """
-        return [self.shape, self._name, self.id, self.attributes]
 
     def name(self):
         return self._name
@@ -147,9 +143,9 @@ class Variable(Leaf):
         elif self.is_nonpos():
             constr.append(lu.create_leq(obj))
         elif self.attributes['PSD']:
-            constr.append(SDP(obj, enforce_sym=False))
+            constr.append(PSD(obj))
         elif self.attributes['NSD']:
-            constr.append(SDP(lu.neg(obj), enforce_sym=False))
+            constr.append(PSD(lu.neg(obj)))
         return (obj, constr)
 
     def __repr__(self):

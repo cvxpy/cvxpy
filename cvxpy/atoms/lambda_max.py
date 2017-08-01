@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-from cvxpy.constraints.semidefinite import SDP
+from cvxpy.constraints.psd import PSD
 from scipy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
@@ -124,9 +124,9 @@ class lambda_max(Atom):
         """
         A = arg_objs[0]
         n, _ = A.shape
-        # SDP constraint.
+        # PSD constraint.
         t = lu.create_var((1, 1))
         prom_t = lu.promote(t, (n, 1))
         # I*t - A
         expr = lu.sub_expr(lu.diag_vec(prom_t), A)
-        return (t, [SDP(expr)])
+        return (t, [PSD(expr)])

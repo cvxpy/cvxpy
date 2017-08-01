@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.settings as s
 from cvxpy.error import SolverError
 import cvxpy.lin_ops.lin_utils as lu
@@ -29,7 +28,7 @@ import numpy as np
 import math
 
 
-class ExpCone(u.Canonical, NonlinearConstraint):
+class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
 
     Operates elementwise on x, y, z.
@@ -48,12 +47,14 @@ class ExpCone(u.Canonical, NonlinearConstraint):
         z: Variable z in the exponential cone.
     """
 
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, constr_id=None):
         self.x = x
         self.y = y
         self.z = z
         self.shape = (int(self.x.shape[0]), int(self.x.shape[1]))
-        super(ExpCone, self).__init__(self._solver_hook, [self.x, self.y, self.z])
+        super(ExpCone, self).__init__(self._solver_hook,
+                                      [self.x, self.y, self.z],
+                                      constr_id)
 
     def __str__(self):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)

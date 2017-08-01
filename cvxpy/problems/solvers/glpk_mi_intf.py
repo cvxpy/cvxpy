@@ -29,7 +29,7 @@ class GLPK_MI(GLPK):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = False
-    SDP_CAPABLE = False
+    PSD_CAPABLE = False
     EXP_CAPABLE = False
     MIP_CAPABLE = True
 

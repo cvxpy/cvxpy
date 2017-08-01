@@ -76,14 +76,14 @@ ROBUST_KKTSOLVER = "robust"
 
 # Map of constraint types.
 # TODO(akshayka): These should be defined in a solver module.
-EQ, LEQ, SOC, SOC_EW, SDP, EXP, BOOL, INT = range(8)
+EQ, LEQ, SOC, SOC_EW, PSD, EXP, BOOL, INT = range(8)
 
 # Keys in the dictionary of cone dimensions.
 # TODO(akshayka): These should be defined in a solver module.
 EQ_DIM = "f"
 LEQ_DIM = "l"
 SOC_DIM = "q"
-SDP_DIM = "s"
+PSD_DIM = "s"
 EXP_DIM = "ep"
 # Keys for non-convex constraints.
 BOOL_IDS = "bool_ids"

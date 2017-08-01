@@ -1188,7 +1188,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertEqual(p.status, s.INFEASIBLE)
 
-    # Test SDP
+    # Test PSD
     def test_sdp(self):
         # Ensure sdp constraints enforce transpose.
         obj = Maximize(self.A[1, 0] - self.A[0, 1])

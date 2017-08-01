@@ -17,10 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.affine.index import index
-from cvxpy.constraints.semidefinite import SDP
 from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
@@ -139,41 +136,3 @@ class MatrixFrac(Atom):
         """Quadratic of piecewise affine if x is PWL and P is constant.
         """
         return self.args[0].is_pwl() and self.args[1].is_constant()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        X = arg_objs[0]  # n by m matrix.
-        P = arg_objs[1]  # n by n matrix.
-        n, m = X.shape
-        # Create a matrix with Schur complement T - X.T*P^-1*X.
-        M = lu.create_var((n + m, n + m))
-        T = lu.create_var((m, m))
-        constraints = []
-        # Fix M using the fact that P must be affine by the DCP rules.
-        # M[0:n, 0:n] == P.
-        index.block_eq(M, P, constraints,
-                       0, n, 0, n)
-        # M[0:n, n:n+m] == X
-        index.block_eq(M, X, constraints,
-                       0, n, n, n+m)
-        # M[n:n+m, n:n+m] == T
-        index.block_eq(M, T, constraints,
-                       n, n+m, n, n+m)
-        # Add SDP constraint.
-        return (lu.trace(T), constraints + [SDP(M)])

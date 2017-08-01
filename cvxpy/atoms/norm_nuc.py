@@ -17,10 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.affine.index import index
-from cvxpy.constraints.semidefinite import SDP
 import scipy.linalg
 import numpy as np
 import scipy.sparse as sp
@@ -83,38 +80,3 @@ class normNuc(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        A = arg_objs[0]
-        rows, cols = A.shape
-        # Create the equivalent problem:
-        #   minimize (trace(U) + trace(V))/2
-        #   subject to:
-        #            [U A; A.T V] is positive semidefinite
-        X = lu.create_var((rows+cols, rows+cols))
-        constraints = []
-        # Fix X using the fact that A must be affine by the DCP rules.
-        # X[0:rows,rows:rows+cols] == A
-        index.block_eq(X, A, constraints,
-                       0, rows, rows, rows+cols)
-        half = lu.create_const(0.5, (1, 1))
-        trace = lu.mul_expr(half, lu.trace(X), (1, 1))
-        # Add SDP constraint.
-        return (trace, [SDP(X)] + constraints)

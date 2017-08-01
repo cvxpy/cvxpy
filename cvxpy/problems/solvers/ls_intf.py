@@ -36,7 +36,7 @@ class LS(Solver):
     # and must be invoked through a special path.
     LP_CAPABLE = False
     SOCP_CAPABLE = False
-    SDP_CAPABLE = False
+    PSD_CAPABLE = False
     EXP_CAPABLE = False
     MIP_CAPABLE = False
 

@@ -86,7 +86,7 @@ class TestNonOptimal(BaseTest):
     #         self.assertEqual(p_unb.status, UNBOUNDED)
 
     # def test_scp(self):
-    #     """Test SDP problems.
+    #     """Test PSD problems.
     #     """
     #     # Infeasible and unbounded problems.
     #     X = Variable(5, 5)

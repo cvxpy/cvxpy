@@ -90,7 +90,7 @@ class TestProblem(unittest.TestCase):
         p.solve(solver="SCS")
 
     def test_large_sdp(self):
-        """Test for bug where large SDP caused integer overflow in CVXcanon.
+        """Test for bug where large PSD caused integer overflow in CVXcanon.
         """
         SHAPE = (256, 256)
         rows = SHAPE[0]

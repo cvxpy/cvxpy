@@ -21,7 +21,7 @@ import cvxpy.settings as s
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
-from cvxpy.constraints import SOC, SDP, ExpCone, BoolConstr, IntConstr
+from cvxpy.constraints import SOC, PSD, ExpCone, BoolConstr, IntConstr
 from toolz.itertoolz import unique
 from collections import OrderedDict
 import canonInterface
@@ -80,7 +80,7 @@ class SymData(object):
         constr_map = {s.EQ: [],
                       s.LEQ: [],
                       s.SOC: [],
-                      s.SDP: [],
+                      s.PSD: [],
                       s.EXP: [],
                       s.BOOL: [],
                       s.INT: []}
@@ -91,8 +91,8 @@ class SymData(object):
                 constr_map[s.LEQ].append(c)
             elif isinstance(c, SOC):
                 constr_map[s.SOC].append(c)
-            elif isinstance(c, SDP):
-                constr_map[s.SDP].append(c)
+            elif isinstance(c, PSD):
+                constr_map[s.PSD].append(c)
             elif isinstance(c, ExpCone):
                 constr_map[s.EXP].append(c)
             elif isinstance(c, BoolConstr):
@@ -172,7 +172,7 @@ class SymData(object):
         dims[s.EQ_DIM] = sum(c.shape[0]*c.shape[1] for c in constr_map[s.EQ])
         dims[s.LEQ_DIM] = sum(c.shape[0]*c.shape[1] for c in constr_map[s.LEQ])
         dims[s.SOC_DIM] = []
-        dims[s.SDP_DIM] = []
+        dims[s.PSD_DIM] = []
         dims[s.EXP_DIM] = 0
         dims[s.BOOL_IDS] = []
         dims[s.INT_IDS] = []

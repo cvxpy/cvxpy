@@ -31,7 +31,7 @@ class MOSEK(Solver):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    SDP_CAPABLE = True
+    PSD_CAPABLE = True
     EXP_CAPABLE = False
     MIP_CAPABLE = False
 
@@ -159,7 +159,7 @@ class MOSEK(Solver):
                 # size of problem
                 numvar = len(c) + sum(dims[s.SOC_DIM])
                 numcon = len(b) + dims[s.LEQ_DIM] + sum(dims[s.SOC_DIM]) + \
-                    sum([el**2 for el in dims[s.SDP_DIM]])
+                    sum([el**2 for el in dims[s.PSD_DIM]])
 
                 # otherwise it crashes on empty probl.
                 if numvar == 0:
@@ -178,9 +178,9 @@ class MOSEK(Solver):
                                      np.zeros(numvar),
                                      np.zeros(numvar))
 
-                # SDP variables
-                if sum(dims[s.SDP_DIM]) > 0:
-                    task.appendbarvars(dims[s.SDP_DIM])
+                # PSD variables
+                if sum(dims[s.PSD_DIM]) > 0:
+                    task.appendbarvars(dims[s.PSD_DIM])
 
                 # linear equality and linear inequality constraints
                 task.appendcons(numcon)
@@ -195,7 +195,7 @@ class MOSEK(Solver):
 
                 type_constraint = [mosek.boundkey.fx] * len(b)
                 type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
-                sdp_total_dims = sum([cdim**2 for cdim in dims[s.SDP_DIM]])
+                sdp_total_dims = sum([cdim**2 for cdim in dims[s.PSD_DIM]])
                 type_constraint += [mosek.boundkey.fx] * \
                     (sum(dims[s.SOC_DIM]) + sdp_total_dims)
 
@@ -221,8 +221,8 @@ class MOSEK(Solver):
                     current_con_index += size_cone
                     current_var_index += size_cone
 
-                # SDP
-                for num_sdp_var, size_matrix in enumerate(dims[s.SDP_DIM]):
+                # PSD
+                for num_sdp_var, size_matrix in enumerate(dims[s.PSD_DIM]):
                     for i_sdp_matrix in range(size_matrix):
                         for j_sdp_matrix in range(size_matrix):
                             coeff = 1. if i_sdp_matrix == j_sdp_matrix else .5

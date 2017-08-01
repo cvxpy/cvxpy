@@ -91,8 +91,8 @@ class Solver(object):
         # If mixed integer constraints, use ECOS_BB.
         elif constr_map[s.BOOL] or constr_map[s.INT]:
             return s.ECOS_BB
-        # If SDP, defaults to CVXOPT.
-        elif constr_map[s.SDP]:
+        # If PSD, defaults to CVXOPT.
+        elif constr_map[s.PSD]:
             try:
                 import cvxopt
                 cvxopt  # For flake8
@@ -131,7 +131,7 @@ class Solver(object):
         constr_map = SymData.filter_constraints(constraints)
         if ((constr_map[s.BOOL] or constr_map[s.INT]) and
             not self.MIP_CAPABLE) or \
-           (constr_map[s.SDP] and not self.SDP_CAPABLE) or \
+           (constr_map[s.PSD] and not self.PSD_CAPABLE) or \
            (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
            (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \
            (len(constraints) == 0 and self.name() in [s.SCS,

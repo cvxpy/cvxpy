@@ -171,7 +171,6 @@ class Atom(Expression):
                                                                 data)
             return graph_obj, constraints + graph_constr
 
-    @abc.abstractmethod
     def graph_implementation(self, arg_objs, shape, data=None):
         """Reduces the atom to an affine expression and list of constraints.
 

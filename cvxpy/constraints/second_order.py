@@ -24,7 +24,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.utilities import format_axis
 
 
-class SOC(u.Canonical, Constraint):
+class SOC(Constraint):
     """A second-order cone constraint for each row/column.
 
     Assumes t is a vector the same length as X's columns (rows) for axis==0 (1).
@@ -35,10 +35,10 @@ class SOC(u.Canonical, Constraint):
         axis: Slice by column 0 or row 1.
     """
 
-    def __init__(self, t, X, axis=0):
+    def __init__(self, t, X, axis=0, constr_id=None):
         assert t.shape[1] == 1
         self.axis = axis
-        super(SOC, self).__init__([t, X])
+        super(SOC, self).__init__([t, X], constr_id)
 
     def __str__(self):
         return "SOC(%s, %s)" % (self.args[0], self.args[1])

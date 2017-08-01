@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.expressions import cvxtypes
@@ -25,11 +24,11 @@ from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
 
-class NonPos(u.Canonical, Constraint):
+class NonPos(Constraint):
     TOLERANCE = 1e-8
 
-    def __init__(self, expr):
-        super(NonPos, self).__init__([expr])
+    def __init__(self, expr, constr_id=None):
+        super(NonPos, self).__init__([expr], constr_id)
 
     def name(self):
         return "%s <= 0" % self.args[0]
@@ -99,21 +98,6 @@ class NonPos(u.Canonical, Constraint):
         obj, constraints = self.args[0].canonical_form
         dual_holder = lu.create_leq(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
-
-    def variables(self):
-        """Returns the variables in the compared expressions.
-        """
-        return self.args[0].variables()
-
-    def parameters(self):
-        """Returns the parameters in the compared expressions.
-        """
-        return self.args[0].parameters()
-
-    def constants(self):
-        """Returns the constants in the compared expressions.
-        """
-        return self.args[0].constants()
 
     @property
     def value(self):

@@ -36,7 +36,7 @@ class CVXOPT(Solver):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    SDP_CAPABLE = True
+    PSD_CAPABLE = True
     EXP_CAPABLE = True
     MIP_CAPABLE = False
 
