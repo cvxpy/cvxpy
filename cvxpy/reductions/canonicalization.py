@@ -67,9 +67,8 @@ class Canonicalization(Reduction):
 
     def canonicalize_tree(self, expr):
         if type(expr) == cvxtypes.partial_problem():
-            prob = expr.new_var_prob
-            canon_expr, constrs = self.canonicalize_tree(prob.objective.expr)
-            for constr in prob.constraints:
+            canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr)
+            for constr in expr.args[0].constraints:
                 canon_constr, aux_constr = self.canonicalize_tree(constr)
                 constrs += [canon_constr] + aux_constr
         else:

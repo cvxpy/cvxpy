@@ -54,3 +54,9 @@ class Solution(object):
                         self.primal_vars,
                         self.dual_vars,
                         self.attr)
+
+    def __str__(self):
+        return "Solution(%s, %s, %s, %s)" % (self.status,
+                                             self.primal_vars,
+                                             self.dual_vars,
+                                             self.attr)
