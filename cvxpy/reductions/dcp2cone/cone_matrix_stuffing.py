@@ -21,7 +21,7 @@ import numpy as np
 
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions.matrix_stuffing import MatrixStuffing
+from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.utilities import are_args_affine
@@ -52,7 +52,9 @@ class ConeMatrixStuffing(MatrixStuffing):
         C, R = extractor.get_coeffs(problem.objective.expr)
 
         c = np.asarray(C.todense()).flatten()
-        x = Variable(inverse_data.x_length)
+        boolean, integer = extract_mip_idx(problem.variables())
+        x = Variable(inverse_data.x_length, boolean=boolean, integer=integer)
+
         new_obj = c.T * x + 0
 
         inverse_data.r = R[0]

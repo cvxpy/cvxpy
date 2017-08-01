@@ -1,5 +1,5 @@
 """
-Copyright 2017 Robin Verschueren
+Copyright 2017 Robin Verschueren, 2017 Akshay Agrawal
 
 This file is part of CVXPY.
 
@@ -26,6 +26,32 @@ from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
 from cvxpy import problems
 from cvxpy.problems.objective import Minimize
+
+
+def extract_mip_idx(variables):
+    """Coalesces bool, int indices for variables.
+
+       The indexing scheme assumes that the variables will be coalesced into
+       a single one-dimensional variable, with each variable being reshaped
+       in Fortran order.
+    """
+    def ravel_multi_index(multi_index, x, vert_offset):
+        """Ravel a multi-index and add a vertical offset to it.
+        """
+        ravel_idx = np.ravel_multi_index(multi_index, x.shape, order='F')
+        return [(vert_offset + idx,) for idx in ravel_idx]
+    boolean_idx = []
+    integer_idx = []
+    vert_offset = 0
+    for x in variables:
+        if x.boolean_idx:
+            multi_index = zip(*x.boolean_idx)
+            boolean_idx += ravel_multi_index(multi_index, x, vert_offset)
+        if x.integer_idx:
+            multi_index = zip(*x.integer_idx)
+            integer_idx += ravel_multi_index(multi_index, x, vert_offset)
+        vert_offset += x.size
+    return boolean_idx, integer_idx
 
 
 class MatrixStuffing(Reduction):
@@ -75,8 +101,6 @@ class MatrixStuffing(Reduction):
                                              order='F')
         # Remap dual variables.
         for old_con, new_con in con_map.items():
-            # TODO(akshayka): This line results in key errors often,
-            # determine why
             dual_vars[old_con] = solution.dual_vars[new_con]
 
         # Add constant part

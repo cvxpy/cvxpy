@@ -36,7 +36,8 @@ class Leaf(expression.Expression):
                  real=True, imag=False,
                  symmetric=False, diag=False, PSD=False,
                  NSD=False, Hermitian=False,
-                 boolean=False, integer=False, sparsity=None):
+                 boolean=False, integer=False,
+                 sparsity=None):
         """
         Args:
           shape: The leaf dimensions.
@@ -50,8 +51,13 @@ class Leaf(expression.Expression):
           PSD: Is the variable constrained to be positive semidefinite?
           NSD: Is the variable constrained to be negative semidefinite?
           Hermitian: Is the variable Hermitian?
-          boolean: Is the variable boolean?
-          integer: Is the variable integer?
+          boolean: Is the variable boolean? Either True, which constrains
+                   the entire Variable to be boolean, False, or a list of
+                   indices which should be constrained as boolean, where each
+                   index is a tuple of length exactly equal to the
+                   length of shape.
+          integer: Is the variable integer? The semantics are the same as the
+                   boolean argument.
           sparsity: Fixed sparsity pattern for the variable.
         """
         # TODO remove after adding 0D and 1D support.
@@ -71,11 +77,27 @@ class Leaf(expression.Expression):
                            'real': real, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
-                           'Hermitian': Hermitian, 'boolean': boolean,
+                           'Hermitian': Hermitian, 'boolean': bool(boolean),
                            'integer':  integer, 'sparsity': sparsity}
-        # Only one attribute besides real can be True (except can be nonneg and nonpos).
+
+        if boolean:
+            self.boolean_idx = boolean if not type(boolean) == bool else list(
+                np.ndindex(shape))
+        else:
+            self.boolean_idx = []
+
+        if integer:
+            self.integer_idx = integer if not type(integer) == bool else list(
+                np.ndindex(shape))
+        else:
+            self.integer_idx = []
+
+        # Only one attribute besides real can be True (except can be nonneg and
+        # nonpos, similarly for boolean and integer).
         true_attr = sum([1 for k, v in self.attributes.items() if k != 'real' and v])
         if nonneg and nonpos:
+            true_attr -= 1
+        if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
             raise ValueError("Cannot set more than one special attribute in %s."

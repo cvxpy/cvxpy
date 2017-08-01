@@ -63,6 +63,8 @@ class Problem(u.Canonical):
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = constraints
+        # Cache the variables as a list.
+        self._vars = self._variables()
         self._value = None
         self._status = None
         # The solving chain with which to solve the problem
@@ -142,6 +144,9 @@ class Problem(u.Canonical):
     def variables(self):
         """Returns a list of the variables in the problem.
         """
+        return self._vars
+
+    def _variables(self):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()

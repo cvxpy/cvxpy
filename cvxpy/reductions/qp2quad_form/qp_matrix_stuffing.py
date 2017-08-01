@@ -24,7 +24,7 @@ from cvxpy.problems.objective import Minimize
 from cvxpy import problems
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.matrix_stuffing import MatrixStuffing
+from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
@@ -60,7 +60,8 @@ class QpMatrixStuffing(MatrixStuffing):
         P, q, r = extractor.quad_form(problem_copy.objective.expr)
 
         # concatenate all variables in one vector
-        x = Variable(inverse_data.x_length)
+        boolean, integer = extract_mip_idx(problem.variables())
+        x = Variable(inverse_data.x_length, boolean=boolean, integer=integer)
         new_obj = QuadForm(x, P) + q.T*x
 
         inverse_data.r = r
