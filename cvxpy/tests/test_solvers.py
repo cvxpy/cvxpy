@@ -410,7 +410,6 @@ class TestSolvers(BaseTest):
             prob.solve(solver=ECOS)
             duals_ecos = [x.dual_value for x in constraints]
             self.assertItemsAlmostEqual(duals_mosek, duals_ecos)
-
         else:
             with self.assertRaises(Exception) as cm:
                 prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])

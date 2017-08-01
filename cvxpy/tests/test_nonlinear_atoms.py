@@ -171,7 +171,7 @@ class TestNonlinearAtoms(BaseTest):
             import cvxpy as cp
 
             kD = 2
-            Sk = cp.semidefinite(kD)
+            Sk = cp.Variable((kD, kD), PSD=True)
             Rsk = cp.Parameter((kD, kD))
             mk = cp.Variable((kD, 1))
             musk = cp.Parameter((kD, 1))

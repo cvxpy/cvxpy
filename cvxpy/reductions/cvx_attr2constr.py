@@ -115,10 +115,12 @@ class CvxAttr2Constr(Reduction):
             if new_var.id in solution.primal_vars:
                 if var.is_symmetric():
                     n = var.shape[0]
-                    value = np.zeros(var.size)
-                    value[:n*(n+1)//2] = solution.primal_vars[new_var.id].flatten()
-                    value = np.reshape(value, var.shape, 'F')
-                    pvars[id] = value + value.T
+                    value = np.zeros(var.shape)
+                    idxs = np.triu_indices(n)
+                    value[idxs] = solution.primal_vars[new_var.id].flatten()
+                    idxs = np.tril_indices(n)
+                    value[idxs] = solution.primal_vars[new_var.id].flatten()
+                    pvars[id] = value
                 else:
                     pvars[id] = solution.primal_vars[new_var.id]
 

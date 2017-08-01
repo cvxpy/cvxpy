@@ -61,6 +61,9 @@ class Leaf(expression.Expression):
             shape = (shape[0], 1)
         self._shape = shape
 
+        if (PSD or NSD or symmetric) and shape[0] != shape[1]:
+            raise ValueError("Invalid dimensions %s. Must be a square matrix." % shape)
+
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
                            'real': real, 'imag': imag,
