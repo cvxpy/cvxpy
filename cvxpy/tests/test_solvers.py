@@ -73,7 +73,8 @@ class TestSolvers(BaseTest):
         # absolute tolerance between upper and lower bounds (default: 1e-6)
         # 'mi_rel_eps'
         EPS = 1e-4
-        prob = Problem(Minimize(norm(self.x, 1)), [self.x == Variable(2, boolean=True)])
+        prob = Problem(Minimize(norm(self.x, 1)),
+                       [self.x == Variable(2, boolean=True)])
         for i in range(2):
             prob.solve(solver=ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
                        mi_rel_eps=1e-5, verbose=True, warm_start=True)
@@ -205,7 +206,7 @@ class TestSolvers(BaseTest):
 
             # Boolean and integer version.
             bool_var = Variable(boolean=True)
-            int_var = Int()
+            int_var = Variable(integer=True)
             prob = Problem(Minimize(norm(self.x, 1)),
                            [self.x == bool_var, bool_var == 0])
             prob.solve(solver=GUROBI)
@@ -263,7 +264,7 @@ class TestSolvers(BaseTest):
 
             # Boolean and integer version.
             bool_var = Variable(boolean=True)
-            int_var = Int()
+            int_var = Variable(integer=True)
             prob = Problem(Minimize(norm(self.x, 2)),
                            [self.x == bool_var, bool_var == 0])
             prob.solve(solver=GUROBI)

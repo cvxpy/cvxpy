@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from .conic_solver import ConicSolver
 import cvxpy.settings as s
-from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
+from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
+                                                    dims_to_solver_dict, ECOS)
 
 
 class ECOS_BB(ECOS):
@@ -49,39 +51,25 @@ class ECOS_BB(ECOS):
         """
         return s.ECOS_BB
 
-    def solve(self, objective, constraints, cached_data,
-              warm_start, verbose, solver_opts):
-        """Returns the result of the call to the solver.
+    def apply(self, problem):
+        data, inv_data = super(ECOS_BB, self).apply(problem)
+        # Because the problem variable is single dimensional, every
+        # boolean/integer index has length one.
+        var = problem.variables()[0]
+        data[s.BOOL_IDX] = [t[0] for t in var.boolean_idx]
+        data[s.INT_IDX] = [t[0] for t in var.integer_idx]
+        return data, inv_data
 
-        Parameters
-        ----------
-        objective : LinOp
-            The canonicalized objective.
-        constraints : list
-            The list of canonicalized cosntraints.
-        cached_data : dict
-            A map of solver name to cached problem data.
-        warm_start : bool
-            Not used.
-        verbose : bool
-            Should the solver print output?
-        solver_opts : dict
-            Additional arguments for the solver.
-
-        Returns
-        -------
-        tuple
-            (status, optimal value, primal, equality dual, inequality dual)
-        """
+    def solve_via_data(self, data, warm_start, verbose, solver_opts):
         import ecos
-        data = self.get_problem_data(objective, constraints, cached_data)
+        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default verbose to false for BB wrapper.
         mi_verbose = solver_opts.get('mi_verbose', False)
-        results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
-                                  data[s.DIMS], data[s.A], data[s.B],
-                                  verbose=verbose,
-                                  mi_verbose=mi_verbose,
-                                  bool_vars_idx=data[s.BOOL_IDX],
-                                  int_vars_idx=data[s.INT_IDX],
-                                  **solver_opts)
-        return self.format_results(results_dict, data, cached_data)
+        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
+                              cones, data[s.A], data[s.B],
+                              verbose=verbose,
+                              mi_verbose=mi_verbose,
+                              bool_vars_idx=data[s.BOOL_IDX],
+                              int_vars_idx=data[s.INT_IDX],
+                              **solver_opts)
+        return solution
