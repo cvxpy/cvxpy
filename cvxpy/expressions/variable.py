@@ -78,20 +78,12 @@ class Variable(Leaf):
 
         super(Variable, self).__init__(shape, **kwargs)
 
-
     def name(self):
         return self._name
 
     def save_value(self, value):
         """Save the value of the primal variable.
         """
-        # # HACK change vector into symmetric matrix.
-        # if value is not None and any([self.attributes[key] for key in ['symmetric', 'PSD', 'NSD']]):
-        #     n = self.shape[0]
-        #     shape = (n*(n+1)//2, 1)
-        #     value = upper_tri_to_full(n)*value.flatten('F')[:shape[0]]
-        #     value = np.reshape(value, (n, n), 'F')
-
         self.primal_value = value
 
     @property
@@ -127,26 +119,8 @@ class Variable(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        if self.is_symmetric():
-            n = self.shape[0]
-            shape = (n*(n+1)//2, 1)
-            obj = lu.create_var(shape, self.id)
-            mat = lu.create_const(upper_tri_to_full(n), (n*n, shape[0]), sparse=True)
-            obj = lu.mul_expr(mat, obj, (n*n, 1))
-            obj = lu.reshape(obj, (n, n))
-        else:
-            obj = lu.create_var(self.shape, self.id)
-
-        constr = []
-        if self.is_nonneg():
-            constr.append(lu.create_geq(obj))
-        elif self.is_nonpos():
-            constr.append(lu.create_leq(obj))
-        elif self.attributes['PSD']:
-            constr.append(PSD(obj))
-        elif self.attributes['NSD']:
-            constr.append(PSD(lu.neg(obj)))
-        return (obj, constr)
+        obj = lu.create_var(self.shape, self.id)
+        return (obj, [])
 
     def __repr__(self):
         """String to recreate the object.

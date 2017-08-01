@@ -173,14 +173,14 @@ class PartialProblem(Expression):
 
         old_vals = {var.id: var.value for var in self.variables()}
         fix_vars = []
-        for var in self.variables():
+        for var in self.dont_opt_vars:
             if var.value is None:
                 return u.grad.error_grad(self)
             else:
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective,
                        fix_vars + self.args[0].constraints)
-        prob.solve()
+        prob.solve(verbose=True)
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
             sign = self.is_convex() - self.is_concave()
@@ -191,7 +191,7 @@ class PartialProblem(Expression):
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
                 lagr += trace(lagr_multiplier.T*constr.expr)
             grad_map = lagr.grad
-            result = {var: grad_map[var] for var in self.variables()}
+            result = {var: grad_map[var] for var in self.dont_opt_vars}
         else:  # Unbounded, infeasible, or solver error.
             result = u.grad.error_grad(self)
         # Restore the original values to the variables.
