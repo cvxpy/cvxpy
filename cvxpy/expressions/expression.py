@@ -316,7 +316,7 @@ class Expression(u.Canonical):
                 prod = cvxtypes.mul_expr()(lh_arg, other)
                 return cvxtypes.reshape()(prod, self.shape)
             elif self.is_scalar() and other.shape[0] != 1:
-                rh_arg = cvxtypes.reshape()(other, (other.size, 1))
+                rh_arg = cvxtypes.reshape()(other, (1, other.size))
                 prod = cvxtypes.mul_expr()(self, rh_arg)
                 return cvxtypes.reshape()(prod, other.shape)
             return cvxtypes.mul_expr()(self, other)

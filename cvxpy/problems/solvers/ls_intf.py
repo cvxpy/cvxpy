@@ -80,7 +80,6 @@ class LS(Solver):
         """
         import cvxpy.constraints.zero as eqc
 
-
         # TODO: handle affine objective
         return (prob.is_dcp() and prob.objective.args[0].is_quadratic() and
                 not prob.objective.args[0].is_affine() and

@@ -42,6 +42,7 @@ CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SCS, s.GUROBI, s.GLPK,
                  s.GLPK_MI, s.CBC, s.ELEMENTAL, s.JULIA_OPT, s.CVXOPT]
 QP_SOLVERS = [s.MOSEK, s.GUROBI]
 
+
 def installed_solvers():
     """List the installed solvers.
     """
@@ -51,5 +52,5 @@ def installed_solvers():
             installed.append(name)
     return installed
 
-INSTALLED_SOLVERS = installed_solvers()
 
+INSTALLED_SOLVERS = installed_solvers()

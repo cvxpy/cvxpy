@@ -23,7 +23,6 @@ import sys
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 import operator as op
 if sys.version_info >= (3, 0):
     from functools import reduce

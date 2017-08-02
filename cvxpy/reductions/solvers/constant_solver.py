@@ -3,8 +3,8 @@ from cvxpy.reductions.solvers.solver import Solver
 import cvxpy.settings as s
 
 
-
 class ConstantSolver(Solver):
+    """TODO(akshayka): Documentation."""
 
     # Solver capabilities
     MIP_CAPABLE = True

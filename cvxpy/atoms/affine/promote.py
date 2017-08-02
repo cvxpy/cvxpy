@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
@@ -32,6 +31,7 @@ def promote(expr, shape):
         return Promote(expr, shape)
     else:
         return expr
+
 
 class Promote(AffAtom):
     """ Promote a scalar expression to a vector/matrix.

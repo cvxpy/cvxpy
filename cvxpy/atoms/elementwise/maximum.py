@@ -99,7 +99,7 @@ class maximum(Elementwise):
             # Remove all the max_vals that were used.
             unused[value == max_vals] = 0
             grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
-                                                             rows, cols)]
+                                                        rows, cols)]
         return grad_list
 
     @staticmethod

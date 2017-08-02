@@ -102,14 +102,14 @@ class ECOS(ConicSolver):
         data[ConicSolver.DIMS] = ConeDims(constr_map)
 
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        data[s.A], data[s.B] = self.group_coeff_offset(problem,
-            constr_map[Zero], ECOS.EXP_CONE_ORDER)
+        data[s.A], data[s.B] = self.group_coeff_offset(
+            problem, constr_map[Zero], ECOS.EXP_CONE_ORDER)
 
         # Order and group nonlinear constraints.
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
         inv_data[self.NEQ_CONSTR] = neq_constr
-        data[s.G], data[s.H] = self.group_coeff_offset(problem, neq_constr,
-            ECOS.EXP_CONE_ORDER)
+        data[s.G], data[s.H] = self.group_coeff_offset(
+            problem, neq_constr, ECOS.EXP_CONE_ORDER)
 
         return data, inv_data
 
@@ -130,10 +130,12 @@ class ECOS(ConicSolver):
             primal_vars = {
                 inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
             }
-            eq_dual = utilities.get_dual_values(solution['y'],
+            eq_dual = utilities.get_dual_values(
+                solution['y'],
                 utilities.extract_dual_value,
                 inverse_data[self.EQ_CONSTR])
-            leq_dual = utilities.get_dual_values(solution['z'],
+            leq_dual = utilities.get_dual_values(
+                solution['z'],
                 utilities.extract_dual_value,
                 inverse_data[self.NEQ_CONSTR])
             eq_dual.update(leq_dual)

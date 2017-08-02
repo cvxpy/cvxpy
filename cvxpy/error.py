@@ -29,6 +29,7 @@ class DCPError(Exception):
     """
     pass
 
+
 class ParameterError(Exception):
     """Error thrown for accessing the value of an unspecified parameter.
     """

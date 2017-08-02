@@ -24,7 +24,6 @@ from cvxpy.expressions.variable import Variable
 def sum_largest_canon(expr, args):
     x = args[0]
     k = expr.k
-    shape = expr.shape
 
     # min sum(t) + kq
     # s.t. x <= t + q

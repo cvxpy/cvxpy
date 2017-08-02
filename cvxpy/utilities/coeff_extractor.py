@@ -120,13 +120,13 @@ class CoeffExtractor(object):
                 var_size = np.prod(affine_var_shapes[var.id])
                 if var.id in coeffs:
                     coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] += c[0,
-                        var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['q'] += c[
+                        0, var_offset:var_offset+var_size].toarray().flatten()
                 else:
                     coeffs[var.id] = dict()
                     coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] = c[0,
-                        var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['q'] = c[
+                        0, var_offset:var_offset+var_size].toarray().flatten()
         return coeffs, b
 
     def quad_form(self, expr):

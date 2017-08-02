@@ -140,5 +140,3 @@ class GUROBI(ConicSolver):
             warm_start,
             verbose,
             solver_opts)
-
-        return self.invert(sol, inv_data)

@@ -23,7 +23,6 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.constants import Constant
 from cvxpy.reductions import InverseData, Reduction, Solution
 from cvxpy.expressions.constants import CallbackParam
-from cvxpy.reductions import eval_params
 
 
 class Canonicalization(Reduction):

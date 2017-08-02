@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy.utilities as u
 import cvxpy.settings as s
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint

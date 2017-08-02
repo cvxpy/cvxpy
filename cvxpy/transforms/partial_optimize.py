@@ -24,7 +24,6 @@ from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace
-import copy
 
 
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
@@ -71,7 +70,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
 
     # Replace the opt_vars in prob with new variables.
     id_to_new_var = {id(var): Variable(var.shape,
-                                        **var.attributes) for var in opt_vars}
+                                       **var.attributes) for var in opt_vars}
     new_obj = prob.objective.tree_copy(id_to_new_var)
     new_constrs = [con.tree_copy(id_to_new_var)
                    for con in prob.constraints]
@@ -137,7 +136,7 @@ class PartialProblem(Expression):
     def variables(self):
         """Returns the variables in the problem.
         """
-        return self.args[0].variables()#copy.copy(self.dont_opt_vars)
+        return self.args[0].variables()
 
     def parameters(self):
         """Returns the parameters in the problem.

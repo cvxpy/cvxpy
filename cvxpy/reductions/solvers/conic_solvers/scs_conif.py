@@ -175,7 +175,7 @@ class SCS(ConicSolver):
             return -1 * A_prime, b_prime
         else:
             return super(SCS, self).format_constr(problem, constr,
-                exp_cone_order)
+                                                  exp_cone_order)
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -216,8 +216,8 @@ class SCS(ConicSolver):
         # Note that scs mandates that the cones MUST be ordered with
         # zero cones first, then non-nonnegative orthant, then SOC,
         # then PSD, then exponential.
-        data[s.A], data[s.B] = self.group_coeff_offset(problem,
-            zero_constr + neq_constr, self.EXP_CONE_ORDER)
+        data[s.A], data[s.B] = self.group_coeff_offset(
+            problem, zero_constr + neq_constr, self.EXP_CONE_ORDER)
         return data, inv_data
 
     def extract_dual_value(self, result_vec, offset, constraint):
@@ -229,7 +229,7 @@ class SCS(ConicSolver):
             dim = constraint.shape[0]
             lower_tri_dim = dim * (dim + 1) // 2
             new_offset = offset + lower_tri_dim
-            lower_tri = result_vec[offset:new_offset ]
+            lower_tri = result_vec[offset:new_offset]
             full = tri_to_full(lower_tri, dim)
             return full, new_offset
         else:

@@ -31,6 +31,7 @@ from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.utilities import are_args_affine
 import cvxpy.settings as s
 
 
@@ -43,6 +44,7 @@ def is_stuffed_qp_objective(objective):
             and type(expr.args[0]) == QuadForm
             and type(expr.args[1]) == MulExpression
             and expr.args[1].is_affine())
+
 
 class QpSolver(Solver):
     """
