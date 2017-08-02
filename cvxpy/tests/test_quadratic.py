@@ -164,11 +164,6 @@ class TestExpressions(BaseTest):
         x = Variable()
         y = Variable()
         z = Variable()
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            with self.assertRaises(Exception) as cm:
-                (x*y*z).is_quadratic()
-            self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
 
         s = max(vstack(x, y, z))**2
         self.assertFalse(s.is_quadratic())

@@ -427,13 +427,6 @@ class TestExpressions(BaseTest):
             q = self.A * self.B
             self.assertTrue(q.is_quadratic())
 
-        # Nonaffine times nonconstant raises error
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            with self.assertRaises(Exception) as cm:
-                ((self.A * self.B) * self.A)
-            self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
-
         # Constant expressions
         T = Constant([[1, 2, 3], [3, 5, 5]])
         exp = (T + T) * self.B

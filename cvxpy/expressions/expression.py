@@ -306,6 +306,8 @@ class Expression(u.Canonical):
         # from multiplying by a constant on the left.
         if self.is_constant():
             # TODO HACK catch c.T*x where c is a NumPy 1D array.
+            # TODO(akshayka): This logic will need to change once in order to
+            # handle 1D and 0D arrays.
             if self.shape[0] == other.shape[0] and \
                self.shape[1] != self.shape[0] and \
                isinstance(self, cvxtypes.constant()) and self.is_1D_array:
@@ -322,12 +324,12 @@ class Expression(u.Canonical):
                 return cvxtypes.reshape()(prod, other.shape)
             else:
                 return cvxtypes.mul_expr()(self, other)
-        elif self.is_affine() and other.is_affine():
-            warnings.warn("Forming a nonconvex expression (affine)*(affine).")
+        else:
+            # TODO(akshayka): Revisit this design choice --
+            # we'll probably want to allow non-DCP expressions to support
+            # smooth optimization.
+            warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.mul_expr()(self, other)
-        elif not (self.is_constant() or other.is_constant()):
-            raise DCPError("Cannot multiply %s and %s." % (self.curvature,
-                                                           other.curvature))
 
     @_cast_other
     def __matmul__(self, other):
