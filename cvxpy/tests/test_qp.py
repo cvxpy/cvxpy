@@ -24,11 +24,14 @@ from scipy.linalg import lstsq
 from cvxpy import Minimize, Problem
 from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum, sum_squares, norm,
                          matrix_frac)
+# from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI
+from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+from cvxpy.reductions.solvers.defines import SOLVER_MAP
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.tests.base_test import BaseTest
+import cvxpy.settings as s
 
 
 class TestQp(BaseTest):
@@ -61,20 +64,21 @@ class TestQp(BaseTest):
         self.xsr = Variable(500, name='xsr')
         self.xef = Variable(80, name='xef')
 
-        self.solvers = ['GUROBI']
+        self.solvers = [s.OSQP]
 
-    def solve_QP(self, problem, solver):
+    def solve_QP(self, problem, solver_name):
         self.assertTrue(Qp2SymbolicQp().accepts(problem))
         canon_p, canon_inverse = Qp2SymbolicQp().apply(problem)
         self.assertTrue(QpMatrixStuffing().accepts(canon_p))
         stuffed_p, stuffed_inverse = QpMatrixStuffing().apply(canon_p)
-        qp_solution = QpSolver(solver).solve(stuffed_p, False, False, {})
+        solver = SOLVER_MAP[solver_name]
+        qp_solution = solver.solve(stuffed_p, False, False, {})
         stuffed_solution = QpMatrixStuffing().invert(qp_solution, stuffed_inverse)
         return Qp2SymbolicQp().invert(stuffed_solution, canon_inverse)
 
     def test_all_solvers(self):
         for solver in self.solvers:
-#            self.quad_over_lin(solver)
+            # self.quad_over_lin(solver)
 #            self.power(solver)
 #            self.power_matrix(solver)
 #            self.square_affine(solver)

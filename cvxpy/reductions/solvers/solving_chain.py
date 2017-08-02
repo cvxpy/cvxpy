@@ -81,10 +81,11 @@ def construct_solving_chain(problem, solver=None):
     if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: QP_SOLVERS.index(s))[0]
+        solver_instance = SLV_MAP[solver]
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp(),
                        QpMatrixStuffing(),
-                       QpSolver(solver)]
+                       solver_instance]
         return SolvingChain(reductions=reductions)
 
     candidate_conic_solvers = [s for s in CONIC_SOLVERS if s in candidates]

@@ -18,6 +18,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
+
+# Conic interfaces
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.ecos_bb_conif import ECOS_BB
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
@@ -30,8 +32,12 @@ from cvxpy.reductions.solvers.conic_solvers.elemental_conif import Elemental
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif import MOSEK
 from cvxpy.reductions.solvers.conic_solvers.julia_opt_conif import JuliaOpt
 
+# QP interfaces
+from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
-               GLPK_MI(), CBC(), SCS(), GUROBI(),
+               GLPK_MI(), CBC(), SCS(), GUROBI(), OSQP(),
                Elemental(), MOSEK(), JuliaOpt()]
 SOLVER_MAP = {solver.name(): solver for solver in solver_intf}
 
@@ -40,7 +46,7 @@ SOLVER_MAP = {solver.name(): solver for solver in solver_intf}
 # and are supported by QpSolver.
 CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SCS, s.GUROBI, s.GLPK,
                  s.GLPK_MI, s.CBC, s.ELEMENTAL, s.JULIA_OPT, s.CVXOPT]
-QP_SOLVERS = [s.MOSEK, s.GUROBI]
+QP_SOLVERS = [s.OSQP, s.MOSEK, s.GUROBI]
 
 
 def installed_solvers():

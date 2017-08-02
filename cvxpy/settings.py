@@ -60,12 +60,13 @@ ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
 GUROBI = "GUROBI"
+OSQP = "OSQP"
 ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
 LS = "LS"
 JULIA_OPT = "JULIA_OPT"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
-           GLPK_MI, SCS, GUROBI, ELEMENTAL,
+           GLPK_MI, SCS, GUROBI, OSQP, ELEMENTAL,
            MOSEK, CBC, LS, JULIA_OPT]
 
 # Parallel (meta) solver
@@ -105,11 +106,14 @@ NUM_ITERS = "num_iters"  # number of iterations
 # Keys for problem data dict.
 C = "c"
 OFFSET = "offset"
+P = "P"
+Q = "q"
 A = "A"
 B = "b"
 G = "G"
 H = "h"
 F = "F"
+G = "g"
 DIMS = "dims"
 BOOL_IDX = "bool_vars_idx"
 INT_IDX = "int_vars_idx"
