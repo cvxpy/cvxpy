@@ -21,9 +21,11 @@ from __future__ import division
 import sys
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
+from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
 import operator as op
+import scipy.sparse as sp
 if sys.version_info >= (3, 0):
     from functools import reduce
 
@@ -70,21 +72,65 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
+    def is_atom_convex(self):
+        """Multiplication is convex (affine) in its arguments only if one of
+           the arguments is constant.
+        """
+        return self.args[0].is_constant() or self.args[1].is_constant()
+
+    def is_atom_concave(self):
+        """If the multiplication atom is convex, then it is affine.
+        """
+        return self.is_atom_convex()
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_nonneg()
+        return self.args[1-idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_nonpos()
+        return self.args[1-idx].is_nonpos()
 
     def validate_arguments(self):
         """Validates the dimensions.
         """
         u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        if self.args[0].is_constant() or self.args[1].is_constant():
+            return super(MulExpression, self)._grad(values)
+
+        # TODO(akshayka): Verify that the following code is correct for
+        # non-affine arguments.
+        X = values[0]
+        Y = values[1]
+
+        DX_rows = self.args[0].shape[0]*self.args[0].shape[1]
+        cols = self.args[0].shape[0]*self.args[1].shape[1]
+
+        # DX = [diag(Y11), diag(Y12), ...]
+        #      [diag(Y21), diag(Y22), ...]
+        #      [   ...        ...     ...]
+        DX = sp.dok_matrix((DX_rows, cols))
+        for k in range(self.args[0].shape[0]):
+            DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
+        DX = sp.csc_matrix(DX)
+        DY = sp.block_diag([X.T for k in range(self.args[1].shape[1])], 'csc')
+
+        return [DX, DY]
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Multiply the linear expressions.
@@ -103,42 +149,13 @@ class MulExpression(BinaryOperator):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
-
-
-class RMulExpression(MulExpression):
-    """Multiplication by a constant on the right.
-    """
-
-    def is_incr(self, idx):
-        """Is the composition non-decreasing in argument idx?
-        """
-        return self.args[1].is_nonneg()
-
-    def is_decr(self, idx):
-        """Is the composition non-increasing in argument idx?
-        """
-        return self.args[1].is_nonpos()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Multiply the linear expressions.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        return (lu.rmul_expr(arg_objs[0], arg_objs[1], shape), [])
+        if lu.is_const(arg_objs[0]):
+            return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
+        elif lu.is_const(arg_objs[1]):
+            return (lu.rmul_expr(arg_objs[0], arg_objs[1], shape), [])
+        else:
+            raise DCPError("Only those mul_expr that have at least one "
+                           "constant argument can be canonicalized.")
 
 
 class DivExpression(BinaryOperator):

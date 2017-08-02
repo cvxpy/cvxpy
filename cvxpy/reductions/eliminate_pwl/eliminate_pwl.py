@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import abs, maximum, sum_largest, max
-from cvxpy.atoms.affine_prod import affine_prod
 from cvxpy.atoms.pnorm import pnorm
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
@@ -30,8 +29,7 @@ class EliminatePwl(Canonicalization):
 
     def accepts(self, problem):
         atom_types = [type(atom) for atom in problem.atoms()]
-        pwl_types = [abs, affine_prod, maximum, sum_largest, max,
-                     pnorm]
+        pwl_types = [abs, maximum, sum_largest, max, pnorm]
         return any(atom in pwl_types for atom in atom_types)
 
     def apply(self, problem):

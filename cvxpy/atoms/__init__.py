@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine_prod import affine_prod
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.lambda_max import lambda_max

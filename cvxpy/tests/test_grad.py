@@ -47,7 +47,7 @@ class TestGrad(BaseTest):
     def test_affine_prod(self):
         """Test gradient for affine_prod
         """
-        expr = affine_prod(self.C, self.A)
+        expr = self.C * self.A
         self.C.value = np.matrix([[1, -2], [3, 4], [-1, -3]])
         self.A.value = np.matrix([[3, 2], [-5, 1]])
 

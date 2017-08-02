@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression, RMulExpression
+from cvxpy.atoms.affine.binary_operators import MulExpression
 from cvxpy.expressions.variable import Variable
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
@@ -107,7 +107,7 @@ class cumsum(AffAtom, AxisAtom):
         if self.axis == 0:
             grad = MulExpression(mat, var)._grad(values)[1]
         else:
-            grad = RMulExpression(var, mat.T)._grad(values)[0]
+            grad = MulExpression(var, mat.T)._grad(values)[0]
         return [grad]
 
     @staticmethod

@@ -28,7 +28,6 @@ CANON_METHODS = {}
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 
 # reuse cone canonicalization methods
-CANON_METHODS[affine_prod] = CONE_METHODS[affine_prod]
 CANON_METHODS[abs] = CONE_METHODS[abs]
 CANON_METHODS[cumsum] = CONE_METHODS[cumsum]
 CANON_METHODS[maximum] = CONE_METHODS[maximum]

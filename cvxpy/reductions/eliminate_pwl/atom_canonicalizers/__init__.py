@@ -21,7 +21,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import *
 from cvxpy.expressions.variable import Variable
 from abs_canon import *
-from affine_prod_canon import *
 from maximum_canon import *
 from max_canon import *
 from norm1_canon import *
@@ -31,7 +30,6 @@ from sum_largest_canon import *
 
 CANON_METHODS = {
     abs : abs_canon,
-    affine_prod : affine_prod,
     maximum : maximum_canon,
     max : max_canon,
     norm1 : norm1_canon,

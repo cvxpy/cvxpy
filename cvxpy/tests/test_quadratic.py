@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import affine_prod, quad_form, quad_over_lin, matrix_frac, sum_squares, norm, max
+from cvxpy.atoms import quad_form, quad_over_lin, matrix_frac, sum_squares, norm, max
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.expression import *

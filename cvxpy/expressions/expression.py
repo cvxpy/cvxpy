@@ -20,12 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import warnings
 
+from cvxpy.constraints import Zero, NonPos, PSD
 from cvxpy.error import DCPError
+from cvxpy.expressions import cvxtypes
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, PSD
-from cvxpy.expressions import cvxtypes
 import abc
 import numpy as np
 
@@ -310,30 +310,24 @@ class Expression(u.Canonical):
                self.shape[1] != self.shape[0] and \
                isinstance(self, cvxtypes.constant()) and self.is_1D_array:
                 self = self.T
-            # Handle promotion of right hand side.
+
+        if self.is_constant() or other.is_constant():
             if other.is_scalar() and self.shape[1] != 1:
                 lh_arg = cvxtypes.reshape()(self, (self.size, 1))
                 prod = cvxtypes.mul_expr()(lh_arg, other)
                 return cvxtypes.reshape()(prod, self.shape)
             elif self.is_scalar() and other.shape[0] != 1:
-                rh_arg = cvxtypes.reshape()(other, (1, other.size))
-                prod = cvxtypes.mul_expr()(self, rh_arg)
+                lh_arg = cvxtypes.reshape()(other, (other.size, 1))
+                prod = cvxtypes.mul_expr()(lh_arg, self)
                 return cvxtypes.reshape()(prod, other.shape)
-            return cvxtypes.mul_expr()(self, other)
-        elif other.is_constant():
-            # Having the constant on the left is more efficient.
-            if self.is_scalar() or other.is_scalar():
-                return cvxtypes.mul_expr()(other, self)
             else:
-                return cvxtypes.rmul_expr()(self, other)
-        # When both expressions are not constant
-        # Allow affine * affine but raise DCPError otherwise
-        # Cannot multiply two non-constant expressions.
+                return cvxtypes.mul_expr()(self, other)
         elif self.is_affine() and other.is_affine():
             warnings.warn("Forming a nonconvex expression (affine)*(affine).")
-            return cvxtypes.affine_prod_expr()(self, other)
-        else:
-            raise DCPError("Cannot multiply %s and %s." % (self.curvature, other.curvature))
+            return cvxtypes.mul_expr()(self, other)
+        elif not (self.is_constant() or other.is_constant()):
+            raise DCPError("Cannot multiply %s and %s." % (self.curvature,
+                                                           other.curvature))
 
     @_cast_other
     def __matmul__(self, other):

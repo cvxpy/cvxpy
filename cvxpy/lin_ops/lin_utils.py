@@ -121,6 +121,21 @@ def create_const(value, shape, sparse=False):
     return lo.LinOp(op_type, shape, [], value)
 
 
+def is_const(operator):
+    """Returns whether a LinOp is constant.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The LinOp to test.
+
+    Returns
+    -------
+        True if the LinOp is a constant, False otherwise.
+    """
+    return operator.type in [lo.SCALAR_CONST, lo.SPARSE_CONST, lo.DENSE_CONST]
+
+
 def sum_expr(operators):
     """Add linear operators.
 
