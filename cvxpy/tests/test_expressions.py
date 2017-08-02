@@ -261,6 +261,16 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), diag=True, symmetric=True)
         self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Parameter.")
 
+        # Boolean
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), boolean=True, value=[[1,1], [1,-1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
+
+        # Integer
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), integer=True, value=[[1,1.5], [1,-1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be integer.")
+
         # Diag.
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, value=[[1,1], [1,-1]])
@@ -313,6 +323,14 @@ class TestExpressions(BaseTest):
         self.assertAlmostEqual(v.round(-1), 0)
         v = Variable(2, nonneg=True)
         self.assertItemsAlmostEqual(v.round(np.array([1,-1])), [1,0])
+
+        # Boolean
+        v = Variable((2, 2), boolean=True)
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]]).T), [1,0,1,0])
+
+        # Integer
+        v = Variable((2, 2), integer=True)
+        self.assertItemsAlmostEqual(v.round(np.array([[1,-1.6], [1,0]]).T), [1,-2,1,0])
 
         # Symmetric
         v = Variable((2, 2), symmetric=True)

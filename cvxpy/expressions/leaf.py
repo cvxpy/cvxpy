@@ -175,7 +175,7 @@ class Leaf(expression.Expression):
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
-        return self.attributes['nonneg']
+        return self.attributes['nonneg'] or self.attributes['boolean']
 
     def is_nonpos(self):
         """Is the expression nonpositive?
@@ -210,9 +210,13 @@ class Leaf(expression.Expression):
         """
         # Only one attribute can be active at once (besides real).
         if self.attributes['nonpos']:
-            return np.minimum(val, 0)
+            return np.minimum(val, 0.)
         elif self.attributes['nonneg']:
-            return np.maximum(val, 0)
+            return np.maximum(val, 0.)
+        elif self.attributes['boolean']:
+            return np.round(np.clip(val, 0., 1.))
+        elif self.attributes['integer']:
+            return np.round(val)
         elif self.attributes['diag']:
             return sp.diags([np.diag(val)], [0])
         elif any([self.attributes[key] for
@@ -250,30 +254,21 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (val.shape, self.__class__.__name__)
                 )
-            elif self.attributes['nonneg'] and np.min(val) < 0:
+            elif np.any(self.round(val) != val):
+                if self.attributes['nonneg']:
+                    attr_str = 'nonnegative'
+                elif self.attributes['nonpos']:
+                    attr_str = 'nonpositive'
+                elif self.attributes['diag']:
+                    attr_str = 'diagonal'
+                elif self.attributes['PSD']:
+                    attr_str = 'positive semidefinite'
+                elif self.attributes['NSD']:
+                    attr_str = 'negative semidefinite'
+                else:
+                    attr_str = [k for (k, v) in self.attributes.items() if v and k != 'real'][0]
                 raise ValueError(
-                    "%s value must be nonnegative." % self.__class__.__name__
-                )
-            elif self.attributes['nonpos'] and np.max(val) > 0:
-                raise ValueError(
-                    "%s value must be nonpositive." % self.__class__.__name__
-                )
-            elif self.attributes['diag'] and np.sum(np.abs(val)) != np.sum(np.abs(np.diag(val))):
-                raise ValueError(
-                    "%s value must be diagonal." % self.__class__.__name__
-                )
-            elif any([self.attributes[key] for
-                      key in ['symmetric', 'PSD', 'NSD']]) and np.any(val != val.T):
-                raise ValueError(
-                    "%s value must be symmetric." % self.__class__.__name__
-                )
-            elif self.attributes['PSD'] and np.min(LA.eig(val)[0]) < 0:
-                raise ValueError(
-                    "%s value must be positive semidefinite." % self.__class__.__name__
-                )
-            elif self.attributes['NSD'] and np.max(LA.eig(val)[0]) > 0:
-                raise ValueError(
-                    "%s value must be negative semidefinite." % self.__class__.__name__
+                    "%s value must be %s." % (self.__class__.__name__, attr_str)
                 )
         return val
 
