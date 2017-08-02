@@ -118,14 +118,14 @@ class sum_largest(Atom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # min sum_entries(t) + kq
+        # min sum(t) + kq
         # s.t. x <= t + q
         #      0 <= t
         x = arg_objs[0]
         k = lu.create_const(data[0], (1, 1))
         q = lu.create_var((1, 1))
         t = lu.create_var(x.shape)
-        sum_t = lu.sum_entries(t)
+        sum_t = lu.sum(t)
         obj = lu.sum_expr([sum_t, lu.mul_expr(k, q, (1, 1))])
         prom_q = lu.promote(q, x.shape)
         constr = [lu.create_leq(x, lu.sum_expr([t, prom_q])),

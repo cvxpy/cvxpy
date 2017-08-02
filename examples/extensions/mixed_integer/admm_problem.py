@@ -31,7 +31,7 @@ def admm(self, rho=0.5, iterations=5, *args, **kwargs):
     # Form ADMM problem.
     obj = self.objective.args[0]
     for var in noncvx_vars:
-        obj = obj + (rho/2)*cvx.sum_entries(cvx.square(var - var.z + var.u))
+        obj = obj + (rho/2)*cvx.sum(cvx.square(var - var.z + var.u))
     prob = cvx.Problem(cvx.Minimize(obj), self.constraints)
     # ADMM loop
     for i in range(iterations):
@@ -52,7 +52,7 @@ def admm2(self, rho=0.5, iterations=5, *args, **kwargs):
     # Form ADMM problem.
     obj = self.objective.args[0]
     for var in noncvx_vars:
-        obj = obj + (rho/2)*cvx.sum_entries(cvx.square(var - var.z + var.u))
+        obj = obj + (rho/2)*cvx.sum(cvx.square(var - var.z + var.u))
     prob = cvx.Problem(cvx.Minimize(obj), self.constraints)
     # ADMM loop
     best_so_far = np.inf

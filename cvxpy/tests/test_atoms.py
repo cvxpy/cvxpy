@@ -21,7 +21,7 @@ import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
 from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Parameter
+from cvxpy.expressions.constants import Parameter, Constant
 import cvxpy.utilities as u
 import numpy as np
 import unittest
@@ -274,13 +274,13 @@ class TestAtoms(BaseTest):
         """Test arg count for max and min variants.
         """
         with self.assertRaises(Exception) as cm:
-            max_elemwise(1)
+            maximum(1)
         self.assertTrue(str(cm.exception) in (
             "__init__() takes at least 3 arguments (2 given)",
             "__init__() missing 1 required positional argument: 'arg2'"))
 
         with self.assertRaises(Exception) as cm:
-            min_elemwise(1)
+            minimum(1)
         self.assertTrue(str(cm.exception) in (
             "__init__() takes at least 3 arguments (2 given)",
             "__init__() missing 1 required positional argument: 'arg2'"))
@@ -302,149 +302,148 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to matrix_frac have incompatible dimensions.")
 
-    def test_max_entries(self):
-        """Test max_entries.
+    def test_max(self):
+        """Test max.
         """
         # One arg, test sign.
-        self.assertEqual(max_entries(1).sign, s.POSITIVE)
-        self.assertEqual(max_entries(-2).sign, s.NEGATIVE)
-        self.assertEqual(max_entries(Variable()).sign, s.UNKNOWN)
-        self.assertEqual(max_entries(0).sign, s.ZERO)
+        self.assertEqual(max(1).sign, s.POSITIVE)
+        self.assertEqual(max(-2).sign, s.NEGATIVE)
+        self.assertEqual(max(Variable()).sign, s.UNKNOWN)
+        self.assertEqual(max(0).sign, s.ZERO)
 
         # Test with axis argument.
-        self.assertEqual(max_entries(Variable(2), axis=0).shape, (1, 1))
-        self.assertEqual(max_entries(Variable(2), axis=1).shape, (2, 1))
-        self.assertEqual(max_entries(Variable((2, 3)), axis=0).shape, (1, 3))
-        self.assertEqual(max_entries(Variable((2, 3)), axis=1).shape, (2, 1))
+        self.assertEqual(max(Variable(2), axis=0).shape, (1, 1))
+        self.assertEqual(max(Variable(2), axis=1).shape, (2, 1))
+        self.assertEqual(max(Variable((2, 3)), axis=0).shape, (1, 3))
+        self.assertEqual(max(Variable((2, 3)), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
-            max_entries(self.x, axis=4)
+            max(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
 
-    def test_min_entries(self):
-        """Test min_entries.
+    def test_min(self):
+        """Test min.
         """
         # One arg, test sign.
-        self.assertEqual(min_entries(1).sign, s.POSITIVE)
-        self.assertEqual(min_entries(-2).sign, s.NEGATIVE)
-        self.assertEqual(min_entries(Variable()).sign, s.UNKNOWN)
-        self.assertEqual(min_entries(0).sign, s.ZERO)
+        self.assertEqual(min(1).sign, s.POSITIVE)
+        self.assertEqual(min(-2).sign, s.NEGATIVE)
+        self.assertEqual(min(Variable()).sign, s.UNKNOWN)
+        self.assertEqual(min(0).sign, s.ZERO)
 
         # Test with axis argument.
-        self.assertEqual(min_entries(Variable(2), axis=0).shape, (1, 1))
-        self.assertEqual(min_entries(Variable(2), axis=1).shape, (2, 1))
-        self.assertEqual(min_entries(Variable((2, 3)), axis=0).shape, (1, 3))
-        self.assertEqual(min_entries(Variable((2, 3)), axis=1).shape, (2, 1))
+        self.assertEqual(min(Variable(2), axis=0).shape, (1, 1))
+        self.assertEqual(min(Variable(2), axis=1).shape, (2, 1))
+        self.assertEqual(min(Variable((2, 3)), axis=0).shape, (1, 3))
+        self.assertEqual(min(Variable((2, 3)), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
-            min_entries(self.x, axis=4)
+            min(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
 
-    # Test sign logic for max_elemwise.
-    def test_max_elemwise_sign(self):
+    # Test sign logic for maximum.
+    def test_maximum_sign(self):
         # Two args.
-        self.assertEqual(max_elemwise(1, 2).sign, s.POSITIVE)
-        self.assertEqual(max_elemwise(1, Variable()).sign, s.POSITIVE)
-        self.assertEqual(max_elemwise(1, -2).sign, s.POSITIVE)
-        self.assertEqual(max_elemwise(1, 0).sign, s.POSITIVE)
+        self.assertEqual(maximum(1, 2).sign, s.POSITIVE)
+        self.assertEqual(maximum(1, Variable()).sign, s.POSITIVE)
+        self.assertEqual(maximum(1, -2).sign, s.POSITIVE)
+        self.assertEqual(maximum(1, 0).sign, s.POSITIVE)
 
-        self.assertEqual(max_elemwise(Variable(), 0).sign, s.POSITIVE)
-        self.assertEqual(max_elemwise(Variable(), Variable()).sign, s.UNKNOWN)
-        self.assertEqual(max_elemwise(Variable(), -2).sign, s.UNKNOWN)
+        self.assertEqual(maximum(Variable(), 0).sign, s.POSITIVE)
+        self.assertEqual(maximum(Variable(), Variable()).sign, s.UNKNOWN)
+        self.assertEqual(maximum(Variable(), -2).sign, s.UNKNOWN)
 
-        self.assertEqual(max_elemwise(0, 0).sign, s.ZERO)
-        self.assertEqual(max_elemwise(0, -2).sign, s.ZERO)
+        self.assertEqual(maximum(0, 0).sign, s.ZERO)
+        self.assertEqual(maximum(0, -2).sign, s.ZERO)
 
-        self.assertEqual(max_elemwise(-3, -2).sign, s.NEGATIVE)
+        self.assertEqual(maximum(-3, -2).sign, s.NEGATIVE)
 
         # Many args.
-        self.assertEqual(max_elemwise(-2, Variable(), 0, -1, Variable(), 1).sign,
+        self.assertEqual(maximum(-2, Variable(), 0, -1, Variable(), 1).sign,
                          s.POSITIVE)
 
         # Promotion.
-        self.assertEqual(max_elemwise(1, Variable(2)).sign,
+        self.assertEqual(maximum(1, Variable(2)).sign,
                          s.POSITIVE)
-        self.assertEqual(max_elemwise(1, Variable(2)).shape,
+        self.assertEqual(maximum(1, Variable(2)).shape,
                          (2, 1))
 
-    # Test sign logic for min_elemwise.
-    def test_min_elemwise_sign(self):
+    # Test sign logic for minimum.
+    def test_minimum_sign(self):
         # Two args.
-        self.assertEqual(min_elemwise(1, 2).sign, s.POSITIVE)
-        self.assertEqual(min_elemwise(1, Variable()).sign, s.UNKNOWN)
-        self.assertEqual(min_elemwise(1, -2).sign, s.NEGATIVE)
-        self.assertEqual(min_elemwise(1, 0).sign, s.ZERO)
+        self.assertEqual(minimum(1, 2).sign, s.POSITIVE)
+        self.assertEqual(minimum(1, Variable()).sign, s.UNKNOWN)
+        self.assertEqual(minimum(1, -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(1, 0).sign, s.ZERO)
 
-        self.assertEqual(min_elemwise(Variable(), 0).sign, s.NEGATIVE)
-        self.assertEqual(min_elemwise(Variable(), Variable()).sign, s.UNKNOWN)
-        self.assertEqual(min_elemwise(Variable(), -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(Variable(), 0).sign, s.NEGATIVE)
+        self.assertEqual(minimum(Variable(), Variable()).sign, s.UNKNOWN)
+        self.assertEqual(minimum(Variable(), -2).sign, s.NEGATIVE)
 
-        self.assertEqual(min_elemwise(0, 0).sign, s.ZERO)
-        self.assertEqual(min_elemwise(0, -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(0, 0).sign, s.ZERO)
+        self.assertEqual(minimum(0, -2).sign, s.NEGATIVE)
 
-        self.assertEqual(min_elemwise(-3, -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(-3, -2).sign, s.NEGATIVE)
 
         # Many args.
-        self.assertEqual(min_elemwise(-2, Variable(), 0, -1, Variable(), 1).sign,
+        self.assertEqual(minimum(-2, Variable(), 0, -1, Variable(), 1).sign,
                          s.NEGATIVE)
 
         # Promotion.
-        self.assertEqual(min_elemwise(-1, Variable(2)).sign,
+        self.assertEqual(minimum(-1, Variable(2)).sign,
                          s.NEGATIVE)
-        self.assertEqual(min_elemwise(-1, Variable(2)).shape,
+        self.assertEqual(minimum(-1, Variable(2)).shape,
                          (2, 1))
 
-    def test_sum_entries(self):
-        """Test the sum_entries atom.
+    def test_sum(self):
+        """Test the sum atom.
         """
-        self.assertEqual(sum_entries(1).sign, s.POSITIVE)
-        self.assertEqual(sum_entries([1, -1]).sign, s.UNKNOWN)
-        self.assertEqual(sum_entries([1, -1]).curvature, s.CONSTANT)
-        self.assertEqual(sum_entries(Variable(2)).sign, s.UNKNOWN)
-        self.assertEqual(sum_entries(Variable(2)).shape, (1, 1))
-        self.assertEqual(sum_entries(Variable(2)).curvature, s.AFFINE)
+        self.assertEqual(cvxpy.sum(1).sign, s.POSITIVE)
+        self.assertEqual(cvxpy.sum(Constant([1, -1])).sign, s.UNKNOWN)
+        self.assertEqual(cvxpy.sum(Constant([1, -1])).curvature, s.CONSTANT)
+        self.assertEqual(cvxpy.sum(Variable(2)).sign, s.UNKNOWN)
+        self.assertEqual(cvxpy.sum(Variable(2)).shape, (1, 1))
+        self.assertEqual(cvxpy.sum(Variable(2)).curvature, s.AFFINE)
         # Mixed curvature.
         mat = np.mat("1 -1")
-        self.assertEqual(sum_entries(mat*square(Variable(2))).curvature, s.UNKNOWN)
+        self.assertEqual(cvxpy.sum(mat*square(Variable(2))).curvature, s.UNKNOWN)
 
         # Test with axis argument.
-        self.assertEqual(sum_entries(Variable(2), axis=0).shape, (1, 1))
-        self.assertEqual(sum_entries(Variable(2), axis=1).shape, (2, 1))
-        self.assertEqual(sum_entries(Variable((2, 3)), axis=0).shape, (1, 3))
-        self.assertEqual(sum_entries(Variable((2, 3)), axis=1).shape, (2, 1))
+        self.assertEqual(cvxpy.sum(Variable(2), axis=0).shape, (1, 1))
+        self.assertEqual(cvxpy.sum(Variable(2), axis=1).shape, (2, 1))
+        self.assertEqual(cvxpy.sum(Variable((2, 3)), axis=0).shape, (1, 3))
+        self.assertEqual(cvxpy.sum(Variable((2, 3)), axis=1).shape, (2, 1))
 
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
-            sum_entries(self.x, axis=4)
+            sum(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
 
-    def test_mul_elemwise(self):
-        """Test the mul_elemwise atom.
+    def test_multiply(self):
+        """Test the multiply atom.
         """
-        self.assertEqual(mul_elemwise([1, -1], self.x).sign, s.UNKNOWN)
-        self.assertEqual(mul_elemwise([1, -1], self.x).curvature, s.AFFINE)
-        self.assertEqual(mul_elemwise([1, -1], self.x).shape, (2, 1))
+        self.assertEqual(multiply([1, -1], self.x).sign, s.UNKNOWN)
+        self.assertEqual(multiply([1, -1], self.x).curvature, s.AFFINE)
+        self.assertEqual(multiply([1, -1], self.x).shape, (2, 1))
         pos_param = Parameter(2, nonneg=True)
         neg_param = Parameter(2, nonpos=True)
-        self.assertEqual(mul_elemwise(pos_param, pos_param).sign, s.POSITIVE)
-        self.assertEqual(mul_elemwise(pos_param, neg_param).sign, s.NEGATIVE)
-        self.assertEqual(mul_elemwise(neg_param, neg_param).sign, s.POSITIVE)
+        self.assertEqual(multiply(pos_param, pos_param).sign, s.POSITIVE)
+        self.assertEqual(multiply(pos_param, neg_param).sign, s.NEGATIVE)
+        self.assertEqual(multiply(neg_param, neg_param).sign, s.POSITIVE)
 
-        self.assertEqual(mul_elemwise(neg_param, square(self.x)).curvature, s.CONCAVE)
+        self.assertEqual(multiply(neg_param, square(self.x)).curvature, s.CONCAVE)
 
         # Test promotion.
-        self.assertEqual(mul_elemwise([1, -1], 1).shape, (2, 1))
-        self.assertEqual(mul_elemwise(1, self.C).shape, self.C.shape)
+        self.assertEqual(multiply([1, -1], 1).shape, (2, 1))
+        self.assertEqual(multiply(1, self.C).shape, self.C.shape)
 
-        with self.assertRaises(Exception) as cm:
-            mul_elemwise(self.x, [1, -1])
-        self.assertEqual(str(cm.exception),
-                         "The first argument to mul_elemwise must be constant.")
+        self.assertEqual(multiply(self.x, [1, -1]).sign, s.UNKNOWN)
+        self.assertEqual(multiply(self.x, [1, -1]).curvature, s.AFFINE)
+        self.assertEqual(multiply(self.x, [1, -1]).shape, (2, 1))
 
     # Test the vstack class.
     def test_vstack(self):
@@ -729,11 +728,11 @@ class TestAtoms(BaseTest):
         dims = 3
         x, t = Variable(dims), Variable(dims)
         xval = [-5]*dims
-        p2 = Problem(cvxpy.Minimize(sum_entries(t)), [-t <= x, x <= t])
+        p2 = Problem(cvxpy.Minimize(cvxpy.sum(t)), [-t <= x, x <= t])
         g = cvxpy.partial_optimize(p2, [t], [x])
         self.assertEqual(g.curvature, s.CONVEX)
 
-        p2 = Problem(cvxpy.Maximize(sum_entries(t)), [-t <= x, x <= t])
+        p2 = Problem(cvxpy.Maximize(cvxpy.sum(t)), [-t <= x, x <= t])
         g = cvxpy.partial_optimize(p2, [t], [x])
         self.assertEqual(g.curvature, s.CONCAVE)
 
@@ -748,18 +747,18 @@ class TestAtoms(BaseTest):
         dims = 3
         x, t = Variable(dims), Variable(dims)
         xval = [-5]*dims
-        p1 = Problem(cvxpy.Minimize(sum_entries(t)), [-t <= xval, xval <= t])
+        p1 = Problem(cvxpy.Minimize(cvxpy.sum(t)), [-t <= xval, xval <= t])
         p1.solve()
 
         # Minimize the 1-norm via partial_optimize.
-        p2 = Problem(cvxpy.Minimize(sum_entries(t)), [-t <= x, x <= t])
+        p2 = Problem(cvxpy.Minimize(cvxpy.sum(t)), [-t <= x, x <= t])
         g = cvxpy.partial_optimize(p2, [t], [x])
         p3 = Problem(cvxpy.Minimize(g), [x == xval])
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
         # Minimize the 1-norm using maximize.
-        p2 = Problem(cvxpy.Maximize(sum_entries(-t)), [-t <= x, x <= t])
+        p2 = Problem(cvxpy.Maximize(cvxpy.sum(-t)), [-t <= x, x <= t])
         g = cvxpy.partial_optimize(p2, opt_vars=[t])
         p3 = Problem(cvxpy.Maximize(g), [x == xval])
         p3.solve()
@@ -768,7 +767,7 @@ class TestAtoms(BaseTest):
         # Try leaving out args.
 
         # Minimize the 1-norm via partial_optimize.
-        p2 = Problem(cvxpy.Minimize(sum_entries(t)), [-t <= x, x <= t])
+        p2 = Problem(cvxpy.Minimize(cvxpy.sum(t)), [-t <= x, x <= t])
         g = cvxpy.partial_optimize(p2, opt_vars=[t])
         p3 = Problem(cvxpy.Minimize(g), [x == xval])
         p3.solve()
@@ -796,7 +795,7 @@ class TestAtoms(BaseTest):
         # Minimize the 1-norm in the usual way
         dims = 3
         x, t = Variable(dims), Variable(dims)
-        p1 = Problem(Minimize(sum_entries(t)), [-t <= x, x <= t])
+        p1 = Problem(Minimize(cvxpy.sum(t)), [-t <= x, x <= t])
 
         # Minimize the 1-norm via partial_optimize
         g = cvxpy.partial_optimize(p1, [t], [x])
@@ -901,7 +900,7 @@ class TestAtoms(BaseTest):
         # Minimize the 1-norm in the usual way
         dims = 3
         x, t = Variable(dims), Variable(dims)
-        p1 = Problem(Minimize(sum_entries(t)), [-t <= x, x <= t])
+        p1 = Problem(Minimize(cvxpy.sum(t)), [-t <= x, x <= t])
 
         # Minimize the 1-norm via partial_optimize
         g = cvxpy.partial_optimize(p1, [t], [x])

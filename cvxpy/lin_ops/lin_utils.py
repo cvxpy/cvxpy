@@ -211,7 +211,7 @@ def rmul_expr(lh_op, rh_op, shape):
     return lo.LinOp(lo.RMUL, shape, [lh_op], rh_op)
 
 
-def mul_elemwise(lh_op, rh_op):
+def multiply(lh_op, rh_op):
     """Multiply two linear operators elementwise.
 
     Parameters

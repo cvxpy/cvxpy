@@ -20,17 +20,30 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.expressions.expression import Expression
 import numpy as np
 
 
-class mul_elemwise(AffAtom):
+def multiply(lh_arg, rh_arg):
+    lh_arg = Expression.cast_to_const(lh_arg)
+    rh_arg = Expression.cast_to_const(rh_arg)
+    # Promotion via multiplication.
+    if lh_arg.is_scalar() or rh_arg.is_scalar():
+        return lh_arg * rh_arg
+    elif rh_arg.is_constant():
+        return Multiply(rh_arg, lh_arg)
+    else:
+        return Multiply(lh_arg, rh_arg)
+
+
+class Multiply(AffAtom):
     """ Multiplies two expressions elementwise.
 
     The first expression must be constant.
     """
 
     def __init__(self, lh_const, rh_expr):
-        super(mul_elemwise, self).__init__(lh_const, rh_expr)
+        super(Multiply, self).__init__(lh_const, rh_expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
@@ -44,7 +57,7 @@ class mul_elemwise(AffAtom):
            Left-hand argument must be constant.
         """
         if not self.args[0].is_constant():
-            raise ValueError(("The first argument to mul_elemwise must "
+            raise ValueError(("The first argument to multiply must "
                               "be constant."))
 
     def shape_from_args(self):
@@ -95,8 +108,4 @@ class mul_elemwise(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        # One of the arguments is a scalar, so we can use normal multiplication.
-        if arg_objs[0].shape != arg_objs[1].shape:
-            return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
-        else:
-            return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])
+        return (lu.multiply(arg_objs[0], arg_objs[1]), [])

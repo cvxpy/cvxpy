@@ -22,7 +22,7 @@ import scipy.sparse as sp
 from scipy.linalg import lstsq
 
 from cvxpy import Minimize, Problem
-from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum_entries, sum_squares, norm,
+from cvxpy.atoms import (QuadForm, abs, power, quad_over_lin, sum, sum_squares, norm,
                          matrix_frac)
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
@@ -104,13 +104,13 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(numpy.array([2., 2.]), s.dual_vars[con.id])
 
     def power(self, solver):
-        p = Problem(Minimize(sum_entries(power(self.x, 2))), [])
+        p = Problem(Minimize(sum(power(self.x, 2))), [])
         s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
 
     def power_matrix(self, solver):
-        p = Problem(Minimize(sum_entries(power(self.A - 3., 2))), [])
+        p = Problem(Minimize(sum(power(self.A - 3., 2))), [])
         s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([3., 3., 3., 3.], s.primal_vars[var.id])
@@ -139,7 +139,7 @@ class TestQp(BaseTest):
         A = numpy.maximum(A, 0)
         b = numpy.random.randn(5, 1)
         b = numpy.maximum(b, 0)
-        p = Problem(Minimize(sum_entries(self.x)), [self.x >= 0, A*self.x <= b])
+        p = Problem(Minimize(sum(self.x)), [self.x >= 0, A*self.x <= b])
         s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], s.primal_vars[var.id])
@@ -286,7 +286,7 @@ class TestQp(BaseTest):
         G = numpy.random.randn(r, n)
         h = numpy.random.randn(r, 1)
 
-        obj1 = sum_entries((A*self.xef - b) ** 2)
+        obj1 = sum((A*self.xef - b) ** 2)
         cons = [G*self.xef == h]
 
         p1 = Problem(Minimize(obj1), cons)

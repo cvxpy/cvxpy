@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
-from cvxpy import *
+import cvxpy as cvx
 import cvxpy.interface as intf
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif
@@ -42,9 +42,9 @@ class TestExamples(BaseTest):
         b = np.ones(4)
 
         # Create and solve the model
-        r = Variable(name='r')
-        x_c = Variable(2, name='x_c')
-        obj = Maximize(r)
+        r = cvx.Variable(name='r')
+        x_c = cvx.Variable(2, name='x_c')
+        obj = cvx.Maximize(r)
         constraints = [  # TODO have atoms compute values for constants.
             a1.T*x_c + np.linalg.norm(a1)*r <= b[0],
             a2.T*x_c + np.linalg.norm(a2)*r <= b[1],
@@ -52,7 +52,7 @@ class TestExamples(BaseTest):
             a4.T*x_c + np.linalg.norm(a4)*r <= b[3],
         ]
 
-        p = Problem(obj, constraints)
+        p = cvx.Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 0.447214)
         self.assertAlmostEqual(r.value, result)
@@ -86,18 +86,18 @@ class TestExamples(BaseTest):
         r2 = np.random.randn(1, 1)
         r3 = np.random.randn(1, 1)
 
-        slack = Variable()
+        slack = cvx.Variable()
         # Form the problem
-        x = Variable(n)
-        objective = Minimize(0.5*quad_form(x, P0) + q0.T*x + r0 + slack)
-        constraints = [0.5*quad_form(x, P1) + q1.T*x + r1 <= slack,
-                       0.5*quad_form(x, P2) + q2.T*x + r2 <= slack,
-                       0.5*quad_form(x, P3) + q3.T*x + r3 <= slack,
+        x = cvx.Variable(n)
+        objective = cvx.Minimize(0.5*cvx.quad_form(x, P0) + q0.T*x + r0 + slack)
+        constraints = [0.5*cvx.quad_form(x, P1) + q1.T*x + r1 <= slack,
+                       0.5*cvx.quad_form(x, P2) + q2.T*x + r2 <= slack,
+                       0.5*cvx.quad_form(x, P3) + q3.T*x + r3 <= slack,
                        ]
 
         # We now find the primal result and compare it to the dual result
         # to check if strong duality holds i.e. the duality gap is effectively zero
-        p = Problem(objective, constraints)
+        p = cvx.Problem(objective, constraints)
         primal_result = p.solve()
 
         # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
@@ -119,17 +119,17 @@ class TestExamples(BaseTest):
     def test_readme_examples(self):
         import numpy
         numpy.random.seed(1)
-        # Problem data.
+        # cvx.Problem data.
         m = 30
         n = 20
         A = numpy.random.randn(m, n)
         b = numpy.random.randn(m)
 
         # Construct the problem.
-        x = Variable(n)
-        objective = Minimize(sum_entries(square(A*x - b)))
+        x = cvx.Variable(n)
+        objective = cvx.Minimize(cvx.sum_squares(A*x - b))
         constraints = [0 <= x, x <= 1]
-        p = Problem(objective, constraints)
+        p = cvx.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
         result = p.solve()
@@ -142,24 +142,24 @@ class TestExamples(BaseTest):
         ####################################################
 
         # Scalar variable.
-        a = Variable()
+        a = cvx.Variable()
 
         # Column vector variable of length 5.
-        x = Variable(5)
+        x = cvx.Variable(5)
 
         # Matrix variable with 4 rows and 7 columns.
-        A = Variable((4, 7))
+        A = cvx.Variable((4, 7))
 
         ####################################################
 
         # Positive scalar parameter.
-        m = Parameter(nonneg=True)
+        m = cvx.Parameter(nonneg=True)
 
         # Column vector parameter with unknown sign (by default).
-        c = Parameter(5)
+        c = cvx.Parameter(5)
 
         # Matrix parameter with negative entries.
-        G = Parameter((4, 7), nonpos=True)
+        G = cvx.Parameter((4, 7), nonpos=True)
 
         # Assigns a constant value to G.
         G.value = -numpy.ones((4, 7))
@@ -170,30 +170,30 @@ class TestExamples(BaseTest):
         self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
 
         ####################################################
-        a = Variable()
-        x = Variable(5)
+        a = cvx.Variable()
+        x = cvx.Variable(5)
 
         # expr is an Expression object after each assignment.
         expr = 2*x
         expr = expr - a
-        expr = sum_entries(expr) + norm(x, 2)
+        expr = cvx.sum(expr) + cvx.norm(x, 2)
 
         ####################################################
 
         import numpy as np
         from multiprocessing import Pool
 
-        # Problem data.
+        # cvx.Problem data.
         n = 10
         m = 5
         A = np.random.randn(n, m)
         b = np.random.randn(n)
-        gamma = Parameter(nonneg=True)
+        gamma = cvx.Parameter(nonneg=True)
 
         # Construct the problem.
-        x = Variable(m)
-        objective = Minimize(sum_entries(square(A*x - b)) + gamma*norm(x, 1))
-        p = Problem(objective)
+        x = cvx.Variable(m)
+        objective = cvx.Minimize(cvx.sum_squares(A*x - b) + gamma*cvx.norm(x, 1))
+        p = cvx.Problem(objective)
 
         # Assign a value to gamma and find the optimal x.
         def get_x(gamma_value):
@@ -211,23 +211,23 @@ class TestExamples(BaseTest):
         mu = np.random.randn(1, n)
         sigma = np.random.randn(n, n)
         sigma = sigma.T.dot(sigma)
-        gamma = Parameter(nonneg=True)
+        gamma = cvx.Parameter(nonneg=True)
         gamma.value = 1
-        x = Variable(n)
+        x = cvx.Variable(n)
 
         # Constants:
         # mu is the vector of expected returns.
         # sigma is the covariance matrix.
-        # gamma is a Parameter that trades off risk and return.
+        # gamma is a cvx.Parameter that trades off risk and return.
 
-        # Variables:
+        # cvx.Variables:
         # x is a vector of stock holdings as fractions of total assets.
 
         expected_return = mu*x
-        risk = quad_form(x, sigma)
+        risk = cvx.quad_form(x, sigma)
 
-        objective = Maximize(expected_return - gamma*risk)
-        p = Problem(objective, [sum_entries(x) == 1])
+        objective = cvx.Maximize(expected_return - gamma*risk)
+        p = cvx.Problem(objective, [sum(x) == 1])
         result = p.solve()
 
         # The optimal expected return.
@@ -248,16 +248,16 @@ class TestExamples(BaseTest):
             data += [(-1, np.random.normal(loc=-1.0, scale=2.0, size=n))]
 
         # Construct problem.
-        gamma = Parameter(nonneg=True)
+        gamma = cvx.Parameter(nonneg=True)
         gamma.value = 0.1
         # 'a' is a variable constrained to have at most 6 non-zero entries.
-        a = Variable(n)  # mi.SparseVar(n, nonzeros=6)
-        b = Variable()
+        a = cvx.Variable(n)  # mi.SparseVar(n, nonzeros=6)
+        b = cvx.Variable()
 
-        slack = [pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
-        objective = Minimize(norm(a, 2) + gamma*sum(slack))
-        p = Problem(objective)
-        # Extensions can attach new solve methods to the CVXPY Problem class.
+        slack = [cvx.pos(1 - label*(sample.T*a - b)) for (label, sample) in data]
+        objective = cvx.Minimize(cvx.norm(a, 2) + gamma*sum(slack))
+        p = cvx.Problem(objective)
+        # Extensions can attach new solve methods to the CVXPY cvx.Problem class.
         #p.solve(method="admm")
         p.solve()
 
@@ -275,50 +275,50 @@ class TestExamples(BaseTest):
         """Code from the advanced tutorial.
         """
         # Solving a problem with different solvers.
-        x = Variable(2)
-        obj = Minimize(x[0] + norm(x, 1))
+        x = cvx.Variable(2)
+        obj = cvx.Minimize(x[0] + cvx.norm(x, 1))
         constraints = [x >= 2]
-        prob = Problem(obj, constraints)
+        prob = cvx.Problem(obj, constraints)
 
         # Solve with ECOS.
-        prob.solve(solver=ECOS)
+        prob.solve(solver=cvx.ECOS)
         print("optimal value with ECOS:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with ECOS_BB.
-        prob.solve(solver=ECOS_BB)
+        prob.solve(solver=cvx.ECOS_BB)
         print("optimal value with ECOS_BB:", prob.value)
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
-        if CVXOPT in installed_solvers():
-            prob.solve(solver=CVXOPT)
+        if cvx.CVXOPT in cvx.installed_solvers():
+            prob.solve(solver=cvx.CVXOPT)
             print("optimal value with CVXOPT:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
         # Solve with SCS.
-        prob.solve(solver=SCS)
+        prob.solve(solver=cvx.SCS)
         print("optimal value with SCS:", prob.value)
         self.assertAlmostEqual(prob.value, 6, places=2)
 
-        if GLPK in installed_solvers():
+        if cvx.GLPK in cvx.installed_solvers():
             # Solve with GLPK.
-            prob.solve(solver=GLPK)
+            prob.solve(solver=cvx.GLPK)
             print("optimal value with GLPK:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
             # Solve with GLPK_MI.
-            prob.solve(solver=GLPK_MI)
+            prob.solve(solver=cvx.GLPK_MI)
             print("optimal value with GLPK_MI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
-        if GUROBI in installed_solvers():
+        if cvx.GUROBI in cvx.installed_solvers():
             # Solve with Gurobi.
-            prob.solve(solver=GUROBI)
+            prob.solve(solver=cvx.GUROBI)
             print("optimal value with GUROBI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
-        print(installed_solvers())
+        print(cvx.installed_solvers())
 
     def test_log_det(self):
         # Generate data
@@ -331,13 +331,13 @@ class TestExamples(BaseTest):
         (n, m) = x.shape
 
         # Create and solve the model
-        A = Variable((n, n));
-        b = Variable(n);
-        obj = Maximize(log_det(A))
+        A = cvx.Variable((n, n));
+        b = cvx.Variable(n);
+        obj = cvx.Maximize(cvx.log_det(A))
         constraints = []
         for i in range(m):
-            constraints.append(norm(A*x[:, i] + b) <= 1)
-        p = Problem(obj, constraints)
+            constraints.append(cvx.norm(A*x[:, i] + b) <= 1)
+        p = cvx.Problem(obj, constraints)
         result = p.solve()
         self.assertAlmostEqual(result, 1.9746, places=2)
 
@@ -359,21 +359,21 @@ class TestExamples(BaseTest):
         Z = np.random.randn(m, 1)
         Z = Z.dot(Z.T)
 
-        x = Variable(n)
+        x = cvx.Variable(n)
         y = x.__rmul__(F)
         mu = 1
         ret = pbar.T * x
         # DCP attr causes error because not all the curvature
         # matrices are reduced to constants when an atom
         # is scalar.
-        risk = square(norm(x.__rmul__(D))) + square(Z*y)
+        risk = cvx.square(cvx.norm(D*x)) + cvx.square(Z*y)
 
     def test_intro(self):
         """Test examples from cvxpy.org introduction.
         """
         import numpy
 
-        # Problem data.
+        # cvx.Problem data.
         m = 30
         n = 20
         numpy.random.seed(1)
@@ -381,10 +381,10 @@ class TestExamples(BaseTest):
         b = numpy.random.randn(m, 1)
 
         # Construct the problem.
-        x = Variable(n)
-        objective = Minimize(sum_squares(A*x - b))
+        x = cvx.Variable(n)
+        objective = cvx.Minimize(cvx.sum_squares(A*x - b))
         constraints = [0 <= x, x <= 1]
-        prob = Problem(objective, constraints)
+        prob = cvx.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
         result = prob.solve()
@@ -395,28 +395,6 @@ class TestExamples(BaseTest):
         print(constraints[0].dual_value)
 
         ########################################
-
-        # Create two scalar variables.
-        x = Variable()
-        y = Variable()
-
-        # Create two constraints.
-        constraints = [x + y == 1,
-                       x - y >= 1]
-
-        # Form objective.
-        obj = Minimize(square(x - y))
-
-        # Form and solve problem.
-        prob = Problem(obj, constraints)
-        prob.solve()  # Returns the optimal value.
-        print("status:", prob.status)
-        print("optimal value", prob.value)
-        print("optimal var", x.value, y.value)
-
-        ########################################
-
-        import cvxpy as cvx
 
         # Create two scalar variables.
         x = cvx.Variable()
@@ -436,7 +414,27 @@ class TestExamples(BaseTest):
         print("optimal value", prob.value)
         print("optimal var", x.value, y.value)
 
-        self.assertEqual(prob.status, OPTIMAL)
+        ########################################
+
+        # Create two scalar variables.
+        x = cvx.Variable()
+        y = cvx.Variable()
+
+        # Create two constraints.
+        constraints = [x + y == 1,
+                       x - y >= 1]
+
+        # Form objective.
+        obj = cvx.Minimize(cvx.square(x - y))
+
+        # Form and solve problem.
+        prob = cvx.Problem(obj, constraints)
+        prob.solve()  # Returns the optimal value.
+        print("status:", prob.status)
+        print("optimal value", prob.value)
+        print("optimal var", x.value, y.value)
+
+        self.assertEqual(prob.status, cvx.OPTIMAL)
         self.assertAlmostEqual(prob.value, 1.0)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(y.value, 0)
@@ -444,7 +442,7 @@ class TestExamples(BaseTest):
         ########################################
 
         # Replace the objective.
-        prob = Problem(Maximize(x + y), prob.constraints)
+        prob = cvx.Problem(cvx.Maximize(x + y), prob.constraints)
         print("optimal value", prob.solve())
 
         self.assertAlmostEqual(prob.value, 1.0)
@@ -452,48 +450,48 @@ class TestExamples(BaseTest):
         # Replace the constraint (x + y == 1).
         constraints = prob.constraints
         constraints[0] = (x + y <= 3)
-        prob = Problem(prob.objective, constraints)
+        prob = cvx.Problem(prob.objective, constraints)
         print("optimal value", prob.solve())
 
         self.assertAlmostEqual(prob.value, 3.0)
 
         ########################################
 
-        x = Variable()
+        x = cvx.Variable()
 
         # An infeasible problem.
-        prob = Problem(Minimize(x), [x >= 1, x <= 0])
+        prob = cvx.Problem(cvx.Minimize(x), [x >= 1, x <= 0])
         prob.solve()
         print("status:", prob.status)
         print("optimal value", prob.value)
 
-        self.assertEqual(prob.status, INFEASIBLE)
+        self.assertEqual(prob.status, cvx.INFEASIBLE)
         self.assertAlmostEqual(prob.value, np.inf)
 
         # An unbounded problem.
-        prob = Problem(Minimize(x))
+        prob = cvx.Problem(cvx.Minimize(x))
         prob.solve()
         print("status:", prob.status)
         print("optimal value", prob.value)
 
-        self.assertEqual(prob.status, UNBOUNDED)
+        self.assertEqual(prob.status, cvx.UNBOUNDED)
         self.assertAlmostEqual(prob.value, -np.inf)
 
         ########################################
 
         # A scalar variable.
-        a = Variable()
+        a = cvx.Variable()
 
         # Column vector variable of length 5.
-        x = Variable(5)
+        x = cvx.Variable(5)
 
         # Matrix variable with 4 rows and 7 columns.
-        A = Variable((4, 7))
+        A = cvx.Variable((4, 7))
 
         ########################################
         import numpy
 
-        # Problem data.
+        # cvx.Problem data.
         m = 10
         n = 5
         numpy.random.seed(1)
@@ -501,10 +499,10 @@ class TestExamples(BaseTest):
         b = numpy.random.randn(m, 1)
 
         # Construct the problem.
-        x = Variable(n)
-        objective = Minimize(sum_entries(square(A*x - b)))
+        x = cvx.Variable(n)
+        objective = cvx.Minimize(cvx.sum_squares(A*x - b))
         constraints = [0 <= x, x <= 1]
-        prob = Problem(objective, constraints)
+        prob = cvx.Problem(objective, constraints)
 
         print("Optimal value", prob.solve())
         print("Optimal var")
@@ -514,43 +512,43 @@ class TestExamples(BaseTest):
 
         ########################################
         # Positive scalar parameter.
-        m = Parameter(nonneg=True)
+        m = cvx.Parameter(nonneg=True)
 
         # Column vector parameter with unknown sign (by default).
-        c = Parameter(5)
+        c = cvx.Parameter(5)
 
         # Matrix parameter with negative entries.
-        G = Parameter((4, 7), nonpos=True)
+        G = cvx.Parameter((4, 7), nonpos=True)
 
         # Assigns a constant value to G.
         G.value = -numpy.ones((4, 7))
         ########################################
 
         # Create parameter, then assign value.
-        rho = Parameter(nonneg=True)
+        rho = cvx.Parameter(nonneg=True)
         rho.value = 2
 
         # Initialize parameter with a value.
-        rho = Parameter(nonneg=True, value=2)
+        rho = cvx.Parameter(nonneg=True, value=2)
 
         ########################################
 
         import numpy
 
-        # Problem data.
+        # cvx.Problem data.
         n = 15
         m = 10
         numpy.random.seed(1)
         A = numpy.random.randn(n, m)
         b = numpy.random.randn(n, 1)
         # gamma must be positive due to DCP rules.
-        gamma = Parameter(nonneg=True)
+        gamma = cvx.Parameter(nonneg=True)
 
         # Construct the problem.
-        x = Variable(m)
-        error = sum_squares(A*x - b)
-        obj = Minimize(error + gamma*norm(x, 1))
-        prob = Problem(obj)
+        x = cvx.Variable(m)
+        error = cvx.sum_squares(A*x - b)
+        obj = cvx.Minimize(error + gamma*cvx.norm(x, 1))
+        prob = cvx.Problem(obj)
 
         # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
         sq_penalty = []
@@ -563,18 +561,18 @@ class TestExamples(BaseTest):
             # Use expr.value to get the numerical value of
             # an expression in the problem.
             sq_penalty.append(error.value)
-            l1_penalty.append(norm(x, 1).value)
+            l1_penalty.append(cvx.norm(x, 1).value)
             x_values.append(x.value)
 
         ########################################
         import numpy
 
-        X = Variable((5, 4))
+        X = cvx.Variable((5, 4))
         A = numpy.ones((3, 5))
 
         # Use expr.size to get the dimensions.
         print("dimensions of X:", X.size)
-        print("dimensions of sum_entries(X):", sum_entries(X).size)
+        print("dimensions of sum(X):", cvx.sum(X).size)
         print("dimensions of A*X:", (A*X).size)
 
         # ValueError raised for invalid dimensions.
@@ -603,33 +601,33 @@ class TestExamples(BaseTest):
                     Known[i, j] = 1
         Ucorr = Known*Uorig
         # Recover the original image using total variation in-painting.
-        U = Variable((rows, cols))
-        obj = Minimize(tv(U))
-        constraints = [mul_elemwise(Known, U) == mul_elemwise(Known, Ucorr)]
-        prob = Problem(obj, constraints)
-        prob.solve(solver=SCS)
+        U = cvx.Variable((rows, cols))
+        obj = cvx.Minimize(cvx.tv(U))
+        constraints = [cvx.multiply(Known, U) == cvx.multiply(Known, Ucorr)]
+        prob = cvx.Problem(obj, constraints)
+        prob.solve(solver=cvx.SCS)
 
     def test_advanced(self):
         """Test code from the advanced section of the tutorial.
         """
-        x = Variable()
-        prob = Problem(Minimize(square(x)), [x == 2])
+        x = cvx.Variable()
+        prob = cvx.Problem(cvx.Minimize(cvx.square(x)), [x == 2])
         # Get ECOS arguments.
-        data, chain, inverse = prob.get_problem_data(ECOS)
+        data, chain, inverse = prob.get_problem_data(cvx.ECOS)
 
         # Get ECOS_BB arguments.
-        data, chain, inverse = prob.get_problem_data(ECOS_BB)
+        data, chain, inverse = prob.get_problem_data(cvx.ECOS_BB)
 
         # Get CVXOPT arguments.
-        if CVXOPT in installed_solvers():
-            data, chain, inverse = prob.get_problem_data(CVXOPT)
+        if cvx.CVXOPT in cvx.installed_solvers():
+            data, chain, inverse = prob.get_problem_data(cvx.CVXOPT)
 
         # Get SCS arguments.
-        data, chain, inverse = prob.get_problem_data(SCS)
+        data, chain, inverse = prob.get_problem_data(cvx.SCS)
 
         import ecos
         # Get ECOS arguments.
-        data, chain, inverse = prob.get_problem_data(ECOS)
+        data, chain, inverse = prob.get_problem_data(cvx.ECOS)
         # Call ECOS solver.
         solution = ecos.solve(data["c"], data["G"], data["h"],
                               ecos_conif.dims_to_solver_dict(data["dims"]),
@@ -640,19 +638,18 @@ class TestExamples(BaseTest):
     def test_log_sum_exp(self):
         """Test log_sum_exp function that failed in Github issue.
         """
-        import cvxpy as cp
         import numpy as np
         np.random.seed(1)
         m = 5
         n = 2
         X = np.matrix(np.ones((m, n)))
-        w = cp.Variable(n)
+        w = cvx.Variable(n)
 
-        expr2 = [cp.log_sum_exp(cp.vstack(0, X[i, :]*w)) for i in range(m)]
+        expr2 = [cvx.log_sum_exp(cvx.vstack(0, X[i, :]*w)) for i in range(m)]
         expr3 = sum(expr2)
-        obj = cp.Minimize(expr3)
-        p = cp.Problem(obj)
-        p.solve(solver=SCS, max_iters=1)
+        obj = cvx.Minimize(expr3)
+        p = cvx.Problem(obj)
+        p.solve(solver=cvx.SCS, max_iters=1)
 
     # # Risk return tradeoff curve
     # def test_risk_return_tradeoff(self):
@@ -672,12 +669,12 @@ class TestExamples(BaseTest):
     #     N = 100
     #     # CVXPY
     #     Sroot = numpy.asmatrix(scipy.linalg.sqrtm(S))
-    #     x = cp.Variable(n, name='x')
-    #     mu = cp.Parameter(name='mu')
-    #     mu.value = 1 # TODO cp.Parameter("positive")
-    #     objective = cp.Minimize(-pbar*x + mu*quad_over_lin(Sroot*x,1))
-    #     constraints = [sum_entries(x) == 1, x >= 0]
-    #     p = cp.Problem(objective, constraints)
+    #     x = cvx.Variable(n, name='x')
+    #     mu = cvx.Parameter(name='mu')
+    #     mu.value = 1 # TODO cvx.Parameter("positive")
+    #     objective = cvx.Minimize(-pbar*x + mu*quad_over_lin(Sroot*x,1))
+    #     constraints = [sum(x) == 1, x >= 0]
+    #     p = cvx.Problem(objective, constraints)
 
     #     mus = [ 10**(5.0*t/N-1.0) for t in range(N) ]
     #     xs = []

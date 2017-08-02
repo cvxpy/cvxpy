@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
+from cvxpy.atoms.elementwise.maximum import maximum
 
 
 def pos(x):
-    """ Alias for max_elemwise{x,0}.
+    """ Alias for maximum{x,0}.
 
     """
-    return max_elemwise(x, 0)
+    return maximum(x, 0)

@@ -23,12 +23,12 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
-class max_entries(AxisAtom):
+class max(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
 
     def __init__(self, x, axis=None):
-        super(max_entries, self).__init__(x, axis=axis)
+        super(max, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
     def numeric(self, values):

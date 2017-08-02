@@ -28,8 +28,8 @@ from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.matrix_frac import matrix_frac
 from cvxpy.atoms.matrix_frac import MatrixFrac
-from cvxpy.atoms.max_entries import max_entries
-from cvxpy.atoms.min_entries import min_entries
+from cvxpy.atoms.max import max
+from cvxpy.atoms.min import min
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm2 import norm2
@@ -54,10 +54,10 @@ from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.kron import kron
-from cvxpy.atoms.affine.mul_elemwise import mul_elemwise
+from cvxpy.atoms.affine.multiply import multiply
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
@@ -72,8 +72,8 @@ from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.log1p import log1p
 from cvxpy.atoms.elementwise.logistic import logistic
-from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
-from cvxpy.atoms.elementwise.min_elemwise import min_elemwise
+from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.neg import neg
 from cvxpy.atoms.elementwise.pos import pos
 from cvxpy.atoms.elementwise.power import power

@@ -25,13 +25,13 @@ if sys.version_info >= (3, 0):
     from functools import reduce
 
 
-class max_elemwise(Elementwise):
+class maximum(Elementwise):
     """ Elementwise maximum. """
 
     def __init__(self, arg1, arg2, *args):
         """Requires at least 2 arguments.
         """
-        super(max_elemwise, self).__init__(arg1, arg2, *args)
+        super(maximum, self).__init__(arg1, arg2, *args)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
@@ -98,7 +98,7 @@ class max_elemwise(Elementwise):
             grad_vals = (value == max_vals) & unused
             # Remove all the max_vals that were used.
             unused[value == max_vals] = 0
-            grad_list += [max_elemwise.elemwise_grad_to_diag(grad_vals,
+            grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
                                                              rows, cols)]
         return grad_list
 

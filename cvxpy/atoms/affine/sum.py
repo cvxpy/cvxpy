@@ -23,7 +23,16 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
-class sum_entries(AxisAtom, AffAtom):
+def sum(expr, axis=None):
+    """Wrapper for Sum class.
+    """
+    if isinstance(expr, list):
+        return __builtins__['sum'](expr)
+    else:
+        return Sum(expr, axis=axis)
+
+
+class Sum(AxisAtom, AffAtom):
     """ Summing the entries of an expression.
 
     Attributes
@@ -33,7 +42,7 @@ class sum_entries(AxisAtom, AffAtom):
     """
 
     def __init__(self, expr, axis=None):
-        super(sum_entries, self).__init__(expr, axis=axis)
+        super(Sum, self).__init__(expr, axis=axis)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):

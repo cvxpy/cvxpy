@@ -16,9 +16,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
-from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.elementwise.max_elemwise import max_elemwise
+
+from cvxpy.atoms.max import max
+from cvxpy.expressions.expression import Expression
 
 
-def min_elemwise(*args):
-    return -max_elemwise(*[-Elementwise.cast_to_const(arg) for arg in args])
+def min(x, axis=None):
+    """:math:`\min_{i,j}\{X_{i,j}\}`.
+    """
+    x = Expression.cast_to_const(x)
+    return -max(-x, axis=axis)

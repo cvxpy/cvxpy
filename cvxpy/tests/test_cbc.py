@@ -139,8 +139,8 @@ class TestSolvers(BaseTest):
                       [49, 724, 29, 1], [50, 789, 674, 0]]  # index, p / w / x
 
             X = Bool(n)
-            prob = Problem(Maximize(sum_entries(mul_elemwise([i[1] for i in coeffs], X))),
-                           [sum_entries(mul_elemwise([i[2] for i in coeffs], X)) <= c])
+            prob = Problem(Maximize(sum(multiply([i[1] for i in coeffs], X))),
+                           [sum(multiply([i[2] for i in coeffs], X)) <= c])
             prob.solve(verbose=False, solver=CBC)
             self.assertAlmostEqual(prob.value, z)  # objective
         else:

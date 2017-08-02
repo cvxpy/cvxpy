@@ -120,7 +120,7 @@ class log_sum_exp(AxisAtom):
             prom_t = lu.promote(t, x.shape)
             expr = lu.sub_expr(x, prom_t)
             obj, constraints = exp.graph_implementation([expr], x.shape)
-            obj = lu.sum_entries(obj)
+            obj = lu.sum(obj)
 
         elif axis == 0:
             prom_shape = (x.shape[0], 1)

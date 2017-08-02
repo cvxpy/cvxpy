@@ -22,8 +22,8 @@ from cvxpy.atoms import *
 from cvxpy.expressions.variable import Variable
 from abs_canon import *
 from affine_prod_canon import *
-from max_elemwise_canon import *
-from max_entries_canon import *
+from maximum_canon import *
+from max_canon import *
 from norm1_canon import *
 from norm_inf_canon import *
 from sum_largest_canon import *
@@ -32,8 +32,8 @@ from sum_largest_canon import *
 CANON_METHODS = {
     abs : abs_canon,
     affine_prod : affine_prod,
-    max_elemwise : max_elemwise_canon,
-    max_entries : max_entries_canon,
+    maximum : maximum_canon,
+    max : max_canon,
     norm1 : norm1_canon,
     norm_inf : norm1_canon,
     sum_largest : sum_largest_canon

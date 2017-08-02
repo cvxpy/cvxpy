@@ -49,10 +49,10 @@ ret = pbar.T * x
 risk = square(norm(x.__rmul__(D))) + quad_form(y, Z)
 objective = Minimize( -ret + mu * risk )
 
-constraints_longonly = [sum_entries(x) == 1, x >= 0]
+constraints_longonly = [sum(x) == 1, x >= 0]
 
 prob = Problem(objective, constraints_longonly)
-#constraints_totalshort = [sum_entries(x) == 1, one.T * max(-x, 0) <= 0.5]
+#constraints_totalshort = [sum(x) == 1, one.T * max(-x, 0) <= 0.5]
 import time
 print "starting problems"
 

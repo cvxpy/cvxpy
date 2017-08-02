@@ -145,14 +145,14 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - max_entries(X)
+   * - max(X)
      - :math:`\max_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |convex| convex
      - |incr| incr.
 
-   * - min_entries(X)
+   * - min(X)
      - :math:`\min_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
@@ -289,7 +289,7 @@ and returns a scalar.
 
        |decr| decr. in :math:`y`
 
-   * - sum_entries(X)
+   * - sum(X)
      - :math:`\sum_{ij}X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
@@ -361,9 +361,9 @@ For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean
 The function ``norm(X, "fro")`` is called the `Frobenius norm <http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
 and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
 
-The functions ``max_entries`` and ``min_entries`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``max_elemwise`` and ``min_elemwise`` (see :ref:`elementwise`). Use ``max_elemwise`` and ``min_elemwise`` to find the max or min of a list of scalar expressions.
+The functions ``max`` and ``min`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``maximum`` and ``minimum`` (see :ref:`elementwise`). Use ``maximum`` and ``minimum`` to find the max or min of a list of scalar expressions.
 
-The function ``sum_entries`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
+The function ``sum`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
 
 .. code:: python
 
@@ -374,7 +374,7 @@ The function ``sum_entries`` sums all the entries in a single expression. The bu
 Functions along an axis
 -----------------------
 
-The functions ``sum_entries``, ``norm``, ``max_entries``, and ``min_entries`` can be
+The functions ``sum``, ``norm``, ``max``, and ``min`` can be
 applied along an axis.
 Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
@@ -385,8 +385,8 @@ along the columns and rows of a matrix variable:
 .. code:: python
 
     X = Variable(5, 4)
-    col_sums = sum_entries(X, axis=0) # Has size (1, 4)
-    row_sums = sum_entries(X, axis=1) # Has size (5, 1)
+    col_sums = sum(X, axis=0) # Has size (1, 4)
+    row_sums = sum(X, axis=1) # Has size (5, 1)
 
 
 .. _elementwise:
@@ -397,9 +397,9 @@ Elementwise functions
 These functions operate on each element of their arguments. For example, if ``X`` is a 5 by 4 matrix variable,
 then ``abs(X)`` is a 5 by 4 matrix expression. ``abs(X)[1, 2]`` is equivalent to ``abs(X[1, 2])``.
 
-Elementwise functions that take multiple arguments, such as ``max_elemwise`` and ``mul_elemwise``, operate on the corresponding elements of each argument.
-For example, if ``X`` and ``Y`` are both 3 by 3 matrix variables, then ``max_elemwise(X, Y)`` is a 3 by 3 matrix expression.
-``max_elemwise(X, Y)[2, 0]`` is equivalent to ``max_elemwise(X[2, 0], Y[2, 0])``. This means all arguments must have the same dimensions or be
+Elementwise functions that take multiple arguments, such as ``maximum`` and ``multiply``, operate on the corresponding elements of each argument.
+For example, if ``X`` and ``Y`` are both 3 by 3 matrix variables, then ``maximum(X, Y)`` is a 3 by 3 matrix expression.
+``maximum(X, Y)[2, 0]`` is equivalent to ``maximum(X[2, 0], Y[2, 0])``. This means all arguments must have the same dimensions or be
 scalars, which are promoted.
 
 .. list-table::
@@ -483,21 +483,21 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
-   * - max_elemwise(x1, |_| ..., |_| xk)
+   * - maximum(x1, |_| ..., |_| xk)
      - :math:`\max \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
      - :math:`\max(\mathrm{sign}(x_1))`
      - |convex| convex
      - |incr| incr.
 
-   * - min_elemwise(x1, |_| ..., |_| xk)
+   * - minimum(x1, |_| ..., |_| xk)
      - :math:`\min \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
      - :math:`\min(\mathrm{sign}(x_1))`
      - |concave| concave
      - |incr| incr.
 
-   * - mul_elemwise(c, |_| x)
+   * - multiply(c, |_| x)
 
        :math:`c \in \mathbf{R}`
      - c*x

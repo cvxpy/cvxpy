@@ -24,11 +24,8 @@ import operator
 import canonInterface
 import numpy as np
 import scipy.sparse as sp
-from numpy import linalg as LA
 
 import cvxpy
-from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.constants.parameter import Parameter
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms

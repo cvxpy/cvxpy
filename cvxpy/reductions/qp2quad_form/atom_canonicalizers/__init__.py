@@ -31,9 +31,9 @@ CANON_METHODS = {}
 CANON_METHODS[affine_prod] = CONE_METHODS[affine_prod]
 CANON_METHODS[abs] = CONE_METHODS[abs]
 CANON_METHODS[cumsum] = CONE_METHODS[cumsum]
-CANON_METHODS[max_elemwise] = CONE_METHODS[max_elemwise]
+CANON_METHODS[maximum] = CONE_METHODS[maximum]
 CANON_METHODS[sum_largest] = CONE_METHODS[sum_largest]
-CANON_METHODS[max_entries] = CONE_METHODS[max_entries]
+CANON_METHODS[max] = CONE_METHODS[max]
 CANON_METHODS[norm1] = CONE_METHODS[norm1]
 CANON_METHODS[norm_inf] = CONE_METHODS[norm_inf]
 

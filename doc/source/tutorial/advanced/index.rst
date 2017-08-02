@@ -62,7 +62,7 @@ The first way is to use
 
     # You can use X anywhere you would use
     # a normal CVXPY variable.
-    obj = Minimize(norm(X) + sum_entries(X))
+    obj = Minimize(norm(X) + sum(X))
 
 The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,

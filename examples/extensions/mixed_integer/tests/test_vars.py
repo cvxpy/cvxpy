@@ -41,7 +41,7 @@ class TestVars(unittest.TestCase):
     # Test boolean variable.
     def test_boolean(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)), [x == Boolean(5,4)])
+        p = Problem(Minimize(sum(1-x) + sum(x)), [x == Boolean(5,4)])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
         for i in xrange(x.size[0]):
@@ -50,7 +50,7 @@ class TestVars(unittest.TestCase):
                 self.assertAlmostEqual(v*(1-v), 0)
 
         x = Variable()
-        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)), [x == Boolean(5,4)[0,0]])
+        p = Problem(Minimize(sum(1-x) + sum(x)), [x == Boolean(5,4)[0,0]])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 1)
         self.assertAlmostEqual(x.value*(1-x.value), 0)
@@ -58,7 +58,7 @@ class TestVars(unittest.TestCase):
     # Test choose variable.
     def test_choose(self):
         x = Variable(5,4)
-        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)),
+        p = Problem(Minimize(sum(1-x) + sum(x)),
                     [x == Choose(5,4,k=4)])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
@@ -71,7 +71,7 @@ class TestVars(unittest.TestCase):
     # Test card variable.
     def test_card(self):
         x = Card(5,k=3)
-        p = Problem(Maximize(sum_entries(x)),
+        p = Problem(Maximize(sum(x)),
             [x <= 1, x >= 0])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 3)
@@ -83,7 +83,7 @@ class TestVars(unittest.TestCase):
         x = Variable(5, 4)
         c = Card(5, 4, k=4)
         b = Boolean(5, 4)
-        p = Problem(Minimize(sum_entries(1-x) + sum_entries(x)),
+        p = Problem(Minimize(sum(1-x) + sum(x)),
                     [x == c, x == b])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
@@ -97,7 +97,7 @@ class TestVars(unittest.TestCase):
         x = Variable(1,5)
         c = cvxopt.matrix([1,2,3,4,5]).T
         perm = Assign(5, 5)
-        p = Problem(Minimize(sum_entries(x)), [x == c*perm])
+        p = Problem(Minimize(sum(x)), [x == c*perm])
         result = p.solve(method="admm")
         self.assertAlmostEqual(result, 15)
         self.assertAlmostEqual(sorted(np.nditer(x.value)), c)

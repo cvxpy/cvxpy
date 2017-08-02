@@ -150,7 +150,7 @@ class test_lin_ops(BaseTest):
         else:
             self.assertCountEqual(vars_, ref)
 
-    def test_sum_entries(self):
+    def test_sum(self):
         """Test sum entries op.
         """
         shape = (5, 5)

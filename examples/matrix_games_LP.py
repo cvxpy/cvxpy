@@ -60,8 +60,8 @@ t2 = Variable()
 objective1 = Minimize(t1)
 objective2 = Maximize(t2)
 
-constraints1 = [ x>=0, sum_entries(x)==1, P.T*x <= t1 ]
-constraints2 = [ y>=0, sum_entries(y)==1, P*y >= t2 ]
+constraints1 = [ x>=0, sum(x)==1, P.T*x <= t1 ]
+constraints2 = [ y>=0, sum(y)==1, P*y >= t2 ]
 
 
 p1 = Problem(objective1, constraints1)

@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import affine_prod, quad_form, quad_over_lin, matrix_frac, sum_squares, norm, max_entries
+from cvxpy.atoms import affine_prod, quad_form, quad_over_lin, matrix_frac, sum_squares, norm, max
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.expression import *
@@ -170,10 +170,10 @@ class TestExpressions(BaseTest):
                 (x*y*z).is_quadratic()
             self.assertEqual(str(cm.exception), "Cannot multiply UNKNOWN and AFFINE.")
 
-        s = max_entries(vstack(x, y, z))**2
+        s = max(vstack(x, y, z))**2
         self.assertFalse(s.is_quadratic())
 
-        t = max_entries(vstack(x**2, power(y, 2), z))
+        t = max(vstack(x**2, power(y, 2), z))
         self.assertFalse(t.is_quadratic())
 
     def test_affine_prod(self):

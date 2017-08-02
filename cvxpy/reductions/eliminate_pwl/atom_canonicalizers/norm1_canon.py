@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
 
@@ -35,4 +35,4 @@ def norm1_canon(expr, args):
     abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
     x = abs_x
     constraints += abs_constraints
-    return sum_entries(x, axis=axis), constraints
+    return sum(x, axis=axis), constraints

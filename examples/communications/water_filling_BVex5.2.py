@@ -48,9 +48,9 @@ The objective is to minimize  -∑log(α_i+x_i) subject to the constraint ∑x_i
   alpha.value = a
   #alpha.value = np.ones(n)
   # Choose objective function. Interpret as maximising the total communication rate of all the channels
-  obj = cvx.Maximize(cvx.sum_entries(cvx.log(alpha + x)))
+  obj = cvx.Maximize(cvx.sum(cvx.log(alpha + x)))
   # Declare constraints
-  constraints = [x >= 0, cvx.sum_entries(x) - sum_x == 0]
+  constraints = [x >= 0, cvx.sum(x) - sum_x == 0]
   # Solve
   prob = cvx.Problem(obj, constraints)
   prob.solve()

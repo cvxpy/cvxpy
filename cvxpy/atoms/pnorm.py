@@ -360,14 +360,14 @@ class Pnorm(AxisAtom):
             x = absx
 
         if p == 1:
-            return lu.sum_entries(x), constraints
+            return lu.sum(x), constraints
 
         # now, we take care of the remaining convex and concave branches
         # to create the rational powers, we need a new variable, r, and
         # the constraint sum(r) == t
         r = lu.create_var(x.shape)
         t_ = lu.promote(t, x.shape)
-        constraints += [lu.create_eq(lu.sum_entries(r), t)]
+        constraints += [lu.create_eq(lu.sum(r), t)]
 
         # make p a fraction so that the input weight to gm_constrs
         # is a nice tuple of fractions.

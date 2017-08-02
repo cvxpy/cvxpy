@@ -230,22 +230,22 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.y].todense(), [1, 2])
         self.assertAlmostEqual(expr.grad[self.a], [-2.5])
 
-    def test_max_entries(self):
-        """Test gradient for max_entries
+    def test_max(self):
+        """Test gradient for max
         """
-        expr = max_entries(self.x)
+        expr = max(self.x)
         self.x.value = [2, 1]
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [1, 0])
 
-        expr = max_entries(self.A)
+        expr = max(self.A)
         self.A.value = np.matrix([[1, 2], [4, 3]])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0, 1, 0, 0])
 
-        expr = max_entries(self.A, axis=0)
+        expr = max(self.A, axis=0)
         self.A.value = np.matrix([[1, 2], [4, 3]])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), np.matrix([[0, 0], [1, 0], [0, 0], [0, 1]]))
 
-        expr = max_entries(self.A, axis=1)
+        expr = max(self.A, axis=1)
         self.A.value = np.matrix([[1, 2], [4, 3]])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), np.matrix([[0, 0], [0, 1], [1, 0], [0, 0]]))
 
@@ -526,11 +526,11 @@ class TestGrad(BaseTest):
         val = np.zeros((4, 4)) + np.diag(1 - div)
         self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
 
-    def test_max_elemwise(self):
-        """Test domain for max_elemwise.
+    def test_maximum(self):
+        """Test domain for maximum.
         """
         b = Variable()
-        expr = max_elemwise(self.a, b)
+        expr = maximum(self.a, b)
         self.a.value = 2
         b.value = 4
         self.assertAlmostEqual(expr.grad[self.a], 0)
@@ -547,7 +547,7 @@ class TestGrad(BaseTest):
         self.assertAlmostEqual(expr.grad[b], 1)
 
         y = Variable(2)
-        expr = max_elemwise(self.x, y)
+        expr = maximum(self.x, y)
         self.x.value = [3, 4]
         y.value = [5, -5]
         val = np.zeros((2, 2)) + np.diag([0, 1])
@@ -555,7 +555,7 @@ class TestGrad(BaseTest):
         val = np.zeros((2, 2)) + np.diag([1, 0])
         self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
 
-        expr = max_elemwise(self.x, y)
+        expr = maximum(self.x, y)
         self.x.value = [-1e-9, 4]
         y.value = [1, 4]
         val = np.zeros((2, 2)) + np.diag([0, 1])
@@ -563,7 +563,7 @@ class TestGrad(BaseTest):
         val = np.zeros((2, 2)) + np.diag([1, 0])
         self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
 
-        expr = max_elemwise(self.A, self.B)
+        expr = maximum(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3, 2.3]]
         div = (self.A.value/self.B.value).ravel(order='F')
@@ -572,11 +572,11 @@ class TestGrad(BaseTest):
         val = np.zeros((4, 4)) + np.diag([1, 0, 0, 0])
         self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
 
-    def test_min_elemwise(self):
-        """Test domain for min_elemwise.
+    def test_minimum(self):
+        """Test domain for minimum.
         """
         b = Variable()
-        expr = min_elemwise(self.a, b)
+        expr = minimum(self.a, b)
         self.a.value = 2
         b.value = 4
         self.assertAlmostEqual(expr.grad[self.a], 1)
@@ -593,7 +593,7 @@ class TestGrad(BaseTest):
         self.assertAlmostEqual(expr.grad[b], 0)
 
         y = Variable(2)
-        expr = min_elemwise(self.x, y)
+        expr = minimum(self.x, y)
         self.x.value = [3, 4]
         y.value = [5, -5]
         val = np.zeros((2, 2)) + np.diag([1, 0])
@@ -601,7 +601,7 @@ class TestGrad(BaseTest):
         val = np.zeros((2, 2)) + np.diag([0, 1])
         self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
 
-        expr = min_elemwise(self.x, y)
+        expr = minimum(self.x, y)
         self.x.value = [-1e-9, 4]
         y.value = [1, 4]
         val = np.zeros((2, 2)) + np.diag([1, 1])
@@ -609,7 +609,7 @@ class TestGrad(BaseTest):
         val = np.zeros((2, 2)) + np.diag([0, 0])
         self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
 
-        expr = min_elemwise(self.A, self.B)
+        expr = minimum(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3, 2.3]]
         div = (self.A.value/self.B.value).ravel(order='F')

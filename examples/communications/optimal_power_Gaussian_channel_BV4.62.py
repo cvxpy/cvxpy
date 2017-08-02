@@ -69,14 +69,14 @@ where ui: R → R is the utility function associated with the ith receiver.
   alpha.value=np.array(a_val)
   beta.value =np.array(b_val)
   # This function will be used as the objective so must be DCP; i.e. element-wise multiplication must occur inside kl_div, not outside otherwise the solver does not know if it is DCP...
-  R=cvx.kl_div(cvx.mul_elemwise(alpha, W),
-               cvx.mul_elemwise(alpha, W + cvx.mul_elemwise(beta, P))) - \
-    cvx.mul_elemwise(alpha, cvx.mul_elemwise(beta, P))
-  objective=cvx.Minimize(cvx.sum_entries(R))
+  R=cvx.kl_div(cvx.multiply(alpha, W),
+               cvx.multiply(alpha, W + cvx.multiply(beta, P))) - \
+    cvx.multiply(alpha, cvx.multiply(beta, P))
+  objective=cvx.Minimize(cvx.sum(R))
   constraints=[P>=0.0,
                W>=0.0,
-               cvx.sum_entries(P)-P_tot==0.0,
-               cvx.sum_entries(W)-W_tot==0.0]
+               cvx.sum(P)-P_tot==0.0,
+               cvx.sum(W)-W_tot==0.0]
   prob=cvx.Problem(objective, constraints)
   prob.solve()
   return prob.status,-prob.value,P.value,W.value

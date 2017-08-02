@@ -52,7 +52,7 @@ class TestDomain(BaseTest):
             expr = cvxpy.partial_optimize(orig_prob, dont_opt_vars=[self.x, self.a])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
-            prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
+            prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
             prob.solve()
             self.assertAlmostEqual(prob.value, 13)
             assert self.a.value >= 0
@@ -62,7 +62,7 @@ class TestDomain(BaseTest):
             expr = cvxpy.partial_optimize(orig_prob, opt_vars=[self.x])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
-            prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
+            prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
             prob.solve()
             self.assertAlmostEqual(prob.value, 0)
             assert self.a.value >= -1e-3
@@ -72,7 +72,7 @@ class TestDomain(BaseTest):
             expr = cvxpy.partial_optimize(orig_prob, opt_vars=[self.x, self.a])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
-            prob = Problem(Minimize(sum_entries(self.x + self.a)), dom + constr)
+            prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
             prob.solve()
             self.assertAlmostEqual(self.a.value, -100)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
@@ -81,20 +81,20 @@ class TestDomain(BaseTest):
         """Test domain for geo_mean
         """
         dom = geo_mean(self.x).domain
-        prob = Problem(Minimize(sum_entries(self.x)), dom)
+        prob = Problem(Minimize(sum(self.x)), dom)
         prob.solve()
         self.assertAlmostEqual(prob.value, 0)
 
         # No special case for only one weight.
         dom = geo_mean(self.x, [0, 2]).domain
         dom.append(self.x >= -1)
-        prob = Problem(Minimize(sum_entries(self.x)), dom)
+        prob = Problem(Minimize(sum(self.x)), dom)
         prob.solve()
         self.assertItemsAlmostEqual(self.x.value, [-1, 0])
 
         dom = geo_mean(self.z, [0, 1, 1]).domain
         dom.append(self.z >= -1)
-        prob = Problem(Minimize(sum_entries(self.z)), dom)
+        prob = Problem(Minimize(sum(self.z)), dom)
         prob.solve()
         self.assertItemsAlmostEqual(self.z.value, [-1, 0, 0])
 
@@ -175,7 +175,7 @@ class TestDomain(BaseTest):
         """Test domain for log_det.
         """
         dom = log_det(self.A + np.eye(2)).domain
-        prob = Problem(Minimize(sum_entries(diag(self.A))), dom)
+        prob = Problem(Minimize(sum(diag(self.A))), dom)
         prob.solve(solver=cvxpy.SCS)
         self.assertAlmostEquals(prob.value, -2, places=3)
 
@@ -183,6 +183,6 @@ class TestDomain(BaseTest):
         """Test domain for matrix_frac.
         """
         dom = matrix_frac(self.x, self.A + np.eye(2)).domain
-        prob = Problem(Minimize(sum_entries(diag(self.A))), dom)
+        prob = Problem(Minimize(sum(diag(self.A))), dom)
         prob.solve(solver=cvxpy.SCS)
         self.assertAlmostEquals(prob.value, -2, places=3)

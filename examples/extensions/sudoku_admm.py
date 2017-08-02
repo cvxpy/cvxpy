@@ -80,6 +80,6 @@ for i in range(n):
 #constraints.extend(numbers[k] == solution[k] for k in known)
 
 # attempt to solve
-p = Problem(Minimize(sum_entries(abs(numbers-solution))), constraints)
+p = Problem(Minimize(sum(abs(numbers-solution))), constraints)
 p.solve(method="admm2", rho=0.5, iterations=25)
 print sum(numbers.value - solution)

@@ -171,7 +171,7 @@ plt.show()
 # L = -100
 # obj = sum_squares(A*x - b)
 # constraints = [L*y <= x, x <= U*y,
-#                sum_entries(y) <= nnz]
+#                sum(y) <= nnz]
 # prob = Problem(Minimize(obj), constraints)
 # relaxation = cvx_relax(prob)
 # print relaxation.solve()
@@ -201,11 +201,11 @@ plt.show()
 # # Annotate variables.
 # X.boolean = False
 # y.boolean = True
-# demand = [sum_entries(X[:, j]) == d[j] for j in range(m)]
-# valid = [sum_entries(X[i, :]) <= y[i]*d.sum() for i in range(n)]
-# obj = sum_entries(mul_elemwise(C, X)) + f.T*y
+# demand = [sum(X[:, j]) == d[j] for j in range(m)]
+# valid = [sum(X[i, :]) <= y[i]*d.sum() for i in range(n)]
+# obj = sum(multiply(C, X)) + f.T*y
 # prob = Problem(Minimize(obj),
-#                [X >= 0, sum_entries(y) >= 3*n/4] + demand + valid)
+#                [X >= 0, sum(y) >= 3*n/4] + demand + valid)
 
 # relaxation = cvx_relax(prob)
 # print relaxation.solve()

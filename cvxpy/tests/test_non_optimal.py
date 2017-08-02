@@ -47,10 +47,10 @@ class TestNonOptimal(BaseTest):
         """
         # Infeasible and unbounded problems.
         x = Variable(5)
-        p_inf = Problem(Minimize(sum_entries(x)),
+        p_inf = Problem(Minimize(sum(x)),
                         [x >= 1,
                          x <= 0])
-        p_unb = Problem(Minimize(sum_entries(x)), [x <= 1])
+        p_unb = Problem(Minimize(sum(x)), [x <= 1])
         for solver in [ECOS, CVXOPT, SCS]:
             if CVXOPT in installed_solvers():
                 print(solver)
@@ -63,7 +63,7 @@ class TestNonOptimal(BaseTest):
         """Test the optimal inaccurate status.
         """
         x = Variable(5)
-        prob = Problem(Maximize(sum_entries(sqrt(x))), [x <= 0])
+        prob = Problem(Maximize(sum(sqrt(x))), [x <= 0])
         result = prob.solve(solver=SCS)
         self.assertEqual(prob.status, OPTIMAL_INACCURATE)
         assert result is not None
@@ -73,7 +73,7 @@ class TestNonOptimal(BaseTest):
     #     """
     #     # Infeasible and unbounded problems.
     #     x = Variable(5)
-    #     obj = Maximize(sum_entries(sqrt(x)))
+    #     obj = Maximize(sum(sqrt(x)))
     #     p_inf = Problem(obj,
     #                     [x >= 1,
     #                      x <= 0])

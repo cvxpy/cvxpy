@@ -84,9 +84,9 @@ CVXPY imported as a namespace.
 Nonetheless we have designed CVXPY so that using ``from cvxpy import *``
 is generally safe for short scripts. The biggest catch is that the built-in
 ``max`` and ``min`` cannot be used on CVXPY expressions. Instead use the
-:ref:`CVXPY functions <functions>` ``max_elemwise``, ``max_entries``, ``min_elemwise``, or ``min_entries``.
+:ref:`CVXPY functions <functions>` ``maximum``, ``max``, ``minimum``, or ``min``.
 
-The built-in ``sum`` can be used on lists of CVXPY expressions to add all the list elements together. Use the :ref:`CVXPY function <functions>` ``sum_entries`` to sum the entries of a single CVXPY matrix or vector expression.
+The built-in ``sum`` can be used on lists of CVXPY expressions to add all the list elements together. Use the :ref:`CVXPY function <functions>` ``sum`` to sum the entries of a single CVXPY matrix or vector expression.
 
 Changing the problem
 --------------------
@@ -225,7 +225,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
 
     # Construct the problem.
     x = Variable(n)
-    objective = Minimize(sum_entries(square(A*x - b)))
+    objective = Minimize(sum(square(A*x - b)))
     constraints = [0 <= x, x <= 1]
     prob = Problem(objective, constraints)
 

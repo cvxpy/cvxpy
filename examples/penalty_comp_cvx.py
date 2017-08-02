@@ -67,7 +67,7 @@ def deadzone(y,z):
 
 dz = 0.5
 xdz = Variable(n)
-objective3 = Minimize( sum_entries( deadzone(A*xdz+b, dz) ) )
+objective3 = Minimize( sum( deadzone(A*xdz+b, dz) ) )
 p3 = Problem(objective3, [])
 
 # Solve the problems

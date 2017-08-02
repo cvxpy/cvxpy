@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.constraints.second_order import SOC
@@ -58,7 +58,7 @@ def pnorm_canon(expr, args):
     # to create the rational powers, we need a new variable, r, and
     # the constraint sum(r) == t
     r = Variable(x.shape)
-    constraints += [sum_entries(r) == t]
+    constraints += [sum(r) == t]
 
     # todo: no need to run gm_constr to form the tree each time.
     # we only need to form the tree once

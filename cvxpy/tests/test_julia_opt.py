@@ -157,7 +157,7 @@ class TestJuliaOpt(BaseTest):
     def test_log_problem(self):
         if JULIA_OPT in installed_solvers():
             # Log in objective.
-            obj = Maximize(sum_entries(log(self.x)))
+            obj = Maximize(sum(log(self.x)))
             constr = [self.x <= [1, math.e]]
             p = Problem(obj, constr)
             for pkg, solver_str in self.OPTIONS:
@@ -166,7 +166,7 @@ class TestJuliaOpt(BaseTest):
                 self.assertItemsAlmostEqual(self.x.value, [1, math.e])
 
             # Log in constraint.
-            obj = Minimize(sum_entries(self.x))
+            obj = Minimize(sum(self.x))
             constr = [log(self.x) >= 0, self.x <= [1,1]]
             p = Problem(obj, constr)
             for pkg, solver_str in self.OPTIONS:
@@ -185,7 +185,7 @@ class TestJuliaOpt(BaseTest):
     def test_sqrt_problem(self):
         if JULIA_OPT in installed_solvers():
             # sqrt in objective.
-            obj = Maximize(sum_entries(sqrt(self.x)))
+            obj = Maximize(sum(sqrt(self.x)))
             constr = [self.x <= [1, 4]]
             p = Problem(obj, constr)
             for pkg, solver_str in self.OPTIONS:
@@ -194,7 +194,7 @@ class TestJuliaOpt(BaseTest):
                 self.assertItemsAlmostEqual(self.x.value, [1, 4])
 
             # sqrt in constraint.
-            obj = Minimize(sum_entries(self.x))
+            obj = Minimize(sum(self.x))
             constr = [sqrt(self.x) >= [2,3]]
             p = Problem(obj, constr)
             for pkg, solver_str in self.OPTIONS:
@@ -217,15 +217,15 @@ class TestJuliaOpt(BaseTest):
             pkg, solver_str = ("Pajarito, GLPKMathProgInterface, ECOS", "PajaritoSolver(verbose=1,mip_solver=GLPKSolverMIP(),cont_solver=ECOSSolver(verbose=0))")
             # sqrt in constraint.
             x_int = Int(2)
-            obj = Minimize(sum_entries(x_int))
+            obj = Minimize(sum(x_int))
             constr = [sqrt(x_int) >= [2,3]]
             p = Problem(obj, constr)
             result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)
             self.assertAlmostEqual(result, 13)
             self.assertItemsAlmostEqual(x_int.value, [4,9])
 
-            x_bool = mul_elemwise([4,9], Bool(2))
-            obj = Minimize(sum_entries(x_bool))
+            x_bool = multiply([4,9], Bool(2))
+            obj = Minimize(sum(x_bool))
             constr = [sqrt(x_bool) >= [2,3]]
             p = Problem(obj, constr)
             result = p.solve(solver=JULIA_OPT, package=pkg, solver_str=solver_str)

@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
 from cvxpy.atoms.affine.vstack import vstack
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.reshape import reshape
 
 
@@ -61,4 +61,4 @@ def tv(value, *args):
             ]
         length = diffs[0].shape[0]*diffs[1].shape[1]
         stacked = vstack(*[reshape(diff, (1, length)) for diff in diffs])
-        return sum_entries(norm(stacked, p=2, axis=0))
+        return sum(norm(stacked, p=2, axis=0))

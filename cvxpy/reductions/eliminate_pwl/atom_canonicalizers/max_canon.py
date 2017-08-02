@@ -17,12 +17,24 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.max_entries import max_entries
-from cvxpy.expressions.expression import Expression
+import numpy as np
+
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.variable import Variable
 
 
-def min_entries(x, axis=None):
-    """:math:`\min_{i,j}\{X_{i,j}\}`.
-    """
-    x = Expression.cast_to_const(x)
-    return -max_entries(-x, axis=axis)
+def max_canon(expr, args):
+    x = args[0]
+    shape = expr.shape
+    axis = expr.axis
+    t = Variable(shape)
+
+    if axis is None:  # shape = (1, 1)
+        promoted_t = Constant(np.ones(x.shape)) * t
+    elif axis == 0:  # shape = (1, n)
+        promoted_t = Constant(np.ones((x.shape[0], 1))) * t
+    else:  # shape = (m, 1)
+        promoted_t = t * Constant(np.ones((1, x.shape[1])))
+
+    constraints = [x <= promoted_t]
+    return t, constraints

@@ -61,7 +61,7 @@ class TestProblem(unittest.TestCase):
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))
             x = Variable((n, n))
-            p = Problem(Minimize(at.sum_entries(x)), [x >= A])
+            p = Problem(Minimize(at.sum(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
             print(result - answer)

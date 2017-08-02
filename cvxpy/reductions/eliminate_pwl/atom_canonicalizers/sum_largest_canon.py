@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.sum import sum
 from cvxpy.expressions.variable import Variable
 
 
@@ -26,11 +26,11 @@ def sum_largest_canon(expr, args):
     k = expr.k
     shape = expr.shape
 
-    # min sum_entries(t) + kq
+    # min sum(t) + kq
     # s.t. x <= t + q
     #      0 <= t
     t = Variable(x.shape)
     q = Variable()
-    obj = sum_entries(t) + k*q
+    obj = sum(t) + k*q
     constraints = [x <= t + q, t >= 0]
     return obj, constraints

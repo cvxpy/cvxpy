@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variable import Variable
 
 
-def max_elemwise_canon(expr, args):
+def maximum_canon(expr, args):
     shape = expr.shape
     t = Variable(shape)
     constraints = [t >= elem for elem in args]

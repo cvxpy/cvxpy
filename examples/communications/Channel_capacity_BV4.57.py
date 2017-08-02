@@ -65,10 +65,10 @@ where c_j = ∑(p_(i,j)log_2(p_(i,j)))
   y = P*x
   # I is the mutual information between x and y
   c = np.sum(P*np.log2(P),axis=0)
-  I = c*x + cvx.sum_entries(cvx.entr(y))
+  I = c*x + cvx.sum(cvx.entr(y))
   # Channel capacity maximised by maximising the mutual information
   obj = cvx.Minimize(-I)
-  constraints = [cvx.sum_entries(x) == sum_x,x >= 0]
+  constraints = [cvx.sum(x) == sum_x,x >= 0]
   # Form and solve problem
   prob = cvx.Problem(obj,constraints)
   prob.solve()

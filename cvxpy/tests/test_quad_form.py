@@ -64,7 +64,7 @@ class TestNonOptimal(BaseTest):
                     elif action == 'maximize':
                         q = cvxpy.quad_form(x, -Q)
                         objective = cvxpy.Maximize(q)
-                    constraints = [0 <= x, cvxpy.sum_entries(x) == 1]
+                    constraints = [0 <= x, cvxpy.sum(x) == 1]
                     p = cvxpy.Problem(objective, constraints)
                     p.solve()
 

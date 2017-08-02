@@ -889,7 +889,7 @@ class TestExpressions(BaseTest):
         expr = A * self.y - b
         self.assertEqual(expr.is_pwl(), True)
 
-        expr = max_elemwise(1, 3 * self.y)
+        expr = maximum(1, 3 * self.y)
         self.assertEqual(expr.is_pwl(), True)
 
         expr = abs(self.y)

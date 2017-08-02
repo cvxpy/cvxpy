@@ -27,7 +27,7 @@ x = Variable(n*n)
 #       self.x = x
 #       self.y = y
 #       self.z = z
-obj = Minimize(sum_entries(exp(x)))
+obj = Minimize(sum(exp(x)))
 prob = Problem(obj)
 prob.solve(verbose=True)
 # import cProfile

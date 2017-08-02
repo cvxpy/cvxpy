@@ -29,8 +29,8 @@ arithmetic operators ``+, -, *, /``, and a library of
     # Examples of CVXPY expressions.
     3.69 + b/3
     x - 4*a
-    sqrt(x) - min_elemwise(y, x - a)
-    max_elemwise(2.66 - sqrt(y), square(x + 2*y))
+    sqrt(x) - minimum(y, x - a)
+    maximum(2.66 - sqrt(y), square(x + 2*y))
 
 
 
@@ -47,7 +47,7 @@ dimensions, for example adding matrices of different size.
 
     # Use expr.size to get the dimensions.
     print "dimensions of X:", X.size
-    print "dimensions of sum_entries(X):", sum_entries(X).size
+    print "dimensions of sum(X):", sum(X).size
     print "dimensions of A*X:", (A*X).size
 
     # ValueError raised for invalid dimensions.
@@ -59,7 +59,7 @@ dimensions, for example adding matrices of different size.
 ::
 
     dimensions of X: (5, 4)
-    dimensions of sum_entries(X): (1, 1)
+    dimensions of sum(X): (1, 1)
     dimensions of A*X: (3, 4)
     Incompatible dimensions (3, 5) (5, 4)
 

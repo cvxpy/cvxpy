@@ -37,10 +37,10 @@ u = Int(N)
 constraints = []
 for j in range(N):
     indices = range(0, j) + range(j + 1, N)
-    constraints.append(sum_entries(x[indices, j]) == 1)
+    constraints.append(sum(x[indices, j]) == 1)
 for i in range(N):
     indices = range(0, i) + range(i + 1, N)
-    constraints.append(sum_entries(x[i, indices]) == 1)
+    constraints.append(sum(x[i, indices]) == 1)
 
 for i in range(1, N):
     for j in range(1, N):
@@ -48,7 +48,7 @@ for i in range(1, N):
             constraints.append(u[i] - u[j] + N*x[i, j] <= N-1)
 
 # OBJ
-obj = Minimize(sum_entries(mul_elemwise(distances, x)))
+obj = Minimize(sum(multiply(distances, x)))
 
 # SOLVE
 prob = Problem(obj, constraints)

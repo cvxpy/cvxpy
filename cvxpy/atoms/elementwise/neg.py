@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.elementwise.min_elemwise import min_elemwise
+from cvxpy.atoms.elementwise.minimum import minimum
 
 
 def neg(x):
-    """ Alias for -min_elemwise{x, 0}.
+    """ Alias for -minimum{x, 0}.
 
     """
-    return -min_elemwise(x, 0)
+    return -minimum(x, 0)

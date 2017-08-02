@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.diag import diag_mat, diag_vec
-from cvxpy.atoms.affine.sum_entries import sum_entries
+from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.elementwise.log import log
@@ -92,4 +92,4 @@ def log_det_canon(expr, args):
     log_expr = log(D)
     obj, constr = log_canon(log_expr, log_expr.args)
     constraints += constr
-    return sum_entries(obj), constraints
+    return sum(obj), constraints
