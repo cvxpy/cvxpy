@@ -325,9 +325,6 @@ class Expression(u.Canonical):
             else:
                 return cvxtypes.mul_expr()(self, other)
         else:
-            # TODO(akshayka): Revisit this design choice --
-            # we'll probably want to allow non-DCP expressions to support
-            # smooth optimization.
             warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.mul_expr()(self, other)
 
