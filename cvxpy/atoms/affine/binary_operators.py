@@ -22,8 +22,10 @@ import sys
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.error import DCPError
+import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
+import numpy as np
 import operator as op
 import scipy.sparse as sp
 if sys.version_info >= (3, 0):
@@ -65,7 +67,7 @@ class MulExpression(BinaryOperator):
         if self.args[0].is_scalar() or self.args[1].is_scalar():
             return values[0] * values[1]
         else:
-            return values[0].dot(values[1])
+            return np.matmul(values[0], values[1])
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
@@ -149,10 +151,17 @@ class MulExpression(BinaryOperator):
         tuple
             (LinOp for objective, list of constraints)
         """
-        if lu.is_const(arg_objs[0]):
-            return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
-        elif lu.is_const(arg_objs[1]):
-            return (lu.rmul_expr(arg_objs[0], arg_objs[1], shape), [])
+        # Promote shapes for compatibility with CVXCanon
+        lh_shape, rh_shape, shape = u.mul_shapes_promote(arg_objs[0].shape,
+                                                         arg_objs[1].shape)
+        lhs = lo.LinOp(arg_objs[0].type, lh_shape, arg_objs[0].args,
+                       arg_objs[0].data)
+        rhs = lo.LinOp(arg_objs[1].type, rh_shape, arg_objs[1].args,
+                       arg_objs[1].data)
+        if lu.is_const(lhs):
+            return (lu.mul_expr(lhs, rhs, shape), [])
+        elif lu.is_const(rhs):
+            return (lu.rmul_expr(lhs, rhs, shape), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")
