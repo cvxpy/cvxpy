@@ -43,6 +43,8 @@ class NDArrayInterface(base.BaseMatrixInterface):
             return value.A.astype(numpy.float64)
         elif isinstance(value, numpy.matrix):
             return value.A.astype(numpy.float64)
+        elif isinstance(value, list):
+            return numpy.asarray(value, dtype=numpy.float64).T
         else:
             return numpy.asarray(value, dtype=numpy.float64)
 
@@ -52,17 +54,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Return the dimensions of the matrix.
     def shape(self, matrix):
-        # Scalars.
-        if len(matrix.shape) == 0:
-            return (1, 1)
-        # 1D arrays are treated as column vectors.
-        elif len(matrix.shape) == 1:
-            return (int(matrix.size), 1)
-        # 2D arrays.
-        else:
-            rows = int(matrix.shape[0])
-            cols = int(matrix.shape[1])
-            return (rows, cols)
+        return tuple(int(d) for d in matrix.shape)
 
     def size(self, matrix):
         """Returns the number of elements in the matrix.

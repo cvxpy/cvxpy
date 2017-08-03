@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 
 
 class Constant(Leaf):
@@ -44,11 +43,7 @@ class Constant(Leaf):
     def name(self):
         """The value as a string.
         """
-        # Reduce from a 1x1 matrix to a scalar.
-        if self.is_scalar():
-            return str(self.value[0, 0])
-        else:
-            return str(self.value)
+        return str(self.value)
 
     def constants(self):
         """Returns self as a constant.

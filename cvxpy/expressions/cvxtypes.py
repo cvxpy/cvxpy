@@ -55,6 +55,11 @@ def mul_expr():
     return binary_operators.MulExpression
 
 
+def multiply_expr():
+    from cvxpy.atoms.affine import multiply
+    return multiply.multiply
+
+
 def div_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.DivExpression

@@ -396,7 +396,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(minimum(-1, Variable(2)).sign,
                          s.NEGATIVE)
         self.assertEqual(minimum(-1, Variable(2)).shape,
-                         (2, 1))
+                         (2,))
 
     def test_sum(self):
         """Test the sum atom.

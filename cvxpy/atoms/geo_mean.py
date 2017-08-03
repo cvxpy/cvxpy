@@ -342,35 +342,3 @@ class geo_mean(Atom):
         copy.cone_num_over = self.cone_num_over
         copy.cone_num = self.cone_num
         return copy
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        w, w_dyad, tree = data
-        t = lu.create_var((1, 1))
-
-        if arg_objs[0].shape[1] == 1:
-            x_list = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))]
-        if arg_objs[0].shape[0] == 1:
-            x_list = [index.get_index(arg_objs[0], [], 0, i) for i in range(len(w))]
-
-        # todo: catch cases where we have (0, 0, 1)?
-        # todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1),
-        # should this behavior match with what we do in power?
-
-        return t, gm_constrs(t, x_list, w)

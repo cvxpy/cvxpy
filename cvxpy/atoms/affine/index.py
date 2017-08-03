@@ -33,12 +33,14 @@ class index(AffAtom):
 
     def __init__(self, expr, key):
         # Format and validate key.
+        self._orig_key = key
         self.key = ku.validate_key(key, expr.shape)
         super(index, self).__init__(expr)
 
     # The string representation of the atom.
     def name(self):
-        return self.args[0].name() + "[%s, %s]" % ku.to_str(self.key)
+        inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
+        return self.args[0].name() + inner_str % ku.to_str(self.key)
 
     # Returns the index/slice into the given value.
     @AffAtom.numpy_numeric
@@ -48,7 +50,7 @@ class index(AffAtom):
     def shape_from_args(self):
         """Returns the shape of the index expression.
         """
-        return ku.shape(self.key, self.args[0].shape)
+        return ku.shape(self.key, self._orig_key, self.args[0].shape)
 
     def get_data(self):
         """Returns the (row slice, column slice).
@@ -93,100 +95,11 @@ class index(AffAtom):
         """
         expr = index.cast_to_const(expr)
         # Order the entries of expr and select them using key.
-        idx_mat = np.arange(expr.shape[0]*expr.shape[1])
+        idx_mat = np.arange(expr.size)
         idx_mat = np.reshape(idx_mat, expr.shape, order='F')
         select_mat = idx_mat[key]
-        if select_mat.ndim == 2:
-            final_shape = select_mat.shape
-        else:  # Always cast 1d arrays as column vectors.
-            final_shape = (select_mat.size, 1)
+        final_shape = select_mat.shape
         select_vec = np.reshape(select_mat, select_mat.size, order='F')
         # Select the chosen entries from expr.
         identity = sp.eye(expr.size).tocsc()
         return reshape(identity[select_vec]*vec(expr), final_shape)
-
-    @staticmethod
-    def get_index(matrix, constraints, row, col):
-        """Returns a canonicalized index into a matrix.
-
-        Parameters
-        ----------
-        matrix : LinOp
-            The matrix to be indexed.
-        constraints : list
-            A list of constraints to append to.
-        row : int
-            The row index.
-        col : int
-            The column index.
-        """
-        key = (ku.index_to_slice(row),
-               ku.index_to_slice(col))
-        idx, idx_constr = index.graph_implementation([matrix],
-                                                     (1, 1),
-                                                     [key])
-        constraints += idx_constr
-        return idx
-
-    @staticmethod
-    def get_slice(matrix, constraints, row_start, row_end, col_start, col_end):
-        """Gets a slice from a matrix
-
-        Parameters
-        ----------
-        matrix : LinOp
-            The matrix in the block equality.
-        constraints : list
-            A list of constraints to append to.
-        row_start : int
-            The first row of the matrix section.
-        row_end : int
-            The last row + 1 of the matrix section.
-        col_start : int
-            The first column of the matrix section.
-        col_end : int
-            The last column + 1 of the matrix section.
-        """
-        key = (slice(row_start, row_end, None),
-               slice(col_start, col_end, None))
-        rows = row_end - row_start
-        cols = col_end - col_start
-        slc, idx_constr = index.graph_implementation([matrix],
-                                                     (rows, cols),
-                                                     [key])
-        constraints += idx_constr
-        return slc
-
-    @staticmethod
-    def block_eq(matrix, block, constraints,
-                 row_start, row_end, col_start, col_end):
-        """Adds an equality setting a section of the matrix equal to block.
-
-        Assumes block does not need to be promoted.
-
-        Parameters
-        ----------
-        matrix : LinOp
-            The matrix in the block equality.
-        block : LinOp
-            The block in the block equality.
-        constraints : list
-            A list of constraints to append to.
-        row_start : int
-            The first row of the matrix section.
-        row_end : int
-            The last row + 1 of the matrix section.
-        col_start : int
-            The first column of the matrix section.
-        col_end : int
-            The last column + 1 of the matrix section.
-        """
-        key = (slice(row_start, row_end, None),
-               slice(col_start, col_end, None))
-        rows = row_end - row_start
-        cols = col_end - col_start
-        assert block.shape == (rows, cols)
-        slc, idx_constr = index.graph_implementation([matrix],
-                                                     (rows, cols),
-                                                     [key])
-        constraints += [lu.create_eq(slc, block)] + idx_constr

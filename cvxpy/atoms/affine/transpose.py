@@ -36,8 +36,7 @@ class transpose(AffAtom):
     def shape_from_args(self):
         """Returns the shape of the transpose expression.
         """
-        rows, cols = self.args[0].shape
-        return (cols, rows)
+        return self.args[0].shape[::-1]
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

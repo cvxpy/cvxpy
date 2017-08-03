@@ -38,18 +38,22 @@ def validate_key(key, shape):
     Raises:
         Error: Index/slice out of bounds.
     """
-    rows, cols = shape
+    key = to_tuple(key)
     # Change single indices for vectors into double indices.
-    if not isinstance(key, tuple):
-        if rows == 1:
-            key = (slice(0, 1, None), key)
-        elif cols == 1:
-            key = (key, slice(0, 1, None))
-        else:
-            raise IndexError("Invalid index/slice.")
+    none_count = sum([1 for elem in key if elem is None])
+    if len(key) - none_count != len(shape):
+        raise IndexError("Invalid index/slice.")
     # Change numbers into slices and ensure all slices have a start and step.
-    key = (format_slice(slc, dim) for slc, dim in zip(key, shape))
-    return tuple(key)
+    return tuple(format_slice(slc, dim) for slc, dim in zip(key, shape))
+
+
+def to_tuple(key):
+    """Convert key to tuple if necessary.
+    """
+    if isinstance(key, tuple):
+        return key
+    else:
+        return (key,)
 
 
 def format_slice(key_val, dim):
@@ -64,10 +68,12 @@ def format_slice(key_val, dim):
     Returns:
         A slice with a start and step.
     """
-    if isinstance(key_val, slice):
-        key_val = slice(wrap_neg_index(to_int(key_val.start), dim),
-                        wrap_neg_index(to_int(key_val.stop), dim),
-                        to_int(key_val.step))
+    if key_val is None:
+        return None
+    elif isinstance(key_val, slice):
+        key_val = slice(wrap_neg_index(to_int(key_val.start, 0), dim),
+                        wrap_neg_index(to_int(key_val.stop, dim), dim),
+                        to_int(key_val.step, 1))
         return key_val
     else:
         # Convert to int.
@@ -79,11 +85,11 @@ def format_slice(key_val, dim):
             raise IndexError("Index/slice out of bounds.")
 
 
-def to_int(val):
+def to_int(val, none_val=None):
     """Convert everything but None to an int.
     """
     if val is None:
-        return val
+        return none_val
     else:
         return int(val)
 
@@ -147,7 +153,7 @@ def is_single_index(slc):
         slc.start + step >= slc.stop
 
 
-def shape(key, shape):
+def shape(key, orig_key, shape):
     """Finds the dimensions of a sliced expression.
 
     Args:
@@ -157,33 +163,29 @@ def shape(key, shape):
     Returns:
         The dimensions of the expression as (rows, cols).
     """
+    orig_key = to_tuple(orig_key)
     dims = []
-    for i in range(2):
-        selection = np.arange(shape[i])[key[i]]
-        size = np.size(selection)
-        dims.append(size)
+    for i in range(len(shape)):
+        if key[i] is None:
+            dims.append(1)
+        else:
+            size = (key[i].stop - key[i].start)//abs(key[i].step)
+            if isinstance(orig_key[i], slice) or size > 1:
+                dims.append(size)
     return tuple(dims)
 
 
 def to_str(key):
     """Converts a key (i.e. two slices) into a string.
     """
-    return (slice_to_str(key[0]), slice_to_str(key[1]))
+    return tuple(slice_to_str(elem) for elem in key)
 
 
 def is_special_slice(key):
     """Does the key contain a list, ndarray, or logical ndarray?
     """
-    # Key is either a tuple of row, column keys or a single row key.
-    if isinstance(key, tuple):
-        if len(key) > 2:
-            raise IndexError("Invalid index/slice.")
-        key_elems = [key[0], key[1]]
-    else:
-        key_elems = [key]
-
     # Slices and int-like numbers are fine.
-    for elem in key_elems:
+    for elem in to_tuple(key):
         if not (isinstance(elem, (numbers.Number, slice)) or np.isscalar(elem)):
             return True
 

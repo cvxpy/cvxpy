@@ -121,12 +121,12 @@ def is_sparse(constant):
 
 def shape(constant):
     if isinstance(constant, numbers.Number) or np.isscalar(constant):
-        return (1, 1)
+        return tuple()
     elif isinstance(constant, list):
         if len(constant) == 0:
-            return (0, 0)
+            return (0,)
         elif isinstance(constant[0], numbers.Number):  # Vector
-            return (len(constant), 1)
+            return (len(constant),)
         else:  # Matrix
             return (len(constant[0]), len(constant))
     elif constant.__class__ in INTERFACES:

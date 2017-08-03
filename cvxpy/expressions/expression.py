@@ -230,17 +230,17 @@ class Expression(u.Canonical):
     def is_scalar(self):
         """Is the expression a scalar?
         """
-        return self.shape == (1, 1)
+        return all(d == 1 for d in self.shape)
 
     def is_vector(self):
         """Is the expression a column or row vector?
         """
-        return min(self.shape) == 1
+        return self.ndim == 1 or (self.ndim == 2 and min(self.shape) == 1)
 
     def is_matrix(self):
         """Is the expression a matrix?
         """
-        return self.shape[0] > 1 and self.shape[1] > 1
+        return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
     def __getitem__(self, key):
         """Return a slice/index into the expression.
@@ -302,19 +302,10 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """The product of two expressions.
         """
-        # Multiplying by a constant on the right is handled differently
-        # from multiplying by a constant on the left.
-        if self.is_constant() or other.is_constant():
-            if other.is_scalar() and self.shape[1] != 1:
-                lh_arg = cvxtypes.reshape()(self, (self.size, 1))
-                prod = cvxtypes.mul_expr()(lh_arg, other)
-                return cvxtypes.reshape()(prod, self.shape)
-            elif self.is_scalar() and other.shape[0] != 1:
-                lh_arg = cvxtypes.reshape()(other, (other.size, 1))
-                prod = cvxtypes.mul_expr()(lh_arg, self)
-                return cvxtypes.reshape()(prod, other.shape)
-            else:
-                return cvxtypes.mul_expr()(self, other)
+        if self.is_scalar() or other.is_scalar():
+            return cvxtypes.multiply_expr()(self, other)
+        elif self.is_constant() or other.is_constant():
+            return cvxtypes.mul_expr()(self, other)
         else:
             warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.mul_expr()(self, other)
