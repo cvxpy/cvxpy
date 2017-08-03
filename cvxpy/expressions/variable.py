@@ -105,6 +105,7 @@ class Variable(Leaf):
         Returns:
             A map of variable to SciPy CSC sparse matrix or None.
         """
+        # TODO(akshayka): Do not assume shape is 2D.
         return {self: sp.eye(self.shape[0]*self.shape[1]).tocsc()}
 
     def variables(self):

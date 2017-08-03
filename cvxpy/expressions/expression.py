@@ -211,7 +211,7 @@ class Expression(u.Canonical):
 
     @abc.abstractproperty
     def shape(self):
-        """Returns the (row, col) dimensions of the expression.
+        """Returns a tuple of the expression dimensions.
         """
         return NotImplemented
 
@@ -304,15 +304,6 @@ class Expression(u.Canonical):
         """
         # Multiplying by a constant on the right is handled differently
         # from multiplying by a constant on the left.
-        if self.is_constant():
-            # TODO HACK catch c.T*x where c is a NumPy 1D array.
-            # TODO(akshayka): This logic will need to change once in order to
-            # handle 1D and 0D arrays.
-            if self.shape[0] == other.shape[0] and \
-               self.shape[1] != self.shape[0] and \
-               isinstance(self, cvxtypes.constant()) and self.is_1D_array:
-                self = self.T
-
         if self.is_constant() or other.is_constant():
             if other.is_scalar() and self.shape[1] != 1:
                 lh_arg = cvxtypes.reshape()(self, (self.size, 1))
