@@ -207,29 +207,41 @@ std::vector<Matrix> stack_matrices(LinOp &lin, bool vertical) {
 	for (int idx = 0; idx < num_args; idx++) {
 		LinOp arg = *lin.args[idx];
 
+    int arg_cols = 1;
+    int arg_rows = 1;
+    if (arg.size.size() == 1) {
+      if (vertical) {
+        arg_cols = arg.size[0];
+      } else {
+        arg_rows = arg.size[0];
+      }
+    } else if (arg.size.size() == 2) {
+      arg_rows = arg.size[0];
+      arg_cols = arg.size[1];
+    }
 		/* If VERTICAL, columns are interleaved. Otherwise, they are
 			 laid out in order. */
 		int column_offset;
 		int offset_increment;
 		if (vertical) {
 			column_offset = lin.size[0];
-			offset_increment = arg.size[0];
+			offset_increment = arg_rows;
 		} else {
-			column_offset = arg.size[0];
-			offset_increment = arg.size[0] * arg.size[1];
+			column_offset = arg_rows;
+			offset_increment = vecprod(arg.size);
 		}
 
 		std::vector<Triplet> tripletList;
-		tripletList.reserve(arg.size[0] * arg.size[1]);
-		for (int i = 0; i < arg.size[0]; i++) {
-			for (int j = 0; j < arg.size[1]; j++) {
+		tripletList.reserve(vecprod(arg.size));
+		for (int i = 0; i < arg_rows; i++) {
+			for (int j = 0; j < arg_cols; j++) {
 				int row_idx = i + (j * column_offset) + offset;
-				int col_idx = i + (j * arg.size[0]);
+				int col_idx = i + (j * arg_rows);
 				tripletList.push_back(Triplet(row_idx, col_idx, 1));
 			}
 		}
 
-		Matrix coeff(lin.size[0] * lin.size[1], arg.size[0] * arg.size[1]);
+		Matrix coeff(vecprod(lin.size), vecprod(arg.size));
 		coeff.setFromTriplets(tripletList.begin(), tripletList.end());
 		coeff.makeCompressed();
 		coeffs_mats.push_back(coeff);
@@ -281,40 +293,6 @@ Matrix get_constant_data(LinOp &lin, bool column) {
 	}
 	coeffs.makeCompressed();
 	return coeffs;
-}
-
-/**
- * Interface for the INDEX linOp to retrieve slice data. Assumes that the
- * INDEX linOp stores slice data in the following format
- *
- * 		vector(row_data, col_data),
- *
- * where row_data = vector(start_idx, end_idx, step_size) and
- * col_data = vector(start_idx, end_idx, step_size).
- *
- * Implements Python slice semantics, e.g. if ROW_START (or ROW_END) is
- * negative, it is assumed to refer to ROWS + ROW_START (ROWS + ROW_END).
- * Same for columns.
- *
- * Parameters: linOp LIN with type INDEX and slice data.
- *
- * Returns: a std::vector containing 2 std::vector of ints.
- * 					The first vector is the row slice data in the form
- * 							(start, end, step_size)
- * 					The second the vector is the column slice data in the form
- * 							(start, end, step_size)
- */
-std::vector<std::vector<int> > get_slice_data(LinOp &lin, int rows, int cols) {
-	assert(lin.type == INDEX);
-	std::vector<int> row_slice = lin.slice[0];
-	std::vector<int> col_slice = lin.slice[1];
-	assert(row_slice.size() == 3);
-	assert(col_slice.size() == 3);
-  
-	std::vector<std::vector<int> > slices;
-	slices.push_back(row_slice);
-	slices.push_back(col_slice);
-	return slices;
 }
 
 /**
@@ -570,6 +548,40 @@ std::vector<Matrix> get_transpose_mat(LinOp &lin) {
 }
 
 /**
+ * Adds Triplets for slices starting from the current axis.
+ *
+ * Parameters: triplet list, slices, dimensions, axis, row counter.
+ *
+ * Returns: new row counter
+ *
+ */
+int add_triplets(std::vector<Triplet> &tripletList,
+                 const std::vector<std::vector<int> > &slices,
+                 const std::vector<int> &dims,
+                 int axis, int col_offset, int row_offset) {
+  if (axis < 0) {
+    tripletList.push_back(Triplet(row_offset, col_offset, 1.0));
+    return row_offset + 1;
+  }
+  int start = slices[axis][0];
+  int end = slices[axis][1];
+  int step = slices[axis][1];
+  int pointer = start;
+  while (true) {
+    if (pointer < 0 || pointer >= dims[axis]) {
+      break;
+    }
+    int new_offset = col_offset + pointer*vecprod(dims, axis);
+    row_offset = add_triplets(tripletList, slices, dims,
+                              axis-1, new_offset, row_offset);
+		pointer += step;
+		if ((step > 0 && pointer >= end) || (step < 0 && pointer <= end)) {
+			break;
+		}
+  }
+}
+
+/**
  * Return the coefficients for INDEX: a N by ROWS*COLS matrix
  * where N is the number of total elements in the slice. Element i, j
  * is 1 if element j in the vectorized matrix is the i-th element of the
@@ -582,55 +594,18 @@ std::vector<Matrix> get_transpose_mat(LinOp &lin) {
  */
 std::vector<Matrix> get_index_mat(LinOp &lin) {
 	assert(lin.type == INDEX);
-	int rows = lin.args[0]->size[0];
-	int cols = lin.args[0]->size[1];
-	Matrix coeffs (lin.size[0] * lin.size[1], rows * cols);
+	Matrix coeffs (vecprod(lin.size), vecprod(lin.args[0]->size));
 
 	/* If slice is empty, return empty matrix */
 	if (coeffs.rows () == 0 ||  coeffs.cols() == 0) {
 		return build_vector(coeffs);
 	}
 
-	std::vector<std::vector<int> > slices = get_slice_data(lin, rows, cols);
-
-	/* Row Slice Data */
-	int row_start = slices[0][0];
-	int row_end = slices[0][1];
-	int row_step = slices[0][2];
-
-	/* Column Slice Data */
-	int col_start = slices[1][0];
-	int col_end = slices[1][1];
-	int col_step = slices[1][2];
-
 	/* Set the index coefficients by looping over the column selection
 	 * first to remain consistent with CVXPY. */
 	std::vector<Triplet> tripletList;
-	int col = col_start;
-	int counter = 0;
-	while (true) {
-		if (col < 0 || col >= cols) {
-			break;
-		}
-		int row = row_start;
-		while (true) {
-			if (row < 0 || row >= rows) {
-				break;
-			}
-			int row_idx = counter;
-			int col_idx = col * rows + row;
-			tripletList.push_back(Triplet(row_idx, col_idx, 1.0));
-			counter++;
-			row += row_step;
-			if ((row_step > 0 && row >= row_end) || (row_step < 0 && row <= row_end)) {
-				break;
-			}
-		}
-		col += col_step;
-		if ((col_step > 0 && col >= col_end) || (col_step < 0 && col <= col_end)) {
-			break;
-		}
-	}
+  std::vector<int> dims = lin.args[0]->size;
+  add_triplets(tripletList, lin.slice, dims, dims.size() - 1, 0, 0);
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
 	return build_vector(coeffs);
@@ -757,7 +732,7 @@ std::vector<Matrix> get_mul_mat(LinOp &lin) {
  */
 std::vector<Matrix> get_promote_mat(LinOp &lin) {
 	assert(lin.type == PROMOTE);
-	int num_entries = lin.size[0] * lin.size[1];
+	int num_entries = vecprod(lin.size);
 	Matrix ones = sparse_ones(num_entries, 1);
 	ones.makeCompressed();
 	return build_vector(ones);
@@ -794,7 +769,7 @@ std::vector<Matrix> get_div_mat(LinOp &lin) {
 	assert(lin.type == DIV);
 	// assumes scalar divisor
 	double divisor = get_divisor_data(lin);
-	int n = lin.size[0] * lin.size[1];
+	int n = vecprod(lin.size);
 	Matrix coeffs = sparse_eye(n);
 	coeffs /= divisor;
 	coeffs.makeCompressed();
@@ -810,7 +785,7 @@ std::vector<Matrix> get_div_mat(LinOp &lin) {
  */
 std::vector<Matrix> get_neg_mat(LinOp &lin) {
 	assert(lin.type == NEG);
-	int n = lin.size[0] * lin.size[1];
+	int n = vecprod(lin.size);
 	Matrix coeffs = sparse_eye(n);
 	coeffs *= -1;
 	coeffs.makeCompressed();
@@ -849,9 +824,8 @@ std::vector<Matrix> get_trace_mat(LinOp &lin) {
 std::vector<Matrix> get_sum_entries_mat(LinOp &lin) {
 	assert(lin.type == SUM_ENTRIES);
 	// assumes all args have the same size
-	int rows = lin.args[0]->size[0];
-	int cols = lin.args[0]->size[1];
-	Matrix coeffs = sparse_ones(1, rows * cols);
+	int size = vecprod(lin.args[0]->size);
+	Matrix coeffs = sparse_ones(1, size);
 	coeffs.makeCompressed();
 	return build_vector(coeffs);
 }
@@ -894,7 +868,7 @@ std::map<int, Matrix> get_variable_coeffs(LinOp &lin) {
 	int id = get_id_data(lin);
 
 	// create a giant identity matrix
-	int n = lin.size[0] * lin.size[1];
+	int n = vecprod(lin.size);
 	Matrix coeffs = sparse_eye(n);
 	coeffs.makeCompressed();
 	id_to_coeffs[id] = coeffs;

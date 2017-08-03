@@ -28,5 +28,9 @@ typedef std::map<int, Matrix> CoeffMap;
 typedef Eigen::Triplet<double> Triplet;
 
 int vecprod(const std::vector<int> &vec) {
-    return std::accumulate(vec.begin(), vec.end(), std::multiplies<int>());
+  return std::accumulate(vec.begin(), vec.end(), 1.0, std::multiplies<int>());
+}
+
+int vecprod(const std::vector<int> &vec, int offset) {
+  return std::accumulate(vec.begin() + offset, vec.end(), 1.0, std::multiplies<int>());
 }

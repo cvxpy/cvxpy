@@ -59,13 +59,12 @@ class diag_vec(AffAtom):
         """Convert the vector constant into a diagonal matrix.
         """
         # Convert values to 1D.
-        value = intf.from_2D_to_1D(values[0])
-        return np.diag(value)
+        return np.diag(values[0])
 
     def shape_from_args(self):
         """A square matrix.
         """
-        rows, _ = self.args[0].shape
+        rows = self.args[0].shape[0]
         return (rows, rows)
 
     def is_symmetric(self):
@@ -115,7 +114,7 @@ class diag_mat(AffAtom):
         """A column vector.
         """
         rows, _ = self.args[0].shape
-        return (rows, 1)
+        return (rows,)
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

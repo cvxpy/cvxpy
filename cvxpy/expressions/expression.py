@@ -262,7 +262,7 @@ class Expression(u.Canonical):
         """The transpose of an expression.
         """
         # Transpose of a scalar is that scalar.
-        if self.is_scalar():
+        if self.ndim <= 1:
             return self
         else:
             return cvxtypes.transpose()(self)
