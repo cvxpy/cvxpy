@@ -49,7 +49,7 @@ def validate_key(key, shape):
         # Add : to the right.
         key = tuple(list(key) + [slice(None, None, None)]*(len(shape) - slices))
     # Change numbers into slices and ensure all slices have a start and step.
-    return tuple(format_slice(slc, dim) for slc, dim in zip(key, shape))
+    return tuple(format_slice(slc, dim, i) for slc, dim, i in zip(key, shape, range(len(shape))))
 
 
 def to_tuple(key):
@@ -61,7 +61,7 @@ def to_tuple(key):
         return (key,)
 
 
-def format_slice(key_val, dim):
+def format_slice(key_val, dim, axis):
     """Converts part of a key into a slice with a start and step.
 
     Uses the same syntax as numpy.
@@ -80,22 +80,22 @@ def format_slice(key_val, dim):
         if step == 0:
             raise ValueError("step length cannot be 0")
         elif step > 0:
-            key_val = slice(wrap_neg_index(to_int(key_val.start, 0), dim),
-                            wrap_neg_index(to_int(key_val.stop, dim), dim),
-                            step)
+            start = np.clip(wrap_neg_index(to_int(key_val.start, 0), dim), 0, dim)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, dim), dim), 0, dim)
         else:
-            key_val = slice(wrap_neg_index(to_int(key_val.start, dim - 1), dim),
-                            wrap_neg_index(to_int(key_val.stop, -dim - 1), dim, True),
-                            step)
-        return key_val
+            start = np.clip(wrap_neg_index(to_int(key_val.start, dim-1), dim), -1, dim)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim)
+        return slice(start, stop, step)
     else:
         # Convert to int.
-        key_val = to_int(key_val)
-        key_val = wrap_neg_index(key_val, dim)
+        orig_key_val = to_int(key_val)
+        key_val = wrap_neg_index(orig_key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)
         else:
-            raise IndexError("Index/slice out of bounds.")
+            raise IndexError(
+                "Index %i is out of bounds for axis %i with size %i." % (orig_key_val, axis, dim)
+            )
 
 
 def to_int(val, none_val=None):
@@ -185,7 +185,7 @@ def shape(key, orig_key, shape):
         else:
             size = int(np.ceil((key[i].stop - key[i].start)/key[i].step))
             if size > 1 or i >= len(orig_key) or isinstance(orig_key[i], slice):
-                dims.append(size)
+                dims.append(max(size, 0))
     return tuple(dims)
 
 

@@ -621,7 +621,7 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x[2])
-        self.assertEqual(str(cm.exception), "Index/slice out of bounds.")
+        self.assertEqual(str(cm.exception), "Index 2 is out of bounds for axis 0 with size 2.")
 
         # Slicing
         exp = self.C[0:2, 1]
@@ -698,6 +698,29 @@ class TestExpressions(BaseTest):
         # self.assertEqual(exp.name(), "2 * a")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
+
+    def test_out_of_bounds(self):
+        """Test out of bounds indices.
+        """
+        with self.assertRaises(Exception) as cm:
+            self.x[100]
+        self.assertEqual(str(cm.exception), "Index 100 is out of bounds for axis 0 with size 2.")
+
+        with self.assertRaises(Exception) as cm:
+            self.x[-100]
+        self.assertEqual(str(cm.exception), "Index -100 is out of bounds for axis 0 with size 2.")
+
+        exp = self.x[:-100]
+        self.assertEquals(exp.size, (0,))
+
+        exp = self.C[100:2]
+        self.assertEqual(exp.shape, (0, 2))
+
+        exp = self.C[:,-199:2]
+        self.assertEqual(exp.shape, (3, 2))
+
+        exp = self.C[:,-199:-3]
+        self.assertEqual(exp.shape, (3, 0))
 
     def test_neg_indices(self):
         """Test negative indices.
