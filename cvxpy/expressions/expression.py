@@ -211,7 +211,7 @@ class Expression(u.Canonical):
 
     @abc.abstractproperty
     def shape(self):
-        """Returns the (row, col) dimensions of the expression.
+        """Returns a tuple of the expression dimensions.
         """
         return NotImplemented
 

@@ -154,8 +154,8 @@ class MulExpression(BinaryOperator):
         elif lu.is_const(arg_objs[1]):
             return (lu.rmul_expr(arg_objs[0], arg_objs[1], shape), [])
         else:
-            raise DCPError("Only those mul_expr that have at least one "
-                           "constant argument can be canonicalized.")
+            raise DCPError("Product of two non-constant expressions is not "
+                           "DCP.")
 
 
 class DivExpression(BinaryOperator):

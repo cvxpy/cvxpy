@@ -40,7 +40,10 @@ class Leaf(expression.Expression):
                  sparsity=None):
         """
         Args:
-          shape: The leaf dimensions.
+          shape: The leaf dimensions: either an integer n, which creates
+                 a column vector of shape (n, 1), or a tuple, which carries
+                 the same semantics as NumPy ndarrays. Shapes cannot be more
+                 than 2D.
           value: A value to assign to the leaf.
           nonneg: Is the variable constrained to be nonnegative?
           nonpos: Is the variable constrained to be nonpositive?
@@ -60,17 +63,18 @@ class Leaf(expression.Expression):
                    boolean argument.
           sparsity: Fixed sparsity pattern for the variable.
         """
-        # TODO remove after adding 0D and 1D support.
         if isinstance(shape, int):
+            # Create column vectors by default.
             shape = (shape, 1)
-        elif len(shape) == 0:
-            shape = (1, 1)
-        elif len(shape) == 1:
-            shape = (shape[0], 1)
+        elif len(shape) > 2:
+            raise ValueError("Expressions of dimension greater than 2 "
+                             "are not supported.")
         self._shape = shape
 
-        if (PSD or NSD or symmetric or diag) and shape[0] != shape[1]:
-            raise ValueError("Invalid dimensions %s. Must be a square matrix." % (shape,))
+        if (PSD or NSD or symmetric or diag) and (len(shape) != 2
+                                                  or shape[0] != shape[1]):
+            raise ValueError("Invalid dimensions %s. Must be a square matrix."
+                             % (shape,))
 
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,

@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import shape
 import unittest
 
@@ -29,25 +28,71 @@ class TestShape(unittest.TestCase):
         pass
 
     # Test adding two shapes.
-    def test_add(self):
+    def test_add_matching(self):
+        """Test addition of matching shapes.
+        """
         self.assertEqual(shape.sum_shapes([(3, 4), (3, 4)]), (3, 4))
+        self.assertEqual(shape.sum_shapes([(3, 4)] * 5), (3, 4))
 
-        with self.assertRaises(Exception) as cm:
-            shape.sum_shapes([(1, 3), (4, 3)])
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (1, 3) (4, 3)")
-
-        # Promotion
+    def test_add_broadcasting(self):
+        """Test broadcasting of shapes during addition.
+        """
         self.assertEqual(shape.sum_shapes([(3, 4), (1, 1)]), (3, 4))
         self.assertEqual(shape.sum_shapes([(1, 1), (3, 4)]), (3, 4))
 
-    # Test multiplying two shapes.
-    def test_mul(self):
+        self.assertEqual(shape.sum_shapes([(1,), (3, 4)]), (3, 4))
+        self.assertEqual(shape.sum_shapes([(3, 4), (1,)]), (3, 4))
+
+        self.assertEqual(shape.sum_shapes([tuple([]), (3, 4)]), (3, 4))
+        self.assertEqual(shape.sum_shapes([(3, 4), tuple([])]), (3, 4))
+
+        self.assertEqual(shape.sum_shapes([(1, 1), (4,)]), (1, 4))
+        self.assertEqual(shape.sum_shapes([(4,), (1, 1)]), (1, 4))
+
+        self.assertEqual(shape.sum_shapes([(4, 1), (4,)]), (4, 4))
+        self.assertEqual(shape.sum_shapes([(4,), (4, 1)]), (4, 4))
+
+        self.assertEqual(shape.sum_shapes([(4, 2), (2,)]), (4, 2))
+        self.assertEqual(shape.sum_shapes([(2,), (4, 2)]), (4, 2))
+
+        self.assertEqual(shape.sum_shapes([(4, 2), (4, 1)]), (4, 2))
+        self.assertEqual(shape.sum_shapes([(4, 1), (4, 2)]), (4, 2))
+
+    def test_add_incompatible(self):
+        """Test addition of incompatible shapes raises a ValueError.
+        """
+        with self.assertRaises(ValueError) as cm:
+            shape.sum_shapes([(4, 2), (4,)])
+        self.assertEqual(str(cm.exception),
+                         "Incompatible dimensions (4, 2) (4,)")
+
+    def test_mul_scalars(self):
+        """Test multiplication where at least one of the shapes is a scalar.
+        """
+        self.assertEqual(shape.mul_shapes((1, 1), (5, 9)), (5, 9))
+        self.assertEqual(shape.mul_shapes((5, 9), (1, 1)), (5, 9))
+
+        self.assertEqual(shape.mul_shapes((1,), (5, 9)), (5, 9))
+        self.assertEqual(shape.mul_shapes((5, 9), (1,)), (5, 9))
+
+        self.assertEqual(shape.mul_shapes(tuple([]), (5, 9)), (5, 9))
+        self.assertEqual(shape.mul_shapes((5, 9), tuple([])), (5, 9))
+
+        self.assertEqual(shape.mul_shapes((1, 1), (5,)), (5,))
+        self.assertEqual(shape.mul_shapes((5,), (1, 1)), (5,))
+
+    def test_mul_2d(self):
+        """Test multiplication where at least one of the shapes is >= 2D.
+        """
         self.assertEqual(shape.mul_shapes((5, 9), (9, 2)), (5, 2))
+        self.assertEqual(shape.mul_shapes((3, 5, 9), (3, 9, 2)), (3, 5, 2))
 
         with self.assertRaises(Exception) as cm:
             shape.mul_shapes((5, 3), (9, 2))
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (5, 3) (9, 2)")
+        self.assertEqual(str(cm.exception),
+                         "Incompatible dimensions (5, 3) (9, 2)")
 
-        # Promotion
-        self.assertEqual(shape.mul_shapes((3, 4), (1, 1)), (3, 4))
-        self.assertEqual(shape.mul_shapes((1, 1), (3, 4)), (3, 4))
+        with self.assertRaises(Exception) as cm:
+            shape.mul_shapes((3, 5, 9), (4, 9, 2))
+        self.assertEqual(str(cm.exception),
+                         "Incompatible dimensions (3, 5, 9) (4, 9, 2)")

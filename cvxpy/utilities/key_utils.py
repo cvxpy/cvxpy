@@ -23,6 +23,8 @@ import numpy as np
 import numbers
 
 
+# TODO(akshayka): This module needs to be updated in order to handle
+# NumPy 0/1D arrays.
 def validate_key(key, shape):
     """Check if the key is a valid index.
 
