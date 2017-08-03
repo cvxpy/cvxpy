@@ -1646,3 +1646,22 @@ class TestProblem(BaseTest):
         prob = Problem(obj, [self.x == 2])
         result = prob.solve()
         self.assertAlmostEqual(result, 8)
+
+    def test_int64(self):
+        """Test bug with 64 bit integers.
+        """
+        q = cvx.Variable(numpy.int64(2))
+        objective = cvx.Minimize(cvx.norm(q, 1))
+        problem = cvx.Problem(objective)
+        problem.solve()
+        print(q.value)
+
+    def test_neg_slice(self):
+        """Test bug with negative slice.
+        """
+        x = cvx.Variable(2)
+        objective = cvx.Minimize(x[0] + x[1])
+        constraints = [x[-2:] >= 1]
+        problem = cvx.Problem(objective, constraints)
+        problem.solve()
+        self.assertItemsAlmostEqual(x.value, [1, 1])

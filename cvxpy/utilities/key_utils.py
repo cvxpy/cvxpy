@@ -63,8 +63,8 @@ def format_slice(key_val, dim):
         A slice with a start and step.
     """
     if isinstance(key_val, slice):
-        key_val = slice(to_int(key_val.start),
-                        to_int(key_val.stop),
+        key_val = slice(wrap_neg_index(to_int(key_val.start), dim),
+                        wrap_neg_index(to_int(key_val.stop), dim),
                         to_int(key_val.step))
         return key_val
     else:

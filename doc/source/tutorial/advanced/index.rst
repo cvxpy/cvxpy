@@ -231,7 +231,7 @@ The table below shows the types of problems the solvers can handle.
 | `SCS`_       | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
 
-A special solver `LS`_ is also available. It is unable to solve any of the problem types in the table above, but it recognizes and solves linearly constrained least squares problems very quickly.
+A special solver `LS`_ is also available. It is unable to solve any of the problem types in the table above, but it solves linearly constrained least squares problems very quickly.
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 

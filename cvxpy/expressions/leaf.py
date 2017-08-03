@@ -67,7 +67,7 @@ class Leaf(expression.Expression):
             shape = (1, 1)
         elif len(shape) == 1:
             shape = (shape[0], 1)
-        self._shape = shape
+        self._shape = tuple(int(d) for d in shape)
 
         if (PSD or NSD or symmetric or diag) and shape[0] != shape[1]:
             raise ValueError("Invalid dimensions %s. Must be a square matrix." % (shape,))
