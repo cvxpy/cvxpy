@@ -591,8 +591,8 @@ class SizeMetrics(object):
             big = 0
             # Compute number of data
             self.num_scalar_data += np.prod(const.shape)
-            big = max(const.shape)
-            small = min(const.shape)
+            big = 1 if len(const.shape) == 0 else max(const.shape)
+            small = 1 if len(const.shape) == 0 else min(const.shape)
 
             # Get max data dimension:
             if self.max_data_dimension < big:

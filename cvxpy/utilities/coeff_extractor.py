@@ -52,7 +52,7 @@ class CoeffExtractor(object):
             raise Exception("Unknown expression type %s." % type(expr))
 
     def constant(self, expr):
-        size = expr.shape[0]*expr.shape[1]
+        size = expr.size
         return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size, 1),
                                                          order='F')
 
@@ -73,11 +73,10 @@ class CoeffExtractor(object):
         """
         if not expr.is_affine():
             raise ValueError("Expression is not affine")
-        size = expr.shape[0]*expr.shape[1]
         s, _ = expr.canonical_form
         V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)],
                                                        self.id_map)
-        A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
+        A = sp.csr_matrix((V, (I, J)), shape=(expr.size, self.N))
         return A, b.flatten()
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
