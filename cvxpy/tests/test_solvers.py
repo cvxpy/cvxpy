@@ -558,6 +558,100 @@ class TestSolvers(BaseTest):
                 prob.solve(solver=GUROBI, warm_start=True)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % GUROBI)
 
+    def test_xpress(self):
+        """Test a basic LP with Xpress.
+        """
+        if XPRESS in installed_solvers():
+            prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+            prob.solve(solver=XPRESS)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = Problem(objective, constraints)
+            prob.solve(solver=XPRESS)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            objective = Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = Problem(objective, constraints)
+            prob.solve(solver=XPRESS)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=XPRESS)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % XPRESS)
+
+    def test_xpress_socp(self):
+        """Test a basic SOCP with Xpress.
+        """
+        if XPRESS in installed_solvers():
+            prob = Problem(Minimize(norm(self.x, 2)), [self.x == 0])
+            prob.solve(solver=XPRESS)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           (self.x[0] + 2 * self.x[1])**2 <= 9,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = Problem(objective, constraints)
+            prob.solve(solver=XPRESS)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            objective = Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = Problem(objective, constraints)
+            prob.solve(solver=XPRESS)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=XPRESS)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % XPRESS)
+
+    def test_xpress_dual(self):
+        """Make sure Xpress' dual result matches other solvers
+        """
+        if XPRESS in installed_solvers():
+            constraints = [self.x == 0]
+            prob = Problem(Minimize(norm(self.x, 1)))
+            prob.solve(solver=XPRESS)
+            duals_xpress = [x.dual_value for x in constraints]
+            prob.solve(solver=ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_xpress, duals_ecos)
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = Problem(objective, constraints)
+            prob.solve(solver=XPRESS)
+            duals_xpress = [x.dual_value for x in constraints]
+            prob.solve(solver=ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_xpress, duals_ecos)
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = Problem(Minimize(norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=XPRESS)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % XPRESS)
+
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """

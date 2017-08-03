@@ -34,10 +34,10 @@ y.var_id = 'Y'
 
 objective = Minimize (sum (y) + sum_squares (x))
 
-qcon1 = sum_squares (y - y0) <= 0.01
+qcon1 = sum_squares (y - y0) <= 1.01
 lowx  = x >= x0
 upx   = x <= 10 + 10 * x0
-qcon2 = sum_squares (y + y0) <= 0.01
+qcon2 = sum_squares (y + y0) <= 1.01
 
 qcon1.constr_id = 'dist_pos'
 lowx.constr_id  = 'first_orthant'
