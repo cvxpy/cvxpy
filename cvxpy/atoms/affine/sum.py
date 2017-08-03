@@ -23,13 +23,13 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
-def sum(expr, axis=None):
+def sum(expr, axis=None, keepdims=False):
     """Wrapper for Sum class.
     """
     if isinstance(expr, list):
         return __builtins__['sum'](expr)
     else:
-        return Sum(expr, axis=axis)
+        return Sum(expr, axis, keepdims)
 
 
 class Sum(AxisAtom, AffAtom):
@@ -41,14 +41,14 @@ class Sum(AxisAtom, AffAtom):
         The expression to sum the entries of.
     """
 
-    def __init__(self, expr, axis=None):
-        super(Sum, self).__init__(expr, axis=axis)
+    def __init__(self, expr, axis=None, keepdims=False):
+        super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Sums the entries of value.
         """
-        return np.sum(values[0], axis=self.axis, keepdims=True)
+        return np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

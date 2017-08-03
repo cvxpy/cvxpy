@@ -126,7 +126,7 @@ class PartialProblem(Expression):
     def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
-        return (1, 1)
+        return tuple()
 
     def name(self):
         """Returns the string representation of the expression.

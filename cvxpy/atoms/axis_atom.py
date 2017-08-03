@@ -30,19 +30,24 @@ class AxisAtom(Atom):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, expr, axis=None):
+    def __init__(self, expr, axis=None, keepdims=False):
         self.axis = axis
+        self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
     def shape_from_args(self):
         """Depends on axis.
         """
-        if self.axis is None:
-            return (1, 1)
-        elif self.axis == 0:
-            return (1, self.args[0].shape[1])
-        else:  # axis == 1.
-            return (self.args[0].shape[0], 1)
+        shape = list(self.args[0].shape)
+        if self.keepdims and self.axis is None:
+            shape = [1]*len(shape)
+        elif self.keepdims and self.axis is not None:
+            shape[self.axis] = 1
+        elif not self.keepdims and self.axis is None:
+            shape = []
+        else:
+            shape = shape[:self.axis] + shape[self.axis+1:]
+        return tuple(shape)
 
     def get_data(self):
         """Returns the axis being summed.

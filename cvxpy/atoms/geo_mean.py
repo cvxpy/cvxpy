@@ -203,12 +203,10 @@ class geo_mean(Atom):
         super(geo_mean, self).__init__(x)
 
         x = self.args[0]
-        if x.shape[0] == 1:
-            n = x.shape[1]
-        elif x.shape[1] == 1:
-            n = x.shape[0]
-        else:
+        if x.is_vector():
             raise ValueError('x must be a row or column vector.')
+        else:
+            n = 1 if x.ndim == 0 else max(x.shape)
 
         if p is None:
             p = [1]*n
@@ -281,7 +279,7 @@ class geo_mean(Atom):
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return (1, 1)
+        return tuple()
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

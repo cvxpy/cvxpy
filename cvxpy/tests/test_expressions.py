@@ -203,7 +203,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.UNKNOWN)
 
         # Test repr.
-        self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2, 1))")
+        self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2,))")
 
     def test_1D_array(self):
         """Test NumPy 1D arrays as constants.
@@ -212,7 +212,7 @@ class TestExpressions(BaseTest):
         p = Parameter(2)
         p.value = [1, 1]
         self.assertEqual((c*p).value, 3)
-        self.assertEqual((c*self.x).shape, (1, 1))
+        self.assertEqual((c*self.x).shape, tuple())
 
     # Test the Parameter class.
     def test_parameters(self):
@@ -434,11 +434,11 @@ class TestExpressions(BaseTest):
         # self.assertEqual(exp.canonical_form[0].shape, (1, 1))
         # self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
-        self.assertEqual(exp.shape, tuple())
+        self.assertEqual(exp.shape, (1,))
 
         with self.assertRaises(Exception) as cm:
             ([2, 2, 3]*self.x)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (3,) (2,)")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (1, 3) (2, 1)")
 
         # Matrices
         with self.assertRaises(Exception) as cm:
@@ -601,7 +601,7 @@ class TestExpressions(BaseTest):
     # Test indexing expression.
     def test_index_expression(self):
         # Tuple of integers as key.
-        exp = self.x[1, 0]
+        exp = self.x[1]
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         assert exp.is_affine()
@@ -610,14 +610,18 @@ class TestExpressions(BaseTest):
         # self.assertEqual(coeff[0,1], 1)
         self.assertEqual(exp.value, None)
 
-        exp = self.x[1, 0].T
+        exp = self.x[1].T
         # self.assertEqual(exp.name(), "x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, tuple())
 
         with self.assertRaises(Exception) as cm:
             (self.x[2, 0])
-        self.assertEqual(str(cm.exception), "Index/slice out of bounds.")
+        self.assertEqual(str(cm.exception), "Too many indices for expression.")
+
+        with self.assertRaises(Exception) as cm:
+            (self.x[2])
+        self.assertEqual(str(cm.exception), "Index 2 is out of bounds for axis 0 with size 2.")
 
         # Slicing
         exp = self.C[0:2, 1]
@@ -657,34 +661,34 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, (2, 1))
 
         # Arithmetic expression indexing
-        exp = (self.x + self.z)[1, 0]
+        exp = (self.x + self.z)[1]
         # self.assertEqual(exp.name(), "x[1,0] + z[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.sign, s.UNKNOWN)
         self.assertEqual(exp.shape, tuple())
 
-        exp = (self.x + self.a)[1:2, 0]
+        exp = (self.x + self.a)[1:2]
         # self.assertEqual(exp.name(), "x[1,0] + a")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
 
-        exp = (self.x - self.z)[1:2, 0:1]
+        exp = (self.x - self.z)[1:2]
         # self.assertEqual(exp.name(), "x[1,0] - z[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual(exp.shape, (1, 1))
+        self.assertEqual(exp.shape, (1,))
 
-        exp = (self.x - self.a)[1, 0]
+        exp = (self.x - self.a)[1]
         # self.assertEqual(exp.name(), "x[1,0] - a")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, tuple())
 
-        exp = (-self.x)[1, 0]
+        exp = (-self.x)[1]
         # self.assertEqual(exp.name(), "-x[1,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, tuple())
 
         c = Constant([[1, 2], [3, 4]])
-        exp = (c*self.x)[1, 0]
+        exp = (c*self.x)[1]
         # self.assertEqual(exp.name(), "[[2], [4]] * x[0:,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, tuple())
@@ -694,6 +698,29 @@ class TestExpressions(BaseTest):
         # self.assertEqual(exp.name(), "2 * a")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
+
+    def test_out_of_bounds(self):
+        """Test out of bounds indices.
+        """
+        with self.assertRaises(Exception) as cm:
+            self.x[100]
+        self.assertEqual(str(cm.exception), "Index 100 is out of bounds for axis 0 with size 2.")
+
+        with self.assertRaises(Exception) as cm:
+            self.x[-100]
+        self.assertEqual(str(cm.exception), "Index -100 is out of bounds for axis 0 with size 2.")
+
+        exp = self.x[:-100]
+        self.assertEquals(exp.size, (0,))
+
+        exp = self.C[100:2]
+        self.assertEqual(exp.shape, (0, 2))
+
+        exp = self.C[:, -199:2]
+        self.assertEqual(exp.shape, (3, 2))
+
+        exp = self.C[:, -199:-3]
+        self.assertEqual(exp.shape, (3, 0))
 
     def test_neg_indices(self):
         """Test negative indices.
@@ -717,9 +744,9 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.CONSTANT)
 
         x = Variable(4)
+        self.assertEqual(x[::-1].shape, (4,))
         Problem(Minimize(0), [x[::-1] == c]).solve()
         self.assertItemsAlmostEqual(x.value, [4, 3, 2, 1])
-        self.assertEqual(x[::-1].shape, (4, 1))
 
         x = Variable(2)
         self.assertEqual(x[::-1].shape, (2,))

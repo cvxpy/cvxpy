@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to handle indexing/slicing into an expression.
 
+from __future__ import division
 import numpy as np
 import numbers
 
@@ -41,10 +42,14 @@ def validate_key(key, shape):
     key = to_tuple(key)
     # Change single indices for vectors into double indices.
     none_count = sum([1 for elem in key if elem is None])
-    if len(key) - none_count != len(shape):
-        raise IndexError("Invalid index/slice.")
+    slices = len(key) - none_count
+    if slices > len(shape):
+        raise IndexError("Too many indices for expression.")
+    elif slices < len(shape):
+        # Add : to the right.
+        key = tuple(list(key) + [slice(None, None, None)]*(len(shape) - slices))
     # Change numbers into slices and ensure all slices have a start and step.
-    return tuple(format_slice(slc, dim) for slc, dim in zip(key, shape))
+    return tuple(format_slice(slc, dim, i) for slc, dim, i in zip(key, shape, range(len(shape))))
 
 
 def to_tuple(key):
@@ -56,7 +61,7 @@ def to_tuple(key):
         return (key,)
 
 
-def format_slice(key_val, dim):
+def format_slice(key_val, dim, axis):
     """Converts part of a key into a slice with a start and step.
 
     Uses the same syntax as numpy.
@@ -71,18 +76,26 @@ def format_slice(key_val, dim):
     if key_val is None:
         return None
     elif isinstance(key_val, slice):
-        key_val = slice(wrap_neg_index(to_int(key_val.start, 0), dim),
-                        wrap_neg_index(to_int(key_val.stop, dim), dim),
-                        to_int(key_val.step, 1))
-        return key_val
+        step = to_int(key_val.step, 1)
+        if step == 0:
+            raise ValueError("step length cannot be 0")
+        elif step > 0:
+            start = np.clip(wrap_neg_index(to_int(key_val.start, 0), dim), 0, dim)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, dim), dim), 0, dim)
+        else:
+            start = np.clip(wrap_neg_index(to_int(key_val.start, dim-1), dim), -1, dim)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim)
+        return slice(start, stop, step)
     else:
         # Convert to int.
-        key_val = to_int(key_val)
-        key_val = wrap_neg_index(key_val, dim)
+        orig_key_val = to_int(key_val)
+        key_val = wrap_neg_index(orig_key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)
         else:
-            raise IndexError("Index/slice out of bounds.")
+            raise IndexError(
+                "Index %i is out of bounds for axis %i with size %i." % (orig_key_val, axis, dim)
+            )
 
 
 def to_int(val, none_val=None):
@@ -94,15 +107,16 @@ def to_int(val, none_val=None):
         return int(val)
 
 
-def wrap_neg_index(index, dim):
+def wrap_neg_index(index, dim, neg_step=False):
     """Converts a negative index into a positive index.
 
     Args:
         index: The index to convert. Can be None.
         dim: The length of the dimension being indexed.
     """
-    if index is not None and index < 0:
-        index %= dim
+    if index is not None and index < 0 and \
+       not (neg_step and index == -1):
+        index += dim
     return index
 
 
@@ -169,9 +183,9 @@ def shape(key, orig_key, shape):
         if key[i] is None:
             dims.append(1)
         else:
-            size = (key[i].stop - key[i].start)//abs(key[i].step)
-            if isinstance(orig_key[i], slice) or size > 1:
-                dims.append(size)
+            size = int(np.ceil((key[i].stop - key[i].start)/key[i].step))
+            if size > 1 or i >= len(orig_key) or isinstance(orig_key[i], slice):
+                dims.append(max(size, 0))
     return tuple(dims)
 
 

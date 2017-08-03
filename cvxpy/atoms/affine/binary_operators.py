@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import sys
 
+import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.error import DCPError
 import cvxpy.lin_ops as lo
@@ -64,7 +65,8 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        if self.args[0].is_scalar() or self.args[1].is_scalar():
+        if self.args[0].is_scalar() or self.args[1].is_scalar() or \
+           intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
             return values[0] * values[1]
         else:
             return np.matmul(values[0], values[1])
