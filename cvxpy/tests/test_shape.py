@@ -67,19 +67,14 @@ class TestShape(unittest.TestCase):
                          "Incompatible dimensions (4, 2) (4,)")
 
     def test_mul_scalars(self):
-        """Test multiplication where at least one of the shapes is a scalar.
+        """Test multiplication by scalars raises a ValueError.
         """
-        self.assertEqual(shape.mul_shapes((1, 1), (5, 9)), (5, 9))
-        self.assertEqual(shape.mul_shapes((5, 9), (1, 1)), (5, 9))
-
-        self.assertEqual(shape.mul_shapes((1,), (5, 9)), (5, 9))
-        self.assertEqual(shape.mul_shapes((5, 9), (1,)), (5, 9))
-
-        self.assertEqual(shape.mul_shapes(tuple([]), (5, 9)), (5, 9))
-        self.assertEqual(shape.mul_shapes((5, 9), tuple([])), (5, 9))
-
-        self.assertEqual(shape.mul_shapes((1, 1), (5,)), (5,))
-        self.assertEqual(shape.mul_shapes((5,), (1, 1)), (5,))
+        with self.assertRaises(ValueError):
+            shape.mul_shapes(tuple(), (5, 9))
+        with self.assertRaises(ValueError):
+            shape.mul_shapes((5, 9), tuple())
+        with self.assertRaises(ValueError):
+            shape.mul_shapes(tuple(), tuple())
 
     def test_mul_2d(self):
         """Test multiplication where at least one of the shapes is >= 2D.
