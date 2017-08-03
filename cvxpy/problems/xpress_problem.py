@@ -17,9 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import cvxpy
 import cvxpy.settings as s
-import numpy as np
 
 from collections import namedtuple
 
@@ -32,6 +30,7 @@ CachedProblem = namedtuple('CachedProblem', ['objective', 'constraints'])
 # Used by pool.map to send solve result back.
 SolveResult = namedtuple(
     'SolveResult', ['opt_value', 'status', 'primal_values', 'dual_values'])
+
 
 class XpressProblem (Problem):
 
@@ -50,18 +49,18 @@ class XpressProblem (Problem):
 
     def __init__(self, objective, constraints=None):
 
-        super (XpressProblem, self).__init__ (objective, constraints)
+        super(XpressProblem, self).__init__(objective, constraints)
         self._iis = None
         self._xprob = None
 
-    def _reset_iis (self):
+    def _reset_iis(self):
         """Clears the iis information
         """
 
         self._iis = None
         self._transferRow = None
 
-    def _update_problem_state (self, results_dict, sym_data, solver):
+    def _update_problem_state(self, results_dict, sym_data, solver):
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of
@@ -77,9 +76,9 @@ class XpressProblem (Problem):
             The solver type used to obtain the results.
         """
 
-        super (XpressProblem, self)._update_problem_state (results_dict, sym_data, solver)
+        super(XpressProblem, self)._update_problem_state(results_dict, sym_data, solver)
 
-        self._iis         = results_dict[s.XPRESS_IIS]
+        self._iis = results_dict[s.XPRESS_IIS]
         self._transferRow = results_dict[s.XPRESS_TROW]
 
     def __repr__(self):
@@ -101,7 +100,7 @@ class XpressProblem (Problem):
         if not isinstance(other, XpressProblem):
             return NotImplemented
         return XpressProblem(self.objective - other.objective,
-                       list(set(self.constraints + other.constraints)))
+                             list(set(self.constraints + other.constraints)))
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
