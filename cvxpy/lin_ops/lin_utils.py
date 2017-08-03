@@ -121,6 +121,21 @@ def create_const(value, shape, sparse=False):
     return lo.LinOp(op_type, shape, [], value)
 
 
+def is_scalar(operator):
+    """Returns whether a LinOp is a scalar.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The LinOp to test.
+
+    Returns
+    -------
+        True if the LinOp is a scalar, False otherwise.
+    """
+    return len(operator.shape) == 0 or np.prod(operator.shape) == 1
+
+
 def is_const(operator):
     """Returns whether a LinOp is constant.
 

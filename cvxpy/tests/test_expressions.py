@@ -203,7 +203,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.sign, s.UNKNOWN)
 
         # Test repr.
-        self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2, 1))")
+        self.assertEqual(repr(c), "Constant(CONSTANT, POSITIVE, (2,))")
 
     def test_1D_array(self):
         """Test NumPy 1D arrays as constants.
@@ -212,7 +212,7 @@ class TestExpressions(BaseTest):
         p = Parameter(2)
         p.value = [1, 1]
         self.assertEqual((c*p).value, 3)
-        self.assertEqual((c*self.x).shape, (1, 1))
+        self.assertEqual((c*self.x).shape, tuple())
 
     # Test the Parameter class.
     def test_parameters(self):
