@@ -111,7 +111,7 @@ class QuadForm(Atom):
         return NotImplemented
 
     def shape_from_args(self):
-        return (1, 1)
+        return tuple()
 
 
 class SymbolicQuadForm(Atom):
@@ -216,8 +216,7 @@ def quad_form(x, P):
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
-    n = P.shape[0]
-    if P.shape[1] != n or x.shape != (n, 1):
+    if not P.ndim == 2 or P.shape[0] != P.shape[1] or x.shape[0] != P.shape[0]:
         raise Exception("Invalid dimensions for arguments.")
     # P cannot be a parameter.
     if len(P.parameters()) > 0:

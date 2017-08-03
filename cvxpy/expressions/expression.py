@@ -227,6 +227,11 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
+    def flatten(self):
+        """Vectorizes the expression.
+        """
+        return cvxtypes.vec()(self)
+
     def is_scalar(self):
         """Is the expression a scalar?
         """
@@ -235,7 +240,7 @@ class Expression(u.Canonical):
     def is_vector(self):
         """Is the expression a column or row vector?
         """
-        return self.ndim == 1 or (self.ndim == 2 and min(self.shape) == 1)
+        return self.ndim <= 1 or (self.ndim == 2 and min(self.shape) == 1)
 
     def is_matrix(self):
         """Is the expression a matrix?

@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
@@ -39,13 +40,8 @@ def diag(expr):
     """
     expr = AffAtom.cast_to_const(expr)
     if expr.is_vector():
-        if expr.shape[1] == 1:
-            return diag_vec(expr)
-        # Convert a row vector to a column vector.
-        else:
-            expr = reshape(expr, (expr.shape[1], 1))
-            return diag_vec(expr)
-    elif expr.shape[0] == expr.shape[1]:
+        return diag_vec(vec(expr))
+    elif expr.ndim == 2 and expr.shape[0] == expr.shape[1]:
         return diag_mat(expr)
     else:
         raise ValueError("Argument to diag must be a vector or square matrix.")

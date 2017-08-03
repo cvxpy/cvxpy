@@ -716,10 +716,10 @@ class TestExpressions(BaseTest):
         exp = self.C[100:2]
         self.assertEqual(exp.shape, (0, 2))
 
-        exp = self.C[:,-199:2]
+        exp = self.C[:, -199:2]
         self.assertEqual(exp.shape, (3, 2))
 
-        exp = self.C[:,-199:-3]
+        exp = self.C[:, -199:-3]
         self.assertEqual(exp.shape, (3, 0))
 
     def test_neg_indices(self):

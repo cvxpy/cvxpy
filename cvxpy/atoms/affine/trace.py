@@ -50,7 +50,7 @@ class trace(AffAtom):
     def shape_from_args(self):
         """Always scalar.
         """
-        return (1, 1)
+        return tuple()
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
