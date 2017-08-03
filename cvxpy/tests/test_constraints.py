@@ -54,7 +54,7 @@ class TestConstraints(BaseTest):
         """
         constr = self.x == self.z
         self.assertEqual(constr.name(), "x + -z == 0")
-        self.assertEqual(constr.shape, (2, 1))
+        self.assertEqual(constr.shape, (2,))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -78,7 +78,7 @@ class TestConstraints(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x == self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
         # Test copy with args=None
         copy = constr.copy()
@@ -97,7 +97,7 @@ class TestConstraints(BaseTest):
         """
         constr = self.x <= self.z
         self.assertEqual(constr.name(), "x + -z <= 0")
-        self.assertEqual(constr.shape, (2, 1))
+        self.assertEqual(constr.shape, (2,))
         # Test value and dual_value.
         assert constr.dual_value is None
         assert constr.value is None
@@ -121,7 +121,7 @@ class TestConstraints(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x <= self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
         # Test copy with args=None
         copy = constr.copy()
@@ -195,33 +195,33 @@ class TestConstraints(BaseTest):
         """
         constr = self.x < self.z
         self.assertEqual(constr.name(), "x + -z <= 0")
-        self.assertEqual(constr.shape, (2, 1))
+        self.assertEqual(constr.shape, (2,))
 
         with self.assertRaises(Exception) as cm:
             (self.x < self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
     def test_geq(self):
         """Test the >= operator.
         """
         constr = self.z >= self.x
         self.assertEqual(constr.name(), "x + -z <= 0")
-        self.assertEqual(constr.shape, (2, 1))
+        self.assertEqual(constr.shape, (2,))
 
         with self.assertRaises(Exception) as cm:
             (self.y >= self.x)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
     def test_gt(self):
         """Test the > operator.
         """
         constr = self.z > self.x
         self.assertEqual(constr.name(), "x + -z <= 0")
-        self.assertEqual(constr.shape, (2, 1))
+        self.assertEqual(constr.shape, (2,))
 
         with self.assertRaises(Exception) as cm:
             (self.y > self.x)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
+        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
     # Test the SOC class.
     def test_soc_constraint(self):

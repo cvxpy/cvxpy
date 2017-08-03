@@ -35,7 +35,7 @@ class SOC(Constraint):
     """
 
     def __init__(self, t, X, axis=0, constr_id=None):
-        assert t.shape[1] == 1
+        assert not t.shape or len(t.shape) == 1
         self.axis = axis
         super(SOC, self).__init__([t, X], constr_id)
 
@@ -83,7 +83,7 @@ class SOC(Constraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.args[0].shape[0]*self.args[0].shape[1]
+        return self.args[0].size
 
     @property
     def size(self):
