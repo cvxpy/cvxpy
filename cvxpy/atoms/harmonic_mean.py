@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.pnorm import pnorm
-import numpy as np
 from cvxpy.expressions.expression import Expression
 
 

@@ -32,7 +32,6 @@ import cvxpy.constraints.zero as eqc
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
-import numpy as np
 
 
 SolveResult = namedtuple(

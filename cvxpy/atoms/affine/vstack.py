@@ -27,6 +27,7 @@ def vstack(arg_list):
     """
     return Vstack(*arg_list)
 
+
 class Vstack(AffAtom):
     """ Vertical concatenation """
     # Returns the vstack of the values.

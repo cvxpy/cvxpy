@@ -83,8 +83,8 @@ def format_slice(key_val, dim, axis):
             start = np.clip(wrap_neg_index(to_int(key_val.start, 0), dim), 0, dim)
             stop = np.clip(wrap_neg_index(to_int(key_val.stop, dim), dim), 0, dim)
         else:
-            start = np.clip(wrap_neg_index(to_int(key_val.start, dim-1), dim), -1, dim)
-            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim)
+            start = np.clip(wrap_neg_index(to_int(key_val.start, dim-1), dim), -1, dim-1)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim-1)
         return slice(start, stop, step)
     else:
         # Convert to int.

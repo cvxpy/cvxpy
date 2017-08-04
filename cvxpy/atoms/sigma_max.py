@@ -56,7 +56,7 @@ class sigma_max(Atom):
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return tuple() 
+        return tuple()
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

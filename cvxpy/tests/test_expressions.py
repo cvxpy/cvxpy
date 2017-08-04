@@ -755,7 +755,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(x[::-1].shape, (2,))
 
         x = Variable(100, name="x")
-        self.assertEqual("x[:-1, 0]", str(x[:-1]))
+        self.assertEqual("x[0:99]", str(x[:-1]))
 
         c = Constant([[1, 2], [3, 4]])
         expr = c[0, 2:0:-1]
