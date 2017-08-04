@@ -110,7 +110,3 @@ class norm1(AxisAtom):
         D_null += (value > 0)
         D_null -= (value < 0)
         return sp.csc_matrix(D_null.A.ravel(order='F')).T
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        pass

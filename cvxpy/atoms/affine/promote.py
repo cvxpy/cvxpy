@@ -82,4 +82,5 @@ class Promote(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        print "hello"
         return (lu.promote(arg_objs[0], shape), [])

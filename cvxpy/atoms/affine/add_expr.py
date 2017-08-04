@@ -101,6 +101,6 @@ class AddExpression(AffAtom):
             (LinOp for objective, list of constraints)
         """
         for i, arg in enumerate(arg_objs):
-            if arg.shape != shape:
+            if arg.shape != shape and lu.is_scalar(arg):
                 arg_objs[i] = lu.promote(arg, shape)
         return (lu.sum_expr(arg_objs), [])

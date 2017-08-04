@@ -95,9 +95,9 @@ class multiply(AffAtom):
         elif lu.is_scalar(rhs):
             rhs = lu.promote(rhs, lhs.shape)
         if lu.is_const(lhs):
-            return (lu.multiply(lhs, rhs, shape), [])
+            return (lu.multiply(lhs, rhs), [])
         elif lu.is_const(rhs):
-            return (lu.multiply(rhs, lhs, shape), [])
+            return (lu.multiply(rhs, lhs), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")
