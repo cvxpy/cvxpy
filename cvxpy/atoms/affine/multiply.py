@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine import promote
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.error import DCPError
@@ -26,12 +27,16 @@ import numpy as np
 
 class multiply(AffAtom):
     """ Multiplies two expressions elementwise.
-
-    The first expression must be constant.
     """
 
-    def __init__(self, lh_const, rh_expr):
-        super(multiply, self).__init__(lh_const, rh_expr)
+    def __init__(self, lh_expr, rh_expr):
+        lh_expr = multiply.cast_to_const(lh_expr)
+        rh_expr = multiply.cast_to_const(rh_expr)
+        if lh_expr.is_scalar() and not rh_expr.is_scalar():
+            lh_expr = promote(lh_expr, rh_expr.shape)
+        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
+            rh_expr = promote(rh_expr, lh_expr.shape)
+        super(multiply, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
@@ -85,19 +90,15 @@ class multiply(AffAtom):
         Returns
         -------
         tuple
-            (LinOp for objective, list of constraints)
+            (LinOp for objective, list of exprraints)
         """
         # promote if necessary.
         lhs = arg_objs[0]
         rhs = arg_objs[1]
-        if lu.is_scalar(arg_objs[0]):
-            lhs = lu.promote(arg_objs[0], arg_objs[1].shape)
-        elif lu.is_scalar(rhs):
-            rhs = lu.promote(rhs, lhs.shape)
         if lu.is_const(lhs):
             return (lu.multiply(lhs, rhs), [])
         elif lu.is_const(rhs):
             return (lu.multiply(rhs, lhs), [])
         else:
-            raise DCPError("Product of two non-constant expressions is not "
+            raise DCPError("Product of two non-exprant expressions is not "
                            "DCP.")

@@ -165,7 +165,7 @@ class ExpCone(NonlinearConstraint):
             x_init = entries*[0.0]
             y_init = entries*[0.5]
             z_init = entries*[1.0]
-            return self.shape[0], cvxopt.matrix(x_init + y_init + z_init)
+            return entries, cvxopt.matrix(x_init + y_init + z_init)
         # Unpack vars_
         x = vars_[0:entries]
         y = vars_[entries:2*entries]
