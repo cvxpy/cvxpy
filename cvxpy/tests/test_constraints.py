@@ -187,8 +187,9 @@ class TestConstraints(BaseTest):
         assert not constr.value
 
         with self.assertRaises(Exception) as cm:
-            (self.x << 0)
-        self.assertEqual(str(cm.exception), "Non-square matrix in positive definite constraint.")
+            self.x << 0
+        self.assertEqual(str(cm.exception),
+                         "Non-square matrix in positive definite constraint.")
 
     def test_lt(self):
         """Test the < operator.

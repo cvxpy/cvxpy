@@ -42,6 +42,8 @@ class Atom(Expression):
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
+        if len(self._shape) > 2:
+            raise ValueError("Atoms must be at most 2D.")
 
     def name(self):
         """Returns the string representation of the function call.
@@ -56,7 +58,7 @@ class Atom(Expression):
 
     @abc.abstractmethod
     def shape_from_args(self):
-        """Returns the (row, col) shape of the expression.
+        """Returns the shape of the expression.
         """
         return NotImplemented
 
@@ -195,7 +197,7 @@ class Atom(Expression):
         # Catch the case when the expression is known to be
         # zero through DCP analysis.
         if self.is_zero():
-            result = intf.DEFAULT_INTF.zeros(*self.shape)
+            result = intf.DEFAULT_INTF.zeros(self.shape)
         else:
             arg_values = []
             for arg in self.args:

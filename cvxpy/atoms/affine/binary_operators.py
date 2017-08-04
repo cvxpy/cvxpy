@@ -121,8 +121,8 @@ class MulExpression(BinaryOperator):
         X = values[0]
         Y = values[1]
 
-        DX_rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.args[0].shape[0]*self.args[1].shape[1]
+        DX_rows = self.args[0].size
+        cols = self.args[0].size
 
         # DX = [diag(Y11), diag(Y12), ...]
         #      [diag(Y21), diag(Y22), ...]
@@ -131,7 +131,8 @@ class MulExpression(BinaryOperator):
         for k in range(self.args[0].shape[0]):
             DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
         DX = sp.csc_matrix(DX)
-        DY = sp.block_diag([X.T for k in range(self.args[1].shape[1])], 'csc')
+        cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape
+        DY = sp.block_diag([X.T for k in range(cols)], 'csc')
 
         return [DX, DY]
 
@@ -154,8 +155,8 @@ class MulExpression(BinaryOperator):
             (LinOp for objective, list of constraints)
         """
         # Promote shapes for compatibility with CVXCanon
-        lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(arg_objs[0].shape,
-                                                         arg_objs[1].shape)
+        lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
+            arg_objs[0].shape, arg_objs[1].shape)
         lhs = lo.LinOp(arg_objs[0].type, lh_shape, arg_objs[0].args,
                        arg_objs[0].data)
         rhs = lo.LinOp(arg_objs[1].type, rh_shape, arg_objs[1].args,

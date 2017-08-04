@@ -19,11 +19,16 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
 
 class transpose(AffAtom):
     """ Matrix transpose. """
     # The string representation of the atom.
+
+    def __init__(self, expr, axes=None):
+        self.axes = axes
+        super(AffAtom, self).__init__(expr)
 
     def name(self):
         return "%s.T" % self.args[0]
@@ -31,12 +36,17 @@ class transpose(AffAtom):
     # Returns the transpose of the given value.
     @AffAtom.numpy_numeric
     def numeric(self, values):
-        return values[0].T
+        return np.transpose(values[0], axes=self.axes)
 
     def shape_from_args(self):
         """Returns the shape of the transpose expression.
         """
         return self.args[0].shape[::-1]
+
+    def get_data(self):
+        """ Returns the axes for transposition.
+        """
+        return [self.axes]
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
@@ -56,4 +66,6 @@ class transpose(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
+        # TODO(akshakya): This will need to be updated when we add support
+        # for >2D ararys.
         return (lu.transpose(arg_objs[0]), [])
