@@ -164,6 +164,7 @@ class CVXOPT(Solver):
         # Silence cvxopt if verbose is False.
         cvxopt.solvers.options["show_progress"] = verbose
 
+        print data
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:

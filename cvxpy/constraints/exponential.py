@@ -97,7 +97,7 @@ class ExpCone(NonlinearConstraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.args[0].size
+        return np.prod(self.args[0].shape, dtype=int)
 
     def cone_sizes(self):
         """The dimensions of the exponential cones.

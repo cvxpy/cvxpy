@@ -53,7 +53,7 @@ class CoeffExtractor(object):
 
     def constant(self, expr):
         size = expr.size
-        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size, 1),
+        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size,),
                                                          order='F')
 
     def affine(self, expr):

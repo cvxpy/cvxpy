@@ -19,8 +19,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 import scipy.sparse as sp
+import numpy as np
 import canonInterface
 
 
@@ -239,7 +239,7 @@ class MatrixData(object):
         Oracle function.
         """
         import cvxopt
-        rows = int(sum([c.shape[0] * c.shape[1] for c in nonlin_constr]))
+        rows = int(sum([np.prod(c.shape, dtype=int) for c in nonlin_constr]))
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
@@ -258,7 +258,7 @@ class MatrixData(object):
                 big_H = cvxopt.spmatrix(0., [], [], size=(cols, cols))
             offset = 0
             for constr in nonlin_constr:
-                constr_entries = constr.shape[0]*constr.shape[1]
+                constr_entries = np.prod(constr.shape, dtype=int)
                 local_x = constr.extract_variables(x, var_offsets)
                 if z:
                     f, Df, H = constr.f(local_x,
