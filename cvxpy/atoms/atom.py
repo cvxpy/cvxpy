@@ -197,7 +197,7 @@ class Atom(Expression):
         # Catch the case when the expression is known to be
         # zero through DCP analysis.
         if self.is_zero():
-            result = intf.DEFAULT_INTF.zeros(*self.shape)
+            result = intf.DEFAULT_INTF.zeros(self.shape)
         else:
             arg_values = []
             for arg in self.args:

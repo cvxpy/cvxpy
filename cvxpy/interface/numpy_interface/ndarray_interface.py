@@ -66,8 +66,8 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return numpy.asscalar(matrix)
 
     # A matrix with all entries equal to the given scalar value.
-    def scalar_matrix(self, value, rows, cols):
-        return numpy.zeros((rows, cols), dtype='float64') + value
+    def scalar_matrix(self, value, shape):
+        return numpy.zeros(shape, dtype='float64') + value
 
     def reshape(self, matrix, size):
         return numpy.reshape(matrix, size, order='F')
