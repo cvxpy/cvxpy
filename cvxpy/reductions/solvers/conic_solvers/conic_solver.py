@@ -22,6 +22,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.affine.multiply import multiply
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
 from cvxpy.expressions.constants.constant import Constant
@@ -36,20 +37,19 @@ import cvxpy.settings as s
 def is_stuffed_cone_constraint(constraint):
     """Conic solvers require constraints to be stuffed in the following way.
     """
-    # TODO(akshayka): Ensure that there is exactly one variable in the
-    # constraint. The constraint class does not currently expose a variables
-    # method.
+    if len(constraint.variables()) != 1:
+        return False
     for arg in constraint.args:
         if type(arg) == reshape:
             arg = arg.args[0]
         if type(arg) == AddExpression:
-            if type(arg.args[0]) != MulExpression:
+            if type(arg.args[0]) not in [MulExpression, multiply]:
                 return False
             if type(arg.args[0].args[0]) != Constant:
                 return False
             if type(arg.args[1]) != Constant:
                 return False
-        elif type(arg) == MulExpression:
+        elif type(arg) in [MulExpression, multiply]:
             if type(arg.args[0]) != Constant:
                 return False
         else:
@@ -65,7 +65,7 @@ def is_stuffed_cone_objective(objective):
             and len(expr.variables()) == 1
             and type(expr) == AddExpression
             and len(expr.args) == 2
-            and type(expr.args[0]) == MulExpression
+            and type(expr.args[0]) in [MulExpression, multiply]
             and type(expr.args[1]) == Constant)
 
 

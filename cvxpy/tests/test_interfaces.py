@@ -112,9 +112,9 @@ class TestInterfaces(BaseTest):
         interface = intf.get_matrix_interface(np.ndarray)
         # const_to_matrix
         mat = interface.const_to_matrix([1, 2, 3])
-        self.assertEqual(interface.shape(mat), (3, 1))
+        self.assertEqual(interface.shape(mat), (3,))
         mat = interface.const_to_matrix([1, 2])
-        self.assertEqual(interface.shape(mat), (2, 1))
+        self.assertEqual(interface.shape(mat), (2,))
         # # CVXOPT sparse conversion
         # tmp = intf.get_matrix_interface(cvxopt.spmatrix).const_to_matrix([1, 2, 3])
         # mat = interface.const_to_matrix(tmp)
@@ -126,7 +126,7 @@ class TestInterfaces(BaseTest):
         # self.assertEqual(interface.shape(mat), interface.shape(cmp_mat))
         # assert (mat == cmp_mat).all()
         # scalar_matrix
-        mat = interface.scalar_matrix(2, 4, 3)
+        mat = interface.scalar_matrix(2, (4, 3))
         self.assertEqual(interface.shape(mat), (4, 3))
         self.assertEqual(interface.index(mat, (1, 2)), 2)
         # reshape
@@ -148,7 +148,7 @@ class TestInterfaces(BaseTest):
         # Sign
         self.sign_for_intf(interface)
         # shape.
-        assert interface.shape(np.array([1, 2, 3])) == (3, 1)
+        assert interface.shape(np.array([1, 2, 3])) == (3,)
 
     # Test numpy matrix interface.
     def test_numpy_matrix(self):
@@ -165,7 +165,7 @@ class TestInterfaces(BaseTest):
         # self.assertEqual(interface.shape(mat), interface.shape(cmp_mat))
         # assert not (mat - cmp_mat).any()
         # scalar_matrix
-        mat = interface.scalar_matrix(2, 4, 3)
+        mat = interface.scalar_matrix(2, (4, 3))
         self.assertEqual(interface.shape(mat), (4, 3))
         self.assertEqual(interface.index(mat, (1, 2)), 2)
         # reshape
@@ -197,7 +197,7 @@ class TestInterfaces(BaseTest):
         self.assertEqual(interface.shape(mat), interface.shape(cmp_mat))
         assert (mat - cmp_mat).nnz == 0
         # scalar_matrix
-        mat = interface.scalar_matrix(2, 4, 3)
+        mat = interface.scalar_matrix(2, (4, 3))
         self.assertEqual(interface.shape(mat), (4, 3))
         self.assertEqual(interface.index(mat, (1, 2)), 2)
         # reshape
@@ -207,9 +207,9 @@ class TestInterfaces(BaseTest):
         mat = interface.const_to_matrix(1, convert_scalars=True)
         self.assertEqual(type(interface.reshape(mat, (1, 1))), type(mat))
         # Test scalars.
-        scalar = interface.scalar_matrix(1, 1, 1)
+        scalar = interface.scalar_matrix(1, (1, 1))
         self.assertEqual(type(scalar), np.ndarray)
-        scalar = interface.scalar_matrix(1, 1, 3)
+        scalar = interface.scalar_matrix(1, (1, 3))
         self.assertEqual(scalar.shape, (1, 3))
         # index
         mat = interface.const_to_matrix([[1, 2, 3, 4], [3, 4, 5, 6]])

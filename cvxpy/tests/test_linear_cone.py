@@ -137,7 +137,7 @@ class TestLinearCone(BaseTest):
     # Test vector LP problems.
     def test_vector_lp(self):
         for solver in self.solvers:
-            c = Constant(numpy.matrix([1, 2]).T).value
+            c = Constant(numpy.array([1, 2]))
             p = Problem(Minimize(c.T*self.x), [self.x >= c])
             result = p.solve(solver.name())
             self.assertTrue(ConeMatrixStuffing().accepts(p))
