@@ -571,7 +571,7 @@ int add_triplets(std::vector<Triplet> &tripletList,
     if (pointer < 0 || pointer >= dims[axis]) {
       break;
     }
-    int new_offset = col_offset + pointer*vecprod(dims, axis);
+    int new_offset = col_offset + pointer*vecprod_before(dims, axis);
     row_offset = add_triplets(tripletList, slices, dims,
                               axis-1, new_offset, row_offset);
 		pointer += step;
@@ -579,6 +579,7 @@ int add_triplets(std::vector<Triplet> &tripletList,
 			break;
 		}
   }
+  return row_offset;
 }
 
 /**

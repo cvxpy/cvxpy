@@ -14,8 +14,8 @@
 
 // Some useful defines for Matricies/etc.
 
-#include <functional>
-#include <numeric>
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "../include/Eigen/Sparse"
 #include "../include/Eigen/Core"
@@ -27,10 +27,7 @@ typedef Eigen::SparseMatrix<double> Matrix;
 typedef std::map<int, Matrix> CoeffMap;
 typedef Eigen::Triplet<double> Triplet;
 
-int vecprod(const std::vector<int> &vec) {
-  return std::accumulate(vec.begin(), vec.end(), 1.0, std::multiplies<int>());
-}
+int vecprod(const std::vector<int> &vec);
+int vecprod_before(const std::vector<int> &vec, int end);
 
-int vecprod(const std::vector<int> &vec, int offset) {
-  return std::accumulate(vec.begin() + offset, vec.end(), 1.0, std::multiplies<int>());
-}
+#endif

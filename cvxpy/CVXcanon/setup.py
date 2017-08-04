@@ -11,7 +11,8 @@ class get_numpy_include(object):
 
 canon = Extension(
     '_CVXcanon',
-    sources=['src/CVXcanon.cpp', 'src/LinOpOperations.cpp', 'src/python/CVXcanon_wrap.cpp'],
+    sources=['src/CVXcanon.cpp', 'src/LinOpOperations.cpp',
+             'src/python/CVXcanon_wrap.cpp', 'src/Utils.cpp'],
     include_dirs=['src/', 'src/python/', 'include/Eigen', get_numpy_include()]
 )
 

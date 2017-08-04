@@ -74,7 +74,7 @@ std::map<int, Matrix > get_coefficient(LinOp &lin){
 	}
 	else {
 		/* Multiply the arguments of the function coefficient in order */
-		std::vector<Matrix> coeff_mat = get_func_coeffs(lin); 
+		std::vector<Matrix> coeff_mat = get_func_coeffs(lin);
 		for (unsigned i = 0; i < lin.args.size(); i++){
 			Matrix coeff = coeff_mat[i];
 			std::map<int, Matrix > rh_coeffs = get_coefficient(*lin.args[i]);
@@ -86,7 +86,7 @@ std::map<int, Matrix > get_coefficient(LinOp &lin){
 				if(coeffs.count(it->first) == 0)
 					coeffs[it->first] = it->second;
 				else
-					coeffs[it->first] += it->second;		
+					coeffs[it->first] += it->second;
 			}
 		}
 	}
@@ -97,7 +97,7 @@ int get_horiz_offset(int id, std::map<int, int> &offsets,
                      int &horiz_offset, LinOp &lin){
 	if ( !offsets.count(id) ){
 		offsets[id] = horiz_offset;
-        horiz_offset += vecprod(lin.size)
+    horiz_offset += vecprod(lin.size);
 	}
 	return offsets[id];
 }
@@ -117,7 +117,7 @@ void add_matrix_to_vectors(Matrix &block, std::vector<double> &V,
 			V.push_back(it.value());
 
 			/* Push back current row and column indices */
-			I.push_back(it.row() + vert_offset);   	
+			I.push_back(it.row() + vert_offset);
 			J.push_back(it.col() + horiz_offset);
 		}
 	}
@@ -160,7 +160,7 @@ void process_constraint(LinOp & lin, std::vector<double> &V,
 int get_total_constraint_length(std::vector< LinOp* > constraints){
 	int result = 0;
 	for (unsigned i = 0; i < constraints.size(); i++){
-        result += vecprod(constraints[i]->size)
+    result += vecprod(constraints[i]->size);
 	}
 	return result;
 }
@@ -181,7 +181,7 @@ int get_total_constraint_length(std::vector<LinOp*> &constraints,
 	for(unsigned i = 0; i < constr_offsets.size(); i++){
 		LinOp constr = *constraints[i];
 		int offset_start = constr_offsets[i];
-        offset_end = offset_start + vecprod(constr.size)
+    offset_end = offset_start + vecprod(constr.size);
 
 		if(i + 1 < constr_offsets.size() && constr_offsets[i + 1] < offset_end){
 			std::cerr << "Error: Invalid constraint offsets: ";
@@ -222,7 +222,7 @@ ProblemData build_matrix(std::vector< LinOp* > constraints,
 		                   prob_data.const_vec, vert_offset,
 		                   prob_data.id_to_col, horiz_offset);
 		prob_data.const_to_row[i] = vert_offset;
-        vert_offset += vecprod(constr.size)
+    vert_offset += vecprod(constr.size);
 	}
 	return prob_data;
 }
