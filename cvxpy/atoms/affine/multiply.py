@@ -39,15 +39,6 @@ class multiply(AffAtom):
         """
         return np.multiply(values[0], values[1])
 
-    def validate_arguments(self):
-        """Checks that the arguments are valid.
-
-           Left-hand argument must be constant.
-        """
-        if not self.args[0].is_constant():
-            raise ValueError(("The first argument to multiply must "
-                              "be constant."))
-
     def shape_from_args(self):
         """The sum of the argument dimensions - 1.
         """

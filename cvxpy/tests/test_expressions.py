@@ -132,8 +132,8 @@ class TestExpressions(BaseTest):
         self.a.save_value(2)
         self.assertEqual(var.value, 2)
 
-        var = self.x.T
-        self.assertEqual(var.name(), "x.T")
+        var = self.x
+        self.assertEqual(var.name(), "x")
         self.assertEqual(var.shape, (2,))
 
         x = Variable((2, 1), name='x')
@@ -189,6 +189,9 @@ class TestExpressions(BaseTest):
         self.assertEqual((0*c).sign, s.ZERO)
         c = Constant([[2], [-2]])
         self.assertEqual(c.sign, s.UNKNOWN)
+
+        c = Constant(np.zeros((2,1)))
+        self.assertEqual(c.shape, (2,1))
 
         # Test sign of a complex expression.
         c = Constant([1, 2])

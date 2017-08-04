@@ -302,6 +302,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to matrix_frac have incompatible dimensions.")
 
+
     def test_max(self):
         """Test max.
         """
@@ -314,7 +315,7 @@ class TestAtoms(BaseTest):
         # Test with axis argument.
         self.assertEqual(max(Variable(2), axis=0, keepdims=True).shape, (1,))
         self.assertEqual(max(Variable(2), axis=1).shape, (2,))
-        self.assertEqual(max(Variable((2, 3)), axis=0).shape, (3, 1))
+        self.assertEqual(max(Variable((2, 3)), axis=0, keepdims=True).shape, (1, 3))
         self.assertEqual(max(Variable((2, 3)), axis=1).shape, (2,))
 
         # Invalid axis.
@@ -522,7 +523,7 @@ class TestAtoms(BaseTest):
         expr = diag(self.A)
         self.assertEqual(expr.sign, s.UNKNOWN)
         self.assertEqual(expr.curvature, s.AFFINE)
-        self.assertEqual(expr.shape, (2, 1))
+        self.assertEqual(expr.shape, (2,))
 
         expr = diag(self.x.T)
         self.assertEqual(expr.sign, s.UNKNOWN)
@@ -711,11 +712,11 @@ class TestAtoms(BaseTest):
         """Test the kron atom.
         """
         a = np.ones((3, 2))
-        b = Parameter(2, nonneg=True)
+        b = Parameter((2, 1), nonneg=True)
         expr = kron(a, b)
         assert expr.is_nonneg()
         self.assertEqual(expr.shape, (6, 2))
-        b = Parameter(2, nonpos=True)
+        b = Parameter((2, 1), nonpos=True)
         expr = kron(a, b)
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
@@ -868,7 +869,7 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self):
-        x, y = Variable(1), Variable(1)
+        x, y = Variable(), Variable()
         xval = 4
 
         # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)

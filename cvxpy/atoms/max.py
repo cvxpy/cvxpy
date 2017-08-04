@@ -27,14 +27,14 @@ class max(AxisAtom):
     """:math:`\max_{i,j}\{X_{i,j}\}`.
     """
 
-    def __init__(self, x, axis=None):
-        super(max, self).__init__(x, axis=axis)
+    def __init__(self, x, axis=None, keepdims=False):
+        super(max, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the largest entry in x.
         """
-        return values[0].max(axis=self.axis, keepdims=True)
+        return values[0].max(axis=self.axis, keepdims=self.keepdims)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

@@ -36,9 +36,7 @@ class NonlinearConstraint(Constraint):
         self.f = f
         self.vars_ = vars_
         # The shape of vars_ in f(vars_)
-        cols = self.vars_[0].shape[1]
-        rows = sum(var.shape[0] for var in self.vars_)
-        self.x_shape = (rows*cols, 1)
+        self.x_shape = (sum([v.size for v in self.vars_]), 1)
         super(NonlinearConstraint, self).__init__(self.vars_, constr_id)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
@@ -68,7 +66,7 @@ class NonlinearConstraint(Constraint):
         m, x0 = self.f()
         offset = 0
         for var in self.args:
-            var_shape = var.shape[0]*var.shape[1]
+            var_shape = var.size
             var_x0 = x0[offset:offset+var_shape]
             self.block_add(big_x, var_x0, var_offsets[var.data],
                            0, var_shape, 1)
@@ -79,7 +77,7 @@ class NonlinearConstraint(Constraint):
         """
         horiz_offset = 0
         for var in self.args:
-            var_shape = var.shape[0]*var.shape[1]
+            var_shape = var.size
             var_Df = Df[:, horiz_offset:horiz_offset+var_shape]
             self.block_add(big_Df, var_Df,
                            vert_offset, var_offsets[var.data],
@@ -91,7 +89,7 @@ class NonlinearConstraint(Constraint):
         """
         offset = 0
         for var in self.args:
-            var_shape = var.shape[0]*var.shape[1]
+            var_shape = var.size
             var_H = H[offset:offset+var_shape, offset:offset+var_shape]
             self.block_add(big_H, var_H,
                            var_offsets[var.data], var_offsets[var.data],
@@ -105,7 +103,7 @@ class NonlinearConstraint(Constraint):
         local_x = cvxopt.matrix(0., self.x_shape)
         offset = 0
         for var in self.args:
-            var_shape = var.shape[0]*var.shape[1]
+            var_shape = var.size
             value = x[var_offsets[var.data]:var_offsets[var.data]+var_shape]
             self.block_add(local_x, value, offset, 0, var_shape, 1)
             offset += var_shape

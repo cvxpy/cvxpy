@@ -51,7 +51,7 @@ class ExpCone(NonlinearConstraint):
         self.x = x
         self.y = y
         self.z = z
-        self.shape = (int(self.x.shape[0]), int(self.x.shape[1]))
+        self.shape = self.x.shape
         super(ExpCone, self).__init__(self._solver_hook,
                                       [self.x, self.y, self.z],
                                       constr_id)
@@ -160,12 +160,12 @@ class ExpCone(NonlinearConstraint):
             and (z scaled) Hessian at x.
         """
         import cvxopt  # Not necessary unless using cvxopt solver.
-        entries = self.shape[0]*self.shape[1]
+        entries = np.prod(self.shape)
         if vars_ is None:
             x_init = entries*[0.0]
             y_init = entries*[0.5]
             z_init = entries*[1.0]
-            return self.shape[0], cvxopt.matrix(x_init + y_init + z_init)
+            return entries, cvxopt.matrix(x_init + y_init + z_init)
         # Unpack vars_
         x = vars_[0:entries]
         y = vars_[entries:2*entries]

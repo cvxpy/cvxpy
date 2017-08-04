@@ -204,9 +204,9 @@ class geo_mean(Atom):
 
         x = self.args[0]
         if x.is_vector():
-            raise ValueError('x must be a row or column vector.')
-        else:
             n = 1 if x.ndim == 0 else max(x.shape)
+        else:
+            raise ValueError('x must be a row or column vector.')
 
         if p is None:
             p = [1]*n

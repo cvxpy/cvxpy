@@ -154,7 +154,7 @@ class MulExpression(BinaryOperator):
             (LinOp for objective, list of constraints)
         """
         # Promote shapes for compatibility with CVXCanon
-        lh_shape, rh_shape, shape = u.mul_shapes_promote(arg_objs[0].shape,
+        lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(arg_objs[0].shape,
                                                          arg_objs[1].shape)
         lhs = lo.LinOp(arg_objs[0].type, lh_shape, arg_objs[0].args,
                        arg_objs[0].data)

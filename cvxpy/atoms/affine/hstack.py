@@ -25,22 +25,33 @@ import numpy as np
 class hstack(AffAtom):
     """ Horizontal concatenation """
     # Returns the hstack of the values.
-    @AffAtom.numpy_numeric
     def numeric(self, values):
+        print values
         return np.hstack(values)
 
-    # The shape is the common height and the sum of the widths.
+    # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
-        cols = sum(arg.shape[1] for arg in self.args)
-        rows = self.args[0].shape[0]
-        return (rows, cols)
+        self.args[0].shape
+        if self.args[0].ndim == 0:
+            return (1, len(self.args))
+        elif self.args[0].ndim == 1:
+            return (self.args[0].shape[0], len(self.args))
+        else:
+            cols = sum(arg.shape[1] for arg in self.args)
+            return (self.args[0].shape[0], cols) + self.args[0].shape[2:]
 
-    # All arguments must have the same height.
+    # All arguments must have the same width.
     def validate_arguments(self):
-        arg_cols = [arg.shape[0] for arg in self.args]
-        if max(arg_cols) != min(arg_cols):
-            raise TypeError(("All arguments to hstack must have "
-                             "the same number of rows."))
+        model = self.args[0].shape
+        error = ValueError(("All the input dimensions except"
+                            " for axis 1 must match exactly."))
+        for arg in self.args[1:]:
+            if len(arg.shape) != len(model):
+                raise error
+            elif len(model) > 0:
+                for i in range(len(model)):
+                    if i != 1 and arg.shape[i] != model[i]:
+                        raise error
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
