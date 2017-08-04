@@ -22,20 +22,26 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
 
-class hstack(AffAtom):
+def hstack(arg_list):
+    """Wrapper on hstack to ensure list argument.
+    """
+    arg_list = [AffAtom.cast_to_const(arg) for arg in arg_list]
+    for idx, arg in enumerate(arg_list):
+        if arg.ndim == 0:
+            arg_list[idx] = arg.flatten()
+    return Hstack(*arg_list)
+
+
+class Hstack(AffAtom):
     """ Horizontal concatenation """
     # Returns the hstack of the values.
     def numeric(self, values):
-        print values
         return np.hstack(values)
 
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
-        self.args[0].shape
-        if self.args[0].ndim == 0:
-            return (1, len(self.args))
-        elif self.args[0].ndim == 1:
-            return (self.args[0].shape[0], len(self.args))
+        if self.args[0].ndim == 1:
+            return (sum([arg.size for arg in self.args]),)
         else:
             cols = sum(arg.shape[1] for arg in self.args)
             return (self.args[0].shape[0], cols) + self.args[0].shape[2:]
@@ -48,7 +54,7 @@ class hstack(AffAtom):
         for arg in self.args[1:]:
             if len(arg.shape) != len(model):
                 raise error
-            elif len(model) > 0:
+            elif len(model) > 1:
                 for i in range(len(model)):
                     if i != 1 and arg.shape[i] != model[i]:
                         raise error

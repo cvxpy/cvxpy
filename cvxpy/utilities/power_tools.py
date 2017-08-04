@@ -30,11 +30,10 @@ import numbers
 
 
 def gm(t, x, y):
-    # HACK until we get rid of old canonicalization.
-    length = t.shape[0]*t.shape[1]
+    length = t.size
     if isinstance(t, Expression):
-        return SOC(t=reshape(x+y, (length, 1)),
-                   X=vstack(reshape(x-y, (1, length)), reshape(2*t, (1, length))),
+        return SOC(t=reshape(x+y, (length,)),
+                   X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
                    axis=0)
     else:
         two = lu.create_const(2, (1, 1))

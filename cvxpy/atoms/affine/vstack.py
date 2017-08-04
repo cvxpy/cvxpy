@@ -22,7 +22,12 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
 
-class vstack(AffAtom):
+def vstack(arg_list):
+    """Wrapper on vstack to ensure list argument.
+    """
+    return Vstack(*arg_list)
+
+class Vstack(AffAtom):
     """ Vertical concatenation """
     # Returns the vstack of the values.
     @AffAtom.numpy_numeric

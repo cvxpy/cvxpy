@@ -645,7 +645,7 @@ class TestExamples(BaseTest):
         X = np.matrix(np.ones((m, n)))
         w = cvx.Variable(n)
 
-        expr2 = [cvx.log_sum_exp(cvx.vstack(0, X[i, :]*w)) for i in range(m)]
+        expr2 = [cvx.log_sum_exp(cvx.hstack([0, X[i, :]*w])) for i in range(m)]
         expr3 = sum(expr2)
         obj = cvx.Minimize(expr3)
         p = cvx.Problem(obj)

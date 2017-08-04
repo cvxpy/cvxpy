@@ -38,7 +38,7 @@ def pnorm_canon(expr, args):
 
     if p == 2:
         if axis is None:
-            assert shape == (1, 1)
+            assert shape == tuple()
             return t, [SOC(t, vec(x))]
         else:
             return t, [SOC(vec(t), x, axis)]
