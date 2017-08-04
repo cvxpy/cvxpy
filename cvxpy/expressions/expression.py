@@ -219,7 +219,7 @@ class Expression(u.Canonical):
     def size(self):
         """Returns the number of entries in the expression.
         """
-        return np.prod(self.shape, dtype=np.uint32)
+        return np.prod(self.shape, dtype=int)
 
     @property
     def ndim(self):

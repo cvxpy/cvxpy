@@ -90,8 +90,8 @@ class ConeDims(object):
         dimension of the PSD cone of k by k matrices is k.
     """
     def __init__(self, constr_map):
-        self.zero = sum([np.prod(c.size) for c in constr_map[Zero]])
-        self.nonpos = sum([np.prod(c.size) for c in constr_map[NonPos]])
+        self.zero = sum([c.size for c in constr_map[Zero]])
+        self.nonpos = sum([c.size for c in constr_map[NonPos]])
         self.exp = sum([c.num_cones() for c in constr_map[ExpCone]])
         self.soc = [dim for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [c.shape[0] for c in constr_map[PSD]]

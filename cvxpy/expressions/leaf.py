@@ -85,13 +85,13 @@ class Leaf(expression.Expression):
 
         if boolean:
             self.boolean_idx = boolean if not type(boolean) == bool else list(
-                np.ndindex(shape))
+                np.ndindex(max(shape, (1,))))
         else:
             self.boolean_idx = []
 
         if integer:
             self.integer_idx = integer if not type(integer) == bool else list(
-                np.ndindex(shape))
+                np.ndindex(max(shape, (1,))))
         else:
             self.integer_idx = []
 

@@ -59,7 +59,7 @@ class BaseMatrixInterface(object):
 
     # Return the number of elements of the matrix.
     def size(self, matrix):
-        return np.prod(self.shape(matrix))
+        return np.prod(self.shape(matrix), dtype=int)
 
     # Return the dimensions of the matrix.
     @abc.abstractmethod

@@ -581,7 +581,7 @@ class SizeMetrics(object):
         # num_scalar_variables
         self.num_scalar_variables = 0
         for var in problem.variables():
-            self.num_scalar_variables += np.prod(var.shape)
+            self.num_scalar_variables += var.size
 
         # num_scalar_data, max_data_dimension, and max_big_small_squared
         self.max_data_dimension = 0
@@ -590,7 +590,7 @@ class SizeMetrics(object):
         for const in problem.constants()+problem.parameters():
             big = 0
             # Compute number of data
-            self.num_scalar_data += np.prod(const.shape)
+            self.num_scalar_data += const.size
             big = 1 if len(const.shape) == 0 else max(const.shape)
             small = 1 if len(const.shape) == 0 else min(const.shape)
 
@@ -605,10 +605,10 @@ class SizeMetrics(object):
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "Zero":
-                self.num_scalar_eq_constr += np.prod(constraint.args[0].shape)
+                self.num_scalar_eq_constr += constraint.args[0].size
 
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "NonPos":
-                self.num_scalar_leq_constr += np.prod(constraint.args[0].shape)
+                self.num_scalar_leq_constr += constraint.args[0].size
