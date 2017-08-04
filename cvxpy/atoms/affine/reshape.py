@@ -46,7 +46,7 @@ class reshape(AffAtom):
         """Checks that the new shape has the same number of entries as the old.
         """
         old_len = self.args[0].size
-        new_len = np.prod(self._shape)
+        new_len = np.prod(self._shape, dtype=int)
         if not old_len == new_len:
             raise ValueError(
                 "Invalid reshape dimensions %s." % (self._shape,)

@@ -78,7 +78,7 @@ class NonPos(Constraint):
 
     @property
     def size(self):
-        return np.prod(self.args[0].shape)
+        return self.args[0].size
 
     # Left hand expression must be convex and right hand must be concave.
     def is_dcp(self):

@@ -24,4 +24,4 @@ from cvxpy.expressions.expression import Expression
 
 def harmonic_mean(x):
     x = Expression.cast_to_const(x)
-    return np.prod(x.shape)*pnorm(x, -1)
+    return x.size*pnorm(x, -1)

@@ -116,7 +116,7 @@ class CoeffExtractor(object):
                     coeffs[orig_id]['q'] = np.zeros(P.shape[0])
             else:
                 var_offset = affine_id_map[var.id][0]
-                var_size = np.prod(affine_var_shapes[var.id])
+                var_size = np.prod(affine_var_shapes[var.id], dtype=int)
                 if var.id in coeffs:
                     coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
                     coeffs[var.id]['q'] += c[

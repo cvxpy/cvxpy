@@ -97,7 +97,7 @@ class ExpCone(NonlinearConstraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return np.prod(self.args[0].shape)
+        return self.args[0].size
 
     def cone_sizes(self):
         """The dimensions of the exponential cones.
@@ -160,7 +160,7 @@ class ExpCone(NonlinearConstraint):
             and (z scaled) Hessian at x.
         """
         import cvxopt  # Not necessary unless using cvxopt solver.
-        entries = np.prod(self.shape)
+        entries = self.size
         if vars_ is None:
             x_init = entries*[0.0]
             y_init = entries*[0.5]

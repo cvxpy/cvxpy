@@ -133,7 +133,7 @@ def is_scalar(operator):
     -------
         True if the LinOp is a scalar, False otherwise.
     """
-    return len(operator.shape) == 0 or np.prod(operator.shape) == 1
+    return len(operator.shape) == 0 or np.prod(operator.shape, dtype=int) == 1
 
 
 def is_const(operator):

@@ -682,7 +682,7 @@ class TestAtoms(BaseTest):
         """Test the bmat atom.
         """
         v_np = np.ones((3, 1))
-        expr = bmat([[v_np, v_np], [[0, 0], [1, 2]]])
+        expr = bmat([[v_np, v_np], [np.zeros((2, 1)), np.mat([1, 2]).T]])
         self.assertEqual(expr.shape, (5, 2))
         const = np.bmat([[v_np, v_np],
                          [np.zeros((2, 1)), np.mat([1, 2]).T]])
