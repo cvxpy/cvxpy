@@ -42,6 +42,8 @@ class Atom(Expression):
         self.args = [Atom.cast_to_const(arg) for arg in args]
         self.validate_arguments()
         self._shape = self.shape_from_args()
+        if len(self._shape) > 2:
+            raise ValueError("Atoms must be at most 2D.")
 
     def name(self):
         """Returns the string representation of the function call.
@@ -56,7 +58,7 @@ class Atom(Expression):
 
     @abc.abstractmethod
     def shape_from_args(self):
-        """Returns the (row, col) shape of the expression.
+        """Returns the shape of the expression.
         """
         return NotImplemented
 

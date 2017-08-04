@@ -72,6 +72,7 @@ class AxisAtom(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
+        # TODO(akshayka): Update this to handle 0/1/2D shapes
         m = self.args[0].shape[0]
         n = self.args[0].shape[1]
         if self.axis is None:
