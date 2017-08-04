@@ -26,9 +26,9 @@ class transpose(AffAtom):
     """ Matrix transpose. """
     # The string representation of the atom.
 
-    def __init__(self, axes=None):
+    def __init__(self, expr, axes=None):
         self.axes = axes
-        super(AffAtom, transpose).__init__()
+        super(AffAtom, self).__init__(expr)
 
     def name(self):
         return "%s.T" % self.args[0]
