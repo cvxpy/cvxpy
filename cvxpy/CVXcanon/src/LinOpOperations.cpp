@@ -565,7 +565,7 @@ int add_triplets(std::vector<Triplet> &tripletList,
   }
   int start = slices[axis][0];
   int end = slices[axis][1];
-  int step = slices[axis][1];
+  int step = slices[axis][2];
   int pointer = start;
   while (true) {
     if (pointer < 0 || pointer >= dims[axis]) {
