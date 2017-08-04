@@ -656,7 +656,7 @@ std::vector<Matrix> get_rmul_mat(LinOp &lin) {
 	Matrix constant = get_constant_data(lin, false);
 	int rows = constant.rows();
 	int cols = constant.cols();
-	int n = lin.size[0];
+	int n = 1 ? lin.size.size() == 0 : lin.size[0];
 
 	Matrix coeffs(cols * n, rows * n);
 	std::vector<Triplet> tripletList;
