@@ -209,7 +209,13 @@ def build_lin_op_tree(root_linPy, tmp):
         linC.type = get_type(linPy.type.upper())
 
         # Setting size
-        for dim in linPy.shape:
+        if len(linPy.shape) == 2:
+            shape = linPy.shape
+        elif len(linPy.shape) == 1:  # TODO row or column?
+            shape = linPy.shape + (1,)
+        else:  # length 0
+            shape = (1, 1)
+        for dim in shape:
             linC.size.push_back(int(dim))
 
         # Loading the problem data into the appropriate array format
