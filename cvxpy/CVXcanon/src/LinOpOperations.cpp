@@ -606,7 +606,7 @@ std::vector<Matrix> get_index_mat(LinOp &lin) {
 	 * first to remain consistent with CVXPY. */
 	std::vector<Triplet> tripletList;
   std::vector<int> dims = lin.args[0]->size;
-  add_triplets(tripletList, lin.slice, dims, dims.size() - 1, 0, 0);
+  add_triplets(tripletList, lin.slice, dims, lin.slice.size() - 1, 0, 0);
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
 	return build_vector(coeffs);

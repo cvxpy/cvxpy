@@ -55,10 +55,11 @@ std::map<int, Matrix > get_coefficient(LinOp &lin){
 		std::map<int, Matrix> new_coeffs = get_variable_coeffs(lin);
 		typedef std::map<int, Matrix >::iterator it_type;
 		for(it_type it = new_coeffs.begin(); it != new_coeffs.end(); ++it){
-			if(coeffs.count(it->first) == 0)
-				coeffs[it->first] = it->second ;
-			else
+			if(coeffs.count(it->first) == 0) {
+				coeffs[it->first] = it->second;
+			} else {
 				coeffs[it->first] += it->second;
+      }
 		}
 	}
 	else if (lin.has_constant_type()){
@@ -66,10 +67,11 @@ std::map<int, Matrix > get_coefficient(LinOp &lin){
 		std::map<int, Matrix> new_coeffs = get_const_coeffs(lin);
 		typedef std::map<int, Matrix >::iterator it_type;
 		for(it_type it = new_coeffs.begin(); it != new_coeffs.end(); ++it){
-			if(coeffs.count(it->first) == 0)
+			if(coeffs.count(it->first) == 0) {
 				coeffs[it->first] = it->second;
-			else
+      } else {
 				coeffs[it->first] += it->second;
+      }
 		}
 	}
 	else {

@@ -44,6 +44,8 @@ class Atom(Expression):
         self._shape = self.shape_from_args()
         if len(self._shape) > 2:
             raise ValueError("Atoms must be at most 2D.")
+        elif 0 in self._shape:
+            assert False
 
     def name(self):
         """Returns the string representation of the function call.

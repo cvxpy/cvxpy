@@ -313,14 +313,15 @@ def test_constant_atoms():
             for row in range(size[0]):
                 for col in range(size[1]):
                     for solver in SOLVERS_TO_TRY:
+                        indexer = tuple(e for (e, d) in zip([row, col], size) if d != 1)
                         # Atoms with Constant arguments.
                         const_args = [Constant(arg) for arg in args]
                         problem = Problem(
-                            objective_type(atom(*const_args)[row, col]))
+                            objective_type(atom(*const_args)[indexer]))
                         yield (run_atom,
                                atom,
                                problem,
-                               obj_val[row, col].value,
+                               obj_val[indexer].value,
                                solver)
                         # Atoms with Variable arguments.
                         variables = []
@@ -328,8 +329,8 @@ def test_constant_atoms():
                         for idx, expr in enumerate(args):
                             variables.append(Variable(intf.shape(expr)))
                             constraints.append(variables[-1] == expr)
-                        objective = objective_type(atom(*variables)[row, col])
-                        prob_val = obj_val[row, col].value
+                        objective = objective_type(atom(*variables)[indexer])
+                        prob_val = obj_val[indexer].value
                         if objective_type == Maximize:
                             objective = -objective
                             prob_val = -prob_val
@@ -344,9 +345,9 @@ def test_constant_atoms():
                         for expr in args:
                             parameters.append(Parameter(intf.shape(expr)))
                             parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
-                        objective = objective_type(atom(*parameters)[row, col])
+                        objective = objective_type(atom(*parameters)[indexer])
                         yield (run_atom,
                                atom,
                                Problem(objective),
-                               obj_val[row, col].value,
+                               obj_val[indexer].value,
                                solver)
