@@ -41,6 +41,12 @@ def sum_shapes(shapes):
     """
     shape = shapes[0]
     for t in shapes[1:]:
+        # Only allow broadcasting for 0D arrays.
+        if shapes[0] != t and len(shapes[0]) != 0 and len(t) != 0:
+            raise ValueError(
+                "Cannot broadcast dimensions " +
+                len(shapes)*" %s" % tuple(shapes))
+
         longer = shape if len(shape) >= len(t) else t
         shorter = shape if len(shape) < len(t) else t
         offset = len(longer) - len(shorter)

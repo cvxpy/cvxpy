@@ -21,6 +21,7 @@ import cvxpy.settings as s
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.utilities import format_axis
+import numpy as np
 
 
 class SOC(Constraint):
@@ -83,7 +84,7 @@ class SOC(Constraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.args[0].size
+        return np.prod(self.args[0].shape, dtype=int)
 
     @property
     def size(self):

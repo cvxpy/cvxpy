@@ -70,7 +70,7 @@ class lambda_max(Atom):
     def validate_arguments(self):
         """Verify that the argument A is square.
         """
-        if not self.args[0].shape[0] == self.args[0].shape[1]:
+        if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
                              % self.args[0].name())
 

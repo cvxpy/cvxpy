@@ -402,8 +402,13 @@ def transpose(operator):
     LinOp
        A linear operator representing the transpose.
     """
-    shape = (operator.shape[1], operator.shape[0])
-    return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
+    if len(operator.shape) < 2:
+        return operator
+    elif len(operator.shape) > 2:
+        return NotImplemented
+    else:
+        shape = (operator.shape[1], operator.shape[0])
+        return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
 
 
 def reshape(operator, shape):

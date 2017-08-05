@@ -412,7 +412,7 @@ class Expression(u.Canonical):
     def __lt__(self, other):
         """Returns an inequality constraint.
         """
-        return self <= other
+        return NotImplemented
 
     @_cast_other
     def __ge__(self, other):
@@ -423,4 +423,4 @@ class Expression(u.Canonical):
     def __gt__(self, other):
         """Returns an inequality constraint.
         """
-        return self >= other
+        return NotImplemented

@@ -46,13 +46,13 @@ def format_axis(t, X, axis):
     terms = []
     # Make t_mat
     mat_shape = (cone_size, 1)
-    prod_shape = (cone_size, t.shape[0])
+    prod_shape = (cone_size, max(t.shape, (1,))[0])
     t_mat = sp.coo_matrix(([1.0], ([0], [0])), mat_shape).tocsc()
     t_mat = lu.create_const(t_mat, mat_shape, sparse=True)
     terms += [lu.mul_expr(t_mat, lu.transpose(t), prod_shape)]
     # Make X_mat
     mat_shape = (cone_size, X.shape[0])
-    prod_shape = (cone_size, X.shape[1])
+    prod_shape = (cone_size,) + X.shape[1:]
     val_arr = (cone_size - 1)*[1.0]
     row_arr = range(1, cone_size)
     col_arr = range(cone_size-1)
