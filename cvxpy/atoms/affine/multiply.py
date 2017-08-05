@@ -54,25 +54,26 @@ class multiply(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
+    def is_atom_convex(self):
+        """Multiplication is convex (affine) in its arguments only if one of
+           the arguments is constant.
+        """
+        return self.args[0].is_constant() or self.args[1].is_constant()
+
+    def is_atom_concave(self):
+        """If the multiplication atom is convex, then it is affine.
+        """
+        return self.is_atom_convex()
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_nonneg()
+        return self.args[1-idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_nonpos()
-
-    def is_quadratic(self):
-        """Quadratic if x is quadratic.
-        """
-        return self.args[1].is_quadratic()
-
-    def is_qpwa(self):
-        """Quadratic of PWA if x is QPWA.
-        """
-        return self.args[1].is_qpwa()
+        return self.args[1-idx].is_nonpos()
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

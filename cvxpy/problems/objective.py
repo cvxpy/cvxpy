@@ -76,21 +76,6 @@ class Objective(u.Canonical):
 
     __truediv__ = __div__
 
-    def variables(self):
-        """Returns the variables in the objective.
-        """
-        return self.args[0].variables()
-
-    def parameters(self):
-        """Returns the parameters in the objective.
-        """
-        return self.args[0].parameters()
-
-    def constants(self):
-        """Returns the constants in the objective.
-        """
-        return self.args[0].constants()
-
     @property
     def value(self):
         """The value of the objective expression.

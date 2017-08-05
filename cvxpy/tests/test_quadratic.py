@@ -165,10 +165,10 @@ class TestExpressions(BaseTest):
         y = Variable()
         z = Variable()
 
-        s = max(vstack(x, y, z))**2
+        s = max(vstack([x, y, z]))**2
         self.assertFalse(s.is_quadratic())
 
-        t = max(vstack(x**2, power(y, 2), z))
+        t = max(vstack([x**2, power(y, 2), z]))
         self.assertFalse(t.is_quadratic())
 
     def test_affine_prod(self):

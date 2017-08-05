@@ -40,14 +40,16 @@ class CvxPyDomainError(Exception):
 class QuadForm(Atom):
 
     def __init__(self, x, P):
-        super(QuadForm, self).__init__(x, P)
         # Cache eigenvalues
         if sp.issparse(P):
             self.P_eigvals = LA.eigvals(P.todense())
         else:
             self.P_eigvals = LA.eigvals(P)
-        self.P = self.args[1]
+        x = QuadForm.cast_to_const(x)
+        P = QuadForm.cast_to_const(P)
+        self.P = P
         self.x = x
+        super(QuadForm, self).__init__(x, P)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -58,7 +60,7 @@ class QuadForm(Atom):
         if not self.args[1].is_constant():
             raise ValueError("P must be a constant matrix.")
         n = self.args[1].shape[0]
-        if self.args[1].shape[1] != n or self.args[0].shape != (n, 1):
+        if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
             raise ValueError("Invalid dimensions for arguments.")
 
     def sign_from_args(self):
@@ -111,7 +113,7 @@ class QuadForm(Atom):
         return NotImplemented
 
     def shape_from_args(self):
-        return tuple()
+        return tuple() if self.x.ndim == 0 else (1, 1)
 
 
 class SymbolicQuadForm(Atom):

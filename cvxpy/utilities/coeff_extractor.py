@@ -156,7 +156,7 @@ class CoeffExtractor(object):
                 q = np.concatenate([q, coeffs[var_id]['q']])
             else:
                 shape = self.var_shapes[var_id]
-                size = shape[0]*shape[1]
+                size = np.prod(shape, dtype=int)
                 P = sp.block_diag([P, sp.csr_matrix((size, size))])
                 q = np.concatenate([q, np.zeros(size)])
 

@@ -108,9 +108,9 @@ class TestSCS(BaseTest):
         npSPriors = npSPriors/sum(npSPriors)
 
         #Reference distribution
-        p_refProb = cvx.Parameter(kK, 1, nonneg=True)
+        p_refProb = cvx.Parameter((kK, 1), nonneg=True)
         #Distribution to be estimated
-        v_prob = cvx.Variable(kK, 1)
+        v_prob = cvx.Variable((kK, 1))
         objkl = 0.0
         for k in range(kK):
             objkl += cvx.kl_div(v_prob[k, 0], p_refProb[k, 0])
