@@ -26,7 +26,7 @@ def matrix_frac_canon(expr, args):
     P = args[1]  # n by n matrix.
 
     if len(X.shape) == 1:
-        X = reshape(X, (1, X.shape[0]))
+        X = reshape(X, (X.shape[0], 1))
     n, m = X.shape
 
     # Create a matrix with Schur complement T - X.T*P^-1*X.
