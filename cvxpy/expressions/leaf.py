@@ -68,8 +68,9 @@ class Leaf(expression.Expression):
         elif len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
-        elif 0 in shape:
-            assert False
+        for d in shape:
+            if not isinstance(d, int) or d <= 0:
+                raise ValueError("Invalid dimensions %s." % (shape,))
         self._shape = tuple(int(d) for d in shape)
 
         if (PSD or NSD or symmetric or diag) and (len(shape) != 2

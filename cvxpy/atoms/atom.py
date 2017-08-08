@@ -44,8 +44,6 @@ class Atom(Expression):
         self._shape = self.shape_from_args()
         if len(self._shape) > 2:
             raise ValueError("Atoms must be at most 2D.")
-        elif 0 in self._shape:
-            assert False
 
     def name(self):
         """Returns the string representation of the function call.
@@ -200,9 +198,12 @@ class Atom(Expression):
 
     @property
     def value(self):
+        # shapes with 0's dropped in presolve.
+        if 0 in self.shape:
+            result = np.array([])
         # Catch the case when the expression is known to be
         # zero through DCP analysis.
-        if self.is_zero():
+        elif self.is_zero():
             result = intf.DEFAULT_INTF.zeros(self.shape)
         else:
             arg_values = []

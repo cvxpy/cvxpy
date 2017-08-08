@@ -129,7 +129,7 @@ class Expression(u.Canonical):
     def is_constant(self):
         """Is the expression constant?
         """
-        return len(self.variables()) == 0 or self.is_zero()
+        return len(self.variables()) == 0 or self.is_zero() or 0 in self.shape
 
     def is_affine(self):
         """Is the expression affine?

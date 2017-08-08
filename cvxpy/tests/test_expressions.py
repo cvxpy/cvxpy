@@ -83,7 +83,7 @@ class TestExpressions(BaseTest):
         # # Matrix variable.
         # coeffs = self.A.coefficients()
         # self.assertItemsEqual(coeffs.keys(), [self.A.id])
-        # self.assertEqual(len(coeffs[self.A.id]), 2)
+        # self.assertEqual(len(coeffs[self.A.id]), 2) or 0 in self.shape
         # mat = coeffs[self.A.id][1]
         # self.assertEqual(mat.shape, (2,4))
         # self.assertEqual(mat[0,2], 1)
@@ -91,6 +91,14 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             p = Variable((2, 2), diag=True, symmetric=True)
         self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Variable.")
+
+        with self.assertRaises(Exception) as cm:
+            p = Variable((2, 0))
+        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0).")
+
+        with self.assertRaises(Exception) as cm:
+            p = Variable((2, .5))
+        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0.5).")
 
     def test_assign_var_value(self):
         """Test assigning a value to a variable.
@@ -701,6 +709,22 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
 
+    def test_none_idx(self):
+        """Test None as index.
+        """
+        expr = self.a[None, None]
+        self.assertEquals(expr.shape, (1, 1))
+
+        expr = self.x[:, None]
+        self.assertEquals(expr.shape, (2, 1))
+
+        expr = self.x[None, :]
+        self.assertEquals(expr.shape, (1, 2))
+
+        expr = Constant([1,2])[None, :]
+        self.assertEquals(expr.shape, (1, 2))
+        self.assertItemsAlmostEqual(expr.value, [1, 2])
+
     def test_out_of_bounds(self):
         """Test out of bounds indices.
         """
@@ -714,6 +738,7 @@ class TestExpressions(BaseTest):
 
         exp = self.x[:-100]
         self.assertEquals(exp.size, (0,))
+        self.assertItemsEqual(exp.value, np.array([]))
 
         exp = self.C[100:2]
         self.assertEqual(exp.shape, (0, 2))
