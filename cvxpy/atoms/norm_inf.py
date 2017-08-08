@@ -24,12 +24,7 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class norm_inf(AxisAtom):
-    def __init__(self, x, axis=None):
-        # TODO(akshayka): Disallow axis? pnorm used to do as much, though
-        # I'm unsure why.
-        super(norm_inf, self).__init__(x, axis=axis)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the one norm of x.
         """
@@ -37,7 +32,7 @@ class norm_inf(AxisAtom):
             values = np.array(values[0]).flatten()
         else:
             values = np.array(values[0])
-        return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=True)
+        return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

@@ -50,8 +50,12 @@ class Atom(Expression):
     def name(self):
         """Returns the string representation of the function call.
         """
+        if self.get_data() is None:
+            data = []
+        else:
+            data = [str(elem) for elem in self.get_data()]
         return "%s(%s)" % (self.__class__.__name__,
-                           ", ".join([arg.name() for arg in self.args]))
+                           ", ".join([arg.name() for arg in self.args] + data))
 
     def validate_arguments(self):
         """Raises an error if the arguments are invalid.

@@ -45,7 +45,6 @@ class Sum(AxisAtom, AffAtom):
     def __init__(self, expr, axis=None, keepdims=False):
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
-    @AffAtom.numpy_numeric
     def numeric(self, values):
         """Sums the entries of value.
         """
