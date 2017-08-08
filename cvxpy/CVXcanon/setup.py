@@ -14,7 +14,6 @@ canon = Extension(
     sources=['src/CVXcanon.cpp', 'src/LinOpOperations.cpp',
              'src/python/CVXcanon_wrap.cpp', 'src/Utils.cpp'],
     include_dirs=['src/', 'src/python/', 'include/Eigen', get_numpy_include()],
-    extra_compile_args = ["-O0", "-std=c++0x"], 
 )
 
 
