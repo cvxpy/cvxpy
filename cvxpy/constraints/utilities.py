@@ -46,19 +46,24 @@ def format_axis(t, X, axis):
     terms = []
     # Make t_mat
     mat_shape = (cone_size, 1)
-    prod_shape = (cone_size, max(t.shape, (1,))[0])
     t_mat = sp.coo_matrix(([1.0], ([0], [0])), mat_shape).tocsc()
     t_mat = lu.create_const(t_mat, mat_shape, sparse=True)
-    terms += [lu.mul_expr(t_mat, lu.transpose(t), prod_shape)]
+    t_vec = t
+    if not t.shape:
+        # t is scalar
+        t_vec = lu.reshape(t, (1, 1))
+    else:
+        # t is 1D
+        t_vec = lu.reshape(t, (1, t.shape[0]))
+    terms += [lu.mul_expr(t_mat, t_vec)]
     # Make X_mat
     mat_shape = (cone_size, X.shape[0])
-    prod_shape = (cone_size,) + X.shape[1:]
     val_arr = (cone_size - 1)*[1.0]
     row_arr = range(1, cone_size)
     col_arr = range(cone_size-1)
     X_mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), mat_shape).tocsc()
     X_mat = lu.create_const(X_mat, mat_shape, sparse=True)
-    terms += [lu.mul_expr(X_mat, X, prod_shape)]
+    terms += [lu.mul_expr(X_mat, X)]
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
@@ -78,13 +83,12 @@ def format_elemwise(vars_):
     # Create matrices Ai such that 0 <= A0*x0 + ... + An*xn
     # gives the format for the elementwise cone constraints.
     spacing = len(vars_)
-    prod_shape = (spacing*vars_[0].shape[0], vars_[0].shape[1])
     # Matrix spaces out columns of the LinOp expressions.
     mat_shape = (spacing*vars_[0].shape[0], vars_[0].shape[0])
     terms = []
     for i, var in enumerate(vars_):
         mat = get_spacing_matrix(mat_shape, spacing, i)
-        terms.append(lu.mul_expr(mat, var, prod_shape))
+        terms.append(lu.mul_expr(mat, var))
     return [lu.create_geq(lu.sum_expr(terms))]
 
 

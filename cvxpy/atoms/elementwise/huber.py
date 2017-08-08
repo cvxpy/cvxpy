@@ -142,8 +142,8 @@ class huber(Elementwise):
             shape, (2, (Fraction(1, 2), Fraction(1, 2)))
         )
         abs_s, constr_abs = abs.graph_implementation([s], shape)
-        M_abs_s = lu.mul_expr(M, abs_s, shape)
-        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, shape)])
+        M_abs_s = lu.mul_expr(M, abs_s)
+        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s)])
         # x == s + n
         constraints = constr_sq + constr_abs
         constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))

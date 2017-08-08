@@ -39,7 +39,7 @@ def gm(t, x, y):
         two = lu.create_const(2, (1, 1))
         return SOC(t=lu.reshape(lu.sum_expr([x, y]), (length, 1)),
                    X=lu.vstack([lu.reshape(lu.sub_expr(x, y), (1, length)),
-                                lu.reshape(lu.mul_expr(two, t, t.shape), (1, length))],
+                                lu.reshape(lu.mul_expr(two, t), (1, length))],
                                (2, length)),
                    axis=0)
 

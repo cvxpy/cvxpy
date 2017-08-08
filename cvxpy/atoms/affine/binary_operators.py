@@ -23,7 +23,6 @@ import sys
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.error import DCPError
-import cvxpy.lin_ops as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 import numpy as np
@@ -155,16 +154,12 @@ class MulExpression(BinaryOperator):
             (LinOp for objective, list of constraints)
         """
         # Promote shapes for compatibility with CVXCanon
-        lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
-            arg_objs[0].shape, arg_objs[1].shape)
-        lhs = lo.LinOp(arg_objs[0].type, lh_shape, arg_objs[0].args,
-                       arg_objs[0].data)
-        rhs = lo.LinOp(arg_objs[1].type, rh_shape, arg_objs[1].args,
-                       arg_objs[1].data)
+        lhs = arg_objs[0]
+        rhs = arg_objs[1]
         if lu.is_const(lhs):
-            return (lu.mul_expr(lhs, rhs, shape), [])
+            return (lu.mul_expr(lhs, rhs), [])
         elif lu.is_const(rhs):
-            return (lu.rmul_expr(lhs, rhs, shape), [])
+            return (lu.rmul_expr(lhs, rhs), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")

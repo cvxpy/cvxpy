@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
+import cvxpy.utilities as u
 import numpy as np
 
 # Utility functions for dealing with LinOp.
@@ -201,7 +202,35 @@ def sub_expr(lh_op, rh_op):
     return sum_expr([lh_op, neg_expr(rh_op)])
 
 
-def mul_expr(lh_op, rh_op, shape):
+def promote_lin_ops_for_mul(lh_op, rh_op):
+    """Promote arguments for multiplication.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the multiplication.
+    rh_op : LinOp
+        The right-hand operator in the multiplication.
+
+    Returns
+    -------
+    LinOp
+       Promoted left-hand operator.
+    LinOp
+       Promoted right-hand operator.
+    tuple
+       Shape of the product
+    """
+    lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
+        lh_op.shape, rh_op.shape)
+    lh_op = lo.LinOp(lh_op.type, lh_shape, lh_op.args,
+                     lh_op.data)
+    rh_op = lo.LinOp(rh_op.type, rh_shape, rh_op.args,
+                     rh_op.data)
+    return lh_op, rh_op, shape
+
+
+def mul_expr(lh_op, rh_op):
     """Multiply two linear operators, with the constant on the left.
 
     Parameters
@@ -210,18 +239,17 @@ def mul_expr(lh_op, rh_op, shape):
         The left-hand operator in the product.
     rh_op : LinOp
         The right-hand operator in the product.
-    shape : tuple
-        The shape of the product.
 
     Returns
     -------
     LinOp
         A linear operator representing the product.
     """
+    lh_op, rh_op, shape = promote_lin_ops_for_mul(lh_op, rh_op)
     return lo.LinOp(lo.MUL, shape, [rh_op], lh_op)
 
 
-def rmul_expr(lh_op, rh_op, shape):
+def rmul_expr(lh_op, rh_op):
     """Multiply two linear operators, with the constant on the right.
 
     Parameters
@@ -238,6 +266,7 @@ def rmul_expr(lh_op, rh_op, shape):
     LinOp
         A linear operator representing the product.
     """
+    lh_op, rh_op, shape = promote_lin_ops_for_mul(lh_op, rh_op)
     return lo.LinOp(lo.RMUL, shape, [lh_op], rh_op)
 
 

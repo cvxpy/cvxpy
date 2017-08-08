@@ -136,7 +136,7 @@ class cumsum(AffAtom, AxisAtom):
         diff_mat = get_diff_mat(dim, axis)
         diff_mat = lu.create_const(diff_mat, (dim, dim), sparse=True)
         if axis == 0:
-            diff = lu.mul_expr(diff_mat, Y, shape)
+            diff = lu.mul_expr(diff_mat, Y)
         else:
-            diff = lu.rmul_expr(Y, diff_mat, shape)
+            diff = lu.rmul_expr(Y, diff_mat)
         return (Y, [lu.create_eq(arg_objs[0], diff)])
