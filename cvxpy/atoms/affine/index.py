@@ -33,14 +33,14 @@ class index(AffAtom):
 
     def __init__(self, expr, key):
         # Format and validate key.
-        self._orig_key = key
-        self.key = ku.validate_key(key, expr.shape)
+        self.key = key
+        self._proc_key = ku.validate_key(key, expr.shape)
         super(index, self).__init__(expr)
 
     # The string representation of the atom.
     def name(self):
-        inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
-        return self.args[0].name() + inner_str % ku.to_str(self.key)
+        inner_str = "[%s" + ", %s"*(len(self._proc_key)-1) + "]"
+        return self.args[0].name() + inner_str % ku.to_str(self._proc_key)
 
     # Returns the index/slice into the given value.
     @AffAtom.numpy_numeric
@@ -50,7 +50,7 @@ class index(AffAtom):
     def shape_from_args(self):
         """Returns the shape of the index expression.
         """
-        return ku.shape(self.key, self._orig_key, self.args[0].shape)
+        return ku.shape(self._proc_key, self.key, self.args[0].shape)
 
     def get_data(self):
         """Returns the (row slice, column slice).
@@ -75,7 +75,8 @@ class index(AffAtom):
         tuple
             (LinOp, [constraints])
         """
-        obj = lu.index(arg_objs[0], shape, data[0])
+        key = ku.validate_key(data[0], arg_objs[0].shape)
+        obj = lu.index(arg_objs[0], shape, key)
         return (obj, [])
 
     @staticmethod

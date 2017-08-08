@@ -277,7 +277,7 @@ class TestProblem(BaseTest):
                     p.solve(verbose=verbose, solver=solver)
 
                 if PSD in SOLVER_MAP[solver].SUPPORTED_CONSTRAINTS:
-                    p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a) >= 2])
+                    p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a[None, None]) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
                 if solver == "ELEMENTAL":
@@ -615,7 +615,7 @@ class TestProblem(BaseTest):
     # Test vector LP problems.
     def test_vector_lp(self):
         c = Constant(numpy.matrix([1, 2]).T).value
-        p = Problem(cvx.Minimize(c.T*self.x), [self.x >= c])
+        p = Problem(cvx.Minimize(c.T*self.x), [self.x[:,None] >= c])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
@@ -700,7 +700,7 @@ class TestProblem(BaseTest):
         p3 = Parameter((4, 4), nonneg=True)
         p = Problem(cvx.Maximize(p1*self.a), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         p1.value = 2
-        p2.value = -numpy.ones((3, 1))
+        p2.value = -numpy.ones((3,))
         p3.value = numpy.ones((4, 4))
         result = p.solve()
         self.assertAlmostEqual(result, -6)
@@ -1097,7 +1097,7 @@ class TestProblem(BaseTest):
 
     # Test variable transpose.
     def test_transpose(self):
-        p = Problem(cvx.Minimize(cvx.sum(self.x)), [self.x.T >= numpy.matrix([1, 2])])
+        p = Problem(cvx.Minimize(cvx.sum(self.x)), [self.x[None,:] >= numpy.matrix([1, 2])])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
@@ -1124,7 +1124,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -2)
 
         c = numpy.matrix([1, -1]).T
-        p = Problem(cvx.Minimize(cvx.maximum(c.T, 2, 2 + c.T)[1]))
+        p = Problem(cvx.Minimize(cvx.maximum(c.T, 2, 2 + c.T)[0,1]))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
 
@@ -1266,7 +1266,7 @@ class TestProblem(BaseTest):
         import scipy.sparse as sp
         interface = intf.get_matrix_interface(sp.csc_matrix)
         c = interface.const_to_matrix([1, 2])
-        expr = cvx.multiply(c, self.x)
+        expr = cvx.multiply(c, self.x[:,None])
         obj = cvx.Minimize(cvx.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
         result = p.solve()
@@ -1289,7 +1289,7 @@ class TestProblem(BaseTest):
             Problem(cvx.Minimize(Variable(boolean=True))).solve(solver=s.ECOS)
 
         with self.assertRaises(SolverError) as cm:
-            Problem(cvx.Minimize(cvx.lambda_max(self.a))).solve(solver=s.ECOS)
+            Problem(cvx.Minimize(cvx.lambda_max(self.A))).solve(solver=s.ECOS)
 
         with self.assertRaises(SolverError) as cm:
             Problem(cvx.Minimize(self.a)).solve(solver=s.SCS)
@@ -1307,7 +1307,7 @@ class TestProblem(BaseTest):
         vec_mat = numpy.matrix([[1, 2], [3, 4]]).T
         expr = cvx.reshape(x, (2, 2))
         obj = cvx.Minimize(cvx.sum(mat*expr))
-        prob = Problem(obj, [x == vec])
+        prob = Problem(obj, [x[:,None] == vec])
         result = prob.solve()
         self.assertAlmostEqual(result, numpy.sum(mat*vec_mat))
 
@@ -1641,7 +1641,7 @@ class TestProblem(BaseTest):
         T = 10
         J = 20
         rvec = np.random.randn(T, J)
-        dy = np.random.randn(2*T, 1)
+        dy = np.random.randn(2*T)
         theta = Variable(J)
 
         delta = 1e-3
