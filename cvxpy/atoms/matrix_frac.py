@@ -44,7 +44,8 @@ class MatrixFrac(Atom):
         # TODO raise error if not invertible?
         X = values[0]
         P = values[1]
-        return (X.T.dot(LA.inv(P)).dot(X)).trace()
+        product = X.T.dot(LA.inv(P)).dot(X)
+        return product.trace() if len(product.shape) == 2 else product
 
     def _domain(self):
         """Returns constraints describing the domain of the node.

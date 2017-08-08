@@ -17,14 +17,18 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms import reshape, trace
 from cvxpy.expressions.variable import Variable
 
 
 def matrix_frac_canon(expr, args):
     X = args[0]  # n by m matrix.
     P = args[1]  # n by n matrix.
+
+    if len(X.shape) == 1:
+        X = reshape(X, (1, X.shape[0]))
     n, m = X.shape
+
     # Create a matrix with Schur complement T - X.T*P^-1*X.
     M = Variable((n+m, n+m), PSD=True)
     T = Variable((m, m))
