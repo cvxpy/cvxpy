@@ -182,7 +182,7 @@ atoms = [
         (lambda x: scalene(x, 2, 3), (2, 2), [[[-5, 2], [-3, 1]]], Constant([[15, 4], [9, 2]])),
         (square, (2, 2), [[[-5, 2], [-3, 1]]], Constant([[25, 4], [9, 1]])),
         (sum, (1, 1), [[[-5, 2], [-3, 1]]], Constant(-5)),
-        (lambda x: sum(x, axis=0), (1, 2), [[[-5, 2], [-3, 1]]], Constant([[-3], [-2]])),
+        (lambda x: sum(x, axis=0), (1, 2), [[[-5, 2], [-3, 1]]], Constant([-3, -2])),
         (lambda x: sum(x, axis=1), (2, 1), [[[-5, 2], [-3, 1]]], Constant([-8, 3])),
         (lambda x: (x + Constant(0))**2, (2, 2), [[[-5, 2], [-3, 1]]], Constant([[25, 4], [9, 1]])),
         (lambda x: sum_largest(x, 3), (1, 1), [[1, 2, 3, 4, 5]], Constant([5+4+3])),
@@ -191,7 +191,7 @@ atoms = [
         (trace, (1, 1), [[[3, 4, 5], [6, 7, 8], [9, 10, 11]]], Constant([3 + 7 + 11])),
         (trace, (1, 1), [[[-5, 2], [-3, 1]]], Constant([-5 + 1])),
         (tv, (1, 1), [[1, -1, 2]], Constant([5])),
-        (tv, (1, 1), [[[1], [-1], [2]]], Constant([5])),
+        (tv, (1, 1), [[1, -1, 2]], Constant([5])),
         (tv, (1, 1), [[[-5, 2], [-3, 1]]], Constant([math.sqrt(53)])),
         (tv, (1, 1), [[[-5, 2], [-3, 1]], [[6, 5], [-4, 3]], [[8, 0], [15, 9]]],
             Constant([LA.norm([7, -1, -8, 2, -10, 7])])),
@@ -316,13 +316,14 @@ def test_constant_atoms():
                     for solver in SOLVERS_TO_TRY:
                         indexer = tuple(e for (e, d) in zip([row, col], size) if d != 1)
                         # Atoms with Constant arguments.
+                        prob_val = obj_val[indexer].value,
                         const_args = [Constant(arg) for arg in args]
                         problem = Problem(
                             objective_type(atom(*const_args)[indexer]))
                         yield (run_atom,
                                atom,
                                problem,
-                               obj_val[indexer].value,
+                               prob_val,
                                solver)
                         # Atoms with Variable arguments.
                         variables = []
@@ -331,15 +332,15 @@ def test_constant_atoms():
                             variables.append(Variable(intf.shape(expr)))
                             constraints.append(variables[-1] == expr)
                         objective = objective_type(atom(*variables)[indexer])
-                        prob_val = obj_val[indexer].value
+                        new_obj_val = prob_val
                         if objective_type == Maximize:
                             objective = -objective
-                            prob_val = -prob_val
+                            new_obj_val = -new_obj_val
                         problem = Problem(objective, constraints)
                         yield (run_atom,
                                atom,
                                problem,
-                               prob_val,
+                               new_obj_val,
                                solver)
                         # Atoms with Parameter arguments.
                         parameters = []
@@ -350,5 +351,5 @@ def test_constant_atoms():
                         yield (run_atom,
                                atom,
                                Problem(objective),
-                               obj_val[indexer].value,
+                               prob_val,
                                solver)

@@ -43,14 +43,14 @@ def tv(value, *args):
         An Expression representing the total variation.
     """
     value = Expression.cast_to_const(value)
-    rows, cols = value.shape
-    if value.is_scalar():
+    if value.ndim == 0:
         raise ValueError("tv cannot take a scalar argument.")
     # L1 norm for vectors.
-    elif value.is_vector():
-        return norm(value[1:] - value[0:max(rows, cols)-1], 1)
+    elif value.ndim == 1:
+        return norm(value[1:] - value[0:value.shape[0]-1], 1)
     # L2 norm for matrices.
     else:
+        rows, cols = value.shape
         args = map(Expression.cast_to_const, args)
         values = [value] + list(args)
         diffs = []
