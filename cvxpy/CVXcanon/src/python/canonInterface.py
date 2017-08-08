@@ -28,10 +28,58 @@ Copyright 2017 Steven Diamond
 #    You should have received a copy of the GNU General Public License
 #    along with CVXcanon.  If not, see <http:#www.gnu.org/licenses/>.
 
+from cvxpy.lin_ops import lin_op as lo
+from cvxpy.lin_ops import lin_utils as lu
+
 import CVXcanon
 import numpy as np
 import scipy.sparse
 from collections import deque
+
+
+def atleast_2d_shape(shape):
+    if len(shape) == 0:
+        return (1, 1)
+    elif len(shape) == 1:
+        return shape + (1,)
+    else:
+        return shape
+
+
+def atleast_2d_tree(root):
+    if len(root.args) == 0:
+        shape = atleast_2d_shape(root.shape)
+        return lo.LinOp(root.type, shape, [], root.data)
+
+    prom_args = []
+    for arg in root.args:
+        prom_args.append(atleast_2d_tree(arg))
+    if isinstance(root.data, lo.LinOp):
+        prom_data = atleast_2d_tree(root.data)
+    else:
+        prom_data = root.data
+
+    if root.type == lo.SUM:
+        lh_arg = prom_args[0]
+        rh_arg = prom_args[1]
+        if lh_arg.shape != rh_arg.shape:
+            lh_arg = lu.transpose(lh_arg)
+        return lu.sum_expr([lh_arg, rh_arg])
+    elif root.type == lo.MUL:
+        lh_arg = prom_data
+        rh_arg = prom_args[0]
+        if lh_arg.shape[1] != rh_arg.shape[0]:
+            lh_arg = lu.transpose(lh_arg)
+        return lu.mul_expr(lh_arg, rh_arg, (lh_arg.shape[0], rh_arg.shape[1]))
+    elif root.type == lo.RMUL:
+        lh_arg = prom_args[0]
+        rh_arg = prom_data
+        if lh_arg.shape[1] != rh_arg.shape[0]:
+            lh_arg = lu.transpose(lh_arg)
+        return lu.rmul_expr(lh_arg, rh_arg, (lh_arg.shape[0], rh_arg.shape[1]))
+    else:
+        shape = atleast_2d_shape(root.shape)
+        return lo.LinOp(root.type, shape, prom_args, prom_data)
 
 
 def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
@@ -61,10 +109,14 @@ def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
     for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
 
+    roots = []
+    for root in linOps:
+        roots.append(atleast_2d_tree(root))
+
     # This array keeps variables data in scope
     # after build_lin_op_tree returns
     tmp = []
-    for lin in linOps:
+    for lin in roots:
         tree = build_lin_op_tree(lin, tmp)
         tmp.append(tree)
         lin_vec.push_back(tree)
@@ -109,7 +161,7 @@ def set_matrix_data(linC, linPy):
        our C++ linOp.
     """
     # data is supposed to be a LinOp
-    if isinstance(linPy.data, tuple):
+    if isinstance(linPy.data, lo.LinOp):
         if linPy.data.type == 'sparse_const':
             coo = format_matrix(linPy.data.data, 'sparse')
             linC.set_sparse_data(coo.data, coo.row.astype(float),
@@ -226,7 +278,7 @@ def build_lin_op_tree(root_linPy, tmp):
         elif isinstance(linPy.data, float) or isinstance(linPy.data, int):
             linC.set_dense_data(format_matrix(linPy.data, 'scalar'))
         # data is supposed to be a LinOp
-        elif isinstance(linPy.data, tuple) and linPy.data.type == 'scalar_const':
+        elif isinstance(linPy.data, lo.LinOp) and linPy.data.type == 'scalar_const':
             linC.set_dense_data(format_matrix(linPy.data.data, 'scalar'))
         else:
             set_matrix_data(linC, linPy)

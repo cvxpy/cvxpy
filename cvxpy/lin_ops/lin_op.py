@@ -17,14 +17,16 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from collections import namedtuple
 
 # A linear operator applied to a variable
 # or a constant or function of parameters.
-LinOp = namedtuple("LinOp", ["type",
-                             "shape",
-                             "args",
-                             "data"])
+class LinOp(object):
+    def __init__(self, type, shape, args, data):
+        self.type = type
+        self.shape = shape
+        self.args = args
+        self.data = data
+
 
 # The types of linear operators.
 

@@ -41,10 +41,11 @@ void mul_by_const(Matrix &coeff_mat,
 			else
 				result[id] = coeff_mat * scalar;
 		} else{
-			if (result.count(id) == 0 )
-				result[id] = coeff_mat * rh;
-			else
+			if (result.count(id) == 0) {
+				result[id] = tmp;
+			} else {
 				result[id] += coeff_mat * rh;
+            }
 		}
 	}
 }
@@ -161,8 +162,8 @@ void process_constraint(LinOp & lin, std::vector<double> &V,
 	 of coefficient matrices */
 int get_total_constraint_length(std::vector< LinOp* > constraints){
 	int result = 0;
-	for (unsigned i = 0; i < constraints.size(); i++){
-    result += vecprod(constraints[i]->size);
+	for (unsigned i = 0; i < constraints.size(); i++) {
+		result += vecprod(constraints[i]->size);
 	}
 	return result;
 }
@@ -224,7 +225,7 @@ ProblemData build_matrix(std::vector< LinOp* > constraints,
 		                   prob_data.const_vec, vert_offset,
 		                   prob_data.id_to_col, horiz_offset);
 		prob_data.const_to_row[i] = vert_offset;
-    vert_offset += vecprod(constr.size);
+		vert_offset += vecprod(constr.size);
 	}
 	return prob_data;
 }
