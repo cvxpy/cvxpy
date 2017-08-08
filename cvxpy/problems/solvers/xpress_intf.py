@@ -21,7 +21,6 @@ import cvxpy.lin_ops.lin_utils as linutils
 
 from cvxpy.problems.solvers.solver import Solver
 
-import xpress
 import numpy
 
 
