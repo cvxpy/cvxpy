@@ -280,6 +280,7 @@ def check_solver(prob, solver_name):
 # Tests numeric version of atoms.
 def run_atom(atom, problem, obj_val, solver, verbose=False):
     assert problem.is_dcp()
+    print problem
     if verbose:
         print(problem.objective)
         print(problem.constraints)

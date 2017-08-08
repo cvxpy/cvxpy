@@ -332,7 +332,7 @@ class TestExamples(BaseTest):
 
         # Create and solve the model
         A = cvx.Variable((n, n));
-        b = cvx.Variable(n);
+        b = cvx.Variable((n, 1));
         obj = cvx.Maximize(cvx.log_det(A))
         constraints = []
         for i in range(m):
@@ -378,7 +378,7 @@ class TestExamples(BaseTest):
         n = 20
         numpy.random.seed(1)
         A = numpy.random.randn(m, n)
-        b = numpy.random.randn(m, 1)
+        b = numpy.random.randn(m)
 
         # Construct the problem.
         x = cvx.Variable(n)

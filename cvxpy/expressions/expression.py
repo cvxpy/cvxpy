@@ -414,7 +414,7 @@ class Expression(u.Canonical):
     def __lt__(self, other):
         """Returns an inequality constraint.
         """
-        return NotImplemented
+        raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
     def __ge__(self, other):
@@ -425,4 +425,4 @@ class Expression(u.Canonical):
     def __gt__(self, other):
         """Returns an inequality constraint.
         """
-        return NotImplemented
+        raise NotImplementedError("Strict inequalities are not allowed.")

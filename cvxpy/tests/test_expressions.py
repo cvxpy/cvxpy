@@ -372,22 +372,22 @@ class TestExpressions(BaseTest):
         z = Variable(2, name='z')
         exp = exp + z + self.x
 
-        with self.assertRaises(Exception) as cm:
+        # Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             (self.x + self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
         # Matrices
         exp = self.A + self.B
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (2, 2))
 
-        with self.assertRaises(Exception) as cm:
+        # Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             (self.A + self.C)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
-        with self.assertRaises(Exception) as cm:
+        # Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             AddExpression([self.A, self.C])
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
         # Test that sum is flattened.
         exp = self.x + c + self.x
@@ -411,18 +411,18 @@ class TestExpressions(BaseTest):
         z = Variable(2, name='z')
         exp = exp - z - self.x
 
-        with self.assertRaises(Exception) as cm:
+        # Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             (self.x - self.y)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2,) (3,)")
 
         # Matrices
         exp = self.A - self.B
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (2, 2))
 
-        with self.assertRaises(Exception) as cm:
+        # Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             (self.A - self.C)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
         # Test repr.
         self.assertEqual(repr(self.x - c), "Expression(AFFINE, UNKNOWN, (2,))")
@@ -439,14 +439,13 @@ class TestExpressions(BaseTest):
         # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
         self.assertEqual(exp.shape, (1,))
 
-        with self.assertRaises(Exception) as cm:
+        # Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             ([2, 2, 3]*self.x)
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (1, 3) (2, 1)")
 
-        # Matrices
-        with self.assertRaises(Exception) as cm:
+        # Matrices: Incompatible dimensions
+        with self.assertRaises(ValueError) as cm:
             Constant([[2, 1], [2, 2]]) * self.C
-        self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
         # Affine times affine is okay
         with warnings.catch_warnings():
@@ -483,14 +482,14 @@ class TestExpressions(BaseTest):
                 self.x.__matmul__(2)
             self.assertEqual(str(cm.exception),
                              "Scalar operands are not allowed, use '*' instead")
-            with self.assertRaises(Exception) as cm:
-                (self.x.__matmul__(np.array([2, 2, 3])))
-            self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 1) (3, 1)")
 
-            # Matrices
+            # Incompatible dimensions
+            with self.assertRaises(ValueError) as cm:
+                (self.x.__matmul__(np.array([2, 2, 3])))
+
+            # Incompatible dimensions
             with self.assertRaises(Exception) as cm:
                 Constant([[2, 1], [2, 2]]) .__matmul__(self.C)
-            self.assertEqual(str(cm.exception), "Incompatible dimensions (2, 2) (3, 2)")
 
             # Affine times affine is okay
             with warnings.catch_warnings():

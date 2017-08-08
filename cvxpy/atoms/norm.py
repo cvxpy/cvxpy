@@ -46,7 +46,7 @@ def norm(x, p=2, axis=None):
     x = Expression.cast_to_const(x)
     # Norms for scalars same as absolute value.
     if p == 1 or x.is_scalar():
-        return norm1(x, axis)
+        return norm1(x, axis=axis)
     elif p in [np.inf, "inf", "Inf"]:
         return norm_inf(x, axis)
     elif p == "nuc":

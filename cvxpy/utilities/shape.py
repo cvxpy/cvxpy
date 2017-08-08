@@ -63,7 +63,7 @@ def sum_shapes(shapes):
                     len(shapes)*" %s" % tuple(shapes))
             new_dim = d1 if d1 >= d2 else d2
             suffix = [new_dim] + suffix
-        shape = prefix + suffix
+        shape = tuple(prefix + suffix)
     return tuple(shape)
 
 
