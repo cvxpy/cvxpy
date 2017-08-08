@@ -37,9 +37,6 @@ def diff(x, k=1, axis=0):
 
     diff(x, 0) returns the vector x unchanged
     """
-    if k <= 0:
-        raise ValueError('Must have k >= 0.')
-
     x = Expression.cast_to_const(x)
     if axis != 1:
         axes = range(len(x.shape))

@@ -55,15 +55,19 @@ def format_axis(t, X, axis):
     else:
         # t is 1D
         t_vec = lu.reshape(t, (1, t.shape[0]))
-    terms += [lu.mul_expr(t_mat, t_vec)]
+    mul_shape = (cone_size, t_vec.shape[1])
+    terms += [lu.mul_expr(t_mat, t_vec, mul_shape)]
     # Make X_mat
+    if len(X.shape) == 1:
+        X = lu.reshape(X, (X.shape[0], 1))
     mat_shape = (cone_size, X.shape[0])
     val_arr = (cone_size - 1)*[1.0]
     row_arr = range(1, cone_size)
     col_arr = range(cone_size-1)
     X_mat = sp.coo_matrix((val_arr, (row_arr, col_arr)), mat_shape).tocsc()
     X_mat = lu.create_const(X_mat, mat_shape, sparse=True)
-    terms += [lu.mul_expr(X_mat, X)]
+    mul_shape = (cone_size, X.shape[1])
+    terms += [lu.mul_expr(X_mat, X, mul_shape)]
     return [lu.create_geq(lu.sum_expr(terms))]
 
 

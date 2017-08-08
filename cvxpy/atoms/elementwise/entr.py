@@ -31,7 +31,6 @@ class entr(Elementwise):
     def __init__(self, x):
         super(entr, self).__init__(x)
 
-    @Elementwise.numpy_numeric
     def numeric(self, values):
         x = values[0]
         results = -xlogy(x, x)

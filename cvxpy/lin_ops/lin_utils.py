@@ -230,7 +230,7 @@ def promote_lin_ops_for_mul(lh_op, rh_op):
     return lh_op, rh_op, shape
 
 
-def mul_expr(lh_op, rh_op):
+def mul_expr(lh_op, rh_op, shape):
     """Multiply two linear operators, with the constant on the left.
 
     Parameters
@@ -245,11 +245,10 @@ def mul_expr(lh_op, rh_op):
     LinOp
         A linear operator representing the product.
     """
-    lh_op, rh_op, shape = promote_lin_ops_for_mul(lh_op, rh_op)
     return lo.LinOp(lo.MUL, shape, [rh_op], lh_op)
 
 
-def rmul_expr(lh_op, rh_op):
+def rmul_expr(lh_op, rh_op, shape):
     """Multiply two linear operators, with the constant on the right.
 
     Parameters
@@ -266,7 +265,6 @@ def rmul_expr(lh_op, rh_op):
     LinOp
         A linear operator representing the product.
     """
-    lh_op, rh_op, shape = promote_lin_ops_for_mul(lh_op, rh_op)
     return lo.LinOp(lo.RMUL, shape, [lh_op], rh_op)
 
 

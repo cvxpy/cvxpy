@@ -606,6 +606,7 @@ std::vector<Matrix> get_index_mat(LinOp &lin) {
 	 * first to remain consistent with CVXPY. */
 	std::vector<Triplet> tripletList;
   std::vector<int> dims = lin.args[0]->size;
+  assert(lin.slice.size() == dims.size());
   add_triplets(tripletList, lin.slice, dims, lin.slice.size() - 1, 0, 0);
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
@@ -653,10 +654,22 @@ std::vector<Matrix> get_mul_elemwise_mat(LinOp &lin) {
  */
 std::vector<Matrix> get_rmul_mat(LinOp &lin) {
 	assert(lin.type == RMUL);
+  // Scalar multiplication handled in mul_elemwise.
+  assert(lin.args[0]->size.size() > 0);
 	Matrix constant = get_constant_data(lin, false);
+  // Interpret as row or column vector as needed.
+  int arg_cols;
+  if (lin.args[0]->size.size() == 1) {
+    arg_cols = lin.args[0]->size[0];
+  } else {
+    arg_cols = lin.args[0]->size[1];
+  }
+  if (lin.data_ndim == 1 && arg_cols != constant.rows()) {
+    constant = constant.transpose();
+  }
 	int rows = constant.rows();
 	int cols = constant.cols();
-	int n = lin.size[0];
+	int n = (lin.size.size() > 0) ? lin.size[0] : 1;
 
 	Matrix coeffs(cols * n, rows * n);
 	std::vector<Triplet> tripletList;
@@ -692,16 +705,17 @@ std::vector<Matrix> get_rmul_mat(LinOp &lin) {
  */
 std::vector<Matrix> get_mul_mat(LinOp &lin) {
 	assert(lin.type == MUL);
+  // Scalar multiplication handled in mul_elemwise.
+  assert(lin.args[0]->size.size() > 0);
 	Matrix block = get_constant_data(lin, false);
+  // Interpret as row or column vector as needed.
+  if (lin.data_ndim == 1 && lin.args[0]->size[0] != block.cols()) {
+    block = block.transpose();
+  }
 	int block_rows = block.rows();
 	int block_cols = block.cols();
 
-	// Don't replicate scalars
-	if(block_rows == 1 && block_cols == 1){
-		return build_vector(block);
-	}
-
-	int num_blocks = lin.size[1];
+  int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
 	Matrix coeffs (num_blocks * block_rows, num_blocks * block_cols);
 
 	std::vector<Triplet> tripletList;

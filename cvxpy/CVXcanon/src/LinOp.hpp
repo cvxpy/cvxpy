@@ -64,6 +64,8 @@ public:
 	/* Children LinOps in the tree */
 	std::vector<LinOp*> args;
 
+  /* Dimensions of data */
+  int data_ndim;
 	/* Sparse Data Fields */
 	bool sparse; // True only if linOp has sparse_data
 	Matrix sparse_data;
@@ -123,6 +125,7 @@ public:
 		sparse_coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 		sparse_coeffs.makeCompressed();
 		sparse_data = sparse_coeffs;
+    data_ndim = 2;
 	}
 };
 #endif

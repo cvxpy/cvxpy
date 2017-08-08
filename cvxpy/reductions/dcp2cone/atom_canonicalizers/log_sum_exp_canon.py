@@ -31,6 +31,7 @@ def log_sum_exp_canon(expr, args):
     x = args[0]
     shape = expr.shape
     axis = expr.axis
+    keepdims = expr.keepdims
     t = Variable(shape)
 
     # log(sum(exp(x))) <= t <=> sum(exp(x-t)) <= 1
@@ -45,7 +46,7 @@ def log_sum_exp_canon(expr, args):
 
     exp_expr = exp(x - promoted_t)
     obj, constraints = exp_canon(exp_expr, exp_expr.args)
-    obj = sum(obj, axis=axis)
+    obj = sum(obj, axis=axis, keepdims=keepdims)
     ones = Constant(np.ones(shape))
     constraints.append(obj <= ones)
     return t, constraints

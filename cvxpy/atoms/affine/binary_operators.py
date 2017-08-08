@@ -157,9 +157,9 @@ class MulExpression(BinaryOperator):
         lhs = arg_objs[0]
         rhs = arg_objs[1]
         if lu.is_const(lhs):
-            return (lu.mul_expr(lhs, rhs), [])
+            return (lu.mul_expr(lhs, rhs, shape), [])
         elif lu.is_const(rhs):
-            return (lu.rmul_expr(lhs, rhs), [])
+            return (lu.rmul_expr(lhs, rhs, shape), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")

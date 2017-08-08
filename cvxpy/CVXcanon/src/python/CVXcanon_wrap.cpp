@@ -7336,6 +7336,58 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_LinOp_data_ndim_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:LinOp_data_ndim_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_data_ndim_set" "', argument " "1"" of type '" "LinOp *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "LinOp_data_ndim_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->data_ndim = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_LinOp_data_ndim_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:LinOp_data_ndim_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_data_ndim_get" "', argument " "1"" of type '" "LinOp *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  result = (int) ((arg1)->data_ndim);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_LinOp_sparse_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -19269,6 +19321,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"LinOp_size_get", _wrap_LinOp_size_get, METH_VARARGS, NULL},
 	 { (char *)"LinOp_args_set", _wrap_LinOp_args_set, METH_VARARGS, NULL},
 	 { (char *)"LinOp_args_get", _wrap_LinOp_args_get, METH_VARARGS, NULL},
+	 { (char *)"LinOp_data_ndim_set", _wrap_LinOp_data_ndim_set, METH_VARARGS, NULL},
+	 { (char *)"LinOp_data_ndim_get", _wrap_LinOp_data_ndim_get, METH_VARARGS, NULL},
 	 { (char *)"LinOp_sparse_set", _wrap_LinOp_sparse_set, METH_VARARGS, NULL},
 	 { (char *)"LinOp_sparse_get", _wrap_LinOp_sparse_get, METH_VARARGS, NULL},
 	 { (char *)"LinOp_sparse_data_set", _wrap_LinOp_sparse_data_set, METH_VARARGS, NULL},

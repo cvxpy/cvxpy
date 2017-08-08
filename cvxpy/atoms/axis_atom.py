@@ -52,7 +52,7 @@ class AxisAtom(Atom):
     def get_data(self):
         """Returns the axis being summed.
         """
-        return [self.axis]
+        return [self.axis, self.keepdims]
 
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.

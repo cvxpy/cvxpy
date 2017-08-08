@@ -37,53 +37,53 @@ import scipy.sparse
 from collections import deque
 
 
-def atleast_2d_shape(shape):
-    if len(shape) == 0:
-        return (1, 1)
-    elif len(shape) == 1:
-        return shape + (1,)
-    else:
-        return shape
+# def atleast_2d_shape(shape):
+#     if len(shape) == 0:
+#         return (1, 1)
+#     elif len(shape) == 1:
+#         return shape + (1,)
+#     else:
+#         return shape
 
 
-def atleast_2d_tree(root):
-    if len(root.args) == 0:
-        shape = atleast_2d_shape(root.shape)
-        return lo.LinOp(root.type, shape, [], root.data)
+# def atleast_2d_tree(root):
+#     if len(root.args) == 0:
+#         shape = atleast_2d_shape(root.shape)
+#         return lo.LinOp(root.type, shape, [], root.data)
 
-    prom_args = []
-    for arg in root.args:
-        prom_args.append(atleast_2d_tree(arg))
-    if isinstance(root.data, lo.LinOp):
-        prom_data = atleast_2d_tree(root.data)
-    else:
-        prom_data = root.data
+#     prom_args = []
+#     for arg in root.args:
+#         prom_args.append(atleast_2d_tree(arg))
+#     if isinstance(root.data, lo.LinOp):
+#         prom_data = atleast_2d_tree(root.data)
+#     else:
+#         prom_data = root.data
 
-    if root.type == lo.SUM:
-        shape = prom_args[0].shape
-        args = []
-        for prom_arg in prom_args:
-            if shape != prom_arg.shape:
-                args.append(lu.transpose(prom_arg))
-            else:
-                args.append(prom_arg)
-        return lu.sum_expr(args)
-    elif root.type == lo.MUL:
-        lh_arg = prom_data
-        rh_arg = prom_args[0]
-        if lh_arg.shape[1] != rh_arg.shape[0]:
-            # transpose the argument, not the data.
-            rh_arg = lu.transpose(rh_arg)
-        return lu.mul_expr(lh_arg, rh_arg)
-    elif root.type == lo.RMUL:
-        lh_arg = prom_args[0]
-        rh_arg = prom_data
-        if lh_arg.shape[1] != rh_arg.shape[0]:
-            lh_arg = lu.transpose(lh_arg)
-        return lu.rmul_expr(lh_arg, rh_arg)
-    else:
-        shape = atleast_2d_shape(root.shape)
-        return lo.LinOp(root.type, shape, prom_args, prom_data)
+#     if root.type == lo.SUM:
+#         shape = prom_args[0].shape
+#         args = []
+#         for prom_arg in prom_args:
+#             if shape != prom_arg.shape:
+#                 args.append(lu.transpose(prom_arg))
+#             else:
+#                 args.append(prom_arg)
+#         return lu.sum_expr(args)
+#     elif root.type == lo.MUL:
+#         lh_arg = prom_data
+#         rh_arg = prom_args[0]
+#         if lh_arg.shape[1] != rh_arg.shape[0]:
+#             # transpose the argument, not the data.
+#             rh_arg = lu.transpose(rh_arg)
+#         return lu.mul_expr(lh_arg, rh_arg)
+#     elif root.type == lo.RMUL:
+#         lh_arg = prom_args[0]
+#         rh_arg = prom_data
+#         if lh_arg.shape[1] != rh_arg.shape[0]:
+#             lh_arg = lu.transpose(lh_arg)
+#         return lu.rmul_expr(lh_arg, rh_arg)
+#     else:
+#         shape = atleast_2d_shape(root.shape)
+#         return lo.LinOp(root.type, shape, prom_args, prom_data)
 
 
 def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
@@ -113,14 +113,10 @@ def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
     for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
 
-    roots = []
-    for root in linOps:
-        roots.append(atleast_2d_tree(root))
-
     # This array keeps variables data in scope
     # after build_lin_op_tree returns
     tmp = []
-    for lin in roots:
+    for lin in linOps:
         tree = build_lin_op_tree(lin, tmp)
         tmp.append(tree)
         lin_vec.push_back(tree)
@@ -150,6 +146,10 @@ def format_matrix(matrix, shape=None, format='dense'):
     """
     if (format == 'dense'):
         # Ensure is 2D.
+        if len(shape) == 0:
+            shape = (1, 1)
+        elif len(shape) == 1:
+            shape = shape + (1,)
         return np.reshape(matrix, shape, order='F')
     elif(format == 'sparse'):
         return scipy.sparse.coo_matrix(matrix)
@@ -173,9 +173,10 @@ def set_matrix_data(linC, linPy):
         elif linPy.data.type == 'dense_const':
             linC.set_dense_data(format_matrix(linPy.data.data,
                                               shape=linPy.data.shape))
+            linC.data_ndim = len(linPy.data.shape)
         else:
             raise NotImplementedError()
-    else:
+    else: # TODO remove this case.
         if linPy.type == 'sparse_const':
             coo = format_matrix(linPy.data, format='sparse')
             linC.set_sparse_data(coo.data, coo.row.astype(float),
@@ -184,6 +185,7 @@ def set_matrix_data(linC, linPy):
         else:
             linC.set_dense_data(format_matrix(linPy.data,
                                               shape=linPy.shape))
+            linC.data_ndim = len(linPy.data.shape)
 
 
 def set_slice_data(linC, linPy):
@@ -266,13 +268,7 @@ def build_lin_op_tree(root_linPy, tmp):
         linC.type = get_type(linPy.type.upper())
 
         # Setting size
-        if len(linPy.shape) == 2:
-            shape = linPy.shape
-        elif len(linPy.shape) == 1:  # TODO row or column?
-            shape = linPy.shape + (1,)
-        else:  # length 0
-            shape = (1, 1)
-        for dim in shape:
+        for dim in linPy.shape:
             linC.size.push_back(int(dim))
 
         # Loading the problem data into the appropriate array format
@@ -282,9 +278,11 @@ def build_lin_op_tree(root_linPy, tmp):
             set_slice_data(linC, linPy)
         elif isinstance(linPy.data, float) or isinstance(linPy.data, int):
             linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
+            linC.data_ndim = 0
         # data is supposed to be a LinOp
         elif isinstance(linPy.data, lo.LinOp) and linPy.data.type == 'scalar_const':
             linC.set_dense_data(format_matrix(linPy.data.data, format='scalar'))
+            linC.data_ndim = 0
         else:
             set_matrix_data(linC, linPy)
 

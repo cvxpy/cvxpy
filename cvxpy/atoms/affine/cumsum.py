@@ -110,6 +110,11 @@ class cumsum(AffAtom, AxisAtom):
             grad = MulExpression(var, mat.T)._grad(values)[0]
         return [grad]
 
+    def get_data(self):
+        """Returns the axis being summed.
+        """
+        return [self.axis]
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Cumulative sum via difference matrix.

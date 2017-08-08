@@ -782,7 +782,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, -2)
 
         # cvx.Maximize
-        p = Problem(cvx.Maximize(-norm2(self.a)), [self.a <= -2])
+        p = Problem(cvx.Maximize(-cvx.norm2(self.a)), [self.a <= -2])
         result = p.solve()
         self.assertAlmostEqual(result, -2)
         self.assertAlmostEqual(self.a.value, -2)
