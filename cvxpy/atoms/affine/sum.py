@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy import utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
@@ -70,14 +71,18 @@ class Sum(AxisAtom, AffAtom):
         """
         axis = data[0]
         if axis is None:
-            obj = lu.sum_entries(arg_objs[0])
+            obj = lu.sum_entries(arg_objs[0], shape=shape)
         elif axis == 1:
             const_shape = (arg_objs[0].shape[1], 1)
+            _, const_shape, product_shape = u.shape.mul_shapes_promote(
+                arg_objs[0].shape, const_shape)
             ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.rmul_expr(arg_objs[0], ones, shape)
+            obj = lu.rmul_expr(arg_objs[0], ones, product_shape)
         else:  # axis == 0
             const_shape = (1, arg_objs[0].shape[0])
+            const_shape, _, product_shape = u.shape.mul_shapes_promote(
+                const_shape, arg_objs[0].shape)
             ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.mul_expr(ones, arg_objs[0], shape)
+            obj = lu.mul_expr(ones, arg_objs[0], product_shape)
 
         return (obj, [])
