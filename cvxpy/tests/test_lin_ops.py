@@ -155,7 +155,7 @@ class test_lin_ops(BaseTest):
         """
         shape = (5, 5)
         x = create_var(shape)
-        expr = sum_entries(x)
+        expr = sum_entries(x, (1, 1))
         self.assertEqual(expr.shape, (1, 1))
         self.assertEqual(len(expr.args), 1)
         self.assertEqual(expr.type, lo.SUM_ENTRIES)
