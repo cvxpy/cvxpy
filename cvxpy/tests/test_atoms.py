@@ -450,30 +450,28 @@ class TestAtoms(BaseTest):
 
     # Test the vstack class.
     def test_vstack(self):
-        atom = vstack(self.x, self.y, self.x)
-        self.assertEqual(atom.name(), "vstack(x, y, x)")
+        atom = vstack([self.x, self.y, self.x])
+        self.assertEqual(atom.name(), "Vstack(x, y, x)")
         self.assertEqual(atom.shape, (3, 2))
 
-        atom = vstack(self.A, self.C, self.B)
-        self.assertEqual(atom.name(), "vstack(A, C, B)")
+        atom = vstack([self.A, self.C, self.B])
+        self.assertEqual(atom.name(), "Vstack(A, C, B)")
         self.assertEqual(atom.shape, (7, 2))
 
         entries = []
         for i in range(self.x.shape[0]):
             entries.append(self.x[i])
-        atom = vstack(*entries)
+        atom = vstack(entries)
         self.assertEqual(atom.shape, (2,1))
         # self.assertEqual(atom[1,0].name(), "vstack(x[0,0], x[1,0])[1,0]")
 
         with self.assertRaises(Exception) as cm:
-            vstack(self.C, 1)
+            vstack([self.C, 1])
         self.assertEqual(str(cm.exception),
                          "All the input dimensions except for axis 0 must match exactly.")
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(TypeError) as cm:
             vstack()
-        self.assertEqual(str(cm.exception),
-                         "No arguments given to vstack.")
 
     def test_reshape(self):
         """Test the reshape class.

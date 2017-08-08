@@ -18,6 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
+def squeezed(shape):
+    return tuple([dim for dim in shape if dim != 1])
+
+
 def sum_shapes(shapes):
     """Give the shape resulting from summing a list of shapes.
 
@@ -41,8 +45,8 @@ def sum_shapes(shapes):
     """
     shape = shapes[0]
     for t in shapes[1:]:
-        # Only allow broadcasting for 0D arrays.
-        if shapes[0] != t and len(shapes[0]) != 0 and len(t) != 0:
+        # Only allow broadcasting for 0D arrays or summation of scalars.
+        if shape != t and len(squeezed(shape)) != 0 and len(squeezed(t)) != 0:
             raise ValueError(
                 "Cannot broadcast dimensions " +
                 len(shapes)*" %s" % tuple(shapes))
