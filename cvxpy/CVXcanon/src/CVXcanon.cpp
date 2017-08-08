@@ -42,7 +42,7 @@ void mul_by_const(Matrix &coeff_mat,
 				result[id] = coeff_mat * scalar;
 		} else{
 			if (result.count(id) == 0) {
-				result[id] = tmp;
+				result[id] = coeff_mat * rh;
 			} else {
 				result[id] += coeff_mat * rh;
             }

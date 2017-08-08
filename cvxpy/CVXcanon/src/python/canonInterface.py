@@ -140,14 +140,13 @@ def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
     return V, I, J, const_vec.reshape(-1, 1)
 
 
-def format_matrix(matrix, format='dense'):
+def format_matrix(matrix, shape=None, format='dense'):
     """ Returns the matrix in the appropriate form,
         so that it can be efficiently loaded with our swig wrapper
     """
     if (format == 'dense'):
         # Ensure is 2D.
-        matrix = np.atleast_2d(matrix)
-        return np.asfortranarray(matrix)
+        return np.reshape(matrix, shape, order='F')
     elif(format == 'sparse'):
         return scipy.sparse.coo_matrix(matrix)
     elif(format == 'scalar'):
@@ -163,22 +162,24 @@ def set_matrix_data(linC, linPy):
     # data is supposed to be a LinOp
     if isinstance(linPy.data, lo.LinOp):
         if linPy.data.type == 'sparse_const':
-            coo = format_matrix(linPy.data.data, 'sparse')
+            coo = format_matrix(linPy.data.data, format='sparse')
             linC.set_sparse_data(coo.data, coo.row.astype(float),
                                  coo.col.astype(float), coo.shape[0],
                                  coo.shape[1])
         elif linPy.data.type == 'dense_const':
-            linC.set_dense_data(format_matrix(linPy.data.data))
+            linC.set_dense_data(format_matrix(linPy.data.data,
+                                              shape=linPy.data.shape))
         else:
             raise NotImplementedError()
     else:
         if linPy.type == 'sparse_const':
-            coo = format_matrix(linPy.data, 'sparse')
+            coo = format_matrix(linPy.data, format='sparse')
             linC.set_sparse_data(coo.data, coo.row.astype(float),
                                  coo.col.astype(float), coo.shape[0],
                                  coo.shape[1])
         else:
-            linC.set_dense_data(format_matrix(linPy.data))
+            linC.set_dense_data(format_matrix(linPy.data,
+                                              shape=linPy.shape))
 
 
 def set_slice_data(linC, linPy):
@@ -276,10 +277,10 @@ def build_lin_op_tree(root_linPy, tmp):
         elif isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
             set_slice_data(linC, linPy)
         elif isinstance(linPy.data, float) or isinstance(linPy.data, int):
-            linC.set_dense_data(format_matrix(linPy.data, 'scalar'))
+            linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
         # data is supposed to be a LinOp
         elif isinstance(linPy.data, lo.LinOp) and linPy.data.type == 'scalar_const':
-            linC.set_dense_data(format_matrix(linPy.data.data, 'scalar'))
+            linC.set_dense_data(format_matrix(linPy.data.data, format='scalar'))
         else:
             set_matrix_data(linC, linPy)
 
