@@ -31,31 +31,36 @@ class index(AffAtom):
     # expr - the expression indexed/sliced into.
     # key - the index/slicing key (i.e. expr[key[0],key[1]]).
 
-    def __init__(self, expr, key):
+    def __init__(self, expr, key, orig_key=None):
         # Format and validate key.
-        self.key = key
-        self._proc_key = ku.validate_key(key, expr.shape)
+        if orig_key is None:
+            self._orig_key = key
+            self.key = ku.validate_key(key, expr.shape)
+        else:
+            self._orig_key = orig_key
+            self.key = key
         super(index, self).__init__(expr)
 
     # The string representation of the atom.
     def name(self):
-        inner_str = "[%s" + ", %s"*(len(self._proc_key)-1) + "]"
-        return self.args[0].name() + inner_str % ku.to_str(self._proc_key)
+        # TODO string should be orig_key
+        inner_str = "[%s" + ", %s"*(len(self.key)-1) + "]"
+        return self.args[0].name() + inner_str % ku.to_str(self.key)
 
-    # Returns the index/slice into the given value.
-    @AffAtom.numpy_numeric
     def numeric(self, values):
-        return values[0][self.key]
+        """ Returns the index/slice into the given value.
+        """
+        return values[0][self._orig_key]
 
     def shape_from_args(self):
         """Returns the shape of the index expression.
         """
-        return ku.shape(self._proc_key, self.key, self.args[0].shape)
+        return ku.shape(self.key, self._orig_key, self.args[0].shape)
 
     def get_data(self):
         """Returns the (row slice, column slice).
         """
-        return [self.key]
+        return [self.key, self._orig_key]
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
@@ -75,8 +80,7 @@ class index(AffAtom):
         tuple
             (LinOp, [constraints])
         """
-        key = ku.validate_key(data[0], arg_objs[0].shape)
-        obj = lu.index(arg_objs[0], shape, key)
+        obj = lu.index(arg_objs[0], shape, data[0])
         return (obj, [])
 
     @staticmethod
