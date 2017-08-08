@@ -58,6 +58,7 @@ class XPRESS(Solver):
     EXP_CAPABLE = False
 
     solvecount = 0
+    version = -1
 
     def name(self):
         """The name of the solver.
@@ -68,6 +69,7 @@ class XPRESS(Solver):
         """Imports the solver.
         """
         import xpress
+        self.version = xpress.getversion()
 
     def matrix_intf(self):
         """The interface for matrices passed to the solver.
