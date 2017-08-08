@@ -252,7 +252,9 @@ class Expression(u.Canonical):
         """
         # Returning self for scalars causes
         # the built-in sum to hang.
-        if ku.is_special_slice(key):
+        if isinstance(key, tuple) and len(key) == 0:
+            return self
+        elif ku.is_special_slice(key):
             return cvxtypes.index().get_special_slice(self, key)
         else:
             return cvxtypes.index()(self, key)
