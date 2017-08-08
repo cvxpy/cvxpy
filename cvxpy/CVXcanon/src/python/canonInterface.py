@@ -60,17 +60,20 @@ def atleast_2d_tree(root):
         prom_data = root.data
 
     if root.type == lo.SUM:
-        lh_arg = prom_args[0]
-        rh_arg = prom_args[1]
-        if lh_arg.shape != rh_arg.shape:
-            lh_arg = lu.transpose(lh_arg)
-        return lu.sum_expr([lh_arg, rh_arg])
+        shape = prom_args[0].shape
+        args = []
+        for prom_arg in prom_args:
+            if shape != prom_arg.shape:
+                args.append(lu.transpose(prom_arg))
+            else:
+                args.append(prom_arg)
+        return lu.sum_expr(args)
     elif root.type == lo.MUL:
         lh_arg = prom_data
         rh_arg = prom_args[0]
         if lh_arg.shape[1] != rh_arg.shape[0]:
             # transpose the argument, not the data.
-            rh_arg = lu.transpose(lh_arg)
+            rh_arg = lu.transpose(rh_arg)
         return lu.mul_expr(lh_arg, rh_arg, (lh_arg.shape[0], rh_arg.shape[1]))
     elif root.type == lo.RMUL:
         lh_arg = prom_args[0]
