@@ -37,6 +37,7 @@ class TestShape(unittest.TestCase):
     def test_add_broadcasting(self):
         """Test broadcasting of shapes during addition.
         """
+        # Broadcasting with scalars is permitted.
         self.assertEqual(shape.sum_shapes([(3, 4), (1, 1)]), (3, 4))
         self.assertEqual(shape.sum_shapes([(1, 1), (3, 4)]), (3, 4))
 
@@ -49,22 +50,27 @@ class TestShape(unittest.TestCase):
         self.assertEqual(shape.sum_shapes([(1, 1), (4,)]), (1, 4))
         self.assertEqual(shape.sum_shapes([(4,), (1, 1)]), (1, 4))
 
-        self.assertEqual(shape.sum_shapes([(4, 1), (4,)]), (4, 4))
-        self.assertEqual(shape.sum_shapes([(4,), (4, 1)]), (4, 4))
+        # All other types of broadcasting is not permitted.
+        with self.assertRaises(ValueError):
+            shape.sum_shapes([(4, 1), (4,)])
+        with self.assertRaises(ValueError):
+            shape.sum_shapes([(4,), (4, 1)])
 
-        self.assertEqual(shape.sum_shapes([(4, 2), (2,)]), (4, 2))
-        self.assertEqual(shape.sum_shapes([(2,), (4, 2)]), (4, 2))
+        with self.assertRaises(ValueError):
+            shape.sum_shapes([(4, 2), (2,)])
+        with self.assertRaises(ValueError):
+            shape.sum_shapes([(2,), (4, 2)])
 
-        self.assertEqual(shape.sum_shapes([(4, 2), (4, 1)]), (4, 2))
-        self.assertEqual(shape.sum_shapes([(4, 1), (4, 2)]), (4, 2))
+        with self.assertRaises(ValueError):
+            shape.sum_shapes([(4, 2), (4, 1)])
+        with self.assertRaises(ValueError):
+            shape.sum_shapes([(4, 1), (4, 2)])
 
     def test_add_incompatible(self):
         """Test addition of incompatible shapes raises a ValueError.
         """
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             shape.sum_shapes([(4, 2), (4,)])
-        self.assertEqual(str(cm.exception),
-                         "Incompatible dimensions (4, 2) (4,)")
 
     def test_mul_scalars(self):
         """Test multiplication by scalars raises a ValueError.
