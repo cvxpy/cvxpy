@@ -317,20 +317,22 @@ def promote(operator, shape):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
-def sum_entries(operator):
+def sum_entries(operator, shape):
     """Sum the entries of an operator.
 
     Parameters
     ----------
     expr : LinOp
         The operator to sum the entries of.
+    shape : tuple
+        The shape of the sum.
 
     Returns
     -------
     LinOp
         An operator representing the sum.
     """
-    return lo.LinOp(lo.SUM_ENTRIES, (1, 1), [operator], None)
+    return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], None)
 
 
 def trace(operator):
