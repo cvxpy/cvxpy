@@ -44,6 +44,8 @@ class XPRESS(Solver):
     with CVXPY.
     """
 
+    import xpress
+
     # Main member of this class: an Xpress problem. Marked with a
     # trailing "_" to denote a member
     prob_ = None
@@ -146,6 +148,8 @@ class XPRESS(Solver):
         tuple
             (status, optimal value, primal, equality dual, inequality dual)
         """
+
+        import xpress
 
         verbose = True
 
