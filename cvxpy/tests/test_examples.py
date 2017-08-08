@@ -496,7 +496,7 @@ class TestExamples(BaseTest):
         n = 5
         numpy.random.seed(1)
         A = numpy.random.randn(m, n)
-        b = numpy.random.randn(m, 1)
+        b = numpy.random.randn(m)
 
         # Construct the problem.
         x = cvx.Variable(n)
@@ -540,7 +540,7 @@ class TestExamples(BaseTest):
         m = 10
         numpy.random.seed(1)
         A = numpy.random.randn(n, m)
-        b = numpy.random.randn(n, 1)
+        b = numpy.random.randn(n)
         # gamma must be positive due to DCP rules.
         gamma = cvx.Parameter(nonneg=True)
 

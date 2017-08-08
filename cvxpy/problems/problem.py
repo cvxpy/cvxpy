@@ -61,7 +61,7 @@ class Problem(u.Canonical):
             raise DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
-        self._constraints = constraints
+        self._constraints = [c for c in constraints]
         # Cache the variables as a list.
         self._vars = self._variables()
         self._value = None
@@ -74,7 +74,7 @@ class Problem(u.Canonical):
         self._size_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
-        self.args = [objective, constraints]
+        self.args = [self._objective, self._constraints]
 
     @property
     def value(self):
