@@ -69,7 +69,8 @@ def atleast_2d_tree(root):
         lh_arg = prom_data
         rh_arg = prom_args[0]
         if lh_arg.shape[1] != rh_arg.shape[0]:
-            lh_arg = lu.transpose(lh_arg)
+            # transpose the argument, not the data.
+            rh_arg = lu.transpose(lh_arg)
         return lu.mul_expr(lh_arg, rh_arg, (lh_arg.shape[0], rh_arg.shape[1]))
     elif root.type == lo.RMUL:
         lh_arg = prom_args[0]
