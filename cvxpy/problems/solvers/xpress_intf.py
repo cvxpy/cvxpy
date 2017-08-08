@@ -44,8 +44,6 @@ class XPRESS(Solver):
     with CVXPY.
     """
 
-    import xpress
-
     # Main member of this class: an Xpress problem. Marked with a
     # trailing "_" to denote a member
     prob_ = None
@@ -60,33 +58,6 @@ class XPRESS(Solver):
     EXP_CAPABLE = False
 
     solvecount = 0
-
-    # Map of Xpress' LP status to CVXPY status.
-    status_map_lp = {
-
-        xpress.lp_unstarted:       s.SOLVER_ERROR,
-        xpress.lp_optimal:         s.OPTIMAL,
-        xpress.lp_infeas:          s.INFEASIBLE,
-        xpress.lp_cutoff:          s.OPTIMAL_INACCURATE,
-        xpress.lp_unfinished:      s.OPTIMAL_INACCURATE,
-        xpress.lp_unbounded:       s.UNBOUNDED,
-        xpress.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
-        xpress.lp_unsolved:        s.OPTIMAL_INACCURATE,
-        xpress.lp_nonconvex:       s.SOLVER_ERROR
-    }
-
-    # Same map, for MIPs
-    status_map_mip = {
-
-        xpress.mip_not_loaded:     s.SOLVER_ERROR,
-        xpress.mip_lp_not_optimal: s.SOLVER_ERROR,
-        xpress.mip_lp_optimal:     s.SOLVER_ERROR,
-        xpress.mip_no_sol_found:   s.SOLVER_ERROR,
-        xpress.mip_solution:       s.OPTIMAL_INACCURATE,
-        xpress.mip_infeas:         s.INFEASIBLE,
-        xpress.mip_optimal:        s.OPTIMAL,
-        xpress.mip_unbounded:      s.UNBOUNDED
-    }
 
     def name(self):
         """The name of the solver.
@@ -122,6 +93,43 @@ class XPRESS(Solver):
             (eq_constr, ineq_constr, nonlin_constr)
         """
         return (constr_map[s.EQ] + constr_map[s.LEQ], [], [])
+
+    def get_status_maps(self):
+
+        """
+        Create status maps from Xpress to CVXPY
+        """
+
+        import xpress
+
+        # Map of Xpress' LP status to CVXPY status.
+        status_map_lp = {
+
+            xpress.lp_unstarted:       s.SOLVER_ERROR,
+            xpress.lp_optimal:         s.OPTIMAL,
+            xpress.lp_infeas:          s.INFEASIBLE,
+            xpress.lp_cutoff:          s.OPTIMAL_INACCURATE,
+            xpress.lp_unfinished:      s.OPTIMAL_INACCURATE,
+            xpress.lp_unbounded:       s.UNBOUNDED,
+            xpress.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
+            xpress.lp_unsolved:        s.OPTIMAL_INACCURATE,
+            xpress.lp_nonconvex:       s.SOLVER_ERROR
+        }
+
+        # Same map, for MIPs
+        status_map_mip = {
+
+            xpress.mip_not_loaded:     s.SOLVER_ERROR,
+            xpress.mip_lp_not_optimal: s.SOLVER_ERROR,
+            xpress.mip_lp_optimal:     s.SOLVER_ERROR,
+            xpress.mip_no_sol_found:   s.SOLVER_ERROR,
+            xpress.mip_solution:       s.OPTIMAL_INACCURATE,
+            xpress.mip_infeas:         s.INFEASIBLE,
+            xpress.mip_optimal:        s.OPTIMAL,
+            xpress.mip_unbounded:      s.UNBOUNDED
+        }
+
+        return (status_map_lp, status_map_mip)
 
     def solve(self, objective, constraints, cached_data,
               warm_start, verbose, solver_opts):
@@ -505,19 +513,21 @@ class XPRESS(Solver):
             'obj_value': self.prob_.getObjVal(),
         }
 
+        status_map_lp, status_map_mip = self.get_status_maps()
+
         if self.is_mip(data):
-            status = self.status_map_mip[results_dict['status']]
+            status = status_map_mip[results_dict['status']]
         else:
-            status = self.status_map_lp[results_dict['status']]
+            status = status_map_lp[results_dict['status']]
 
         results_dict[s.XPRESS_TROW] = transf2Orig
+
+        results_dict[s.XPRESS_IIS] = None  # Return no IIS if problem is feasible
 
         if status in s.SOLUTION_PRESENT:
             results_dict['x'] = self.prob_.getSolution()
             if not self.is_mip(data):
                 results_dict['y'] = self.prob_.getDual()
-
-            results_dict[s.XPRESS_IIS] = None  # Return no IIS if problem is feasible
 
         elif status == s.INFEASIBLE:
 
@@ -605,10 +615,12 @@ class XPRESS(Solver):
                 'vartype':  vartypes                  # variable types
             }
 
+        status_map_lp, status_map_mip = self.get_status_maps()
+
         if self.is_mip(data):
-            new_results[s.STATUS] = self.status_map_mip[results_dict['status']]
+            new_results[s.STATUS] = status_map_mip[results_dict['status']]
         else:
-            new_results[s.STATUS] = self.status_map_lp[results_dict['status']]
+            new_results[s.STATUS] = status_map_lp[results_dict['status']]
 
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
 
