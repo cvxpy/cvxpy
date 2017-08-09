@@ -5,10 +5,11 @@ from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing,
                               CvxAttr2Constr)
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+# from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.defines import (SOLVER_MAP as SLV_MAP,
+from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC,
+                                              SOLVER_MAP_QP,
                                               INSTALLED_SOLVERS,
                                               CONIC_SOLVERS,
                                               QP_SOLVERS)
@@ -60,17 +61,11 @@ def construct_solving_chain(problem, solver=None):
         return SolvingChain(reductions=reductions)
 
     #  Presently, we have but two reduction chains:
-    #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> QpSolver,
+    #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> [a QpSolver],
     #   (2) Dcp2Cone --> ConeMatrixStuffing --> [a ConicSolver]
     # Both of these chains require that the problem is DCP.
     if not problem.is_dcp():
         raise DCPError("Problem does not follow DCP rules.")
-    if problem.is_mixed_integer():
-        candidates = [s for s in candidates if SLV_MAP[s].MIP_CAPABLE]
-        if not candidates:
-            raise SolverError("Problem is mixed integer, but candidate "
-                              "solvers (%s) are not MIP-capable." %
-                              candidates)
 
     # Both reduction chains exclusively accept minimization problems.
     if type(problem.objective) == Maximize:
@@ -78,10 +73,15 @@ def construct_solving_chain(problem, solver=None):
 
     # Attempt to canonicalize the problem to a linearly constrained QP.
     candidate_qp_solvers = [s for s in QP_SOLVERS if s in candidates]
+    # Consider only MIQP solvers if problem is integer
+    if problem.is_mixed_integer():
+        candidate_qp_solvers = \
+            [s for s in candidate_qp_solvers if
+             SOLVER_MAP_QP[s].MIP_CAPABLE]
     if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: QP_SOLVERS.index(s))[0]
-        solver_instance = SLV_MAP[solver]
+        solver_instance = SOLVER_MAP_QP[solver]
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp(),
                        QpMatrixStuffing(),
@@ -89,6 +89,15 @@ def construct_solving_chain(problem, solver=None):
         return SolvingChain(reductions=reductions)
 
     candidate_conic_solvers = [s for s in CONIC_SOLVERS if s in candidates]
+    if problem.is_mixed_integer():
+        candidate_conic_solvers = \
+            [s for s in candidate_conic_solvers if
+             SOLVER_MAP_CONIC[s].MIP_CAPABLE]
+        if not candidate_conic_solvers and \
+                not candidate_qp_solvers:
+            raise SolverError("Problem is mixed-integer, but candidate "
+                              "QP/Conic solvers (%s) are not MIP-capable." %
+                              [candidate_qp_solvers, candidate_conic_solvers])
     if not candidate_conic_solvers:
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
@@ -118,10 +127,12 @@ def construct_solving_chain(problem, solver=None):
 
     for solver in sorted(candidate_conic_solvers,
                          key=lambda s: CONIC_SOLVERS.index(s)):
-        solver_instance = SLV_MAP[solver]
+        solver_instance = SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
-            reductions += [Dcp2Cone(), CvxAttr2Constr(), ConeMatrixStuffing(), solver_instance]
+            reductions += [Dcp2Cone(),
+                           CvxAttr2Constr(), ConeMatrixStuffing(),
+                           solver_instance]
             return SolvingChain(reductions=reductions)
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "

@@ -6,8 +6,9 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 import numpy as np
 import scipy.sparse as sp
 
+
 class OSQP(QpSolver):
-    """An interface for the OSQP solver"""
+    """QP interface for the OSQP solver"""
 
     # Map of OSQP status to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,
@@ -28,7 +29,7 @@ class OSQP(QpSolver):
         attr = {s.SOLVE_TIME: solution.info.run_time}
 
         # Map OSQP statuses back to CVXPY statuses
-        status = self.STATUS_MAP[solution.info.status_val]
+        status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.obj_val
@@ -61,5 +62,6 @@ class OSQP(QpSolver):
         # TODO (Bartolomeo): Add warm start
         solver = osqp.OSQP()
         solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
+        results = solver.solve()
 
-        return solver.solve()
+        return results

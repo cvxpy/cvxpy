@@ -29,7 +29,6 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.utilities import are_args_affine
 import cvxpy.settings as s
 
@@ -74,7 +73,9 @@ class QpSolver(Solver):
         # 0.5*x.T * P * x.
         P = 2*obj.expr.args[0].args[1].value
         q = obj.expr.args[1].args[0].value.flatten()
-        n = P.shape[0]
+
+        # Get number of variables
+        n = problem.size_metrics.num_scalar_variables
 
         # TODO(akshayka): This dependence on ConicSolver is hacky; something
         # should change here.
@@ -97,6 +98,7 @@ class QpSolver(Solver):
             F, g = sp.csr_matrix((0, n)), -np.array([])
 
         # Create dictionary with problem data
+        variables = problem.variables()[0]
         data = {}
         data[s.P] = sp.csc_matrix(P)
         data[s.Q] = q
@@ -104,6 +106,16 @@ class QpSolver(Solver):
         data[s.B] = b
         data[s.F] = sp.csc_matrix(F)
         data[s.G] = g
+        data[s.BOOL_IDX] = [t[0] for t in variables.boolean_idx]
+        data[s.INT_IDX] = [t[0] for t in variables.integer_idx]
+        data['n_var'] = n
+        data['n_eq'] = A.shape[0]
+        data['n_ineq'] = F.shape[0]
 
         inverse_data.sorted_constraints = ineq_cons + eq_cons
+
+        # Add information about integer variables
+        inverse_data.is_mip = \
+            len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0
+
         return data, inverse_data
