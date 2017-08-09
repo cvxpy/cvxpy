@@ -58,9 +58,14 @@ ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
 LS = "LS"
 JULIA_OPT = "JULIA_OPT"
+XPRESS = "XPRESS"
 SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, ELEMENTAL,
-           MOSEK, LS, JULIA_OPT]
+           MOSEK, LS, JULIA_OPT, XPRESS]
+
+# Xpress-specific items
+XPRESS_IIS = "XPRESS_IIS"
+XPRESS_TROW = "XPRESS_TROW"
 
 # Parallel (meta) solver
 PARALLEL = "parallel"
