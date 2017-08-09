@@ -23,8 +23,13 @@ import cvxpy.lin_ops.lin_utils as lu
 
 
 class Parameter(Leaf):
-    """
-    A parameter, either matrix or scalar.
+    """Parameters in optimization problems.
+
+    Parameters are constant expressions whose value may be specified
+    after problem creation. The only way to modify a problem after its
+    creation is through parameters. For example, you might choose to declare
+    the hyper-parameters of a machine learning model to be Parameter objects;
+    more generally, Parameters are useful for computing trade-off curves.
     """
     PARAM_COUNT = 0
 
@@ -49,6 +54,8 @@ class Parameter(Leaf):
     # Getter and setter for parameter value.
     @property
     def value(self):
+        """NumPy.ndarray or None: The numeric value of the parameter.
+        """
         return self._value
 
     @value.setter

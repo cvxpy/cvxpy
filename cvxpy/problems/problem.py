@@ -42,10 +42,13 @@ SolveResult = namedtuple(
 class Problem(u.Canonical):
     """A convex optimization problem.
 
-    Attributes
+    Problems are immutable, save for modification through the specification
+    of :class:`~cvxpy.expressions.constants.parameters.Parameter`
+
+    Parameters
     ----------
     objective : Minimize or Maximize
-        The expression to minimize or maximize.
+        The problem's objective.
     constraints : list
         The constraints on the problem variables.
     """
@@ -78,35 +81,25 @@ class Problem(u.Canonical):
 
     @property
     def value(self):
-        """The value from the last time the problem was solved.
-
-        Returns
-        -------
-        float or None
+        """float : The value from the last time the problem was solved
+                   (or None if not solved).
         """
         return self._value
 
     @property
     def status(self):
-        """The status from the last time the problem was solved.
-
-        Returns
-        -------
-        str
+        """str : The status from the last time the problem was solved; one
+                 of optimal, infeasible, or unbounded.
         """
         return self._status
 
     @property
     def objective(self):
-        """The problem's objective.
+        """Minimize or Maximize : The problem's objective.
 
         Note that the objective cannot be reassigned after creation,
         and modifying the objective after creation will result in
         undefined behavior.
-
-        Returns
-        -------
-        Minimize or Maximize
         """
         return self._objective
 
@@ -116,10 +109,6 @@ class Problem(u.Canonical):
 
         Note that constraints cannot be reassigned, appended to, or otherwise
         modified after creation, except through parameters.
-
-        Returns
-        -------
-        list of Constraint
         """
         return self._constraints[:]
 
@@ -141,7 +130,12 @@ class Problem(u.Canonical):
                    for v in self.variables())
 
     def variables(self):
-        """Returns a list of the variables in the problem.
+        """Accessor method for variables.
+
+        Returns
+        -------
+        list of :class:`~cvxpy.expressions.variable.Variable`
+            A list of the variables in the problem.
         """
         return self._vars
 
@@ -152,7 +146,12 @@ class Problem(u.Canonical):
         return list(set(vars_))
 
     def parameters(self):
-        """Returns a list of the parameters in the problem.
+        """Accessor method for parameters.
+
+        Returns
+        -------
+        list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
+            A list of the parameters in the problem.
         """
         params = self.objective.parameters()
         for constr in self.constraints:
@@ -160,7 +159,12 @@ class Problem(u.Canonical):
         return list(set(params))
 
     def constants(self):
-        """Returns a list of the constants in the problem.
+        """Accessor method for parameters.
+
+        Returns
+        -------
+        list of :class:`~cvxpy.expressions.constants.constant.Constant`
+            A list of the constants in the problem.
         """
         const_dict = {}
         constants_ = self.objective.constants()
@@ -172,7 +176,13 @@ class Problem(u.Canonical):
         return list(const_dict.values())
 
     def atoms(self):
-        """Returns a list of the atom types present in the problem.
+        """Accessor method for atoms.
+
+        Returns
+        -------
+        list of :class:`~cvxpy.atoms.Atom`
+            A list of the atom types in the problem; note that this list
+            contains classes, not instances.
         """
         atoms = self.objective.atoms()
         for constr in self.constraints:
@@ -181,13 +191,13 @@ class Problem(u.Canonical):
 
     @property
     def size_metrics(self):
-        """Returns an object containing information about the problem's size.
+        """:class:`~cvxpy.problems.problem.SizeMetrics` : Information about the problem's size.
         """
         return self._size_metrics
 
     @property
     def solver_stats(self):
-        """Returns additional information returned by the solver.
+        """:class:`~cvxpy.problems.problem.SolverStats` : Information returned by the solver.
         """
         return self._solver_stats
 
@@ -220,9 +230,6 @@ class Problem(u.Canonical):
         SolverError
             Raised if no suitable solver exists among the installed solvers,
             or if an unanticipated error is encountered.
-
-        If an exception other than those listed above is encountered, it is
-        re-raised.
         """
         func_name = kwargs.pop("method", None)
         if func_name is not None:
@@ -251,10 +258,10 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, a chain of reductions, called a solving
-        chain, compiles it to some low-level representation that is compatible
-        with the targeted solver. This method returns that low-level
-        representation.
+        When a problem is solved, a chain of reductions, called a
+        :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
+        compiles it to some low-level representation that is compatible with the
+        targeted solver. This method returns that low-level representation.
 
         For some solving chains, this low-level representation is a dictionary
         that contains exactly those arguments that were supplied to the solver;
@@ -548,32 +555,30 @@ class SolverStats(object):
 
 # TODO(akshayka): Consider moving this to another file
 class SizeMetrics(object):
-    """Reports various metrics regarding the problem
+    """Reports various metrics regarding the problem.
 
     Attributes
     ----------
 
-    Counts:
-        num_scalar_variables : integer
-            The number of scalar variables in the problem.
-        num_scalar_data : integer
-            The number of scalar constants and parameters in the problem. The number of
-            constants used across all matrices, vectors, in the problem.
-            Some constants are not apparent when the problem is constructed: for example,
-            The sum_squares expression is a wrapper for a quad_over_lin expression with a
-            constant 1 in the denominator.
-        num_scalar_eq_constr : integer
-            The number of scalar equality constraints in the problem.
-        num_scalar_leq_constr : integer
-            The number of scalar inequality constraints in the problem.
+    num_scalar_variables : integer
+        The number of scalar variables in the problem.
+    num_scalar_data : integer
+        The number of scalar constants and parameters in the problem. The number of
+        constants used across all matrices, vectors, in the problem.
+        Some constants are not apparent when the problem is constructed: for example,
+        The sum_squares expression is a wrapper for a quad_over_lin expression with a
+        constant 1 in the denominator.
+    num_scalar_eq_constr : integer
+        The number of scalar equality constraints in the problem.
+    num_scalar_leq_constr : integer
+        The number of scalar inequality constraints in the problem.
 
-    Max and min shapes:
-        max_data_dimension : integer
-            The longest dimension of any data block constraint or parameter.
-        max_big_small_squared : integer
-            The maximum value of (big)(small)^2 over all data blocks of the problem, where
-            (big) is the larger dimension and (small) is the smaller dimension
-            for each data block.
+    max_data_dimension : integer
+        The longest dimension of any data block constraint or parameter.
+    max_big_small_squared : integer
+        The maximum value of (big)(small)^2 over all data blocks of the problem, where
+        (big) is the larger dimension and (small) is the smaller dimension
+        for each data block.
     """
 
     def __init__(self, problem):

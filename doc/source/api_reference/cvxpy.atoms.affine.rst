@@ -1,182 +1,165 @@
-cvxpy\.atoms\.affine package
+Affine Atoms
 ============================
+All of the atoms listed here are affine in their arguments.
 
-Submodules
-----------
+.. contents:: :local:
 
-cvxpy\.atoms\.affine\.add\_expr module
---------------------------------------
+.. _add-expression:
 
-.. automodule:: cvxpy.atoms.affine.add_expr
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cvxpy\.atoms\.affine\.affine\_atom module
+AddExpression
 -----------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.affine_atom
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.add_expr.AddExpression
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.binary\_operators module
+.. _mul-expression:
+
+MulExpression
 ----------------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.binary_operators
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.binary_operators.MulExpression
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.bmat module
+.. _div-expression:
+
+DivExpression
+----------------------------------------------
+
+.. autoclass:: cvxpy.atoms.affine.binary_operators.DivExpression
+    :show-inheritance:
+
+.. _bmat:
+
+Bmat
 ---------------------------------
 
-.. automodule:: cvxpy.atoms.affine.bmat
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.bmat.bmat
 
-cvxpy\.atoms\.affine\.conv module
+.. _conv:
+
+conv
 ---------------------------------
 
-.. automodule:: cvxpy.atoms.affine.conv
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.conv.conv
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.cumsum module
+.. _cumsum:
+
+cumsum
 -----------------------------------
 
-.. automodule:: cvxpy.atoms.affine.cumsum
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.cumsum.cumsum
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.diag module
+.. _diag:
+
+diag
 ---------------------------------
 
-.. automodule:: cvxpy.atoms.affine.diag
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.diag.diag
 
-cvxpy\.atoms\.affine\.diff module
+.. _diff:
+
+diff
 ---------------------------------
 
-.. automodule:: cvxpy.atoms.affine.diff
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.diff.diff
 
-cvxpy\.atoms\.affine\.hstack module
+.. _hstack:
+
+hstack
 -----------------------------------
 
-.. automodule:: cvxpy.atoms.affine.hstack
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.hstack.hstack
 
-cvxpy\.atoms\.affine\.index module
+.. _index:
+
+index
 ----------------------------------
 
-.. automodule:: cvxpy.atoms.affine.index
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.index.index
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.kron module
+.. _kron:
+
+kron
 ---------------------------------
 
-.. automodule:: cvxpy.atoms.affine.kron
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.kron.kron
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.multiply module
+.. _multiply:
+
+multiply
 -------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.multiply
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.multiply.multiply
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.promote module
+.. _promote:
+
+promote
 ------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.promote
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.promote.promote
 
-cvxpy\.atoms\.affine\.reshape module
+.. _reshape:
+
+reshape
 ------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.reshape
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.reshape.reshape
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.sum module
+.. _sum:
+
+sum
 --------------------------------
 
-.. automodule:: cvxpy.atoms.affine.sum
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.sum.sum
 
-cvxpy\.atoms\.affine\.trace module
+.. _trace:
+
+trace
 ----------------------------------
 
-.. automodule:: cvxpy.atoms.affine.trace
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.trace.trace
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.transpose module
+.. _transpose:
+
+transpose
 --------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.transpose
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.transpose.transpose
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.unary\_operators module
+.. _negexpression:
+
+NegExpression
 ---------------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.unary_operators
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.unary_operators.NegExpression
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.upper\_tri module
+.. _upper_tri:
+
+upper_tri
 ---------------------------------------
 
-.. automodule:: cvxpy.atoms.affine.upper_tri
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.affine.upper_tri.upper_tri
     :show-inheritance:
 
-cvxpy\.atoms\.affine\.vec module
+.. _vec:
+
+vec
 --------------------------------
 
-.. automodule:: cvxpy.atoms.affine.vec
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.vec.vec
 
-cvxpy\.atoms\.affine\.vstack module
+.. _vstack:
+
+vstack
 -----------------------------------
 
-.. automodule:: cvxpy.atoms.affine.vstack
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: cvxpy.atoms.affine
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.affine.vstack.vstack

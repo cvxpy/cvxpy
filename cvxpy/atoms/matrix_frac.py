@@ -17,18 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from functools import wraps
 from cvxpy.atoms.atom import Atom
 from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 from cvxpy.atoms.quad_form import QuadForm
-
-
-def matrix_frac(X, P):
-    if isinstance(P, np.ndarray):
-        return QuadForm(X, LA.inv(P))
-    else:
-        return MatrixFrac(X, P)
 
 
 class MatrixFrac(Atom):
@@ -140,3 +134,11 @@ class MatrixFrac(Atom):
         """Quadratic of piecewise affine if x is PWL and P is constant.
         """
         return self.args[0].is_pwl() and self.args[1].is_constant()
+
+
+@wraps(MatrixFrac)
+def matrix_frac(X, P):
+    if isinstance(P, np.ndarray):
+        return QuadForm(X, LA.inv(P))
+    else:
+        return MatrixFrac(X, P)

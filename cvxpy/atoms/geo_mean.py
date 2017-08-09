@@ -141,7 +141,7 @@ class geo_mean(Atom):
 
     Parameters
     ----------
-    x : cvxpy.Variable
+    x : Variable
         A column or row vector whose elements we will take the geometric mean of.
 
     p : Sequence (list, tuple, ...) of ``int``, ``float``, or ``Fraction`` objects

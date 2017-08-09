@@ -21,4 +21,5 @@ from cvxpy.atoms.elementwise.power import power
 
 
 def square(x):
+    """The square of an expression."""
     return power(x, 2)

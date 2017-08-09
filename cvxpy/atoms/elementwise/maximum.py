@@ -26,7 +26,8 @@ if sys.version_info >= (3, 0):
 
 
 class maximum(Elementwise):
-    """ Elementwise maximum. """
+    """Elementwise maximum of a sequence of expressions.
+    """
 
     def __init__(self, arg1, arg2, *args):
         """Requires at least 2 arguments.

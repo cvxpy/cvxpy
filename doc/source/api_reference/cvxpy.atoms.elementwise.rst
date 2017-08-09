@@ -1,158 +1,135 @@
 cvxpy\.atoms\.elementwise package
 =================================
+All of the atoms listed here operate elementwise on expressions. For example,
+:class:`~cvxpy.atoms.elementwise.exp.exp` exponentiates each entry of
+expressions that are supplied to it.
 
-Submodules
-----------
+.. _abs:
 
-cvxpy\.atoms\.elementwise\.abs module
+abs
 -------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.abs
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.abs.abs
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.elementwise module
----------------------------------------------
+.. _entr:
 
-.. automodule:: cvxpy.atoms.elementwise.elementwise
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cvxpy\.atoms\.elementwise\.entr module
+entr
 --------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.entr
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.entr.entr
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.exp module
+.. _exp:
+
+exp
 -------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.exp
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.exp.exp
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.huber module
+.. _huber:
+
+huber
 ---------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.huber
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.huber.huber
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.inv\_pos module
+.. _inv_pos:
+
+inv_pos
 ------------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.inv_pos
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.inv_pos.inv_pos
 
-cvxpy\.atoms\.elementwise\.kl\_div module
+.. _kl_div:
+
+kl_div
 -----------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.kl_div
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.kl_div.kl_div
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.log module
+.. _log:
+
+log
 -------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.log
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.log.log
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.log1p module
+.. _log1p:
+
+log1p
 ---------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.log1p
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.log1p.log1p
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.logistic module
+.. _logistic:
+
+logistic
 ------------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.logistic
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.logistic.logistic
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.maximum module
+
+.. _maximum:
+
+maximum
 -----------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.maximum
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.maximum.maximum
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.minimum module
+.. _minimum:
+
+minimum
 -----------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.minimum
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.minimum.minimum
 
-cvxpy\.atoms\.elementwise\.neg module
+.. _neg:
+
+neg
 -------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.neg
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.neg.neg
 
-cvxpy\.atoms\.elementwise\.pos module
+.. _pos:
+
+pos
 -------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.pos
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.pos.pos
 
-cvxpy\.atoms\.elementwise\.power module
+.. _power:
+
+power
 ---------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.power
-    :members:
-    :undoc-members:
+.. autoclass:: cvxpy.atoms.elementwise.power.power
     :show-inheritance:
 
-cvxpy\.atoms\.elementwise\.scalene module
+.. _scalene:
+
+scalene
 -----------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.scalene
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.scalene.scalene
 
-cvxpy\.atoms\.elementwise\.sqrt module
+.. _sqrt:
+
+sqrt
 --------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.sqrt
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.sqrt.sqrt
 
-cvxpy\.atoms\.elementwise\.square module
+.. _square:
+
+square
 ----------------------------------------
 
-.. automodule:: cvxpy.atoms.elementwise.square
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: cvxpy.atoms.elementwise
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autofunction:: cvxpy.atoms.elementwise.square.square

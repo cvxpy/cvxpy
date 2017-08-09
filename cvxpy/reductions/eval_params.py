@@ -28,6 +28,24 @@ class EvalParams(Reduction):
         return True
 
     def apply(self, problem):
+        """Replace parameters with constant values.
+
+        Parameters
+        ----------
+        problem : Problem
+            The problem whose parameters should be evaluated.
+
+        Returns
+        -------
+        Problem
+            A new problem where the parameters have been converted to constants.
+
+        Raises
+        ------
+        ParameterError
+            If the ``problem`` has unspecified parameters (i.e., a parameter
+            whose value is None).
+        """
         obj_expr = replace_params_with_consts(problem.objective.expr)
         # Do not instantiate a new objective if it does not contain
         # parameters.
@@ -55,4 +73,6 @@ class EvalParams(Reduction):
         return problems.problem.Problem(objective, constraints), []
 
     def invert(self, solution, inverse_data):
+        """Returns a solution to the original problem given the inverse_data.
+        """
         return solution

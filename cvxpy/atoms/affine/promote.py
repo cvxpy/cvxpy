@@ -24,6 +24,21 @@ import numpy as np
 
 
 def promote(expr, shape):
+    """ Promote a scalar expression to a vector/matrix.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to promote.
+    shape : tuple
+        The shape to promote to.
+
+    Raises
+    ------
+    ValueError
+        If ``expr`` is not a scalar.
+    """
+
     expr = Expression.cast_to_const(expr)
     if expr.shape != shape:
         if not expr.is_scalar():
@@ -38,7 +53,7 @@ class Promote(AffAtom):
 
     Attributes
     ----------
-    expr : CVXPY Expression
+    expr : Expression
         The expression to promote.
     shape : tuple
         The shape to promote to.

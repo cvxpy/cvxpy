@@ -22,4 +22,5 @@ from fractions import Fraction
 
 
 def sqrt(x):
+    """The square root of an expression."""
     return power(x, Fraction(1, 2))

@@ -23,13 +23,14 @@ import numpy as np
 
 
 class transpose(AffAtom):
-    """ Matrix transpose. """
-    # The string representation of the atom.
+    """Transpose an expression.
+    """
 
     def __init__(self, expr, axes=None):
         self.axes = axes
         super(AffAtom, self).__init__(expr)
 
+    # The string representation of the atom.
     def name(self):
         return "%s.T" % self.args[0]
 

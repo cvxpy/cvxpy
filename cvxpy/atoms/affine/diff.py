@@ -21,7 +21,7 @@ from cvxpy.expressions.expression import Expression
 
 
 def diff(x, k=1, axis=0):
-    """ Vector of kth order differences.
+    """Vector of kth order differences.
 
     Takes in a vector of length n and returns a vector
     of length n-k of the kth order differences.

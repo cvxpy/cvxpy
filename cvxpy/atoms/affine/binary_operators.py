@@ -58,6 +58,21 @@ class BinaryOperator(AffAtom):
 
 
 class MulExpression(BinaryOperator):
+    """Matrix multiplication.
+
+    The semantics of multiplication are exactly as those of NumPy's
+    matmul function, except here multiplication by a scalar is permitted.
+    MulExpression objects can be created by using the '*' operator of
+    the Expression class.
+
+    Parameters
+    ----------
+    lh_exp : Expression
+        The left-hand side of the multiplication.
+    rh_exp : Expression
+        The right-hand side of the multiplication.
+    """
+
     OP_NAME = "*"
     OP_FUNC = op.mul
 
@@ -166,6 +181,11 @@ class MulExpression(BinaryOperator):
 
 
 class DivExpression(BinaryOperator):
+    """Division by scalar.
+
+    Can be created by using the / operator of expression.
+    """
+
     OP_NAME = "/"
     OP_FUNC = op.__truediv__ if (sys.version_info >= (3, 0)) else op.__div__
 

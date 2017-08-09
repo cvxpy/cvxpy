@@ -27,9 +27,19 @@ import numpy as np
 
 
 class index(AffAtom):
-    """ Indexing/slicing into a matrix. """
-    # expr - the expression indexed/sliced into.
-    # key - the index/slicing key (i.e. expr[key[0],key[1]]).
+    """Indexing/slicing into an Expression.
+
+    CVXPY supports NumPy-like indexing semantics via the Expression
+    class' overloading of the ``[]`` operator. This is a low-level class
+    constructed by that operator, and it should not be instantiated directly.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression indexed/sliced into.
+    key :
+        The index/slicing key (i.e. expr[key[0],key[1]]).
+    """
 
     def __init__(self, expr, key, orig_key=None):
         # Format and validate key.

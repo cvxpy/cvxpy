@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from functools import wraps
 import warnings
 
 from cvxpy.constraints import Zero, NonPos, PSD
@@ -40,6 +41,7 @@ def _cast_other(binary_op):
         A wrapped binary operator that can handle non-Expression arguments.
     """
 
+    @wraps(binary_op)
     def cast_op(self, other):
         """A wrapped binary operator that can handle non-Expression arguments.
         """
@@ -49,8 +51,10 @@ def _cast_other(binary_op):
 
 
 class Expression(u.Canonical):
-    """
-    A mathematical expression in a convex optimization problem.
+    """A mathematical expression in a convex optimization problem.
+
+    Overloads many operators to allow for convenient creation of compound
+    expressions (e.g., the sum of two expressions) and constraints.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -60,10 +64,7 @@ class Expression(u.Canonical):
 
     @abc.abstractproperty
     def value(self):
-        """Returns the numeric value of the expression.
-
-        Returns:
-            A numpy matrix or a scalar.
+        """NumPy.ndarray or None : The numeric value of the expression.
         """
         return NotImplemented
 
@@ -73,15 +74,17 @@ class Expression(u.Canonical):
 
         Matrix expressions are vectorized, so the gradient is a matrix.
 
-        Returns:
-            A map of variable to SciPy CSC sparse matrix.
-            None if a variable value is missing.
+        Returns
+        -------
+        dict
+            A map of variable to SciPy CSC sparse matrix; None if a variable
+            value is missing.
         """
         return NotImplemented
 
     @abc.abstractproperty
     def domain(self):
-        """A list of constraints describing the closure of the region
+        """list : The constraints describing the closure of the region
            where the expression is finite.
         """
         return NotImplemented
@@ -100,19 +103,20 @@ class Expression(u.Canonical):
 
     @abc.abstractmethod
     def name(self):
-        """Returns the string representation of the expression.
+        """str : The string representation of the expression.
         """
         return NotImplemented
 
     @property
     def expr(self):
+        """Expression : returns itself."""
         return self
 
     # Curvature properties.
 
     @property
     def curvature(self):
-        """ Returns the curvature of the expression.
+        """str : The curvature of the expression.
         """
         if self.is_constant():
             curvature_str = s.CONSTANT
@@ -149,7 +153,12 @@ class Expression(u.Canonical):
         return NotImplemented
 
     def is_dcp(self):
-        """Is the expression DCP compliant? (i.e., no unknown curvatures).
+        """Checks whether the constraint is DCP.
+
+        Returns
+        -------
+        bool
+            True if the constraint is DCP, False otherwise.
         """
         return self.is_convex() or self.is_concave()
 
@@ -180,7 +189,7 @@ class Expression(u.Canonical):
 
     @property
     def sign(self):
-        """Returns the sign of the expression.
+        """str: The sign of the expression.
         """
         if self.is_zero():
             sign_str = s.ZERO
@@ -211,19 +220,19 @@ class Expression(u.Canonical):
 
     @abc.abstractproperty
     def shape(self):
-        """Returns a tuple of the expression dimensions.
+        """tuple : The expression dimensions.
         """
         return NotImplemented
 
     @property
     def size(self):
-        """Returns the number of entries in the expression.
+        """int : The number of entries in the expression.
         """
         return np.prod(self.shape, dtype=int)
 
     @property
     def ndim(self):
-        """Returns the number of dimensions.
+        """int : The number of dimensions in the expression's shape.
         """
         return len(self.shape)
 
@@ -261,7 +270,7 @@ class Expression(u.Canonical):
 
     @property
     def T(self):
-        """The transpose of an expression.
+        """Expression : The transpose of the expression.
         """
         # Transpose of a scalar is that scalar.
         if self.ndim <= 1:
@@ -270,7 +279,17 @@ class Expression(u.Canonical):
             return cvxtypes.transpose()(self)
 
     def __pow__(self, power):
-        """The power operator.
+        """Raise expression to a power.
+
+        Parameters
+        ----------
+        power : float
+            The power to which to raise the expression.
+
+        Returns
+        -------
+        Expression
+            The expression raised to ``power``.
         """
         return cvxtypes.power()(self, power)
 
@@ -283,31 +302,31 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __add__(self, other):
-        """The sum of two expressions.
+        """Expression : Sum two expressions.
         """
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
     def __radd__(self, other):
-        """Called for Number + Expression.
+        """Expression : Sum two expressions.
         """
         return other + self
 
     @_cast_other
     def __sub__(self, other):
-        """The difference of two expressions.
+        """Expression : The difference of two expressions.
         """
         return self + -other
 
     @_cast_other
     def __rsub__(self, other):
-        """Called for Number - Expression.
+        """Expression : The difference of two expressions.
         """
         return other - self
 
     @_cast_other
     def __mul__(self, other):
-        """The product of two expressions.
+        """Expression : The product of two expressions.
         """
         if self.is_scalar() or other.is_scalar():
             return cvxtypes.multiply_expr()(self, other)
@@ -319,7 +338,7 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __matmul__(self, other):
-        """Matrix multiplication of two expressions.
+        """Expression : Matrix multiplication of two expressions.
         """
         if self.is_scalar() or other.is_scalar():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
@@ -327,13 +346,13 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __truediv__(self, other):
-        """One expression divided by another.
+        """Expression : One expression divided by another.
         """
         return self.__div__(other)
 
     @_cast_other
     def __div__(self, other):
-        """One expression divided by another.
+        """Expression : One expression divided by another.
         """
         # Can only divide by scalar constants.
         if other.is_constant() and other.is_scalar():
@@ -343,54 +362,54 @@ class Expression(u.Canonical):
 
     @_cast_other
     def __rdiv__(self, other):
-        """Called for Number / Expression.
+        """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
     def __rtruediv__(self, other):
-        """Called for Number / Expression.
+        """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
     def __rmul__(self, other):
-        """Called for Number * Expression.
+        """Expression : Called for Number * Expression.
         """
         return other * self
 
     @_cast_other
     def __rmatmul__(self, other):
-        """Called for matrix @ Expression.
+        """Expression : Called for matrix @ Expression.
         """
         return other.__matmul__(self)
 
     def __neg__(self):
-        """The negation of the expression.
+        """Expression : The negation of the expression.
         """
         return cvxtypes.neg_expr()(self)
 
     @_cast_other
     def __rshift__(self, other):
-        """Positive definite inequality.
+        """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(self - other)
 
     @_cast_other
     def __rrshift__(self, other):
-        """Positive definite inequality.
+        """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
     def __lshift__(self, other):
-        """Positive definite inequality.
+        """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
     def __rlshift__(self, other):
-        """Positive definite inequality.
+        """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(self - other)
 
@@ -401,28 +420,28 @@ class Expression(u.Canonical):
     # Comparison operators.
     @_cast_other
     def __eq__(self, other):
-        """Returns an equality constraint.
+        """Zero : Creates an equality constraint ``self == other``.
         """
         return Zero(self - other)
 
     @_cast_other
     def __le__(self, other):
-        """Returns an inequality constraint.
+        """NonPos : Creates an inequality constraint.
         """
         return NonPos(self - other)
 
     def __lt__(self, other):
-        """Returns an inequality constraint.
+        """Unsupported.
         """
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
     def __ge__(self, other):
-        """Returns an inequality constraint.
+        """NonPos : Creates an inequality constraint.
         """
         return other.__le__(self)
 
     def __gt__(self, other):
-        """Returns an inequality constraint.
+        """Unsupported.
         """
         raise NotImplementedError("Strict inequalities are not allowed.")

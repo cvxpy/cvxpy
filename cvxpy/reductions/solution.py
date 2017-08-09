@@ -22,6 +22,18 @@ import cvxpy.settings as s
 
 
 def failure_solution(status):
+    """Factory function for infeasible or unbounded solutions.
+
+    Parameters
+    ----------
+    status : str
+        The problem status.
+
+    Returns
+    -------
+    Solution
+        A solution object.
+    """
     if status == s.INFEASIBLE:
         opt_val = np.inf
     elif status == s.UNBOUNDED:
@@ -32,14 +44,20 @@ def failure_solution(status):
 
 
 class Solution(object):
-    """A solution object.
+    """A solution to an optimization problem.
 
-    Attributes:
-        status: status code
-        opt_val: float
-        primal_vars: dict of id to NumPy ndarray
-        dual_vars: dict of id to NumPy ndarray
-        attr: dict of other attributes.
+    Attributes
+    ----------
+    status : str
+        The status code.
+    opt_val : float
+        The optimal value.
+    primal_vars : dict of id to NumPy ndarray
+        A map from variable ids to optimal values.
+    dual_vars : dict of id to NumPy ndarray
+        A map from constraint ids to dual values.
+    attr : dict
+        Miscelleneous information propagated up from a solver.
     """
     def __init__(self, status, opt_val, primal_vars, dual_vars, attr):
         self.status = status

@@ -27,7 +27,54 @@ import scipy.sparse as sp
 
 class Leaf(expression.Expression):
     """
-    A leaf node, i.e. a Variable, Constant, or Parameter.
+    A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.
+
+    A leaf may carry *attributes* that constrain the set values permissible
+    for it. Leafs can have no more than one attribute, with the exception
+    that a leaf may be both ``nonpos`` and ``nonneg`` or both ``boolean``
+    in some indices and ``integer`` in others.
+
+    An error is raised if a leaf is assigned a value that contradicts
+    one or more of its attributes. See the ``round`` method for a convenient
+    way to project a value onto a leaf's domain.
+
+    Parameters
+    ----------
+    shape : tuple or int
+        The leaf dimensions. Either an integer n for a 1D shape, or a
+        tuple where the semantics are the same as NumPy ndarray shapes.
+        **Shapes cannot be more than 2D**.
+    value : numeric type
+        A value to assign to the leaf.
+    nonneg : bool
+        Is the variable constrained to be nonnegative?
+    nonpos : bool
+        Is the variable constrained to be nonpositive?
+    real : bool
+        Does the variable have a real part?
+    imag : bool
+        Does the variable have an imaginary part?
+    symmetric : bool
+        Is the variable symmetric?
+    diag : bool
+        Is the variable diagonal?
+    PSD : bool
+        Is the variable constrained to be positive semidefinite?
+    NSD : bool
+        Is the variable constrained to be negative semidefinite?
+    Hermitian : bool
+        Is the variable Hermitian?
+    boolean : bool or list of tuple
+        Is the variable boolean? True, which constrains
+        the entire Variable to be boolean, False, or a list of
+        indices which should be constrained as boolean, where each
+        index is a tuple of length exactly equal to the
+        length of shape.
+    integer : bool or list of tuple
+        Is the variable integer? The semantics are the same as the
+        boolean argument.
+    sparsity : list of tuple
+        Fixed sparsity pattern for the variable.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -38,31 +85,6 @@ class Leaf(expression.Expression):
                  NSD=False, Hermitian=False,
                  boolean=False, integer=False,
                  sparsity=None):
-        """
-        Args:
-          shape: The leaf dimensions: either an integer n, which creates
-                 a column vector of shape (n, 1), or a tuple, which carries
-                 the same semantics as NumPy ndarrays. Shapes cannot be more
-                 than 2D.
-          value: A value to assign to the leaf.
-          nonneg: Is the variable constrained to be nonnegative?
-          nonpos: Is the variable constrained to be nonpositive?
-          real: Does the variable have a real part?
-          imag: Does the variable have an imaginary part?
-          symmetric: Is the variable symmetric?
-          diag: Is the variable diagonal?
-          PSD: Is the variable constrained to be positive semidefinite?
-          NSD: Is the variable constrained to be negative semidefinite?
-          Hermitian: Is the variable Hermitian?
-          boolean: Is the variable boolean? Either True, which constrains
-                   the entire Variable to be boolean, False, or a list of
-                   indices which should be constrained as boolean, where each
-                   index is a tuple of length exactly equal to the
-                   length of shape.
-          integer: Is the variable integer? The semantics are the same as the
-                   boolean argument.
-          sparsity: Fixed sparsity pattern for the variable.
-        """
         if isinstance(shape, int):
             shape = (shape,)
         elif len(shape) > 2:
@@ -149,7 +171,7 @@ class Leaf(expression.Expression):
 
     @property
     def shape(self):
-        """Returns the dimensions of the expression.
+        """ tuple : The dimensions of the expression.
         """
         return self._shape
 
@@ -199,11 +221,15 @@ class Leaf(expression.Expression):
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
+        # TODO(akshayka): Reflect attributes.
         # Default is full domain.
         return []
 
     def round(self, val):
         """Project value onto the attribute set of the leaf.
+
+        A sensible idiom is ``leaf.value = leaf.round(val)``.
+
         Parameters
         ----------
         val : numeric type
@@ -212,16 +238,21 @@ class Leaf(expression.Expression):
         Returns
         -------
         numeric type
-            The value converted to the proper matrix type.
+            The value rounded to the attribute type.
         """
-        # Only one attribute can be active at once (besides real).
+        # Only one attribute can be active at once (besides real,
+        # nonpos/nonneg, and bool/int).
         if self.attributes['nonpos']:
-            return np.minimum(val, 0.)
-        elif self.attributes['nonneg']:
+            val = np.minimum(val, 0.)
+        if self.attributes['nonneg']:
             return np.maximum(val, 0.)
         elif self.attributes['boolean']:
+            # TODO(akshayka): respect the boolean indices.
             return np.round(np.clip(val, 0., 1.))
         elif self.attributes['integer']:
+            # TODO(akshayka): respect the integer indices.
+            # also, a variable may be integer in some indices and
+            # boolean in others.
             return np.round(val)
         elif self.attributes['diag']:
             return sp.diags([np.diag(val)], [0])

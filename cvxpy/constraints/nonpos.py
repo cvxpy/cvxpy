@@ -28,8 +28,8 @@ class NonPos(Constraint):
 
     The preferred way of creating a ``NonPos`` constraint is through
     operator overloading. To constrain an expression ``x`` to be non-positive,
-    simply write ``x \leq 0`; to constrain ``x`` to be non-negative, write
-    ``x \geq 0``. The former creates a ``NonPos`` constraint with ``x``
+    simply write ``x <= 0``; to constrain ``x`` to be non-negative, write
+    ``x >= 0``. The former creates a ``NonPos`` constraint with ``x``
     as its argument, while the latter creates one with ``-x`` as its argument.
     Strict inequalities are not supported, as they do not make sense in a
     numerical setting.
@@ -88,10 +88,12 @@ class NonPos(Constraint):
 
     @property
     def shape(self):
+        """int : The shape of the constrained expression."""
         return self.args[0].shape
 
     @property
     def size(self):
+        """int : The size of the constrained expression."""
         return self.args[0].size
 
     def is_dcp(self):
@@ -128,6 +130,8 @@ class NonPos(Constraint):
     # The value of the dual variable.
     @property
     def dual_value(self):
+        """NumPy.ndarray : The value of the dual variable.
+        """
         return self.dual_variables[0].value
 
     # TODO(akshayka): Rename to save_dual_value to avoid collision with

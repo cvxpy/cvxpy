@@ -70,6 +70,11 @@ Additional solvers are supported, but must be installed separately.
    examples/index
 
 .. toctree::
+   :hidden:
+
+   API Documentation <api_reference/cvxpy>
+
+.. toctree::
    :maxdepth: 1
    :hidden:
 
@@ -83,19 +88,10 @@ Additional solvers are supported, but must be installed separately.
 .. toctree::
    :hidden:
 
-   community/index
+   contributing/index
 
 .. toctree::
    :hidden:
 
    related_projects/index
 
-.. toctree::
-   :hidden:
-
-   API Documentation <api_reference/cvxpy>
-
-.. toctree::
-   :hidden:
-
-   ideas/index

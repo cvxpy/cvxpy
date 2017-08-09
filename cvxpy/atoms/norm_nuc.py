@@ -24,7 +24,8 @@ import scipy.sparse as sp
 
 
 class normNuc(Atom):
-    """ Sum of the singular values. """
+    """Sum of the singular values.
+    """
 
     def __init__(self, A):
         super(normNuc, self).__init__(A)

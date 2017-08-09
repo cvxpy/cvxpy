@@ -30,15 +30,22 @@ from fractions import Fraction
 class huber(Elementwise):
     """The Huber function
 
-    Huber(x, M) = 2M|x|-M^2 for |x| >= |M|
-                  |x|^2 for |x| <= |M|
-    M defaults to 1.
+    .. math::
+
+        \\operatorname{Huber}(x, M) =
+            \\begin{cases}
+                2M|x|-M^2 & \\text{for } |x| \geq |M| \\\\
+                      |x|^2 & \\text{for } |x| \leq |M|.
+            \\end{cases}
+
+    :math:`M` defaults to 1.
 
     Parameters
     ----------
     x : Expression
-        A CVXPY expression.
-    M : int/float or Parameter
+        The expression to which the huber function will be applied.
+    M : Constant
+        A scalar constant.
     """
 
     def __init__(self, x, M=1):

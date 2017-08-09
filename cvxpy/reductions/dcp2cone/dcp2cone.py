@@ -24,10 +24,20 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers import (CANON_METHODS as
 
 
 class Dcp2Cone(Canonicalization):
+    """Reduce DCP problems to a conic form.
+
+    This reduction takes as input (minimization) DCP problems and converts
+    them into problems with affine objectives and conic constraints whose
+    arguments are affine.
+    """
     def accepts(self, problem):
+        """A problem is accepted if it is a minimization and is DCP.
+        """
         return type(problem.objective) == Minimize and problem.is_dcp()
 
     def apply(self, problem):
+        """Converts a DCP problem to a conic form.
+        """
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to cone program")
         return Canonicalization(cone_canon_methods).apply(problem)

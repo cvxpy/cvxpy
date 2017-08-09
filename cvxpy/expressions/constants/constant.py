@@ -24,7 +24,13 @@ import cvxpy.lin_ops.lin_utils as lu
 
 class Constant(Leaf):
     """
-    A constant, either matrix or scalar.
+    A constant value.
+
+    Raw numerical constants (Python primite types, NumPy ndarrays,
+    and NumPy matrices) are implicitly cast to constants via Expression
+    operator overloading. For example, if ``x`` is an expression and
+    ``c`` is a raw constant, then ``x + c`` creates an expression by
+    casting ``c`` to a Constant.
     """
 
     def __init__(self, value):
@@ -52,6 +58,8 @@ class Constant(Leaf):
 
     @property
     def value(self):
+        """NumPy.ndarray or None: The numeric value of the constant.
+        """
         return self._value
 
     @property

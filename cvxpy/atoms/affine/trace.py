@@ -25,9 +25,9 @@ import numpy as np
 class trace(AffAtom):
     """The sum of the diagonal entries of a matrix.
 
-    Attributes
+    Parameters
     ----------
-    expr : CVXPY Expression
+    expr : Expression
         The expression to sum the diagonal of.
     """
 

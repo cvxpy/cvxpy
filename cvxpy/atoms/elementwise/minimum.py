@@ -21,4 +21,5 @@ from cvxpy.atoms.elementwise.maximum import maximum
 
 
 def minimum(*args):
+    """Elementwise minimum of a sequence of Expressions."""
     return -maximum(*[-Elementwise.cast_to_const(arg) for arg in args])

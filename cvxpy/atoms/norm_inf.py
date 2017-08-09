@@ -19,7 +19,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
 
-from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 
 

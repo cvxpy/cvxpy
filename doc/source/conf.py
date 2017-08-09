@@ -74,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CVXPY'
-copyright = u'2014, Steven Diamond, Eric Chu, Stephen Boyd'
+copyright = u'2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

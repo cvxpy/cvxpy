@@ -32,6 +32,11 @@ class Qp2SymbolicQp(Canonicalization):
     expressions and symbolic quadratic forms.
     """
     def accepts(self, problem):
+        """
+        Problems with quadratic, piecewise affine objectives,
+        piecewise-linear constraints inequality constraints, and
+        affine equality constraints are accepted.
+        """
         return (type(problem.objective) == Minimize
                 and problem.objective.expr.is_qpwa()
                 and not set(['PSD', 'NSD']).intersection(convex_attributes(
@@ -43,6 +48,7 @@ class Qp2SymbolicQp(Canonicalization):
                 and are_args_affine(problem.constraints))
 
     def apply(self, problem):
+        """Converts a QP to an even more symbolic form."""
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to symbolic QP")
         return Canonicalization(qp_canon_methods).apply(problem)

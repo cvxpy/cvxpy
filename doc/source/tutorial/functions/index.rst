@@ -1,12 +1,11 @@
 .. _functions:
 
-Functions
-=========
+Atomic Functions
+================
 
-This section of the tutorial describes the functions that can be applied
-to CVXPY expressions. CVXPY uses the function information in this
-section and the :ref:`DCP rules <dcp>` to mark expressions with a
-sign and curvature.
+This section of the tutorial describes the atomic functions that can be applied
+to CVXPY expressions. CVXPY uses the function information in this section and
+the :ref:`DCP rules <dcp>` to mark expressions with a sign and curvature.
 
 Operators
 ---------
@@ -68,9 +67,9 @@ and returns a scalar.
      - Curvature |_|
      - Monotonicity
 
-   * - :ref:`geo_mean(x) <geo_mean>`
+   * - :ref:`geo_mean(x) <geo-mean>`
 
-       :ref:`geo_mean(x, p) <geo_mean>`
+       :ref:`geo_mean(x, p) <geo-mean>`
 
        :math:`p \in \mathbf{R}^n_{+}`
 
@@ -83,28 +82,28 @@ and returns a scalar.
      - |concave| concave
      - |incr| incr.
 
-   * - harmonic_mean(x)
+   * - :ref:`harmonic_mean(x) <harmonic-mean>`
      - :math:`\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}`
      - :math:`x \in \mathbf{R}^n_{+}`
      - |positive| positive
      - |concave| concave
      - |incr| incr.
 
-   * - lambda_max(X)
+   * - :ref:`lambda_max(X) <lambda-max>`
      - :math:`\lambda_{\max}(X)`
      - :math:`X \in \mathbf{S}^n`
      - |unknown| unknown
      - |convex| convex
      - None
 
-   * - lambda_min(X)
+   * - :ref:`lambda_min(X) <lambda-min>`
      - :math:`\lambda_{\min}(X)`
      - :math:`X \in \mathbf{S}^n`
      - |unknown| unknown
      - |concave| concave
      - None
 
-   * - lambda_sum_largest(X, |_| k)
+   * - :ref:`lambda_sum_largest(X, |_| k) <lambda-sum-largest>`
 
        :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
@@ -113,7 +112,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - lambda_sum_smallest(X, |_| k)
+   * - :ref:`lambda_sum_smallest(X, |_| k) <lambda-sum-smallest>`
 
        :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
@@ -122,21 +121,24 @@ and returns a scalar.
      - |concave| concave
      - None
 
-   * - log_det(X)
+   * - :ref:`log_det(X) <log-det>`
+
      - :math:`\log \left(\det (X)\right)`
      - :math:`X \in \mathbf{S}^n_+`
      - |unknown| unknown
      - |concave| concave
      - None
 
-   * - log_sum_exp(X)
+   * - :ref:`log_sum_exp(X) <log-sum-exp>`
+
      - :math:`\log \left(\sum_{ij}e^{X_{ij}}\right)`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |unknown| unknown
      - |convex| convex
      - |incr| incr.
 
-   * - matrix_frac(x, P)
+   * - :ref:`matrix_frac(x, P) <matrix-frac>`
+
      - :math:`x^T P^{-1} x`
      - :math:`x \in \mathbf{R}^n`
 
@@ -145,30 +147,34 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - max(X)
+   * - :ref:`max(X) <max>`
+
      - :math:`\max_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |convex| convex
      - |incr| incr.
 
-   * - min(X)
+   * - :ref:`min(X) <min>`
+
      - :math:`\min_{ij}\left\{ X_{ij}\right\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |concave| concave
      - |incr| incr.
 
-   * - mixed_norm(X, p, q)
+   * - :ref:`mixed_norm(X, p, q) <mixed-norm>`
+
      - :math:`\left(\sum_k\left(\sum_l\lvert x_{k,l}\rvert^p\right)^{q/p}\right)^{1/q}`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - |positive| positive
      - |convex| convex
      - None
 
-   * - norm(x)
+   * - :ref:`norm(x) <norm>`
 
        norm(x, 2)
+
      - :math:`\sqrt{\sum_{i}x_{i}^2 }`
      - :math:`X \in\mathbf{R}^{n}`
      - |positive| positive
@@ -243,7 +249,7 @@ and returns a scalar.
      - |incr| incr.
 
 
-   * - quad_form(x, P)
+   * - :ref:`quad_form(x, P) <quad-form>`
 
        constant :math:`P \in \mathbf{S}^n_+`
      - :math:`x^T P x`
@@ -276,7 +282,8 @@ and returns a scalar.
      - |affine| affine
      - depends |_| on |_| c
 
-   * - quad_over_lin(X, y)
+   * - :ref:`quad_over_lin(X, y) <quad_over_lin>`
+
      - :math:`\left(\sum_{ij}X_{ij}^2\right)/y`
      - :math:`x \in \mathbf{R}^n`
 
@@ -289,14 +296,15 @@ and returns a scalar.
 
        |decr| decr. in :math:`y`
 
-   * - sum(X)
+   * - :ref:`sum(X) <sum>`
+
      - :math:`\sum_{ij}X_{ij}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
-   * - sum_largest(X, k)
+   * - :ref:`sum_largest(X, k) <sum-largest>`
 
        :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ largest }X_{ij}`
@@ -305,7 +313,7 @@ and returns a scalar.
      - |convex| convex
      - |incr| incr.
 
-   * - sum_smallest(X, k)
+   * - :ref:`sum_smallest(X, k) <sum-smallest>`
 
        :math:`k = 1,2,\ldots`
      - :math:`\text{sum of } k\text{ smallest }X_{ij}`
@@ -314,7 +322,8 @@ and returns a scalar.
      - |concave| concave
      - |incr| incr.
 
-   * - sum_squares(X)
+   * - :ref:`sum_squares(X) <sum-squares>`
+
      - :math:`\sum_{ij}X_{ij}^2`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
@@ -323,14 +332,16 @@ and returns a scalar.
 
        |decr| for :math:`X_{ij} \leq 0`
 
-   * - trace(X)
+   * - :ref:`trace(X) <trace>`
+
      - :math:`\mathrm{tr}\left(X \right)`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
-   * - tv(x)
+   * - :ref:`tv(x) <tv>`
+
      - :math:`\sum_{i}|x_{i+1} - x_i|`
      - :math:`x \in \mathbf{R}^n`
      - |positive| positive
@@ -380,8 +391,7 @@ Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
 The syntax ``func(expr, axis=1)`` applies ``func`` to each row,
 returning an ``m`` by 1 expression. For example, the following code sums
-along the columns and rows of a matrix variable:
-
+along the columns and rows of a matrix variable: 
 .. code:: python
 
     X = Variable(5, 4)
@@ -412,7 +422,8 @@ scalars, which are promoted.
      - Curvature |_|
      - Monotonicity
 
-   * - abs(x)
+   * - :ref:`abs(x) <abs>`
+
      - :math:`\lvert x \rvert`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
@@ -421,21 +432,23 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
-   * - entr(x)
+   * - :ref:`entr(x) <entr>`
+
      - :math:`-x \log (x)`
      - :math:`x > 0`
      - |unknown| unknown
      - |concave| concave
      - None
 
-   * - exp(x)
+   * - :ref:`exp(x) <exp>`
+
      - :math:`e^x`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
      - |convex| convex
      - |incr| incr.
 
-   * - huber(x, M=1)
+   * - :ref:`huber(x, M=1) <huber>`
 
        :math:`M \geq 0`
      - :math:`\begin{cases}x^2 &|x| \leq M  \\2M|x| - M^2&|x| >M\end{cases}`
@@ -446,14 +459,16 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
-   * - inv_pos(x)
+   * - :ref:`inv_pos(x) <inv-pos>`
+
      - :math:`1/x`
      - :math:`x > 0`
      - |positive| positive
      - |convex| convex
      - |decr| decr.
 
-   * - kl_div(x, y)
+   * - :ref:`kl_div(x, y) <kl-div>`
+
      - :math:`x \log(x/y) - x + y`
      - :math:`x > 0`
 
@@ -462,42 +477,46 @@ scalars, which are promoted.
      - |convex| convex
      - None
 
-   * - log(x)
+   * - :ref:`log(x) <log>`
+
      - :math:`\log(x)`
      - :math:`x > 0`
      - |unknown| unknown
      - |concave| concave
      - |incr| incr.
 
-   * - log1p(x)
+   * - :ref:`log1p(x) <log1p>`
+
      - :math:`\log(x+1)`
      - :math:`x > -1`
      - same as x
      - |concave| concave
      - |incr| incr.
 
-   * - logistic(x)
+   * - :ref:`logistic(x) <logistic>`
+
      - :math:`\log(1 + e^{x})`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
      - |convex| convex
      - |incr| incr.
 
-   * - maximum(x1, |_| ..., |_| xk)
+   * - :ref:`maximum(x1, |_| ..., |_| xk) <maximum>`
+
      - :math:`\max \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
      - :math:`\max(\mathrm{sign}(x_1))`
      - |convex| convex
      - |incr| incr.
 
-   * - minimum(x1, |_| ..., |_| xk)
+   * - :ref:`minimum(x1, |_| ..., |_| xk) <minimum>`
      - :math:`\min \left\{x_1, \ldots , x_k\right\}`
      - :math:`x_i \in \mathbf{R}`
      - :math:`\min(\mathrm{sign}(x_1))`
      - |concave| concave
      - |incr| incr.
 
-   * - multiply(c, |_| x)
+   * - :ref:`multiply(c, |_| x) <multiply>`
 
        :math:`c \in \mathbf{R}`
      - c*x
@@ -506,14 +525,14 @@ scalars, which are promoted.
      - |affine| affine
      - depends |_| on |_| c
 
-   * - neg(x)
+   * - :ref:`neg(x) <neg>`
      - :math:`\max \left\{-x, 0 \right\}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
      - |convex| convex
      - |decr| decr.
 
-   * - pos(x)
+   * - :ref:`pos(x) <pos>`
      - :math:`\max \left\{x, 0 \right\}`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
@@ -573,7 +592,7 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
-   * - scalene(x, alpha, beta)
+   * - :ref:`scalene(x, alpha, beta) <scalene>`
 
        :math:`\text{alpha} \geq 0`
 
@@ -586,14 +605,16 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
-   * - sqrt(x)
+   * - :ref:`sqrt(x) <sqrt>`
+
      - :math:`\sqrt x`
      - :math:`x \geq 0`
      - |positive| positive
      - |concave| concave
      - |incr| incr.
 
-   * - square(x)
+   * - :ref:`square(x) <square>`
+
      - :math:`x^2`
      - :math:`x \in \mathbf{R}`
      - |positive| positive
@@ -619,16 +640,17 @@ and returns a vector or matrix.
      - Curvature |_|
      - Monotonicity
 
-   * - bmat([[X11, |_| ...,  |_| X1q],
+   * - :ref:`bmat([[X11, |_| ...,  |_| X1q],
        ...,
-       [Xp1, |_| ..., |_| Xpq]])
+       [Xp1, |_| ..., |_| Xpq]]) <bmat>`
+
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
      - :math:`\mathrm{sign}\left(\sum_{ij} X^{(i,j)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
-   * - conv(c, x)
+   * - :ref:`conv(c, x) <conv>`
 
        :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
@@ -637,7 +659,7 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on |_| c
 
-   * - cumsum(X, axis=0)
+   * - :ref:`cumsum(X, axis=0) <cumsum>`
 
      - cumulative sum along given axis.
      - :math:`X \in \mathbf{R}^{m \times n}`
@@ -645,21 +667,22 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - diag(x)
+   * - :ref:`diag(x) <diag>`
+
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
      - :math:`x \in\mathbf{R}^{n}`
      - same as x
      - |affine| affine
      - |incr| incr.
 
-   * - diag(X)
+   * - :ref:`diag(X) <diag>`
      - :math:`\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
-   * - diff(X, k=1, axis=0)
+   * - :ref:`diff(X, k=1, axis=0) <diff>`
 
        :math:`k \in 0,1,2,\ldots`
      - kth order differences along given axis
@@ -668,14 +691,15 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - hstack(X1, |_| ..., |_| Xk)
+   * - :ref:`hstack(X1, |_| ..., |_| Xk) <hstack>`
+
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
      - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
-   * - kron(C, X)
+   * - :ref:`kron(C, X) <kron>`
 
        :math:`C\in\mathbf{R}^{p \times q}`
      - :math:`\left[\begin{matrix}C_{11}X & \cdots & C_{1q}X \\ \vdots  &        & \vdots \\ C_{p1}X &  \cdots      & C_{pq}X     \end{matrix}\right]`
@@ -684,7 +708,8 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on C
 
-   * - reshape(X, |_| n', |_| m')
+   * - :ref:`reshape(X, |_| n', |_| m') <reshape>`
+
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
      - :math:`X \in\mathbf{R}^{m \times n}`
 
@@ -693,14 +718,16 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - vec(X)
+   * - :ref:`vec(X) <vec>`
+
      - :math:`x' \in\mathbf{R}^{mn}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - same as X
      - |affine| affine
      - |incr| incr.
 
-   * - vstack(X1, |_| ..., |_| Xk)
+   * - :ref:`vstack(X1, |_| ..., |_| Xk) <vstack>`
+
      - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
      - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`

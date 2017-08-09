@@ -25,14 +25,24 @@ import cvxpy.lin_ops.lin_utils as lu
 
 class Objective(u.Canonical):
     """An optimization objective.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to act upon. Must be a scalar.
+
+    Raises
+    ------
+    ValueError
+        If expr is not a scalar.
     """
 
     def __init__(self, expr):
         self.args = [Expression.cast_to_const(expr)]
         # Validate that the objective resolves to a scalar.
         if not self.args[0].is_scalar():
-            raise Exception("The '%s' objective must resolve to a scalar."
-                            % self.NAME)
+            raise ValueError("The '%s' objective must resolve to a scalar."
+                             % self.NAME)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
@@ -95,6 +105,16 @@ class Objective(u.Canonical):
 
 class Minimize(Objective):
     """An optimization objective for minimization.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to minimize. Must be a scalar.
+
+    Raises
+    ------
+    ValueError
+        If expr is not a scalar.
     """
 
     NAME = "minimize"
@@ -130,6 +150,16 @@ class Minimize(Objective):
 
 class Maximize(Objective):
     """An optimization objective for maximization.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to maximize. Must be a scalar.
+
+    Raises
+    ------
+    ValueError
+        If expr is not a scalar.
     """
 
     NAME = "maximize"

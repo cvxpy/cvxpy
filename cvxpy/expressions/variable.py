@@ -62,7 +62,8 @@ def upper_tri_to_full(n):
 
 
 class Variable(Leaf):
-    """ The base variable class """
+    """The optimization variables in a problem.
+    """
 
     def __init__(self, shape=(), name=None, var_id=None, **kwargs):
         if var_id is None:
@@ -78,6 +79,7 @@ class Variable(Leaf):
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self):
+        """str : The name of the variable."""
         return self._name
 
     def save_value(self, value):
@@ -87,6 +89,8 @@ class Variable(Leaf):
 
     @property
     def value(self):
+        """NumPy.ndarray or None: The numeric value of the variable.
+        """
         return self.primal_value
 
     @value.setter

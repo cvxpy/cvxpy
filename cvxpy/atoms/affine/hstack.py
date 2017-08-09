@@ -23,7 +23,12 @@ import numpy as np
 
 
 def hstack(arg_list):
-    """Wrapper on hstack to ensure list argument.
+    """Horizontal concatenation of an arbitrary number of Expressions.
+
+    Parameters
+    ----------
+    arg_list : list of Expression
+        The Expressions to concatenate.
     """
     arg_list = [AffAtom.cast_to_const(arg) for arg in arg_list]
     for idx, arg in enumerate(arg_list):

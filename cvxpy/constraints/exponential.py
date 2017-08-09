@@ -44,14 +44,17 @@ class ExpCone(NonlinearConstraint):
 
     .. math::
 
-        K = \\{(x,y,z) \mid y, z > 0, y * \\log(y) + x \\leq y * \\log(z)\\}
+        K = \\{(x,y,z) \mid y, z > 0, y\\log(y) + x \\leq y\\log(z)\\}
              \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}
 
     Parameters
     ----------
-        x: Variable x in the exponential cone.
-        y: Variable y in the exponential cone.
-        z: Variable z in the exponential cone.
+    x : Variable
+        x in the exponential cone.
+    y : Variable
+        y in the exponential cone.
+    z : Variable
+        z in the exponential cone.
     """
 
     def __init__(self, x, y, z, constr_id=None):

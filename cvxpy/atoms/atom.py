@@ -315,6 +315,8 @@ class Atom(Expression):
         return new_numeric
 
     def atoms(self):
+        """A list of the atom types present amongst this atom's arguments.
+        """
         atom_list = []
         for arg in self.args:
             atom_list += arg.atoms()

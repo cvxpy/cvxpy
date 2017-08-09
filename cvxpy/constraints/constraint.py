@@ -52,6 +52,17 @@ class Constraint(u.Canonical):
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
         super(Constraint, self).__init__()
 
+    @abc.abstractmethod
+    def is_dcp(self):
+        """Checks whether the constraint is DCP.
+
+        Returns
+        -------
+        bool
+            True if the constraint is DCP, False otherwise.
+        """
+        return NotImplemented
+
     @abc.abstractproperty
     def residual(self):
         """The residual of the constraint.
@@ -76,7 +87,7 @@ class Constraint(u.Canonical):
             ||\Pi(v) - v||_2^2
 
         where :math:`v` is the value of the constrained expression and
-        :math:`Pi` is the projection operator onto the constraint's domain .
+        :math:`\\Pi` is the projection operator onto the constraint's domain .
 
         Returns
         -------

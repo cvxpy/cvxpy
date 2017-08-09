@@ -131,7 +131,7 @@ class SOC(Constraint):
         return cones
 
     def is_dcp(self):
-        """Is the constraint DCP?
+        """An SOC constraint is DCP if each of its arguments is affine.
         """
         return all([arg.is_affine() for arg in self.args])
 

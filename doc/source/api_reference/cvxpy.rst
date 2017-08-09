@@ -1,10 +1,9 @@
-CVXPY API Documentation
-=======================
+API Documentation
+=================
 CVXPY is designed to be intuitive enough so that it may be used
 without consulting a bonafide API reference; the **tutorials will
 suffice in acquainting you with our software**. Nonetheless, we include here an
-API reference for those users who are comfortable reading techinical
-documentation.
+API reference for those who are comfortable reading techinical documentation.
 
 All of the documented classes and functions are imported into the
 ``cvxpy`` namespace; this means that they can be used by simply writing
@@ -13,13 +12,16 @@ choice, so long as you import the ``cvxpy`` package in your python source file.
 
 The documentation is grouped five sections: **atoms**, **constraints**,
 **expressions**, **problems**, and **reductions**. The **atoms** section
-documents the classes implementing atomic mathematical expressions, like
+documents the classes implementing atomic mathematical functions, like
 ``exp``, ``log``, and ``sqrt``; the **constraints** section documents documents
 the constraints that can be imposed upon variabes; the **expressions** section
 documents the classes implementing mathematical expression trees, including the
-``Variable`` and ``parameter`` classes; the **problem** section documents the
-problem class; and the **reduction** section documents principled operations
-that convert problems from a particular form to another *equivalent* form.
+:class:`~cvxpy.expressions.variable.Variable` and
+:class:`~cvxpy.expressions.constants.parameter.Parameter` classes; the
+**problem** section documents the
+:class:`~cvxpy.problems.problem.Problem` class and other related classes; and
+the **reductions** section documents principled operations that convert
+problems from a particular form to another equivalent form.
 
 
 .. toctree::

@@ -35,7 +35,12 @@ class PSD(NonPos):
 
         z^T(X + X^T)z \geq 0,
 
-    for all :math:`z`. Strict definiteness constraints are not provided,
+    for all :math:`z`.
+
+    The preferred way of creating a ``PSD`` constraint is through operator
+    overloading. To constrain an expression ``X`` to be PSD, write
+    ``X >> 0``; to constrain it to be negative semidefinite, write
+    ``X << 0``. Strict definiteness constraints are not provided,
     as they do not make sense in a numerical setting.
 
     Parameters

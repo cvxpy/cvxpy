@@ -26,6 +26,21 @@ import numpy as np
 
 class conv(AffAtom):
     """ 1D discrete convolution of two vectors.
+
+    The discrete convolution :math:`c` of vectors :math:`a` and :math:`b` of
+    lengths :math:`n` and :math:`m`, respectively, is a length-:math:`(n+m-1)`
+    vector where
+
+    .. math::
+
+        c_k = \\sum_{i+j=k} a_ib_j, \quad k=0, \ldots, n+m-2.
+
+    Parameters
+    ----------
+    lh_expr : Constant
+        A constant 1D vector or a 2D column vector.
+    rh_expr : Expression
+        A 1D vector or a 2D column vector.
     """
     # TODO work with right hand constant.
 

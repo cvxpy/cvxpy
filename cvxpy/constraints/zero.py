@@ -27,7 +27,7 @@ class Zero(NonPos):
 
     The preferred way of creating a ``Zero`` constraint is through
     operator overloading. To constrain an expression ``x`` to be zero,
-    simply write ``x == 0`. The former creates a ``Zero`` constraint with
+    simply write ``x == 0``. The former creates a ``Zero`` constraint with
     ``x`` as its argument.
     """
     def name(self):

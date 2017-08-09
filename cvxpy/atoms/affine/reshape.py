@@ -23,13 +23,18 @@ import numpy as np
 
 
 class reshape(AffAtom):
-    """ Reshapes the expression.
+    """Reshapes the expression.
 
     Vectorizes the expression then unvectorizes it into the new shape.
-    The entries are stored in column-major order.
+    The entries are reshaped and stored in column-major order, also known
+    as Fortran order.
 
-    TODO(akshayka): IF we decide to retain Fortran order, we should state
-    so explicitly. The default order in NumPy is C.
+    Parameters
+    ----------
+    expr : Expression
+       The expression to promote.
+    shape : tuple
+        The shape to promote to.
     """
 
     def __init__(self, expr, shape):

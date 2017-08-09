@@ -122,6 +122,7 @@ def construct_solving_chain(problem, solver=None):
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             reductions += [Dcp2Cone(), CvxAttr2Constr(), ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
+
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "
                       "enough constraints in the problem." % (
@@ -130,22 +131,86 @@ def construct_solving_chain(problem, solver=None):
 
 
 class SolvingChain(Chain):
-    """TODO(akshayka): Document
+    """A reduction chain that ends with a solver.
+
+    Parameters
+    ----------
+    reductions : list[Reduction]
+        A list of reductions. The last reduction in the list must be a solver
+        instance.
+
+    Attributes
+    ----------
+    reductions : list[Reduction]
+        A list of reductions.
+    solver : Solver
+        The solver, i.e., reductions[-1].
     """
 
     def __init__(self, reductions=[]):
         super(SolvingChain, self).__init__(reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
-        self.problem_reductions = self.reductions[:-1]
         self.solver = self.reductions[-1]
 
     def solve(self, problem, warm_start, verbose, solver_opts):
+        """Solves the problem by applying the chain.
+
+        Applies each reduction in the chain to the problem, solves it,
+        and then inverts the chain to return a solution of the supplied
+        problem.
+
+        Parameters
+        ----------
+        problem : Problem
+            The problem to solve.
+        warm_start : bool
+            Whether to warm start the solver.
+        verbose : bool
+            Whether to enable solver verbosity.
+        solver_opts : dict
+            Solver specific options.
+
+        Returns
+        -------
+        solution : Solution
+            A solution to the problem.
+        """
         data, inverse_data = self.apply(problem)
         solution = self.solver.solve_via_data(data, warm_start,
                                               verbose, solver_opts)
         return self.invert(solution, inverse_data)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts):
+        """Solves the problem using the data output by the an apply invocation.
+
+        The semantics are:
+
+        .. code :: python
+            data, inverse_data = solving_chain.apply(problem)
+            solution = solving_chain.invert(solver_chain.solve_via_data(data, ...))
+
+        which is equivalent to writing
+
+        .. code :: python
+            solution = solving_chain.solve(problem, ...)
+
+        Parameters
+        ----------
+        problem : Problem
+            The problem to solve.
+        warm_start : bool
+            Whether to warm start the solver.
+        verbose : bool
+            Whether to enable solver verbosity.
+        solver_opts : dict
+            Solver specific options.
+
+        Returns
+        -------
+        raw solver solution
+            The information returned by the solver; this is not necessarily
+            a Solution object.
+        """
         return self.solver.solve_via_data(data, warm_start, verbose,
                                           solver_opts)
