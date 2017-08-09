@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.CVXcanon.python import canonInterface
 import cvxpy.settings as s
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
@@ -25,7 +26,6 @@ from cvxpy.constraints import SOC, PSD, ExpCone, BoolConstr, IntConstr
 from toolz.itertoolz import unique
 from collections import OrderedDict
 import numpy as np
-import canonInterface
 
 
 class SymData(object):

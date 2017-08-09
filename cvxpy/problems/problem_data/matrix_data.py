@@ -21,7 +21,7 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
 import numpy as np
-import canonInterface
+from cvxpy.CVXcanon.python import canonInterface
 
 
 class MatrixCache(object):
