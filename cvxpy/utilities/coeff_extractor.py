@@ -21,11 +21,11 @@ from __future__ import division
 
 import operator
 
-import canonInterface
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy
+from cvxpy.CVXcanon import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms

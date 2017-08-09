@@ -1,14 +1,37 @@
-from setuptools import setup
+from setuptools import setup, Extension
+
+
+class get_numpy_include(object):
+    """Returns Numpy's include path with lazy import.
+    """
+    def __str__(self):
+        import numpy
+        return numpy.get_include()
+
+
+canon = Extension(
+    '_CVXcanon',
+    sources=['cvxpy/CVXcanon/src/CVXcanon.cpp',
+             'cvxpy/CVXcanon/src/LinOpOperations.cpp',
+             'cvxpy/CVXcanon/src/Utils.cpp',
+             'cvxpy/CVXcanon/CVXcanon_wrap.cpp'],
+    include_dirs=['cvxpy/CVXcanon/src/',
+                  'cvxpy/CVXcanon/include/Eigen',
+                  get_numpy_include()],
+)
+
 
 setup(
     name='cvxpy',
     version='0.4.8',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
+    ext_modules=[canon],
     packages=['cvxpy',
               'cvxpy.atoms',
               'cvxpy.atoms.affine',
               'cvxpy.atoms.elementwise',
+              'cvxpy.CVXcanon',
               'cvxpy.constraints',
               'cvxpy.expressions',
               'cvxpy.expressions.constants',
@@ -37,7 +60,6 @@ setup(
                       "toolz",
                       "numpy >= 1.9",
                       "scipy >= 0.15",
-                      "CVXcanon >= 0.0.22",
                       "mathprogbasepy >= 0.1.1"],
     use_2to3=True,
 )
