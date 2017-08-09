@@ -19,14 +19,28 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_utils as lu
 # Only need Variable from expressions, but that would create a circular import.
-from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
 
 class NonPos(Constraint):
-    TOLERANCE = 1e-8
+    """A constraint of the form :math:`x \leq 0`.
 
+    The preferred way of creating a ``NonPos`` constraint is through
+    operator overloading. To constrain an expression ``x`` to be non-positive,
+    simply write ``x \leq 0`; to constrain ``x`` to be non-negative, write
+    ``x \geq 0``. The former creates a ``NonPos`` constraint with ``x``
+    as its argument, while the latter creates one with ``-x`` as its argument.
+    Strict inequalities are not supported, as they do not make sense in a
+    numerical setting.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to constrain.
+    constr_id : int
+        A unique id for the constraint.
+    """
     def __init__(self, expr, constr_id=None):
         super(NonPos, self).__init__([expr], constr_id)
 
@@ -80,8 +94,8 @@ class NonPos(Constraint):
     def size(self):
         return self.args[0].size
 
-    # Left hand expression must be convex and right hand must be concave.
     def is_dcp(self):
+        """A non-positive constraint is DCP if its argument is convex."""
         return self.args[0].is_convex()
 
     def canonicalize(self):
@@ -100,38 +114,16 @@ class NonPos(Constraint):
         return (None, constraints + [dual_holder])
 
     @property
-    def value(self):
-        """Does the constraint hold?
-
-        Returns
-        -------
-        bool
-        """
-        resid = self.residual.value
-        if resid is None:
-            return None
-        else:
-            return np.all(resid <= self.TOLERANCE)
-
-    @property
     def residual(self):
         """The residual of the constraint.
 
         Returns
-        -------
-        Expression
+        ---------
+        NumPy.ndarray
         """
-        return cvxtypes.pos()(self.args[0])
-
-    @property
-    def violation(self):
-        """How much is this constraint off by?
-
-        Returns
-        -------
-        NumPy matrix
-        """
-        return self.residual.value
+        if self.expr.value is None:
+            return None
+        return np.maximum(self.expr.value, 0)
 
     # The value of the dual variable.
     @property

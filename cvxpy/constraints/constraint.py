@@ -21,15 +21,17 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions import cvxtypes
 import abc
+import numpy as np
 
 
 class Constraint(u.Canonical):
-    """Abstract super class for constraints.
+    """The base class for constraints.
 
-    TODO rationalize constraint classes. Make lin_op versions
-    of SOC, PSD, etc.
+    A constraint is an equality, inequality, or more generally a generalized
+    inequality that is imposed upon a mathematical expression or a list of
+    thereof.
 
-    Attributes
+    Parameters
     ----------
     args : list
         A list of expression trees.
@@ -49,6 +51,75 @@ class Constraint(u.Canonical):
             self.constr_id = constr_id
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
         super(Constraint, self).__init__()
+
+    @abc.abstractproperty
+    def residual(self):
+        """The residual of the constraint.
+
+        Returns
+        -------
+        NumPy.ndarray
+            The residual, or None if the constrained expression does not have
+            a value.
+        """
+        return NotImplemented
+
+    def violation(self):
+        """The numeric residual of the constraint.
+
+        The violation is defined as the distance between the constrained
+        expression's value and its projection onto the domain of the
+        constraint:
+
+        .. math::
+
+            ||\Pi(v) - v||_2^2
+
+        where :math:`v` is the value of the constrained expression and
+        :math:`Pi` is the projection operator onto the constraint's domain .
+
+        Returns
+        -------
+        NumPy.ndarray
+            The residual value.
+
+        Raises
+        ------
+        ValueError
+            If the constrained expression does not have a value associated
+            with it.
+        """
+        residual = self.residual
+        if residual is None:
+            raise ValueError("Cannot compute the violation of an constraint "
+                             "whose expression is None-valued.")
+        return residual
+
+    def value(self, tolerance=1e-8):
+        """Checks whether the constraint violation is less than a tolerance.
+
+        Parameters
+        ----------
+            tolerance : float
+                The absolute tolerance to impose on the violation.
+
+        Returns
+        -------
+            bool
+                True if the violation is less than ``tolerance``, False
+                otherwise.
+
+        Raises
+        ------
+            ValueError
+                If the constrained expression does not have a value associated
+                with it.
+        """
+        residual = self.residual
+        if residual is None:
+            raise ValueError("Cannot compute the value of an constraint "
+                             "whose expression is None-valued.")
+        return np.all(residual <= tolerance)
 
     @property
     def id(self):

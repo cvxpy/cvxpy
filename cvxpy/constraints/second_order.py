@@ -27,7 +27,8 @@ import numpy as np
 class SOC(Constraint):
     """A second-order cone constraint for each row/column.
 
-    Assumes t is a vector the same length as X's columns (rows) for axis==0 (1).
+    Assumes ``t`` is a vector the same length as ``X``'s columns (rows) for
+    ``axis == 0`` (``1``).
 
     Attributes:
         t: The scalar part of the second-order constraint.
@@ -42,6 +43,28 @@ class SOC(Constraint):
 
     def __str__(self):
         return "SOC(%s, %s)" % (self.args[0], self.args[1])
+
+    @property
+    def residual(self):
+        t = self.args[0].value
+        X = self.args[1].value
+        if t is None or X is None:
+            return None
+        if self.axis == 0:
+            X = X.T
+        norms = np.linalg.norm(X, ord=2, axis=1)
+        zero_indices = np.where(X <= -t)[0]
+        averaged_indices = np.where(X >= np.abs(t))[0]
+        X_proj = np.array(X)
+        t_proj = np.array(t)
+        X_proj[zero_indices] = 0
+        t_proj[zero_indices] = 0
+        avg_coeff = 0.5 * (1 + t/norms)
+        X_proj[averaged_indices] = avg_coeff * X[averaged_indices]
+        t_proj[averaged_indices] = avg_coeff * t[averaged_indices]
+        return np.linalg.norm(np.concatenate([X, t], axis=1) -
+                              np.concatenate([X_proj, t_proj], axis=1),
+                              ord=2, axis=1)
 
     def get_data(self):
         """Returns info needed to reconstruct the object besides the args.

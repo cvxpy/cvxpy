@@ -58,23 +58,24 @@ class TestConstraints(BaseTest):
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         # Test value and dual_value.
         assert constr.dual_value is None
-        assert constr.value is None
+        with self.assertRaises(ValueError):
+            constr.value()
         self.x.save_value(2)
         self.z.save_value(2)
-        assert constr.value
+        assert constr.value()
         self.x.save_value(3)
-        assert not constr.value
+        assert not constr.value()
 
         self.x.value = [2, 1]
         self.z.value = [2, 2]
-        assert not constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 1])
-        self.assertItemsAlmostEqual(constr.residual.value, [0, 1])
+        assert not constr.value()
+        self.assertItemsAlmostEqual(constr.violation(), [0, 1])
+        self.assertItemsAlmostEqual(constr.residual, [0, 1])
 
         self.z.value = [2, 1]
-        assert constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 0])
-        self.assertItemsAlmostEqual(constr.residual.value, [0, 0])
+        assert constr.value()
+        self.assertItemsAlmostEqual(constr.violation(), [0, 0])
+        self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
         with self.assertRaises(ValueError) as cm:
@@ -100,24 +101,25 @@ class TestConstraints(BaseTest):
         self.assertEqual(constr.shape, (2,))
         # Test value and dual_value.
         assert constr.dual_value is None
-        assert constr.value is None
+        with self.assertRaises(ValueError):
+            constr.value()
         self.x.save_value(1)
         self.z.save_value(2)
-        assert constr.value
+        assert constr.value()
         self.x.save_value(3)
-        assert not constr.value
+        assert not constr.value()
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
 
         self.x.value = [2, 1]
         self.z.value = [2, 0]
-        assert not constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 1])
-        self.assertItemsAlmostEqual(constr.residual.value, [0, 1])
+        assert not constr.value()
+        self.assertItemsAlmostEqual(constr.violation(), [0, 1])
+        self.assertItemsAlmostEqual(constr.residual, [0, 1])
 
         self.z.value = [2, 2]
-        assert constr.value
-        self.assertItemsAlmostEqual(constr.violation, [0, 0])
-        self.assertItemsAlmostEqual(constr.residual.value, [0, 0])
+        assert constr.value()
+        self.assertItemsAlmostEqual(constr.violation(), [0, 0])
+        self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
         with self.assertRaises(Exception) as cm:
@@ -143,17 +145,18 @@ class TestConstraints(BaseTest):
         self.assertEqual(constr.shape, (2, 2))
         # Test value and dual_value.
         assert constr.dual_value is None
-        assert constr.value is None
+        with self.assertRaises(ValueError):
+            constr.value()
         self.A.save_value(np.matrix("2 -1; 1 2"))
         self.B.save_value(np.matrix("1 0; 0 1"))
-        assert constr.value
-        self.assertAlmostEqual(constr.violation, 0)
-        self.assertAlmostEqual(constr.residual.value, 0)
+        assert constr.value()
+        self.assertAlmostEqual(constr.violation(), 0)
+        self.assertAlmostEqual(constr.residual, 0)
 
         self.B.save_value(np.matrix("3 0; 0 3"))
-        assert not constr.value
-        self.assertAlmostEqual(constr.violation, 1)
-        self.assertAlmostEqual(constr.residual.value, 1)
+        assert not constr.value()
+        self.assertAlmostEqual(constr.violation(), 1)
+        self.assertAlmostEqual(constr.residual, 1)
 
         with self.assertRaises(Exception) as cm:
             (self.x >> 0)
@@ -179,12 +182,13 @@ class TestConstraints(BaseTest):
         self.assertEqual(constr.shape, (2, 2))
         # Test value and dual_value.
         assert constr.dual_value is None
-        assert constr.value is None
+        with self.assertRaises(ValueError):
+            constr.value()
         self.B.save_value(np.matrix("2 -1; 1 2"))
         self.A.save_value(np.matrix("1 0; 0 1"))
-        assert constr.value
+        assert constr.value()
         self.A.save_value(np.matrix("3 0; 0 3"))
-        assert not constr.value
+        assert not constr.value()
 
         with self.assertRaises(Exception) as cm:
             self.x << 0

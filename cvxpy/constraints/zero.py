@@ -18,15 +18,23 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.constraints.nonpos import NonPos
-from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
 
 
 class Zero(NonPos):
+    """A constraint of the form :math:`x = 0`.
+
+    The preferred way of creating a ``Zero`` constraint is through
+    operator overloading. To constrain an expression ``x`` to be zero,
+    simply write ``x == 0`. The former creates a ``Zero`` constraint with
+    ``x`` as its argument.
+    """
     def name(self):
         return "%s == 0" % self.args[0]
 
     def is_dcp(self):
+        """A zero constraint is DCP if its argument is affine."""
         return self.args[0].is_affine()
 
     @property
@@ -37,7 +45,9 @@ class Zero(NonPos):
         -------
         Expression
         """
-        return cvxtypes.abs()(self.args[0])
+        if self.expr.value is None:
+            return None
+        return np.abs(self.expr.value)
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

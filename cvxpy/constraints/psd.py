@@ -25,7 +25,25 @@ from cvxpy.constraints.nonpos import NonPos
 
 
 class PSD(NonPos):
-    """Constraint X >> 0 that z.TXz >= 0 for all z.
+    """A constraint of the form :math:`\\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0`
+
+    Applying a ``PSD`` constraint to a two-dimensional expression ``X``
+    constrains its symmetric part to be positive semidefinite: i.e.,
+    it constrains ``X`` to be such that
+
+    .. math::
+
+        z^T(X + X^T)z \geq 0,
+
+    for all :math:`z`. Strict definiteness constraints are not provided,
+    as they do not make sense in a numerical setting.
+
+    Parameters
+    ----------
+    expr : Expression.
+        The expression to constrain; *must* be two-dimensional.
+    constr_id : int
+        A unique id for the constraint.
     """
 
     def __init__(self, expr, constr_id=None):
@@ -40,7 +58,7 @@ class PSD(NonPos):
         return "%s >> 0" % self.args[0]
 
     def is_dcp(self):
-        """Both sides must be affine.
+        """A PSD constraint is DCP if the constrained expression is affine.
         """
         return self.args[0].is_affine()
 
@@ -50,11 +68,12 @@ class PSD(NonPos):
 
         Returns
         -------
-        Expression
+        NumPy.ndarray
         """
-        # TODO wrong. Also requires symmetry.
+        if self.expr.value is None:
+            return None
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
-        return cvxtypes.neg()(min_eig)
+        return cvxtypes.neg()(min_eig).value
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
