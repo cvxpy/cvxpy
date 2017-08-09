@@ -93,4 +93,9 @@ Additional solvers are supported, but must be installed separately.
 .. toctree::
    :hidden:
 
+   API Documentation <api_reference/cvxpy>
+
+.. toctree::
+   :hidden:
+
    ideas/index
