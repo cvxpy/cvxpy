@@ -31,16 +31,23 @@ import math
 class ExpCone(NonlinearConstraint):
     """A reformulated exponential cone constraint.
 
-    Operates elementwise on x, y, z.
+    Operates elementwise on :math:`x, y, z`.
 
     Original cone:
-    K = {(x,y,z) | y > 0, ye^(x/y) <= z}
-         U {(x,y,z) | x <= 0, y = 0, z >= 0}
-    Reformulated cone:
-    K = {(x,y,z) | y, z > 0, y * log(y) + x <= y * log(z)}
-         U {(x,y,z) | x <= 0, y = 0, z >= 0}
 
-    Attributes
+    .. math::
+
+        K = \\{(x,y,z) \mid y > 0, ye^{x/y} <= z\\}
+            \\cup \\{(x,y,z) \mid x \leq 0, y = 0, z \geq 0\\}
+
+    Reformulated cone:
+
+    .. math::
+
+        K = \\{(x,y,z) \mid y, z > 0, y * \\log(y) + x \\leq y * \\log(z)\\}
+             \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}
+
+    Parameters
     ----------
         x: Variable x in the exponential cone.
         y: Variable y in the exponential cone.
@@ -61,6 +68,21 @@ class ExpCone(NonlinearConstraint):
 
     def __repr__(self):
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
+
+    @property
+    def residual(self):
+        # TODO(akshayka): The projection should be implemented directly.
+        from cvxpy import Problem, Minimize, Variable, norm2, hstack
+        if self.x.value is None or self.y.value is None or self.z.value is None:
+            return None
+        x = Variable(self.x.shape)
+        y = Variable(self.y.shape)
+        z = Variable(self.z.shape)
+        constr = [ExpCone(x, y, z)]
+        obj = Minimize(norm2(hstack([x, y, z]) -
+                             hstack([self.x.value, self.y.value, self.z.value])))
+        problem = Problem(obj, constr)
+        return problem.solve()
 
     def format(self, eq_constr, leq_constr, dims, solver):
         """Formats EXP constraints for the solver.
@@ -110,7 +132,7 @@ class ExpCone(NonlinearConstraint):
         return [3]*self.num_cones()
 
     def is_dcp(self):
-        """Is the constraint DCP?
+        """An exponential constraint is DCP if each argument is affine.
         """
         return all([arg.is_affine() for arg in self.args])
 
