@@ -470,6 +470,11 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "All the input dimensions except for axis 0 must match exactly.")
 
+        with self.assertRaises(Exception) as cm:
+            vstack([self.x, Variable(3)])
+        self.assertEqual(str(cm.exception),
+                         "All the input dimensions except for axis 0 must match exactly.")
+
         with self.assertRaises(TypeError) as cm:
             vstack()
 

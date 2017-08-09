@@ -35,8 +35,8 @@ def constant_grad(expr):
     """
     grad = {}
     for var in expr.variables():
-        rows = var.shape[0]*var.shape[1]
-        cols = expr.shape[0]*expr.shape[1]
+        rows = var.size
+        cols = expr.size
         # Scalars -> 0
         if (rows, cols) == (1, 1):
             grad[var] = 0.0

@@ -99,8 +99,8 @@ class huber(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.shape[0]*self.shape[1]
+        rows = self.args[0].size
+        cols = self.size
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]

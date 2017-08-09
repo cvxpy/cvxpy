@@ -51,7 +51,8 @@ class Vstack(AffAtom):
         model = self.args[0].shape
         for arg in self.args[1:]:
             if len(arg.shape) != len(model) or \
-               (len(model) > 0 and model[1:] != arg.shape[1:]):
+               (len(model) > 1 and model[1:] != arg.shape[1:]) or \
+               (len(model) <= 1 and model != arg.shape):
                 raise ValueError(("All the input dimensions except"
                                   " for axis 0 must match exactly."))
 

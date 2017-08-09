@@ -256,14 +256,14 @@ class geo_mean(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        x = np.matrix(values[0])
+        x = np.array(values[0])
         # No special case when only one non-zero weight.
         w_arr = np.array([float(w_i) for w_i in self.w])
         # Outside domain.
         if np.any(x[w_arr > 0] <= 0):
             return [None]
         else:
-            D = w_arr/x.A.ravel(order='F')*self.numeric(values)
+            D = w_arr/x.ravel(order='F')*self.numeric(values)
             return [sp.csc_matrix(D).T]
 
     def name(self):

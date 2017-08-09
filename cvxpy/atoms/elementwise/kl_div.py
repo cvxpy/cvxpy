@@ -85,8 +85,8 @@ class kl_div(Elementwise):
             grad_vals = [np.log(div), 1 - div]
             grad_list = []
             for idx in range(len(values)):
-                rows = self.args[idx].shape[0]*self.args[idx].shape[1]
-                cols = self.shape[0]*self.shape[1]
+                rows = self.args[idx].size
+                cols = self.size
                 grad_list += [kl_div.elemwise_grad_to_diag(grad_vals[idx],
                                                            rows, cols)]
             return grad_list

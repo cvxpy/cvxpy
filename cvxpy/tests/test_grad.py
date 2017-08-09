@@ -84,7 +84,7 @@ class TestGrad(BaseTest):
         self.x.value = [0, 0]
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [0, 0])
 
-        expr = pnorm(self.x, 2, axis=1)
+        expr = pnorm(self.x[:,None], 2, axis=1)
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
@@ -164,9 +164,15 @@ class TestGrad(BaseTest):
         self.assertAlmostEqual(expr.grad[self.A], None)
         self.assertAlmostEqual(expr.grad[self.B], None)
 
+        expr = matrix_frac(self.x[:, None], self.A)
+        self.x.value = [2, 3]
+        self.A.value = np.eye(2)
+        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [4, 6])
+        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [-4, -6, -6, -9])
+
         expr = matrix_frac(self.x, self.A)
         self.x.value = [2, 3]
-        self.A.vaule = np.eye(2)
+        self.A.value = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [4, 6])
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [-4, -6, -6, -9])
 
@@ -729,7 +735,7 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
 
         z = Variable(3)
-        expr = vstack(self.x, z)
+        expr = hstack([self.x, z])
         self.x.value = [1, 2]
         z.value = [1, 2, 3]
         val = np.zeros((2, 5))
@@ -747,7 +753,7 @@ class TestGrad(BaseTest):
         val[1, 0] = 0
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
 
-        expr = cumsum(self.x, axis=1)
+        expr = cumsum(self.x[:, None], axis=1)
         self.x.value = [1, 2]
         val = np.eye(2)
         self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)

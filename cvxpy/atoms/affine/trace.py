@@ -43,8 +43,8 @@ class trace(AffAtom):
     def validate_arguments(self):
         """Checks that the argument is a square matrix.
         """
-        rows, cols = self.args[0].shape
-        if not rows == cols:
+        shape = self.args[0].shape
+        if self.args[0].ndim != 2 or shape[0] != shape[1]:
             raise ValueError("Argument to trace must be a square matrix.")
 
     def shape_from_args(self):

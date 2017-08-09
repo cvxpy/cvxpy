@@ -57,7 +57,7 @@ class AxisAtom(Atom):
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.
         """
-        if self.axis is not None and self.axis not in [0, 1]:
+        if self.axis is not None and self.axis > self.args[0].ndim:
             raise ValueError("Invalid argument for axis.")
 
     def _axis_grad(self, values):
@@ -72,15 +72,13 @@ class AxisAtom(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # TODO(akshayka): Update this to handle 0/1/2D shapes
-        m = self.args[0].shape[0]
-        n = self.args[0].shape[1]
-        if self.axis is None:
-            value = np.reshape(values[0].T, (m*n, 1))
+        if self.axis is None or self.args[0].ndim < 2:
+            value = np.reshape(values[0].T, (self.args[0].size, 1))
             D = self._column_grad(value)
             if D is not None:
                 D = sp.csc_matrix(D)
         else:
+            m, n = self.args[0].shape
             if self.axis == 0:  # function apply to each column
                 D = sp.csc_matrix((m*n, n), dtype=np.float)
                 for i in range(n):
