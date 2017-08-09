@@ -22,7 +22,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
-import canonInterface
+from cvxpy.CVXcanon.python import canonInterface
 import scipy.sparse as sp
 
 

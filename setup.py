@@ -14,8 +14,9 @@ canon = Extension(
     sources=['cvxpy/CVXcanon/src/CVXcanon.cpp',
              'cvxpy/CVXcanon/src/LinOpOperations.cpp',
              'cvxpy/CVXcanon/src/Utils.cpp',
-             'cvxpy/CVXcanon/CVXcanon_wrap.cpp'],
+             'cvxpy/CVXcanon/python/CVXcanon_wrap.cpp'],
     include_dirs=['cvxpy/CVXcanon/src/',
+                  'cvxpy/CVXcanon/python/',
                   'cvxpy/CVXcanon/include/Eigen',
                   get_numpy_include()],
 )
