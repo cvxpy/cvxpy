@@ -20,10 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 import sys
 
+import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
+import numpy as np
 import operator as op
 import scipy.sparse as sp
 if sys.version_info >= (3, 0):
@@ -62,10 +64,11 @@ class MulExpression(BinaryOperator):
     def numeric(self, values):
         """Matrix multiplication.
         """
-        if self.args[0].is_scalar() or self.args[1].is_scalar():
+        if self.args[0].is_scalar() or self.args[1].is_scalar() or \
+           intf.is_sparse(values[0]) or intf.is_sparse(values[1]):
             return values[0] * values[1]
         else:
-            return values[0].dot(values[1])
+            return np.matmul(values[0], values[1])
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
@@ -117,8 +120,8 @@ class MulExpression(BinaryOperator):
         X = values[0]
         Y = values[1]
 
-        DX_rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.args[0].shape[0]*self.args[1].shape[1]
+        DX_rows = self.args[0].size
+        cols = self.args[0].size
 
         # DX = [diag(Y11), diag(Y12), ...]
         #      [diag(Y21), diag(Y22), ...]
@@ -127,7 +130,8 @@ class MulExpression(BinaryOperator):
         for k in range(self.args[0].shape[0]):
             DX[k::self.args[0].shape[0], k::self.args[0].shape[0]] = Y
         DX = sp.csc_matrix(DX)
-        DY = sp.block_diag([X.T for k in range(self.args[1].shape[1])], 'csc')
+        cols = 1 if len(self.args[1].shape) == 1 else self.args[1].shape[1]
+        DY = sp.block_diag([X.T for k in range(cols)], 'csc')
 
         return [DX, DY]
 
@@ -149,13 +153,16 @@ class MulExpression(BinaryOperator):
         tuple
             (LinOp for objective, list of constraints)
         """
-        if lu.is_const(arg_objs[0]):
-            return (lu.mul_expr(arg_objs[0], arg_objs[1], shape), [])
-        elif lu.is_const(arg_objs[1]):
-            return (lu.rmul_expr(arg_objs[0], arg_objs[1], shape), [])
+        # Promote shapes for compatibility with CVXCanon
+        lhs = arg_objs[0]
+        rhs = arg_objs[1]
+        if lu.is_const(lhs):
+            return (lu.mul_expr(lhs, rhs, shape), [])
+        elif lu.is_const(rhs):
+            return (lu.rmul_expr(lhs, rhs, shape), [])
         else:
-            raise DCPError("Only those mul_expr that have at least one "
-                           "constant argument can be canonicalized.")
+            raise DCPError("Product of two non-constant expressions is not "
+                           "DCP.")
 
 
 class DivExpression(BinaryOperator):

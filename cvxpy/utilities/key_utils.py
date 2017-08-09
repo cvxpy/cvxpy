@@ -19,10 +19,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility functions to handle indexing/slicing into an expression.
 
+from __future__ import division
 import numpy as np
 import numbers
 
 
+# TODO(akshayka): This module needs to be updated in order to handle
+# NumPy 0/1D arrays.
 def validate_key(key, shape):
     """Check if the key is a valid index.
 
@@ -36,21 +39,31 @@ def validate_key(key, shape):
     Raises:
         Error: Index/slice out of bounds.
     """
-    rows, cols = shape
+    key = to_tuple(key)
+    if len(key) == 0:
+        raise IndexError("An index cannot be empty.")
     # Change single indices for vectors into double indices.
-    if not isinstance(key, tuple):
-        if rows == 1:
-            key = (slice(0, 1, None), key)
-        elif cols == 1:
-            key = (key, slice(0, 1, None))
-        else:
-            raise IndexError("Invalid index/slice.")
+    none_count = sum([1 for elem in key if elem is None])
+    slices = len(key) - none_count
+    if slices > len(shape):
+        raise IndexError("Too many indices for expression.")
+    elif slices < len(shape):
+        # Add : to the right.
+        key = tuple(list(key) + [slice(None, None, None)]*(len(shape) - slices))
     # Change numbers into slices and ensure all slices have a start and step.
-    key = (format_slice(slc, dim) for slc, dim in zip(key, shape))
-    return tuple(key)
+    return tuple(format_slice(slc, dim, i) for slc, dim, i in zip(key, shape, range(len(shape))))
 
 
-def format_slice(key_val, dim):
+def to_tuple(key):
+    """Convert key to tuple if necessary.
+    """
+    if isinstance(key, tuple):
+        return key
+    else:
+        return (key,)
+
+
+def format_slice(key_val, dim, axis):
     """Converts part of a key into a slice with a start and step.
 
     Uses the same syntax as numpy.
@@ -62,39 +75,50 @@ def format_slice(key_val, dim):
     Returns:
         A slice with a start and step.
     """
-    if isinstance(key_val, slice):
-        key_val = slice(to_int(key_val.start),
-                        to_int(key_val.stop),
-                        to_int(key_val.step))
-        return key_val
+    if key_val is None:
+        return None
+    elif isinstance(key_val, slice):
+        step = to_int(key_val.step, 1)
+        if step == 0:
+            raise ValueError("step length cannot be 0")
+        elif step > 0:
+            start = np.clip(wrap_neg_index(to_int(key_val.start, 0), dim), 0, dim)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, dim), dim), 0, dim)
+        else:
+            start = np.clip(wrap_neg_index(to_int(key_val.start, dim-1), dim), -1, dim-1)
+            stop = np.clip(wrap_neg_index(to_int(key_val.stop, -dim-1), dim, True), -1, dim-1)
+        return slice(start, stop, step)
     else:
         # Convert to int.
-        key_val = to_int(key_val)
-        key_val = wrap_neg_index(key_val, dim)
+        orig_key_val = to_int(key_val)
+        key_val = wrap_neg_index(orig_key_val, dim)
         if 0 <= key_val < dim:
             return slice(key_val, key_val + 1, 1)
         else:
-            raise IndexError("Index/slice out of bounds.")
+            raise IndexError(
+                "Index %i is out of bounds for axis %i with size %i." % (orig_key_val, axis, dim)
+            )
 
 
-def to_int(val):
+def to_int(val, none_val=None):
     """Convert everything but None to an int.
     """
     if val is None:
-        return val
+        return none_val
     else:
         return int(val)
 
 
-def wrap_neg_index(index, dim):
+def wrap_neg_index(index, dim, neg_step=False):
     """Converts a negative index into a positive index.
 
     Args:
         index: The index to convert. Can be None.
         dim: The length of the dimension being indexed.
     """
-    if index is not None and index < 0:
-        index %= dim
+    if index is not None and index < 0 and \
+       not (neg_step and index == -1):
+        index += dim
     return index
 
 
@@ -145,7 +169,7 @@ def is_single_index(slc):
         slc.start + step >= slc.stop
 
 
-def shape(key, shape):
+def shape(key, orig_key, shape):
     """Finds the dimensions of a sliced expression.
 
     Args:
@@ -155,33 +179,29 @@ def shape(key, shape):
     Returns:
         The dimensions of the expression as (rows, cols).
     """
+    orig_key = to_tuple(orig_key)
     dims = []
-    for i in range(2):
-        selection = np.arange(shape[i])[key[i]]
-        size = np.size(selection)
-        dims.append(size)
+    for i in range(len(shape)):
+        if key[i] is None:
+            dims.append(1)
+        else:
+            size = int(np.ceil((key[i].stop - key[i].start)/key[i].step))
+            if size > 1 or i >= len(orig_key) or isinstance(orig_key[i], slice):
+                dims.append(max(size, 0))
     return tuple(dims)
 
 
 def to_str(key):
     """Converts a key (i.e. two slices) into a string.
     """
-    return (slice_to_str(key[0]), slice_to_str(key[1]))
+    return tuple(slice_to_str(elem) for elem in key)
 
 
 def is_special_slice(key):
     """Does the key contain a list, ndarray, or logical ndarray?
     """
-    # Key is either a tuple of row, column keys or a single row key.
-    if isinstance(key, tuple):
-        if len(key) > 2:
-            raise IndexError("Invalid index/slice.")
-        key_elems = [key[0], key[1]]
-    else:
-        key_elems = [key]
-
     # Slices and int-like numbers are fine.
-    for elem in key_elems:
+    for elem in to_tuple(key):
         if not (isinstance(elem, (numbers.Number, slice)) or np.isscalar(elem)):
             return True
 

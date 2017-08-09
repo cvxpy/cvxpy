@@ -44,7 +44,8 @@ class MatrixFrac(Atom):
         # TODO raise error if not invertible?
         X = values[0]
         P = values[1]
-        return (X.T.dot(LA.inv(P)).dot(X)).trace()
+        product = X.T.dot(LA.inv(P)).dot(X)
+        return product.trace() if len(product.shape) == 2 else product
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
@@ -63,8 +64,11 @@ class MatrixFrac(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        X = np.matrix(values[0])
-        P = np.matrix(values[1])
+        X = np.array(values[0])
+        print X
+        if X.ndim == 1:
+            X = X[:, None]
+        P = np.array(values[1])
         try:
             P_inv = LA.inv(P)
         except LA.LinAlgError:
@@ -76,9 +80,9 @@ class MatrixFrac(Atom):
             DX = DX.T.ravel(order='F')
             DX = sp.csc_matrix(DX).T
 
-            DP = P_inv.dot(X)
-            DP = DP.dot(X.T)
-            DP = DP.dot(P_inv)
+            DP = np.dot(P_inv, X)
+            DP = np.dot(DP, X.T)
+            DP = np.dot(DP, P_inv)
             DP = -DP.T
             DP = sp.csc_matrix(DP.T.ravel(order='F')).T
             return [DX, DP]
@@ -88,7 +92,7 @@ class MatrixFrac(Atom):
         """
         X = self.args[0]
         P = self.args[1]
-        if P.shape[0] != P.shape[1]:
+        if P.ndim != 2 or P.shape[0] != P.shape[1]:
             raise ValueError(
                 "The second argument to matrix_frac must be a square matrix."
             )
@@ -100,7 +104,7 @@ class MatrixFrac(Atom):
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return (1, 1)
+        return tuple()
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

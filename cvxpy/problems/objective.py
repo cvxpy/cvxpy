@@ -30,7 +30,7 @@ class Objective(u.Canonical):
     def __init__(self, expr):
         self.args = [Expression.cast_to_const(expr)]
         # Validate that the objective resolves to a scalar.
-        if self.args[0].shape != (1, 1):
+        if not self.args[0].is_scalar():
             raise Exception("The '%s' objective must resolve to a scalar."
                             % self.NAME)
 
@@ -75,21 +75,6 @@ class Objective(u.Canonical):
         return self * (1.0/other)
 
     __truediv__ = __div__
-
-    def variables(self):
-        """Returns the variables in the objective.
-        """
-        return self.args[0].variables()
-
-    def parameters(self):
-        """Returns the parameters in the objective.
-        """
-        return self.args[0].parameters()
-
-    def constants(self):
-        """Returns the constants in the objective.
-        """
-        return self.args[0].constants()
 
     @property
     def value(self):

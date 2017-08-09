@@ -22,25 +22,42 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
 
-class hstack(AffAtom):
+def hstack(arg_list):
+    """Wrapper on hstack to ensure list argument.
+    """
+    arg_list = [AffAtom.cast_to_const(arg) for arg in arg_list]
+    for idx, arg in enumerate(arg_list):
+        if arg.ndim == 0:
+            arg_list[idx] = arg.flatten()
+    return Hstack(*arg_list)
+
+
+class Hstack(AffAtom):
     """ Horizontal concatenation """
     # Returns the hstack of the values.
-    @AffAtom.numpy_numeric
     def numeric(self, values):
         return np.hstack(values)
 
-    # The shape is the common height and the sum of the widths.
+    # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
-        cols = sum(arg.shape[1] for arg in self.args)
-        rows = self.args[0].shape[0]
-        return (rows, cols)
+        if self.args[0].ndim == 1:
+            return (sum([arg.size for arg in self.args]),)
+        else:
+            cols = sum(arg.shape[1] for arg in self.args)
+            return (self.args[0].shape[0], cols) + self.args[0].shape[2:]
 
-    # All arguments must have the same height.
+    # All arguments must have the same width.
     def validate_arguments(self):
-        arg_cols = [arg.shape[0] for arg in self.args]
-        if max(arg_cols) != min(arg_cols):
-            raise TypeError(("All arguments to hstack must have "
-                             "the same number of rows."))
+        model = self.args[0].shape
+        error = ValueError(("All the input dimensions except"
+                            " for axis 1 must match exactly."))
+        for arg in self.args[1:]:
+            if len(arg.shape) != len(model):
+                raise error
+            elif len(model) > 1:
+                for i in range(len(model)):
+                    if i != 1 and arg.shape[i] != model[i]:
+                        raise error
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

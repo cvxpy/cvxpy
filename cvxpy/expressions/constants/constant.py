@@ -20,7 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
 
 
 class Constant(Leaf):
@@ -29,17 +28,12 @@ class Constant(Leaf):
     """
 
     def __init__(self, value):
-        # TODO HACK.
-        # A fix for c.T*x where c is a 1D array.
-        self.is_1D_array = False
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
                 value, convert_scalars=True)
             self._sparse = True
         else:
-            if isinstance(value, np.ndarray) and len(value.shape) == 1:
-                self.is_1D_array = True
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
@@ -49,11 +43,7 @@ class Constant(Leaf):
     def name(self):
         """The value as a string.
         """
-        # Reduce from a 1x1 matrix to a scalar.
-        if self.is_scalar():
-            return str(self.value[0, 0])
-        else:
-            return str(self.value)
+        return str(self.value)
 
     def constants(self):
         """Returns self as a constant.

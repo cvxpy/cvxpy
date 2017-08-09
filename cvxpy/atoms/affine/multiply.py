@@ -18,47 +18,31 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.promote import promote
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.expressions.expression import Expression
+from cvxpy.error import DCPError
 import numpy as np
 
 
-def multiply(lh_arg, rh_arg):
-    lh_arg = Expression.cast_to_const(lh_arg)
-    rh_arg = Expression.cast_to_const(rh_arg)
-    # Promotion via multiplication.
-    if lh_arg.is_scalar() or rh_arg.is_scalar():
-        return lh_arg * rh_arg
-    elif rh_arg.is_constant():
-        return Multiply(rh_arg, lh_arg)
-    else:
-        return Multiply(lh_arg, rh_arg)
-
-
-class Multiply(AffAtom):
+class multiply(AffAtom):
     """ Multiplies two expressions elementwise.
-
-    The first expression must be constant.
     """
 
-    def __init__(self, lh_const, rh_expr):
-        super(Multiply, self).__init__(lh_const, rh_expr)
+    def __init__(self, lh_expr, rh_expr):
+        lh_expr = multiply.cast_to_const(lh_expr)
+        rh_expr = multiply.cast_to_const(rh_expr)
+        if lh_expr.is_scalar() and not rh_expr.is_scalar():
+            lh_expr = promote(lh_expr, rh_expr.shape)
+        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
+            rh_expr = promote(rh_expr, lh_expr.shape)
+        super(multiply, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Multiplies the values elementwise.
         """
         return np.multiply(values[0], values[1])
-
-    def validate_arguments(self):
-        """Checks that the arguments are valid.
-
-           Left-hand argument must be constant.
-        """
-        if not self.args[0].is_constant():
-            raise ValueError(("The first argument to multiply must "
-                              "be constant."))
 
     def shape_from_args(self):
         """The sum of the argument dimensions - 1.
@@ -70,25 +54,26 @@ class Multiply(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
+    def is_atom_convex(self):
+        """Multiplication is convex (affine) in its arguments only if one of
+           the arguments is constant.
+        """
+        return self.args[0].is_constant() or self.args[1].is_constant()
+
+    def is_atom_concave(self):
+        """If the multiplication atom is convex, then it is affine.
+        """
+        return self.is_atom_convex()
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_nonneg()
+        return self.args[1-idx].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_nonpos()
-
-    def is_quadratic(self):
-        """Quadratic if x is quadratic.
-        """
-        return self.args[1].is_quadratic()
-
-    def is_qpwa(self):
-        """Quadratic of PWA if x is QPWA.
-        """
-        return self.args[1].is_qpwa()
+        return self.args[1-idx].is_nonpos()
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
@@ -106,6 +91,15 @@ class Multiply(AffAtom):
         Returns
         -------
         tuple
-            (LinOp for objective, list of constraints)
+            (LinOp for objective, list of exprraints)
         """
-        return (lu.multiply(arg_objs[0], arg_objs[1]), [])
+        # promote if necessary.
+        lhs = arg_objs[0]
+        rhs = arg_objs[1]
+        if lu.is_const(lhs):
+            return (lu.multiply(lhs, rhs), [])
+        elif lu.is_const(rhs):
+            return (lu.multiply(rhs, lhs), [])
+        else:
+            raise DCPError("Product of two non-exprant expressions is not "
+                           "DCP.")

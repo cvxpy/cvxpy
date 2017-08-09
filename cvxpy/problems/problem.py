@@ -32,7 +32,6 @@ import cvxpy.constraints.zero as eqc
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
-import numpy as np
 
 
 SolveResult = namedtuple(
@@ -62,7 +61,7 @@ class Problem(u.Canonical):
             raise DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
-        self._constraints = constraints
+        self._constraints = [c for c in constraints]
         # Cache the variables as a list.
         self._vars = self._variables()
         self._value = None
@@ -75,7 +74,7 @@ class Problem(u.Canonical):
         self._size_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
-        self.args = [objective, constraints]
+        self.args = [self._objective, self._constraints]
 
     @property
     def value(self):
@@ -581,7 +580,7 @@ class SizeMetrics(object):
         # num_scalar_variables
         self.num_scalar_variables = 0
         for var in problem.variables():
-            self.num_scalar_variables += np.prod(var.shape)
+            self.num_scalar_variables += var.size
 
         # num_scalar_data, max_data_dimension, and max_big_small_squared
         self.max_data_dimension = 0
@@ -590,9 +589,9 @@ class SizeMetrics(object):
         for const in problem.constants()+problem.parameters():
             big = 0
             # Compute number of data
-            self.num_scalar_data += np.prod(const.shape)
-            big = max(const.shape)
-            small = min(const.shape)
+            self.num_scalar_data += const.size
+            big = 1 if len(const.shape) == 0 else max(const.shape)
+            small = 1 if len(const.shape) == 0 else min(const.shape)
 
             # Get max data dimension:
             if self.max_data_dimension < big:
@@ -605,10 +604,10 @@ class SizeMetrics(object):
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "Zero":
-                self.num_scalar_eq_constr += np.prod(constraint.args[0].shape)
+                self.num_scalar_eq_constr += constraint.args[0].size
 
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "NonPos":
-                self.num_scalar_leq_constr += np.prod(constraint.args[0].shape)
+                self.num_scalar_leq_constr += constraint.args[0].size

@@ -30,29 +30,34 @@ class AxisAtom(Atom):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, expr, axis=None):
+    def __init__(self, expr, axis=None, keepdims=False):
         self.axis = axis
+        self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
     def shape_from_args(self):
         """Depends on axis.
         """
-        if self.axis is None:
-            return (1, 1)
-        elif self.axis == 0:
-            return (1, self.args[0].shape[1])
-        else:  # axis == 1.
-            return (self.args[0].shape[0], 1)
+        shape = list(self.args[0].shape)
+        if self.keepdims and self.axis is None:
+            shape = [1]*len(shape)
+        elif self.keepdims and self.axis is not None:
+            shape[self.axis] = 1
+        elif not self.keepdims and self.axis is None:
+            shape = []
+        else:
+            shape = shape[:self.axis] + shape[self.axis+1:]
+        return tuple(shape)
 
     def get_data(self):
         """Returns the axis being summed.
         """
-        return [self.axis]
+        return [self.axis, self.keepdims]
 
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.
         """
-        if self.axis is not None and self.axis not in [0, 1]:
+        if self.axis is not None and self.axis > self.args[0].ndim:
             raise ValueError("Invalid argument for axis.")
 
     def _axis_grad(self, values):
@@ -67,14 +72,13 @@ class AxisAtom(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        m = self.args[0].shape[0]
-        n = self.args[0].shape[1]
-        if self.axis is None:
-            value = np.reshape(values[0].T, (m*n, 1))
+        if self.axis is None or self.args[0].ndim < 2:
+            value = np.reshape(values[0].T, (self.args[0].size, 1))
             D = self._column_grad(value)
             if D is not None:
                 D = sp.csc_matrix(D)
         else:
+            m, n = self.args[0].shape
             if self.axis == 0:  # function apply to each column
                 D = sp.csc_matrix((m*n, n), dtype=np.float)
                 for i in range(n):

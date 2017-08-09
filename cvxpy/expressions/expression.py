@@ -129,7 +129,7 @@ class Expression(u.Canonical):
     def is_constant(self):
         """Is the expression constant?
         """
-        return len(self.variables()) == 0 or self.is_zero()
+        return len(self.variables()) == 0 or self.is_zero() or 0 in self.shape
 
     def is_affine(self):
         """Is the expression affine?
@@ -211,7 +211,7 @@ class Expression(u.Canonical):
 
     @abc.abstractproperty
     def shape(self):
-        """Returns the (row, col) dimensions of the expression.
+        """Returns a tuple of the expression dimensions.
         """
         return NotImplemented
 
@@ -219,7 +219,7 @@ class Expression(u.Canonical):
     def size(self):
         """Returns the number of entries in the expression.
         """
-        return np.prod(self.shape)
+        return np.prod(self.shape, dtype=int)
 
     @property
     def ndim(self):
@@ -227,27 +227,34 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
+    def flatten(self):
+        """Vectorizes the expression.
+        """
+        return cvxtypes.vec()(self)
+
     def is_scalar(self):
         """Is the expression a scalar?
         """
-        return self.shape == (1, 1)
+        return all(d == 1 for d in self.shape)
 
     def is_vector(self):
         """Is the expression a column or row vector?
         """
-        return min(self.shape) == 1
+        return self.ndim <= 1 or (self.ndim == 2 and min(self.shape) == 1)
 
     def is_matrix(self):
         """Is the expression a matrix?
         """
-        return self.shape[0] > 1 and self.shape[1] > 1
+        return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
 
     def __getitem__(self, key):
         """Return a slice/index into the expression.
         """
         # Returning self for scalars causes
         # the built-in sum to hang.
-        if ku.is_special_slice(key):
+        if isinstance(key, tuple) and len(key) == 0:
+            return self
+        elif ku.is_special_slice(key):
             return cvxtypes.index().get_special_slice(self, key)
         else:
             return cvxtypes.index()(self, key)
@@ -257,7 +264,7 @@ class Expression(u.Canonical):
         """The transpose of an expression.
         """
         # Transpose of a scalar is that scalar.
-        if self.is_scalar():
+        if self.ndim <= 1:
             return self
         else:
             return cvxtypes.transpose()(self)
@@ -302,32 +309,13 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """The product of two expressions.
         """
-        # Multiplying by a constant on the right is handled differently
-        # from multiplying by a constant on the left.
-        if self.is_constant():
-            # TODO HACK catch c.T*x where c is a NumPy 1D array.
-            if self.shape[0] == other.shape[0] and \
-               self.shape[1] != self.shape[0] and \
-               isinstance(self, cvxtypes.constant()) and self.is_1D_array:
-                self = self.T
-
-        if self.is_constant() or other.is_constant():
-            if other.is_scalar() and self.shape[1] != 1:
-                lh_arg = cvxtypes.reshape()(self, (self.size, 1))
-                prod = cvxtypes.mul_expr()(lh_arg, other)
-                return cvxtypes.reshape()(prod, self.shape)
-            elif self.is_scalar() and other.shape[0] != 1:
-                lh_arg = cvxtypes.reshape()(other, (other.size, 1))
-                prod = cvxtypes.mul_expr()(lh_arg, self)
-                return cvxtypes.reshape()(prod, other.shape)
-            else:
-                return cvxtypes.mul_expr()(self, other)
-        elif self.is_affine() and other.is_affine():
-            warnings.warn("Forming a nonconvex expression (affine)*(affine).")
+        if self.is_scalar() or other.is_scalar():
+            return cvxtypes.multiply_expr()(self, other)
+        elif self.is_constant() or other.is_constant():
             return cvxtypes.mul_expr()(self, other)
-        elif not (self.is_constant() or other.is_constant()):
-            raise DCPError("Cannot multiply %s and %s." % (self.curvature,
-                                                           other.curvature))
+        else:
+            warnings.warn("Forming a nonconvex expression.")
+            return cvxtypes.mul_expr()(self, other)
 
     @_cast_other
     def __matmul__(self, other):
@@ -426,7 +414,7 @@ class Expression(u.Canonical):
     def __lt__(self, other):
         """Returns an inequality constraint.
         """
-        return self <= other
+        raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
     def __ge__(self, other):
@@ -437,4 +425,4 @@ class Expression(u.Canonical):
     def __gt__(self, other):
         """Returns an inequality constraint.
         """
-        return self >= other
+        raise NotImplementedError("Strict inequalities are not allowed.")

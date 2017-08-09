@@ -93,8 +93,8 @@ class maximum(Elementwise):
         unused = np.matrix(np.ones(max_vals.shape), dtype=bool)
         grad_list = []
         for idx, value in enumerate(values):
-            rows = self.args[idx].shape[0]*self.args[idx].shape[1]
-            cols = self.shape[0]*self.shape[1]
+            rows = self.args[idx].size
+            cols = self.size
             grad_vals = (value == max_vals) & unused
             # Remove all the max_vals that were used.
             unused[value == max_vals] = 0

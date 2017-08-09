@@ -47,7 +47,7 @@ class Constraint(u.Canonical):
             self.constr_id = lu.get_id()
         else:
             self.constr_id = constr_id
-        self.dual_variables = [cvxtypes.variable()(*arg.shape) for arg in args]
+        self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
         super(Constraint, self).__init__()
 
     @property

@@ -40,7 +40,10 @@ class Leaf(expression.Expression):
                  sparsity=None):
         """
         Args:
-          shape: The leaf dimensions.
+          shape: The leaf dimensions: either an integer n, which creates
+                 a column vector of shape (n, 1), or a tuple, which carries
+                 the same semantics as NumPy ndarrays. Shapes cannot be more
+                 than 2D.
           value: A value to assign to the leaf.
           nonneg: Is the variable constrained to be nonnegative?
           nonpos: Is the variable constrained to be nonpositive?
@@ -60,17 +63,20 @@ class Leaf(expression.Expression):
                    boolean argument.
           sparsity: Fixed sparsity pattern for the variable.
         """
-        # TODO remove after adding 0D and 1D support.
         if isinstance(shape, int):
-            shape = (shape, 1)
-        elif len(shape) == 0:
-            shape = (1, 1)
-        elif len(shape) == 1:
-            shape = (shape[0], 1)
-        self._shape = shape
+            shape = (shape,)
+        elif len(shape) > 2:
+            raise ValueError("Expressions of dimension greater than 2 "
+                             "are not supported.")
+        for d in shape:
+            if not isinstance(d, int) or d <= 0:
+                raise ValueError("Invalid dimensions %s." % (shape,))
+        self._shape = tuple(int(d) for d in shape)
 
-        if (PSD or NSD or symmetric or diag) and shape[0] != shape[1]:
-            raise ValueError("Invalid dimensions %s. Must be a square matrix." % (shape,))
+        if (PSD or NSD or symmetric or diag) and (len(shape) != 2
+                                                  or shape[0] != shape[1]):
+            raise ValueError("Invalid dimensions %s. Must be a square matrix."
+                             % (shape,))
 
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
@@ -82,13 +88,13 @@ class Leaf(expression.Expression):
 
         if boolean:
             self.boolean_idx = boolean if not type(boolean) == bool else list(
-                np.ndindex(shape))
+                np.ndindex(max(shape, (1,))))
         else:
             self.boolean_idx = []
 
         if integer:
             self.integer_idx = integer if not type(integer) == bool else list(
-                np.ndindex(shape))
+                np.ndindex(max(shape, (1,))))
         else:
             self.integer_idx = []
 
@@ -175,7 +181,7 @@ class Leaf(expression.Expression):
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
-        return self.attributes['nonneg']
+        return self.attributes['nonneg'] or self.attributes['boolean']
 
     def is_nonpos(self):
         """Is the expression nonpositive?
@@ -210,9 +216,13 @@ class Leaf(expression.Expression):
         """
         # Only one attribute can be active at once (besides real).
         if self.attributes['nonpos']:
-            return np.minimum(val, 0)
+            return np.minimum(val, 0.)
         elif self.attributes['nonneg']:
-            return np.maximum(val, 0)
+            return np.maximum(val, 0.)
+        elif self.attributes['boolean']:
+            return np.round(np.clip(val, 0., 1.))
+        elif self.attributes['integer']:
+            return np.round(val)
         elif self.attributes['diag']:
             return sp.diags([np.diag(val)], [0])
         elif any([self.attributes[key] for
@@ -250,30 +260,21 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (val.shape, self.__class__.__name__)
                 )
-            elif self.attributes['nonneg'] and np.min(val) < 0:
+            elif np.any(self.round(val) != val):
+                if self.attributes['nonneg']:
+                    attr_str = 'nonnegative'
+                elif self.attributes['nonpos']:
+                    attr_str = 'nonpositive'
+                elif self.attributes['diag']:
+                    attr_str = 'diagonal'
+                elif self.attributes['PSD']:
+                    attr_str = 'positive semidefinite'
+                elif self.attributes['NSD']:
+                    attr_str = 'negative semidefinite'
+                else:
+                    attr_str = [k for (k, v) in self.attributes.items() if v and k != 'real'][0]
                 raise ValueError(
-                    "%s value must be nonnegative." % self.__class__.__name__
-                )
-            elif self.attributes['nonpos'] and np.max(val) > 0:
-                raise ValueError(
-                    "%s value must be nonpositive." % self.__class__.__name__
-                )
-            elif self.attributes['diag'] and np.sum(np.abs(val)) != np.sum(np.abs(np.diag(val))):
-                raise ValueError(
-                    "%s value must be diagonal." % self.__class__.__name__
-                )
-            elif any([self.attributes[key] for
-                      key in ['symmetric', 'PSD', 'NSD']]) and np.any(val != val.T):
-                raise ValueError(
-                    "%s value must be symmetric." % self.__class__.__name__
-                )
-            elif self.attributes['PSD'] and np.min(LA.eig(val)[0]) < 0:
-                raise ValueError(
-                    "%s value must be positive semidefinite." % self.__class__.__name__
-                )
-            elif self.attributes['NSD'] and np.max(LA.eig(val)[0]) > 0:
-                raise ValueError(
-                    "%s value must be negative semidefinite." % self.__class__.__name__
+                    "%s value must be %s." % (self.__class__.__name__, attr_str)
                 )
         return val
 

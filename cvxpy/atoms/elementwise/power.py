@@ -248,8 +248,8 @@ class power(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.shape[0]*self.shape[1]
+        rows = self.args[0].size
+        cols = self.size
         if self.p == 0:
             # All zeros.
             return [sp.csc_matrix((rows, cols), dtype='float64')]

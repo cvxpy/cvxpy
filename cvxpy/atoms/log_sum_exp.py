@@ -30,14 +30,14 @@ class log_sum_exp(AxisAtom):
 
     """
 
-    def __init__(self, x, axis=None):
-        super(log_sum_exp, self).__init__(x, axis=axis)
+    def __init__(self, x, axis=None, keepdims=False):
+        super(log_sum_exp, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric
     def numeric(self, values):
         """Evaluates e^x elementwise, sums, and takes the log.
         """
-        return logsumexp(values[0], axis=self.axis, keepdims=True)
+        return logsumexp(values[0], axis=self.axis, keepdims=self.keepdims)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

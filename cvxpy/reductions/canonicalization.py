@@ -65,6 +65,7 @@ class Canonicalization(Reduction):
                         solution.attr)
 
     def canonicalize_tree(self, expr):
+        # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
             canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr)
             for constr in expr.args[0].constraints:

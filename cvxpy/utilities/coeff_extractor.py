@@ -21,11 +21,11 @@ from __future__ import division
 
 import operator
 
-import canonInterface
 import numpy as np
 import scipy.sparse as sp
 
 import cvxpy
+from cvxpy.CVXcanon import canonInterface
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms
@@ -52,8 +52,8 @@ class CoeffExtractor(object):
             raise Exception("Unknown expression type %s." % type(expr))
 
     def constant(self, expr):
-        size = expr.shape[0]*expr.shape[1]
-        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size, 1),
+        size = expr.size
+        return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size,),
                                                          order='F')
 
     def affine(self, expr):
@@ -73,11 +73,10 @@ class CoeffExtractor(object):
         """
         if not expr.is_affine():
             raise ValueError("Expression is not affine")
-        size = expr.shape[0]*expr.shape[1]
         s, _ = expr.canonical_form
         V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)],
                                                        self.id_map)
-        A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
+        A = sp.csr_matrix((V, (I, J)), shape=(expr.size, self.N))
         return A, b.flatten()
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
@@ -117,7 +116,7 @@ class CoeffExtractor(object):
                     coeffs[orig_id]['q'] = np.zeros(P.shape[0])
             else:
                 var_offset = affine_id_map[var.id][0]
-                var_size = np.prod(affine_var_shapes[var.id])
+                var_size = np.prod(affine_var_shapes[var.id], dtype=int)
                 if var.id in coeffs:
                     coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
                     coeffs[var.id]['q'] += c[
@@ -157,7 +156,7 @@ class CoeffExtractor(object):
                 q = np.concatenate([q, coeffs[var_id]['q']])
             else:
                 shape = self.var_shapes[var_id]
-                size = shape[0]*shape[1]
+                size = np.prod(shape, dtype=int)
                 P = sp.block_diag([P, sp.csr_matrix((size, size))])
                 q = np.concatenate([q, np.zeros(size)])
 

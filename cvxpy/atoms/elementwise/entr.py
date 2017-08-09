@@ -31,13 +31,15 @@ class entr(Elementwise):
     def __init__(self, x):
         super(entr, self).__init__(x)
 
-    @Elementwise.numpy_numeric
     def numeric(self, values):
         x = values[0]
         results = -xlogy(x, x)
         # Return -inf outside the domain
-        results[np.isnan(results)] = -np.inf
-        return results
+        if np.isscalar(results):
+            return -np.inf
+        else:
+            results[np.isnan(results)] = -np.inf
+            return results
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -76,8 +78,8 @@ class entr(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.shape[0]*self.shape[1]
+        rows = self.args[0].size
+        cols = self.size
         # Outside domain or on boundary.
         if np.min(values[0]) <= 0:
             # Non-differentiable.

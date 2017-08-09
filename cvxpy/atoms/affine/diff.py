@@ -37,17 +37,17 @@ def diff(x, k=1, axis=0):
     diff(x, 0) returns the vector x unchanged
     """
     x = Expression.cast_to_const(x)
-    if axis == 1:
+    if (axis == 1 and x.ndim < 2) or x.ndim == 0:
+        raise ValueError("Invalid axis given input dimensions.")
+    elif axis == 0:
         x = x.T
-    m, n = x.shape
-    if k < 0 or k >= m:
-        raise ValueError('Must have k >= 0 and X must have < k elements along axis')
 
-    d = x
+    if k < 0 or k >= x.shape[axis]:
+        raise ValueError("Must have k >= 0 and X must have < k elements along "
+                         "axis")
     for i in range(k):
-        d = d[1:, :] - d[:-1, :]
-
-    if axis == 1:
-        return d.T
-    else:
-        return d
+        if x.ndim == 2:
+            x = x[1:, :] - x[:-1, :]
+        else:
+            x = x[1:] - x[:-1]
+    return x.T if axis == 1 else x

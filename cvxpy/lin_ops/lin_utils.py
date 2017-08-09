@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
+import cvxpy.utilities as u
 import numpy as np
 
 # Utility functions for dealing with LinOp.
@@ -121,6 +122,21 @@ def create_const(value, shape, sparse=False):
     return lo.LinOp(op_type, shape, [], value)
 
 
+def is_scalar(operator):
+    """Returns whether a LinOp is a scalar.
+
+    Parameters
+    ----------
+    operator : LinOp
+        The LinOp to test.
+
+    Returns
+    -------
+        True if the LinOp is a scalar, False otherwise.
+    """
+    return len(operator.shape) == 0 or np.prod(operator.shape, dtype=int) == 1
+
+
 def is_const(operator):
     """Returns whether a LinOp is constant.
 
@@ -186,6 +202,34 @@ def sub_expr(lh_op, rh_op):
     return sum_expr([lh_op, neg_expr(rh_op)])
 
 
+def promote_lin_ops_for_mul(lh_op, rh_op):
+    """Promote arguments for multiplication.
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the multiplication.
+    rh_op : LinOp
+        The right-hand operator in the multiplication.
+
+    Returns
+    -------
+    LinOp
+       Promoted left-hand operator.
+    LinOp
+       Promoted right-hand operator.
+    tuple
+       Shape of the product
+    """
+    lh_shape, rh_shape, shape = u.shape.mul_shapes_promote(
+        lh_op.shape, rh_op.shape)
+    lh_op = lo.LinOp(lh_op.type, lh_shape, lh_op.args,
+                     lh_op.data)
+    rh_op = lo.LinOp(rh_op.type, rh_shape, rh_op.args,
+                     rh_op.data)
+    return lh_op, rh_op, shape
+
+
 def mul_expr(lh_op, rh_op, shape):
     """Multiply two linear operators, with the constant on the left.
 
@@ -195,8 +239,6 @@ def mul_expr(lh_op, rh_op, shape):
         The left-hand operator in the product.
     rh_op : LinOp
         The right-hand operator in the product.
-    shape : tuple
-        The shape of the product.
 
     Returns
     -------
@@ -302,20 +344,22 @@ def promote(operator, shape):
     return lo.LinOp(lo.PROMOTE, shape, [operator], None)
 
 
-def sum_entries(operator):
+def sum_entries(operator, shape):
     """Sum the entries of an operator.
 
     Parameters
     ----------
     expr : LinOp
         The operator to sum the entries of.
+    shape : tuple
+        The shape of the sum.
 
     Returns
     -------
     LinOp
         An operator representing the sum.
     """
-    return lo.LinOp(lo.SUM_ENTRIES, (1, 1), [operator], None)
+    return lo.LinOp(lo.SUM_ENTRIES, shape, [operator], None)
 
 
 def trace(operator):
@@ -387,8 +431,13 @@ def transpose(operator):
     LinOp
        A linear operator representing the transpose.
     """
-    shape = (operator.shape[1], operator.shape[0])
-    return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
+    if len(operator.shape) < 2:
+        return operator
+    elif len(operator.shape) > 2:
+        return NotImplemented
+    else:
+        shape = (operator.shape[1], operator.shape[0])
+        return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)
 
 
 def reshape(operator, shape):

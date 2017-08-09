@@ -67,7 +67,7 @@ class sum_largest(Atom):
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return (1, 1)
+        return tuple()
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

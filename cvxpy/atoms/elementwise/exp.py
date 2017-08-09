@@ -72,8 +72,8 @@ class exp(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.shape[0]*self.shape[1]
+        rows = self.args[0].size
+        cols = self.size
         grad_vals = np.exp(values[0])
         return [exp.elemwise_grad_to_diag(grad_vals, rows, cols)]
 

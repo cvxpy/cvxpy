@@ -23,7 +23,7 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.problems.problem import Problem
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.expression import Expression
-from cvxpy.atoms import trace
+from cvxpy.atoms import trace, sum
 
 
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
@@ -126,7 +126,7 @@ class PartialProblem(Expression):
     def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
-        return (1, 1)
+        return tuple()
 
     def name(self):
         """Returns the string representation of the expression.
@@ -188,7 +188,11 @@ class PartialProblem(Expression):
             for constr in self.args[0].constraints:
                 # TODO: better way to get constraint expressions.
                 lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
-                lagr += trace(lagr_multiplier.T*constr.expr)
+                prod = lagr_multiplier.T*constr.expr
+                if prod.is_scalar():
+                    lagr += sum(prod)
+                else:
+                    lagr += trace(prod)
             grad_map = lagr.grad
             result = {var: grad_map[var] for var in self.dont_opt_vars}
         else:  # Unbounded, infeasible, or solver error.

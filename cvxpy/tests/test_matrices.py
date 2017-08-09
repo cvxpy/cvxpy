@@ -57,20 +57,20 @@ class TestMatrices(unittest.TestCase):
     # Test numpy arrays
     def test_numpy_arrays(self):
         # Vector
-        v = numpy.arange(2).reshape((2, 1))
-        self.assertExpression(self.x + v, (2, 1))
-        self.assertExpression(v + self.x, (2, 1))
-        self.assertExpression(self.x - v, (2, 1))
-        self.assertExpression(v - self.x, (2, 1))
-        self.assertExpression(self.x <= v, (2, 1))
-        self.assertExpression(v <= self.x, (2, 1))
-        self.assertExpression(self.x == v, (2, 1))
-        self.assertExpression(v == self.x, (2, 1))
+        v = numpy.arange(2)
+        self.assertExpression(self.x + v, (2,))
+        self.assertExpression(v + self.x, (2,))
+        self.assertExpression(self.x - v, (2,))
+        self.assertExpression(v - self.x, (2,))
+        self.assertExpression(self.x <= v, (2,))
+        self.assertExpression(v <= self.x, (2,))
+        self.assertExpression(self.x == v, (2,))
+        self.assertExpression(v == self.x, (2,))
         # Matrix
         A = numpy.arange(8).reshape((4, 2))
-        self.assertExpression(A*self.x, (4, 1))
+        self.assertExpression(A*self.x, (4,))
         if PY35:
-            self.assertExpression(self.x.__rmatmul__(A), (4, 1))
+            self.assertExpression(self.x.__rmatmul__(A), (4,))
         # PSD inequalities.
         A = numpy.ones((2, 2))
         self.assertExpression(A << self.A, (2, 2))
@@ -79,21 +79,21 @@ class TestMatrices(unittest.TestCase):
     # Test numpy matrices
     def test_numpy_matrices(self):
         # Vector
-        v = numpy.matrix(numpy.arange(2).reshape((2, 1)))
-        self.assertExpression(self.x + v, (2, 1))
-        self.assertExpression(v + v + self.x, (2, 1))
-        self.assertExpression(self.x - v, (2, 1))
-        self.assertExpression(v - v - self.x, (2, 1))
-        self.assertExpression(self.x <= v, (2, 1))
-        self.assertExpression(v <= self.x, (2, 1))
-        self.assertExpression(self.x == v, (2, 1))
-        self.assertExpression(v == self.x, (2, 1))
+        v = numpy.arange(2)
+        self.assertExpression(self.x + v, (2,))
+        self.assertExpression(v + v + self.x, (2,))
+        self.assertExpression(self.x - v, (2,))
+        self.assertExpression(v - v - self.x, (2,))
+        self.assertExpression(self.x <= v, (2,))
+        self.assertExpression(v <= self.x, (2,))
+        self.assertExpression(self.x == v, (2,))
+        self.assertExpression(v == self.x, (2,))
         # Matrix
         A = numpy.matrix(numpy.arange(8).reshape((4, 2)))
-        self.assertExpression(A*self.x, (4, 1))
-        self.assertExpression((A.T*A) * self.x, (2, 1))
+        self.assertExpression(A*self.x, (4,))
+        self.assertExpression((A.T*A) * self.x, (2,))
         if PY35:
-            self.assertExpression(self.x.__rmatmul__(A), (4, 1))
+            self.assertExpression(self.x.__rmatmul__(A), (4,))
         # PSD inequalities.
         A = numpy.matrix(numpy.ones((2, 2)))
         self.assertExpression(A << self.A, (2, 2))
@@ -102,15 +102,15 @@ class TestMatrices(unittest.TestCase):
     def test_numpy_scalars(self):
         """Test numpy scalars."""
         v = numpy.float64(2.0)
-        self.assertExpression(self.x + v, (2, 1))
-        self.assertExpression(v + self.x, (2, 1))
-        self.assertExpression(v * self.x, (2, 1))
-        self.assertExpression(self.x - v, (2, 1))
-        self.assertExpression(v - v - self.x, (2, 1))
-        self.assertExpression(self.x <= v, (2, 1))
-        self.assertExpression(v <= self.x, (2, 1))
-        self.assertExpression(self.x == v, (2, 1))
-        self.assertExpression(v == self.x, (2, 1))
+        self.assertExpression(self.x + v, (2,))
+        self.assertExpression(v + self.x, (2,))
+        self.assertExpression(v * self.x, (2,))
+        self.assertExpression(self.x - v, (2,))
+        self.assertExpression(v - v - self.x, (2,))
+        self.assertExpression(self.x <= v, (2,))
+        self.assertExpression(v <= self.x, (2,))
+        self.assertExpression(self.x == v, (2,))
+        self.assertExpression(v == self.x, (2,))
         # PSD inequalities.
         self.assertExpression(v << self.A, (2, 2))
         self.assertExpression(v >> self.A, (2, 2))

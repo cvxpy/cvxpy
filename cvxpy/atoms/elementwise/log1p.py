@@ -52,8 +52,8 @@ class log1p(log):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.shape[0]*self.shape[1]
+        rows = self.args[0].size
+        cols = self.size
         # Outside domain or on boundary.
         if np.min(values[0]) <= -1:
             # Non-differentiable.

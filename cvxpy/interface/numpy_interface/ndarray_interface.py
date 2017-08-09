@@ -39,18 +39,14 @@ class NDArrayInterface(base.BaseMatrixInterface):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        if isinstance(value, list):
-            value = numpy.atleast_2d(value).astype(numpy.float64)
-            value = value.T
-        elif scipy.sparse.issparse(value):
-            value = value.A.astype(numpy.float64)
+        if scipy.sparse.issparse(value):
+            return value.A.astype(numpy.float64)
         elif isinstance(value, numpy.matrix):
-            value = value.A.astype(numpy.float64)
-        elif isinstance(value, numpy.ndarray) and len(value.shape) == 1:
-            value = numpy.atleast_2d(value).T.astype(numpy.float64)
+            return value.A.astype(numpy.float64)
+        elif isinstance(value, list):
+            return numpy.asarray(value, dtype=numpy.float64).T
         else:
-            value = numpy.atleast_2d(value).astype(numpy.float64)
-        return value
+            return numpy.asarray(value, dtype=numpy.float64)
 
     # Return an identity matrix.
     def identity(self, size):
@@ -58,17 +54,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Return the dimensions of the matrix.
     def shape(self, matrix):
-        # Scalars.
-        if len(matrix.shape) == 0:
-            return (1, 1)
-        # 1D arrays are treated as column vectors.
-        elif len(matrix.shape) == 1:
-            return (int(matrix.size), 1)
-        # 2D arrays.
-        else:
-            rows = int(matrix.shape[0])
-            cols = int(matrix.shape[1])
-            return (rows, cols)
+        return tuple(int(d) for d in matrix.shape)
 
     def size(self, matrix):
         """Returns the number of elements in the matrix.
@@ -80,8 +66,8 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return numpy.asscalar(matrix)
 
     # A matrix with all entries equal to the given scalar value.
-    def scalar_matrix(self, value, rows, cols):
-        return numpy.zeros((rows, cols), dtype='float64') + value
+    def scalar_matrix(self, value, shape):
+        return numpy.zeros(shape, dtype='float64') + value
 
     def reshape(self, matrix, size):
         return numpy.reshape(matrix, size, order='F')

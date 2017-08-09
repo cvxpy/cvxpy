@@ -106,7 +106,7 @@ class TestProblem(BaseTest):
         """Test the constants method.
         """
         c1 = numpy.random.randn(1, 2)
-        c2 = numpy.random.randn(2, 1)
+        c2 = numpy.random.randn(2)
         p = Problem(cvx.Minimize(c1*self.x), [self.x >= c2])
         constants_ = p.constants()
         ref = [c1, c2]
@@ -120,14 +120,13 @@ class TestProblem(BaseTest):
         # Single scalar constants
         p = Problem(cvx.Minimize(self.a), [self.x >= 1])
         constants_ = p.constants()
-        ref = [numpy.matrix(1)]
+        ref = [numpy.array(1)]
         self.assertEqual(len(ref), len(constants_))
         for c, r in zip(constants_, ref):
             self.assertEqual(c.shape, r.shape) and \
             self.assertTrue((c.value == r).all())
             # Allows comparison between numpy matrices and numpy arrays
             # Necessary because of the way cvxpy handles numpy arrays and constants
-
 
     def test_size_metrics(self):
         """Test the size_metrics method.
@@ -278,7 +277,7 @@ class TestProblem(BaseTest):
                     p.solve(verbose=verbose, solver=solver)
 
                 if PSD in SOLVER_MAP[solver].SUPPORTED_CONSTRAINTS:
-                    p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a) >= 2])
+                    p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a[None, None]) >= 2])
                     p.solve(verbose=verbose, solver=solver)
 
                 if solver == "ELEMENTAL":
@@ -616,7 +615,7 @@ class TestProblem(BaseTest):
     # Test vector LP problems.
     def test_vector_lp(self):
         c = Constant(numpy.matrix([1, 2]).T).value
-        p = Problem(cvx.Minimize(c.T*self.x), [self.x >= c])
+        p = Problem(cvx.Minimize(c.T*self.x), [self.x[:,None] >= c])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
@@ -701,7 +700,7 @@ class TestProblem(BaseTest):
         p3 = Parameter((4, 4), nonneg=True)
         p = Problem(cvx.Maximize(p1*self.a), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         p1.value = 2
-        p2.value = -numpy.ones((3, 1))
+        p2.value = -numpy.ones((3,))
         p3.value = numpy.ones((4, 4))
         result = p.solve()
         self.assertAlmostEqual(result, -6)
@@ -770,40 +769,39 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(float(list(self.x.value)[1] - list(self.z.value)[1]), 7)
 
     # Test problems with norm2
-    # Fails with Segfault from Eigen!
-    # def test_norm2(self):
-    #     # Constant argument.
-    #     p = Problem(cvx.Minimize(cvx.norm2(-2)))
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
+    def test_norm2(self):
+        # Constant argument.
+        p = Problem(cvx.Minimize(cvx.norm2(-2)))
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
 
-    #     # Scalar arguments.
-    #     p = Problem(cvx.Minimize(cvx.norm2(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # Scalar arguments.
+        p = Problem(cvx.Minimize(cvx.norm2(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, 2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # cvx.Maximize
-    #     p = Problem(cvx.Maximize(-norm2(self.a)), [self.a <= -2])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, -2)
-    #     self.assertAlmostEqual(self.a.value, -2)
+        # cvx.Maximize
+        p = Problem(cvx.Maximize(-cvx.norm2(self.a)), [self.a <= -2])
+        result = p.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertAlmostEqual(self.a.value, -2)
 
-    #     # Vector arguments.
-    #     p = Problem(cvx.Minimize(cvx.norm2(self.x - self.z) + 5),
-    #                 [self.x >= [2, 3], self.z <= [-1, -4]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 12.61577)
-    #     self.assertItemsAlmostEqual(self.x.value, [2, 3])
-    #     self.assertItemsAlmostEqual(self.z.value, [-1, -4])
+        # Vector arguments.
+        p = Problem(cvx.Minimize(cvx.norm2(self.x - self.z) + 5),
+                    [self.x >= [2, 3], self.z <= [-1, -4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12.61577)
+        self.assertItemsAlmostEqual(self.x.value, [2, 3])
+        self.assertItemsAlmostEqual(self.z.value, [-1, -4])
 
-    #     # Row  arguments.
-    #     p = Problem(cvx.Minimize(cvx.norm2((self.x - self.z).T) + 5),
-    #                 [self.x >= [2, 3], self.z <= [-1, -4]])
-    #     result = p.solve()
-    #     self.assertAlmostEqual(result, 12.61577)
-    #     self.assertItemsAlmostEqual(self.x.value, [2, 3])
-    #     self.assertItemsAlmostEqual(self.z.value, [-1, -4])
+        # Row  arguments.
+        p = Problem(cvx.Minimize(cvx.norm2((self.x - self.z).T) + 5),
+                    [self.x >= [2, 3], self.z <= [-1, -4]])
+        result = p.solve()
+        self.assertAlmostEqual(result, 12.61577)
+        self.assertItemsAlmostEqual(self.x.value, [2, 3])
+        self.assertItemsAlmostEqual(self.z.value, [-1, -4])
 
     # Test problems with abs
     def test_abs(self):
@@ -862,8 +860,9 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 10)
         self.assertAlmostEqual(self.a.value, 2)
 
-    # Test recovery of dual variables.
     def test_dual_variables(self):
+        """Test recovery of dual variables.
+        """
         for solver in [s.ECOS, s.SCS, s.CVXOPT]:
             if solver in INSTALLED_SOLVERS:
                 if solver == s.SCS:
@@ -898,7 +897,7 @@ class TestProblem(BaseTest):
     # Test problems with indexing.
     def test_indexing(self):
         # Vector variables
-        p = Problem(cvx.Maximize(self.x[0, 0]), [self.x[0, 0] <= 2, self.x[1, 0] == 3])
+        p = Problem(cvx.Maximize(self.x[0]), [self.x[0] <= 2, self.x[1] == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 2)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
@@ -921,7 +920,7 @@ class TestProblem(BaseTest):
 
         # Indexing arithmetic expressions.
         exp = [[1, 2], [3, 4]]*self.z + self.x
-        p = Problem(cvx.Minimize(exp[1, 0]), [self.x == self.z, self.z == [1, 2]])
+        p = Problem(cvx.Minimize(exp[1]), [self.x == self.z, self.z == [1, 2]])
         result = p.solve()
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
@@ -1003,75 +1002,87 @@ class TestProblem(BaseTest):
 
     # Test the vstack atom.
     def test_vstack(self):
+        a = Variable((1, 1), name='a')
+        b = Variable((1, 1), name='b')
+
+        x = Variable((2, 1), name='x')
+        y = Variable((3, 1), name='y')
+
         c = numpy.ones((1, 5))
-        p = Problem(cvx.Minimize(c * cvx.vstack(self.x, self.y)),
-                    [self.x == [1, 2],
-                     self.y == [3, 4, 5]])
+        p = Problem(cvx.Minimize(c * cvx.vstack([x, y])),
+                    [x == [[1, 2]],
+                     y == [[3, 4, 5]]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
-        p = Problem(cvx.Minimize(c * cvx.vstack(self.x, self.x)),
-                    [self.x == [1, 2]])
+        p = Problem(cvx.Minimize(c * cvx.vstack([x, x])),
+                    [x == [[1, 2]]])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
-        p = Problem(cvx.Minimize(cvx.sum(cvx.vstack(self.A, self.C))),
+        p = Problem(cvx.Minimize(cvx.sum(cvx.vstack([self.A, self.C]))),
                     [self.A >= 2*c,
                      self.C == -2])
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
         c = numpy.ones((1, 2))
-        p = Problem(cvx.Minimize(cvx.sum(cvx.vstack(c*self.A, c*self.B))),
+        p = Problem(cvx.Minimize(cvx.sum(cvx.vstack([c*self.A, c*self.B]))),
                     [self.A >= 2,
                      self.B == -2])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
         c = numpy.matrix([1, -1]).T
-        p = Problem(cvx.Minimize(c.T * cvx.vstack(cvx.square(self.a), cvx.sqrt(self.b))),
-                    [self.a == 2,
-                     self.b == 16])
+        p = Problem(cvx.Minimize(c.T * cvx.vstack([cvx.square(a), cvx.sqrt(b)])),
+                    [a == 2,
+                     b == 16])
         with self.assertRaises(Exception) as cm:
             p.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     # Test the hstack atom.
     def test_hstack(self):
+        a = Variable((1, 1), name='a')
+        b = Variable((1, 1), name='b')
+
+        x = Variable((2, 1), name='x')
+        y = Variable((3, 1), name='y')
+
         c = numpy.ones((1, 5))
-        p = Problem(cvx.Minimize(c * cvx.hstack(self.x.T, self.y.T).T),
-                    [self.x == [1, 2],
-                     self.y == [3, 4, 5]])
+        p = Problem(cvx.Minimize(c * cvx.hstack([x.T, y.T]).T),
+                    [x == [[1, 2]],
+                     y == [[3, 4, 5]]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
-        p = Problem(cvx.Minimize(c * cvx.hstack(self.x.T, self.x.T).T),
-                    [self.x == [1, 2]])
+        p = Problem(cvx.Minimize(c * cvx.hstack([x.T, x.T]).T),
+                    [x == [[1, 2]]])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
-        p = Problem(cvx.Minimize(cvx.sum(cvx.hstack(self.A.T, self.C.T))),
+        p = Problem(cvx.Minimize(cvx.sum(cvx.hstack([self.A.T, self.C.T]))),
                     [self.A >= 2*c,
                      self.C == -2])
         result = p.solve()
         self.assertAlmostEqual(result, -4)
 
         D = Variable((3, 3))
-        expr = cvx.hstack(self.C, D)
-        p = Problem(cvx.Minimize(expr[0, 1] + cvx.sum(cvx.hstack(expr, expr))),
+        expr = cvx.hstack([self.C, D])
+        p = Problem(cvx.Minimize(expr[0, 1] + cvx.sum(cvx.hstack([expr, expr]))),
                     [self.C >= 0,
                      D >= 0, D[0, 0] == 2, self.C[0, 1] == 3])
         result = p.solve()
         self.assertAlmostEqual(result, 13)
 
         c = numpy.matrix([1, -1]).T
-        p = Problem(cvx.Minimize(c.T * cvx.hstack(cvx.square(self.a).T, cvx.sqrt(self.b).T).T),
-                    [self.a == 2,
-                     self.b == 16])
+        p = Problem(cvx.Minimize(c.T * cvx.hstack([cvx.square(a).T, cvx.sqrt(b).T]).T),
+                    [a == 2,
+                     b == 16])
         with self.assertRaises(Exception) as cm:
             p.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
@@ -1085,7 +1096,7 @@ class TestProblem(BaseTest):
 
     # Test variable transpose.
     def test_transpose(self):
-        p = Problem(cvx.Minimize(cvx.sum(self.x)), [self.x.T >= numpy.matrix([1, 2])])
+        p = Problem(cvx.Minimize(cvx.sum(self.x)), [self.x[None,:] >= numpy.matrix([1, 2])])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
@@ -1112,7 +1123,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -2)
 
         c = numpy.matrix([1, -1]).T
-        p = Problem(cvx.Minimize(cvx.maximum(c.T, 2, 2 + c.T)[1]))
+        p = Problem(cvx.Minimize(cvx.maximum(c.T, 2, 2 + c.T)[0,1]))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
 
@@ -1254,7 +1265,7 @@ class TestProblem(BaseTest):
         import scipy.sparse as sp
         interface = intf.get_matrix_interface(sp.csc_matrix)
         c = interface.const_to_matrix([1, 2])
-        expr = cvx.multiply(c, self.x)
+        expr = cvx.multiply(c, self.x[:,None])
         obj = cvx.Minimize(cvx.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
         result = p.solve()
@@ -1277,7 +1288,7 @@ class TestProblem(BaseTest):
             Problem(cvx.Minimize(Variable(boolean=True))).solve(solver=s.ECOS)
 
         with self.assertRaises(SolverError) as cm:
-            Problem(cvx.Minimize(cvx.lambda_max(self.a))).solve(solver=s.ECOS)
+            Problem(cvx.Minimize(cvx.lambda_max(self.A))).solve(solver=s.ECOS)
 
         with self.assertRaises(SolverError) as cm:
             Problem(cvx.Minimize(self.a)).solve(solver=s.SCS)
@@ -1295,7 +1306,7 @@ class TestProblem(BaseTest):
         vec_mat = numpy.matrix([[1, 2], [3, 4]]).T
         expr = cvx.reshape(x, (2, 2))
         obj = cvx.Minimize(cvx.sum(mat*expr))
-        prob = Problem(obj, [x == vec])
+        prob = Problem(obj, [x[:,None] == vec])
         result = prob.solve()
         self.assertAlmostEqual(result, numpy.sum(mat*vec_mat))
 
@@ -1557,12 +1568,12 @@ class TestProblem(BaseTest):
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
 
-        y = cvx.vstack(*[x[i] for i in range(n)])
+        y = cvx.vstack([x[i] for i in range(n)])
         Problem(cvx.Maximize(cvx.geo_mean(y)), [x <= 1]).solve()
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
 
-        y = cvx.hstack(*[x[i] for i in range(n)])
+        y = cvx.hstack([x[i] for i in range(n)])
         Problem(cvx.Maximize(cvx.geo_mean(y)), [x <= 1]).solve()
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
@@ -1578,6 +1589,7 @@ class TestProblem(BaseTest):
 
         for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
             prob = Problem(cvx.Minimize(cvx.pnorm(x, p=p)), [x.T*a >= 1])
+            print prob
             prob.solve()
 
             # formula is true for any a >= 0 with p > 1
@@ -1628,7 +1640,7 @@ class TestProblem(BaseTest):
         T = 10
         J = 20
         rvec = np.random.randn(T, J)
-        dy = np.random.randn(2*T, 1)
+        dy = np.random.randn(2*T)
         theta = Variable(J)
 
         delta = 1e-3
@@ -1646,3 +1658,22 @@ class TestProblem(BaseTest):
         prob = Problem(obj, [self.x == 2])
         result = prob.solve()
         self.assertAlmostEqual(result, 8)
+
+    def test_int64(self):
+        """Test bug with 64 bit integers.
+        """
+        q = cvx.Variable(numpy.int64(2))
+        objective = cvx.Minimize(cvx.norm(q, 1))
+        problem = cvx.Problem(objective)
+        problem.solve()
+        print(q.value)
+
+    def test_neg_slice(self):
+        """Test bug with negative slice.
+        """
+        x = cvx.Variable(2)
+        objective = cvx.Minimize(x[0] + x[1])
+        constraints = [x[-2:] >= 1]
+        problem = cvx.Problem(objective, constraints)
+        problem.solve()
+        self.assertItemsAlmostEqual(x.value, [1, 1])

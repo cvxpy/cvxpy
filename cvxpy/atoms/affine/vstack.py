@@ -22,7 +22,13 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
 
-class vstack(AffAtom):
+def vstack(arg_list):
+    """Wrapper on vstack to ensure list argument.
+    """
+    return Vstack(*arg_list)
+
+
+class Vstack(AffAtom):
     """ Vertical concatenation """
     # Returns the vstack of the values.
     @AffAtom.numpy_numeric
@@ -31,16 +37,24 @@ class vstack(AffAtom):
 
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
-        cols = self.args[0].shape[1]
-        rows = sum(arg.shape[0] for arg in self.args)
-        return (rows, cols)
+        self.args[0].shape
+        if self.args[0].ndim == 0:
+            return (len(self.args), 1)
+        elif self.args[0].ndim == 1:
+            return (len(self.args), self.args[0].shape[0])
+        else:
+            rows = sum(arg.shape[0] for arg in self.args)
+            return (rows,) + self.args[0].shape[1:]
 
     # All arguments must have the same width.
     def validate_arguments(self):
-        arg_cols = [arg.shape[1] for arg in self.args]
-        if max(arg_cols) != min(arg_cols):
-            raise TypeError(("All arguments to vstack must have "
-                             "the same number of columns."))
+        model = self.args[0].shape
+        for arg in self.args[1:]:
+            if len(arg.shape) != len(model) or \
+               (len(model) > 1 and model[1:] != arg.shape[1:]) or \
+               (len(model) <= 1 and model != arg.shape):
+                raise ValueError(("All the input dimensions except"
+                                  " for axis 0 must match exactly."))
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

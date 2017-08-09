@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import scipy.sparse as sp
+import numpy as np
 import canonInterface
 
 
@@ -44,7 +45,7 @@ class MatrixCache(object):
         self.coo_tup = coo_tup
         self.const_vec = const_vec
         self.constraints = constraints
-        rows = sum([c.shape[0] * c.shape[1] for c in constraints])
+        rows = sum([np.prod(c.shape, dtype=int) for c in constraints])
         cols = x_length
         self.shape = (rows, cols)
         self.param_coo_tup = ([], [], [])
@@ -140,9 +141,9 @@ class MatrixData(object):
         -------
         ((V, I, J), array)
         """
-        rows = sum([c.shape[0] * c.shape[1] for c in constraints])
+        rows = sum([np.prod(c.shape, dtype=int) for c in constraints])
         COO = ([], [], [])
-        const_vec = self.vec_intf.zeros(rows, 1)
+        const_vec = self.vec_intf.zeros((rows, 1))
         return MatrixCache(COO, const_vec, constraints, x_length)
 
     def _lin_matrix(self, mat_cache, caching=False):
@@ -174,7 +175,7 @@ class MatrixData(object):
                                             lu.replace_params_with_consts)
                 active_constr.append(constr)
                 constr_offsets.append(vert_offset)
-            vert_offset += constr.shape[0]*constr.shape[1]
+            vert_offset += np.prod(constr.shape, dtype=int)
         # Convert the constraints into a matrix and vector offset
         # and add them to the matrix cache.
         if len(active_constr) > 0:
@@ -238,7 +239,7 @@ class MatrixData(object):
         Oracle function.
         """
         import cvxopt
-        rows = int(sum([c.shape[0] * c.shape[1] for c in nonlin_constr]))
+        rows = int(sum([np.prod(c.shape, dtype=int) for c in nonlin_constr]))
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
@@ -257,7 +258,7 @@ class MatrixData(object):
                 big_H = cvxopt.spmatrix(0., [], [], size=(cols, cols))
             offset = 0
             for constr in nonlin_constr:
-                constr_entries = constr.shape[0]*constr.shape[1]
+                constr_entries = np.prod(constr.shape, dtype=int)
                 local_x = constr.extract_variables(x, var_offsets)
                 if z:
                     f, Df, H = constr.f(local_x,

@@ -18,8 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.reshape import reshape
-import cvxpy.interface as intf
+from cvxpy.atoms.affine.vec import vec
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
@@ -39,13 +38,8 @@ def diag(expr):
     """
     expr = AffAtom.cast_to_const(expr)
     if expr.is_vector():
-        if expr.shape[1] == 1:
-            return diag_vec(expr)
-        # Convert a row vector to a column vector.
-        else:
-            expr = reshape(expr, (expr.shape[1], 1))
-            return diag_vec(expr)
-    elif expr.shape[0] == expr.shape[1]:
+        return diag_vec(vec(expr))
+    elif expr.ndim == 2 and expr.shape[0] == expr.shape[1]:
         return diag_mat(expr)
     else:
         raise ValueError("Argument to diag must be a vector or square matrix.")
@@ -63,13 +57,12 @@ class diag_vec(AffAtom):
         """Convert the vector constant into a diagonal matrix.
         """
         # Convert values to 1D.
-        value = intf.from_2D_to_1D(values[0])
-        return np.diag(value)
+        return np.diag(values[0])
 
     def shape_from_args(self):
         """A square matrix.
         """
-        rows, _ = self.args[0].shape
+        rows = self.args[0].shape[0]
         return (rows, rows)
 
     def is_symmetric(self):
@@ -119,7 +112,7 @@ class diag_mat(AffAtom):
         """A column vector.
         """
         rows, _ = self.args[0].shape
-        return (rows, 1)
+        return (rows,)
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

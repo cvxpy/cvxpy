@@ -27,7 +27,7 @@ def lambda_sum_largest(X, k):
     """Sum of the largest k eigenvalues.
     """
     X = Expression.cast_to_const(X)
-    if X.shape[0] != X.shape[1]:
+    if not X.ndim == 2 or X.shape[0] != X.shape[1]:
         raise ValueError("First argument must be a square matrix.")
     elif int(k) != k or k <= 0:
         raise ValueError("Second argument must be a positive integer.")

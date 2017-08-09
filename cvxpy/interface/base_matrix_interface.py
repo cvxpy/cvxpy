@@ -59,7 +59,7 @@ class BaseMatrixInterface(object):
 
     # Return the number of elements of the matrix.
     def size(self, matrix):
-        return np.prod(self.shape(matrix))
+        return np.prod(self.shape(matrix), dtype=int)
 
     # Return the dimensions of the matrix.
     @abc.abstractmethod
@@ -72,16 +72,16 @@ class BaseMatrixInterface(object):
         return NotImplemented
 
     # Return a matrix with all 0's.
-    def zeros(self, rows, cols):
-        return self.scalar_matrix(0, rows, cols)
+    def zeros(self, shape):
+        return self.scalar_matrix(0, shape)
 
     # Return a matrix with all 1's.
-    def ones(self, rows, cols):
-        return self.scalar_matrix(1, rows, cols)
+    def ones(self, shape):
+        return self.scalar_matrix(1, shape)
 
     # A matrix with all entries equal to the given scalar value.
     @abc.abstractmethod
-    def scalar_matrix(self, value, rows, cols):
+    def scalar_matrix(self, value, shape):
         return NotImplemented
 
     # Return the value at the given index in the matrix.

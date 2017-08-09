@@ -332,7 +332,7 @@ class TestExamples(BaseTest):
 
         # Create and solve the model
         A = cvx.Variable((n, n));
-        b = cvx.Variable(n);
+        b = cvx.Variable((n, 1));
         obj = cvx.Maximize(cvx.log_det(A))
         constraints = []
         for i in range(m):
@@ -378,7 +378,7 @@ class TestExamples(BaseTest):
         n = 20
         numpy.random.seed(1)
         A = numpy.random.randn(m, n)
-        b = numpy.random.randn(m, 1)
+        b = numpy.random.randn(m)
 
         # Construct the problem.
         x = cvx.Variable(n)
@@ -496,7 +496,7 @@ class TestExamples(BaseTest):
         n = 5
         numpy.random.seed(1)
         A = numpy.random.randn(m, n)
-        b = numpy.random.randn(m, 1)
+        b = numpy.random.randn(m)
 
         # Construct the problem.
         x = cvx.Variable(n)
@@ -540,7 +540,7 @@ class TestExamples(BaseTest):
         m = 10
         numpy.random.seed(1)
         A = numpy.random.randn(n, m)
-        b = numpy.random.randn(n, 1)
+        b = numpy.random.randn(n)
         # gamma must be positive due to DCP rules.
         gamma = cvx.Parameter(nonneg=True)
 
@@ -645,7 +645,7 @@ class TestExamples(BaseTest):
         X = np.matrix(np.ones((m, n)))
         w = cvx.Variable(n)
 
-        expr2 = [cvx.log_sum_exp(cvx.vstack(0, X[i, :]*w)) for i in range(m)]
+        expr2 = [cvx.log_sum_exp(cvx.hstack([0, X[i, :]*w])) for i in range(m)]
         expr3 = sum(expr2)
         obj = cvx.Minimize(expr3)
         p = cvx.Problem(obj)

@@ -29,17 +29,17 @@ from cvxpy.constraints.second_order import SOC
 from fractions import Fraction
 
 
-def pnorm(x, p=2, axis=None, max_denom=1024):
+def pnorm(x, p=2, axis=None, keepdims=False, max_denom=1024):
     """Factory function for a mathematical p-norm.
 
     TODO(akshayka): Documentation.
     """
     if p == 1:
-        return norm1(x, axis=axis)
+        return norm1(x, axis=axis, keepdims=keepdims)
     elif p in [np.inf, 'inf', 'Inf']:
-        return norm_inf(x, axis=axis)
+        return norm_inf(x, axis=axis, keepdims=keepdims)
     else:
-        return Pnorm(x, p=p, axis=axis, max_denom=max_denom)
+        return Pnorm(x, p=p, axis=axis, keepdims=keepdims, max_denom=max_denom)
 
 
 class Pnorm(AxisAtom):
@@ -49,7 +49,6 @@ class Pnorm(AxisAtom):
     compute the p-norm of the concatenated columns. Only accepts p values
     that are not equal to 1 or infinity; the norm1 and norm_inf classes
     handle those norms.
-
 
     For :math:`p > 1`, the p-norm is given by
 
@@ -113,7 +112,7 @@ class Pnorm(AxisAtom):
         An Expression representing the norm.
     """
 
-    def __init__(self, x, p=2, axis=None, max_denom=1024):
+    def __init__(self, x, p=2, axis=None, keepdims=False, max_denom=1024):
         if p < 0:
             # TODO(akshayka): Why do we accept p < 0?
             self.p, _ = pow_neg(p, max_denom)
@@ -129,9 +128,8 @@ class Pnorm(AxisAtom):
         else:
             raise ValueError('Invalid p: {}'.format(p))
         self.approx_error = float(abs(self.p - p))
-        super(Pnorm, self).__init__(x, axis=axis)
+        super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the p-norm of x.
         """
@@ -146,10 +144,8 @@ class Pnorm(AxisAtom):
         if self.p < 0 and np.any(values == 0):
             return 0.0
 
-        # TODO(akshayka): keepdims should be controlled by an argument to
-        # the atom.
         return np.linalg.norm(values, float(self.p), axis=self.axis,
-                              keepdims=True)
+                              keepdims=self.keepdims)
 
     def validate_arguments(self):
         super(Pnorm, self).validate_arguments()

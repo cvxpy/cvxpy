@@ -37,13 +37,27 @@ CONVEX_ATTRIBUTES = [
     'NSD',
 ]
 
+# Attributes related to symmetry.
+SYMMETRIC_ATTRIBUTES = [
+    'symmetric',
+    'PSD',
+    'NSD',
+]
+
 
 def convex_attributes(variables):
     """Returns a list of the (constraint-generating) convex attributes present
        among the variables.
     """
-    return [attr for attr in CONVEX_ATTRIBUTES if any(v.attributes[attr] for v
-                                                      in variables)]
+    return attributes_present(variables, CONVEX_ATTRIBUTES)
+
+
+def attributes_present(variables, attr_map):
+    """Returns a list of the relevant attributes present
+       among the variables.
+    """
+    return [attr for attr in attr_map if any(v.attributes[attr] for v
+                                             in variables)]
 
 
 class CvxAttr2Constr(Reduction):
@@ -53,7 +67,7 @@ class CvxAttr2Constr(Reduction):
         return True
 
     def apply(self, problem):
-        if not convex_attributes(problem.variables()):
+        if not attributes_present(problem.variables(), CONVEX_ATTRIBUTES):
             return problem, ()
 
         # For each unique variable, add constraints.
@@ -71,7 +85,7 @@ class CvxAttr2Constr(Reduction):
                         new_var = True
                         new_attr[key] = False
 
-                if var.is_symmetric():
+                if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
                     shape = (n*(n+1)//2, 1)
                     upper_tri = Variable(shape, **new_attr)
@@ -121,7 +135,7 @@ class CvxAttr2Constr(Reduction):
             if new_var.id in solution.primal_vars:
                 if var.attributes['diag']:
                     pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten(), [0])
-                elif var.is_symmetric():
+                elif attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
                     value = np.zeros(var.shape)
                     idxs = np.triu_indices(n)

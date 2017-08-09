@@ -88,7 +88,7 @@ class AffAtom(Atom):
             else:
                 fake_args += [lu.create_var(arg.shape, idx)]
                 var_offsets[idx] = offset
-                offset += arg.shape[0]*arg.shape[1]
+                offset += arg.size
         fake_expr, _ = self.graph_implementation(fake_args, self.shape,
                                                  self.get_data())
         # Get the matrix representation of the function.
@@ -97,20 +97,20 @@ class AffAtom(Atom):
             var_offsets,
             None
         )
-        shape = (offset, self.shape[0]*self.shape[1])
+        shape = (offset, self.size)
         stacked_grad = sp.coo_matrix((V, (J, I)), shape=shape).tocsc()
         # Break up into per argument matrices.
         grad_list = []
         start = 0
         for arg in self.args:
             if arg.is_constant():
-                grad_shape = (arg.shape[0]*arg.shape[1], shape[1])
+                grad_shape = (arg.size, shape[1])
                 if grad_shape == (1, 1):
                     grad_list += [0]
                 else:
                     grad_list += [sp.coo_matrix(grad_shape, dtype='float64')]
             else:
-                stop = start + arg.shape[0]*arg.shape[1]
+                stop = start + arg.size
                 grad_list += [stacked_grad[start:stop, :]]
                 start = stop
         return grad_list

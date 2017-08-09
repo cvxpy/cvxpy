@@ -25,10 +25,7 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class norm1(AxisAtom):
-    def __init__(self, x, axis=None):
-        super(norm1, self).__init__(x, axis=axis)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the one norm of x.
         """
@@ -36,7 +33,7 @@ class norm1(AxisAtom):
             values = np.array(values[0]).flatten()
         else:
             values = np.array(values[0])
-        return np.linalg.norm(values, 1, axis=self.axis, keepdims=True)
+        return np.linalg.norm(values, 1, axis=self.axis, keepdims=self.keepdims)
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -110,7 +107,3 @@ class norm1(AxisAtom):
         D_null += (value > 0)
         D_null -= (value < 0)
         return sp.csc_matrix(D_null.A.ravel(order='F')).T
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        pass

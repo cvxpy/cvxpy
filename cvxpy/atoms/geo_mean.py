@@ -18,12 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.affine.index import index
 import numpy as np
 import scipy.sparse as sp
 from ..utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
-                                     over_bound, prettydict, gm_constrs)
-import cvxpy.lin_ops.lin_utils as lu
+                                     over_bound, prettydict)
 
 
 class geo_mean(Atom):
@@ -203,10 +201,8 @@ class geo_mean(Atom):
         super(geo_mean, self).__init__(x)
 
         x = self.args[0]
-        if x.shape[0] == 1:
-            n = x.shape[1]
-        elif x.shape[1] == 1:
-            n = x.shape[0]
+        if x.is_vector():
+            n = 1 if x.ndim == 0 else max(x.shape)
         else:
             raise ValueError('x must be a row or column vector.')
 
@@ -260,14 +256,14 @@ class geo_mean(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        x = np.matrix(values[0])
+        x = np.array(values[0])
         # No special case when only one non-zero weight.
         w_arr = np.array([float(w_i) for w_i in self.w])
         # Outside domain.
         if np.any(x[w_arr > 0] <= 0):
             return [None]
         else:
-            D = w_arr/x.A.ravel(order='F')*self.numeric(values)
+            D = w_arr/x.ravel(order='F')*self.numeric(values)
             return [sp.csc_matrix(D).T]
 
     def name(self):
@@ -281,7 +277,7 @@ class geo_mean(Atom):
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return (1, 1)
+        return tuple()
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -342,35 +338,3 @@ class geo_mean(Atom):
         copy.cone_num_over = self.cone_num_over
         copy.cone_num = self.cone_num
         return copy
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        w, w_dyad, tree = data
-        t = lu.create_var((1, 1))
-
-        if arg_objs[0].shape[1] == 1:
-            x_list = [index.get_index(arg_objs[0], [], i, 0) for i in range(len(w))]
-        if arg_objs[0].shape[0] == 1:
-            x_list = [index.get_index(arg_objs[0], [], 0, i) for i in range(len(w))]
-
-        # todo: catch cases where we have (0, 0, 1)?
-        # todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1),
-        # should this behavior match with what we do in power?
-
-        return t, gm_constrs(t, x_list, w)

@@ -1,0 +1,23 @@
+# Ignore the build and lib dirs
+build/*
+lib/*
+dist/*
+
+*.egg-info*
+
+# Ignore any executables
+bin/*
+
+# Ignore Mac specific files
+.DS_Store
+
+# Ignore compiled python files
+*.pyc
+
+# Ignore virtual env
+.env/*
+venv_3/*
+*.ipynb
+
+# shared object files
+*.so

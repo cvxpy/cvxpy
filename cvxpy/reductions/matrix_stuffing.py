@@ -38,7 +38,7 @@ def extract_mip_idx(variables):
     def ravel_multi_index(multi_index, x, vert_offset):
         """Ravel a multi-index and add a vertical offset to it.
         """
-        ravel_idx = np.ravel_multi_index(multi_index, x.shape, order='F')
+        ravel_idx = np.ravel_multi_index(multi_index, max(x.shape, (1,)), order='F')
         return [(vert_offset + idx,) for idx in ravel_idx]
     boolean_idx = []
     integer_idx = []
@@ -96,7 +96,7 @@ class MatrixStuffing(Reduction):
         x_opt = solution.primal_vars.values()[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
-            size = np.prod(shape)
+            size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
                                              order='F')
         # Remap dual variables.

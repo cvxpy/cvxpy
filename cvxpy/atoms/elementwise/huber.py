@@ -99,8 +99,8 @@ class huber(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].shape[0]*self.args[0].shape[1]
-        cols = self.shape[0]*self.shape[1]
+        rows = self.args[0].size
+        cols = self.size
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
@@ -142,8 +142,8 @@ class huber(Elementwise):
             shape, (2, (Fraction(1, 2), Fraction(1, 2)))
         )
         abs_s, constr_abs = abs.graph_implementation([s], shape)
-        M_abs_s = lu.mul_expr(M, abs_s, shape)
-        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, shape)])
+        M_abs_s = lu.mul_expr(M, abs_s)
+        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s)])
         # x == s + n
         constraints = constr_sq + constr_abs
         constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))

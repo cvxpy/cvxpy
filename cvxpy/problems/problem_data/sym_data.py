@@ -24,6 +24,7 @@ import cvxpy.lin_ops as lo
 from cvxpy.constraints import SOC, PSD, ExpCone, BoolConstr, IntConstr
 from toolz.itertoolz import unique
 from collections import OrderedDict
+import numpy as np
 import canonInterface
 
 
@@ -169,8 +170,8 @@ class SymData(object):
         """
         # Initialize dimensions.
         dims = {}
-        dims[s.EQ_DIM] = sum(c.shape[0]*c.shape[1] for c in constr_map[s.EQ])
-        dims[s.LEQ_DIM] = sum(c.shape[0]*c.shape[1] for c in constr_map[s.LEQ])
+        dims[s.EQ_DIM] = sum(np.prod(c.shape, dtype=int) for c in constr_map[s.EQ])
+        dims[s.LEQ_DIM] = sum(np.prod(c.shape, dtype=int) for c in constr_map[s.LEQ])
         dims[s.SOC_DIM] = []
         dims[s.PSD_DIM] = []
         dims[s.EXP_DIM] = 0
@@ -224,6 +225,6 @@ class SymData(object):
         for var_id, var_shape in var_names:
             var_shapes[var_id] = var_shape
             var_offsets[var_id] = vert_offset
-            vert_offset += var_shape[0]*var_shape[1]
+            vert_offset += np.prod(var_shape, dtype=int)
 
         return (var_offsets, var_shapes, vert_offset)
