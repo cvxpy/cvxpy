@@ -226,6 +226,8 @@ The table below shows the types of problems the solvers can handle.
 +--------------+----+------+-----+-----+-----+
 | `MOSEK`_     | X  | X    | X   |     |     |
 +--------------+----+------+-----+-----+-----+
+| `XPRESS`_    | X  | X    |     |     | X   |
++--------------+----+------+-----+-----+-----+
 | `CVXOPT`_    | X  | X    | X   | X   |     |
 +--------------+----+------+-----+-----+-----+
 | `SCS`_       | X  | X    | X   | X   |     |
@@ -283,6 +285,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=MOSEK)
     print "optimal value with MOSEK:", prob.value
 
+    # Solve with Xpress.
+    prob.solve(solver=XPRESS)
+    print "optimal value with XPRESS:", prob.value
+
     # Solve with Elemental.
     prob.solve(solver=ELEMENTAL)
     print "optimal value with Elemental:", prob.value
@@ -301,6 +307,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
     optimal value with MOSEK: 6.0
+    optimal value with XPRESS: 6.0
     optimal value with Elemental: 6.0000044085242727
     optimal value with CBC: 6.0
 
@@ -312,7 +319,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'LS']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'XPRESS', 'ELEMENTAL', 'LS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -534,6 +541,7 @@ For example, the following code is equivalent to solving the problem directly wi
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _XPRESS: http://www.fico.com/en/products/fico-xpress-optimization-suite
 .. _Elemental: http://libelemental.org/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
