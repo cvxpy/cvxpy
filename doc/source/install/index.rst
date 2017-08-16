@@ -133,7 +133,8 @@ Install with CVXOPT support
 ---------------------------
 
 CVXPY supports the `CVXOPT`_ solver.
-Simply install CVXOPT by running ``pip install cvxopt``.
+Simply install CVXOPT such that you can ``import cvxopt`` in Python.
+See the `CVXOPT`_ website for installation instructions.
 
 Install with Elemental support
 ------------------------------
