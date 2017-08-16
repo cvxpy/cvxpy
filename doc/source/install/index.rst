@@ -134,7 +134,6 @@ Install with CVXOPT support
 
 CVXPY supports the `CVXOPT`_ solver.
 Simply install CVXOPT by running ``pip install cvxopt``.
-If you use Anaconda you will need to run ``conda install nomkl`` first.
 
 Install with Elemental support
 ------------------------------
