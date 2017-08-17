@@ -9,16 +9,6 @@ import scipy.sparse as spa
 
 class MOSEK(QpSolver):
     """QP interface for the Mosek solver"""
-    import mosek
-    # Map of Mosek status to mathprogbasepy status.
-    STATUS_MAP = {mosek.solsta.optimal: s.OPTIMAL,
-                  mosek.solsta.integer_optimal: s.OPTIMAL,
-                  mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
-                  mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
-                  mosek.solsta.near_optimal: s.OPTIMAL_INACCURATE,
-                  mosek.solsta.near_prim_infeas_cer: s.INFEASIBLE_INACCURATE,
-                  mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
-                  mosek.solsta.unknown: s.SOLVER_ERROR}
 
     MIP_CAPABLE = True
 
@@ -164,7 +154,15 @@ class MOSEK(QpSolver):
         soltype, solsta = self.choose_solution(task)
 
         # Map status using statusmap
-        status = self.STATUS_MAP.get(solsta, s.SOLVER_ERROR)
+        STATUS_MAP = {mosek.solsta.optimal: s.OPTIMAL,
+                    mosek.solsta.integer_optimal: s.OPTIMAL,
+                    mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
+                    mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
+                    mosek.solsta.near_optimal: s.OPTIMAL_INACCURATE,
+                    mosek.solsta.near_prim_infeas_cer: s.INFEASIBLE_INACCURATE,
+                    mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
+                    mosek.solsta.unknown: s.SOLVER_ERROR}
+        status = STATUS_MAP.get(solsta, s.SOLVER_ERROR)
 
         # Results dictionary
         results_dict = {}
