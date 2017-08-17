@@ -60,7 +60,6 @@ setup(
                       "six",
                       "toolz",
                       "numpy >= 1.9",
-                      "scipy >= 0.15",
-                      "mathprogbasepy >= 0.1.1"],
+                      "scipy >= 0.15"],
     use_2to3=True,
 )
