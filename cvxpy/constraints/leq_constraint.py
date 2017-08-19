@@ -106,21 +106,6 @@ class LeqConstraint(u.Canonical, Constraint):
         dual_holder = lu.create_leq(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
 
-    def variables(self):
-        """Returns the variables in the compared expressions.
-        """
-        return self._expr.variables()
-
-    def parameters(self):
-        """Returns the parameters in the compared expressions.
-        """
-        return self._expr.parameters()
-
-    def constants(self):
-        """Returns the constants in the compared expressions.
-        """
-        return self._expr.constants()
-
     @property
     def value(self):
         """Does the constraint hold?
@@ -153,7 +138,7 @@ class LeqConstraint(u.Canonical, Constraint):
         -------
         NumPy matrix
         """
-        return self.residual.value
+        return np.sum(self.residual.value)
 
     # The value of the dual variable.
     @property

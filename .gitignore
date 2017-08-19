@@ -45,3 +45,4 @@ env_*
 
 # pycharm
 .idea
+*.pyproj

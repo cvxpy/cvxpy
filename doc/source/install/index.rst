@@ -133,8 +133,8 @@ Install with CVXOPT support
 ---------------------------
 
 CVXPY supports the `CVXOPT`_ solver.
-Simply install CVXOPT by running ``pip install cvxopt``.
-If you use Anaconda you will need to run ``conda install nomkl`` first.
+Simply install CVXOPT such that you can ``import cvxopt`` in Python.
+See the `CVXOPT`_ website for installation instructions.
 
 Install with Elemental support
 ------------------------------
@@ -156,6 +156,13 @@ Install with MOSEK support
 CVXPY supports the MOSEK solver.
 Simply install MOSEK such that you can ``import mosek`` in Python.
 See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
+
+Install with XPRESS support
+---------------------------
+
+CVXPY supports the XPRESS solver.
+Simply install XPRESS such that you can ``import xpress`` in Python.
+See the `XPRESS <http://www.fico.com/en/products/fico-xpress-optimization-suite>`_ website for installation instructions.
 
 Install with GLPK support
 -------------------------

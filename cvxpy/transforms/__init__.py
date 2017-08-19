@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.transforms.separable_problems import get_separable_problems
+from cvxpy.transforms.indicator import indicator
 from cvxpy.transforms.linearize import linearize
+from cvxpy.transforms.partial_optimize import partial_optimize

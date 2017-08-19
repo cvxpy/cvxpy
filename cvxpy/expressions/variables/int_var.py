@@ -25,8 +25,3 @@ class Int(Variable):
         """
         obj, constr = super(Int, self).canonicalize()
         return (obj, constr + [IntConstr(obj)])
-
-    def __repr__(self):
-        """String to recreate the object.
-        """
-        return "Int(%d, %d)" % self.size

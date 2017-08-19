@@ -1,0 +1,104 @@
+"""
+Copyright 2017 Steven Diamond
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+from cvxpy import Constant
+import cvxpy.atoms as atoms
+from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.transforms import indicator
+
+
+def weighted_sum(objectives, weights):
+    """Combines objectives as a weighted sum.
+
+    Args:
+      objectives: A list of Minimize/Maximize objectives.
+      weights: A vector of weights.
+
+    Returns:
+      A Minimize/Maximize objective.
+    """
+    num_objs = len(objectives)
+    return sum([objectives[i]*weights[i] for i in range(num_objs)])
+
+
+def targets_and_priorities(objectives, priorities, targets, limits=None, off_target=1e-5):
+    """Combines objectives with penalties within a range between target and limit.
+
+    Args:
+      objectives: A list of Minimize/Maximize objectives.
+      priorities: The weight within the trange.
+      targets: The start (end) of penalty for Minimize (Maximize)
+      limits: The hard end (start) of penalty for Minimize (Maximize)
+      off_target: Penalty outside of target.
+
+    Returns:
+      A Minimize/Maximize objective.
+    """
+    num_objs = len(objectives)
+    new_objs = []
+    for i in range(num_objs):
+        obj = objectives[i]
+        sign = 1 if Constant(priorities[i]).is_positive() else -1
+        off_target *= sign
+        if type(obj) == Minimize:
+            expr = (priorities[i] - off_target)*atoms.pos(obj.args[0] - targets[i])
+            expr += off_target*obj.args[0]
+            if limits is not None:
+                expr += sign*indicator([obj.args[0] <= limits[i]])
+            new_objs.append(expr)
+        else:  # Maximize
+            expr = (priorities[i] - off_target)*atoms.min_elemwise(obj.args[0], targets[i])
+            expr += off_target*obj.args[0]
+            if limits is not None:
+                expr += sign*indicator([obj.args[0] >= limits[i]])
+            new_objs.append(expr)
+    obj_expr = sum(new_objs)
+    if obj_expr.is_convex():
+        return Minimize(obj_expr)
+    else:
+        return Maximize(obj_expr)
+
+
+def max(objectives, weights):
+    """Combines objectives as max of weighted terms.
+
+    Args:
+      objectives: A list of Minimize/Maximize objectives.
+      weights: A vector of weights.
+
+    Returns:
+      A Minimize objective.
+    """
+    num_objs = len(objectives)
+    expr = atoms.max_elemwise([(objectives[i]*weights[i]).args[0] for i in range(num_objs)])
+    return Minimize(expr)
+
+
+def log_sum_exp(objectives, weights, gamma):
+    """Combines objectives as log_sum_exp of weighted terms.
+
+    Args:
+      objectives: A list of Minimize/Maximize objectives.
+      weights: A vector of weights.
+      gamma: Parameter interpolating between sum and max.
+
+    Returns:
+      A Minimize objective.
+    """
+    num_objs = len(objectives)
+    terms = [(objectives[i]*weights[i]).args[0] for i in range(num_objs)]
+    expr = atoms.log_sum_exp(atoms.vstack(terms))
+    return Minimize(expr)

@@ -27,10 +27,12 @@ from cvxpy.problems.solvers.elemental_intf import Elemental
 from cvxpy.problems.solvers.mosek_intf import MOSEK
 from cvxpy.problems.solvers.ls_intf import LS
 from cvxpy.problems.solvers.julia_opt_intf import JuliaOpt
+from cvxpy.problems.solvers.xpress_intf import XPRESS
 
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                GLPK_MI(), CBC(), SCS(), SUPERSCS(), GUROBI(),
-               Elemental(), MOSEK(), LS(), JuliaOpt()]
+               Elemental(), MOSEK(), LS(), JuliaOpt(), XPRESS()]
+
 SOLVERS = {solver.name(): solver for solver in solver_intf}
 
 

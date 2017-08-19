@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = "0.4.9"
+__version__ = "0.4.10"
 from cvxpy.atoms import *
 from cvxpy.expressions.variables import (Variable, Semidef, Symmetric, Bool,
                                          Int, NonNegative)
@@ -24,10 +24,10 @@ from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.solvers.utilities import installed_solvers
 from cvxpy.error import SolverError
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, JULIA_OPT,
-                            ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS,
+                            ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS, XPRESS,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
-from cvxpy.transforms import linearize, partial_optimize
+from cvxpy.transforms import linearize, partial_optimize, indicator
 
 # Legacy names.
 from cvxpy.expressions.variables.semidef_var import Semidef as semidefinite
