@@ -163,7 +163,7 @@ class Problem(u.Canonical):
         for constr in self.constraints:
             constants_ += constr.constants()
         # Remove duplicates.
-        # Note that numpy matrices are not hashable, so we use the buildin function id
+        # Note that numpy matrices are not hashable, so we use the builtin function id
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 

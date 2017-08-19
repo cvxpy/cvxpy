@@ -70,7 +70,7 @@ class ExpCone(NonlinearConstraint):
         """
         if solver.name() == s.CVXOPT:
             eq_constr += self.__CVXOPT_format[0]
-        elif solver.name() in [s.SCS, s.JULIA_OPT]:
+        elif solver.name() in [s.SCS, s.JULIA_OPT, s.SUPERSCS]:
             leq_constr += self.__SCS_format[1]
         elif solver.name() == s.ECOS:
             leq_constr += self.__ECOS_format[1]

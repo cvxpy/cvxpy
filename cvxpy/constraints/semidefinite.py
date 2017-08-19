@@ -60,7 +60,7 @@ class SDP(Constraint):
         """
         if solver.name() in [s.CVXOPT, s.MOSEK]:
             new_eq_constr, new_leq_constr = self.__CVXOPT_format
-        elif solver.name() == s.SCS:
+        elif solver.name() in [s.SCS, s.SUPERSCS]:
             new_eq_constr, new_leq_constr = self.__SCS_format
         else:
             raise SolverError(
