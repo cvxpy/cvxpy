@@ -32,7 +32,6 @@ from cvxpy.problems.solvers.xpress_intf import XPRESS
 solver_intf = [ECOS(), ECOS_BB(), CVXOPT(), GLPK(),
                GLPK_MI(), CBC(), SCS(), SUPERSCS(), GUROBI(),
                Elemental(), MOSEK(), LS(), JuliaOpt(), XPRESS()]
-
 SOLVERS = {solver.name(): solver for solver in solver_intf}
 
 
