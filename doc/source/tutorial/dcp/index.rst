@@ -20,11 +20,11 @@ arithmetic operators ``+, -, *, /``, and a library of
 
 .. code:: python
 
-    from cvxpy import *
+    import cvxpy as cvx
 
     # Create variables and parameters.
-    x, y = Variable(), Variable()
-    a, b = Parameter(), Parameter()
+    x, y = cvx.Variable(), cvx.Variable()
+    a, b = cvx.Parameter(), cvx.Parameter()
 
     # Examples of CVXPY expressions.
     3.69 + b/3
@@ -34,34 +34,43 @@ arithmetic operators ``+, -, *, /``, and a library of
 
 
 
-Expressions can be scalars, vectors, or matrices. The dimensions of an expression are stored as ``expr.size``. CVXPY will raise an exception if an
+Expressions can be scalars, vectors, or matrices. The dimensions of an expression are stored as ``expr.shape``.
+The total number of entries is given by ``expr.size``,
+while the number of dimensions is given by ``expr.ndim``.
+CVXPY will raise an exception if an
 expression is used in a way that doesn't make sense given its
 dimensions, for example adding matrices of different size.
+The semantics for how shapes behave under arithmetic operations
+are the same as for NumPy ndarrays (except some broadcasting is banned).
 
 .. code:: python
 
     import numpy
 
-    X = Variable(5, 4)
+    X = cvx.Variable((5, 4))
     A = numpy.ones((3, 5))
 
-    # Use expr.size to get the dimensions.
-    print "dimensions of X:", X.size
-    print "dimensions of sum(X):", sum(X).size
-    print "dimensions of A*X:", (A*X).size
+    # Use expr.shape to get the dimensions.
+    print("dimensions of X:", X.shape)
+    print("size of X:", X.size)
+    print("number of dimensions:", X.ndim)
+    print("dimensions of sum(X):", cvx.sum(X).shape)
+    print("dimensions of A*X:", (A*X).shape)
 
     # ValueError raised for invalid dimensions.
     try:
         A + X
     except ValueError, e:
-        print e
+        print(e)
 
 ::
 
     dimensions of X: (5, 4)
-    dimensions of sum(X): (1, 1)
+    size of X: 20
+    number of dimensions: 2
+    dimensions of sum(X): ()
     dimensions of A*X: (3, 4)
-    Incompatible dimensions (3, 5) (5, 4)
+    Cannot broadcast dimensions (3, 5) (5, 4)
 
 CVXPY uses DCP analysis to determine the sign and curvature of each expression.
 
@@ -90,20 +99,20 @@ The sign of an expression is stored as ``expr.sign``:
 
 .. code:: python
 
-    x = Variable()
-    a = Parameter(nonpos=True)
+    x = cvx.Variable()
+    a = cvx.Parameter(nonpos=True)
     c = numpy.array([1, -1])
 
-    print "sign of x:", x.sign
-    print "sign of a:", a.sign
-    print "sign of square(x):", square(x).sign
-    print "sign of c*a:", (c*a).sign
+    print("sign of x:", x.sign)
+    print("sign of a:", a.sign)
+    print("sign of square(x):", cvx.square(x).sign)
+    print("sign of c*a:", (c*a).sign)
 
 ::
 
     sign of x: UNKNOWN
-    sign of a: NEGATIVE
-    sign of square(x): POSITIVE
+    sign of a: NONPOSITIVE
+    sign of square(x): NONNEGATIVE
     sign of c*a: UNKNOWN
 
 
@@ -167,13 +176,13 @@ The curvature of an expression is stored as ``expr.curvature``:
 
 .. code:: python
 
-    x = Variable()
-    a = Parameter(nonneg=True)
+    x = cvx.Variable()
+    a = cvx.Parameter(nonneg=True)
 
-    print "curvature of x:", x.curvature
-    print "curvature of a:", a.curvature
-    print "curvature of square(x):", square(x).curvature
-    print "curvature of sqrt(x):", sqrt(x).curvature
+    print("curvature of x:", x.curvature)
+    print("curvature of a:", a.curvature)
+    print("curvature of square(x):", cvx.square(x).curvature)
+    print("curvature of sqrt(x):", cvx.sqrt(x).curvature)
 
 ::
 
@@ -239,15 +248,15 @@ certified as convex using the DCP rules.
 
 .. code:: python
 
-    print "sqrt(1 + square(x)) curvature:",
-    print sqrt(1 + square(x)).curvature
-    print "norm(vstack(1, x), 2) curvature:",
-    print norm(vstack(1, x), 2).curvature
+    print("sqrt(1 + square(x)) curvature:",
+          cvx.sqrt(1 + cvx.square(x)).curvature)
+    print("norm(hstack([1, x]), 2) curvature:",
+          cvx.norm(cvx.hstack([1, x]), 2).curvature)
 
 ::
 
     sqrt(1 + square(x)) curvature: UNKNOWN
-    norm(vstack(1, x), 2) curvature: CONVEX
+    norm(hstack(1, x), 2) curvature: CONVEX
 
 DCP problems
 ------------
@@ -272,31 +281,34 @@ non-DCP problems:
 
 .. code:: python
 
-    x = Variable()
-    y = Variable()
+    x = cvx.Variable()
+    y = cvx.Variable()
 
     # DCP problems.
-    prob1 = Problem(Minimize(square(x - y)), [x + y >= 0])
-    prob2 = Problem(Maximize(sqrt(x - y)),
+    prob1 = cvx.Problem(cvx.Minimize(cvx.square(x - y)),
+                        [x + y >= 0])
+    prob2 = cvx.Problem(cvx.Maximize(cvx.sqrt(x - y)),
                     [2*x - 3 == y,
-                     square(x) <= 2])
+                     cvx.square(x) <= 2])
 
-    print "prob1 is DCP:", prob1.is_dcp()
-    print "prob2 is DCP:", prob2.is_dcp()
+    print("prob1 is DCP:", prob1.is_dcp())
+    print("prob2 is DCP:", prob2.is_dcp())
 
     # Non-DCP problems.
 
     # A non-DCP objective.
-    prob3 = Problem(Maximize(square(x)))
+    obj = cvx.Maximize(cvx.square(x))
+    prob3 = cvx.Problem(obj)
 
-    print "prob3 is DCP:", prob3.is_dcp()
-    print "Maximize(square(x)) is DCP:", Maximize(square(x)).is_dcp()
+    print("prob3 is DCP:", prob3.is_dcp())
+    print("Maximize(square(x)) is DCP:", obj.is_dcp())
 
     # A non-DCP constraint.
-    prob4 = Problem(Minimize(square(x)), [sqrt(x) <= 2])
+    prob4 = cvx.Problem(cvx.Minimize(cvx.square(x)),
+                        [cvx.sqrt(x) <= 2])
 
     print "prob4 is DCP:", prob4.is_dcp()
-    print "sqrt(x) <= 2 is DCP:", (sqrt(x) <= 2).is_dcp()
+    print "sqrt(x) <= 2 is DCP:", (cvx.sqrt(x) <= 2).is_dcp()
 
 ::
 
@@ -314,12 +326,12 @@ non-DCP problem.
 .. code:: python
 
     # A non-DCP problem.
-    prob = Problem(Minimize(sqrt(x)))
+    prob = cvx.Problem(cvx.Minimize(cvx.sqrt(x)))
 
     try:
         prob.solve()
     except Exception as e:
-        print e
+        print(e)
 
 ::
 

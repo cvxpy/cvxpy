@@ -8,15 +8,13 @@ Welcome to CVXPY
 
 **Join the** `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_ **and** `Gitter chat <https://gitter.im/cvxgrp/cvxpy>`_ **for the best CVXPY support!**
 
-**CVXPY 1.0 is under development**. **There will be some** `changes to the user interface <https://github.com/cvxgrp/cvxpy/issues/199>`_.
-
 CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
 .. code:: python
 
-    from cvxpy import *
+    import cvxpy as cvx
     import numpy
 
     # Problem data.
@@ -27,10 +25,10 @@ For example, the following code solves a least-squares problem where the variabl
     b = numpy.random.randn(m)
 
     # Construct the problem.
-    x = Variable(n)
-    objective = Minimize(sum_squares(A*x - b))
+    x = cvx.Variable(n)
+    objective = cvx.Minimize(cvx.sum_squares(A*x - b))
     constraints = [0 <= x, x <= 1]
-    prob = Problem(objective, constraints)
+    prob = cvx.Problem(objective, constraints)
 
     # The optimal objective is returned by prob.solve().
     result = prob.solve()
@@ -46,10 +44,10 @@ CVXPY was designed and implemented by Steven Diamond, with input from Stephen Bo
 
 CVXPY was inspired by the MATLAB package `CVX <http://cvxr.com/cvx/>`_. See the book `Convex Optimization <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe for general background on convex optimization.
 
-CVXPY relies on the open source solvers `ECOS`_, `CVXOPT`_, and `SCS`_.
+CVXPY relies on the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Additional solvers are supported, but must be installed separately.
 
-.. _CVXOPT: http://cvxopt.org/
+.. _OSQP: http://osqp.readthedocs.io/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 

@@ -128,7 +128,7 @@ class TestAtoms(BaseTest):
                     self.assertEqual(atom.curvature, s.CONCAVE)
 
                 if p != 1:
-                    self.assertEqual(atom.sign, s.POSITIVE)
+                    self.assertEqual(atom.sign, s.NONNEG)
 
                 # Test copy with args=None
                 copy = atom.copy()
@@ -161,7 +161,7 @@ class TestAtoms(BaseTest):
         atom = geo_mean(self.x)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
         # Test copy with args=None
         copy = atom.copy()
         self.assertTrue(type(copy) is type(atom))
@@ -181,64 +181,64 @@ class TestAtoms(BaseTest):
         atom = harmonic_mean(self.x)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
     # Test the pnorm class.
     def test_pnorm(self):
         atom = pnorm(self.x, p=1.5)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=1)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=2)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p='inf')
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p='Inf')
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=np.inf)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=.5)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=.7)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=-.1)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=-1)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         atom = pnorm(self.x, p=-1.3)
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONCAVE)
-        self.assertEqual(atom.sign, s.POSITIVE)
+        self.assertEqual(atom.sign, s.NONNEG)
 
         # Test copy with args=None
         copy = atom.copy()
@@ -307,8 +307,8 @@ class TestAtoms(BaseTest):
         """Test max.
         """
         # One arg, test sign.
-        self.assertEqual(max(1).sign, s.POSITIVE)
-        self.assertEqual(max(-2).sign, s.NEGATIVE)
+        self.assertEqual(max(1).sign, s.NONNEG)
+        self.assertEqual(max(-2).sign, s.NONPOS)
         self.assertEqual(max(Variable()).sign, s.UNKNOWN)
         self.assertEqual(max(0).sign, s.ZERO)
 
@@ -328,8 +328,8 @@ class TestAtoms(BaseTest):
         """Test min.
         """
         # One arg, test sign.
-        self.assertEqual(min(1).sign, s.POSITIVE)
-        self.assertEqual(min(-2).sign, s.NEGATIVE)
+        self.assertEqual(min(1).sign, s.NONNEG)
+        self.assertEqual(min(-2).sign, s.NONPOS)
         self.assertEqual(min(Variable()).sign, s.UNKNOWN)
         self.assertEqual(min(0).sign, s.ZERO)
 
@@ -348,61 +348,61 @@ class TestAtoms(BaseTest):
     # Test sign logic for maximum.
     def test_maximum_sign(self):
         # Two args.
-        self.assertEqual(maximum(1, 2).sign, s.POSITIVE)
-        self.assertEqual(maximum(1, Variable()).sign, s.POSITIVE)
-        self.assertEqual(maximum(1, -2).sign, s.POSITIVE)
-        self.assertEqual(maximum(1, 0).sign, s.POSITIVE)
+        self.assertEqual(maximum(1, 2).sign, s.NONNEG)
+        self.assertEqual(maximum(1, Variable()).sign, s.NONNEG)
+        self.assertEqual(maximum(1, -2).sign, s.NONNEG)
+        self.assertEqual(maximum(1, 0).sign, s.NONNEG)
 
-        self.assertEqual(maximum(Variable(), 0).sign, s.POSITIVE)
+        self.assertEqual(maximum(Variable(), 0).sign, s.NONNEG)
         self.assertEqual(maximum(Variable(), Variable()).sign, s.UNKNOWN)
         self.assertEqual(maximum(Variable(), -2).sign, s.UNKNOWN)
 
         self.assertEqual(maximum(0, 0).sign, s.ZERO)
         self.assertEqual(maximum(0, -2).sign, s.ZERO)
 
-        self.assertEqual(maximum(-3, -2).sign, s.NEGATIVE)
+        self.assertEqual(maximum(-3, -2).sign, s.NONPOS)
 
         # Many args.
         self.assertEqual(maximum(-2, Variable(), 0, -1, Variable(), 1).sign,
-                         s.POSITIVE)
+                         s.NONNEG)
 
         # Promotion.
         self.assertEqual(maximum(1, Variable(2)).sign,
-                         s.POSITIVE)
+                         s.NONNEG)
         self.assertEqual(maximum(1, Variable(2)).shape,
                          (2,))
 
     # Test sign logic for minimum.
     def test_minimum_sign(self):
         # Two args.
-        self.assertEqual(minimum(1, 2).sign, s.POSITIVE)
+        self.assertEqual(minimum(1, 2).sign, s.NONNEG)
         self.assertEqual(minimum(1, Variable()).sign, s.UNKNOWN)
-        self.assertEqual(minimum(1, -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(1, -2).sign, s.NONPOS)
         self.assertEqual(minimum(1, 0).sign, s.ZERO)
 
-        self.assertEqual(minimum(Variable(), 0).sign, s.NEGATIVE)
+        self.assertEqual(minimum(Variable(), 0).sign, s.NONPOS)
         self.assertEqual(minimum(Variable(), Variable()).sign, s.UNKNOWN)
-        self.assertEqual(minimum(Variable(), -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(Variable(), -2).sign, s.NONPOS)
 
         self.assertEqual(minimum(0, 0).sign, s.ZERO)
-        self.assertEqual(minimum(0, -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(0, -2).sign, s.NONPOS)
 
-        self.assertEqual(minimum(-3, -2).sign, s.NEGATIVE)
+        self.assertEqual(minimum(-3, -2).sign, s.NONPOS)
 
         # Many args.
         self.assertEqual(minimum(-2, Variable(), 0, -1, Variable(), 1).sign,
-                         s.NEGATIVE)
+                         s.NONPOS)
 
         # Promotion.
         self.assertEqual(minimum(-1, Variable(2)).sign,
-                         s.NEGATIVE)
+                         s.NONPOS)
         self.assertEqual(minimum(-1, Variable(2)).shape,
                          (2,))
 
     def test_sum(self):
         """Test the sum atom.
         """
-        self.assertEqual(cvxpy.sum(1).sign, s.POSITIVE)
+        self.assertEqual(cvxpy.sum(1).sign, s.NONNEG)
         self.assertEqual(cvxpy.sum(Constant([1, -1])).sign, s.UNKNOWN)
         self.assertEqual(cvxpy.sum(Constant([1, -1])).curvature, s.CONSTANT)
         self.assertEqual(cvxpy.sum(Variable(2)).sign, s.UNKNOWN)
@@ -434,9 +434,9 @@ class TestAtoms(BaseTest):
         self.assertEqual(multiply([1, -1], self.x).shape, (2,))
         pos_param = Parameter(2, nonneg=True)
         neg_param = Parameter(2, nonpos=True)
-        self.assertEqual(multiply(pos_param, pos_param).sign, s.POSITIVE)
-        self.assertEqual(multiply(pos_param, neg_param).sign, s.NEGATIVE)
-        self.assertEqual(multiply(neg_param, neg_param).sign, s.POSITIVE)
+        self.assertEqual(multiply(pos_param, pos_param).sign, s.NONNEG)
+        self.assertEqual(multiply(pos_param, neg_param).sign, s.NONPOS)
+        self.assertEqual(multiply(neg_param, neg_param).sign, s.NONNEG)
 
         self.assertEqual(multiply(neg_param, square(self.x)).curvature, s.CONCAVE)
 
@@ -490,7 +490,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, (2, 2))
 
         expr = reshape(square(self.x), (1, 2))
-        self.assertEqual(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1, 2))
 
@@ -511,7 +511,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.shape, (2,))
 
         expr = vec(square(self.a))
-        self.assertEqual(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONVEX)
         self.assertEqual(expr.shape, (1,))
 
@@ -555,11 +555,11 @@ class TestAtoms(BaseTest):
         """Test the log1p atom.
         """
         expr = log1p(1)
-        self.assertEqual(expr.sign, s.POSITIVE)
+        self.assertEqual(expr.sign, s.NONNEG)
         self.assertEqual(expr.curvature, s.CONSTANT)
         self.assertEqual(expr.shape, tuple())
         expr = log1p(-0.5)
-        self.assertEqual(expr.sign, s.NEGATIVE)
+        self.assertEqual(expr.sign, s.NONPOS)
 
     def test_upper_tri(self):
         with self.assertRaises(Exception) as cm:

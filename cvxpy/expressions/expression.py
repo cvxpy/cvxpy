@@ -194,9 +194,9 @@ class Expression(u.Canonical):
         if self.is_zero():
             sign_str = s.ZERO
         elif self.is_nonneg():
-            sign_str = s.POSITIVE
+            sign_str = s.NONNEG
         elif self.is_nonpos():
-            sign_str = s.NEGATIVE
+            sign_str = s.NONPOS
         else:
             sign_str = s.UNKNOWN
         return sign_str
