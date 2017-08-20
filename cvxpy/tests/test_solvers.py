@@ -546,17 +546,22 @@ class TestSolvers(BaseTest):
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """
-        from cvxpy.reductions.solvers.defines import (SOLVER_MAP,
+        from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
                                                       INSTALLED_SOLVERS)
         prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
-        for solver in SOLVER_MAP.keys():
+        for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
-                try:
+                prob.solve(solver=solver)
+                self.assertItemsAlmostEqual(self.x.value, [0, 0])
+            else:
+                with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
-                    self.assertItemsAlmostEqual(self.x.value, [0, 0])
-                # LS is the only solver that can't handle this problem
-                except (Exception) as cm:
-                    self.assertEqual(str(cm), "The solver LS cannot solve the problem.")
+                self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)
+
+        for solver in SOLVER_MAP_QP.keys():
+            if solver in INSTALLED_SOLVERS:
+                prob.solve(solver=solver)
+                self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)

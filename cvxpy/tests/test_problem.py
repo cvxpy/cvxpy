@@ -27,7 +27,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif, scs_conif
-from cvxpy.reductions.solvers.defines import SOLVER_MAP, INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP, INSTALLED_SOLVERS
 import cvxpy.interface as intf
 from cvxpy.tests.base_test import BaseTest
 from numpy import linalg as LA
@@ -234,32 +234,44 @@ class TestProblem(BaseTest):
 
         if s.CVXOPT in INSTALLED_SOLVERS:
             import cvxopt
-            # TODO(akshayka): We must update the CVXOPT interface before
-            # we can support this test.
-            pass
+            from cvxpy.problems.problem_data.problem_data import ProblemData
+            from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_OLD
+            prob = Problem(cvx.Minimize(cvx.norm(self.x) + 3))
+            args, chain, inv = prob.get_problem_data(s.CVXOPT)
+            solver = CVXOPT_OLD()
+            data = solver.get_problem_data(args['objective'], args['constraints'],
+                                           {s.CVXOPT: ProblemData()})
+            dims = data["dims"]
+            self.assertEqual(dims["q"], [3])
+            # NumPy ndarrays, not cvxopt matrices.
+            self.assertEqual(type(data["c"]), cvxopt.matrix)
+            self.assertEqual(type(data["A"]), cvxopt.spmatrix)
+            self.assertEqual(data["c"].size, (3, 1))
+            self.assertEqual(data["A"].size, (0, 3))
+            self.assertEqual(data["G"].size, (3, 3))
 
     # Test silencing and enabling solver messages.
     def test_verbose(self):
         import sys
+        import os
+        import tempfile
         # From http://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
         # setup the environment
         outputs = {True: [], False: []}
         backup = sys.stdout
+        stdout_fd = 1
         # ####
-        for verbose in [True, False]:
-            for solver in INSTALLED_SOLVERS:
+        for solver in [cvx.OSQP]:#INSTALLED_SOLVERS:
+            for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in ["GLPK", "GLPK_MI", "MOSEK", "CBC", "LS"]:
+                if solver in [cvx.GLPK, cvx.GLPK_MI, cvx.MOSEK, cvx.CBC]:
                     continue
-                if solver == "ELEMENTAL":
+                if solver in [cvx.ELEMENTAL]:
                     # ELEMENTAL's stdout is separate from python,
                     # so we have to do this.
                     # Note: This probably breaks (badly) on Windows.
-                    import os
-                    import tempfile
-
-                    stdout_fd = 1
+                    stdout_save = os.dup(stdout_fd)
                     tmp_handle = tempfile.TemporaryFile(bufsize=0)
                     os.dup2(tmp_handle.fileno(), stdout_fd)
                 else:
@@ -267,32 +279,35 @@ class TestProblem(BaseTest):
 
                 p = Problem(cvx.Minimize(self.a + self.x[0]),
                             [self.a >= 2, self.x >= 2])
+                p.solve(verbose=verbose, solver=solver)
 
-                if SOLVER_MAP[solver].MIP_CAPABLE:
-                    p.constraints.append(Variable(boolean=True) == 0)
-                    p.solve(verbose=verbose, solver=solver)
+                if solver in SOLVER_MAP_CONIC:
+                    if SOLVER_MAP_CONIC[solver].MIP_CAPABLE:
+                        p.constraints.append(Variable(boolean=True) == 0)
+                        p.solve(verbose=verbose, solver=solver)
 
-                if ExpCone in SOLVER_MAP[solver].SUPPORTED_CONSTRAINTS:
-                    p = Problem(cvx.Minimize(self.a), [cvx.log(self.a) >= 2])
-                    p.solve(verbose=verbose, solver=solver)
+                    if ExpCone in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
+                        p = Problem(cvx.Minimize(self.a), [cvx.log(self.a) >= 2])
+                        p.solve(verbose=verbose, solver=solver)
 
-                if PSD in SOLVER_MAP[solver].SUPPORTED_CONSTRAINTS:
-                    p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a[None, None]) >= 2])
-                    p.solve(verbose=verbose, solver=solver)
+                    if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
+                        p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a[None, None]) >= 2])
+                        p.solve(verbose=verbose, solver=solver)
 
-                if solver == "ELEMENTAL":
+                if solver in [cvx.ELEMENTAL]:
                     # ELEMENTAL's stdout is separate from python,
                     # so we have to do this.
                     tmp_handle.seek(0)
                     out = tmp_handle.read()
                     tmp_handle.close()
+                    os.dup2(stdout_save, stdout_fd)
                 else:
                     out = sys.stdout.getvalue()  # release output
+                    sys.stdout.close()  # close the stream
+                    sys.stdout = backup  # restore original stdout
 
                 outputs[verbose].append((out, solver))
         # ####
-        sys.stdout.close()  # close the stream
-        sys.stdout = backup  # restore original stdout
         for output, solver in outputs[True]:
             print(solver)
             assert len(output) > 0
@@ -655,7 +670,7 @@ class TestProblem(BaseTest):
         c = Constant(numpy.matrix([3, 4]).T).value
         p = Problem(cvx.Minimize(1), [self.A >= T*self.C,
                                   self.A == self.B, self.C == T.T])
-        result = p.solve()
+        result = p.solve(solver=cvx.ECOS)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, self.B.value)
         self.assertItemsAlmostEqual(self.C.value, T)
@@ -738,7 +753,7 @@ class TestProblem(BaseTest):
         # Vector arguments.
         p = Problem(cvx.Minimize(cvx.norm_inf(self.x - self.z) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
-        result = p.solve()
+        result = p.solve(solver=cvx.ECOS)
         self.assertAlmostEqual(float(result), 12)
         self.assertAlmostEqual(float(list(self.x.value)[1] - list(self.z.value)[1]), 7)
 

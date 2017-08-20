@@ -70,43 +70,6 @@ class Solver(object):
         """
         pass
 
-    @staticmethod
-    def choose_solver(constraints):
-        """Determines the appropriate solver.
-
-        Parameters
-        ----------
-        constraints: list
-            The list of canonicalized constraints.
-
-        Returns
-        -------
-        str
-            The solver that will be used.
-        """
-        constr_map = SymData.filter_constraints(constraints)
-        # If no constraints, use ECOS.
-        if len(constraints) == 0:
-            return s.ECOS
-        # If mixed integer constraints, use ECOS_BB.
-        elif constr_map[s.BOOL] or constr_map[s.INT]:
-            return s.ECOS_BB
-        # If PSD, defaults to CVXOPT.
-        elif constr_map[s.PSD]:
-            try:
-                import cvxopt
-                cvxopt  # For flake8
-                return s.CVXOPT
-            except ImportError:
-                return s.SCS
-
-        # Otherwise use ECOS.
-        else:
-            return s.ECOS
-        # TODO: If linearly constrained least squares, use LS.
-        #       Currently this part is handled directly
-        #       in problem.py, which is not ideal.
-
     def is_installed(self):
         """Is the solver installed?
         """
@@ -115,49 +78,6 @@ class Solver(object):
             return True
         except ImportError:
             return False
-
-    def validate_solver(self, constraints):
-        """Raises an exception if the solver cannot solve the problem.
-
-        Parameters
-        ----------
-        constraints: list
-            The list of canonicalized constraints.
-        """
-        # Check the solver is installed.
-        if not self.is_installed():
-            raise SolverError("The solver %s is not installed." % self.name())
-        # Check the solver can solve the problem.
-        constr_map = SymData.filter_constraints(constraints)
-        if ((constr_map[s.BOOL] or constr_map[s.INT]) and
-            not self.MIP_CAPABLE) or \
-           (constr_map[s.PSD] and not self.PSD_CAPABLE) or \
-           (constr_map[s.EXP] and not self.EXP_CAPABLE) or \
-           (constr_map[s.SOC] and not self.SOCP_CAPABLE) or \
-           (len(constraints) == 0 and self.name() in [s.SCS,
-                                                      s.GLPK]):
-            raise SolverError(
-                "The solver %s cannot solve the problem." % self.name()
-            )
-
-    def validate_cache(self, objective, constraints, cached_data):
-        """Clears the cache if the objective or constraints changed.
-
-        Parameters
-        ----------
-        objective : LinOp
-            The canonicalized objective.
-        constraints : list
-            The list of canonicalized cosntraints.
-        cached_data : dict
-            A map of solver name to cached problem data.
-        """
-        prob_data = cached_data[self.name()]
-        if prob_data.sym_data is not None and \
-           (objective != prob_data.sym_data.objective or
-                constraints != prob_data.sym_data.constraints):
-            prob_data.sym_data = None
-            prob_data.matrix_data = None
 
     def get_sym_data(self, objective, constraints, cached_data):
         """Returns the symbolic data for the problem.
@@ -176,7 +96,6 @@ class Solver(object):
         SymData
             The symbolic data for the problem.
         """
-        self.validate_cache(objective, constraints, cached_data)
         prob_data = cached_data[self.name()]
         if prob_data.sym_data is None:
             prob_data.sym_data = SymData(objective, constraints, self)

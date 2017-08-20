@@ -291,8 +291,8 @@ class Problem(u.Canonical):
         """
         try:
             solving_chain = construct_solving_chain(self, solver)
-        except:
-            raise
+        except Exception as e:
+            raise e
         data, inv_data = solving_chain.apply(self)
         return data, solving_chain, inv_data
 
@@ -348,8 +348,8 @@ class Problem(u.Canonical):
             try:
                 self._solving_chain = construct_solving_chain(self,
                                                               solver=solver)
-            except:
-                raise
+            except Exception as e:
+                raise e
 
         data, inverse_data = self._solving_chain.apply(self)
         solution = self._solving_chain.solve_via_data(data, warm_start, verbose,

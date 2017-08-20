@@ -63,7 +63,7 @@ class TestDomain(BaseTest):
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
-            prob.solve()
+            prob.solve(solver=cvxpy.ECOS)
             self.assertAlmostEqual(prob.value, 0)
             assert self.a.value >= -1e-3
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
@@ -73,7 +73,7 @@ class TestDomain(BaseTest):
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
-            prob.solve()
+            prob.solve(solver=cvxpy.ECOS)
             self.assertAlmostEqual(self.a.value, -100)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
