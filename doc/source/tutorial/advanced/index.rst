@@ -1,5 +1,8 @@
 .. _advanced:
 
+..
+ TODO: transforms. Reductions.
+
 Advanced Features
 =================
 
@@ -13,28 +16,28 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 .. code:: python
 
-    from cvxpy import *
+    import cvxpy as cvx
 
     # Create two scalar optimization variables.
-    x = Variable()
-    y = Variable()
+    x = cvx.Variable()
+    y = cvx.Variable()
 
     # Create two constraints.
     constraints = [x + y == 1,
                    x - y >= 1]
 
     # Form objective.
-    obj = Minimize(square(x - y))
+    obj = cvx.Minimize((x - y)**2)
 
     # Form and solve problem.
-    prob = Problem(obj, constraints)
+    prob = cvx.Problem(obj, constraints)
     prob.solve()
 
     # The optimal dual variable (Lagrange multiplier) for
     # a constraint is stored in constraint.dual_value.
-    print "optimal (x + y == 1) dual variable", constraints[0].dual_value
-    print "optimal (x - y >= 1) dual variable", constraints[1].dual_value
-    print "x - y value:", (x - y).value
+    print("optimal (x + y == 1) dual variable", constraints[0].dual_value)
+    print("optimal (x - y >= 1) dual variable", constraints[1].dual_value)
+    print("x - y value:", (x - y).value)
 
 ::
 
@@ -44,6 +47,66 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
+Attributes
+----------
+
+Variables and parameters can be created with attributes specifying additional properties.
+For example, ``Variable(nonneg=True)`` is a scalar variable constrained to be nonnegative.
+Similarly, ``Parameter(nonpos=True)`` is a scalar parameter constrained to be nonpositive.
+The full constructor for Variables is given below.
+The constructor for Parameters takes the same arguments.
+
+.. function:: Variable(shape=None, name=None, value=None, **attributes)
+
+    Creates a Variable object. 
+    Only one attribute can be active (set to True).
+
+    :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
+    :type shape: tuple or int
+    :param name: The variable name.
+    :type name: str
+    :param value: A value to assign to the variable.
+    :type value: numeric type
+    :param nonneg: Is the variable constrained to be nonnegative?
+    :type nonneg: bool
+    :param nonpos: Is the variable constrained to be nonpositive?
+    :type nonpos: bool
+    :param symmetric: Is the variable constrained to be symmetric?
+    :type symmetric: bool
+    :param diag: Is the variable constrained to be diagonal?
+    :type diag: bool
+    :param PSD: Is the variable constrained to be positive semidefinite?
+    :type PSD: bool
+    :param NSD: Is the variable constrained to be negative semidefinite?
+    :type NSD: bool
+    :param boolean: 
+        Is the variable boolean? True, which constrains
+        the entire variable to be boolean, False, or a list of
+        indices which should be constrained as boolean, where each
+        index is a tuple of length exactly equal to the
+        length of shape.
+    :type boolean: bool or list of tuple
+    :param integer: Is the variable integer? The semantics are the same as the boolean argument.
+    :type integer: bool or list of tuple
+
+The ``value`` field of Variables and Parameters can be assigned a value after construction,
+but the assigned value must satisfy the object attributes.
+A Euclidean projection onto the set defined by the attributes is given by the ``round`` method.
+
+.. code:: python
+
+    p = Parameter(nonneg=True)
+    try:
+        p.value = -1
+    except Exception as e:
+        print(e)
+
+    print("Projection:", p.round(-1))
+
+::
+
+    Parameter value must be nonnegative.
+    Projection: 0.0
 
 .. _semidefinite:
 
@@ -58,11 +121,11 @@ The first way is to use
 .. code:: python
 
     # Creates a 100 by 100 positive semidefinite variable.
-    X = Variable((100, 100), PSD=True)
+    X = cvx.Variable((100, 100), PSD=True)
 
     # You can use X anywhere you would use
     # a normal CVXPY variable.
-    obj = Minimize(norm(X) + sum(X))
+    obj = cvx.Minimize(cvx.norm(X) + cvx.sum(X))
 
 The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,
@@ -95,23 +158,42 @@ You can also use ``Variable((n, n), symmetric=True)`` to create an ``n`` by ``n`
 Mixed-integer programs
 ----------------------
 
-In mixed-integer programs, certain variables are constrained to be boolean or integer valued. You can construct mixed-integer programs using the ``Bool`` and ``Int`` constructors. These take the same arguments as the ``Variable`` constructor, and they return a variable constrained to have only boolean or integer valued entries.
-
-The following code shows the ``Bool`` and ``Int`` constructors in action:
+In mixed-integer programs, certain variables are constrained to be boolean or integer valued. You can construct mixed-integer programs by creating Boolean or integer variables, which are constrained to have only boolean or integer valued entries:
 
 .. code:: python
 
     # Creates a 10-vector constrained to have boolean valued entries.
-    x = Bool(10)
+    x = cvx.Variable(10, boolean=True)
 
     # expr1 must be boolean valued.
     constr1 = (expr1 == x)
 
     # Creates a 5 by 7 matrix constrained to have integer valued entries.
-    Z = Int(5, 7)
+    Z = cvx.Variable((5, 7), integer=True)
 
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
+
+Transforms
+----------
+
+Transforms provide additional ways of manipulating CVXPY objects
+beyond the atomic functions.
+The available transforms in CVXPY are given below:
+
+.. function:: partial_optimize(prob, opt_vars=None, dont_opt_vars=None)
+
+    Partially optimizes the given problem over the specified variables.
+
+    Either opt_vars or dont_opt_vars must be given.
+    If both are given, they must contain all the variables in the problem.
+
+    :param prob: The problem to partially optimize.
+    :type prob: Problem
+    :param opt_vars: The variables to optimize over.
+    :type opt_vars: list
+    :param opt_vars: The variables to not optimize over.
+    :type opt_vars: list
 
 Problem arithmetic
 ------------------
@@ -203,35 +285,37 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `CVXOPT`_, and `SCS`_.
-CVXPY also supports `GLPK`_ and `GLPK_MI`_ via the CVXOPT GLPK interface, `CBC`_, `MOSEK`_, `GUROBI`_, and `Elemental`_.
-The table below shows the types of problems the solvers can handle.
+CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `OSQP`_, and `SCS`_.
+Many other solvers can be called by CVXPY if installed separately.
+The table below shows the types of problems the supported solvers can handle.
 
-+--------------+----+------+-----+-----+-----+
-|              | LP | SOCP | SDP | EXP | MIP |
-+==============+====+======+=====+=====+=====+
-| `CBC`_       | X  |      |     |     | X   |
-+--------------+----+------+-----+-----+-----+
-| `GLPK`_      | X  |      |     |     |     |
-+--------------+----+------+-----+-----+-----+
-| `GLPK_MI`_   | X  |      |     |     | X   |
-+--------------+----+------+-----+-----+-----+
-| `Elemental`_ | X  | X    |     |     |     |
-+--------------+----+------+-----+-----+-----+
-| `ECOS`_      | X  | X    |     | X   |     |
-+--------------+----+------+-----+-----+-----+
-| `ECOS_BB`_   | X  | X    |     | X   | X   |
-+--------------+----+------+-----+-----+-----+
-| `GUROBI`_    | X  | X    |     |     | X   |
-+--------------+----+------+-----+-----+-----+
-| `MOSEK`_     | X  | X    | X   |     |     |
-+--------------+----+------+-----+-----+-----+
-| `CVXOPT`_    | X  | X    | X   | X   |     |
-+--------------+----+------+-----+-----+-----+
-| `SCS`_       | X  | X    | X   | X   |     |
-+--------------+----+------+-----+-----+-----+
-
-A special solver `LS`_ is also available. It is unable to solve any of the problem types in the table above, but it solves linearly constrained least squares problems very quickly.
++--------------+----+----+------+-----+-----+-----+
+|              | LP | QP | SOCP | SDP | EXP | MIP |
++==============+====+====+======+=====+=====+=====+
+| `CBC`_       | X  |    |      |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
+| `GLPK`_      | X  |    |      |     |     |     |
++--------------+----+----+------+-----+-----+-----+
+| `GLPK_MI`_   | X  |    |      |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
+| `OSQP`_      | X  | X  |      |     |     |     |
++--------------+----+----+------+-----+-----+-----+
+| `CPLEX`_     | X  | X  |      |     |     |     |
++--------------+----+----+------+-----+-----+-----+
+| `Elemental`_ | X  | X  | X    |     |     |     |
++--------------+----+----+------+-----+-----+-----+
+| `ECOS`_      | X  | X  | X    |     | X   |     |
++--------------+----+----+------+-----+-----+-----+
+| `ECOS_BB`_   | X  | X  | X    |     | X   | X   |
++--------------+----+----+------+-----+-----+-----+
+| `GUROBI`_    | X  | X  | X    |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
+| `MOSEK`_     | X  | X  | X    | X   |     |     |
++--------------+----+----+------+-----+-----+-----+
+| `CVXOPT`_    | X  | X  | X    | X   | X   |     |
++--------------+----+----+------+-----+-----+-----+
+| `SCS`_       | X  | X  | X    | X   | X   |     |
++--------------+----+----+------+-----+-----+-----+
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -239,57 +323,57 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
 
 You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ and `CVXOPT`_ can both handle all problems (except mixed-integer programs). `CVXOPT`_ is preferred by default. For many problems `SCS`_ will be faster, though less accurate. `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem has a quadratic objective function and equality constraints only, CVXPY will use `LS`_.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ can both handle all problems (except mixed-integer programs). `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem is a QP, CVXPY will use `OSQP`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
 .. code:: python
 
     # Solving a problem with different solvers.
-    x = Variable(2)
-    obj = Minimize(x[0] + norm(x, 1))
+    x = cvx.Variable(2)
+    obj = cvx.Minimize(x[0] + cvx.norm(x, 1))
     constraints = [x >= 2]
-    prob = Problem(obj, constraints)
+    prob = cvx.Problem(obj, constraints)
 
     # Solve with ECOS.
-    prob.solve(solver=ECOS)
-    print "optimal value with ECOS:", prob.value
+    prob.solve(solver=cvx.ECOS)
+    print("optimal value with ECOS:", prob.value)
 
     # Solve with ECOS_BB.
-    prob.solve(solver=ECOS_BB)
-    print "optimal value with ECOS_BB:", prob.value
+    prob.solve(solver=cvx.ECOS_BB)
+    print("optimal value with ECOS_BB:", prob.value)
 
     # Solve with CVXOPT.
-    prob.solve(solver=CVXOPT)
-    print "optimal value with CVXOPT:", prob.value
+    prob.solve(solver=cvx.CVXOPT)
+    print("optimal value with CVXOPT:", prob.value)
 
     # Solve with SCS.
-    prob.solve(solver=SCS)
-    print "optimal value with SCS:", prob.value
+    prob.solve(solver=cvx.SCS)
+    print("optimal value with SCS:", prob.value)
 
     # Solve with GLPK.
-    prob.solve(solver=GLPK)
-    print "optimal value with GLPK:", prob.value
+    prob.solve(solver=cvx.GLPK)
+    print("optimal value with GLPK:", prob.value)
 
     # Solve with GLPK_MI.
-    prob.solve(solver=GLPK_MI)
-    print "optimal value with GLPK_MI:", prob.value
+    prob.solve(solver=cvx.GLPK_MI)
+    print("optimal value with GLPK_MI:", prob.value)
 
     # Solve with GUROBI.
-    prob.solve(solver=GUROBI)
-    print "optimal value with GUROBI:", prob.value
+    prob.solve(solver=cvx.GUROBI)
+    print("optimal value with GUROBI:", prob.value)
 
     # Solve with MOSEK.
-    prob.solve(solver=MOSEK)
-    print "optimal value with MOSEK:", prob.value
+    prob.solve(solver=cvx.MOSEK)
+    print("optimal value with MOSEK:", prob.value)
 
     # Solve with Elemental.
-    prob.solve(solver=ELEMENTAL)
-    print "optimal value with Elemental:", prob.value
+    prob.solve(solver=cvx.ELEMENTAL)
+    print("optimal value with Elemental:", prob.value)
 
     # Solve with CBC.
-    prob.solve(solver=CBC)
-    print "optimal value with CBC:", prob.value
+    prob.solve(solver=cvx.CBC)
+    print("optimal value with CBC:", prob.value)
 
 ::
 
@@ -312,7 +396,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'LS']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'OSQP']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -322,7 +406,7 @@ All the solvers can print out information about their progress while solving the
 .. code:: python
 
     # Solve with ECOS and display output.
-    prob.solve(solver=ECOS, verbose=True)
+    prob.solve(solver=cvx.ECOS, verbose=True)
     print "optimal value with ECOS:", prob.value
 
 ::
@@ -342,6 +426,43 @@ All the solvers can print out information about their progress while solving the
 
     optimal value with ECOS: 6.82842708233
 
+Warm start
+----------
+
+When solving the same problem for multiple values of a parameter, many solvers can exploit work from previous solves (i.e., warm start).
+For example, the solver might use the previous solution as an initial point or reuse cached matrix factorizations.
+Warm start is enabled by default and controlled with the ``warm_start`` solver option.
+The code below shows how warm start can accelerate solving a sequence of related least-squares problems.
+
+.. code:: python
+
+    import cvxpy as cvx
+    import numpy
+
+    # Problem data.
+    m = 2000
+    n = 1000
+    numpy.random.seed(1)
+    A = numpy.random.randn(m, n)
+    b = cvx.Parameter(m)
+
+    # Construct the problem.
+    x = cvx.Variable(n)
+    prob = cvx.Problem(cvx.Minimize(cvx.sum_squares(A*x - b)))
+
+    b.value = numpy.random.randn(m)
+    prob.solve()
+    print("First solve time:", prob.solve_time)
+
+    b.value = numpy.random.randn(m)
+    prob.solve(warm_start=True)
+    print("Second solve time:", prob.solve_time)
+
+::
+
+   First solve time: TODO
+   Second solve time: TODO
+
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -352,7 +473,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 .. code:: python
 
     # Solve with SCS, use sparse-indirect method.
-    prob.solve(solver=SCS, verbose=True, use_indirect=True)
+    prob.solve(solver=cvx.SCS, verbose=True, use_indirect=True)
     print "optimal value with SCS:", prob.value
 
 ::
@@ -388,7 +509,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
     ============================================================================
     optimal value with SCS: 6.82837896975
 
-Here's the complete list of solver options.
+Here is the complete list of solver options.
 
 `ECOS`_ options:
 
@@ -475,10 +596,6 @@ Here's the complete list of solver options.
 ``'use_indirect'``
     whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
-``'warm_start'``
-    whether to initialize the solver with the previous solution (default: False).
-    The use case for warm start is solving the same problem for multiple values of a parameter.
-
 `CBC`_ options:
 
 Cut-generation through `CGL`_
@@ -501,16 +618,16 @@ If you are interested in getting the standard form that CVXPY produces for a pro
 .. code:: python
 
     # Get ECOS arguments.
-    data = prob.get_problem_data(ECOS)
+    data = prob.get_problem_data(cvx.ECOS)
 
     # Get ECOS_BB arguments.
-    data = prob.get_problem_data(ECOS_BB)
+    data = prob.get_problem_data(cvx.ECOS_BB)
 
     # Get CVXOPT arguments.
-    data = prob.get_problem_data(CVXOPT)
+    data = prob.get_problem_data(cvx.CVXOPT)
 
     # Get SCS arguments.
-    data = prob.get_problem_data(SCS)
+    data = prob.get_problem_data(cvx.SCS)
 
 After you solve the standard conic form problem returned by ``get_problem_data``, you can unpack the raw solver output using the ``unpack_results`` method. Calling ``unpack_results(solver, solver_output)`` on a problem will update the values of all primal and dual variables as well as the problem value and status.
 
@@ -519,13 +636,15 @@ For example, the following code is equivalent to solving the problem directly wi
 .. code:: python
 
     # Get ECOS arguments.
-    data = prob.get_problem_data(ECOS)
+    data = prob.get_problem_data(cvx.ECOS)
     # Call ECOS solver.
     solver_output = ecos.solve(data["c"], data["G"], data["h"],
                                data["dims"], data["A"], data["b"])
     # Unpack raw solver output.
-    prob.unpack_results(ECOS, solver_output)
+    prob.unpack_results(cvx.ECOS, solver_output)
 
+.. _OSQP: http://osqp.readthedocs.io/
+.. _CPLEX: TODO
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb

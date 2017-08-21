@@ -19,8 +19,10 @@ documents the classes implementing mathematical expression trees, including the
 :class:`~cvxpy.expressions.variable.Variable` and
 :class:`~cvxpy.expressions.constants.parameter.Parameter` classes; the
 **problem** section documents the
-:class:`~cvxpy.problems.problem.Problem` class and other related classes; and
-the **reductions** section documents principled operations that convert
+:class:`~cvxpy.problems.problem.Problem` class and other related classes;
+the **transforms** section documents additional operations available for manipulating
+CVXPY objects;
+and the **reductions** section documents principled operations that convert
 problems from a particular form to another equivalent form.
 
 
