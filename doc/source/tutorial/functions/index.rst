@@ -19,21 +19,25 @@ expressions is constant and ``expr1/expr2`` is allowed only when
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^
 
-All non-scalar expressions can be indexed using the syntax
-``expr[i, j]``. Indexing is an affine function. The syntax ``expr[i]``
-can be used as a shorthand for ``expr[i, 0]`` when ``expr`` is a column
-vector. Similarly, ``expr[i]`` is shorthand for ``expr[0, i]`` when
-``expr`` is a row vector.
+Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+For example, if ``expr`` has shape ``(5,)`` then ``expr[1]`` gives the second entry.
+More generally, ``expr[i:j:k]`` selects every kth
+element of ``expr``, starting at ``i`` and ending at ``j-1``.
+If ``expr`` is a matrix, then ``expr[i:j:k]`` selects rows,
+while ``expr[i:j:k, r:s:t]`` selects both rows and columns.
+Indexing drops dimensions while slicing preserves dimenions.
+For example,
 
-Non-scalar expressions can also be sliced into using the standard Python
-slicing syntax. For example, ``expr[i:j:k, r]`` selects every kth
-element in column r of ``expr``, starting at row i and ending at row
-j-1.
+.. code:: python
 
-CVXPY supports advanced indexing using lists of indices or boolean arrays.
-The semantics are the same as NumPy
-(see `NumPy advanced indexing <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html#advanced-indexing>`_).
-Any time NumPy would return a 1D array, CVXPY returns a column vector.
+     x = cvx.Variable(5)
+     print("0 dimensional", x[0].shape)
+     print("1 dimensional", x[0:1].shape)
+
+::
+
+    O dimensional: ()
+    1 dimensional: (1,)
 
 Transpose
 ^^^^^^^^^
@@ -103,7 +107,7 @@ and returns a scalar.
      - |concave| concave
      - None
 
-   * - :ref:`lambda_sum_largest(X, |_| k) <lambda-sum-largest>`
+   * - :ref:`lambda_sum_largest(X,k) <lambda-sum-largest>`
 
        :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ largest}\\ \text{eigenvalues of $X$}`
@@ -112,7 +116,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - :ref:`lambda_sum_smallest(X, |_| k) <lambda-sum-smallest>`
+   * - :ref:`lambda_sum_smallest(X,k) <lambda-sum-smallest>`
 
        :math:`k = 1,\ldots, n`
      - :math:`\text{sum of $k$ smallest}\\ \text{eigenvalues of $X$}`
@@ -355,7 +359,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - tv(X1,...,Xk)
+   * - tv([X1,...,Xk])
      - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
      - |positive| positive
@@ -374,7 +378,7 @@ and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_no
 
 The functions ``max`` and ``min`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``maximum`` and ``minimum`` (see :ref:`elementwise`). Use ``maximum`` and ``minimum`` to find the max or min of a list of scalar expressions.
 
-The function ``sum`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
+The CVXPY function ``sum`` sums all the entries in a single expression. The built-in Python ``sum`` should be used to add together a list of expressions. For example, the following code sums a list of three expressions:
 
 .. code:: python
 
@@ -387,16 +391,19 @@ Functions along an axis
 
 The functions ``sum``, ``norm``, ``max``, and ``min`` can be
 applied along an axis.
-Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0)``
+Given an ``m`` by ``n`` expression ``expr``, the syntax ``func(expr, axis=0, keepdims=True)``
 applies ``func`` to each column, returning a 1 by ``n`` expression.
-The syntax ``func(expr, axis=1)`` applies ``func`` to each row,
-returning an ``m`` by 1 expression. For example, the following code sums
+The syntax ``func(expr, axis=1, keepdims=True)`` applies ``func`` to each row,
+returning an ``m`` by 1 expression.
+By default ``keepdims=False``, which means dimensions of length 1 are dropped.
+For example, the following code sums
 along the columns and rows of a matrix variable: 
 .. code:: python
 
-    X = Variable(5, 4)
-    col_sums = sum(X, axis=0) # Has size (1, 4)
-    row_sums = sum(X, axis=1) # Has size (5, 1)
+    X = cvx.Variable((5, 4))
+    col_sums = cvx.sum(X, axis=0, keepdims=True) # Has size (1, 4)
+    col_sums = cvx.sum(X, axis=0) # Has size (4,)
+    row_sums = cvx.sum(X, axis=1) # Has size (5,)
 
 
 .. _elementwise:
@@ -501,22 +508,22 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
-   * - :ref:`maximum(x1, |_| ..., |_| xk) <maximum>`
+   * - :ref:`maximum(x, y) <maximum>`
 
-     - :math:`\max \left\{x_1, \ldots , x_k\right\}`
-     - :math:`x_i \in \mathbf{R}`
-     - :math:`\max(\mathrm{sign}(x_1))`
+     - :math:`\max \left\{x, y\right\}`
+     - :math:`x,y \in \mathbf{R}`
+     - depends on x,y 
      - |convex| convex
      - |incr| incr.
 
-   * - :ref:`minimum(x1, |_| ..., |_| xk) <minimum>`
-     - :math:`\min \left\{x_1, \ldots , x_k\right\}`
-     - :math:`x_i \in \mathbf{R}`
-     - :math:`\min(\mathrm{sign}(x_1))`
+   * - :ref:`minimum(x, y) <minimum>`
+     - :math:`\min \left\{x, y\right\}`
+     - :math:`x, y \in \mathbf{R}`
+     - depends |_| on |_| x,y
      - |concave| concave
      - |incr| incr.
 
-   * - :ref:`multiply(c, |_| x) <multiply>`
+   * - :ref:`multiply(c, x) <multiply>`
 
        :math:`c \in \mathbf{R}`
      - c*x
@@ -640,9 +647,9 @@ and returns a vector or matrix.
      - Curvature |_|
      - Monotonicity
 
-   * - :ref:`bmat([[X11, |_| ...,  |_| X1q],
+   * - :ref:`bmat([[X11,...,X1q],
        ...,
-       [Xp1, |_| ..., |_| Xpq]]) <bmat>`
+       [Xp1,...,Xpq]]) <bmat>`
 
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
@@ -691,7 +698,7 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`hstack(X1, |_| ..., |_| Xk) <hstack>`
+   * - :ref:`hstack([X1, ..., Xk]) <hstack>`
 
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
@@ -708,7 +715,7 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on C
 
-   * - :ref:`reshape(X, |_| n', |_| m') <reshape>`
+   * - :ref:`reshape(X, (n', m')) <reshape>`
 
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
      - :math:`X \in\mathbf{R}^{m \times n}`
@@ -726,7 +733,7 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`vstack(X1, |_| ..., |_| Xk) <vstack>`
+   * - :ref:`vstack([X1, ..., Xk]) <vstack>`
 
      - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
@@ -747,7 +754,7 @@ The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
 The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
 Formally, :math:`x'_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`X'` of ``reshape(X, m', n')`` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
+The output :math:`X'` of ``reshape(X, (m', n'))`` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`X'` in column-major order.
 Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{m'j + i}`.
 
