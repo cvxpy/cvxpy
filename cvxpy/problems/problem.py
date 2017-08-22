@@ -78,6 +78,8 @@ class Problem(u.Canonical):
         # Benchmarks reported by the solver:
         self._solver_stats = None
         self.args = [self._objective, self._constraints]
+        # Cache for warm start.
+        self._solver_cache = {}
 
     @property
     def value(self):
@@ -352,7 +354,7 @@ class Problem(u.Canonical):
                 raise e
 
         data, inverse_data = self._solving_chain.apply(self)
-        solution = self._solving_chain.solve_via_data(data, warm_start, verbose,
+        solution = self._solving_chain.solve_via_data(self, data, warm_start, verbose,
                                                       kwargs)
         self.unpack_results(solution, self._solving_chain, inverse_data)
         return self.value

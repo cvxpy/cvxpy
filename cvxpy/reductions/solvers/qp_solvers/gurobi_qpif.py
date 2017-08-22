@@ -90,7 +90,7 @@ class GUROBI(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import gurobipy as grb
         # N.B. Here we assume that the matrices in data are in csc format
         P = data[s.P].tocoo()       # Convert matrix to coo format

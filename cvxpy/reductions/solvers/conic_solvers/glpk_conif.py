@@ -57,7 +57,7 @@ class GLPK(CVXOPT):
                     return False
         return True
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.glpk_intf import GLPK as GLPK_OLD
         solver = GLPK_OLD()
         return solver.solve(

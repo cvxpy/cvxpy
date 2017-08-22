@@ -83,7 +83,7 @@ class Elemental(ConicSolver):
         inv_data[self.NEQ_CONSTR] = leq_constr
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.elemental_intf import Elemental as EL_OLD
         solver = EL_OLD()
         return solver.solve(

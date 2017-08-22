@@ -27,7 +27,7 @@ class ConstantSolver(Solver):
     def is_installed(self):
         return True
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         return self.solve(data, warm_start, verbose, solver_opts)
 
     def solve(self, problem, warm_start, verbose, solver_opts):

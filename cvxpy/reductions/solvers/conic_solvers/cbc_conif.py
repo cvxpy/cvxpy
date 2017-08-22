@@ -89,7 +89,7 @@ class CBC(ConicSolver):
         inv_data[self.NEQ_CONSTR] = leq_constr
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.cbc_intf import CBC as CBC_OLD
         solver = CBC_OLD()
         return solver.solve(

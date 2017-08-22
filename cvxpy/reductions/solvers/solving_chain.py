@@ -193,7 +193,7 @@ class SolvingChain(Chain):
                                               verbose, solver_opts)
         return self.invert(solution, inverse_data)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, problem, data, warm_start, verbose, solver_opts):
         """Solves the problem using the data output by the an apply invocation.
 
         The semantics are:
@@ -211,6 +211,8 @@ class SolvingChain(Chain):
         ----------
         problem : Problem
             The problem to solve.
+        data : map
+            Data for the solver.
         warm_start : bool
             Whether to warm start the solver.
         verbose : bool
@@ -225,4 +227,4 @@ class SolvingChain(Chain):
             a Solution object.
         """
         return self.solver.solve_via_data(data, warm_start, verbose,
-                                          solver_opts)
+                                          solver_opts, problem._solver_cache)

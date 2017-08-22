@@ -98,7 +98,7 @@ class MOSEK(ConicSolver):
         inv_data[Solver.NEQ_CONSTR] = leq_constr + soc_constr + psd_constr
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.mosek_intf import MOSEK as MOSEK_OLD
         solver = MOSEK_OLD()
         return solver.solve(

@@ -93,7 +93,7 @@ class CVXOPT(ConicSolver):
         inv_data[CVXOPT.NEQ_CONSTR] = leq_constr + soc_constr + sdp_constr + exp_constr
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_OLD
         solver = CVXOPT_OLD()
         return solver.solve(

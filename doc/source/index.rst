@@ -40,7 +40,7 @@ For example, the following code solves a least-squares problem where the variabl
 
 This short script is a basic example of what CVXPY can do. CVXPY also supports simple ways to solve problems in parallel, higher-level abstractions such as object oriented convex optimization, and extensions for non-convex optimization.
 
-CVXPY was designed and implemented by Steven Diamond, with input from Stephen Boyd and Eric Chu.
+CVXPY was designed and implemented by Steven Diamond, with input and contributions from Stephen Boyd, Eric Chu, and many others.
 
 CVXPY was inspired by the MATLAB package `CVX <http://cvxr.com/cvx/>`_. See the book `Convex Optimization <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe for general background on convex optimization.
 

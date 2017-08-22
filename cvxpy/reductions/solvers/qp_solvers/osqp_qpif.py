@@ -50,7 +50,8 @@ class OSQP(QpSolver):
                 opt_val = -np.inf
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts,
+                       solver_cache=None):
         import osqp
         P = data[s.P]
         q = data[s.Q]
@@ -58,10 +59,40 @@ class OSQP(QpSolver):
         u = np.concatenate((data[s.B], data[s.G]))
         l = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
 
-        # Initialize and solve problem
-        # TODO (Bartolomeo): Add warm start
-        solver = osqp.OSQP()
-        solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
-        results = solver.solve()
+        if solver_cache[self.name]:
+            # Use cached data.
+            solver, old_data, results = solver_cache[self.name]
+            same_pattern = (P.shape == old_data[s.P].shape and
+                            all(P.indptr == old_data[s.P].row)) and \
+                           (A.shape == old_data[s.A].shape and
+                            all(A.indptr == old_data[s.A].row))
+        else:
+            same_pattern = False
 
+
+        # If sparsity pattern differs need to do setup.
+        if warm_start and solver_cache[self.name] and same_pattern:
+            new_args = {'q': q, 'u': u, 'l': l}
+            if any(P.indices != old_data[s.P].indices):
+                new_args['Px_idx']
+            if any(P.data != old_data[s.P].data):
+                new_args['Px']
+            if any(A.indices != old_data[s.A].indices):
+                new_args['Ax_idx']
+            if any(A.data != old_data[s.A].data):
+                new_args['Ax']
+            solver.update(**new_args)
+            solver.update_settings(verbose=verbose, **solver_opts)
+            # Map OSQP statuses back to CVXPY statuses
+            status = self.STATUS_MAP.get(results.info.status_val, s.SOLVER_ERROR)
+            if status == OPTIMAL:
+                solver.warm_start(results.x, results.y)
+            results = solver.solve()
+        else:
+            # Initialize and solve problem
+            solver = osqp.OSQP()
+            solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
+            results = solver.solve()
+
+        solver_cache[self.name] = (solver, data, results)
         return results

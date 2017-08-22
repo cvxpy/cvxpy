@@ -64,7 +64,7 @@ class MOSEK(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import mosek
         # N.B. Here we assume that the matrices in data are in csc format
         P = data[s.P]

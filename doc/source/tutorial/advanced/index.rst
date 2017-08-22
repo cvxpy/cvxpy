@@ -1,8 +1,5 @@
 .. _advanced:
 
-..
- TODO: transforms. Reductions.
-
 Advanced Features
 =================
 
@@ -179,21 +176,27 @@ Transforms
 
 Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
-The available transforms in CVXPY are given below:
+For example, the ``indicator`` transform converts a list of constraints
+into an expression representing the convex function that takes value 0 when
+the constraints hold and :math:`\infty` when they are violated.
 
-.. function:: partial_optimize(prob, opt_vars=None, dont_opt_vars=None)
 
-    Partially optimizes the given problem over the specified variables.
+.. code:: python
 
-    Either opt_vars or dont_opt_vars must be given.
-    If both are given, they must contain all the variables in the problem.
+   x = cvx.Variable()
+   constraints = [0 <= x, x <= 1]
+   expr = cvx.indicator(constraints)
+   x.value = .5
+   print("expr.value = ", expr.value)
+   x.value = 2
+   print("expr.value = ", expr.value)
 
-    :param prob: The problem to partially optimize.
-    :type prob: Problem
-    :param opt_vars: The variables to optimize over.
-    :type opt_vars: list
-    :param opt_vars: The variables to not optimize over.
-    :type opt_vars: list
+::
+
+   expr.value = 0.0
+   expr.value = inf
+
+The full set of transforms available is discussed in TODO.
 
 Problem arithmetic
 ------------------
@@ -642,6 +645,17 @@ For example, the following code is equivalent to solving the problem directly wi
                                data["dims"], data["A"], data["b"])
     # Unpack raw solver output.
     prob.unpack_results(cvx.ECOS, solver_output)
+
+Reductions
+----------
+
+CVXPY uses a system of **reductions** to rewrite problems from
+the form provided by the user into the standard form that a solver will accept.
+A reduction is a transformation from one problem to an equivalent problem.
+Two problems are equivalent if a solution of one can be converted efficiently
+to a solution of the other.
+Reductions take a CVXPY Problem as input and output a CVXPY Problem.
+The full set of reductions available is discussed in TODO.
 
 .. _OSQP: http://osqp.readthedocs.io/
 .. _CPLEX: TODO

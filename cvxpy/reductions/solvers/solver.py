@@ -78,7 +78,7 @@ class Solver(Reduction):
             return False
 
     @abc.abstractmethod
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         """Solve a problem represented by data returned from apply.
         """
         return NotImplemented

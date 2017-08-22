@@ -60,7 +60,7 @@ class ECOS_BB(ECOS):
         data[s.INT_IDX] = [t[0] for t in var.integer_idx]
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default verbose to false for BB wrapper.
