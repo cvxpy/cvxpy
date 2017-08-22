@@ -56,8 +56,11 @@ class OSQP(QpSolver):
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
+        data['full_A'] = A
         u = np.concatenate((data[s.B], data[s.G]))
+        data['u'] = u
         l = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
+        data['l'] = u
 
         if solver_cache is not None and self.name in solver_cache:
             # Use cached data.
@@ -65,21 +68,23 @@ class OSQP(QpSolver):
             same_pattern = (P.shape == old_data[s.P].shape and
                             all(P.indptr == old_data[s.P].indptr)) and \
                            (A.shape == old_data[s.A].shape and
-                            all(A.indptr == old_data[s.A].indptr))
+                            all(A.indptr == old_data['full_A'].indptr))
         else:
             same_pattern = False
 
-
         # If sparsity pattern differs need to do setup.
         if warm_start and same_pattern:
-            new_args = {'q': q, 'u': u, 'l': l}
+            new_args = {}
+            for key in ['q', 'l', 'u']:
+                if any(data[key] != old_data[key]):
+                    new_args[key] = data[key]
             if any(P.indices != old_data[s.P].indices):
                 new_args['Px_idx']
             if any(P.data != old_data[s.P].data):
                 new_args['Px']
-            if any(A.indices != old_data[s.A].indices):
+            if any(A.indices != old_data['full_A'].indices):
                 new_args['Ax_idx']
-            if any(A.data != old_data[s.A].data):
+            if any(A.data != old_data['full_A'].data):
                 new_args['Ax']
             solver.update(**new_args)
             solver.update_settings(verbose=verbose, **solver_opts)
