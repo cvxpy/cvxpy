@@ -301,7 +301,7 @@ class Problem(u.Canonical):
     def _solve(self,
                solver=None,
                ignore_dcp=False,
-               warm_start=False,
+               warm_start=True,
                verbose=False,
                parallel=False, **kwargs):
         """Solves a DCP compliant optimization problem.

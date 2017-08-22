@@ -181,9 +181,11 @@ class TestSCS(BaseTest):
         obj = cvx.Minimize(sum(cvx.exp(x)))
         prob = cvx.Problem(obj, [sum(x) == 1])
         result = prob.solve(solver=cvx.SCS)
-        assert prob.solve(solver=cvx.SCS, verbose=True) == result
-        # TODO Probably a bad check. Ought to be the same.
-        assert prob.solve(solver=cvx.SCS, warm_start=True, verbose=True) != result
+        time = prob.solver_stats.solve_time
+        result2 = prob.solve(solver=cvx.SCS, warm_start=True)
+        time2 = prob.solver_stats.solve_time
+        self.assertAlmostEqual(result2, result)
+        assert time > time2
 
     # def test_kl_div(self):
     #     """Test the kl_div atom.

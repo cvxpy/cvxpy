@@ -59,19 +59,19 @@ class OSQP(QpSolver):
         u = np.concatenate((data[s.B], data[s.G]))
         l = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
 
-        if solver_cache[self.name]:
+        if solver_cache is not None and self.name in solver_cache:
             # Use cached data.
             solver, old_data, results = solver_cache[self.name]
             same_pattern = (P.shape == old_data[s.P].shape and
-                            all(P.indptr == old_data[s.P].row)) and \
+                            all(P.indptr == old_data[s.P].indptr)) and \
                            (A.shape == old_data[s.A].shape and
-                            all(A.indptr == old_data[s.A].row))
+                            all(A.indptr == old_data[s.A].indptr))
         else:
             same_pattern = False
 
 
         # If sparsity pattern differs need to do setup.
-        if warm_start and solver_cache[self.name] and same_pattern:
+        if warm_start and same_pattern:
             new_args = {'q': q, 'u': u, 'l': l}
             if any(P.indices != old_data[s.P].indices):
                 new_args['Px_idx']
@@ -85,7 +85,7 @@ class OSQP(QpSolver):
             solver.update_settings(verbose=verbose, **solver_opts)
             # Map OSQP statuses back to CVXPY statuses
             status = self.STATUS_MAP.get(results.info.status_val, s.SOLVER_ERROR)
-            if status == OPTIMAL:
+            if status == s.OPTIMAL:
                 solver.warm_start(results.x, results.y)
             results = solver.solve()
         else:
@@ -94,5 +94,6 @@ class OSQP(QpSolver):
             solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
             results = solver.solve()
 
-        solver_cache[self.name] = (solver, data, results)
+        if solver_cache is not None:
+            solver_cache[self.name] = (solver, data, results)
         return results

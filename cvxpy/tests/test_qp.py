@@ -21,7 +21,7 @@ import numpy
 import scipy.sparse as sp
 from scipy.linalg import lstsq
 
-from cvxpy import Minimize, Problem
+from cvxpy import Minimize, Problem, Parameter
 from cvxpy.atoms import (QuadForm, abs, power,
                          quad_over_lin, sum, sum_squares,
                          norm,
@@ -356,3 +356,33 @@ class TestQp(BaseTest):
         p3 = Problem(Minimize(obj3), cons)
         s = self.solve_QP(p3, solver)
         self.assertAlmostEqual(p3.value, 68.1119420108)
+
+    def test_warm_start(self):
+        """Test warm start.
+        """
+        m = 200
+        n = 100
+        numpy.random.seed(1)
+        A = numpy.random.randn(m, n)
+        b = Parameter(m)
+
+        # Construct the problem.
+        x = Variable(n)
+        prob = Problem(Minimize(sum_squares(A*x - b)))
+
+        b.value = numpy.random.randn(m)
+        result = prob.solve(warm_start=True)
+        time =  prob.solver_stats.solve_time
+        result2 = prob.solve(warm_start=True)
+        self.assertAlmostEqual(result, result2)
+        time2 = prob.solver_stats.solve_time
+        assert time > time2
+
+        b.value = numpy.random.randn(m)
+        prob.solve(warm_start=True)
+        time3 = prob.solver_stats.solve_time
+        assert time > time3
+
+        prob.solve(warm_start=False)
+        time4 = prob.solver_stats.solve_time
+        assert time4 > time3
