@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cvxpy',
-    version='0.4.10',
+    version='0.4.11',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     packages=['cvxpy',
