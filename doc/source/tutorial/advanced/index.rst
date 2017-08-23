@@ -464,7 +464,7 @@ The code below shows how warm start can accelerate solving a sequence of related
 ::
 
    First solve time: 11.14
-   Second solve time: 7.06
+   Second solve time: 2.95
 
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^

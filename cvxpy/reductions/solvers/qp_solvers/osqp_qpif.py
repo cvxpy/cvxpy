@@ -78,20 +78,27 @@ class OSQP(QpSolver):
             for key in ['q', 'l', 'u']:
                 if any(data[key] != old_data[key]):
                     new_args[key] = data[key]
+            factorizing = False
             if any(P.indices != old_data[s.P].indices):
                 new_args['Px_idx']
+                factorizing = True
             if any(P.data != old_data[s.P].data):
                 new_args['Px']
+                factorizing = True
             if any(A.indices != old_data['full_A'].indices):
                 new_args['Ax_idx']
+                factorizing = True
             if any(A.data != old_data['full_A'].data):
                 new_args['Ax']
+                factorizing = True
             solver.update(**new_args)
-            solver.update_settings(verbose=verbose, **solver_opts)
             # Map OSQP statuses back to CVXPY statuses
             status = self.STATUS_MAP.get(results.info.status_val, s.SOLVER_ERROR)
             if status == s.OPTIMAL:
                 solver.warm_start(results.x, results.y)
+            # Polish if factorizing.
+            solver_opts['polish'] = factorizing
+            solver.update_settings(verbose=verbose, **solver_opts)
             results = solver.solve()
         else:
             # Initialize and solve problem
