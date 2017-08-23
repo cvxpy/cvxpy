@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Tests atoms by calling them with a constant value.
-from cvxpy.settings import (SCS, ECOS, CVXOPT, GLPK, ELEMENTAL,
+from cvxpy.settings import (SCS, OSQP, ECOS, CVXOPT, GLPK, ELEMENTAL,
                             OPTIMAL, OPTIMAL_INACCURATE, ROBUST_KKTSOLVER, MOSEK)
 from cvxpy.atoms import *
 from cvxpy.problems.objective import *
@@ -36,9 +36,10 @@ import itertools
 
 ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2,
-                 ECOS: 1e-7
+                 ECOS: 1e-7,
+                 OSQP: 1e-2
 }
-SOLVERS_TO_TRY = [ECOS, SCS]
+SOLVERS_TO_TRY = [ECOS, SCS, OSQP]
 # Test CVXOPT if installed.
 if CVXOPT in INSTALLED_SOLVERS:
     SOLVERS_TO_TRY += [CVXOPT, ROBUST_CVXOPT]

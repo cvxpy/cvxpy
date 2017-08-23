@@ -52,6 +52,9 @@ class OSQP(QpSolver):
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts,
                        solver_cache=None):
+        # Default to eps_rel = 1e-4, eps_abs = 1e-4.
+        solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-4)
+        solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-4)
         import osqp
         P = data[s.P]
         q = data[s.Q]
