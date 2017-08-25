@@ -37,7 +37,7 @@ import itertools
 ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2,
                  ECOS: 1e-7,
-                 OSQP: 1e-2
+                 OSQP: 1e-1
 }
 SOLVERS_TO_TRY = [ECOS, SCS, OSQP]
 # Test CVXOPT if installed.

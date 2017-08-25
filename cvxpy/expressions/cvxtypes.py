@@ -123,3 +123,7 @@ def transpose():
 def vec():
     from cvxpy.atoms.affine import vec
     return vec.vec
+
+def vstack():
+    from cvxpy.atoms.affine import vstack
+    return vstack.vstack

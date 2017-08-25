@@ -68,7 +68,7 @@ class TestQp(BaseTest):
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
 
     def solve_QP(self, problem, solver_name):
-        return problem.solve(solver=solver_name)
+        return problem.solve(solver=solver_name, verbose=True)
 
     def test_all_solvers(self):
         for solver in self.solvers:
