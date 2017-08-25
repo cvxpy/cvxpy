@@ -20,3 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.transforms.separable_problems import get_separable_problems
 from cvxpy.transforms.linearize import linearize
+from cvxpy.transforms.indicator import indicator
+from cvxpy.transforms.scalarize import (weighted_sum,
+                                        targets_and_priorities,
+                                        max, log_sum_exp)

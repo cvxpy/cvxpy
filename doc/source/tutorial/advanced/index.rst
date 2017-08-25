@@ -196,7 +196,7 @@ the constraints hold and :math:`\infty` when they are violated.
    expr.value = 0.0
    expr.value = inf
 
-The full set of transforms available is discussed in TODO.
+The full set of transforms available is discussed in :ref:`transforms-api`.
 
 Problem arithmetic
 ------------------
@@ -429,6 +429,17 @@ All the solvers can print out information about their progress while solving the
 
     optimal value with ECOS: 6.82842708233
 
+Solver stats
+------------
+
+When the ``solve`` method is called on a problem object and a solver is invoked,
+the problem object records the optimal value, the values of the primal and dual variables,
+and several solver statistics.
+We have already discussed how to view the optimal value and variable values.
+The solver statistics are accessed via the ``problem.solver_stats`` attribute,
+which returns a :class:`~cvxpy.problems.problem.SolverStats` object.
+For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem. 
+
 Warm start
 ----------
 
@@ -655,10 +666,10 @@ A reduction is a transformation from one problem to an equivalent problem.
 Two problems are equivalent if a solution of one can be converted efficiently
 to a solution of the other.
 Reductions take a CVXPY Problem as input and output a CVXPY Problem.
-The full set of reductions available is discussed in TODO.
+The full set of reductions available is discussed in :ref:`reductions-api`.
 
 .. _OSQP: http://osqp.readthedocs.io/
-.. _CPLEX: TODO
+.. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb

@@ -199,12 +199,14 @@ class SolvingChain(Chain):
         The semantics are:
 
         .. code :: python
+
             data, inverse_data = solving_chain.apply(problem)
             solution = solving_chain.invert(solver_chain.solve_via_data(data, ...))
 
         which is equivalent to writing
 
         .. code :: python
+
             solution = solving_chain.solve(problem, ...)
 
         Parameters
