@@ -59,7 +59,6 @@ class MatrixFrac(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         X = np.array(values[0])
-        print X
         if X.ndim == 1:
             X = X[:, None]
         P = np.array(values[1])

@@ -33,4 +33,5 @@ problems from a particular form to another equivalent form.
    Constraints <cvxpy.constraints>
    Expressions <cvxpy.expressions>
    Problems <cvxpy.problems>
+   Transforms <cvxpy.transforms>
    Reductions <cvxpy.reductions>

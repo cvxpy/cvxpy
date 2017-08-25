@@ -155,13 +155,13 @@ class MOSEK(QpSolver):
 
         # Map status using statusmap
         STATUS_MAP = {mosek.solsta.optimal: s.OPTIMAL,
-                    mosek.solsta.integer_optimal: s.OPTIMAL,
-                    mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
-                    mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
-                    mosek.solsta.near_optimal: s.OPTIMAL_INACCURATE,
-                    mosek.solsta.near_prim_infeas_cer: s.INFEASIBLE_INACCURATE,
-                    mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
-                    mosek.solsta.unknown: s.SOLVER_ERROR}
+                      mosek.solsta.integer_optimal: s.OPTIMAL,
+                      mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
+                      mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
+                      mosek.solsta.near_optimal: s.OPTIMAL_INACCURATE,
+                      mosek.solsta.near_prim_infeas_cer: s.INFEASIBLE_INACCURATE,
+                      mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
+                      mosek.solsta.unknown: s.SOLVER_ERROR}
         status = STATUS_MAP.get(solsta, s.SOLVER_ERROR)
 
         # Results dictionary

@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import abc
-from cvxpy.error import SolverError
 import cvxpy.settings as s
 from cvxpy.problems.problem_data.matrix_data import MatrixData
 from cvxpy.problems.problem_data.sym_data import SymData
