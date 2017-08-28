@@ -5,7 +5,6 @@ from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing,
                               CvxAttr2Constr)
-# from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC,
