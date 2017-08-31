@@ -637,10 +637,9 @@ class SolverStats(object):
             self.num_iters = results_dict[s.NUM_ITERS]
 
 
-class SizeMetrics(namedtuple("SizeMetrics", 
-                              ["num_scalar_variables", "num_scalar_data",
-                               "num_scalar_eq_constr", "num_scalar_leq_constr",
-                               "max_data_dimension", "max_big_small_squared"])):
+class SizeMetrics(namedtuple("SizeMetrics",["num_scalar_variables", "num_scalar_data",
+                             "num_scalar_eq_constr", "num_scalar_leq_constr",
+                             "max_data_dimension", "max_big_small_squared"])):
     """Reports various metrics regarding the problem
 
     Attributes
@@ -712,8 +711,6 @@ class SizeMetrics(namedtuple("SizeMetrics",
                                                max_data_dimension,
                                                max_big_small_squared)
         return self
-SizeMetrics.__new__.__defaults__ = (0, 0, 0, 0, 0, 0)
 
         
-
-
+SizeMetrics.__new__.__defaults__ = (0, 0, 0, 0, 0, 0)

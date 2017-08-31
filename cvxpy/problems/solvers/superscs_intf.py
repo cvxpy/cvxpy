@@ -16,29 +16,11 @@ limitations under the License.
 
 import cvxpy.settings as s
 from cvxpy.problems.solvers.scs_intf import SCS
-import numpy as np
 
 
 class SUPERSCS(SCS):
     """An interface for the SuperSCS solver.
     """
-
-    # Solver capabilities.
-    LP_CAPABLE = True
-    SOCP_CAPABLE = True
-    SDP_CAPABLE = True
-    EXP_CAPABLE = True
-    MIP_CAPABLE = False
-
-    # Map of SCS status to CVXPY status.
-    STATUS_MAP = {"Solved": s.OPTIMAL,
-                  "Solved/Inaccurate": s.OPTIMAL_INACCURATE,
-                  "Unbounded": s.UNBOUNDED,
-                  "Unbounded/Inaccurate": s.UNBOUNDED_INACCURATE,
-                  "Infeasible": s.INFEASIBLE,
-                  "Infeasible/Inaccurate": s.INFEASIBLE_INACCURATE,
-                  "Failure": s.SOLVER_ERROR,
-                  "Indeterminate": s.SOLVER_ERROR}
 
     def name(self):
         """The name of the solver.
