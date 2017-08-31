@@ -637,10 +637,10 @@ class SolverStats(object):
             self.num_iters = results_dict[s.NUM_ITERS]
 
 
-class SizeMetrics(namedtuple("SizeMetrics",["num_scalar_variables", "num_scalar_data",
-                             "num_scalar_eq_constr", "num_scalar_leq_constr",
-                             "max_data_dimension", "max_big_small_squared"])):
-    """Reports various metrics regarding the problem
+class SizeMetrics(namedtuple("SizeMetrics", ["num_scalar_variables", "num_scalar_data",
+                                             "num_scalar_eq_constr", "num_scalar_leq_constr",
+                                             "max_data_dimension", "max_big_small_squared"])):
+    """Reports various metrics regarding the problem size.
 
     Attributes
     ----------
@@ -649,11 +649,11 @@ class SizeMetrics(namedtuple("SizeMetrics",["num_scalar_variables", "num_scalar_
         num_scalar_variables : integer
             The number of scalar variables in the problem.
         num_scalar_data : integer
-            The number of scalar constants and parameters in the problem. The number of
-            constants used across all matrices, vectors, in the problem.
-            Some constants are not apparent when the problem is constructed: for example,
-            The sum_squares expression is a wrapper for a quad_over_lin expression with a
-            constant 1 in the denominator.
+            The number of constants used across all matrices, vectors,
+            in the problem. Some constants are not apparent when the problem
+            is constructed: for example, the sum_squares expression is a
+            wrapper for a quad_over_lin expression with a constant 1 in the
+            denominator.
         num_scalar_eq_constr : integer
             The number of scalar equality constraints in the problem.
         num_scalar_leq_constr : integer
@@ -663,9 +663,9 @@ class SizeMetrics(namedtuple("SizeMetrics",["num_scalar_variables", "num_scalar_
         max_data_dimension : integer
             The longest dimension of any data block constraint or parameter.
         max_big_small_squared : integer
-            The maximum value of (big)(small)^2 over all data blocks of the problem, where
-            (big) is the larger dimension and (small) is the smaller dimension
-            for each data block.
+            The maximum value of (big)(small)^2 over all data blocks of the
+            problem, where (big) is the larger dimension and (small) is the
+            smaller dimension for each data block.
     """
     @classmethod
     def from_problem(cls, problem):
@@ -712,5 +712,5 @@ class SizeMetrics(namedtuple("SizeMetrics",["num_scalar_variables", "num_scalar_
                                                max_big_small_squared)
         return self
 
-        
+
 SizeMetrics.__new__.__defaults__ = (0, 0, 0, 0, 0, 0)
