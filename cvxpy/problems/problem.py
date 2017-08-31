@@ -703,7 +703,8 @@ class SizeMetrics(namedtuple("SizeMetrics",
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "LeqConstraint":
                 num_scalar_leq_constr += np.prod(constraint._expr.size)
-        self = super(SizeMetrics, cls).__new__(num_scalar_variables,
+        self = super(SizeMetrics, cls).__new__(cls,
+                                               num_scalar_variables,
                                                num_scalar_data,
                                                num_scalar_eq_constr,
                                                num_scalar_leq_constr,
