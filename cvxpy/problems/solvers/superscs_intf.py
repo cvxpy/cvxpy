@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.problems.solvers.ecos_intf import ECOS
+from cvxpy.problems.solvers.scs_intf import SCS
 import numpy as np
 
 
