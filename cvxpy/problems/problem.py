@@ -75,7 +75,7 @@ class Problem(u.Canonical):
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the size of the problem and its constituent parts
-        self._size_metrics = SizeMetrics(self)
+        self._size_metrics = SizeMetrics.from_problem(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
 
@@ -668,7 +668,8 @@ class SizeMetrics(namedtuple("SizeMetrics",
             (big) is the larger dimension and (small) is the smaller dimension
             for each data block.
     """
-    def __new__(cls, problem):
+    @classmethod
+    def from_problem(cls, problem):
         # num_scalar_variables
         num_scalar_variables = 0
         for var in problem.variables():
