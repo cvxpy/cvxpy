@@ -191,7 +191,7 @@ class MOSEK(Solver):
                 coefficients = np.concatenate([b, h])
 
                 row, col, el = sp.find(constraints_matrix)
-                task.putaijlist(row, col, el)
+                task.putaijlist(row.tolist(), col.tolist(), el.tolist())
 
                 type_constraint = [mosek.boundkey.fx] * len(b)
                 type_constraint += [mosek.boundkey.up] * dims[s.LEQ_DIM]
@@ -212,7 +212,8 @@ class MOSEK(Solver):
                     row, col, el = sp.find(sp.eye(size_cone))
                     row += current_con_index
                     col += current_var_index
-                    task.putaijlist(row, col, el)  # add a identity for each cone
+                    # add a identity for each cone
+                    task.putaijlist(row.tolist(), col.tolist(), el.tolist())
                     # add a cone constraint
                     task.appendcone(mosek.conetype.quad,
                                     0.0,  # unused
@@ -292,14 +293,16 @@ class MOSEK(Solver):
 
         if result_dict[s.STATUS] in s.SOLUTION_PRESENT:
             # get primal variables values
-            result_dict[s.PRIMAL] = np.zeros(task.getnumvar(), dtype=np.float)
+            result_dict[s.PRIMAL] = [0.]*task.getnumvar()
             task.getxx(mosek.soltype.itr, result_dict[s.PRIMAL])
+            result_dict[s.PRIMAL] = np.array(result_dict[s.PRIMAL])
             # get obj value
             result_dict[s.VALUE] = task.getprimalobj(mosek.soltype.itr) + \
                 data[s.OFFSET]
             # get dual
-            y = np.zeros(task.getnumcon(), dtype=np.float)
+            y = [0.]*task.getnumcon()
             task.gety(mosek.soltype.itr, y)
+            y = np.array(y)
             # it appears signs are inverted
             result_dict[s.EQ_DUAL] = -y[:len(data[s.B])]
             result_dict[s.INEQ_DUAL] = \

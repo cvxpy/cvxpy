@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import abc
 from cvxpy.expressions import expression
 import cvxpy.interface as intf
+import numbers
 import numpy as np
 import numpy.linalg as LA
 import scipy.sparse as sp
@@ -85,15 +86,15 @@ class Leaf(expression.Expression):
                  NSD=False, Hermitian=False,
                  boolean=False, integer=False,
                  sparsity=None):
-        if isinstance(shape, int):
-            shape = (shape,)
+        if isinstance(shape, numbers.Integral):
+            shape = (int(shape),)
         elif len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
         for d in shape:
-            if not isinstance(d, int) or d <= 0:
+            if not isinstance(d, numbers.Integral) or d <= 0:
                 raise ValueError("Invalid dimensions %s." % (shape,))
-        self._shape = tuple(int(d) for d in shape)
+        self._shape = tuple(np.int32(d) for d in shape)
 
         if (PSD or NSD or symmetric or diag) and (len(shape) != 2
                                                   or shape[0] != shape[1]):

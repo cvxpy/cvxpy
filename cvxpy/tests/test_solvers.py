@@ -458,7 +458,7 @@ class TestSolvers(BaseTest):
             # Solve a simple basis pursuit problem for testing purposes.
             z = cvx.Variable(n)
             objective = cvx.Minimize(cvx.norm1(z))
-            constraints = [A * z == y[:, np.newaxis]]
+            constraints = [A * z == y]
             problem = cvx.Problem(objective, constraints)
 
             invalid_mosek_params = {

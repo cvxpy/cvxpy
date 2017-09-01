@@ -34,7 +34,7 @@ class MOSEK(QpSolver):
 
         if status in s.SOLUTION_PRESENT:
             # get primal solution
-            x = np.zeros(task.getnumvar())
+            x = task.getnumvar()*[0.]
             task.getxx(soltype, x)
             # get obj value
             opt_val = task.getprimalobj(soltype)
@@ -47,9 +47,9 @@ class MOSEK(QpSolver):
             # Only add duals if not a MIP.
             dual_vars = None
             if not inverse_data.is_mip:
-                y = np.zeros(task.getnumcon())
+                y = task.getnumcon()*[0.]
                 task.gety(soltype, y)
-                y = -y    # MOSEK dual signs are inverted
+                y = -np.array(y)    # MOSEK dual signs are inverted
 
                 dual_vars = utilities.get_dual_values(
                     intf.DEFAULT_INTF.const_to_matrix(y),
@@ -117,7 +117,7 @@ class MOSEK(QpSolver):
         coefficients = np.concatenate([b, g])
 
         row, col, el = spa.find(constraints_matrix)
-        task.putaijlist(row, col, el)
+        task.putaijlist(row.tolist(), col.tolist(), el.tolist())
 
         type_constraint = [mosek.boundkey.fx] * n_eq
         type_constraint += [mosek.boundkey.up] * n_ineq
@@ -129,20 +129,27 @@ class MOSEK(QpSolver):
         # Add quadratic cost
         if P.count_nonzero():  # If there are any nonzero elms in P
             P = spa.tril(P, format='coo')
-            task.putqobj(P.row, P.col, P.data)
+            task.putqobj(P.row.tolist(), P.col.tolist(), P.data.tolist())
 
         # Set problem minimization
         task.putobjsense(mosek.objsense.minimize)
 
         # Set solver parameters
-        if not verbose:
-            self._handle_str_param(task, 'MSK_IPAR_LOG'.strip(), 0)
+        kwargs = sorted(solver_opts.keys())
+        if "mosek_params" in kwargs:
+            self._handle_mosek_params(task, solver_opts["mosek_params"])
+            kwargs.remove("mosek_params")
+        if kwargs:
+            raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
 
-        for param, value in solver_opts.items():
-                if isinstance(param, str):
-                    self._handle_str_param(task, param.strip(), value)
-                else:
-                    self._handle_enum_param(task, param, value)
+        if verbose:
+            # Define a stream printer to grab output from MOSEK
+            def streamprinter(text):
+                import sys
+                sys.stdout.write(text)
+                sys.stdout.flush()
+            env.set_Stream(mosek.streamtype.log, streamprinter)
+            task.set_Stream(mosek.streamtype.log, streamprinter)
 
         # Optimization and check termination code
         task.optimize()
@@ -221,24 +228,34 @@ class MOSEK(QpSolver):
             return mosek.soltype.bas, solsta_bas
 
     @staticmethod
-    def _handle_str_param(task, param, value):
-        if param.startswith("MSK_DPAR_"):
-            task.putnadouparam(param, value)
-        elif param.startswith("MSK_IPAR_"):
-            task.putnaintparam(param, value)
-        elif param.startswith("MSK_SPAR_"):
-            task.putnastrparam(param, value)
-        else:
-            raise ValueError("Invalid MOSEK parameter '%s'." % param)
+    def _handle_mosek_params(task, params):
+        if params is None:
+            return
 
-    @staticmethod
-    def _handle_enum_param(task, param, value):
         import mosek
-        if isinstance(param, mosek.dparam):
-            task.putdouparam(param, value)
-        elif isinstance(param, mosek.iparam):
-            task.putintparam(param, value)
-        elif isinstance(param, mosek.sparam):
-            task.putstrparam(param, value)
-        else:
-            raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        def _handle_str_param(param, value):
+            if param.startswith("MSK_DPAR_"):
+                task.putnadouparam(param, value)
+            elif param.startswith("MSK_IPAR_"):
+                task.putnaintparam(param, value)
+            elif param.startswith("MSK_SPAR_"):
+                task.putnastrparam(param, value)
+            else:
+                raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        def _handle_enum_param(param, value):
+            if isinstance(param, mosek.dparam):
+                task.putdouparam(param, value)
+            elif isinstance(param, mosek.iparam):
+                task.putintparam(param, value)
+            elif isinstance(param, mosek.sparam):
+                task.putstrparam(param, value)
+            else:
+                raise ValueError("Invalid MOSEK parameter '%s'." % param)
+
+        for param, value in params.items():
+            if isinstance(param, str):
+                _handle_str_param(param.strip(), value)
+            else:
+                _handle_enum_param(param, value)

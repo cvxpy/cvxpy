@@ -46,10 +46,10 @@ class EvalParams(Reduction):
             If the ``problem`` has unspecified parameters (i.e., a parameter
             whose value is None).
         """
-        obj_expr = replace_params_with_consts(problem.objective.expr)
         # Do not instantiate a new objective if it does not contain
         # parameters.
-        if obj_expr != problem.objective.expr:
+        if len(problem.objective.parameters()) > 0:
+            obj_expr = replace_params_with_consts(problem.objective.expr)
             objective = type(problem.objective)(obj_expr)
         else:
             objective = problem.objective

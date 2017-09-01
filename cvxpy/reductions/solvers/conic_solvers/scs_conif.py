@@ -38,11 +38,11 @@ from .conic_solver import ConeDims, ConicSolver
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonpos,
-        'q': cone_dims.soc,
-        'ep': cone_dims.exp,
-        's': cone_dims.psd
+        "f": int(cone_dims.zero),
+        "l": int(cone_dims.nonpos),
+        "q": [int(v) for v in cone_dims.soc],
+        "ep": int(cone_dims.exp),
+        "s": [int(v) for v in cone_dims.psd]
     }
     return cones
 
@@ -117,7 +117,7 @@ def tri_to_full(lower_tri, n):
                 full[col, row] = lower_tri[idx]/np.sqrt(2)
             else:
                 full[row, col] = lower_tri[idx]
-    return np.reshape(full, n*n, order='F')
+    return np.reshape(full, n*n, order="F")
 
 
 class SCS(ConicSolver):
@@ -171,7 +171,7 @@ class SCS(ConicSolver):
             # SCS requests constraints to be formatted as
             # Ax + s = b, where s is constrained to reside in some
             # cone. Here, however, we are formatting the constraint
-            # as A'x + b' = s = -Ax + b; hence, A = -A', b = b'
+            # as A"x + b" = s = -Ax + b; hence, A = -A", b = b"
             return -1 * A_prime, b_prime
         else:
             return super(SCS, self).format_constr(problem, constr,
@@ -239,7 +239,7 @@ class SCS(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = self.STATUS_MAP[solution['info']['status']]
+        status = self.STATUS_MAP[solution["info"]["status"]]
 
         attr = {}
         attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
@@ -247,20 +247,20 @@ class SCS(ConicSolver):
         attr[s.NUM_ITERS] = solution["info"]["iter"]
 
         if status in s.SOLUTION_PRESENT:
-            primal_val = solution['info']['pobj']
+            primal_val = solution["info"]["pobj"]
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
                 inverse_data[SCS.VAR_ID]:
-                intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+                intf.DEFAULT_INTF.const_to_matrix(solution["x"])
             }
             eq_dual_vars = utilities.get_dual_values(
                 intf.DEFAULT_INTF.const_to_matrix(
-                    solution['y'][:inverse_data[ConicSolver.DIMS].zero]),
+                    solution["y"][:inverse_data[ConicSolver.DIMS].zero]),
                 self.extract_dual_value,
                 inverse_data[SCS.EQ_CONSTR])
             ineq_dual_vars = utilities.get_dual_values(
                 intf.DEFAULT_INTF.const_to_matrix(
-                    solution['y'][inverse_data[ConicSolver.DIMS].zero:]),
+                    solution["y"][inverse_data[ConicSolver.DIMS].zero:]),
                 self.extract_dual_value,
                 inverse_data[SCS.NEQ_CONSTR])
             dual_vars = {}
@@ -292,9 +292,9 @@ class SCS(ConicSolver):
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if warm_start and solver_cache is not None and \
            self.name in solver_cache:
-            args['x'] = solver_cache[self.name]['x']
-            args['y'] = solver_cache[self.name]['y']
-            args['s'] = solver_cache[self.name]['s']
+            args["x"] = solver_cache[self.name]["x"]
+            args["y"] = solver_cache[self.name]["y"]
+            args["s"] = solver_cache[self.name]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         results = scs.solve(
             args,

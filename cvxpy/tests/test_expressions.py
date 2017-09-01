@@ -481,8 +481,6 @@ class TestExpressions(BaseTest):
             exp = c.__matmul__(self.x)
             self.assertEqual(exp.curvature, s.AFFINE)
             self.assertEqual(exp.sign, s.UNKNOWN)
-            self.assertEqual(exp.canonical_form[0].shape, (1, 1))
-            self.assertEqual(exp.canonical_form[1], [])
             # self.assertEqual(exp.name(), c.name() + " .__matmul__( " + self.x.name())
             self.assertEqual(exp.shape, (1, 1))
 

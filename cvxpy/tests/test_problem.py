@@ -1006,7 +1006,7 @@ class TestProblem(BaseTest):
                      self.B == 1])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
-        self.assertItemsAlmostEqual(self.C.value[0:2, 0], [1, -2])
+        self.assertItemsAlmostEqual(self.C.value[0:2, 0], [1, -2], places=3)
         self.assertItemsAlmostEqual(self.A.value, [2, 2, 1, 1])
 
         # Transpose of slice.

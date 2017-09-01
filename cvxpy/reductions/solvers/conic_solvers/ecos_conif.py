@@ -24,15 +24,16 @@ import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
+import numpy as np
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'l': cone_dims.nonpos,
-        'q': cone_dims.soc,
-        'e': cone_dims.exp,
+        'l': int(cone_dims.nonpos),
+        "q": [int(v) for v in cone_dims.soc],
+        'e': int(cone_dims.exp),
     }
     return cones
 

@@ -32,6 +32,7 @@ from cvxpy.lin_ops import lin_op as lo
 from cvxpy.lin_ops import lin_utils as lu
 
 import CVXcanon
+import numbers
 import numpy as np
 import scipy.sparse
 from collections import deque
@@ -198,7 +199,7 @@ def set_slice_data(linC, linPy):
     for i, sl in enumerate(linPy.data):
         vec = CVXcanon.IntVector()
         for var in [sl.start, sl.stop, sl.step]:
-            vec.push_back(var)
+            vec.push_back(int(var))
         linC.slice.push_back(vec)
 
 
@@ -276,7 +277,7 @@ def build_lin_op_tree(root_linPy, tmp):
             pass
         elif isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
             set_slice_data(linC, linPy)
-        elif isinstance(linPy.data, float) or isinstance(linPy.data, int):
+        elif isinstance(linPy.data, float) or isinstance(linPy.data, numbers.Integral):
             linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
             linC.data_ndim = 0
         # data is supposed to be a LinOp

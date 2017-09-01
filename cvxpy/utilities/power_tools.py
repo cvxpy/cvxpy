@@ -110,7 +110,7 @@ def pow_high(p, max_denom=1024):
     assert p > 1
     p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
     if 1/p == int(1/p):
-        return int(1/p), (p, 1-p)
+        return np.int32(1/p), (p, 1-p)
     return 1/p, (p, 1-p)
 
 
@@ -410,7 +410,7 @@ def make_frac(a, denom):
     inds = np.argsort(err)[:(denom - sum(b))]
     b[inds] += 1
 
-    denom = int(denom)
+    denom = np.int32(denom)
     b = b.tolist()
 
     return tuple(Fraction(v, denom) for v in b)
@@ -486,7 +486,7 @@ def next_pow2(n):
     if n <= 0:
         return 1
 
-    n2 = 1 << (n).bit_length()
+    n2 = 1 << int(n).bit_length()
     if n2 >> 1 == n:
         return n
     else:
