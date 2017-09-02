@@ -50,12 +50,11 @@ Attributes
 Variables and parameters can be created with attributes specifying additional properties.
 For example, ``Variable(nonneg=True)`` is a scalar variable constrained to be nonnegative.
 Similarly, ``Parameter(nonpos=True)`` is a scalar parameter constrained to be nonpositive.
-The full constructor for Variables is given below.
-The constructor for Parameters takes the same arguments.
+The full constructor for Leaf (the parent class of Variable and Parameter) is given below.
 
-.. function:: Variable(shape=None, name=None, value=None, **attributes)
+.. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
 
-    Creates a Variable object. 
+    Creates a Leaf object (e.g., Variable or Parameter). 
     Only one attribute can be active (set to True).
 
     :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
@@ -72,12 +71,12 @@ The constructor for Parameters takes the same arguments.
     :type symmetric: bool
     :param diag: Is the variable constrained to be diagonal?
     :type diag: bool
-    :param PSD: Is the variable constrained to be positive semidefinite?
+    :param PSD: Is the variable constrained to be symmetric positive semidefinite?
     :type PSD: bool
-    :param NSD: Is the variable constrained to be negative semidefinite?
+    :param NSD: Is the variable constrained to be symmetric negative semidefinite?
     :type NSD: bool
     :param boolean: 
-        Is the variable boolean? True, which constrains
+        Is the variable boolean (i.e., 0 or 1)? True, which constrains
         the entire variable to be boolean, False, or a list of
         indices which should be constrained as boolean, where each
         index is a tuple of length exactly equal to the
@@ -88,7 +87,7 @@ The constructor for Parameters takes the same arguments.
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
-A Euclidean projection onto the set defined by the attributes is given by the ``round`` method.
+A Euclidean projection onto the set defined by the attributes is given by the ``project`` method.
 
 .. code:: python
 
@@ -98,12 +97,27 @@ A Euclidean projection onto the set defined by the attributes is given by the ``
     except Exception as e:
         print(e)
 
-    print("Projection:", p.round(-1))
+    print("Projection:", p.project(-1))
 
 ::
 
     Parameter value must be nonnegative.
     Projection: 0.0
+
+A sensible idiom for assigning values to leaves is ``leaf.value = leaf.project(val)``,
+ensuring that the assigned value satisfies the leaf's properties.
+A slightly more efficient variant is ``leaf.project_and_assign(val)``,
+which projects and assigns the value directly, without additionally checking that the value satisfies the leaf's properties.
+In most cases ``project`` and checking that a value satisfies a leaf's properties are cheap operations (i.e., :math:`O(n)`),
+but for symmetric positive semidefinite or negative semidefinite leaves,
+the operations compute an eigenvalue decomposition.
+
+Many attributes, such as nonnegativity and symmetry, can be easily specified with constraints.
+What is the advantage then of specifying attributes in a variable?
+The main benefit is that specifying attributes enables more fine-grained DCP analysis.
+For example, creating a variable ``x`` via ``x = Variable(nonpos=True)`` informs the DCP analyzer that ``x`` is nonpositive.
+Creating the variable ``x`` via ``x = Variable()`` and adding the constraint ``x >= 0`` separately does not provide any information
+about the sign of ``x`` to the DCP analyzer.
 
 .. _semidefinite:
 
@@ -127,6 +141,7 @@ The first way is to use
 The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,
 the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`z \in \mathcal{R}^n`.
+In other words, :math:`X + X^T` is positive semidefinite.
 The constraint does not require that ``X`` and ``Y`` be symmetric.
 Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
@@ -149,13 +164,16 @@ To constrain a matrix expression to be symmetric, simply write
     constr = (expr == expr.T)
 
 You can also use ``Variable((n, n), symmetric=True)`` to create an ``n`` by ``n`` variable constrained to be symmetric.
+The difference between specifying that a variable is symmetric via attributes and adding the constraint ``X == X.T`` is that
+attributes are parsed for DCP information and a symmetric variable is defined over the (lower dimensional) vector space of symmetric matrices.
 
 .. _mip:
 
 Mixed-integer programs
 ----------------------
 
-In mixed-integer programs, certain variables are constrained to be boolean or integer valued. You can construct mixed-integer programs by creating Boolean or integer variables, which are constrained to have only boolean or integer valued entries:
+In mixed-integer programs, certain variables are constrained to be boolean (i.e., 0 or 1) or integer valued.
+You can construct mixed-integer programs by creating variables with the attribute that they have only boolean or integer valued entries:
 
 .. code:: python
 
@@ -476,6 +494,10 @@ The code below shows how warm start can accelerate solving a sequence of related
 
    First solve time: 11.14
    Second solve time: 2.95
+
+The speed up in this case comes from caching the KKT matrix factorization.
+If ``A`` where a parameter, factorization caching would not be possible and the benefit of
+warm start would only be a good initial point.
 
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^

@@ -32,6 +32,18 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
     Either opt_vars or dont_opt_vars must be given.
     If both are given, they must contain all the variables in the problem.
 
+    Partial optimize is useful for two-stage optimization and graph implementations.
+    For example, we can write
+
+    .. code :: python
+
+        x = Variable(n)
+        t = Variable(n)
+        abs_x = partial_optimize(Problem(Minimize(sum(t)),
+                  [-t <= x, x <= t]), opt_vars=[t])
+
+    to define the entrywise absolute value of x.
+
     Parameters
     ----------
     prob : Problem
@@ -45,6 +57,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
     -------
     Expression
         An expression representing the partial optimization.
+        Convex for minimization objectives and concave for maximization objectives.
     """
     # One of the two arguments must be specified.
     if opt_vars is None and dont_opt_vars is None:

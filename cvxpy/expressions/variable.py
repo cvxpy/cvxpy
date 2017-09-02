@@ -74,31 +74,12 @@ class Variable(Leaf):
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
         else:
             self._name = name
-        self.primal_value = None
 
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self):
         """str : The name of the variable."""
         return self._name
-
-    def save_value(self, value):
-        """Save the value of the primal variable.
-        """
-        self.primal_value = value
-
-    @property
-    def value(self):
-        """NumPy.ndarray or None: The numeric value of the variable.
-        """
-        return self.primal_value
-
-    @value.setter
-    def value(self, val):
-        """Assign a value to the variable.
-        """
-        val = self._validate_value(val)
-        self.save_value(val)
 
     @property
     def grad(self):

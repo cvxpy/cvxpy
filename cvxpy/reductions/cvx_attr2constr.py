@@ -144,7 +144,7 @@ class CvxAttr2Constr(Reduction):
                     value[idxs] = solution.primal_vars[new_var.id].flatten()
                     pvars[id] = value
                 else:
-                    pvars[id] = var.round(solution.primal_vars[new_var.id])
+                    pvars[id] = var.project_and_assign(solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()

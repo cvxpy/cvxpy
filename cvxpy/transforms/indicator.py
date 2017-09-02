@@ -20,7 +20,14 @@ import numpy as np
 
 
 class indicator(Expression):
-    """The indicator I(constraints) = 0 if constraints hold, +\infty otherwise.
+    """An expression representing the convex function I(constraints) = 0 if constraints hold, +\infty otherwise.
+
+    Parameters
+    ----------
+    constraints : list
+       A list of constraint objects.
+    err_tol:
+       A numeric tolerance for determining whether the constraints hold.
     """
 
     def __init__(self, constraints, err_tol=1e-3):

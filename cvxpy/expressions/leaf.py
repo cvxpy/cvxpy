@@ -222,14 +222,22 @@ class Leaf(expression.Expression):
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
-        # TODO(akshayka): Reflect attributes.
         # Default is full domain.
+        domain = []
+        if self.attributes['nonneg']:
+            domain.append(x >= 0)
+        elif self.attributes['nonpos']:
+            domain.append(x >= 0)
+        elif self.attributes['PSD']:
+            domain.append(x >> 0)
+        elif self.attributes['NSD']:
+            domain.append(x << 0)
         return []
 
-    def round(self, val):
+    def project(self, val):
         """Project value onto the attribute set of the leaf.
 
-        A sensible idiom is ``leaf.value = leaf.round(val)``.
+        A sensible idiom is ``leaf.value = leaf.project(val)``.
 
         Parameters
         ----------
@@ -249,12 +257,12 @@ class Leaf(expression.Expression):
             return np.maximum(val, 0.)
         elif self.attributes['boolean']:
             # TODO(akshayka): respect the boolean indices.
-            return np.round(np.clip(val, 0., 1.))
+            return np.project(np.clip(val, 0., 1.))
         elif self.attributes['integer']:
             # TODO(akshayka): respect the integer indices.
             # also, a variable may be integer in some indices and
             # boolean in others.
-            return np.round(val)
+            return np.project(val)
         elif self.attributes['diag']:
             return sp.diags([np.diag(val)], [0])
         elif any([self.attributes[key] for
@@ -270,6 +278,25 @@ class Leaf(expression.Expression):
             return V.dot(np.diag(w)).dot(V.T)
         else:
             return val
+
+    # Getter and setter for parameter value.
+    def save_value(self, val):
+        self._value = val
+
+    @property
+    def value(self):
+        """NumPy.ndarray or None: The numeric value of the parameter.
+        """
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        self.save_value(self._validate_value(val))
+
+    def project_and_assign(self, val):
+        """Round and assign a value to the variable.
+        """
+        self.save_value(self.project(val))
 
     def _validate_value(self, val):
         """Check that the value satisfies the leaf's symbolic attributes.
@@ -292,7 +319,7 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (val.shape, self.__class__.__name__)
                 )
-            elif np.any(self.round(val) != val):
+            elif np.any(self.project(val) != val):
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
                 elif self.attributes['nonpos']:

@@ -331,39 +331,39 @@ class TestExpressions(BaseTest):
         """
         # Nonpos
         v = Variable(1, nonpos=True)
-        self.assertAlmostEqual(v.round(1), 0)
+        self.assertAlmostEqual(v.project(1), 0)
         v = Variable(2, nonpos=True)
-        self.assertItemsAlmostEqual(v.round(np.array([1,-1])), [0,-1])
+        self.assertItemsAlmostEqual(v.project(np.array([1,-1])), [0,-1])
 
         # Nonneg
         v = Variable(1, nonneg=True)
-        self.assertAlmostEqual(v.round(-1), 0)
+        self.assertAlmostEqual(v.project(-1), 0)
         v = Variable(2, nonneg=True)
-        self.assertItemsAlmostEqual(v.round(np.array([1,-1])), [1,0])
+        self.assertItemsAlmostEqual(v.project(np.array([1,-1])), [1,0])
 
         # Boolean
         v = Variable((2, 2), boolean=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]]).T), [1,0,1,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]]).T), [1,0,1,0])
 
         # Integer
         v = Variable((2, 2), integer=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1.6], [1,0]]).T), [1,-2,1,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1.6], [1,0]]).T), [1,-2,1,0])
 
         # Symmetric
         v = Variable((2, 2), symmetric=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]])), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]])), [1,0,0,0])
 
         # PSD
         v = Variable((2, 2), PSD=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,-1]])), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,-1]])), [1,0,0,0])
 
         # NSD
         v = Variable((2, 2), NSD=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,-1]])), [0,0,0,-1])
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,-1]])), [0,0,0,-1])
 
         # diag
         v = Variable((2, 2), diag=True)
-        self.assertItemsAlmostEqual(v.round(np.array([[1,-1], [1,0]])).todense(), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]])).todense(), [1,0,0,0])
 
     # Test the AddExpresion class.
     def test_add_expression(self):
