@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.binary_operators import MulExpression
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
@@ -89,6 +90,6 @@ class mul_elemwise(AffAtom):
         """
         # One of the arguments is a scalar, so we can use normal multiplication.
         if arg_objs[0].size != arg_objs[1].size:
-            return (lu.mul_expr(arg_objs[0], arg_objs[1], size), [])
+            return MulExpression.graph_implementation(arg_objs, size, data)
         else:
             return (lu.mul_elemwise(arg_objs[0], arg_objs[1]), [])
