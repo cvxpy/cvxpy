@@ -14,7 +14,7 @@ CVXPY supports both Python 2 and Python 3 on OS X and Linux.
 
    ::
 
-      conda install -c cvxgrp cvxpy
+      conda install -c cvxgrp cvxpy libgcc
 
 3. Test the installation with ``nose``.
 
