@@ -75,7 +75,7 @@ class Problem(u.Canonical):
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the size of the problem and its constituent parts
-        self._size_metrics = SizeMetrics(self)
+        self._size_metrics = SizeMetrics.from_problem(self)
         # Benchmarks reported by the solver:
         self._solver_stats = None
 
@@ -163,7 +163,7 @@ class Problem(u.Canonical):
         for constr in self.constraints:
             constants_ += constr.constants()
         # Remove duplicates.
-        # Note that numpy matrices are not hashable, so we use the buildin function id
+        # Note that numpy matrices are not hashable, so we use the builtin function id
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 
@@ -637,8 +637,10 @@ class SolverStats(object):
             self.num_iters = results_dict[s.NUM_ITERS]
 
 
-class SizeMetrics(object):
-    """Reports various metrics regarding the problem
+class SizeMetrics(namedtuple("SizeMetrics", ["num_scalar_variables", "num_scalar_data",
+                                             "num_scalar_eq_constr", "num_scalar_leq_constr",
+                                             "max_data_dimension", "max_big_small_squared"])):
+    """Reports various metrics regarding the problem size.
 
     Attributes
     ----------
@@ -647,11 +649,11 @@ class SizeMetrics(object):
         num_scalar_variables : integer
             The number of scalar variables in the problem.
         num_scalar_data : integer
-            The number of scalar constants and parameters in the problem. The number of
-            constants used across all matrices, vectors, in the problem.
-            Some constants are not apparent when the problem is constructed: for example,
-            The sum_squares expression is a wrapper for a quad_over_lin expression with a
-            constant 1 in the denominator.
+            The number of constants used across all matrices, vectors,
+            in the problem. Some constants are not apparent when the problem
+            is constructed: for example, the sum_squares expression is a
+            wrapper for a quad_over_lin expression with a constant 1 in the
+            denominator.
         num_scalar_eq_constr : integer
             The number of scalar equality constraints in the problem.
         num_scalar_leq_constr : integer
@@ -661,43 +663,54 @@ class SizeMetrics(object):
         max_data_dimension : integer
             The longest dimension of any data block constraint or parameter.
         max_big_small_squared : integer
-            The maximum value of (big)(small)^2 over all data blocks of the problem, where
-            (big) is the larger dimension and (small) is the smaller dimension
-            for each data block.
+            The maximum value of (big)(small)^2 over all data blocks of the
+            problem, where (big) is the larger dimension and (small) is the
+            smaller dimension for each data block.
     """
-
-    def __init__(self, problem):
+    @classmethod
+    def from_problem(cls, problem):
         # num_scalar_variables
-        self.num_scalar_variables = 0
+        num_scalar_variables = 0
         for var in problem.variables():
-            self.num_scalar_variables += np.prod(var.size)
+            num_scalar_variables += np.prod(var.size)
 
         # num_scalar_data, max_data_dimension, and max_big_small_squared
-        self.max_data_dimension = 0
-        self.num_scalar_data = 0
-        self.max_big_small_squared = 0
+        max_data_dimension = 0
+        num_scalar_data = 0
+        max_big_small_squared = 0
         for const in problem.constants()+problem.parameters():
             big = 0
             # Compute number of data
-            self.num_scalar_data += np.prod(const.size)
+            num_scalar_data += np.prod(const.size)
             big = max(const.size)
             small = min(const.size)
 
             # Get max data dimension:
-            if self.max_data_dimension < big:
-                self.max_data_dimension = big
+            if max_data_dimension < big:
+                max_data_dimension = big
 
-            if self.max_big_small_squared < big*small*small:
-                self.max_big_small_squared = big*small*small
+            if max_big_small_squared < big*small*small:
+                max_big_small_squared = big*small*small
 
         # num_scalar_eq_constr
-        self.num_scalar_eq_constr = 0
+        num_scalar_eq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "EqConstraint":
-                self.num_scalar_eq_constr += np.prod(constraint._expr.size)
+                num_scalar_eq_constr += np.prod(constraint._expr.size)
 
         # num_scalar_leq_constr
-        self.num_scalar_leq_constr = 0
+        num_scalar_leq_constr = 0
         for constraint in problem.constraints:
             if constraint.__class__.__name__ is "LeqConstraint":
-                self.num_scalar_leq_constr += np.prod(constraint._expr.size)
+                num_scalar_leq_constr += np.prod(constraint._expr.size)
+        self = super(SizeMetrics, cls).__new__(cls,
+                                               num_scalar_variables,
+                                               num_scalar_data,
+                                               num_scalar_eq_constr,
+                                               num_scalar_leq_constr,
+                                               max_data_dimension,
+                                               max_big_small_squared)
+        return self
+
+
+SizeMetrics.__new__.__defaults__ = (0, 0, 0, 0, 0, 0)
