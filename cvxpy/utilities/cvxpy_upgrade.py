@@ -16,10 +16,10 @@ SUBST = [
     (r"Int\(" + P_ROW_COL, r"Variable(shape=(\1, \2), integer=True"),
     (r"Parameter\(" + P_ROW_COL, r"Parameter(shape=(\1, \2)"),
     # Interpret 1D variables as 2D; code may depend upon 2D structure
-    (r"Variable\(([^,)]+)\)", r"Variable(shape=(\1,1))"),
-    (r"Bool\(([^,)]+)\)", r"Variable(shape=(\1,1), boolean=True)"),
-    (r"Int\(([^,)]+)\)", r"Variable(shape=(\1,1), integer=True)"),
-    (r"Parameter\(([^,)]+)\)", r"Parameter(shape=(\1,1))"),
+    (r"Variable\((\w+)\)", r"Variable(shape=(\1,1))"),
+    (r"Bool\((\w+)\)", r"Variable(shape=(\1,1), boolean=True)"),
+    (r"Int\((\w+)\)", r"Variable(shape=(\1,1), integer=True)"),
+    (r"Parameter\((\w+)\)", r"Parameter(shape=(\1,1))"),
     # Update atom names
     (r"sum_entries", "sum"),
     (r"max_entries", "cummax"),
