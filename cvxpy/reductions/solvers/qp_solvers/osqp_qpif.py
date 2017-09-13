@@ -67,7 +67,7 @@ class OSQP(QpSolver):
             solver, old_data, results = solver_cache[self.name]
             same_pattern = (P.shape == old_data[s.P].shape and
                             all(P.indptr == old_data[s.P].indptr)) and \
-                           (A.shape == old_data[s.A].shape and
+                           (A.shape == old_data['full_A'].shape and
                             all(A.indptr == old_data['full_A'].indptr))
         else:
             same_pattern = False
