@@ -77,7 +77,11 @@ class ECOS_BB(ECOS):
         import ecos
         data = self.get_problem_data(objective, constraints, cached_data)
         # Default verbose to false for BB wrapper.
-        mi_verbose = solver_opts.get('mi_verbose', False)
+        if 'mi_verbose' in solver_opts:
+            mi_verbose = solver_opts['mi_verbose']
+            del solver_opts['mi_verbose']
+        else:
+            mi_verbose = verbose
         results_dict = ecos.solve(data[s.C], data[s.G], data[s.H],
                                   data[s.DIMS], data[s.A], data[s.B],
                                   verbose=verbose,
