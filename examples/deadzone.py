@@ -4,9 +4,9 @@ import sys
 import cvxopt
 import numpy as np
 from pylab import *
-import math
-
 from cvxpy import *
+
+from numpy.random import normal
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Section 6.1.2: Residual minimization with deadzone penalty
@@ -24,21 +24,20 @@ from cvxpy import *
 # Input data
 m = 16
 n = 8
-A = cvxopt.normal(m,n)
-b = cvxopt.normal(m,1)
+A = normal(m, n)
+b = normal(m, 1)
 
 # Formulate the problem
 x = Variable(n)
-objective = Minimize( sum_entries(max_elemwise( abs(A*x -b) - 1 , 0 )) )
+objective = Minimize(sum_entries(max_elemwise(abs(A * x - b) - 1, 0)))
 p = Problem(objective, [])
 
 # Solve it
-print 'Computing the optimal solution of the deadzone approximation problem:'
+print('Computing the optimal solution of the deadzone approximation problem:')
 p.solve()
 
-print 'Optimal vector:'
-print x.value
+print('Optimal vector:')
+print(x.value)
 
-print 'Residual vector:'
-print A*x.value - b
-
+print('Residual vector:')
+print(A * x.value - b)
