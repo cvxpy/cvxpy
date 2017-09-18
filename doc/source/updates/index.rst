@@ -17,8 +17,7 @@ Overview
 
 * NumPy compatibility: CVXPY's interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.
 
-* Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions,
-transforms may also take Problem, Objective, or Constraint objects as input.
+* Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions, transforms may also take Problem, Objective, or Constraint objects as input.
 
 
 
@@ -40,6 +39,22 @@ Attributes
 Attributes describe the symbolic properties of variables and parameters and are specified as arguments to the constructor. For example, ``Variable(nonneg=True)`` creates a scalar variable constrained to be nonnegative.
 Attributes replace the previous syntax of special variable classes like ``Bool`` for boolean variables and ``Semidef`` for symmetric positive semidefinite variables,
 as well as specification of the sign for parameters (e.g., ``Parameter(sign='positive')``).
+Concretely, write
+
+* ``Variable(shape, boolean=True)`` instead of ``Bool(shape)``.
+  
+* ``Variable(shape, integer=True)`` instead of ``Int(shape)``.
+
+* ``Variable((n, n), PSD=True)`` instead of ``Semidef(n)``.
+
+* ``Variable((n, n), symmetric=True)`` instead of ``Symmetric(n)``.
+
+* ``Variable(shape, nonneg=True)`` instead of ``NonNegative(shape)``.
+
+* ``Parameter(shape, nonneg=True)`` instead of ``Parameter(shape, sign='positive')``.
+ 
+* ``Parameter(shape, nonpos=True)`` instead of ``Parameter(shape, sign='negative')``.
+
 See :ref:`attributes` for a complete list of supported attributes. More attributes will be added in the future.
 
 NumPy Compatibility
@@ -68,5 +83,4 @@ Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
 For example, the ``indicator`` transform converts a list of constraints
 into an expression representing the convex function that takes value 0 when
-the constraints hold and :math:`\infty` when they are violated.
-See :ref:`transforms-api` for a full list of the new transforms.
+the constraints hold and :math:`\infty` when they are violated. See :ref:`transforms-api` for a full list of the new transforms.

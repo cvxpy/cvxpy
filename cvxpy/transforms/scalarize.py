@@ -37,6 +37,18 @@ def weighted_sum(objectives, weights):
 def targets_and_priorities(objectives, priorities, targets, limits=None, off_target=1e-5):
     """Combines objectives with penalties within a range between target and limit.
 
+    Each Minimize objective i has value
+
+        priorities[i]*objectives[i] when objectives[i] >= targets[i]
+
+        +infinity when objectives[i] > limits[i]
+
+    Each Maximize objective i has value
+
+        priorities[i]*objectives[i] when objectives[i] <= targets[i]
+
+        +infinity when objectives[i] < limits[i]
+
     Args:
       objectives: A list of Minimize/Maximize objectives.
       priorities: The weight within the trange.
@@ -87,18 +99,24 @@ def max(objectives, weights):
     return Minimize(expr)
 
 
-def log_sum_exp(objectives, weights, gamma):
+def log_sum_exp(objectives, weights, gamma=1):
     """Combines objectives as log_sum_exp of weighted terms.
+
+
+    The objective takes the form
+        log(\sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma
+    As gamma goes to 0, log_sum_exp approaches weighted_sum. As gamma goes to infinity,
+    log_sum_exp approaches max.
 
     Args:
       objectives: A list of Minimize/Maximize objectives.
       weights: A vector of weights.
-      gamma: Parameter interpolating between sum and max.
+      gamma: Parameter interpolating between weighted_sum and max.
 
     Returns:
       A Minimize objective.
     """
     num_objs = len(objectives)
     terms = [(objectives[i]*weights[i]).args[0] for i in range(num_objs)]
-    expr = atoms.log_sum_exp(atoms.vstack(terms))
+    expr = atoms.log_sum_exp(gamma*atoms.vstack(terms))/gamma
     return Minimize(expr)
