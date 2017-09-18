@@ -44,6 +44,8 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 The dual variable for ``x - y >= 1`` is 2. By complementarity this implies that ``x - y`` is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten ``x - y >= 1``, (i.e., increase the right-hand side), the optimal value of the problem will increase.
 
+.. _attributes:
+
 Attributes
 ----------
 
