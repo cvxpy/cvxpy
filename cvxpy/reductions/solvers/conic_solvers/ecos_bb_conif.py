@@ -64,7 +64,11 @@ class ECOS_BB(ECOS):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default verbose to false for BB wrapper.
-        mi_verbose = solver_opts.get('mi_verbose', False)
+        if 'mi_verbose' in solver_opts:
+            mi_verbose = solver_opts['mi_verbose']
+            del solver_opts['mi_verbose']
+        else:
+            mi_verbose = verbose
         solution = ecos.solve(data[s.C], data[s.G], data[s.H],
                               cones, data[s.A], data[s.B],
                               verbose=verbose,
