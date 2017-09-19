@@ -27,7 +27,7 @@ from cvxpy.problems.objective import Maximize, Minimize
 import cvxpy.interface.scipy_wrapper
 from cvxpy.error import SolverError
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, JULIA_OPT, OSQP,
-                            ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, LS,
+                            ECOS, ECOS_BB, SCS, GUROBI, ELEMENTAL, MOSEK, XPRESS,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 from cvxpy.transforms import linearize, partial_optimize

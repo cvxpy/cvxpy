@@ -604,8 +604,8 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            if self.max_big_small_squared < big*small*small:
-                self.max_big_small_squared = big*small*small
+            if self.max_big_small_squared < big*small**2:
+                self.max_big_small_squared = big*small**2
 
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0

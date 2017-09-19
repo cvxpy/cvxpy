@@ -180,9 +180,9 @@ class TestSCS(BaseTest):
         x = cvx.Variable(10)
         obj = cvx.Minimize(sum(cvx.exp(x)))
         prob = cvx.Problem(obj, [sum(x) == 1])
-        result = prob.solve(solver=cvx.SCS)
+        result = prob.solve(solver=cvx.SCS, eps=1e-4)
         time = prob.solver_stats.solve_time
-        result2 = prob.solve(solver=cvx.SCS, warm_start=True)
+        result2 = prob.solve(solver=cvx.SCS, warm_start=True, eps=1e-4)
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
         assert time > time2

@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy import *
+import cvxpy as cvx
+import numpy as np
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -25,10 +26,10 @@ class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
     def setUp(self):
-        self.x_bool = Variable(boolean=True)
-        self.y_int = Variable(integer=True)
-        self.A_bool = Variable((3, 2), boolean=True)
-        self.B_int = Variable((2, 3), integer=True)
+        self.x_bool = cvx.Variable(boolean=True)
+        self.y_int = cvx.Variable(integer=True)
+        self.A_bool = cvx.Variable((3, 2), boolean=True)
+        self.B_int = cvx.Variable((2, 3), integer=True)
 
     def test_mip_consistency(self):
         """Test that MIP problems are deterministic.
@@ -36,9 +37,9 @@ class TestMIPVariable(BaseTest):
         data_recs = []
         result_recs = []
         for i in range(5):
-            obj = Minimize(square(self.y_int - 0.2))
-            p = Problem(obj, [self.A_bool == 0, self.x_bool == self.B_int])
-            data_recs.append(p.get_problem_data(ECOS_BB))
+            obj = cvx.Minimize(cvx.square(self.y_int - 0.2))
+            p = cvx.Problem(obj, [self.A_bool == 0, self.x_bool == self.B_int])
+            data_recs.append(p.get_problem_data(cvx.ECOS_BB))
             # result_recs.append( p.solve() )
 
         # Check that problem data and result is always the same.
@@ -46,8 +47,8 @@ class TestMIPVariable(BaseTest):
             # self.assertEqual(result_recs[0], result_recs[i])
             for key in ["c", "A", "b", "G", "h",
                         "bool_vars_idx", "int_vars_idx"]:
-                lh_item = data_recs[0][key]
-                rh_item = data_recs[i][key]
+                lh_item = data_recs[0][0][key]
+                rh_item = data_recs[i][0][key]
                 if key in ["A", "G"]:
                     lh_item = lh_item.todense()
                     rh_item = rh_item.todense()
@@ -61,35 +62,35 @@ class TestMIPVariable(BaseTest):
 
     def test_bool_prob(self):
         # Bool in objective.
-        obj = Minimize(square(self.x_bool - 0.2))
-        p = Problem(obj,[])
+        obj = cvx.Minimize(cvx.square(self.x_bool - 0.2))
+        p = cvx.Problem(obj,[])
         result = p.solve()
         self.assertAlmostEqual(result, 0.04)
 
         self.assertAlmostEqual(self.x_bool.value, 0)
 
         # Bool in constraint.
-        t = Variable()
-        obj = Minimize(t)
-        p = Problem(obj,[square(self.x_bool) <= t])
+        t = cvx.Variable()
+        obj = cvx.Minimize(t)
+        p = cvx.Problem(obj,[cvx.square(self.x_bool) <= t])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
         self.assertAlmostEqual(self.x_bool.value, 0, places=4)
 
         # Matrix Bool in objective.
-        C = matrix([[0, 1, 0], [1, 1, 1]])
-        obj = Minimize(sum_squares(self.A_bool - C))
-        p = Problem(obj,[])
+        C = np.matrix([[0, 1, 0], [1, 1, 1]]).T
+        obj = cvx.Minimize(cvx.sum_squares(self.A_bool - C))
+        p = cvx.Problem(obj,[])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
         self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
         # Matrix Bool in constraint.
-        t = Variable()
-        obj = Minimize(t)
-        p = Problem(obj, [sum_squares(self.A_bool - C) <= t])
+        t = cvx.Variable()
+        obj = cvx.Minimize(t)
+        p = cvx.Problem(obj, [cvx.sum_squares(self.A_bool - C) <= t])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
@@ -97,8 +98,8 @@ class TestMIPVariable(BaseTest):
 
     def test_int_prob(self):
         # Int in objective.
-        obj = Minimize(square(self.y_int - 0.2))
-        p = Problem(obj,[])
+        obj = cvx.Minimize(cvx.square(self.y_int - 0.2))
+        p = cvx.Problem(obj,[])
         result = p.solve()
         self.assertAlmostEqual(result, 0.04)
 

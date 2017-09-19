@@ -1432,7 +1432,7 @@ class TestProblem(BaseTest):
         prob.solve()
         x0.value = 1
         prob.solve()
-        self.assertAlmostEqual(prob.value, 1)
+        self.assertAlmostEqual(prob.value, 1, places=2)
 
     def test_psd_constraints(self):
         """Test positive definite constraints.

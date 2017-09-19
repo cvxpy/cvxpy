@@ -74,7 +74,7 @@ class Leaf(expression.Expression):
     integer : bool or list of tuple
         Is the variable integer? The semantics are the same as the
         boolean argument.
-    sparsity : list of tuple
+    sparsity : list of tuplewith
         Fixed sparsity pattern for the variable.
     """
 
@@ -225,13 +225,13 @@ class Leaf(expression.Expression):
         # Default is full domain.
         domain = []
         if self.attributes['nonneg']:
-            domain.append(x >= 0)
+            domain.append(self >= 0)
         elif self.attributes['nonpos']:
-            domain.append(x >= 0)
+            domain.append(self >= 0)
         elif self.attributes['PSD']:
-            domain.append(x >> 0)
+            domain.append(self >> 0)
         elif self.attributes['NSD']:
-            domain.append(x << 0)
+            domain.append(self << 0)
         return []
 
     def project(self, val):
@@ -257,12 +257,12 @@ class Leaf(expression.Expression):
             return np.maximum(val, 0.)
         elif self.attributes['boolean']:
             # TODO(akshayka): respect the boolean indices.
-            return np.project(np.clip(val, 0., 1.))
+            return np.round(np.clip(val, 0., 1.))
         elif self.attributes['integer']:
             # TODO(akshayka): respect the integer indices.
             # also, a variable may be integer in some indices and
             # boolean in others.
-            return np.project(val)
+            return np.round(val)
         elif self.attributes['diag']:
             return sp.diags([np.diag(val)], [0])
         elif any([self.attributes[key] for

@@ -75,6 +75,7 @@ class Variable(Leaf):
         else:
             self._name = name
 
+        self._value = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self):

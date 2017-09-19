@@ -80,16 +80,16 @@ class OSQP(QpSolver):
                     new_args[key] = data[key]
             factorizing = False
             if any(P.indices != old_data[s.P].indices):
-                new_args['Px_idx']
+                new_args['Px_idx'] = P.indices
                 factorizing = True
             if any(P.data != old_data[s.P].data):
-                new_args['Px']
+                new_args['Px'] = P.data
                 factorizing = True
             if any(A.indices != old_data['full_A'].indices):
-                new_args['Ax_idx']
+                new_args['Ax_idx'] = A.indices
                 factorizing = True
             if any(A.data != old_data['full_A'].data):
-                new_args['Ax']
+                new_args['Ax'] = A.data
                 factorizing = True
             solver.update(**new_args)
             # Map OSQP statuses back to CVXPY statuses
