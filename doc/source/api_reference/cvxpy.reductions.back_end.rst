@@ -1,11 +1,11 @@
 Back-End Reductions
 ====================
 
-The reductions listed here are specific to the choice of back-end, i.e.,
-solver. Currently, we support two types of back-ends: conic solvers and
+The reductions listed here are specific to the choice of back end, i.e.,
+solver. Currently, we support two types of back ends: conic solvers and
 quadratic program solvers.  When a problem is solved through the
 :meth:`~cxvpy.problems.problem.Problem.solve` method, CVXPY attempts to find
-the best back-end for your problem. The
+the best back end for your problem. The
 :class:`~cvxpy.reductions.dcp2cone.Dcp2Cone` reduction converts DCP-compliant
 problems into conic form, while the
 :class:`~cvxpy.reductions.qp2symbolic_qp.Qp2SymbolicQp` converts problems with

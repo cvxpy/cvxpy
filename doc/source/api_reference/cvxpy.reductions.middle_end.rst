@@ -1,7 +1,7 @@
 Middle-End Reductions
 ====================
 
-The reductions listed here are not specific to a back-end (solver);
+The reductions listed here are not specific to a back end (solver);
 they can be applied regardless of whether you wish to target, for example,
 a quadratic program solver or a conic solver.
 
