@@ -1,2 +1,0 @@
-curvature of sqrt(1 + square(x)) UNKNOWN
-curvature of norm(vstack(1, x), 2) CONVEX
