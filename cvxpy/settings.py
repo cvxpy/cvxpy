@@ -70,6 +70,10 @@ SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, OSQP, CPLEX, ELEMENTAL,
            MOSEK, CBC, JULIA_OPT, XPRESS]
 
+# Xpress-specific items
+XPRESS_IIS = "XPRESS_IIS"
+XPRESS_TROW = "XPRESS_TROW"
+
 # Parallel (meta) solver
 PARALLEL = "parallel"
 
