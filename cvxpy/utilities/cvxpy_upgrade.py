@@ -1,6 +1,10 @@
 import argparse
 import re
 
+# A simple script to help upgrade pre-1.0 source files to version 1.0.
+# This script does nothing more than find-and-replace substitutions;
+# conversions may fail silently. Users should make sure to diff output files
+# with the input files in order to catch and fix any errors.
 
 # Captures row and column parameters; note the captured object should
 # not be a keyword argument other than "cols" (hence the requirement that
@@ -26,6 +30,7 @@ SUBST = [
     # Symmetric and PSD
     (r"Symmetric\((\w+)\)", r"Variable(shape=(\1,\1), symmetric=True)"),
     (r"Semidef\((\w+)\)", r"Variable(shape=(\1,\1), PSD=True)"),
+    (r"semidefinite\((\w+)\)", r"Variable(shape=(\1,\1), PSD=True)"),
     # Update atom names
     (r"sum_entries", "sum"),
     (r"max_entries", "cummax"),
