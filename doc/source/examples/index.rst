@@ -10,7 +10,7 @@ These examples show many different ways to use CVXPY. The :ref:`basic` section s
 Basic Examples
 --------------
 
-- `Total variation in-painting <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
+- :doc:`Total variation in-painting <applications/tv_inpainting>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
 - `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
@@ -20,7 +20,7 @@ Basic Examples
 
 - `Worst-case risk analysis <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb>`_
 
-- `Optimal advertising <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_advertising.ipynb>`_
+- `Optimal advertising <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_ad.ipynb>`_
 
 - `Huber regression <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
 
@@ -33,32 +33,32 @@ Basic Examples
 Advanced Examples
 -----------------
 
-- `Object-oriented convex optimization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb>`_
+- :doc:`Object-oriented convex optimization <applications/OOCO>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb>`_
 
-- `Consensus optimization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/consensus_opt.ipynb>`_
+- :doc:`Consensus optimization <applications/consensus_opt>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/consensus_opt.ipynb>`_
 
-- `Method of multipliers <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb>`_
+- :doc:`Method of multipliers <applications/MM>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb>`_
 
 .. _applications:
 
 Advanced Applications
 ---------------------
 
-- `Allocating interdiction effort to catch a smuggler <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/interdiction.ipynb>`_
-- `Antenna array design <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/ant_array_min_beamwidth.ipynb>`_
-- `Channel capacity <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/Channel_capacity_BV4.57.ipynb>`_
-- `Computing a sparse solution of a set of linear inequalities <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_solution.ipynb>`_
-- `Entropy maximization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/max_entropy.ipynb>`_
-- `Fault detection <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fault_detection.ipynb>`_
-- `Filter design <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fir_chebychev_design.ipynb>`_
-- `Fitting censored data <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/censored_data.ipynb>`_
-- `L1 trend filtering <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb>`_
-- `Nonnegative matrix factorization <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb>`_
-- `Optimal parade route <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb>`_
-- `Optimal power and bandwidth allocation in a Gaussian broadcast channel <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb>`_
-- `Power assignment in a wireless communication system <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb>`_
-- `Predicting NBA game wins <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb>`_
-- `Robust Kalman filtering for vehicle tracking <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb>`_
-- `Sizing of clock meshes <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb>`_
-- `Sparse covariance estimation for Gaussian variables <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
-- `Water filling <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
+- :doc:`Allocating interdiction effort to catch a smuggler <applications/interdiction>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/interdiction.ipynb>`_
+- :doc:`Antenna array design <applications/ant_array_min_beamwidth>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/ant_array_min_beamwidth.ipynb>`_
+- :doc:`Channel capacity <applications/Channel_capacity_BV4.57>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/Channel_capacity_BV4.57.ipynb>`_
+- :doc:`Computing a sparse solution of a set of linear inequalities <applications/sparse_solution>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_solution.ipynb>`_
+- :doc:`Entropy maximization <applications/max_entropy>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/max_entropy.ipynb>`_
+- :doc:`Fault detection <applications/fault_detection>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fault_detection.ipynb>`_
+- :doc:`Filter design <applications/fir_chebychev_design>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fir_chebychev_design.ipynb>`_
+- :doc:`Fitting censored data <applications/censored_data>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/censored_data.ipynb>`_
+- :doc:`L1 trend filtering <applications/l1_trend_filter>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb>`_
+- :doc:`Nonnegative matrix factorization <applications/nonneg_matrix_fact>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb>`_
+- :doc:`Optimal parade route <applications/parade_route>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb>`_
+- :doc:`Optimal power and bandwidth allocation in a Gaussian broadcast channel <applications/optimal_power_gaussian_channel_BV4.62>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb>`_
+- :doc:`Power assignment in a wireless communication system <applications/maximise_minimum_SINR_BV4.20>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb>`_
+- :doc:`Predicting NBA game wins <applications/nba_ranking>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb>`_
+- :doc:`Robust Kalman filtering for vehicle tracking <applications/robust_kalman>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb>`_
+- :doc:`Sizing of clock meshes <applications/clock_mesh>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb>`_
+- :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
+- :doc:`Water filling <applications/water_filling_BVex5.2>` `[code] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
