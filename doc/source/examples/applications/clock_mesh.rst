@@ -187,7 +187,7 @@ Solve problem and display results
                         C == C.T,
                         G == cvx.reshape(GG*xt,n,n),
                         C == cvx.reshape(CC*xt,n,n),
-                        delay * G - C == cvx.semidefinite(n),
+                        delay * G - C == cvx.Variable(shape=(n,n), PSD=True),
                         0 <= xt[1:],
                         xt[1:] <= wmax,
                       ]

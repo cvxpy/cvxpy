@@ -131,7 +131,7 @@ Iterative log heuristic
     nnzs_log = np.array(())
     
     # Store W as a positive parameter for simple modification of the problem.
-    W = cvx.Parameter(shape=(n, 1) nonneg=True); 
+    W = cvx.Parameter(shape=(n, 1), nonneg=True); 
     x_log = cvx.Variable(shape=(n,1))
     
     # Initial weights.

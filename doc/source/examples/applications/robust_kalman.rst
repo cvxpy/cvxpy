@@ -321,9 +321,9 @@ recovery is distorted by outliers in the measurements.
     %%time
     from cvxpy import *
     
-    x = Variable(4,n+1)
-    w = Variable(shape=(2, n)
-    v = Variable(shape=(2, n)
+    x = Variable(shape=(4, n+1))
+    w = Variable(shape=(2, n))
+    v = Variable(shape=(2, n))
     
     tau = .08
         
@@ -402,9 +402,9 @@ plots below.
 
     %%time
     from cvxpy import *
-    x = Variable(4,n+1)
-    w = Variable(shape=(2, n)
-    v = Variable(shape=(2, n)
+    x = Variable(shape=(4, n+1))
+    w = Variable(shape=(2, n))
+    v = Variable(shape=(2, n))
     
     tau = 2
     rho = 2

@@ -113,7 +113,7 @@ where :math:`\epsilon` is the desired tolerance.
       l = 0
       # alpha defines the sub-level sets of the generalised linear fractional problem
       # in this case α is the reciprocal of the minimum SINR
-      alpha = cvx.Parameter(shape=(1, 1)
+      alpha = cvx.Parameter(shape=(1, 1))
       # set up the constraints for the bisection feasibility test
       constraints = [I*p + sigma <= alpha*S*p, p <= P_max, p >= 0, G*p <= P_received, Group_norm*p <= Group_max]
     

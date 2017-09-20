@@ -81,7 +81,7 @@ Solve for several :math:`\alpha` values
     # Solve the optimization problem for each value of alpha.
     for alpha in alphas:
         # Create a variable that is constrained to the positive semidefinite cone.
-        S = cvx.semidefinite(n)
+        S = cvx.Variable(shape=(n,n), PSD=True)
         
         # Form the logdet(S) - tr(SY) objective. Note the use of a set
         # comprehension to form a set of the diagonal elements of S*Y, and the

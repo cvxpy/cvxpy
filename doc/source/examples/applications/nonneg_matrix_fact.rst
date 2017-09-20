@@ -66,11 +66,11 @@ Perform alternating minimization
     
         # For odd iterations, treat Y constant, optimize over X.
         if iter_num % 2 == 1:
-            X = cvx.Variable(shape=(k, n)
+            X = cvx.Variable(shape=(k, n))
             constraint = [X >= 0]
         # For even iterations, treat X constant, optimize over Y.
         else:
-            Y = cvx.Variable(shape=(m, k)
+            Y = cvx.Variable(shape=(m, k))
             constraint = [Y >= 0]
         
         # Solve the problem.

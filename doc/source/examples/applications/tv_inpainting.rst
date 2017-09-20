@@ -81,7 +81,7 @@ large problem.
 
     # Recover the original image using total variation in-painting.
     from cvxpy import *
-    U = Variable(shape=(rows, cols)
+    U = Variable(shape=(rows, cols))
     obj = Minimize(tv(U))
     constraints = [multiply(Known, U) == multiply(Known, Ucorr)]
     prob = Problem(obj, constraints)
@@ -248,7 +248,7 @@ this large problem.
     variables = []
     constraints = []
     for i in xrange(colors):
-        U = Variable(shape=(rows, cols)
+        U = Variable(shape=(rows, cols))
         variables.append(U)
         constraints.append(multiply(Known[:, :, i], U) == multiply(Known[:, :, i], Ucorr[:, :, i]))
     
