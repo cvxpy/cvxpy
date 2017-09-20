@@ -93,7 +93,7 @@ class XPRESS(ConicSolver):
 
         # Order and group constraints.
         inv_data = {self.VAR_ID: problem.variables()[0].id}
-        inv_data[self.EQ_CONSTR] = problem.constraints
+        inv_data[s.EQ_CONSTR] = problem.constraints
         inv_data['is_mip'] = problem.is_mixed_integer()
         return data, inv_data
 
@@ -109,7 +109,7 @@ class XPRESS(ConicSolver):
                 dual_vars = utilities.get_dual_values(
                     solution[s.EQ_DUAL],
                     utilities.extract_dual_value,
-                    inverse_data[XPRESS.EQ_CONSTR])
+                    inverse_data[s.EQ_CONSTR])
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf

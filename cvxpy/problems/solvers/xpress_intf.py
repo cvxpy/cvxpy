@@ -630,7 +630,7 @@ class XPRESS(Solver):
             new_results[s.VALUE] = results_dict['obj_value']
 
             if not self.is_mip(data):
-                new_results[s.EQ_DUAL] = results_dict['y']
+                new_results[s.EQ_DUAL] = [-v for v in results_dict['y']]
 
         new_results[s.XPRESS_IIS] = results_dict[s.XPRESS_IIS]
         new_results[s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
