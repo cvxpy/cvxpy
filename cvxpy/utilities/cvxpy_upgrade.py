@@ -4,22 +4,27 @@ import re
 
 # Captures row and column parameters; note the captured object should
 # not be a keyword argument other than "cols" (hence the requirement that
-# the captured group is followed by a comma, whitespace, or parentheses)
-P_ROW_COL = r"(?:rows=)?(\w+),\s*(?:cols=)?(\w+)[\s,)]"
+# the second captured group is not followed by an equals operator)
+P_ROW_COL = r"(?:rows=)?(\w+),\s*(?:cols\s*=)?(\w+)\s*(?![\s\w=])"
 
 # A list of substitutions to make, with the first entry in each tuple the
 # pattern and the second entry the substitution.
 SUBST = [
     # The shape is a single argument in CVXPY 1.0 (either a tuple or an int)
     (r"Variable\(" + P_ROW_COL, r"Variable(shape=(\1, \2)"),
+    (r"NonNegative\(" + P_ROW_COL, r"Variable(shape=(\1, \2), nonneg=True"),
     (r"Bool\(" + P_ROW_COL, r"Variable(shape=(\1, \2), boolean=True"),
     (r"Int\(" + P_ROW_COL, r"Variable(shape=(\1, \2), integer=True"),
     (r"Parameter\(" + P_ROW_COL, r"Parameter(shape=(\1, \2)"),
     # Interpret 1D variables as 2D; code may depend upon 2D structure
     (r"Variable\((\w+)\)", r"Variable(shape=(\1,1))"),
+    (r"NonNegative\((\w+)\)", r"Variable(shape=(\1,1), nonneg=True)"),
     (r"Bool\((\w+)\)", r"Variable(shape=(\1,1), boolean=True)"),
     (r"Int\((\w+)\)", r"Variable(shape=(\1,1), integer=True)"),
     (r"Parameter\((\w+)\)", r"Parameter(shape=(\1,1))"),
+    # Symmetric and PSD
+    (r"Symmetric\((\w+)\)", r"Variable(shape=(\1,\1), symmetric=True)"),
+    (r"Semidef\((\w+)\)", r"Variable(shape=(\1,\1), PSD=True)"),
     # Update atom names
     (r"sum_entries", "sum"),
     (r"max_entries", "cummax"),
