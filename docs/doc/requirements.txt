@@ -1,0 +1,9 @@
+sphinx >= 1.4
+cloud_sptheme
+alabaster
+numpydoc
+scipy
+numpy
+ecos
+scs
+recommonmark
