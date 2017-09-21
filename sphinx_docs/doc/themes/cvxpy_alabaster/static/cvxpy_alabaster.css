@@ -1,8 +1,0 @@
-/* cvxpy_alabaster.css
-*/
-
-@import url("alabaster.css");
-
-table.docutils td {
-    white-space: wrap;
-}
