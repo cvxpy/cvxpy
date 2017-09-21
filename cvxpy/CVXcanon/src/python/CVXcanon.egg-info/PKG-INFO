@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: CVXcanon
+Version: 0.1.1
+Summary: A low-level library to perform the matrix building step in cvxpy, a convex optimization modeling software.
+Home-page: https://github.com/jacklzhu/CVXcanon
+Author: Jack Zhu, John Miller, Paul Quigley
+Author-email: jackzhu@stanford.edu, millerjp@stanford.edu, piq93@stanford.edu
+License: GPLv3
+Description: UNKNOWN
+Platform: UNKNOWN

@@ -1,0 +1,240 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Transforms &#8212; CVXPY 0.4.8 documentation</title>
+    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.4.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reductions" href="cvxpy.reductions.html" />
+    <link rel="prev" title="Problems" href="cvxpy.problems.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="transforms">
+<span id="transforms-api"></span><h1>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h1>
+<p>Transforms provide additional ways of manipulating CVXPY objects
+beyond the atomic functions.
+While atomic functions operate only on expressions,
+transforms may also take Problem, Objective, or Constraint objects as input.</p>
+<div class="section" id="scalarize">
+<h2>Scalarize<a class="headerlink" href="#scalarize" title="Permalink to this headline">¶</a></h2>
+<p>The <em>scalarize</em> transforms convert a list of objectives into a single objective,
+for example a weighted sum. All scalarizations are monotone in each objective, which means that optimizing over the scalarized objective always returns a Pareto-optimal point with respect to the original list of objectives.
+Moreover, all points on the Pareto curve except for boundary points can be attained given some weighting of the objectives.</p>
+</div>
+<div class="section" id="other">
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<p>Here we list other available transforms.</p>
+<dl class="class">
+<dt id="cvxpy.transforms.indicator">
+<em class="property">class </em><code class="descclassname">cvxpy.transforms.</code><code class="descname">indicator</code><span class="sig-paren">(</span><em>constraints</em>, <em>err_tol=0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>The indicator I(constraints) = 0 if constraints hold, +infty otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.linearize">
+<code class="descclassname">transforms.</code><code class="descname">linearize</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.linearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the tangent approximation to the expression.</p>
+<p>Gives an elementwise lower (upper) bound for convex (concave)
+expressions. No guarantees for non-DCP expressions.</p>
+<p>Returns None if cannot be linearized.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expr</strong> – An expression.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An affine expression or None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.partial_optimize">
+<code class="descclassname">transforms.</code><code class="descname">partial_optimize</code><span class="sig-paren">(</span><em>prob</em>, <em>opt_vars=None</em>, <em>dont_opt_vars=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.partial_optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partially optimizes the given problem over the specified variables.</p>
+<p>Either opt_vars or dont_opt_vars must be given.
+If both are given, they must contain all the variables in the problem.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>prob</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to partially optimize.</li>
+<li><strong>opt_vars</strong> (<em>list</em><em>, </em><em>optional</em>) – The variables to optimize over.</li>
+<li><strong>dont_opt_vars</strong> (<em>list</em><em>, </em><em>optional</em>) – The variables to not optimize over.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An expression representing the partial optimization.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/cvxgrp/cvxpy">
+    <img
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Transforms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scalarize">Scalarize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other">Other</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What’s New in CVXPY 1.0</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/api_reference/cvxpy.transforms.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
