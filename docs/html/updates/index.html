@@ -1,0 +1,238 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>What’s New in CVXPY 1.0 &#8212; CVXPY 0.4.8 documentation</title>
+    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.4.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing" href="../contributing/index.html" />
+    <link rel="prev" title="Citing CVXPY" href="../citing/index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="what-s-new-in-cvxpy-1-0">
+<span id="updates"></span><h1>What’s New in CVXPY 1.0<a class="headerlink" href="#what-s-new-in-cvxpy-1-0" title="Permalink to this headline">¶</a></h1>
+<p>CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
+We only cover changes that might be of interest to users.</p>
+<p>We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available <a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py">here</a>.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Reductions: CVXPY 1.0 uses a modular system of <em>reductions</em> to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables.</li>
+<li>Attributes: Variables and parameters now support a variety of attributes that describe their symbolic properties, such as nonnegative or symmetric. This unifies the treatment of symbolic properties for variables and parameters and replaces specialized variable classes such as <code class="docutils literal"><span class="pre">Bool</span></code> and <code class="docutils literal"><span class="pre">Semidef</span></code>.</li>
+<li>NumPy compatibility: CVXPY’s interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.</li>
+<li>Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions, transforms may also take Problem, Objective, or Constraint objects as input.</li>
+</ul>
+</div>
+<div class="section" id="reductions">
+<h2>Reductions<a class="headerlink" href="#reductions" title="Permalink to this headline">¶</a></h2>
+<p>A reduction is a transformation
+from one problem to an equivalent problem. Two problems are equivalent
+if a solution of one can be converted to a solution of the other with no
+more than a moderate amount of effort. CVXPY uses reductions to rewrite
+problems into forms that solvers will accept.
+The practical benefit of the reduction based framework is that CVXPY 1.0 supports quadratic programs as a target solver standard form in addition to cone programs, with more standard forms on the way.
+It also makes it easy to add generic problem transformations such as converting problems with complex variables into problems with only real variables.
+See <a class="reference internal" href="../api_reference/cvxpy.reductions.html#reductions-api"><span class="std std-ref">Reductions</span></a> and the <a class="reference external" href="http://stanford.edu/~boyd/papers/cvxpy_rewriting.html">accompanying paper</a> for further details.</p>
+</div>
+<div class="section" id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
+<p>Attributes describe the symbolic properties of variables and parameters and are specified as arguments to the constructor. For example, <code class="docutils literal"><span class="pre">Variable(nonneg=True)</span></code> creates a scalar variable constrained to be nonnegative.
+Attributes replace the previous syntax of special variable classes like <code class="docutils literal"><span class="pre">Bool</span></code> for boolean variables and <code class="docutils literal"><span class="pre">Semidef</span></code> for symmetric positive semidefinite variables,
+as well as specification of the sign for parameters (e.g., <code class="docutils literal"><span class="pre">Parameter(sign='positive')</span></code>).
+Concretely, write</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Variable(shape,</span> <span class="pre">boolean=True)</span></code> instead of <code class="docutils literal"><span class="pre">Bool(shape)</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">Variable(shape,</span> <span class="pre">integer=True)</span></code> instead of <code class="docutils literal"><span class="pre">Int(shape)</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">Variable((n,</span> <span class="pre">n),</span> <span class="pre">PSD=True)</span></code> instead of <code class="docutils literal"><span class="pre">Semidef(n)</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">Variable((n,</span> <span class="pre">n),</span> <span class="pre">symmetric=True)</span></code> instead of <code class="docutils literal"><span class="pre">Symmetric(n)</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">Variable(shape,</span> <span class="pre">nonneg=True)</span></code> instead of <code class="docutils literal"><span class="pre">NonNegative(shape)</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">Parameter(shape,</span> <span class="pre">nonneg=True)</span></code> instead of <code class="docutils literal"><span class="pre">Parameter(shape,</span> <span class="pre">sign='positive')</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">Parameter(shape,</span> <span class="pre">nonpos=True)</span></code> instead of <code class="docutils literal"><span class="pre">Parameter(shape,</span> <span class="pre">sign='negative')</span></code>.</li>
+</ul>
+<p>See <a class="reference internal" href="../tutorial/advanced/index.html#attributes"><span class="std std-ref">Attributes</span></a> for a complete list of supported attributes. More attributes will be added in the future.</p>
+</div>
+<div class="section" id="numpy-compatibility">
+<h2>NumPy Compatibility<a class="headerlink" href="#numpy-compatibility" title="Permalink to this headline">¶</a></h2>
+<p>The following interface changes have been made to make CVXPY more compatible with NumPy syntax:</p>
+<ul class="simple">
+<li>The <code class="docutils literal"><span class="pre">value</span></code> field of CVXPY expressions now returns NumPy ndarrays instead of NumPy matrices.</li>
+<li>The dimensions of CVXPY expressions are given by the <code class="docutils literal"><span class="pre">shape</span></code> field, while the <code class="docutils literal"><span class="pre">size</span></code> field gives the total number of entries. In CVXPY 0.4.11 and earlier, the <code class="docutils literal"><span class="pre">size</span></code> field gave the dimensions and the <code class="docutils literal"><span class="pre">shape</span></code> field did not exist.</li>
+<li>The dimensions of CVXPY expressions are no longer always 2D. 0D and 1D expressions are possible. We will add support for arbitrary ND expressions in the future. The number of dimensions is given by the <code class="docutils literal"><span class="pre">ndim</span></code> field.</li>
+<li>The shape argument of the <code class="docutils literal"><span class="pre">Variable</span></code>, <code class="docutils literal"><span class="pre">Parameter</span></code>, and <code class="docutils literal"><span class="pre">reshape</span></code> constructors must be a tuple. Instead of writing, <code class="docutils literal"><span class="pre">Parameter(2,</span> <span class="pre">3)</span></code> to create a parameter of shape <code class="docutils literal"><span class="pre">(2,</span> <span class="pre">3)</span></code>, you must write <code class="docutils literal"><span class="pre">Parameter((2,</span> <span class="pre">3))</span></code>.</li>
+<li>Indexing and other operations can map 2D expressions down to 1D or 0D expressions. For example, if <code class="docutils literal"><span class="pre">X</span></code> has shape <code class="docutils literal"><span class="pre">(3,</span> <span class="pre">2)</span></code>, then <code class="docutils literal"><span class="pre">X[:,0]</span></code> has shape <code class="docutils literal"><span class="pre">(3,)</span></code>. CVXPY behavior follows NumPy semantics in all cases, with the exception that broadcasting only works when one argument is 0D.</li>
+<li>Several CVXPY atoms have been renamed:<ul>
+<li><code class="docutils literal"><span class="pre">mul_elemwise</span></code> to <code class="docutils literal"><span class="pre">multiply</span></code></li>
+<li><code class="docutils literal"><span class="pre">max_entries</span></code> to <code class="docutils literal"><span class="pre">max</span></code></li>
+<li><code class="docutils literal"><span class="pre">sum_entries</span></code> to <code class="docutils literal"><span class="pre">sum</span></code></li>
+<li><code class="docutils literal"><span class="pre">max_elemwise</span></code> to <code class="docutils literal"><span class="pre">maximum</span></code></li>
+<li><code class="docutils literal"><span class="pre">min_elemwise</span></code> to <code class="docutils literal"><span class="pre">minimum</span></code></li>
+</ul>
+</li>
+<li>Due to the name changes, we now strongly recommend against importing CVXPY using the syntax <code class="docutils literal"><span class="pre">from</span> <span class="pre">cvxpy</span> <span class="pre">import</span> <span class="pre">*</span></code>.</li>
+<li>The <code class="docutils literal"><span class="pre">vstack</span></code> and <code class="docutils literal"><span class="pre">hstack</span></code> atoms now take lists as input. For example, write <code class="docutils literal"><span class="pre">vstack([x,</span> <span class="pre">y])</span></code> instead of <code class="docutils literal"><span class="pre">vstack(x,</span> <span class="pre">y)</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="transforms">
+<h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
+<p>Transforms provide additional ways of manipulating CVXPY objects
+beyond the atomic functions.
+For example, the <code class="docutils literal"><span class="pre">indicator</span></code> transform converts a list of constraints
+into an expression representing the convex function that takes value 0 when
+the constraints hold and <span class="math">\(\infty\)</span> when they are violated. See <a class="reference internal" href="../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a> for a full list of the new transforms.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/cvxgrp/cvxpy">
+    <img
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s New in CVXPY 1.0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reductions">Reductions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#numpy-compatibility">NumPy Compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transforms">Transforms</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/updates/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
