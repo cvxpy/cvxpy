@@ -2,8 +2,8 @@
 #
 
 # You can set these variables from the command line.
-GH_PAGES_SOURCES_DOC = doc/source doc/sphinxext doc/themes
-GH_PAGES_SOURCES = source sphinxext themes
+GH_PAGES_SOURCES_DOC = doc/source doc/sphinxext doc/themes doc/Makefile
+GH_PAGES_SOURCES = source sphinxext themes Makefile
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
