@@ -20,6 +20,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('../..'))
 # To import sphinx extensions we've put in the repository:
 sys.path.insert(0, os.path.abspath('../sphinxext'))
+sys.path.append('/home/docs/checkouts/readthedocs.org/user_builds/cvxpy/checkouts/1.0/cvxpy')
 
 __version__ = "0.4.8"
 
