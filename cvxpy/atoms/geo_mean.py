@@ -20,8 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.atom import Atom
 import numpy as np
 import scipy.sparse as sp
-from ..utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
-                                     over_bound, prettydict)
+from cvxpy.utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
+                                         over_bound, prettydict)
 
 
 class geo_mean(Atom):

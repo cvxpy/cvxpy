@@ -18,11 +18,10 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from fractions import Fraction
-from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.expressions import cvxtypes
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict
@@ -32,8 +31,9 @@ import numbers
 def gm(t, x, y):
     length = t.size
     if isinstance(t, Expression):
-        return SOC(t=reshape(x+y, (length,)),
-                   X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
+        return SOC(t=cvxtypes.reshape()(x+y, (length,)),
+                   X=cvxtypes.vstack()([cvxtypes.reshape()(x-y, (1, length)),
+                                        cvxtypes.reshape()(2*t, (1, length))]),
                    axis=0)
     else:
         two = lu.create_const(2, (1, 1))
