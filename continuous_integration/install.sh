@@ -57,7 +57,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd ..
         # Install CVXOPT with GLPK bindings.
         CVXOPT_BUILD_GLPK=1 CVXOPT_GLPK_LIB_DIR=/usr/local/lib CVXOPT_GLPK_INC_DIR=/usr/local/include pip install cvxopt
+    fi
 
+    if [[ "$INSTALL_CBC" == "true" ]]; then
         # Install CBC
         oldpath="$PWD"
         cd /home/travis
