@@ -8,4 +8,5 @@ ecos
 scs
 recommonmark
 fastcache
+osqp
 cvxpy
