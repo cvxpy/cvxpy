@@ -1,0 +1,6 @@
+curvature of x: AFFINE
+curvature of a: CONSTANT
+curvature of square(x) CONVEX
+curvature of c*square(x)
+[['CONVEX']
+ ['CONCAVE']]
