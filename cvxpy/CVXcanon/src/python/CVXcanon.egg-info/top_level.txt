@@ -1,4 +1,0 @@
-CVXcanon
-_CVXcanon
-_version__
-canonInterface
