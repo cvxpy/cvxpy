@@ -6,7 +6,7 @@ What's New in CVXPY 1.0
 CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
 We only cover changes that might be of interest to users.
 
-We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available here.
+We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available `here <https://github.com/cvxgrp/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py>`_.
 
 Overview
 --------
@@ -72,7 +72,15 @@ The following interface changes have been made to make CVXPY more compatible wit
 
 * Indexing and other operations can map 2D expressions down to 1D or 0D expressions. For example, if ``X`` has shape ``(3, 2)``, then ``X[:,0]`` has shape ``(3,)``. CVXPY behavior follows NumPy semantics in all cases, with the exception that broadcasting only works when one argument is 0D.
 
-* Several CVXPY atoms have been renamed: ``mul_elemwise`` is now ``multiply``, ``max_entries`` is now ``max``, ``sum_entries`` is now ``sum``, ``max_elemwise`` is now ``maximum``, and ``min_elemwise`` is now ``minimum``. Due to the name changes, we now strongly recommend against importing CVXPY using the syntax ``from cvxpy import *``.
+* Several CVXPY atoms have been renamed:
+
+  * ``mul_elemwise`` to ``multiply``
+  * ``max_entries`` to ``max``
+  * ``sum_entries`` to ``sum``
+  * ``max_elemwise`` to ``maximum``
+  * ``min_elemwise`` to ``minimum``
+
+* Due to the name changes, we now strongly recommend against importing CVXPY using the syntax ``from cvxpy import *``.
 
 * The ``vstack`` and ``hstack`` atoms now take lists as input. For example, write ``vstack([x, y])`` instead of ``vstack(x, y)``.
 
