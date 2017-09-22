@@ -33,6 +33,5 @@ def norm1_canon(expr, args):
     # of the other atoms
     abs_expr = abs(x)
     abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
-    x = abs_x
     constraints += abs_constraints
-    return (sum(x, axis=axis),), constraints
+    return sum(abs_x, axis=axis), constraints

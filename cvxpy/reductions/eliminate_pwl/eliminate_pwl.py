@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import abs, maximum, sum_largest, max
-from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms import abs, maximum, sum_largest, max, norm1, norm_inf
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
     CANON_METHODS as elim_pwl_methods)
@@ -29,7 +28,7 @@ class EliminatePwl(Canonicalization):
 
     def accepts(self, problem):
         atom_types = [type(atom) for atom in problem.atoms()]
-        pwl_types = [abs, maximum, sum_largest, max, pnorm]
+        pwl_types = [abs, maximum, sum_largest, max, norm1, norm_inf]
         return any(atom in pwl_types for atom in atom_types)
 
     def apply(self, problem):

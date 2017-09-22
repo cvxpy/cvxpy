@@ -17,40 +17,56 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.expressions.constants import Constant
 import numpy as np
 
 
-def separable_canon(expr, args):
+def separable_canon(expr, real_args, imag_args):
     """Canonicalize linear functions that are seprable
        in real and imaginary parts.
     """
-    reals = []
-    imags = []
-    for real, imag in args:
-        reals.append(real)
-        imags.append(imag)
-
-    if all([val is None for val in imags]):
-        outputs = (expr.copy(reals), None)
-    elif all([val is None for val in reals]):
-        outputs = (None, expr.copy(imags))
-    else:  # Mixed reals and imaginaries.
-        for idx, real_val in enumerate(reals):
+    if all([val is None for val in imag_args]):
+        outputs = (expr.copy(real_args), None)
+    elif all([val is None for val in real_args]):
+        outputs = (None, expr.copy(imag_args))
+    else:  # Mixed real_args and imaginaries.
+        for idx, real_val in enumerate(real_args):
             if real_val is None:
-                reals[idx] = np.zeros(imags[idx].shape)
-            elif imags[idx] is None:
-                imags[idx] = np.zeros(reals[idx].shape)
-        outputs = (expr.copy(reals), expr.copy(imags))
+                real_args[idx] = Constant(np.zeros(imag_args[idx].shape))
+            elif imag_args[idx] is None:
+                imag_args[idx] = Constant(np.zeros(real_args[idx].shape))
+        outputs = (expr.copy(real_args), expr.copy(imag_args))
     return outputs
 
 
-def real_canon(expr, args):
-    return args[0][0], None
+def real_canon(expr, real_args, imag_args):
+    return real_args[0], None
 
 
-def imag_canon(expr, args):
-    return None, args[0][1]
+def imag_canon(expr, real_args, imag_args):
+    return imag_args[0], None
 
 
-def conj_canon(expr, args):
-    return args[0][0], -args[0][1]
+def conj_canon(expr, real_args, imag_args):
+    return real_args[0], -imag_args[0]
+
+
+def binary_canon(expr, real_args, imag_args):
+    """Canonicalize functions like multiplication.
+    """
+    if all([val is None for val in imag_args]):
+        outputs = (expr.copy(real_args), None)
+    elif all([val is None for val in real_args]):
+        outputs = (-expr.copy(imag_args), None)
+    else:  # Mixed real_args and imaginaries.
+        for idx, real_val in enumerate(real_args):
+            if real_val is None:
+                real_args[idx] = Constant(np.zeros(imag_args[idx].shape))
+            elif imag_args[idx] is None:
+                imag_args[idx] = Constant(np.zeros(real_args[idx].shape))
+        real_part = expr.copy([real_args[0], real_args[1]])
+        real_part -= expr.copy([imag_args[0], imag_args[1]])
+        imag_part = expr.copy([real_args[0], imag_args[1]])
+        imag_part += expr.copy([imag_args[0], real_args[1]])
+        outputs = (real_part, imag_part)
+    return outputs

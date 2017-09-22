@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.affine.sum import sum
-from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import abs_canon
 
 

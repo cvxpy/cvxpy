@@ -22,13 +22,10 @@ class InverseData(object):
     """ TODO(akshayka): Document this class."""
 
     def __init__(self, problem):
-        obj, cons = problem.objective, problem.constraints
-        all_variables = obj.variables() + [var for c in cons
-                                           for var in c.variables()]
-        varis = list(set(all_variables))
+        varis = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
                                                 self.get_var_offsets(varis))
-        self.id2var = {id: var.id for var in varis}
+        self.id2var = {var.id: var for var in varis}
         self.cons_id_map = dict()
 
     def get_var_offsets(self, variables):

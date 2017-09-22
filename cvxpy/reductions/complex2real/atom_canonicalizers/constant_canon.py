@@ -22,7 +22,7 @@ from cvxpy.expressions.constants import Constant
 import numpy as np
 
 
-def constant_canon(expr, args):
+def constant_canon(expr, real_args, imag_args):
     if expr.is_real():
         return expr, None
     elif expr.is_imag():

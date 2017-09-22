@@ -27,10 +27,10 @@ from sum_largest_canon import sum_largest_canon
 
 
 CANON_METHODS = {
-    abs : abs_canon,
-    maximum : maximum_canon,
-    max : max_canon,
-    norm1 : norm1_canon,
-    norm_inf : norm_inf_canon,
-    sum_largest : sum_largest_canon
+    abs: abs_canon,
+    maximum: maximum_canon,
+    max: max_canon,
+    norm1: norm1_canon,
+    norm_inf: norm_inf_canon,
+    sum_largest: sum_largest_canon
 }

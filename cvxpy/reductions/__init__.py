@@ -23,6 +23,7 @@ from cvxpy.reductions.solution import Solution
 
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.complex2real.complex2real import Complex2Real
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.eval_params import EvalParams

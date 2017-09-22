@@ -4,7 +4,7 @@ from cvxpy.error import DCPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               FlipObjective, Qp2SymbolicQp, QpMatrixStuffing,
-                              CvxAttr2Constr)
+                              CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC,
@@ -58,6 +58,8 @@ def construct_solving_chain(problem, solver=None):
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
+    if Complex2Real().accepts(problem):
+        reductions += [Complex2Real()]
 
     #  Presently, we have but two reduction chains:
     #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> [a QpSolver],

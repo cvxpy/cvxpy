@@ -125,6 +125,9 @@ class Problem(u.Canonical):
         for c in self.constraints:
             if not (isinstance(c, eqc.Zero) or c.args[0].is_pwl()):
                 return False
+        for var in self.variables():
+            if var.attributes['PSD'] or var.attributes['NSD']:
+                return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
     def is_mixed_integer(self):
@@ -145,7 +148,9 @@ class Problem(u.Canonical):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
-        return list(set(vars_))
+        seen = set()
+        # never use list as a variable name
+        return [seen.add(obj.id) or obj for obj in vars_ if obj.id not in seen]
 
     def parameters(self):
         """Accessor method for parameters.
