@@ -88,6 +88,20 @@ class Atom(Expression):
         """
         return self.sign_from_args()[1]
 
+    @clru_cache(maxsize=100)
+    def is_imag(self):
+        """Is the expression imaginary?
+        """
+        # Default is false.
+        return False
+
+    @clru_cache(maxsize=100)
+    def is_complex(self):
+        """Is the expression complex valued?
+        """
+        # Default is false.
+        return False
+
     @abc.abstractmethod
     def is_atom_convex(self):
         """Is the atom convex?

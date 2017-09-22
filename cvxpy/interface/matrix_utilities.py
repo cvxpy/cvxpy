@@ -167,6 +167,19 @@ def from_1D_to_2D(constant):
     else:
         return constant
 
+
+def convert(constant, sparse=False, convert_scalars=False):
+    """Convert to appropriate type.
+    """
+    if isinstance(constant, (list, np.matrix)):
+        return DEFAULT_INTF.const_to_matrix(constant,
+                                            convert_scalars=convert_scalars)
+    elif sparse:
+        return DEFAULT_SPARSE_INTF.const_to_matrix(constant,
+                                                   convert_scalars=convert_scalars)
+    else:
+        return constant
+
 # Get the value of the passed constant, interpreted as a scalar.
 
 
@@ -213,6 +226,34 @@ def sign(constant, tol=1e-5):
         max_val = mat.max()
         min_val = mat.min()
     return (min_val >= -tol, max_val <= tol)
+
+
+def is_complex(constant, tol=1e-5):
+    """Return (is real, is imaginary).
+
+    Parameters
+    ----------
+    constant : numeric type
+        The numeric value to evaluate the sign of.
+    tol : float, optional
+        The largest magnitude considered nonzero.
+
+    Returns
+    -------
+    tuple
+        The sign of the constant.
+    """
+    if isinstance(constant, numbers.Number):
+        real_max = np.abs(np.real(constant))
+        imag_max = np.abs(np.imag(constant))
+    elif sp.issparse(constant):
+        real_max = np.abs(constant.real).max()
+        imag_max = np.abs(constant.imag).max()
+    else:  # Convert to Numpy array.
+        constant = INTERFACES[np.ndarray].const_to_matrix(constant)
+        real_max = np.abs(constant.real).max()
+        imag_max = np.abs(constant.imag).max()
+    return (real_max >= tol, imag_max >= tol)
 
 # Get the value at the given index.
 

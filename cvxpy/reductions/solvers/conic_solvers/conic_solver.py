@@ -21,8 +21,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.binary_operators import MulExpression
-from cvxpy.atoms.affine.multiply import multiply
+from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
 from cvxpy.expressions.constants.constant import Constant

@@ -56,8 +56,8 @@ def mul_expr():
 
 
 def multiply_expr():
-    from cvxpy.atoms.affine import multiply
-    return multiply.multiply
+    from cvxpy.atoms.affine import binary_operators
+    return binary_operators.multiply
 
 
 def div_expr():

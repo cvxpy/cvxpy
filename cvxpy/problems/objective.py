@@ -43,6 +43,9 @@ class Objective(u.Canonical):
         if not self.args[0].is_scalar():
             raise ValueError("The '%s' objective must resolve to a scalar."
                              % self.NAME)
+        if not self.args[0].is_real():
+            raise ValueError("The '%s' objective must be real valued."
+                             % self.NAME)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))

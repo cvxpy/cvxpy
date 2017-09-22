@@ -43,8 +43,16 @@ class Constant(Leaf):
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
         # Set DCP attributes.
-        is_nonneg, is_nonpos = intf.sign(self.value)
-        super(Constant, self).__init__(intf.shape(self.value), nonneg=is_nonneg, nonpos=is_nonpos)
+        is_real, is_imag = intf.is_complex(self.value)
+        if is_imag:
+            is_nonneg = is_nonpos = False
+        else:
+            is_nonneg, is_nonpos = intf.sign(self.value)
+        super(Constant, self).__init__(intf.shape(self.value),
+                                       nonneg=is_nonneg,
+                                       nonpos=is_nonpos,
+                                       imag=is_imag and not is_real,
+                                       complex=is_imag and is_real)
 
     def name(self):
         """The value as a string.

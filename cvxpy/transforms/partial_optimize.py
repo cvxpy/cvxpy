@@ -135,6 +135,16 @@ class PartialProblem(Expression):
         """
         return self.args[0].objective.args[0].is_nonpos()
 
+    def is_imag(self):
+        """Is the Leaf imaginary?
+        """
+        return False
+
+    def is_complex(self):
+        """Is the Leaf complex valued?
+        """
+        return False
+
     @property
     def shape(self):
         """Returns the (row, col) dimensions of the expression.

@@ -22,6 +22,7 @@ import sys
 
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.promote import promote
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -55,6 +56,18 @@ class BinaryOperator(AffAtom):
         """Default to rules for times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
+
+    def is_imag(self):
+        """Is the expression imaginary?
+        """
+        return (self.args[0].is_imag() and self.args[1].is_real()) or \
+            (self.args[0].is_real() and self.args[1].is_imag())
+
+    def is_complex(self):
+        """Is the expression complex valued?
+        """
+        return (self.args[0].is_complex() or self.args[1].is_complex()) and \
+            not (self.args[0].is_imag() and self.args[1].is_imag())
 
 
 class MulExpression(BinaryOperator):
@@ -110,11 +123,6 @@ class MulExpression(BinaryOperator):
         """Is the composition non-increasing in argument idx?
         """
         return self.args[1-idx].is_nonpos()
-
-    def validate_arguments(self):
-        """Validates the dimensions.
-        """
-        u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -229,3 +237,58 @@ class DivExpression(BinaryOperator):
             (LinOp for objective, list of constraints)
         """
         return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
+
+
+class multiply(MulExpression):
+    """ Multiplies two expressions elementwise.
+    """
+
+    def __init__(self, lh_expr, rh_expr):
+        lh_expr = multiply.cast_to_const(lh_expr)
+        rh_expr = multiply.cast_to_const(rh_expr)
+        if lh_expr.is_scalar() and not rh_expr.is_scalar():
+            lh_expr = promote(lh_expr, rh_expr.shape)
+        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
+            rh_expr = promote(rh_expr, lh_expr.shape)
+        super(multiply, self).__init__(lh_expr, rh_expr)
+
+    @AffAtom.numpy_numeric
+    def numeric(self, values):
+        """Multiplies the values elementwise.
+        """
+        return np.multiply(values[0], values[1])
+
+
+    def shape_from_args(self):
+        """The sum of the argument dimensions - 1.
+        """
+        return u.shape.sum_shapes([arg.shape for arg in self.args])
+
+    @staticmethod
+    def graph_implementation(arg_objs, shape, data=None):
+        """Multiply the expressions elementwise.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        shape : tuple
+            The shape of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of exprraints)
+        """
+        # promote if necessary.
+        lhs = arg_objs[0]
+        rhs = arg_objs[1]
+        if lu.is_const(lhs):
+            return (lu.multiply(lhs, rhs), [])
+        elif lu.is_const(rhs):
+            return (lu.multiply(rhs, lhs), [])
+        else:
+            raise DCPError("Product of two non-exprant expressions is not "
+                           "DCP.")

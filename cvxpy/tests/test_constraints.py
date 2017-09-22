@@ -66,13 +66,13 @@ class TestConstraints(BaseTest):
         self.x.save_value(3)
         assert not constr.value()
 
-        self.x.value = [2, 1]
-        self.z.value = [2, 2]
+        self.x.value = np.array([2, 1])
+        self.z.value = np.array([2, 2])
         assert not constr.value()
         self.assertItemsAlmostEqual(constr.violation(), [0, 1])
         self.assertItemsAlmostEqual(constr.residual, [0, 1])
 
-        self.z.value = [2, 1]
+        self.z.value = np.array([2, 1])
         assert constr.value()
         self.assertItemsAlmostEqual(constr.violation(), [0, 0])
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
@@ -110,13 +110,13 @@ class TestConstraints(BaseTest):
         assert not constr.value()
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
 
-        self.x.value = [2, 1]
-        self.z.value = [2, 0]
+        self.x.value = np.array([2, 1])
+        self.z.value = np.array([2, 0])
         assert not constr.value()
         self.assertItemsAlmostEqual(constr.violation(), [0, 1])
         self.assertItemsAlmostEqual(constr.residual, [0, 1])
 
-        self.z.value = [2, 2]
+        self.z.value = np.array([2, 2])
         assert constr.value()
         self.assertItemsAlmostEqual(constr.violation(), [0, 0])
         self.assertItemsAlmostEqual(constr.residual, [0, 0])

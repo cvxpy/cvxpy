@@ -224,6 +224,23 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    def is_real(self):
+        """Is the Leaf real valued?
+        """
+        return not self.is_complex()
+
+    @abc.abstractproperty
+    def is_imag(self):
+        """Is the Leaf imaginary?
+        """
+        return NotImplemented
+
+    @abc.abstractproperty
+    def is_complex(self):
+        """Is the Leaf complex valued?
+        """
+        return NotImplemented
+
     @property
     def size(self):
         """int : The number of entries in the expression.

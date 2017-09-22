@@ -53,7 +53,7 @@ from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.kron import kron
-from cvxpy.atoms.affine.multiply import multiply
+from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum

@@ -35,7 +35,7 @@ class TestWarmstart(unittest.TestCase):
         m = 10
         numpy.random.seed(1)
         A = numpy.random.randn(n, m)
-        b = numpy.random.randn(n, 1)
+        b = numpy.random.randn(n)
         # gamma must be positive due to DCP rules.
         gamma = Parameter(nonneg=True)
 

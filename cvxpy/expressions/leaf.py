@@ -51,10 +51,8 @@ class Leaf(expression.Expression):
         Is the variable constrained to be nonnegative?
     nonpos : bool
         Is the variable constrained to be nonpositive?
-    real : bool
-        Does the variable have a real part?
-    imag : bool
-        Does the variable have an imaginary part?
+    complex : bool
+        Is the variable complex valued?
     symmetric : bool
         Is the variable symmetric?
     diag : bool
@@ -81,7 +79,7 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, shape, value=None, nonneg=False, nonpos=False,
-                 real=True, imag=False,
+                 complex=False, imag=False,
                  symmetric=False, diag=False, PSD=False,
                  NSD=False, Hermitian=False,
                  boolean=False, integer=False,
@@ -103,7 +101,7 @@ class Leaf(expression.Expression):
 
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
-                           'real': real, 'imag': imag,
+                           'complex': complex, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
                            'Hermitian': Hermitian, 'boolean': bool(boolean),
@@ -121,9 +119,9 @@ class Leaf(expression.Expression):
         else:
             self.integer_idx = []
 
-        # Only one attribute besides real can be True (except can be nonneg and
+        # Only one attribute be True (except can be nonneg and
         # nonpos, similarly for boolean and integer).
-        true_attr = sum([1 for k, v in self.attributes.items() if k != 'real' and v])
+        true_attr = sum([1 for k, v in self.attributes.items() if v])
         if nonneg and nonpos:
             true_attr -= 1
         if boolean and integer:
@@ -212,10 +210,20 @@ class Leaf(expression.Expression):
         return self.attributes['nonpos']
 
     def is_symmetric(self):
-        """Is the Leaf symmetric.
+        """Is the Leaf symmetric?
         """
         return self.is_scalar() or \
             any([self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD']])
+
+    def is_imag(self):
+        """Is the Leaf imaginary?
+        """
+        return self.attributes['imag']
+
+    def is_complex(self):
+        """Is the Leaf complex valued?
+        """
+        return self.attributes['complex'] or self.is_imag()
 
     @property
     def domain(self):
@@ -251,10 +259,19 @@ class Leaf(expression.Expression):
         """
         # Only one attribute can be active at once (besides real,
         # nonpos/nonneg, and bool/int).
-        if self.attributes['nonpos']:
-            val = np.minimum(val, 0.)
-        if self.attributes['nonneg']:
+        if not self.is_complex():
+            val = np.real(val)
+
+        if self.attributes['nonpos'] and self.attributes['nonneg']:
+            return 0*val
+        elif self.attributes['nonpos']:
+            return np.minimum(val, 0.)
+        elif self.attributes['nonneg']:
             return np.maximum(val, 0.)
+        elif self.attributes['imag']:
+            return np.imag(val)
+        elif self.attributes['complex']:
+            return val.astype(np.complex)
         elif self.attributes['boolean']:
             # TODO(akshayka): respect the boolean indices.
             return np.round(np.clip(val, 0., 1.))
@@ -312,12 +329,12 @@ class Leaf(expression.Expression):
             The value converted to the proper matrix type.
         """
         if val is not None:
-            # Convert val to ndarray.
-            val = intf.DEFAULT_INTF.const_to_matrix(val)
-            if val.shape != self.shape:
+            # Convert val to ndarray or sparse matrix.
+            val = intf.convert(val)
+            if intf.shape(val) != self.shape:
                 raise ValueError(
                     "Invalid dimensions %s for %s value." %
-                    (val.shape, self.__class__.__name__)
+                    (intf.shape(val), self.__class__.__name__)
                 )
             elif np.any(self.project(val) != val):
                 if self.attributes['nonneg']:
@@ -330,8 +347,10 @@ class Leaf(expression.Expression):
                     attr_str = 'positive semidefinite'
                 elif self.attributes['NSD']:
                     attr_str = 'negative semidefinite'
+                elif self.attributes['imag']:
+                    attr_str = 'imaginary'
                 else:
-                    attr_str = [k for (k, v) in self.attributes.items() if v and k != 'real'][0]
+                    attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
                 raise ValueError(
                     "%s value must be %s." % (self.__class__.__name__, attr_str)
                 )

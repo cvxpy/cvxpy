@@ -40,13 +40,17 @@ class NDArrayInterface(base.BaseMatrixInterface):
             A matrix of type self.target_matrix or a scalar.
         """
         if scipy.sparse.issparse(value):
-            return value.A.astype(numpy.float64)
+            result = value.A
         elif isinstance(value, numpy.matrix):
-            return value.A.astype(numpy.float64)
+            result = value.A
         elif isinstance(value, list):
-            return numpy.asarray(value, dtype=numpy.float64).T
+            result = numpy.asarray(value).T
         else:
-            return numpy.asarray(value, dtype=numpy.float64)
+            result = numpy.asarray(value)
+        if result.dtype in [numpy.complex, numpy.float64]:
+            return result
+        else:
+            return result.astype(numpy.float64)
 
     # Return an identity matrix.
     def identity(self, size):

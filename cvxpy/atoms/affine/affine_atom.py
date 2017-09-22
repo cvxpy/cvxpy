@@ -35,6 +35,18 @@ class AffAtom(Atom):
         """
         return u.sign.sum_signs([arg for arg in self.args])
 
+    def is_imag(self):
+        """Is the expression imaginary?
+        """
+        # Default is most generic argument.
+        return all([arg.is_imag() for arg in self.args])
+
+    def is_complex(self):
+        """Is the expression complex valued?
+        """
+        # Default is most generic argument.
+        return any([arg.is_complex() for arg in self.args])
+
     def is_atom_convex(self):
         """Is the atom convex?
         """
