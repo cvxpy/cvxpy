@@ -17,22 +17,22 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.sum import sum
-from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
+from cvxpy.atoms.affine.affine_atom import AffAtom
+import numpy as np
 
 
-def norm1_canon(expr, args):
-    x = args[0]
-    axis = expr.axis
+class conj(AffAtom):
+    """Complex conjugate.
+    """
+    def __init__(self, expr):
+        super(conj, self).__init__(expr)
 
-    # we need an absolute value constraint for the symmetric convex branches
-    # (p >= 1)
-    constraints = []
-    # TODO(akshayka): Express this more naturally (recursively), in terms
-    # of the other atoms
-    abs_expr = abs(x)
-    abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
-    x = abs_x
-    constraints += abs_constraints
-    return (sum(x, axis=axis),), constraints
+    def numeric(self, values):
+        """Convert the vector constant into a diagonal matrix.
+        """
+        return np.conj(values[0])
+
+    def shape_from_args(self):
+        """Returns the shape of the expression.
+        """
+        return self.args[0].shape

@@ -140,3 +140,67 @@ class TestExpressions(BaseTest):
         expr = y*y
         assert not expr.is_complex()
         assert not expr.is_imag()
+
+        expr = y/2
+        assert expr.is_complex()
+        assert expr.is_imag()
+
+        expr = y/1j
+        assert not expr.is_complex()
+        assert not expr.is_imag()
+
+        A = np.ones((2, 2))
+        expr = A*y*A
+        assert expr.is_complex()
+        assert expr.is_imag()
+
+    def test_real(self):
+        """Test real.
+        """
+        A = np.ones((2, 2))
+        expr = Constant(A) + 1j*Constant(A)
+        expr = cvx.real(expr)
+        assert expr.is_real()
+        assert not expr.is_complex()
+        assert not expr.is_imag()
+        self.assertItemsAlmostEqual(expr.value, A)
+
+    def test_imag(self):
+        """Test imag.
+        """
+        A = np.ones((2, 2))
+        expr = Constant(A) + 2j*Constant(A)
+        expr = cvx.imag(expr)
+        assert expr.is_real()
+        assert not expr.is_complex()
+        assert not expr.is_imag()
+        self.assertItemsAlmostEqual(expr.value, 2*A)
+
+    def test_conj(self):
+        """Test imag.
+        """
+        A = np.ones((2, 2))
+        expr = Constant(A) + 1j*Constant(A)
+        expr = cvx.conj(expr)
+        assert not expr.is_real()
+        assert expr.is_complex()
+        assert not expr.is_imag()
+        self.assertItemsAlmostEqual(expr.value, A - 1j*A)
+
+    def test_affine_atoms_canon(self):
+        """Test canonicalization for affine atoms.
+        """
+        # Scalar.
+        x = Variable()
+        expr = cvx.imag(x + 1j*x)
+        prob = Problem(Minimize(expr), [x >= 0])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 0)
+        self.assertAlmostEqual(x.value, 0)
+
+        x = Variable(imag=True)
+        expr = 1j*x
+        prob = Problem(Minimize(expr), [cvx.imag(x) <= 1])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -1)
+        self.assertAlmostEqual(x.value, 1j)

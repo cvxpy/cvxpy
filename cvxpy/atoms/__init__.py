@@ -47,14 +47,17 @@ from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 
 from cvxpy.atoms.affine.bmat import bmat
+from cvxpy.atoms.affine.conj import conj
 from cvxpy.atoms.affine.conv import conv
 from cvxpy.atoms.affine.cumsum import cumsum
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.imag import imag
 from cvxpy.atoms.affine.kron import kron
 from cvxpy.atoms.affine.binary_operators import multiply
 from cvxpy.atoms.affine.promote import promote
+from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace

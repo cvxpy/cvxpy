@@ -30,6 +30,11 @@ def add_expr():
     return add_expr.AddExpression
 
 
+def conj():
+    from cvxpy.atoms.affine import conj
+    return conj.conj
+
+
 def constant():
     from cvxpy.expressions import constants
     return constants.Constant

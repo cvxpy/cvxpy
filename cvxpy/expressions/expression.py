@@ -295,6 +295,20 @@ class Expression(u.Canonical):
         else:
             return cvxtypes.transpose()(self)
 
+    @property
+    def H(self):
+        """Expression : The transpose of the expression.
+        """
+        if self.is_real():
+            expr = self
+        else:
+            expr = cvxtypes.conj()(self)
+        # Transpose of a scalar is that scalar.
+        if self.ndim <= 1:
+            return expr
+        else:
+            return cvxtypes.transpose()(expr)
+
     def __pow__(self, power):
         """Raise expression to a power.
 

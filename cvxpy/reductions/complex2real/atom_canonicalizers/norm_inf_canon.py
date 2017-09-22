@@ -17,22 +17,19 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms.affine.sum import sum
-from cvxpy.atoms.elementwise.abs import abs
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
+from cvxpy.atoms import hstack, norm2, norm_inf, reshape
 
 
-def norm1_canon(expr, args):
-    x = args[0]
-    axis = expr.axis
-
-    # we need an absolute value constraint for the symmetric convex branches
-    # (p >= 1)
-    constraints = []
-    # TODO(akshayka): Express this more naturally (recursively), in terms
-    # of the other atoms
-    abs_expr = abs(x)
-    abs_x, abs_constraints = abs_canon(abs_expr, abs_expr.args)
-    x = abs_x
-    constraints += abs_constraints
-    return (sum(x, axis=axis),), constraints
+def norm_inf_canon(expr, reals, imags):
+    # Real.
+    if reals[0] is None:
+        output = norm_inf(reals[0])
+    elif imags[0] is None:  # Imaginary.
+        output = norm_inf(imags[0])
+    else:  # Complex.
+        real = reals[0].flatten()
+        imag = imags[0].flatten()
+        norms = norm2(hstack([real, imag]), axis=2)
+        output = reshape(norms, expr.shape)
+        output = norm_inf(output)
+    return output, None

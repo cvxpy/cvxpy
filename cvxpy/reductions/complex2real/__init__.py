@@ -16,21 +16,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-from cvxpy.atoms import abs, maximum, max, norm1, norm_inf, sum_largest
-from abs_canon import abs_canon
-from maximum_canon import maximum_canon
-from max_canon import max_canon
-from norm1_canon import norm1_canon
-from norm_inf_canon import norm_inf_canon
-from sum_largest_canon import sum_largest_canon
-
-
-CANON_METHODS = {
-    abs : abs_canon,
-    maximum : maximum_canon,
-    max : max_canon,
-    norm1 : norm1_canon,
-    norm_inf : norm_inf_canon,
-    sum_largest : sum_largest_canon
-}
