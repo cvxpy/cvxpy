@@ -1,4 +1,5 @@
 """
+
 Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 This file is part of CVXPY.
@@ -24,13 +25,8 @@ import warnings
 import numpy as np
 import scipy.sparse as sp
 from scipy import linalg as LA
-
-import cvxpy.interface as intf
 from cvxpy.atoms.atom import Atom
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
-
-from .sum_squares import sum_squares
 
 
 class CvxPyDomainError(Exception):
@@ -40,16 +36,18 @@ class CvxPyDomainError(Exception):
 class QuadForm(Atom):
 
     def __init__(self, x, P):
-        # Cache eigenvalues
-        if sp.issparse(P):
-            self.P_eigvals = LA.eigvals(P.todense())
-        else:
-            self.P_eigvals = LA.eigvals(P)
+        # TODO make parameters work.
         x = QuadForm.cast_to_const(x)
         P = QuadForm.cast_to_const(P)
-        self.P = P
+        # Cache eigenvalues
+        Pval = P.value
+        if sp.issparse(Pval):
+            self.P_eigvals = LA.eigvalsh(Pval.todense())
+        else:
+            self.P_eigvals = LA.eigvalsh(Pval)
+        self.P = Pval
         self.x = x
-        super(QuadForm, self).__init__(x, P)
+        super(QuadForm, self).__init__(x, Pval)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -97,9 +95,6 @@ class QuadForm(Atom):
         """Is the atom piecewise linear?
         """
         return np.count_nonzero(self.P) == 0
-
-    def get_data(self):
-        return [self.x, self.P]
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
@@ -156,7 +151,7 @@ class SymbolicQuadForm(Atom):
         return True
 
 
-def _decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
+def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
     """
     Compute a matrix decomposition.
 
@@ -226,15 +221,9 @@ def quad_form(x, P):
     if x.is_constant():
         return x.T * P * x
     elif P.is_constant():
-        P = intf.DEFAULT_NP_INTF.const_to_matrix(P.value)
-        # Force symmetry
-        P = (P + P.T) / 2.0
-        scale, M1, M2 = _decomp_quad(P)
-        ret = 0
-        if all([s > 0 for s in M1.shape]):
-            ret += scale * sum_squares(Constant(M1.T) * x)
-        if all([s > 0 for s in M2.shape]):
-            ret -= scale * sum_squares(Constant(M2.T) * x)
-        return ret
+        if (P.is_real() and not P.is_symmetric()) or \
+           (P.is_complex() and P.is_hermitian()):
+            P = (P + P.H)/2
+        return QuadForm(x, P)
     else:
         raise Exception("At least one argument to quad_form must be constant.")

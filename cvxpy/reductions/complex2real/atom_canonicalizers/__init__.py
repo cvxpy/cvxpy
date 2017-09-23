@@ -20,7 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
                          promote, abs, reshape, trace,
                          neg, upper_tri, conj, imag, real,
-                         norm1, norm_inf, norm2, Pnorm)
+                         norm1, norm_inf, norm2, Pnorm,
+                         norm_nuc, sigma_max, lambda_max,
+                         log_det, QuadForm, MatrixFrac)
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.index import index
@@ -36,6 +38,7 @@ from abs_canon import abs_canon
 from aff_canon import (separable_canon, real_canon,
                        imag_canon, conj_canon, binary_canon)
 from pnorm_canon import pnorm_canon
+from matrix_canon import hermitian_canon, quad_canon
 from variable_canon import variable_canon
 from constant_canon import constant_canon
 
@@ -73,4 +76,11 @@ CANON_METHODS = {
     norm_inf: pnorm_canon,
     norm2: pnorm_canon,
     Pnorm: pnorm_canon,
+
+    lambda_max: hermitian_canon,
+    log_det: hermitian_canon,
+    norm_nuc: hermitian_canon,
+    sigma_max: hermitian_canon,
+    QuadForm: quad_canon,
+    MatrixFrac: quad_canon,
 }

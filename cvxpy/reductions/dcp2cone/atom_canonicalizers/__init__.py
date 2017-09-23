@@ -35,6 +35,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.normNuc_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.pnorm_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_form_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon,
@@ -54,6 +55,7 @@ CANON_METHODS = {
     normNuc : normNuc_canon,
     norm_inf : norm_inf_canon,
     Pnorm : pnorm_canon,
+    QuadForm : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
     sigma_max : sigma_max_canon,
     sum_largest : sum_largest_canon,

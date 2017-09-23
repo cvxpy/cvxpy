@@ -99,7 +99,7 @@ class CoeffExtractor(object):
                 orig_id = quad_forms[var_id][2].args[0].id
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
-                if quad_forms[var_id][2].P.value[0, 0] is not None:
+                if quad_forms[var_id][2].P.value is not None:
                     c_part = c[0, var_offset:var_offset+var_size].toarray().flatten()
                     P = quad_forms[var_id][2].P.value
                     if sp.issparse(P):

@@ -221,6 +221,16 @@ class TestComplex(BaseTest):
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
 
+        x = Variable((2, 2))
+        y = Variable((3, 2), complex=True)
+        expr = cvx.vstack([x, y])
+        prob = Problem(Minimize(cvx.sum(cvx.imag(expr.H))),
+                       [x == 0, cvx.real(y) == 0, cvx.imag(y) <= 1])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -6)
+        self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
+        self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
+
     def test_abs(self):
         """Test with absolute value.
         """

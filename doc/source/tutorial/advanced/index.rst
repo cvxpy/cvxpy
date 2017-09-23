@@ -73,6 +73,10 @@ The full constructor for Leaf (the parent class of Variable and Parameter) is gi
     :type symmetric: bool
     :param diag: Is the variable constrained to be diagonal?
     :type diag: bool
+    :param complex: Is the variable complex valued?
+    :type complex: bool
+    :param imag: Is the variable purely imaginary?
+    :type imag: bool
     :param PSD: Is the variable constrained to be symmetric positive semidefinite?
     :type PSD: bool
     :param NSD: Is the variable constrained to be symmetric negative semidefinite?
@@ -190,6 +194,45 @@ You can construct mixed-integer programs by creating variables with the attribut
 
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
+
+
+Complex valued expressions
+--------------------------
+
+By default variables and parameters are real valued.
+Complex valued variables and parameters can be created by setting the attribute ``complex=True``.
+Similarly, purely imaginary variables and parameters can be created by setting the attributes ``imag=True``.
+Expressions containing complex variables, parameters, or constants may be complex valued.
+The functions ``is_real``, ``is_complex``, and ``is_imag`` return whether an expression is purely real, complex, or purely imaginary, respectively.
+
+.. code:: python
+
+   # A complex valued variable.
+   x = cvx.Variable(complex=True)
+   # A purely imaginary parameter.
+   p = cvx.Parameter(imag=True)
+   
+   print("p.is_imag() = ", p.is_imag())
+   print("(x + 2).is_real() = ", (x + 2).is_real())
+
+::
+
+   p.is_imag() = True
+   (x + 2).is_real() = False
+
+The top-level expressions in the problem objective and constraints must be real valued,
+but subexpressions may be complex.
+Arithmetic and all linear atoms are defined for complex expressions.
+The nonlinear atoms ``abs`` and all norms except ``norm(X, p)`` for ``p < 1`` are also defined for complex expressions.
+All atoms whose domain is symmetric matrices are defined for Hermitian matrices.
+Similarly, the atoms ``quad_form(x, P)`` and ``matrix_frac(x, P)`` are defined for complex ``x`` and Hermitian ``P``.
+
+The following additional atoms are provided for working with complex expressions:
+
+* ``real(expr)`` gives the real part of ``expr``.
+* ``imag(expr)`` gives the imaginary part of ``expr`` (i.e., ``expr = real(expr) + 1j*imag(expr)``).
+* ``conj(expr)`` gives the complex conjugate of ``expr``.
+* ``expr.H`` gives the Hermitian (conjugate) transpose of ``expr``.
 
 Transforms
 ----------
