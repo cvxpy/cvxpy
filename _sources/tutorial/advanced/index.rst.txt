@@ -498,7 +498,7 @@ The code below shows how warm start can accelerate solving a sequence of related
    Second solve time: 2.95
 
 The speed up in this case comes from caching the KKT matrix factorization.
-If ``A`` where a parameter, factorization caching would not be possible and the benefit of
+If ``A`` were a parameter, factorization caching would not be possible and the benefit of
 warm start would only be a good initial point.
 
 Setting solver options
