@@ -21,13 +21,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.expressions.variable import Variable
 
 
-def variable_canon(expr, real_args, imag_args):
+def variable_canon(expr, real_args, imag_args, real2imag):
     if expr.is_real():
         return expr, None
-    elif expr.is_imag():
-        imag = Variable(expr.shape, var_id=expr.id)
+
+    imag = Variable(expr.shape, var_id=real2imag[expr.id])
+    if expr.is_imag():
         return None, imag
-    else:
-        # TODO not right.
-        imag = Variable(expr.shape, var_id=expr.id)
-        return expr, imag
+    else:  # Complex.
+        return Variable(expr.shape, var_id=expr.id), imag

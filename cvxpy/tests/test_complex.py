@@ -28,19 +28,8 @@ import sys
 PY35 = sys.version_info >= (3, 5)
 
 
-class TestExpressions(BaseTest):
+class TestComplex(BaseTest):
     """ Unit tests for the expression/expression module. """
-
-    def setUp(self):
-        self.a = Variable(name='a')
-
-        self.x = Variable(2, name='x')
-        self.y = Variable(3, name='y')
-        self.z = Variable(2, name='z')
-
-        self.A = Variable((2,2), name='A')
-        self.B = Variable((2,2), name='B')
-        self.C = Variable((3,2), name='C')
 
     def test_variable(self):
         """Test the Variable class.
@@ -165,6 +154,10 @@ class TestExpressions(BaseTest):
         assert not expr.is_imag()
         self.assertItemsAlmostEqual(expr.value, A)
 
+        x = Variable(complex=True)
+        expr = cvx.imag(x) + cvx.real(x)
+        assert expr.is_real()
+
     def test_imag(self):
         """Test imag.
         """
@@ -204,3 +197,54 @@ class TestExpressions(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1j)
+
+        x = Variable(2)
+        expr = x/1j
+        prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -np.inf)
+        prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) <= 1])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -2)
+        self.assertItemsAlmostEqual(x.value, [1, 1])
+        prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1, cvx.conj(x) <= 0])
+        result = prob.solve()
+        self.assertAlmostEqual(result, np.inf)
+
+        x = Variable((2, 2))
+        y = Variable((3, 2), complex=True)
+        expr = cvx.vstack([x, y])
+        prob = Problem(Minimize(cvx.sum(cvx.imag(cvx.conj(expr)))),
+                       [x == 0, cvx.real(y) == 0, cvx.imag(y) <= 1])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -6)
+        self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
+        self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
+
+    def test_abs(self):
+        """Test with absolute value.
+        """
+        x = Variable(2, complex=True)
+        prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(x) <= 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 4*np.sqrt(2))
+        val = np.ones(2)*np.sqrt(2)
+        self.assertItemsAlmostEqual(x.value, val + 1j*val)
+
+
+    def test_pnorm(self):
+        """Test complex with pnorm.
+        """
+        x = Variable((1, 2), complex=True)
+        prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.norm1(x) <= 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 2*np.sqrt(2))
+        val = np.ones(2)*np.sqrt(2)/2
+        self.assertItemsAlmostEqual(x.value, val + 1j*val)
+
+        x = Variable((2, 2), complex=True)
+        prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.norm2(x) <= 8])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 8)
+        val = np.ones(2)
+        self.assertItemsAlmostEqual(x.value, val + 1j*val)

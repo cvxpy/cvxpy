@@ -17,19 +17,9 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import hstack, norm2, norm_inf, reshape
+from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import abs_canon
 
 
-def norm_inf_canon(expr, reals, imags):
-    # Real.
-    if reals[0] is None:
-        output = norm_inf(reals[0])
-    elif imags[0] is None:  # Imaginary.
-        output = norm_inf(imags[0])
-    else:  # Complex.
-        real = reals[0].flatten()
-        imag = imags[0].flatten()
-        norms = norm2(hstack([real, imag]), axis=2)
-        output = reshape(norms, expr.shape)
-        output = norm_inf(output)
-    return output, None
+def pnorm_canon(expr, real_args, imag_args, real2imag):
+    abs_real_args, _ = abs_canon(expr, real_args, imag_args, real2imag)
+    return expr.copy([abs_real_args]), None

@@ -29,62 +29,11 @@ Copyright 2017 Steven Diamond
 #    along with CVXcanon.  If not, see <http:#www.gnu.org/licenses/>.
 
 from cvxpy.lin_ops import lin_op as lo
-from cvxpy.lin_ops import lin_utils as lu
-
 import CVXcanon
 import numbers
 import numpy as np
 import scipy.sparse
 from collections import deque
-
-
-# def atleast_2d_shape(shape):
-#     if len(shape) == 0:
-#         return (1, 1)
-#     elif len(shape) == 1:
-#         return shape + (1,)
-#     else:
-#         return shape
-
-
-# def atleast_2d_tree(root):
-#     if len(root.args) == 0:
-#         shape = atleast_2d_shape(root.shape)
-#         return lo.LinOp(root.type, shape, [], root.data)
-
-#     prom_args = []
-#     for arg in root.args:
-#         prom_args.append(atleast_2d_tree(arg))
-#     if isinstance(root.data, lo.LinOp):
-#         prom_data = atleast_2d_tree(root.data)
-#     else:
-#         prom_data = root.data
-
-#     if root.type == lo.SUM:
-#         shape = prom_args[0].shape
-#         args = []
-#         for prom_arg in prom_args:
-#             if shape != prom_arg.shape:
-#                 args.append(lu.transpose(prom_arg))
-#             else:
-#                 args.append(prom_arg)
-#         return lu.sum_expr(args)
-#     elif root.type == lo.MUL:
-#         lh_arg = prom_data
-#         rh_arg = prom_args[0]
-#         if lh_arg.shape[1] != rh_arg.shape[0]:
-#             # transpose the argument, not the data.
-#             rh_arg = lu.transpose(rh_arg)
-#         return lu.mul_expr(lh_arg, rh_arg)
-#     elif root.type == lo.RMUL:
-#         lh_arg = prom_args[0]
-#         rh_arg = prom_data
-#         if lh_arg.shape[1] != rh_arg.shape[0]:
-#             lh_arg = lu.transpose(lh_arg)
-#         return lu.rmul_expr(lh_arg, rh_arg)
-#     else:
-#         shape = atleast_2d_shape(root.shape)
-#         return lo.LinOp(root.type, shape, prom_args, prom_data)
 
 
 def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):

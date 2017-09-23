@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.lin_ops.lin_utils as lu
+
 
 class InverseData(object):
     """ TODO(akshayka): Document this class."""
@@ -26,6 +28,7 @@ class InverseData(object):
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
                                                 self.get_var_offsets(varis))
         self.id2var = {var.id: var for var in varis}
+        self.real2imag = {var.id: lu.get_id() for var in varis if var.is_complex()}
         self.cons_id_map = dict()
 
     def get_var_offsets(self, variables):
