@@ -231,7 +231,6 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
-
     def test_pnorm(self):
         """Test complex with pnorm.
         """
@@ -243,8 +242,9 @@ class TestComplex(BaseTest):
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
         x = Variable((2, 2), complex=True)
-        prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.norm2(x) <= 8])
+        prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))),
+                       [cvx.norm2(x) <= np.sqrt(8)])
         result = prob.solve()
         self.assertAlmostEqual(result, 8)
-        val = np.ones(2)
+        val = np.ones((2, 2))
         self.assertItemsAlmostEqual(x.value, val + 1j*val)

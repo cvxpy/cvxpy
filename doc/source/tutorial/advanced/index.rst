@@ -482,7 +482,8 @@ The code below shows how warm start can accelerate solving a sequence of related
 
     # Construct the problem.
     x = cvx.Variable(n)
-    prob = cvx.Problem(cvx.Minimize(cvx.sum_squares(A*x - b)))
+    prob = cvx.Problem(cvx.Minimize(cvx.sum_squares(A*x - b)),
+                       [x >= 0])
 
     b.value = numpy.random.randn(m)
     prob.solve()
