@@ -23,6 +23,7 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
 from cvxpy.CVXcanon.python import canonInterface
+from fastcache import clru_cache
 import scipy.sparse as sp
 
 
@@ -77,6 +78,26 @@ class AffAtom(Atom):
 
     def is_pwl(self):
         return all([arg.is_pwl() for arg in self.args])
+
+    @clru_cache(maxsize=100)
+    def is_psd(self):
+        """Is the expression a positive semidefinite matrix?
+        """
+        for idx, arg in enumerate(self.args):
+            if not ((self.is_incr(idx) and arg.is_psd()) or
+                    (self.is_decr(idx) and arg.is_nsd())):
+                return False
+        return True
+
+    @clru_cache(maxsize=100)
+    def is_nsd(self):
+        """Is the expression a positive semidefinite matrix?
+        """
+        for idx, arg in enumerate(self.args):
+            if not ((self.is_decr(idx) and arg.is_psd()) or
+                    (self.is_incr(idx) and arg.is_nsd())):
+                return False
+        return True
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

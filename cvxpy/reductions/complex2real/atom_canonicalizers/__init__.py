@@ -19,28 +19,33 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
                          promote, abs, reshape, trace,
-                         neg, upper_tri, conj, imag, real,
+                         upper_tri, conj, imag, real,
                          norm1, norm_inf, norm2, Pnorm,
-                         norm_nuc, sigma_max, lambda_max,
+                         sigma_max, lambda_max,
                          log_det, QuadForm, MatrixFrac)
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.index import index
+from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.hstack import Hstack
 from cvxpy.atoms.affine.vstack import Vstack
+from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.affine.binary_operators import (MulExpression,
                                                  multiply,
                                                  DivExpression)
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.constraints.zero import Zero
 from abs_canon import abs_canon
 from aff_canon import (separable_canon, real_canon,
                        imag_canon, conj_canon, binary_canon)
 from pnorm_canon import pnorm_canon
-from matrix_canon import hermitian_canon, quad_canon
+from matrix_canon import (hermitian_canon, quad_canon,
+                          norm_nuc_canon)
 from variable_canon import variable_canon
 from constant_canon import constant_canon
+from zero_canon import zero_canon
 
 
 CANON_METHODS = {
@@ -55,7 +60,7 @@ CANON_METHODS = {
     Sum: separable_canon,
     trace: separable_canon,
     transpose: separable_canon,
-    neg: separable_canon,
+    NegExpression: separable_canon,
     upper_tri: separable_canon,
     Vstack: separable_canon,
 
@@ -70,6 +75,7 @@ CANON_METHODS = {
     real: real_canon,
     Variable: variable_canon,
     Constant: constant_canon,
+    Zero: zero_canon,
 
     abs: abs_canon,
     norm1: pnorm_canon,
@@ -78,8 +84,8 @@ CANON_METHODS = {
     Pnorm: pnorm_canon,
 
     lambda_max: hermitian_canon,
-    log_det: hermitian_canon,
-    norm_nuc: hermitian_canon,
+    log_det: norm_nuc_canon,
+    normNuc: norm_nuc_canon,
     sigma_max: hermitian_canon,
     QuadForm: quad_canon,
     MatrixFrac: quad_canon,

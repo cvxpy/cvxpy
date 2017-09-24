@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms.atom import Atom
-import scipy.linalg
 import numpy as np
 import scipy.sparse as sp
 
@@ -30,11 +29,10 @@ class normNuc(Atom):
     def __init__(self, A):
         super(normNuc, self).__init__(A)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the nuclear norm (i.e. the sum of the singular values) of A.
         """
-        return scipy.linalg.svdvals(values[0]).sum()
+        return np.linalg.norm(values[0], 'nuc')
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

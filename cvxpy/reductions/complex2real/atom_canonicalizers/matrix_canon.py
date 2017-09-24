@@ -28,10 +28,17 @@ def hermitian_canon(expr, real_args, imag_args, real2imag):
         matrix = real_args[0]
     else:
         if real_args[0] is None:
-            real_args[0] = np.zeros(real_args[0].shape)
+            real_args[0] = np.zeros(imag_args[0].shape)
         matrix = bmat([[real_args[0], -imag_args[0]],
                        [imag_args[0], real_args[0]]])
     return expr.copy([matrix]), None
+
+
+def norm_nuc_canon(expr, real_args, imag_args, real2imag):
+    """Canonicalize nuclear norm with Hermitian matrix input.
+    """
+    real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
+    return real/2, imag
 
 
 def quad_canon(expr, real_args, imag_args, real2imag):
@@ -46,9 +53,9 @@ def quad_canon(expr, real_args, imag_args, real2imag):
     else:
         vec = vstack([real_args[0], imag_args[0]])
         if real_args[0] is None:
-            real_args[0] = np.zeros(real_args[0].shape)
+            real_args[0] = np.zeros(imag_args[0].shape)
         elif imag_args[0] is None:
-            imag_args[0] = np.zeros(imag_args[0].shape)
+            imag_args[0] = np.zeros(real_args[0].shape)
         matrix = bmat([[real_args[0], -imag_args[0]],
                        [imag_args[0], real_args[0]]])
     return expr.copy([vec, matrix]), None

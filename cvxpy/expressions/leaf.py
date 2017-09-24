@@ -119,11 +119,8 @@ class Leaf(expression.Expression):
         else:
             self.integer_idx = []
 
-        # Only one attribute be True (except can be nonneg and
-        # nonpos, similarly for boolean and integer).
+        # Only one attribute be True (except can be boolean and integer).
         true_attr = sum([1 for k, v in self.attributes.items() if v])
-        if nonneg and nonpos:
-            true_attr -= 1
         if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
@@ -355,6 +352,16 @@ class Leaf(expression.Expression):
                     "%s value must be %s." % (self.__class__.__name__, attr_str)
                 )
         return val
+
+    def is_psd(self):
+        """Is the expression a positive semidefinite matrix?
+        """
+        return self.attributes['PSD']
+
+    def is_nsd(self):
+        """Is the expression a negative semidefinite matrix?
+        """
+        return self.attributes['NSD']
 
     def is_quadratic(self):
         """Leaf nodes are always quadratic.

@@ -162,6 +162,24 @@ class Expression(u.Canonical):
         """
         return self.is_convex() or self.is_concave()
 
+    def is_hermitian(self):
+        """Is the expression a Hermitian matrix?
+        """
+        # Default to False.
+        return False
+
+    def is_psd(self):
+        """Is the expression a positive semidefinite matrix?
+        """
+        # Default to False.
+        return False
+
+    def is_nsd(self):
+        """Is the expression a negative semidefinite matrix?
+        """
+        # Default to False.
+        return False
+
     def is_quadratic(self):
         """Is the expression quadratic?
         """

@@ -46,10 +46,12 @@ class Complex2Real(Reduction):
         for constraint in problem.constraints:
             real_constr, imag_constr = self.canonicalize_tree(
                 constraint, inverse_data.real2imag)
-            assert imag_constr is None
             inverse_data.cons_id_map.update({constraint.id:
                                              real_constr.id})
             constrs.append(real_constr)
+            # TODO keep imaginary part of dual variable.
+            if imag_constr is not None:
+                constrs.append(imag_constr)
 
         new_problem = problems.problem.Problem(real_obj,
                                                constrs)

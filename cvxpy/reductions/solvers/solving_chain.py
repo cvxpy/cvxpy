@@ -118,7 +118,7 @@ def construct_solving_chain(problem, solver=None):
         cones.append(ExpCone)
     if (any(atom in PSD_ATOMS for atom in atoms)
             or any(type(c) == PSD for c in problem.constraints)
-            or any(v.attributes['PSD'] or v.attributes['NSD']
+            or any(v.is_psd() or v.is_nsd()
                    for v in problem.variables())):
         cones.append(PSD)
 

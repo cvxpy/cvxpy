@@ -258,3 +258,62 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 8)
         val = np.ones((2, 2))
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
+
+    def test_constraints(self):
+        """Test constraints with complex values.
+        """
+        pass
+
+    def test_matrix_norms(self):
+        """Test matrix norms.
+        """
+        P = np.arange(8) - 2j*np.arange(8)
+        P = np.reshape(P, (2, 4))
+        sigma_max = np.linalg.norm(P, 2)
+        X = Variable((2, 4), complex=True)
+        prob = Problem(Minimize(cvx.norm(X, 2)), [X == P])
+        result = prob.solve()
+        self.assertAlmostEqual(result, sigma_max, places=3)
+
+        norm_nuc = np.linalg.norm(P, 'nuc')
+        X = Variable((2, 4), complex=True)
+        prob = Problem(Minimize(cvx.norm(X, 'nuc')), [X == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-4)
+        self.assertAlmostEqual(result, norm_nuc, places=2)
+
+    def test_log_det(self):
+        """Test log det.
+        """
+        P = np.arange(9) - 2j*np.arange(9)
+        P = np.reshape(P, (3, 3))
+        P = np.conj(P.T).dot(P)/100 + np.eye(3)*.1
+        value = cvx.log_det(P).value
+        X = Variable((3, 3), complex=True)
+        prob = Problem(cvx.Maximize(cvx.log_det(X)), [X == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6)
+        self.assertAlmostEqual(result, value, places=2)
+
+    def test_eigval_atoms(self):
+        """Test eigenvalue atoms.
+        """
+        P = np.arange(9) - 2j*np.arange(9)
+        P = np.reshape(P, (3, 3))
+        P = np.conj(P.T).dot(P)/10 + np.eye(3)*.1
+        value = cvx.lambda_max(P).value
+        X = Variable((3, 3), complex=True)
+        prob = Problem(cvx.Minimize(cvx.lambda_max(X)), [X == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-5)
+        self.assertAlmostEqual(result, value, places=2)
+
+        eigs = np.linalg.eigvals(P).real
+        value = cvx.sum_largest(eigs, 2).value
+        X = Variable((3, 3), complex=True)
+        prob = Problem(cvx.Minimize(cvx.lambda_sum_largest(X, 2)), [X == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6)
+        self.assertAlmostEqual(result, value, places=3)
+
+        value = cvx.sum_smallest(eigs, 2).value
+        X = Variable((3, 3), complex=True)
+        prob = Problem(cvx.Maximize(cvx.lambda_sum_smallest(X, 2)), [X == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6)
+        self.assertAlmostEqual(result, value, places=3)

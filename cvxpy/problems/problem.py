@@ -126,7 +126,7 @@ class Problem(u.Canonical):
             if not (isinstance(c, eqc.Zero) or c.args[0].is_pwl()):
                 return False
         for var in self.variables():
-            if var.attributes['PSD'] or var.attributes['NSD']:
+            if var.is_psd() or var.is_nsd():
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 

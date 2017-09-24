@@ -220,7 +220,7 @@ The functions ``is_real``, ``is_complex``, and ``is_imag`` return whether an exp
    p.is_imag() = True
    (x + 2).is_real() = False
 
-The top-level expressions in the problem objective and constraints must be real valued,
+The top-level expressions in the problem objective and inequality constraints must be real valued,
 but subexpressions may be complex.
 Arithmetic and all linear atoms are defined for complex expressions.
 The nonlinear atoms ``abs`` and all norms except ``norm(X, p)`` for ``p < 1`` are also defined for complex expressions.

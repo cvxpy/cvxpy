@@ -23,7 +23,6 @@ from __future__ import division
 import warnings
 
 import numpy as np
-import scipy.sparse as sp
 from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
@@ -36,18 +35,7 @@ class CvxPyDomainError(Exception):
 class QuadForm(Atom):
 
     def __init__(self, x, P):
-        # TODO make parameters work.
-        x = QuadForm.cast_to_const(x)
-        P = QuadForm.cast_to_const(P)
-        # Cache eigenvalues
-        Pval = P.value
-        if sp.issparse(Pval):
-            self.P_eigvals = LA.eigvalsh(Pval.todense())
-        else:
-            self.P_eigvals = LA.eigvalsh(Pval)
-        self.P = Pval
-        self.x = x
-        super(QuadForm, self).__init__(x, Pval)
+        super(QuadForm, self).__init__(x, P)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -69,22 +57,24 @@ class QuadForm(Atom):
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return np.all(self.P_eigvals >= 0)
+        return self.args[1].is_psd()
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return np.all(self.P_eigvals <= 0)
+        return self.args[1].is_nsd()
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.is_pwl()
+        return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
+               (self.args[0].is_nonpos() and self.args[1].is_nonneg())
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.is_pwl()
+        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
+               (self.args[0].is_nonpos() and self.args[1].is_nonpos())
 
     def is_quadratic(self):
         """Is the atom quadratic?
@@ -94,21 +84,21 @@ class QuadForm(Atom):
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return np.count_nonzero(self.P) == 0
+        return False
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
-                               self.x,
-                               self.P)
+                               self.args[0],
+                               self.args[1])
 
     def _grad(self):
-        return self.P * self.x
+        return self.args[1] * self.args[0]
 
     def graph_implementation(self):
         return NotImplemented
 
     def shape_from_args(self):
-        return tuple() if self.x.ndim == 0 else (1, 1)
+        return tuple() if self.args[0].ndim == 0 else (1, 1)
 
 
 class SymbolicQuadForm(Atom):
@@ -216,8 +206,6 @@ def quad_form(x, P):
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
         raise Exception("Invalid dimensions for arguments.")
     # P cannot be a parameter.
-    if len(P.parameters()) > 0:
-        raise Exception("P cannot be a parameter.")
     if x.is_constant():
         return x.T * P * x
     elif P.is_constant():

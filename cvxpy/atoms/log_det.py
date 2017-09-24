@@ -31,7 +31,6 @@ class log_det(Atom):
     def __init__(self, A):
         super(log_det, self).__init__(A)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the logdet of PSD matrix A.
 

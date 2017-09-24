@@ -100,9 +100,8 @@ class TestAtoms(BaseTest):
         """Test quad_form atom.
         """
         P = Parameter((2,2))
-        with self.assertRaises(Exception) as cm:
-            quad_form(self.x, P)
-        self.assertEqual(str(cm.exception), "P cannot be a parameter.")
+        expr = quad_form(self.x, P)
+        assert not expr.is_dcp()
 
     # Test the power class.
     def test_power(self):

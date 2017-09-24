@@ -1,4 +1,3 @@
-
 """
 Copyright 2013 Steven Diamond
 
@@ -18,14 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.constants import Constant
-
-
-def constant_canon(expr, real_args, imag_args, real2imag):
-    if expr.is_real():
-        return Constant(expr.value.real), None
-    elif expr.is_imag():
-        return None, Constant(expr.value.imag)
+def zero_canon(expr, real_args, imag_args, real2imag):
+    if imag_args[0] is None:
+        return expr.copy(real_args), None
+    elif real_args[0] is None:
+        return None, expr.copy(imag_args)
     else:
-        return (Constant(expr.value.real),
-                Constant(expr.value.imag))
+        return expr.copy(real_args), expr.copy(imag_args)

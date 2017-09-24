@@ -39,8 +39,6 @@ class lambda_max(Atom):
 
         Requires that A be symmetric.
         """
-        if not (values[0].T == values[0]).all():
-            raise ValueError("lambda_max called on a non-symmetric matrix.")
         lo = hi = self.args[0].shape[0]-1
         return LA.eigvalsh(values[0], eigvals=(lo, hi))
 

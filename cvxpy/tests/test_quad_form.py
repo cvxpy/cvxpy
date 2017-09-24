@@ -83,6 +83,17 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         self.assertAlmostEqual(prob.solve(), 5)
 
+    def test_param_quad_form(self):
+        """Test quad form with a parameter.
+        """
+        P = cvxpy.Parameter((2, 2), PSD=True)
+        Q = np.eye(2)
+        x = cvxpy.Variable(2)
+        cost = cvxpy.quad_form(x, P)
+        P.value = Q
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+        self.assertAlmostEqual(prob.solve(), 5)
+
     def test_non_symmetric(self):
         """Test when P is constant and not symmetric.
         """

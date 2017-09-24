@@ -243,6 +243,9 @@ def is_complex(constant, tol=1e-5):
     tuple
         The sign of the constant.
     """
+    complex_type = np.iscomplexobj(constant)
+    if not complex_type:
+        return True, False
     if isinstance(constant, numbers.Number):
         real_max = np.abs(np.real(constant))
         imag_max = np.abs(np.imag(constant))
