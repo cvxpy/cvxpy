@@ -37,14 +37,11 @@ class QuadForm(Atom):
     def __init__(self, x, P):
         super(QuadForm, self).__init__(x, P)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         return np.dot(np.dot(values[0], values[1]), values[0])
 
     def validate_arguments(self):
         super(QuadForm, self).validate_arguments()
-        if not self.args[1].is_constant():
-            raise ValueError("P must be a constant matrix.")
         n = self.args[1].shape[0]
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
             raise ValueError("Invalid dimensions for arguments.")
@@ -209,9 +206,6 @@ def quad_form(x, P):
     if x.is_constant():
         return x.T * P * x
     elif P.is_constant():
-        if (P.is_real() and not P.is_symmetric()) or \
-           (P.is_complex() and P.is_hermitian()):
-            P = (P + P.H)/2
         return QuadForm(x, P)
     else:
         raise Exception("At least one argument to quad_form must be constant.")

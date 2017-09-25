@@ -298,22 +298,28 @@ class TestComplex(BaseTest):
         """
         P = np.arange(9) - 2j*np.arange(9)
         P = np.reshape(P, (3, 3))
-        P = np.conj(P.T).dot(P)/10 + np.eye(3)*.1
-        value = cvx.lambda_max(P).value
-        X = Variable((3, 3), complex=True)
-        prob = Problem(cvx.Minimize(cvx.lambda_max(X)), [X == P])
-        result = prob.solve(solver=cvx.SCS, eps=1e-5)
-        self.assertAlmostEqual(result, value, places=2)
+        P1 = np.conj(P.T).dot(P)/10 + np.eye(3)*.1
+        P2 = np.eye(2)
+        for P in [P1, P2]:
+            value = cvx.lambda_max(P).value
+            X = Variable(P.shape, complex=True)
+            prob = Problem(cvx.Minimize(cvx.lambda_max(X)), [X == P])
+            result = prob.solve(solver=cvx.SCS, eps=1e-5)
+            self.assertAlmostEqual(result, value, places=2)
 
-        eigs = np.linalg.eigvals(P).real
-        value = cvx.sum_largest(eigs, 2).value
-        X = Variable((3, 3), complex=True)
-        prob = Problem(cvx.Minimize(cvx.lambda_sum_largest(X, 2)), [X == P])
-        result = prob.solve(solver=cvx.SCS, eps=1e-6)
-        self.assertAlmostEqual(result, value, places=3)
+            eigs = np.linalg.eigvals(P).real
+            value = cvx.sum_largest(eigs, 2).value
+            X = Variable(P.shape, complex=True)
+            prob = Problem(cvx.Minimize(cvx.lambda_sum_largest(X, 2)), [X == P])
+            result = prob.solve(solver=cvx.SCS, eps=1e-6)
+            self.assertAlmostEqual(result, value, places=3)
 
-        value = cvx.sum_smallest(eigs, 2).value
-        X = Variable((3, 3), complex=True)
-        prob = Problem(cvx.Maximize(cvx.lambda_sum_smallest(X, 2)), [X == P])
-        result = prob.solve(solver=cvx.SCS, eps=1e-6)
-        self.assertAlmostEqual(result, value, places=3)
+            value = cvx.sum_smallest(eigs, 2).value
+            X = Variable(P.shape, complex=True)
+            prob = Problem(cvx.Maximize(cvx.lambda_sum_smallest(X, 2)), [X == P])
+            result = prob.solve(solver=cvx.SCS, eps=1e-6)
+            self.assertAlmostEqual(result, value, places=3)
+
+    def test_quad_form(self):
+        """Test quad_form atom.
+        """

@@ -101,7 +101,9 @@ class TestNonOptimal(BaseTest):
         x = cvxpy.Variable(2)
         cost = cvxpy.quad_form(x, P)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
-        self.assertAlmostEqual(prob.solve(), 28)
+        with self.assertRaises(Exception) as cm:
+            prob.solve()
+        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
 
     def test_non_psd(self):
         """Test error when P is symmetric but not definite.

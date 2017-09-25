@@ -89,4 +89,5 @@ CANON_METHODS = {
     sigma_max: hermitian_canon,
     QuadForm: quad_canon,
     MatrixFrac: quad_canon,
+    # TODO: lambda_sum_largest
 }

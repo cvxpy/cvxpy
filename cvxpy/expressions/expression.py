@@ -308,7 +308,7 @@ class Expression(u.Canonical):
         """Expression : The transpose of the expression.
         """
         # Transpose of a scalar is that scalar.
-        if self.ndim <= 1:
+        if self.ndim <= 1 or self.is_symmetric():
             return self
         else:
             return cvxtypes.transpose()(self)
@@ -317,15 +317,13 @@ class Expression(u.Canonical):
     def H(self):
         """Expression : The transpose of the expression.
         """
+        if self.is_hermitian():
+            return self
+
         if self.is_real():
-            expr = self
+            return self.T
         else:
-            expr = cvxtypes.conj()(self)
-        # Transpose of a scalar is that scalar.
-        if self.ndim <= 1:
-            return expr
-        else:
-            return cvxtypes.transpose()(expr)
+            return cvxtypes.conj()(self).T
 
     def __pow__(self, power):
         """Raise expression to a power.

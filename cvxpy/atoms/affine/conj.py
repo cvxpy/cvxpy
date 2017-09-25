@@ -36,3 +36,13 @@ class conj(AffAtom):
         """Returns the shape of the expression.
         """
         return self.args[0].shape
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        return False
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        return False

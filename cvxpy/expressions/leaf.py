@@ -206,6 +206,11 @@ class Leaf(expression.Expression):
         """
         return self.attributes['nonpos']
 
+    def is_hermitian(self):
+        """Is the Leaf hermitian?
+        """
+        return (self.is_real() and self.is_symmetric()) or self.is_psd() or self.is_nsd()
+
     def is_symmetric(self):
         """Is the Leaf symmetric?
         """

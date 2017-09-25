@@ -20,6 +20,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import bmat, vstack
 import numpy as np
 
+# We expand the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]]
+# B has the same eigenvalues as A (if A is Hermitian).
+# If x is an eigenvector of A, then [Re(x), Im(x)] and [Im(x), -Re(x)]
+# are eigenvectors with same eigenvalue.
+# Thus each eigenvalue is repeated twice.
+
 
 def hermitian_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize functions that take a Hermitian matrix.
@@ -37,6 +43,7 @@ def hermitian_canon(expr, real_args, imag_args, real2imag):
 def norm_nuc_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize nuclear norm with Hermitian matrix input.
     """
+    # Divide by two because each eigenvalue is repeated twice.
     real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
     return real/2, imag
 

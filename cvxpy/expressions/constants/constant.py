@@ -22,6 +22,7 @@ import cvxpy.interface as intf
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 from scipy import linalg as LA
+import numpy as np
 
 
 class Constant(Leaf):
@@ -47,6 +48,7 @@ class Constant(Leaf):
         self._complex = self._imag = None
         self._nonneg = self._nonpos = None
         self._symm = None
+        self._herm = None
         self._eigvals = None
         super(Constant, self).__init__(intf.shape(self.value))
 
@@ -127,8 +129,24 @@ class Constant(Leaf):
             self._compute_attr()
         return self._complex
 
+    @clru_cache(maxsize=100)
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        if self._symm is None:
+            self._compute_symm_attr()
+        return self._symm
+
+    @clru_cache(maxsize=100)
+    def is_hermitian(self):
+        """Is the expression a Hermitian matrix?
+        """
+        if self._herm is None:
+            self._compute_symm_attr()
+        return self._herm
+
     def _compute_attr(self):
-        """Compute the attributes of the constant.
+        """Compute the attributes of the constant related to complex/real, sign.
         """
         # Set DCP attributes.
         is_real, is_imag = intf.is_complex(self.value)
@@ -140,6 +158,14 @@ class Constant(Leaf):
         self._complex = is_imag
         self._nonpos = is_nonpos
         self._nonneg = is_nonneg
+
+    def _compute_symm_attr(self):
+        """Determine whether the constant is symmetric/Hermitian.
+        """
+        # Set DCP attributes.
+        is_symm, is_herm = intf.is_hermitian(self.value)
+        self._symm = is_symm
+        self._herm = is_herm
 
     @clru_cache(maxsize=100)
     def is_psd(self):
@@ -153,6 +179,8 @@ class Constant(Leaf):
         elif self.ndim == 1:
             return False
         elif self.ndim == 2 and self.shape[0] != self.shape[1]:
+            return False
+        elif not self.is_hermitian():
             return False
 
         # Compute eigenvalues if absent.
@@ -172,6 +200,8 @@ class Constant(Leaf):
         elif self.ndim == 1:
             return False
         elif self.ndim == 2 and self.shape[0] != self.shape[1]:
+            return False
+        elif not self.is_hermitian():
             return False
 
         # Compute eigenvalues if absent.
