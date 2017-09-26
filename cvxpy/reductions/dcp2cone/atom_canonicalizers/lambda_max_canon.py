@@ -27,7 +27,7 @@ def lambda_max_canon(expr, args):
     A = args[0]
     n = A.shape[0]
     t = Variable()
-    prom_t = promote(t, (n, 1))
+    prom_t = promote(t, (n,))
     # Constrain I*t - A to be PSD; note that this expression must be symmetric.
     tmp_expr = diag_vec(prom_t) - A
     constr = [tmp_expr == tmp_expr.T, PSD(tmp_expr)]

@@ -29,6 +29,9 @@ class InverseData(object):
                                                 self.get_var_offsets(varis))
         self.id2var = {var.id: var for var in varis}
         self.real2imag = {var.id: lu.get_id() for var in varis if var.is_complex()}
+        constr_dict = {cons.id: lu.get_id() for cons in problem.constraints if cons.is_complex()}
+        self.real2imag.update(constr_dict)
+        self.id2cons = {cons.id: cons for cons in problem.constraints}
         self.cons_id_map = dict()
 
     def get_var_offsets(self, variables):

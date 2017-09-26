@@ -52,11 +52,9 @@ class diag_vec(AffAtom):
     def __init__(self, expr):
         super(diag_vec, self).__init__(expr)
 
-    @AffAtom.numpy_numeric
     def numeric(self, values):
         """Convert the vector constant into a diagonal matrix.
         """
-        # Convert values to 1D.
         return np.diag(values[0])
 
     def shape_from_args(self):

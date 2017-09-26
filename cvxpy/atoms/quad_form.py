@@ -38,7 +38,11 @@ class QuadForm(Atom):
         super(QuadForm, self).__init__(x, P)
 
     def numeric(self, values):
-        return np.dot(np.dot(values[0], values[1]), values[0])
+        if self.args[0].is_complex():
+            prod = np.dot(np.conj(values[0]).T, values[1])
+        else:
+            prod = np.dot(values[0].T, values[1])
+        return np.dot(prod, values[0])
 
     def validate_arguments(self):
         super(QuadForm, self).validate_arguments()
@@ -204,7 +208,7 @@ def quad_form(x, P):
         raise Exception("Invalid dimensions for arguments.")
     # P cannot be a parameter.
     if x.is_constant():
-        return x.T * P * x
+        return x.H * P * x
     elif P.is_constant():
         return QuadForm(x, P)
     else:

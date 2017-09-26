@@ -285,6 +285,8 @@ class Leaf(expression.Expression):
             return np.round(val)
         elif self.attributes['diag']:
             return sp.diags([np.diag(val)], [0])
+        elif self.attributes['hermitian']:
+            return (val + np.conj(val).T)/2
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
             val = (val + val.T)/2

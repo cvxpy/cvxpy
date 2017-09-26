@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import bmat, vstack
+from cvxpy.atoms import bmat, reshape, vstack
 import numpy as np
 
 # We expand the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]]
@@ -45,24 +45,65 @@ def norm_nuc_canon(expr, real_args, imag_args, real2imag):
     """
     # Divide by two because each eigenvalue is repeated twice.
     real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
-    return real/2, imag
+    if imag_args[0] is not None:
+        real /= 2
+    return real, imag
+
+
+def lambda_sum_largest_canon(expr, real_args, imag_args, real2imag):
+    """Canonicalize nuclear norm with Hermitian matrix input.
+    """
+    # Divide by two because each eigenvalue is repeated twice.
+    real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
+    real.k *= 2
+    if imag_args[0] is not None:
+        real /= 2
+    return real, imag
+
+
+def at_least_2D(expr):
+    """Upcast 0D and 1D to 2D.
+    """
+    if expr.ndim < 2:
+        return reshape(expr, (expr.size, 1))
+    else:
+        return expr
 
 
 def quad_canon(expr, real_args, imag_args, real2imag):
-    """Canonicalize atoms that take a vector and Hermitian matrix.
+    """Convert quad_form to real.
     """
-    if imag_args[1] is None:
-        vec = real_args[1]
-        matrix = real_args[0]
-    elif real_args[1] is None:
-        vec = imag_args[1]
-        matrix = real_args[0]
+    if imag_args[0] is None:
+        vec = real_args[0]
+        matrix = real_args[1]
+    elif real_args[0] is None:
+        vec = imag_args[0]
+        matrix = real_args[1]
     else:
-        vec = vstack([real_args[0], imag_args[0]])
-        if real_args[0] is None:
-            real_args[0] = np.zeros(imag_args[0].shape)
-        elif imag_args[0] is None:
-            imag_args[0] = np.zeros(real_args[0].shape)
-        matrix = bmat([[real_args[0], -imag_args[0]],
-                       [imag_args[0], real_args[0]]])
+        vec = vstack([at_least_2D(real_args[0]),
+                      at_least_2D(imag_args[0])])
+        if real_args[1] is None:
+            real_args[1] = np.zeros(imag_args[1].shape)
+        elif imag_args[1] is None:
+            imag_args[1] = np.zeros(real_args[1].shape)
+        matrix = bmat([[real_args[1], -imag_args[1]],
+                       [imag_args[1], real_args[1]]])
+    return expr.copy([vec, matrix]), None
+
+
+def matrix_frac_canon(expr, real_args, imag_args, real2imag):
+    """Convert matrix_frac to real.
+    """
+    if real_args[0] is None:
+        real_args[0] = np.zeros(imag_args[0].shape)
+    if imag_args[0] is None:
+        imag_args[0] = np.zeros(real_args[0].shape)
+    vec = vstack([at_least_2D(real_args[0]),
+                  at_least_2D(imag_args[0])])
+    if real_args[1] is None:
+        real_args[1] = np.zeros(imag_args[1].shape)
+    elif imag_args[1] is None:
+        imag_args[1] = np.zeros(real_args[1].shape)
+    matrix = bmat([[real_args[1], -imag_args[1]],
+                   [imag_args[1], real_args[1]]])
     return expr.copy([vec, matrix]), None

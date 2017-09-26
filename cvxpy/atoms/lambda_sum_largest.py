@@ -17,37 +17,50 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.variable import Variable
+from scipy import linalg as LA
 from cvxpy.atoms.lambda_max import lambda_max
-from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms.sum_largest import sum_largest
 
 
-def lambda_sum_largest(X, k):
+class lambda_sum_largest(lambda_max):
     """Sum of the largest k eigenvalues.
     """
-    X = Expression.cast_to_const(X)
-    if not X.ndim == 2 or X.shape[0] != X.shape[1]:
-        raise ValueError("First argument must be a square matrix.")
-    elif int(k) != k or k <= 0:
-        raise ValueError("Second argument must be a positive integer.")
-    """
-    S_k(X) denotes lambda_sum_largest(X, k)
-    t >= k S_k(X - Z) + trace(Z), Z is PSD
-    implies
-    t >= ks + trace(Z)
-    Z is PSD
-    sI >= X - Z (PSD sense)
-    which implies
-    t >= ks + trace(Z) >= S_k(sI + Z) >= S_k(X)
-    We use the fact that
-    S_k(X) = sup_{sets of k orthonormal vectors u_i}\sum_{i}u_i^T X u_i
-    and if Z >= X in PSD sense then
-    \sum_{i}u_i^T Z u_i >= \sum_{i}u_i^T X u_i
 
-    We have equality when s = lambda_k and Z diagonal
-    with Z_{ii} = (lambda_i - lambda_k)_+
-    """
-    Z = Variable((X.shape[0], X.shape[0]), PSD=True)
-    expr = k*lambda_max(X - Z) + trace(Z)
-    return expr
+    def __init__(self, X, k):
+        self.k = k
+        super(lambda_sum_largest, self).__init__(X)
+
+    def validate_arguments(self):
+        """Verify that the argument A is square.
+        """
+        X = self.args[0]
+        if not X.ndim == 2 or X.shape[0] != X.shape[1]:
+            raise ValueError("First argument must be a square matrix.")
+        elif int(self.k) != self.k or self.k <= 0:
+            raise ValueError("Second argument must be a positive integer.")
+
+    def numeric(self, values):
+        """Returns the largest eigenvalue of A.
+
+        Requires that A be symmetric.
+        """
+        eigs = LA.eigvals(values[0])
+        return sum_largest(eigs, self.k).value
+
+    def get_data(self):
+        """Returns the parameter k.
+        """
+        return [self.k]
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        return NotImplemented

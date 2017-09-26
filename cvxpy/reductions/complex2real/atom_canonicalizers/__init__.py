@@ -21,7 +21,7 @@ from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
                          promote, abs, reshape, trace,
                          upper_tri, conj, imag, real,
                          norm1, norm_inf, norm2, Pnorm,
-                         sigma_max, lambda_max,
+                         sigma_max, lambda_max, lambda_sum_largest,
                          log_det, QuadForm, MatrixFrac)
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
@@ -41,8 +41,8 @@ from abs_canon import abs_canon
 from aff_canon import (separable_canon, real_canon,
                        imag_canon, conj_canon, binary_canon)
 from pnorm_canon import pnorm_canon
-from matrix_canon import (hermitian_canon, quad_canon,
-                          norm_nuc_canon)
+from matrix_canon import (hermitian_canon, quad_canon, lambda_sum_largest_canon,
+                          norm_nuc_canon, matrix_frac_canon)
 from variable_canon import variable_canon
 from constant_canon import constant_canon
 from zero_canon import zero_canon
@@ -88,6 +88,6 @@ CANON_METHODS = {
     normNuc: norm_nuc_canon,
     sigma_max: hermitian_canon,
     QuadForm: quad_canon,
-    MatrixFrac: quad_canon,
-    # TODO: lambda_sum_largest
+    MatrixFrac: matrix_frac_canon,
+    lambda_sum_largest: lambda_sum_largest_canon,
 }

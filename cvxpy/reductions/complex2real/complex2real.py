@@ -46,10 +46,8 @@ class Complex2Real(Reduction):
         for constraint in problem.constraints:
             real_constr, imag_constr = self.canonicalize_tree(
                 constraint, inverse_data.real2imag)
-            inverse_data.cons_id_map.update({constraint.id:
-                                             real_constr.id})
-            constrs.append(real_constr)
-            # TODO keep imaginary part of dual variable.
+            if real_constr is not None:
+                constrs.append(real_constr)
             if imag_constr is not None:
                 constrs.append(imag_constr)
 
@@ -58,7 +56,6 @@ class Complex2Real(Reduction):
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        # Add complex component.
         pvars = {}
         dvars = {}
         if solution.status in s.SOLUTION_PRESENT:
@@ -72,9 +69,16 @@ class Complex2Real(Reduction):
                     imag_id = inverse_data.real2imag[vid]
                     pvars[vid] = solution.primal_vars[vid] + \
                         1j*solution.primal_vars[imag_id]
-            dvars = {orig_id: solution.dual_vars[vid]
-                     for orig_id, vid in inverse_data.cons_id_map.items()
-                     if vid in solution.dual_vars}
+            for cid, cons in inverse_data.id2cons.items():
+                if cons.is_real():
+                    dvars[vid] = solution.dual_vars[cid]
+                elif cons.is_imag():
+                    imag_id = inverse_data.real2imag[cid]
+                    dvars[cid] = 1j*solution.dual_vars[imag_id]
+                elif cons.is_complex():
+                    imag_id = inverse_data.real2imag[cid]
+                    dvars[cid] = solution.dual_vars[cid] + \
+                        1j*solution.dual_vars[imag_id]
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 

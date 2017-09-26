@@ -33,7 +33,6 @@ class lambda_max(Atom):
     def __init__(self, A):
         super(lambda_max, self).__init__(A)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the largest eigenvalue of A.
 
@@ -45,7 +44,7 @@ class lambda_max(Atom):
     def _domain(self):
         """Returns constraints describing the domain of the node.
         """
-        return [self.args[0].T == self.args[0]]
+        return [self.args[0].H == self.args[0]]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -101,30 +100,3 @@ class lambda_max(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        A = arg_objs[0]
-        n, _ = A.shape
-        # PSD constraint.
-        t = lu.create_var((1, 1))
-        prom_t = lu.promote(t, (n, 1))
-        # I*t - A
-        expr = lu.sub_expr(lu.diag_vec(prom_t), A)
-        return (t, [PSD(expr)])

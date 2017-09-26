@@ -27,5 +27,7 @@ def variable_canon(expr, real_args, imag_args, real2imag):
     imag = Variable(expr.shape, var_id=real2imag[expr.id])
     if expr.is_imag():
         return None, imag
+    elif expr.is_hermitian():
+        return NotImplemented  # TODO
     else:  # Complex.
         return Variable(expr.shape, var_id=expr.id), imag

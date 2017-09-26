@@ -31,14 +31,16 @@ class MatrixFrac(Atom):
     def __init__(self, X, P):
         super(MatrixFrac, self).__init__(X, P)
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns tr X.T*P^-1*X.
         """
         # TODO raise error if not invertible?
         X = values[0]
         P = values[1]
-        product = X.T.dot(LA.inv(P)).dot(X)
+        if self.args[0].is_complex():
+            product = np.conj(X).T.dot(LA.inv(P)).dot(X)
+        else:
+            product = X.T.dot(LA.inv(P)).dot(X)
         return product.trace() if len(product.shape) == 2 else product
 
     def _domain(self):

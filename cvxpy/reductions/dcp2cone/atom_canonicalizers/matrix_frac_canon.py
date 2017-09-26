@@ -31,7 +31,7 @@ def matrix_frac_canon(expr, args):
 
     # Create a matrix with Schur complement T - X.T*P^-1*X.
     M = Variable((n+m, n+m), PSD=True)
-    T = Variable((m, m))
+    T = Variable((m, m), symmetric=True)
     constraints = []
     # Fix M using the fact that P must be affine by the DCP rules.
     # M[0:n, 0:n] == P.

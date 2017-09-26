@@ -1277,12 +1277,12 @@ class TestProblem(BaseTest):
         import scipy.sparse as sp
         interface = intf.get_matrix_interface(sp.csc_matrix)
         c = interface.const_to_matrix([1, 2])
-        expr = cvx.multiply(c, self.x[:,None])
+        expr = cvx.multiply(c, self.x[:, None])
         obj = cvx.Minimize(cvx.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
-        self.assertItemsAlmostEqual(expr.value, [5, 10])
+        self.assertItemsAlmostEqual(expr.value.todense(), [5, 10])
 
         # Test promotion.
         c = [[1, -1], [2, -2]]

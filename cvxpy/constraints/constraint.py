@@ -52,6 +52,21 @@ class Constraint(u.Canonical):
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
         super(Constraint, self).__init__()
 
+    def is_real(self):
+        """Is the Leaf real valued?
+        """
+        return not self.is_complex()
+
+    def is_imag(self):
+        """Is the Leaf imaginary?
+        """
+        return all([arg.is_imag() for arg in self.args])
+
+    def is_complex(self):
+        """Is the Leaf complex valued?
+        """
+        return any([arg.is_complex() for arg in self.args])
+
     @abc.abstractmethod
     def is_dcp(self):
         """Checks whether the constraint is DCP.

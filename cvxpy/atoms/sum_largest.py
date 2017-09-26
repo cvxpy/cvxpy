@@ -98,35 +98,3 @@ class sum_largest(Atom):
         """Returns the parameter k.
         """
         return [self.k]
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        # min sum(t) + kq
-        # s.t. x <= t + q
-        #      0 <= t
-        x = arg_objs[0]
-        k = lu.create_const(data[0], (1, 1))
-        q = lu.create_var((1, 1))
-        t = lu.create_var(x.shape)
-        sum_t = lu.sum(t)
-        obj = lu.sum_expr([sum_t, lu.mul_expr(k, q, (1, 1))])
-        prom_q = lu.promote(q, x.shape)
-        constr = [lu.create_leq(x, lu.sum_expr([t, prom_q])),
-                  lu.create_geq(t)]
-        return (obj, constr)

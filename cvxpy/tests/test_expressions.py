@@ -413,6 +413,10 @@ class TestExpressions(BaseTest):
         v = Variable((2, 2), diag=True)
         self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]])).todense(), [1,0,0,0])
 
+        # Hermitian
+        v = Variable((2, 2), hermitian=True)
+        self.assertItemsAlmostEqual(v.project(np.array([[1,-1j], [1,0]])), [1,0.5+0.5j,0.5-0.5j,0])
+
     # Test the AddExpresion class.
     def test_add_expression(self):
         # Vectors

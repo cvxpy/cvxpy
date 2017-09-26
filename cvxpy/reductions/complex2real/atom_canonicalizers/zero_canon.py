@@ -17,10 +17,15 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from cvxpy.constraints.zero import Zero
+
+
 def zero_canon(expr, real_args, imag_args, real2imag):
     if imag_args[0] is None:
         return expr.copy(real_args), None
-    elif real_args[0] is None:
-        return None, expr.copy(imag_args)
+
+    imag_cons = Zero(imag_args[0], constr_id=real2imag[expr.id])
+    if real_args[0] is None:
+        return None, imag_cons
     else:
-        return expr.copy(real_args), expr.copy(imag_args)
+        return expr.copy(real_args), imag_cons

@@ -252,12 +252,15 @@ class multiply(MulExpression):
             rh_expr = promote(rh_expr, lh_expr.shape)
         super(multiply, self).__init__(lh_expr, rh_expr)
 
-    @AffAtom.numpy_numeric
     def numeric(self, values):
         """Multiplies the values elementwise.
         """
-        return np.multiply(values[0], values[1])
-
+        if sp.issparse(values[0]):
+            return values[0].multiply(values[1])
+        elif sp.issparse(values[1]):
+            return values[1].multiply(values[0])
+        else:
+            return np.multiply(values[0], values[1])
 
     def shape_from_args(self):
         """The sum of the argument dimensions - 1.
@@ -290,5 +293,5 @@ class multiply(MulExpression):
         elif lu.is_const(rhs):
             return (lu.multiply(rhs, lhs), [])
         else:
-            raise DCPError("Product of two non-exprant expressions is not "
+            raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")

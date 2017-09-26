@@ -262,6 +262,7 @@ class TestComplex(BaseTest):
     def test_constraints(self):
         """Test constraints with complex values.
         """
+        # TODO
         pass
 
     def test_matrix_norms(self):
@@ -299,7 +300,7 @@ class TestComplex(BaseTest):
         P = np.arange(9) - 2j*np.arange(9)
         P = np.reshape(P, (3, 3))
         P1 = np.conj(P.T).dot(P)/10 + np.eye(3)*.1
-        P2 = np.eye(2)
+        P2 = np.array([[10, 1j, 0], [-1j, 10, 0], [0, 0, 1]])
         for P in [P1, P2]:
             value = cvx.lambda_max(P).value
             X = Variable(P.shape, complex=True)
@@ -323,3 +324,64 @@ class TestComplex(BaseTest):
     def test_quad_form(self):
         """Test quad_form atom.
         """
+        P = np.arange(9) - 2j*np.arange(9)
+        P = np.reshape(P, (3, 3))
+        P = np.conj(P.T).dot(P)/100 + np.eye(3)*.1
+        b = np.arange(3)
+        x = Variable(3, complex=False)
+        value = cvx.quad_form(b, P).value
+        expr = cvx.quad_form(x, P)
+        prob = Problem(cvx.Minimize(expr), [x == b])
+        result = prob.solve()
+        self.assertAlmostEqual(result, value)
+
+        b = np.arange(3) + 3j*(np.arange(3) + 10)
+        x = Variable(3, complex=True)
+        value = cvx.quad_form(b, P).value
+        expr = cvx.quad_form(x, P)
+        prob = Problem(cvx.Minimize(expr), [x == b])
+        result = prob.solve()
+        self.assertAlmostEqual(result, value)
+
+        b = 3j*(np.arange(3) + 10)
+        x = Variable(3, imag=True)
+        value = cvx.quad_form(b, P).value
+        expr = cvx.quad_form(x, P)
+        prob = Problem(cvx.Minimize(expr), [x == b])
+        result = prob.solve()
+        self.assertAlmostEqual(result, value)
+
+    def test_matrix_frac(self):
+        """Test matrix_frac atom.
+        """
+        P = np.array([[10, 1j], [-1j, 10]])
+        Y = Variable((2, 2), complex=True)
+        b = np.arange(2)
+        x = Variable(2, complex=False)
+        value = cvx.matrix_frac(b, P).value
+        expr = cvx.matrix_frac(x, Y)
+        prob = Problem(cvx.Minimize(expr), [x == b, Y == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6, max_iters=7500, verbose=True)
+        self.assertAlmostEqual(result, value, places=3)
+
+        b = (np.arange(2) + 3j*(np.arange(2) + 10))
+        x = Variable(2, complex=True)
+        value = cvx.matrix_frac(b, P).value
+        expr = cvx.matrix_frac(x, Y)
+        prob = Problem(cvx.Minimize(expr), [x == b, Y == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6)
+        self.assertAlmostEqual(result, value, places=3)
+
+        b = (np.arange(2) + 10)/10j
+        x = Variable(2, imag=True)
+        value = cvx.matrix_frac(b, P).value
+        expr = cvx.matrix_frac(x, Y)
+        prob = Problem(cvx.Minimize(expr), [x == b, Y == P])
+        result = prob.solve(solver=cvx.SCS, eps=1e-5, max_iters=7500)
+        self.assertAlmostEqual(result, value, places=3)
+
+    def test_hermitian(self):
+        """Test Hermitian variables.
+        """
+        # TODO
+        pass
