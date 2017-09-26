@@ -81,7 +81,7 @@ class Leaf(expression.Expression):
     def __init__(self, shape, value=None, nonneg=False, nonpos=False,
                  complex=False, imag=False,
                  symmetric=False, diag=False, PSD=False,
-                 NSD=False, Hermitian=False,
+                 NSD=False, hermitian=False,
                  boolean=False, integer=False,
                  sparsity=None):
         if isinstance(shape, numbers.Integral):
@@ -94,8 +94,8 @@ class Leaf(expression.Expression):
                 raise ValueError("Invalid dimensions %s." % (shape,))
         self._shape = tuple(np.int32(d) for d in shape)
 
-        if (PSD or NSD or symmetric or diag) and (len(shape) != 2
-                                                  or shape[0] != shape[1]):
+        if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
+                                                               or shape[0] != shape[1]):
             raise ValueError("Invalid dimensions %s. Must be a square matrix."
                              % (shape,))
 
@@ -104,7 +104,7 @@ class Leaf(expression.Expression):
                            'complex': complex, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
-                           'Hermitian': Hermitian, 'boolean': bool(boolean),
+                           'hermitian': hermitian, 'boolean': bool(boolean),
                            'integer':  integer, 'sparsity': sparsity}
 
         if boolean:
@@ -209,7 +209,8 @@ class Leaf(expression.Expression):
     def is_hermitian(self):
         """Is the Leaf hermitian?
         """
-        return (self.is_real() and self.is_symmetric()) or self.is_psd() or self.is_nsd()
+        return (self.is_real() and self.is_symmetric()) or \
+            self.attributes['hermitian'] or self.is_psd() or self.is_nsd()
 
     def is_symmetric(self):
         """Is the Leaf symmetric?
@@ -225,7 +226,7 @@ class Leaf(expression.Expression):
     def is_complex(self):
         """Is the Leaf complex valued?
         """
-        return self.attributes['complex'] or self.is_imag()
+        return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
     @property
     def domain(self):

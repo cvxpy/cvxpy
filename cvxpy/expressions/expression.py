@@ -165,8 +165,7 @@ class Expression(u.Canonical):
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
         """
-        # Default to False.
-        return False
+        return (self.is_real() and self.is_symmetric())
 
     def is_psd(self):
         """Is the expression a positive semidefinite matrix?
@@ -308,7 +307,7 @@ class Expression(u.Canonical):
         """Expression : The transpose of the expression.
         """
         # Transpose of a scalar is that scalar.
-        if self.ndim <= 1 or self.is_symmetric():
+        if self.ndim <= 1:
             return self
         else:
             return cvxtypes.transpose()(self)
@@ -317,9 +316,6 @@ class Expression(u.Canonical):
     def H(self):
         """Expression : The transpose of the expression.
         """
-        if self.is_hermitian():
-            return self
-
         if self.is_real():
             return self.T
         else:

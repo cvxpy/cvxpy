@@ -69,6 +69,11 @@ class Promote(AffAtom):
         """
         return np.ones(self.promoted_shape) * values[0]
 
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        return self.ndim == 2 and self.shape[0] == self.shape[1]
+
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """

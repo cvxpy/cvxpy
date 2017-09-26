@@ -39,6 +39,16 @@ class transpose(AffAtom):
     def numeric(self, values):
         return np.transpose(values[0], axes=self.axes)
 
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        return self.args[0].is_symmetric()
+
+    def is_hermitian(self):
+        """Is the expression Hermitian?
+        """
+        return self.args[0].is_hermitian()
+
     def shape_from_args(self):
         """Returns the shape of the transpose expression.
         """

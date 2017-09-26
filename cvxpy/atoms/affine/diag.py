@@ -70,6 +70,11 @@ class diag_vec(AffAtom):
         """
         return True
 
+    def is_hermitian(self):
+        """Is the expression symmetric?
+        """
+        return True
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Convolve two vectors.

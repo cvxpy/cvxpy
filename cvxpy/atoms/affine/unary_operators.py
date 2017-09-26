@@ -64,6 +64,16 @@ class NegExpression(UnaryOperator):
         """
         return True
 
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        return self.args[0].is_symmetric()
+
+    def is_hermitian(self):
+        """Is the expression Hermitian?
+        """
+        return self.args[0].is_hermitian()
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Negate the affine objective.

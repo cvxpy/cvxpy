@@ -47,3 +47,8 @@ class real(AffAtom):
         """Is the expression complex valued?
         """
         return False
+
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        return self.args[0].is_hermitian()

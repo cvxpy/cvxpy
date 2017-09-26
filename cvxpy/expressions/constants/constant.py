@@ -133,17 +133,27 @@ class Constant(Leaf):
     def is_symmetric(self):
         """Is the expression symmetric?
         """
-        if self._symm is None:
-            self._compute_symm_attr()
-        return self._symm
+        if self.is_scalar():
+            return True
+        elif self.ndim == 2 and self.shape[0] == self.shape[1]:
+            if self._symm is None:
+                self._compute_symm_attr()
+            return self._symm
+        else:
+            return False
 
     @clru_cache(maxsize=100)
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
         """
-        if self._herm is None:
-            self._compute_symm_attr()
-        return self._herm
+        if self.is_scalar() and self.is_real():
+            return True
+        elif self.ndim == 2 and self.shape[0] == self.shape[1]:
+            if self._herm is None:
+                self._compute_symm_attr()
+            return self._herm
+        else:
+            return False
 
     def _compute_attr(self):
         """Compute the attributes of the constant related to complex/real, sign.

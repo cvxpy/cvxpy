@@ -326,6 +326,54 @@ class TestExpressions(BaseTest):
         assert self.a.is_symmetric()
         assert not self.A.is_symmetric()
 
+        v = Variable((2, 2), symmetric=True)
+        expr = v + v
+        assert expr.is_symmetric()
+        expr = -v
+        assert expr.is_symmetric()
+        expr = v.T
+        assert expr.is_symmetric()
+        expr = real(v)
+        assert expr.is_symmetric()
+        expr = imag(v)
+        assert expr.is_symmetric()
+        expr = conj(v)
+        assert expr.is_symmetric()
+        expr = promote(Variable(), (2, 2))
+        assert expr.is_symmetric()
+
+    def test_hermitian(self):
+        """Test Hermitian variables.
+        """
+        with self.assertRaises(Exception) as cm:
+            v = Variable((4, 3), hermitian=True)
+        self.assertEqual(str(cm.exception), "Invalid dimensions (4, 3). Must be a square matrix.")
+
+        v = Variable((2,2), hermitian=True)
+        assert v.is_hermitian()
+        # v = Variable((2,2), PSD=True)
+        # assert v.is_symmetric()
+        # v = Variable((2,2), NSD=True)
+        # assert v.is_symmetric()
+        v = Variable((2,2), diag=True)
+        assert v.is_hermitian()
+
+        v = Variable((2, 2), hermitian=True)
+        expr = v + v
+        assert expr.is_hermitian()
+        expr = -v
+        assert expr.is_hermitian()
+        expr = v.T
+        assert expr.is_hermitian()
+        expr = real(v)
+        assert expr.is_hermitian()
+        expr = imag(v)
+        assert expr.is_hermitian()
+        expr = conj(v)
+        assert expr.is_hermitian()
+        expr = promote(Variable(), (2, 2))
+        assert expr.is_hermitian()
+
     def test_round_attr(self):
         """Test rounding for attributes.
         """

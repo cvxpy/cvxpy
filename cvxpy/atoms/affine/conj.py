@@ -46,3 +46,13 @@ class conj(AffAtom):
         """Is the composition non-increasing in argument idx?
         """
         return False
+
+    def is_symmetric(self):
+        """Is the expression symmetric?
+        """
+        return self.args[0].is_symmetric()
+
+    def is_hermitian(self):
+        """Is the expression Hermitian?
+        """
+        return self.args[0].is_hermitian()
