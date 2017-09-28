@@ -179,7 +179,7 @@ and returns a scalar.
 
        norm(x, 2)
 
-     - :math:`\sqrt{\sum_{i}x_{i}^2 }`
+     - :math:`\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }`
      - :math:`X \in\mathbf{R}^{n}`
      - |positive| positive
      - |convex| convex

@@ -130,6 +130,20 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_from_args</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
 
+    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">is_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression imaginary?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Default is false.</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">is_complex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression complex valued?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Default is false.</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
 <div class="viewcode-block" id="Atom.is_atom_convex"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_convex">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the atom convex?</span>

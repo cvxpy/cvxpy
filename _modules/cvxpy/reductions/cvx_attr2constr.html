@@ -151,7 +151,7 @@
                     <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">():</span>
                     <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;PSD&#39;</span><span class="p">]:</span>
+                <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">():</span>
                     <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;NSD&#39;</span><span class="p">]:</span>
                     <span class="n">constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>

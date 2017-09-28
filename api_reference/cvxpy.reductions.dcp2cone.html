@@ -65,7 +65,7 @@ GNU General Public License for more details.</p>
 along with CVXPY.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="descname">ConeMatrixStuffing</code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="descname">ConeMatrixStuffing</code><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.matrix_stuffing.MatrixStuffing</span></code></p>
 <p>Construct matrices for linear cone problems.</p>
 <p>Linear cone problems are assumed to have a linear objective and cone
@@ -78,12 +78,12 @@ subject to cone_constr1(A_1*x + b_1, …)</p>
 cone_constrK(A_i*x + b_i, …)</div></blockquote>
 <dl class="method">
 <dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts">
-<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">
-<code class="descname">stuffed_objective</code><span class="sig-paren">(</span><em>problem</em>, <em>inverse_data</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
+<code class="descname">stuffed_objective</code><span class="sig-paren">(</span><em>problem</em>, <em>inverse_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.stuffed_objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -105,7 +105,7 @@ GNU General Public License for more details.</p>
 along with CVXPY.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="descname">Dcp2Cone</code><span class="sig-paren">(</span><em>canon_methods=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="descname">Dcp2Cone</code><span class="sig-paren">(</span><em>canon_methods=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
 <p>Reduce DCP problems to a conic form.</p>
 <p>This reduction takes as input (minimization) DCP problems and converts
@@ -113,13 +113,13 @@ them into problems with affine objectives and conic constraints whose
 arguments are affine.</p>
 <dl class="method">
 <dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
-<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>A problem is accepted if it is a minimization and is DCP.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a DCP problem to a conic form.</p>
 </dd></dl>
 

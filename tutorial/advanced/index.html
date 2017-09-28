@@ -100,7 +100,10 @@ Only one attribute can be active (set to True).</p>
 <li><strong>nonneg</strong> (<em>bool</em>) – Is the variable constrained to be nonnegative?</li>
 <li><strong>nonpos</strong> (<em>bool</em>) – Is the variable constrained to be nonpositive?</li>
 <li><strong>symmetric</strong> (<em>bool</em>) – Is the variable constrained to be symmetric?</li>
+<li><strong>hermitian</strong> (<em>bool</em>) – Is the variable constrained to be Hermitian?</li>
 <li><strong>diag</strong> (<em>bool</em>) – Is the variable constrained to be diagonal?</li>
+<li><strong>complex</strong> (<em>bool</em>) – Is the variable complex valued?</li>
+<li><strong>imag</strong> (<em>bool</em>) – Is the variable purely imaginary?</li>
 <li><strong>PSD</strong> (<em>bool</em>) – Is the variable constrained to be symmetric positive semidefinite?</li>
 <li><strong>NSD</strong> (<em>bool</em>) – Is the variable constrained to be symmetric negative semidefinite?</li>
 <li><strong>boolean</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable boolean (i.e., 0 or 1)? True, which constrains
@@ -201,6 +204,41 @@ You can construct mixed-integer programs by creating variables with the attribut
 <span class="n">constr2</span> <span class="o">=</span> <span class="p">(</span><span class="n">expr2</span> <span class="o">==</span> <span class="n">Z</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="complex-valued-expressions">
+<h2>Complex valued expressions<a class="headerlink" href="#complex-valued-expressions" title="Permalink to this headline">¶</a></h2>
+<p>By default variables and parameters are real valued.
+Complex valued variables and parameters can be created by setting the attribute <code class="docutils literal"><span class="pre">complex=True</span></code>.
+Similarly, purely imaginary variables and parameters can be created by setting the attributes <code class="docutils literal"><span class="pre">imag=True</span></code>.
+Expressions containing complex variables, parameters, or constants may be complex valued.
+The functions <code class="docutils literal"><span class="pre">is_real</span></code>, <code class="docutils literal"><span class="pre">is_complex</span></code>, and <code class="docutils literal"><span class="pre">is_imag</span></code> return whether an expression is purely real, complex, or purely imaginary, respectively.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A complex valued variable.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="nb">complex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># A purely imaginary parameter.</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">imag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;p.is_imag() = &quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">is_imag</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;(x + 2).is_real() = &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">is_real</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">is_imag</span><span class="p">()</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">is_real</span><span class="p">()</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>The top-level expressions in the problem objective and inequality constraints must be real valued,
+but subexpressions may be complex.
+Arithmetic and all linear atoms are defined for complex expressions.
+The nonlinear atoms <code class="docutils literal"><span class="pre">abs</span></code> and all norms except <code class="docutils literal"><span class="pre">norm(X,</span> <span class="pre">p)</span></code> for <code class="docutils literal"><span class="pre">p</span> <span class="pre">&lt;</span> <span class="pre">1</span></code> are also defined for complex expressions.
+All atoms whose domain is symmetric matrices are defined for Hermitian matrices.
+Similarly, the atoms <code class="docutils literal"><span class="pre">quad_form(x,</span> <span class="pre">P)</span></code> and <code class="docutils literal"><span class="pre">matrix_frac(x,</span> <span class="pre">P)</span></code> are defined for complex <code class="docutils literal"><span class="pre">x</span></code> and Hermitian <code class="docutils literal"><span class="pre">P</span></code>.
+Lastly, equality and postive semidefinite constraints are defined for complex expressions.</p>
+<p>The following additional atoms are provided for working with complex expressions:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">real(expr)</span></code> gives the real part of <code class="docutils literal"><span class="pre">expr</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">imag(expr)</span></code> gives the imaginary part of <code class="docutils literal"><span class="pre">expr</span></code> (i.e., <code class="docutils literal"><span class="pre">expr</span> <span class="pre">=</span> <span class="pre">real(expr)</span> <span class="pre">+</span> <span class="pre">1j*imag(expr)</span></code>).</li>
+<li><code class="docutils literal"><span class="pre">conj(expr)</span></code> gives the complex conjugate of <code class="docutils literal"><span class="pre">expr</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">expr.H</span></code> gives the Hermitian (conjugate) transpose of <code class="docutils literal"><span class="pre">expr</span></code>.</li>
+</ul>
 </div>
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
@@ -548,7 +586,8 @@ The code below shows how warm start can accelerate solving a sequence of related
 
 <span class="c1"># Construct the problem.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)))</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)),</span>
+                   <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
 
 <span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
@@ -779,6 +818,7 @@ The full set of reductions available is discussed in <a class="reference interna
 <li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#semidefinite-matrices">Semidefinite matrices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#mixed-integer-programs">Mixed-integer programs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#complex-valued-expressions">Complex valued expressions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#transforms">Transforms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#problem-arithmetic">Problem arithmetic</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#solve-method-options">Solve method options</a></li>

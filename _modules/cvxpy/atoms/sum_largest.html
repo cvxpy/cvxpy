@@ -80,7 +80,6 @@
         <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Second argument must be a positive integer.&quot;</span><span class="p">)</span>
 
-    <span class="nd">@Atom</span><span class="o">.</span><span class="n">numpy_numeric</span>
     <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the sum of the k largest entries of the matrix.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -140,39 +139,7 @@
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the parameter k.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        arg_objs : list</span>
-<span class="sd">            LinExpr for each argument.</span>
-<span class="sd">        shape : tuple</span>
-<span class="sd">            The shape of the resulting expression.</span>
-<span class="sd">        data :</span>
-<span class="sd">            Additional data required by the atom.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        tuple</span>
-<span class="sd">            (LinOp for objective, list of constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># min sum(t) + kq</span>
-        <span class="c1"># s.t. x &lt;= t + q</span>
-        <span class="c1">#      0 &lt;= t</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_const</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">sum_t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum_expr</span><span class="p">([</span><span class="n">sum_t</span><span class="p">,</span> <span class="n">lu</span><span class="o">.</span><span class="n">mul_expr</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))])</span>
-        <span class="n">prom_q</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_leq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum_expr</span><span class="p">([</span><span class="n">t</span><span class="p">,</span> <span class="n">prom_q</span><span class="p">])),</span>
-                  <span class="n">lu</span><span class="o">.</span><span class="n">create_geq</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span></div>
 </pre></div>
 
           </div>

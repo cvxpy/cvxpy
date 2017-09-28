@@ -63,10 +63,10 @@
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">pu</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="k">import</span> <span class="n">cvxtypes</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints.nonpos</span> <span class="k">import</span> <span class="n">NonPos</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="k">import</span> <span class="n">Constraint</span>
 
 
-<div class="viewcode-block" id="PSD"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.psd.PSD">[docs]</a><span class="k">class</span> <span class="nc">PSD</span><span class="p">(</span><span class="n">NonPos</span><span class="p">):</span>
+<div class="viewcode-block" id="PSD"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.psd.PSD">[docs]</a><span class="k">class</span> <span class="nc">PSD</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A constraint of the form :math:`\\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0`</span>
 
 <span class="sd">    Applying a ``PSD`` constraint to a two-dimensional expression ``X``</span>
@@ -99,7 +99,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Non-square matrix in positive definite constraint.&quot;</span>
             <span class="p">)</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">constr_id</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">expr</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> &gt;&gt; 0&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
