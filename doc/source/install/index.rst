@@ -14,109 +14,22 @@ CVXPY supports both Python 2 and Python 3 on OS X and Linux.
 
    ::
 
-      conda install -c cvxgrp cvxpy
+      conda install numpy scipy pip
+      conda install -c cvxgrp ecos scs multiprocess 
 
-3. Test the installation with ``nose``.
+3. Clone the `CVXPY git repository`_.
+4. Navigate to the top-level of the cloned directory and run
+
+   ::
+
+       python setup.py install
+
+5. Test the installation with ``nose``.
 
   ::
 
        conda install nose
        nosetests cvxpy
-
-Windows
--------
-
-There are two ways to install CVXPY on Windows.
-One method uses Python(x,y), while the other uses Anaconda.
-Installation with Python(x,y) is less likely to have problems.
-Both installation methods use Python 2.
-
-Windows with Python(x,y)
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-1. If you have Python installed already, it's probably a good idea to remove it first.
-If you uninstall Anaconda, you may need to take `extra steps to remove all traces of the Anaconda install <http://stackoverflow.com/questions/15828294/problems-in-fully-uninstalling-python-2-7-from-windows-7>`_.
-
-2. Download the `latest version of Python(x,y) <https://python-xy.github.io/downloads.html>`_.
-
-3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
-
-  .. image:: files/windows1.png
-      :scale: 100%
-
-  .. image:: files/windows2.png
-      :scale: 49%
-
-4. To test the CVXPY installation,
-open Python(x,y) and launch the interactive console (highlighted button in the picture).
-This will bring up a console.
-
-  .. image:: files/windows3.png
-      :scale: 100%
-
-5. From the console, run ``nosetests cvxpy``.
-If all but one of the tests pass, your installation was successful.
-
-
-Windows with Anaconda
-^^^^^^^^^^^^^^^^^^^^^
-
-1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_. You must use the Python 2 version.
-
-2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
-
-3. Install SCS from the Anaconda prompt by running the following command:
-
-  ::
-
-      conda install -c https://conda.anaconda.org/omnia scs
-
-4. Install CVXPY from the Anaconda prompt by running the following command:
-
-  ::
-
-      pip install cvxpy
-
-5. From the console, run ``nosetests cvxpy``.
-If all the tests pass, your installation was successful.
-
-
-Other Platforms
----------------
-
-The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
-
-Install from source
--------------------
-
-CVXPY has the following dependencies:
-
-* Python 2.7 or Python 3.4
-* `setuptools`_ >= 1.4
-* `toolz`_
-* `six <https://pythonhosted.org/six/>`_
-* `fastcache <https://github.com/pbrady/fastcache>`_
-* `multiprocess`_
-* `ECOS`_ >= 2
-* `SCS`_ >= 1.1.3
-* `NumPy`_ >= 1.8
-* `SciPy`_ >= 0.15
-* `CVXcanon`_ >= 0.0.22
-
-To test the CVXPY installation, you additionally need `Nose`_.
-
-CVXPY automatically installs `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
-`multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually.
-You may also wish to install `Swig`_ to build `CVXcanon`_ from source.
-Once you’ve installed
-`NumPy`_ and `SciPy`_, installing CVXPY from source is simple:
-
-1. Clone the `CVXPY git repository`_.
-2. Navigate to the top-level of the cloned directory and run
-
-   ::
-
-       python setup.py install
 
 Install with CVXOPT support
 ---------------------------
