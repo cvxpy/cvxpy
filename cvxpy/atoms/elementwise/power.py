@@ -274,9 +274,6 @@ class power(Elementwise):
         else:
             return []
 
-    def validate_arguments(self):
-        pass
-
     def get_data(self):
         return [self.p, self.w]
 

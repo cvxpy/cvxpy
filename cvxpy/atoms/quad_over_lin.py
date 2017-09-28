@@ -105,6 +105,7 @@ class quad_over_lin(Atom):
         """
         if not self.args[1].is_scalar():
             raise ValueError("The second argument to quad_over_lin must be a scalar.")
+        super(quad_over_lin, self).validate_arguments()
 
     def is_quadratic(self):
         """Quadratic if x is affine and y is constant.

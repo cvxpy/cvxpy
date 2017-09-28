@@ -43,7 +43,7 @@ class NonPos(Constraint):
     """
     def __init__(self, expr, constr_id=None):
         if expr.is_complex():
-            raise ValueError("Inequality constraints cannot be imaginary.")
+            raise ValueError("Inequality constraints cannot be complex.")
         super(NonPos, self).__init__([expr], constr_id)
 
     def name(self):

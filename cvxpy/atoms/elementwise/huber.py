@@ -94,6 +94,7 @@ class huber(Elementwise):
         """
         if not (self.M.is_nonneg() and self.M.is_constant() and self.M.is_scalar()):
             raise ValueError("M must be a non-negative scalar constant.")
+        super(huber, self).validate_arguments()
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

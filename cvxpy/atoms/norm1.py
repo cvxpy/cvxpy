@@ -24,6 +24,7 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class norm1(AxisAtom):
+    _allow_complex = True
 
     def numeric(self, values):
         """Returns the one norm of x.

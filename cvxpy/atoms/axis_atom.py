@@ -59,6 +59,7 @@ class AxisAtom(Atom):
         """
         if self.axis is not None and self.axis > self.args[0].ndim:
             raise ValueError("Invalid argument for axis.")
+        super(AxisAtom, self).validate_arguments()
 
     def _axis_grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

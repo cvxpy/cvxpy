@@ -37,6 +37,7 @@ class sum_largest(Atom):
         """
         if int(self.k) != self.k or self.k <= 0:
             raise ValueError("Second argument must be a positive integer.")
+        super(sum_largest, self).validate_arguments()
 
     def numeric(self, values):
         """Returns the sum of the k largest entries of the matrix.

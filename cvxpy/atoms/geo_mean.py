@@ -230,7 +230,6 @@ class geo_mean(Atom):
         self.cone_num = self.cone_lb + self.cone_num_over
 
     # Returns the (weighted) geometric mean of the elements of x.
-    @Atom.numpy_numeric
     def numeric(self, values):
         values = np.array(values[0]).flatten()
         val = 1.0
@@ -304,11 +303,6 @@ class geo_mean(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    def validate_arguments(self):
-        # since correctly validating arguments with this function is tricky,
-        # we do it in __init__ instead.
-        pass
 
     def get_data(self):
         return [self.w, self.w_dyad, self.tree]

@@ -45,7 +45,7 @@ class Constant(Leaf):
         else:
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
-        self._complex = self._imag = None
+        self._imag = None
         self._nonneg = self._nonpos = None
         self._symm = None
         self._herm = None
@@ -122,12 +122,11 @@ class Constant(Leaf):
             self._compute_attr()
         return self._imag
 
+    @clru_cache(maxsize=100)
     def is_complex(self):
         """Is the Leaf complex valued?
         """
-        if self._complex is None:
-            self._compute_attr()
-        return self._complex
+        return np.iscomplexobj(self.value)
 
     @clru_cache(maxsize=100)
     def is_symmetric(self):
@@ -160,12 +159,11 @@ class Constant(Leaf):
         """
         # Set DCP attributes.
         is_real, is_imag = intf.is_complex(self.value)
-        if is_imag:
+        if self.is_complex():
             is_nonneg = is_nonpos = False
         else:
             is_nonneg, is_nonpos = intf.sign(self.value)
         self._imag = (is_imag and not is_real)
-        self._complex = np.iscomplexobj(self.value)
         self._nonpos = is_nonpos
         self._nonneg = is_nonneg
 

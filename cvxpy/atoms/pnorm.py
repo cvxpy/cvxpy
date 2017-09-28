@@ -110,6 +110,7 @@ class Pnorm(AxisAtom):
     Expression
         An Expression representing the norm.
     """
+    _allow_complex = True
 
     def __init__(self, x, p=2, axis=None, keepdims=False, max_denom=1024):
         if p < 0:
@@ -152,6 +153,8 @@ class Pnorm(AxisAtom):
         if self.axis is not None and self.p != 2:
             raise ValueError(
                 "The axis parameter is only supported for p=2.")
+        if self.p < 1 and self.args[0].is_complex():
+            raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

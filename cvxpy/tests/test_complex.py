@@ -398,4 +398,42 @@ class TestComplex(BaseTest):
         x = Variable(complex=True)
         with self.assertRaises(Exception) as cm:
             (x >= 0)
-        self.assertEqual(str(cm.exception), "Inequality constraints cannot be imaginary.")
+        self.assertEqual(str(cm.exception), "Inequality constraints cannot be complex.")
+
+        with self.assertRaises(Exception) as cm:
+            cvx.quad_over_lin(x, x)
+        self.assertEqual(str(cm.exception), "Arguments to quad_over_lin cannot be complex.")
+
+        with self.assertRaises(Exception) as cm:
+            cvx.sum_largest(x, 2)
+        self.assertEqual(str(cm.exception), "Arguments to sum_largest cannot be complex.")
+
+        x = Variable(2, complex=True)
+        for atom in [cvx.geo_mean, cvx.log_sum_exp, cvx.max,
+                     cvx.entr, cvx.exp, cvx.huber,
+                     cvx.log, cvx.log1p, cvx.logistic]:
+            name = atom.__name__
+            with self.assertRaises(Exception) as cm:
+                print(name)
+                atom(x)
+            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+
+        x = Variable(2, complex=True)
+        for atom in [cvx.maximum, cvx.kl_div]:
+            name = atom.__name__
+            with self.assertRaises(Exception) as cm:
+                print(name)
+                atom(x, x)
+            self.assertEqual(str(cm.exception), "Arguments to %s cannot be complex." % name)
+
+        x = Variable(2, complex=True)
+        for atom in [cvx.inv_pos, cvx.sqrt, lambda x: cvx.power(x, .2)]:
+            with self.assertRaises(Exception) as cm:
+                atom(x)
+            self.assertEqual(str(cm.exception), "Arguments to power cannot be complex.")
+
+        x = Variable(2, complex=True)
+        for atom in [cvx.harmonic_mean, lambda x: cvx.pnorm(x, .2)]:
+            with self.assertRaises(Exception) as cm:
+                atom(x)
+            self.assertEqual(str(cm.exception), "pnorm(x, p) cannot have x complex for p < 1.")

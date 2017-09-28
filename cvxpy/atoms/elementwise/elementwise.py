@@ -40,6 +40,7 @@ class Elementwise(Atom):
         or can be promoted.
         """
         u.shape.sum_shapes([arg.shape for arg in self.args])
+        super(Elementwise, self).validate_arguments()
 
     def is_symmetric(self):
         """Is the expression symmetric?

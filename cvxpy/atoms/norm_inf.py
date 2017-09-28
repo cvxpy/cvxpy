@@ -23,6 +23,7 @@ from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class norm_inf(AxisAtom):
+    _allow_complex = True
 
     def numeric(self, values):
         """Returns the one norm of x.

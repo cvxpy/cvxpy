@@ -25,6 +25,7 @@ import numpy as np
 
 class sigma_max(Atom):
     """ Maximum singular value. """
+    _allow_complex = True
 
     def __init__(self, A):
         super(sigma_max, self).__init__(A)

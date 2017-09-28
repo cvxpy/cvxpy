@@ -27,6 +27,7 @@ from cvxpy.atoms.quad_form import QuadForm
 
 class MatrixFrac(Atom):
     """ tr X.T*P^-1*X """
+    _allow_complex = True
 
     def __init__(self, X, P):
         super(MatrixFrac, self).__init__(X, P)

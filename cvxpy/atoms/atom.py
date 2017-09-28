@@ -30,6 +30,7 @@ from fastcache import clru_cache
 class Atom(Expression):
     """ Abstract base class for atoms. """
     __metaclass__ = abc.ABCMeta
+    _allow_complex = False
     # args are the expressions passed into the Atom constructor.
 
     def __init__(self, *args):
@@ -58,7 +59,10 @@ class Atom(Expression):
     def validate_arguments(self):
         """Raises an error if the arguments are invalid.
         """
-        pass
+        if not self._allow_complex and any([arg.is_complex() for arg in self.args]):
+            raise ValueError(
+                "Arguments to %s cannot be complex." % self.__class__.__name__
+            )
 
     @abc.abstractmethod
     def shape_from_args(self):

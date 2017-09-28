@@ -33,6 +33,7 @@ class CvxPyDomainError(Exception):
 
 
 class QuadForm(Atom):
+    _allow_complex = True
 
     def __init__(self, x, P):
         super(QuadForm, self).__init__(x, P)

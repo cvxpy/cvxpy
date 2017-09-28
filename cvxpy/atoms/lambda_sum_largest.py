@@ -25,6 +25,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 class lambda_sum_largest(lambda_max):
     """Sum of the largest k eigenvalues.
     """
+    _allow_complex = True
 
     def __init__(self, X, k):
         self.k = k

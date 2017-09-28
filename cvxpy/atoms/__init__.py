@@ -106,6 +106,7 @@ EXP_ATOMS = [
 
 PSD_ATOMS = [
     lambda_max,
+    lambda_sum_largest,
     log_det,
     MatrixFrac,
     normNuc,

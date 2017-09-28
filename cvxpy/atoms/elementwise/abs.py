@@ -24,6 +24,7 @@ import numpy as np
 
 class abs(Elementwise):
     """ Elementwise absolute value """
+    _allow_complex = True
 
     def __init__(self, x):
         super(abs, self).__init__(x)

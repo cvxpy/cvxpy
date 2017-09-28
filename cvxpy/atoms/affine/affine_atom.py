@@ -30,6 +30,7 @@ import scipy.sparse as sp
 class AffAtom(Atom):
     """ Abstract base class for affine atoms. """
     __metaclass__ = abc.ABCMeta
+    _allow_complex = True
 
     def sign_from_args(self):
         """By default, the sign is the most general of all the argument signs.
