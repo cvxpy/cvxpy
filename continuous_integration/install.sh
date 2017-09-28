@@ -30,13 +30,13 @@ if [[ "$DISTRIB" == "conda" ]]; then
     # provided versions
     if [[ "$INSTALL_GLPK" == "true" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
-              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     else
         conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
-              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION ecos
-        conda install -c cvxgrp --yes scs multiprocess cvxcanon
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     fi
     source activate testenv
+    conda install -c cvxgrp --yes ecos scs multiprocess
     pip install flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then

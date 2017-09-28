@@ -71,6 +71,8 @@ The full constructor for Leaf (the parent class of Variable and Parameter) is gi
     :type nonpos: bool
     :param symmetric: Is the variable constrained to be symmetric?
     :type symmetric: bool
+    :param hermitian: Is the variable constrained to be Hermitian?
+    :type hermitian: bool
     :param diag: Is the variable constrained to be diagonal?
     :type diag: bool
     :param complex: Is the variable complex valued?
