@@ -259,12 +259,6 @@ class TestComplex(BaseTest):
         val = np.ones((2, 2))
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
-    def test_constraints(self):
-        """Test constraints with complex values.
-        """
-        # TODO
-        pass
-
     def test_matrix_norms(self):
         """Test matrix norms.
         """
@@ -383,5 +377,25 @@ class TestComplex(BaseTest):
     def test_hermitian(self):
         """Test Hermitian variables.
         """
-        # TODO
-        pass
+        X = Variable((2, 2), hermitian=True)
+        prob = Problem(cvx.Minimize(cvx.imag(X[1,0])),
+                       [X[0, 0] == 2, X[1, 1] == 3, X[0,1] == 1 +1j])
+        prob.solve()
+        self.assertItemsAlmostEqual(X.value, [2, 1-1j, 1+1j, 3])
+
+    def test_psd(self):
+        """Test Hermitian variables.
+        """
+        X = Variable((2, 2), hermitian=True)
+        prob = Problem(cvx.Minimize(cvx.imag(X[1,0])),
+                       [X >> 0, X[0,0] == -1])
+        prob.solve()
+        assert prob.status is cvx.INFEASIBLE
+
+    def test_validation(self):
+        """Test that complex arguments are rejected.
+        """
+        x = Variable(complex=True)
+        with self.assertRaises(Exception) as cm:
+            (x >= 0)
+        self.assertEqual(str(cm.exception), "Inequality constraints cannot be imaginary.")

@@ -61,7 +61,6 @@ class ExpCone(NonlinearConstraint):
         self.x = x
         self.y = y
         self.z = z
-        self.shape = self.x.shape
         super(ExpCone, self).__init__(self._solver_hook,
                                       [self.x, self.y, self.z],
                                       constr_id)

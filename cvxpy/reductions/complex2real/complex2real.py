@@ -38,14 +38,15 @@ class Complex2Real(Reduction):
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
+        leaf_map = {}
         real_obj, imag_obj = self.canonicalize_tree(
-            problem.objective, inverse_data.real2imag)
+            problem.objective, inverse_data.real2imag, leaf_map)
         assert imag_obj is None
 
         constrs = []
         for constraint in problem.constraints:
             real_constr, imag_constr = self.canonicalize_tree(
-                constraint, inverse_data.real2imag)
+                constraint, inverse_data.real2imag, leaf_map)
             if real_constr is not None:
                 constrs.append(real_constr)
             if imag_constr is not None:
@@ -65,6 +66,11 @@ class Complex2Real(Reduction):
                 elif var.is_imag():
                     imag_id = inverse_data.real2imag[vid]
                     pvars[vid] = 1j*solution.primal_vars[imag_id]
+                elif var.is_complex() and var.is_hermitian():
+                    imag_id = inverse_data.real2imag[vid]
+                    imag_val = solution.primal_vars[imag_id]
+                    pvars[vid] = solution.primal_vars[vid] + \
+                        1j*(imag_val - imag_val.T)/2
                 elif var.is_complex():
                     imag_id = inverse_data.real2imag[vid]
                     pvars[vid] = solution.primal_vars[vid] + \
@@ -82,7 +88,7 @@ class Complex2Real(Reduction):
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 
-    def canonicalize_tree(self, expr, real2imag):
+    def canonicalize_tree(self, expr, real2imag, leaf_map):
         # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
             return NotImplemented
@@ -90,13 +96,15 @@ class Complex2Real(Reduction):
             real_args = []
             imag_args = []
             for arg in expr.args:
-                real_arg, imag_arg = self.canonicalize_tree(arg, real2imag)
+                real_arg, imag_arg = self.canonicalize_tree(arg, real2imag, leaf_map)
                 real_args.append(real_arg)
                 imag_args.append(imag_arg)
-            real_out, imag_out = self.canonicalize_expr(expr, real_args, imag_args, real2imag)
+            real_out, imag_out = self.canonicalize_expr(expr, real_args,
+                                                        imag_args, real2imag,
+                                                        leaf_map)
         return real_out, imag_out
 
-    def canonicalize_expr(self, expr, real_args, imag_args, real2imag):
+    def canonicalize_expr(self, expr, real_args, imag_args, real2imag, leaf_map):
         if isinstance(expr, Expression) and not expr.variables():
             # Parameterized expressions are evaluated in a subsequent
             # reduction.
@@ -107,7 +115,13 @@ class Complex2Real(Reduction):
                 return elim_cplx_methods[Constant](Constant(expr.value),
                                                    real_args, imag_args, real2imag)
         elif type(expr) in elim_cplx_methods:
-            return elim_cplx_methods[type(expr)](expr, real_args, imag_args, real2imag)
+            # Only canonicalize a variable/constant/parameter once.
+            if len(expr.args) == 0 and expr in leaf_map:
+                return leaf_map[expr]
+            result = elim_cplx_methods[type(expr)](expr, real_args, imag_args, real2imag)
+            if len(expr.args) == 0:
+                leaf_map[expr] = result
+            return result
         else:
             assert all([v is None for v in imag_args])
             return expr.copy(real_args), None

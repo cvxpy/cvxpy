@@ -37,6 +37,7 @@ from cvxpy.atoms.affine.binary_operators import (MulExpression,
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.zero import Zero
+from cvxpy.constraints.psd import PSD
 from abs_canon import abs_canon
 from aff_canon import (separable_canon, real_canon,
                        imag_canon, conj_canon, binary_canon)
@@ -76,6 +77,7 @@ CANON_METHODS = {
     Variable: variable_canon,
     Constant: constant_canon,
     Zero: zero_canon,
+    PSD: hermitian_canon,
 
     abs: abs_canon,
     norm1: pnorm_canon,

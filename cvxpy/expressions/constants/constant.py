@@ -165,7 +165,7 @@ class Constant(Leaf):
         else:
             is_nonneg, is_nonpos = intf.sign(self.value)
         self._imag = (is_imag and not is_real)
-        self._complex = is_imag
+        self._complex = np.iscomplexobj(self.value)
         self._nonpos = is_nonpos
         self._nonneg = is_nonneg
 

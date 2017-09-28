@@ -52,6 +52,27 @@ class Constraint(u.Canonical):
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
         super(Constraint, self).__init__()
 
+    def __str__(self):
+        """Returns a string showing the mathematical constraint.
+        """
+        return self.name()
+
+    def __repr__(self):
+        """Returns a string with information about the constraint.
+        """
+        return "%s(%s)" % (self.__class__.__name__,
+                           repr(self.args[0]))
+
+    @property
+    def shape(self):
+        """int : The shape of the constrained expression."""
+        return self.args[0].shape
+
+    @property
+    def size(self):
+        """int : The size of the constrained expression."""
+        return self.args[0].size
+
     def is_real(self):
         """Is the Leaf real valued?
         """
@@ -153,15 +174,52 @@ class Constraint(u.Canonical):
         """
         return self.constr_id
 
+    def get_data(self):
+        """Data needed to copy.
+        """
+        return [self.id]
+
+    def __nonzero__(self):
+        """Raises an exception when called.
+
+        Python 2 version.
+
+        Called when evaluating the truth value of the constraint.
+        Raising an error here prevents writing chained constraints.
+        """
+        return self._chain_constraints()
+
+    def _chain_constraints(self):
+        """Raises an error due to chained constraints.
+        """
+        raise Exception(
+            ("Cannot evaluate the truth value of a constraint or "
+             "chain constraints, e.g., 1 >= x >= 0.")
+        )
+
+    def __bool__(self):
+        """Raises an exception when called.
+
+        Python 3 version.
+
+        Called when evaluating the truth value of the constraint.
+        Raising an error here prevents writing chained constraints.
+        """
+        return self._chain_constraints()
+
+    # The value of the dual variable.
+    @property
+    def dual_value(self):
+        """NumPy.ndarray : The value of the dual variable.
+        """
+        return self.dual_variables[0].value
+
+    # TODO(akshayka): Rename to save_dual_value to avoid collision with
+    # value as defined above.
     def save_value(self, value):
         """Save the value of the dual variable for the constraint's parent.
 
         Args:
             value: The value of the dual variable.
         """
-        pass
-
-    def get_data(self):
-        """Data needed to copy.
-        """
-        return [self.id]
+        self.dual_variables[0].save_value(value)

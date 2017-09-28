@@ -43,6 +43,8 @@ setup(
               'cvxpy.problems.problem_data',
               'cvxpy.problems.solvers',
               'cvxpy.reductions',
+              'cvxpy.reductions.complex2real',
+              'cvxpy.reductions.complex2real.atom_canonicalizers',
               'cvxpy.reductions.dcp2cone',
               'cvxpy.reductions.dcp2cone.atom_canonicalizers',
               'cvxpy.reductions.eliminate_pwl',

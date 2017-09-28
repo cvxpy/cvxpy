@@ -659,17 +659,20 @@ std::vector<Matrix> get_rmul_mat(LinOp &lin) {
 	Matrix constant = get_constant_data(lin, false);
   // Interpret as row or column vector as needed.
   int arg_cols;
+  int result_rows;
   if (lin.args[0]->size.size() == 1) {
     arg_cols = lin.args[0]->size[0];
+    result_rows = 1;
   } else {
     arg_cols = lin.args[0]->size[1];
+    result_rows = lin.args[0]->size[0];
   }
   if (lin.data_ndim == 1 && arg_cols != constant.rows()) {
     constant = constant.transpose();
   }
 	int rows = constant.rows();
 	int cols = constant.cols();
-	int n = (lin.size.size() > 0) ? lin.size[0] : 1;
+	int n = (lin.size.size() > 0) ? result_rows : 1;
 
 	Matrix coeffs(cols * n, rows * n);
 	std::vector<Triplet> tripletList;

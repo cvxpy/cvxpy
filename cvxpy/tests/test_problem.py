@@ -1175,6 +1175,12 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 9)
 
+        A = numpy.ones((5, 10))
+        x = Variable(5)
+        p = cvx.Problem(cvx.Minimize(cvx.sum(x*A)), [x >= 0])
+        result = p.solve()
+        self.assertAlmostEqual(result, 0)
+
     # Test redundant constraints in cvxopt.
     def test_redundant_constraints(self):
         obj = cvx.Minimize(cvx.sum(self.x))

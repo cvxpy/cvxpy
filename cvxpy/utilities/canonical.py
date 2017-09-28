@@ -50,10 +50,7 @@ class Canonical(object):
         for arg in self.args:
             var_list += arg.variables()
         # Remove duplicates.
-        seen = set()
-
-        # never use list as a variable name
-        return [seen.add(obj.id) or obj for obj in var_list if obj.id not in seen]
+        return list(set(var_list))
 
     def parameters(self):
         """Returns all the parameters present in the arguments.

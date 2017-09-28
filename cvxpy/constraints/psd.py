@@ -21,10 +21,10 @@ import cvxpy.settings as s
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities.performance_utils as pu
 from cvxpy.expressions import cvxtypes
-from cvxpy.constraints.nonpos import NonPos
+from cvxpy.constraints.constraint import Constraint
 
 
-class PSD(NonPos):
+class PSD(Constraint):
     """A constraint of the form :math:`\\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0`
 
     Applying a ``PSD`` constraint to a two-dimensional expression ``X``
@@ -57,7 +57,7 @@ class PSD(NonPos):
             raise ValueError(
                 "Non-square matrix in positive definite constraint."
             )
-        super(PSD, self).__init__(expr, constr_id)
+        super(PSD, self).__init__([expr], constr_id)
 
     def name(self):
         return "%s >> 0" % self.args[0]

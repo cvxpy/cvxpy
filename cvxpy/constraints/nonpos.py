@@ -42,59 +42,12 @@ class NonPos(Constraint):
         A unique id for the constraint.
     """
     def __init__(self, expr, constr_id=None):
+        if expr.is_complex():
+            raise ValueError("Inequality constraints cannot be imaginary.")
         super(NonPos, self).__init__([expr], constr_id)
 
     def name(self):
         return "%s <= 0" % self.args[0]
-
-    def __str__(self):
-        """Returns a string showing the mathematical constraint.
-        """
-        return self.name()
-
-    def __repr__(self):
-        """Returns a string with information about the constraint.
-        """
-        return "%s(%s)" % (self.__class__.__name__,
-                           repr(self.args[0]))
-
-    def __nonzero__(self):
-        """Raises an exception when called.
-
-        Python 2 version.
-
-        Called when evaluating the truth value of the constraint.
-        Raising an error here prevents writing chained constraints.
-        """
-        return self._chain_constraints()
-
-    def _chain_constraints(self):
-        """Raises an error due to chained constraints.
-        """
-        raise Exception(
-            ("Cannot evaluate the truth value of a constraint or "
-             "chain constraints, e.g., 1 >= x >= 0.")
-        )
-
-    def __bool__(self):
-        """Raises an exception when called.
-
-        Python 3 version.
-
-        Called when evaluating the truth value of the constraint.
-        Raising an error here prevents writing chained constraints.
-        """
-        return self._chain_constraints()
-
-    @property
-    def shape(self):
-        """int : The shape of the constrained expression."""
-        return self.args[0].shape
-
-    @property
-    def size(self):
-        """int : The size of the constrained expression."""
-        return self.args[0].size
 
     def is_dcp(self):
         """A non-positive constraint is DCP if its argument is convex."""
@@ -126,20 +79,3 @@ class NonPos(Constraint):
         if self.expr.value is None:
             return None
         return np.maximum(self.expr.value, 0)
-
-    # The value of the dual variable.
-    @property
-    def dual_value(self):
-        """NumPy.ndarray : The value of the dual variable.
-        """
-        return self.dual_variables[0].value
-
-    # TODO(akshayka): Rename to save_dual_value to avoid collision with
-    # value as defined above.
-    def save_value(self, value):
-        """Save the value of the dual variable for the constraint's parent.
-
-        Args:
-            value: The value of the dual variable.
-        """
-        self.dual_variables[0].save_value(value)
