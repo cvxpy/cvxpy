@@ -8,7 +8,7 @@ Welcome to CVXPY
 
 **Join the** `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_ **and** `Gitter chat <https://gitter.im/cvxgrp/cvxpy>`_ **for the best CVXPY support!**
 
-**Try the new, improved CVXPY 1.0, available** `here. <https://cvxgrp.github.io/cvxpy/install/index.html>`_ **Please report any bugs you find!**
+**Try the new, improved CVXPY 1.0, available** `here. <https://cvxgrp.github.io/cvxpy/index.html>`_ **Please report any bugs you find!**
 
 CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
