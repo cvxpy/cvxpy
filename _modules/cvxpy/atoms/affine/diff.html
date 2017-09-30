@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.affine.diff &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -40,30 +43,11 @@
           <div class="body" role="main">
             
   <h1>Source code for cvxpy.atoms.affine.diff</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
-
-<span class="sd">This file is part of CVXPY.</span>
-
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
-
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
+<span></span><span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
 
 
 <div class="viewcode-block" id="diff"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.diff.diff">[docs]</a><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Vector of kth order differences.</span>
+    <span class="sd">&quot;&quot;&quot; Vector of kth order differences.</span>
 
 <span class="sd">    Takes in a vector of length n and returns a vector</span>
 <span class="sd">    of length n-k of the kth order differences.</span>
@@ -79,20 +63,20 @@
 <span class="sd">    diff(x, 0) returns the vector x unchanged</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid axis given input dimensions.&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must have k &gt;= 0 and X must have &lt; k elements along axis&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must have k &gt;= 0 and X must have &lt; k elements along &quot;</span>
-                         <span class="s2">&quot;axis&quot;</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">x</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">x</span></div>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">d</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span></div>
 </pre></div>
 
           </div>
@@ -176,7 +160,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

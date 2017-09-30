@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.elementwise.neg &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -41,32 +44,29 @@
             
   <h1>Source code for cvxpy.atoms.elementwise.neg</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.elementwise.minimum</span> <span class="k">import</span> <span class="n">minimum</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.elementwise.min_elemwise</span> <span class="k">import</span> <span class="n">min_elemwise</span>
 
 
 <div class="viewcode-block" id="neg"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.atoms.elementwise.neg.neg">[docs]</a><span class="k">def</span> <span class="nf">neg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Alias for -minimum{x, 0}.</span>
+    <span class="sd">&quot;&quot;&quot; Alias for -min_elemwise{x, 0}.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="o">-</span><span class="n">minimum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="o">-</span><span class="n">min_elemwise</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -150,7 +150,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Entropy maximization &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -88,16 +91,16 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>     <span class="n">pcost</span>       <span class="n">dcost</span>       <span class="n">gap</span>    <span class="n">pres</span>   <span class="n">dres</span>
- <span class="mi">0</span><span class="p">:</span>  <span class="mf">0.0000e+00</span> <span class="o">-</span><span class="mf">7.5220e+00</span>  <span class="mf">2e+01</span>  <span class="mf">1e+00</span>  <span class="mf">1e+00</span>
- <span class="mi">1</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.0720e+00</span> <span class="o">-</span><span class="mf">5.9875e+00</span>  <span class="mf">2e+00</span>  <span class="mf">1e-01</span>  <span class="mf">2e-01</span>
- <span class="mi">2</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4688e+00</span> <span class="o">-</span><span class="mf">5.5885e+00</span>  <span class="mf">4e-01</span>  <span class="mf">2e-02</span>  <span class="mf">5e-02</span>
- <span class="mi">3</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4595e+00</span> <span class="o">-</span><span class="mf">5.4889e+00</span>  <span class="mf">5e-02</span>  <span class="mf">2e-03</span>  <span class="mf">2e-02</span>
- <span class="mi">4</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4763e+00</span> <span class="o">-</span><span class="mf">5.4816e+00</span>  <span class="mf">1e-02</span>  <span class="mf">3e-04</span>  <span class="mf">7e-03</span>
- <span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4804e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">1e-03</span>  <span class="mf">4e-05</span>  <span class="mf">2e-03</span>
- <span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">3e-05</span>  <span class="mf">1e-06</span>  <span class="mf">4e-04</span>
- <span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-07</span>  <span class="mf">1e-08</span>  <span class="mf">2e-05</span>
- <span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-09</span>  <span class="mf">1e-10</span>  <span class="mf">3e-07</span>
- <span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-11</span>  <span class="mf">1e-12</span>  <span class="mf">5e-09</span>
+ <span class="mi">0</span><span class="p">:</span>  <span class="mf">0.0000e+00</span> <span class="o">-</span><span class="mf">7.5220e+00</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>
+ <span class="mi">1</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.0720e+00</span> <span class="o">-</span><span class="mf">5.9875e+00</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>
+ <span class="mi">2</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4688e+00</span> <span class="o">-</span><span class="mf">5.5885e+00</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>
+ <span class="mi">3</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4595e+00</span> <span class="o">-</span><span class="mf">5.4889e+00</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>
+ <span class="mi">4</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4763e+00</span> <span class="o">-</span><span class="mf">5.4816e+00</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>
+ <span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4804e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>
+ <span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>
+ <span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>
+ <span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>
+ <span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">11</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>
 <span class="n">Optimal</span> <span class="n">solution</span> <span class="n">found</span><span class="o">.</span>
 
 <span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span><span class="p">:</span> <span class="mf">5.48090148635</span>
@@ -210,7 +213,7 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

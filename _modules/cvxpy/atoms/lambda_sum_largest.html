@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.lambda_sum_largest &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,71 +44,54 @@
             
   <h1>Source code for cvxpy.atoms.lambda_sum_largest</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">LA</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.variables</span> <span class="k">import</span> <span class="n">Semidef</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.lambda_max</span> <span class="k">import</span> <span class="n">lambda_max</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.sum_largest</span> <span class="k">import</span> <span class="n">sum_largest</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.trace</span> <span class="k">import</span> <span class="n">trace</span>
 
 
-<div class="viewcode-block" id="lambda_sum_largest"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_sum_largest.lambda_sum_largest">[docs]</a><span class="k">class</span> <span class="nc">lambda_sum_largest</span><span class="p">(</span><span class="n">lambda_max</span><span class="p">):</span>
+<div class="viewcode-block" id="lambda_sum_largest"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_sum_largest.lambda_sum_largest">[docs]</a><span class="k">def</span> <span class="nf">lambda_sum_largest</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Sum of the largest k eigenvalues.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;First argument must be a square matrix.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="n">k</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Second argument must be a positive integer.&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    S_k(X) denotes lambda_sum_largest(X, k)</span>
+<span class="sd">    t &gt;= k S_k(X - Z) + trace(Z), Z is PSD</span>
+<span class="sd">    implies</span>
+<span class="sd">    t &gt;= ks + trace(Z)</span>
+<span class="sd">    Z is PSD</span>
+<span class="sd">    sI &gt;= X - Z (PSD sense)</span>
+<span class="sd">    which implies</span>
+<span class="sd">    t &gt;= ks + trace(Z) &gt;= S_k(sI + Z) &gt;= S_k(X)</span>
+<span class="sd">    We use the fact that</span>
+<span class="sd">    S_k(X) = sup_{sets of k orthonormal vectors u_i}\sum_{i}u_i^T X u_i</span>
+<span class="sd">    and if Z &gt;= X in PSD sense then</span>
+<span class="sd">    \sum_{i}u_i^T Z u_i &gt;= \sum_{i}u_i^T X u_i</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">lambda_sum_largest</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Verify that the argument A is square.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;First argument must be a square matrix.&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Second argument must be a positive integer.&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the largest eigenvalue of A.</span>
-
-<span class="sd">        Requires that A be symmetric.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">eigs</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">sum_largest</span><span class="p">(</span><span class="n">eigs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
-
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the parameter k.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>
-
-<span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            values: A list of numeric values for the arguments.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            A list of SciPy CSC sparse matrices or None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+<span class="sd">    We have equality when s = lambda_k and Z diagonal</span>
+<span class="sd">    with Z_{ii} = (lambda_i - lambda_k)_+</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">Semidef</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">k</span><span class="o">*</span><span class="n">lambda_max</span><span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">Z</span><span class="p">)</span> <span class="o">+</span> <span class="n">trace</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -189,7 +175,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

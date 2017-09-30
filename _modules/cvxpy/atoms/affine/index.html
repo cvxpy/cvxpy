@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.affine.index &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -41,22 +44,19 @@
             
   <h1>Source code for cvxpy.atoms.affine.index</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.affine_atom</span> <span class="k">import</span> <span class="n">AffAtom</span>
@@ -69,61 +69,44 @@
 
 
 <div class="viewcode-block" id="index"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.index.index">[docs]</a><span class="k">class</span> <span class="nc">index</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Indexing/slicing into an Expression.</span>
+    <span class="sd">&quot;&quot;&quot; Indexing/slicing into a matrix. &quot;&quot;&quot;</span>
+    <span class="c1"># expr - the expression indexed/sliced into.</span>
+    <span class="c1"># key - the index/slicing key (i.e. expr[key[0],key[1]]).</span>
 
-<span class="sd">    CVXPY supports NumPy-like indexing semantics via the Expression</span>
-<span class="sd">    class&#39; overloading of the ``[]`` operator. This is a low-level class</span>
-<span class="sd">    constructed by that operator, and it should not be instantiated directly.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    expr : Expression</span>
-<span class="sd">        The expression indexed/sliced into.</span>
-<span class="sd">    key :</span>
-<span class="sd">        The index/slicing key (i.e. expr[key[0],key[1]]).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">orig_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="c1"># Format and validate key.</span>
-        <span class="k">if</span> <span class="n">orig_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span> <span class="o">=</span> <span class="n">key</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">ku</span><span class="o">.</span><span class="n">validate_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span> <span class="o">=</span> <span class="n">orig_key</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">ku</span><span class="o">.</span><span class="n">validate_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
     <span class="c1"># The string representation of the atom.</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># TODO string should be orig_key</span>
-        <span class="n">inner_str</span> <span class="o">=</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;, </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span> <span class="n">inner_str</span> <span class="o">%</span> <span class="n">ku</span><span class="o">.</span><span class="n">to_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="n">ku</span><span class="o">.</span><span class="n">to_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
+    <span class="c1"># Returns the index/slice into the given value.</span>
+    <span class="nd">@AffAtom</span><span class="o">.</span><span class="n">numpy_numeric</span>
     <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns the index/slice into the given value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">size_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the shape of the index expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">ku</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ku</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the (row slice, column slice).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Index/slice into the expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        arg_objs : list</span>
 <span class="sd">            LinExpr for each argument.</span>
-<span class="sd">        shape : tuple</span>
-<span class="sd">            The shape of the resulting expression.</span>
+<span class="sd">        size : tuple</span>
+<span class="sd">            The size of the resulting expression.</span>
 <span class="sd">        data : tuple</span>
 <span class="sd">            A tuple of slices.</span>
 
@@ -132,7 +115,7 @@
 <span class="sd">        tuple</span>
 <span class="sd">            (LinOp, [constraints])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">[])</span>
 
     <span class="nd">@staticmethod</span>
@@ -152,14 +135,103 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
         <span class="c1"># Order the entries of expr and select them using key.</span>
-        <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-        <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">idx_mat</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">idx_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">idx_mat</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
         <span class="n">select_mat</span> <span class="o">=</span> <span class="n">idx_mat</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-        <span class="n">final_shape</span> <span class="o">=</span> <span class="n">select_mat</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">select_mat</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">final_size</span> <span class="o">=</span> <span class="n">select_mat</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Always cast 1d arrays as column vectors.</span>
+            <span class="n">final_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">select_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">select_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">select_mat</span><span class="p">,</span> <span class="n">select_mat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
         <span class="c1"># Select the chosen entries from expr.</span>
-        <span class="n">identity</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">identity</span><span class="p">[</span><span class="n">select_vec</span><span class="p">]</span><span class="o">*</span><span class="n">vec</span><span class="p">(</span><span class="n">expr</span><span class="p">),</span> <span class="n">final_shape</span><span class="p">)</span></div>
+        <span class="n">identity</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">expr</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reshape</span><span class="p">(</span><span class="n">identity</span><span class="p">[</span><span class="n">select_vec</span><span class="p">]</span><span class="o">*</span><span class="n">vec</span><span class="p">(</span><span class="n">expr</span><span class="p">),</span> <span class="o">*</span><span class="n">final_size</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_index</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a canonicalized index into a matrix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        matrix : LinOp</span>
+<span class="sd">            The matrix to be indexed.</span>
+<span class="sd">        constraints : list</span>
+<span class="sd">            A list of constraints to append to.</span>
+<span class="sd">        row : int</span>
+<span class="sd">            The row index.</span>
+<span class="sd">        col : int</span>
+<span class="sd">            The column index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">ku</span><span class="o">.</span><span class="n">index_to_slice</span><span class="p">(</span><span class="n">row</span><span class="p">),</span>
+               <span class="n">ku</span><span class="o">.</span><span class="n">index_to_slice</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
+        <span class="n">idx</span><span class="p">,</span> <span class="n">idx_constr</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">graph_implementation</span><span class="p">([</span><span class="n">matrix</span><span class="p">],</span>
+                                                     <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                                                     <span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">constraints</span> <span class="o">+=</span> <span class="n">idx_constr</span>
+        <span class="k">return</span> <span class="n">idx</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_slice</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">row_start</span><span class="p">,</span> <span class="n">row_end</span><span class="p">,</span> <span class="n">col_start</span><span class="p">,</span> <span class="n">col_end</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets a slice from a matrix</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        matrix : LinOp</span>
+<span class="sd">            The matrix in the block equality.</span>
+<span class="sd">        constraints : list</span>
+<span class="sd">            A list of constraints to append to.</span>
+<span class="sd">        row_start : int</span>
+<span class="sd">            The first row of the matrix section.</span>
+<span class="sd">        row_end : int</span>
+<span class="sd">            The last row + 1 of the matrix section.</span>
+<span class="sd">        col_start : int</span>
+<span class="sd">            The first column of the matrix section.</span>
+<span class="sd">        col_end : int</span>
+<span class="sd">            The last column + 1 of the matrix section.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">row_start</span><span class="p">,</span> <span class="n">row_end</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+               <span class="nb">slice</span><span class="p">(</span><span class="n">col_start</span><span class="p">,</span> <span class="n">col_end</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">row_end</span> <span class="o">-</span> <span class="n">row_start</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">col_end</span> <span class="o">-</span> <span class="n">col_start</span>
+        <span class="n">slc</span><span class="p">,</span> <span class="n">idx_constr</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">graph_implementation</span><span class="p">([</span><span class="n">matrix</span><span class="p">],</span>
+                                                     <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span>
+                                                     <span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">constraints</span> <span class="o">+=</span> <span class="n">idx_constr</span>
+        <span class="k">return</span> <span class="n">slc</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">block_eq</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
+                 <span class="n">row_start</span><span class="p">,</span> <span class="n">row_end</span><span class="p">,</span> <span class="n">col_start</span><span class="p">,</span> <span class="n">col_end</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds an equality setting a section of the matrix equal to block.</span>
+
+<span class="sd">        Assumes block does not need to be promoted.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        matrix : LinOp</span>
+<span class="sd">            The matrix in the block equality.</span>
+<span class="sd">        block : LinOp</span>
+<span class="sd">            The block in the block equality.</span>
+<span class="sd">        constraints : list</span>
+<span class="sd">            A list of constraints to append to.</span>
+<span class="sd">        row_start : int</span>
+<span class="sd">            The first row of the matrix section.</span>
+<span class="sd">        row_end : int</span>
+<span class="sd">            The last row + 1 of the matrix section.</span>
+<span class="sd">        col_start : int</span>
+<span class="sd">            The first column of the matrix section.</span>
+<span class="sd">        col_end : int</span>
+<span class="sd">            The last column + 1 of the matrix section.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">row_start</span><span class="p">,</span> <span class="n">row_end</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+               <span class="nb">slice</span><span class="p">(</span><span class="n">col_start</span><span class="p">,</span> <span class="n">col_end</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">row_end</span> <span class="o">-</span> <span class="n">row_start</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">col_end</span> <span class="o">-</span> <span class="n">col_start</span>
+        <span class="k">assert</span> <span class="n">block</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="n">slc</span><span class="p">,</span> <span class="n">idx_constr</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">graph_implementation</span><span class="p">([</span><span class="n">matrix</span><span class="p">],</span>
+                                                     <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span>
+                                                     <span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_eq</span><span class="p">(</span><span class="n">slc</span><span class="p">,</span> <span class="n">block</span><span class="p">)]</span> <span class="o">+</span> <span class="n">idx_constr</span></div>
 </pre></div>
 
           </div>
@@ -243,7 +315,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

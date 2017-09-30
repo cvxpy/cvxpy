@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Expressions &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Problems" href="cvxpy.problems.html" />
@@ -48,7 +51,7 @@ tree is a collection of mathematical expressions linked together by one or more
 atoms. Expression trees are encoded as instances of the
 <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal"><span class="pre">Expression</span></code></a> class, and each
 <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">Leaf</span></code></a> in a tree is a
-<a class="reference internal" href="#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a>,
+<code class="xref py py-class docutils literal"><span class="pre">Variable</span></code>,
 <a class="reference internal" href="#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code></a>, or
 <code class="xref py py-class docutils literal"><span class="pre">Constant</span></code>.</p>
 <div class="contents local topic" id="contents">
@@ -67,156 +70,142 @@ atoms. Expression trees are encoded as instances of the
 <em class="property">class </em><code class="descclassname">cvxpy.expressions.expression.</code><code class="descname">Expression</code><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.utilities.canonical.Canonical</span></code></p>
 <p>A mathematical expression in a convex optimization problem.</p>
-<p>Overloads many operators to allow for convenient creation of compound
-expressions (e.g., the sum of two expressions) and constraints.</p>
 <dl class="attribute">
 <dt id="cvxpy.expressions.expression.Expression.T">
 <code class="descname">T</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.T" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Expression</em> – The transpose of the expression.</p>
+<dd><p>The transpose of an expression.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__add__">
 <code class="descname">__add__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__add__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__add__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Sum two expressions.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__div__">
 <code class="descname">__div__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__div__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__div__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : One expression divided by another.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__eq__">
 <code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__eq__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Zero : Creates an equality constraint <code class="docutils literal"><span class="pre">self</span> <span class="pre">==</span> <span class="pre">other</span></code>.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__ge__">
 <code class="descname">__ge__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__ge__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__ge__" title="Permalink to this definition">¶</a></dt>
-<dd><p>NonPos : Creates an inequality constraint.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__le__">
 <code class="descname">__le__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__le__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__le__" title="Permalink to this definition">¶</a></dt>
-<dd><p>NonPos : Creates an inequality constraint.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__lshift__">
 <code class="descname">__lshift__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__lshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__lshift__" title="Permalink to this definition">¶</a></dt>
-<dd><p>PSD : Creates a negative semidefinite inequality.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__matmul__">
 <code class="descname">__matmul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__matmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__matmul__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Matrix multiplication of two expressions.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__mul__">
 <code class="descname">__mul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__mul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__mul__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : The product of two expressions.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__pow__">
 <code class="descname">__pow__</code><span class="sig-paren">(</span><em>power</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__pow__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__pow__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raise expression to a power.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>power</strong> (<em>float</em>) – The power to which to raise the expression.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The expression raised to <code class="docutils literal"><span class="pre">power</span></code>.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></td>
-</tr>
-</tbody>
-</table>
+<dd><p>The power operator.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__radd__">
 <code class="descname">__radd__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__radd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__radd__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Sum two expressions.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rdiv__">
 <code class="descname">__rdiv__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rdiv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rdiv__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Called for Number / Expression.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rlshift__">
 <code class="descname">__rlshift__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rlshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rlshift__" title="Permalink to this definition">¶</a></dt>
-<dd><p>PSD : Creates a negative semidefinite inequality.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rmatmul__">
 <code class="descname">__rmatmul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rmatmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rmatmul__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Called for matrix &#64; Expression.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rmul__">
 <code class="descname">__rmul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rmul__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Called for Number * Expression.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rrshift__">
 <code class="descname">__rrshift__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rrshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rrshift__" title="Permalink to this definition">¶</a></dt>
-<dd><p>PSD : Creates a positive semidefinite inequality.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rshift__">
 <code class="descname">__rshift__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rshift__" title="Permalink to this definition">¶</a></dt>
-<dd><p>PSD : Creates a positive semidefinite inequality.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rsub__">
 <code class="descname">__rsub__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rsub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rsub__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : The difference of two expressions.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__rtruediv__">
 <code class="descname">__rtruediv__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rtruediv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rtruediv__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : Called for Number / Expression.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__sub__">
 <code class="descname">__sub__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__sub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__sub__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : The difference of two expressions.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__truediv__">
 <code class="descname">__truediv__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__truediv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__truediv__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expression : One expression divided by another.</p>
+<dd><p>A wrapped binary operator that can handle non-Expression arguments.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.expression.Expression.curvature">
 <code class="descname">curvature</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.curvature" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em> – The curvature of the expression.</p>
+<dd><p>Returns the curvature of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.expression.Expression.domain">
 <code class="descname">domain</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.domain" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list</em> – The constraints describing the closure of the region
+<dd><p>A list of constraints describing the closure of the region
 where the expression is finite.</p>
 </dd></dl>
 
@@ -229,10 +218,8 @@ where the expression is finite.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A map of variable to SciPy CSC sparse matrix; None if a variable
-value is missing.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A map of variable to SciPy CSC sparse matrix.
+None if a variable value is missing.</td>
 </tr>
 </tbody>
 </table>
@@ -265,29 +252,7 @@ value is missing.</td>
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.is_dcp">
 <code class="descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks whether the constraint is DCP.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the constraint is DCP, False otherwise.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.expressions.expression.Expression.is_nonneg">
-<code class="descname">is_nonneg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_nonneg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_nonneg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the expression positive?</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.expressions.expression.Expression.is_nonpos">
-<code class="descname">is_nonpos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_nonpos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_nonpos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the expression negative?</p>
+<dd><p>Is the expression DCP compliant? (i.e., no unknown curvatures).</p>
 </dd></dl>
 
 <dl class="method">
@@ -299,37 +264,33 @@ value is missing.</td>
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.name">
 <code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>str : The string representation of the expression.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.expression.Expression.ndim">
-<code class="descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.ndim" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.expression.Expression.shape">
-<code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em> – The expression dimensions.</p>
+<dd><p>Returns the string representation of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.expression.Expression.sign">
 <code class="descname">sign</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.sign" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em> – The sign of the expression.</p>
+<dd><p>Returns the sign of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.expression.Expression.size">
 <code class="descname">size</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of entries in the expression.</p>
+<dd><p>Returns the (row, col) dimensions of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.expression.Expression.value">
 <code class="descname">value</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.value" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>NumPy.ndarray or None</em> – The numeric value of the expression.</p>
+<dd><p>Returns the numeric value of the expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A numpy matrix or a scalar.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -339,74 +300,33 @@ value is missing.</td>
 <h2><a class="toc-backref" href="#id2">Leaf</a><a class="headerlink" href="#leaf" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.expressions.leaf.Leaf">
-<em class="property">class </em><code class="descclassname">cvxpy.expressions.leaf.</code><code class="descname">Leaf</code><span class="sig-paren">(</span><em>shape</em>, <em>value=None</em>, <em>nonneg=False</em>, <em>nonpos=False</em>, <em>complex=False</em>, <em>imag=False</em>, <em>symmetric=False</em>, <em>diag=False</em>, <em>PSD=False</em>, <em>NSD=False</em>, <em>hermitian=False</em>, <em>boolean=False</em>, <em>integer=False</em>, <em>sparsity=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.expressions.leaf.</code><code class="descname">Leaf</code><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.expressions.expression.Expression</span></code></a></p>
-<p>A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.</p>
-<p>A leaf may carry <em>attributes</em> that constrain the set values permissible
-for it. Leafs can have no more than one attribute, with the exception
-that a leaf may be both <code class="docutils literal"><span class="pre">nonpos</span></code> and <code class="docutils literal"><span class="pre">nonneg</span></code> or both <code class="docutils literal"><span class="pre">boolean</span></code>
-in some indices and <code class="docutils literal"><span class="pre">integer</span></code> in others.</p>
-<p>An error is raised if a leaf is assigned a value that contradicts
-one or more of its attributes. See the <code class="docutils literal"><span class="pre">round</span></code> method for a convenient
-way to project a value onto a leaf’s domain.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>shape</strong> (<em>tuple</em><em> or </em><em>int</em>) – The leaf dimensions. Either an integer n for a 1D shape, or a
-tuple where the semantics are the same as NumPy ndarray shapes.
-<strong>Shapes cannot be more than 2D</strong>.</li>
-<li><strong>value</strong> (<em>numeric type</em>) – A value to assign to the leaf.</li>
-<li><strong>nonneg</strong> (<em>bool</em>) – Is the variable constrained to be nonnegative?</li>
-<li><strong>nonpos</strong> (<em>bool</em>) – Is the variable constrained to be nonpositive?</li>
-<li><strong>complex</strong> (<em>bool</em>) – Is the variable complex valued?</li>
-<li><strong>symmetric</strong> (<em>bool</em>) – Is the variable symmetric?</li>
-<li><strong>diag</strong> (<em>bool</em>) – Is the variable diagonal?</li>
-<li><strong>PSD</strong> (<em>bool</em>) – Is the variable constrained to be positive semidefinite?</li>
-<li><strong>NSD</strong> (<em>bool</em>) – Is the variable constrained to be negative semidefinite?</li>
-<li><strong>Hermitian</strong> (<em>bool</em>) – Is the variable Hermitian?</li>
-<li><strong>boolean</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable boolean? True, which constrains
-the entire Variable to be boolean, False, or a list of
-indices which should be constrained as boolean, where each
-index is a tuple of length exactly equal to the
-length of shape.</li>
-<li><strong>integer</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable integer? The semantics are the same as the
-boolean argument.</li>
-<li><strong>sparsity</strong> (<em>list of tuplewith</em>) – Fixed sparsity pattern for the variable.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<p>A leaf node, i.e. a Variable, Constant, or Parameter.</p>
 <dl class="attribute">
 <dt id="cvxpy.expressions.leaf.Leaf.T">
 <code class="descname">T</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.T" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Expression</em> – The transpose of the expression.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.leaf.Leaf.ndim">
-<code class="descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.ndim" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.leaf.Leaf.shape">
-<code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em> – The dimensions of the expression.</p>
+<dd><p>The transpose of an expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.leaf.Leaf.size">
 <code class="descname">size</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of entries in the expression.</p>
+<dd><p>Returns the (row, col) dimensions of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.leaf.Leaf.value">
 <code class="descname">value</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.value" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>NumPy.ndarray or None</em> – The numeric value of the parameter.</p>
+<dd><p>Returns the numeric value of the expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A numpy matrix or a scalar.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -414,91 +334,30 @@ boolean argument.</li>
 </div>
 <div class="section" id="variable">
 <h2><a class="toc-backref" href="#id3">Variable</a><a class="headerlink" href="#variable" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="cvxpy.expressions.variable.Variable">
-<em class="property">class </em><code class="descclassname">cvxpy.expressions.variable.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>shape=()</em>, <em>name=None</em>, <em>var_id=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/variable.html#Variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.variable.Variable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.expressions.leaf.Leaf</span></code></a></p>
-<p>The optimization variables in a problem.</p>
-<dl class="attribute">
-<dt id="cvxpy.expressions.variable.Variable.T">
-<code class="descname">T</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.T" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Expression</em> – The transpose of the expression.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.expressions.variable.Variable.name">
-<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/variable.html#Variable.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.variable.Variable.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>str : The name of the variable.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.variable.Variable.ndim">
-<code class="descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.ndim" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.variable.Variable.shape">
-<code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em> – The dimensions of the expression.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.variable.Variable.size">
-<code class="descname">size</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of entries in the expression.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.variable.Variable.value">
-<code class="descname">value</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.value" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>NumPy.ndarray or None</em> – The numeric value of the parameter.</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="parameter">
 <h2><a class="toc-backref" href="#id4">Parameter</a><a class="headerlink" href="#parameter" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.expressions.constants.parameter.Parameter">
-<em class="property">class </em><code class="descclassname">cvxpy.expressions.constants.parameter.</code><code class="descname">Parameter</code><span class="sig-paren">(</span><em>shape=()</em>, <em>name=None</em>, <em>value=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/parameter.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.expressions.constants.parameter.</code><code class="descname">Parameter</code><span class="sig-paren">(</span><em>rows=1</em>, <em>cols=1</em>, <em>name=None</em>, <em>sign=’unknown’</em>, <em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/parameter.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.expressions.leaf.Leaf</span></code></a></p>
-<p>Parameters in optimization problems.</p>
-<p>Parameters are constant expressions whose value may be specified
-after problem creation. The only way to modify a problem after its
-creation is through parameters. For example, you might choose to declare
-the hyper-parameters of a machine learning model to be Parameter objects;
-more generally, Parameters are useful for computing trade-off curves.</p>
+<p>A parameter, either matrix or scalar.</p>
 <dl class="attribute">
 <dt id="cvxpy.expressions.constants.parameter.Parameter.T">
 <code class="descname">T</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.T" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Expression</em> – The transpose of the expression.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.constants.parameter.Parameter.ndim">
-<code class="descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.ndim" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.constants.parameter.Parameter.shape">
-<code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em> – The dimensions of the expression.</p>
+<dd><p>The transpose of an expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.constants.parameter.Parameter.size">
 <code class="descname">size</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of entries in the expression.</p>
+<dd><p>Returns the (row, col) dimensions of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.constants.parameter.Parameter.value">
 <code class="descname">value</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.value" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>NumPy.ndarray or None</em> – The numeric value of the parameter.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -509,41 +368,23 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 <dt id="cvxpy.expressions.constants.Constant">
 <em class="property">class </em><code class="descclassname">cvxpy.expressions.constants.</code><code class="descname">Constant</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/constant.html#Constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.constants.Constant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.expressions.leaf.Leaf</span></code></a></p>
-<p>A constant value.</p>
-<p>Raw numerical constants (Python primite types, NumPy ndarrays,
-and NumPy matrices) are implicitly cast to constants via Expression
-operator overloading. For example, if <code class="docutils literal"><span class="pre">x</span></code> is an expression and
-<code class="docutils literal"><span class="pre">c</span></code> is a raw constant, then <code class="docutils literal"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">c</span></code> creates an expression by
-casting <code class="docutils literal"><span class="pre">c</span></code> to a Constant.</p>
+<p>A constant, either matrix or scalar.</p>
 <dl class="attribute">
 <dt id="cvxpy.expressions.constants.Constant.T">
 <code class="descname">T</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.T" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Expression</em> – The transpose of the expression.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.constants.Constant.ndim">
-<code class="descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.ndim" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cvxpy.expressions.constants.Constant.shape">
-<code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the (row, col) dimensions of the expression.</p>
+<dd><p>The transpose of an expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.constants.Constant.size">
 <code class="descname">size</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – The number of entries in the expression.</p>
+<dd><p>Returns the (row, col) dimensions of the expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.expressions.constants.Constant.value">
 <code class="descname">value</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.value" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>NumPy.ndarray or None</em> – The numeric value of the constant.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -647,7 +488,7 @@ casting <code class="docutils literal"><span class="pre">c</span></code> to a Co
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

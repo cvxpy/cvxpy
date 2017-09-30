@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.constraints.exponential &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,22 +44,19 @@
             
   <h1>Source code for cvxpy.constraints.exponential</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
@@ -66,67 +66,38 @@
 <span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">pu</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.nonlinear</span> <span class="k">import</span> <span class="n">NonlinearConstraint</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.utilities</span> <span class="k">import</span> <span class="n">format_elemwise</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
 
 <div class="viewcode-block" id="ExpCone"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone">[docs]</a><span class="k">class</span> <span class="nc">ExpCone</span><span class="p">(</span><span class="n">NonlinearConstraint</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A reformulated exponential cone constraint.</span>
 
-<span class="sd">    Operates elementwise on :math:`x, y, z`.</span>
+<span class="sd">    Operates elementwise on x, y, z.</span>
 
 <span class="sd">    Original cone:</span>
-
-<span class="sd">    .. math::</span>
-
-<span class="sd">        K = \\{(x,y,z) \mid y &gt; 0, ye^{x/y} &lt;= z\\}</span>
-<span class="sd">            \\cup \\{(x,y,z) \mid x \leq 0, y = 0, z \geq 0\\}</span>
-
+<span class="sd">    K = {(x,y,z) | y &gt; 0, ye^(x/y) &lt;= z}</span>
+<span class="sd">         U {(x,y,z) | x &lt;= 0, y = 0, z &gt;= 0}</span>
 <span class="sd">    Reformulated cone:</span>
+<span class="sd">    K = {(x,y,z) | y, z &gt; 0, y * log(y) + x &lt;= y * log(z)}</span>
+<span class="sd">         U {(x,y,z) | x &lt;= 0, y = 0, z &gt;= 0}</span>
 
-<span class="sd">    .. math::</span>
-
-<span class="sd">        K = \\{(x,y,z) \mid y, z &gt; 0, y\\log(y) + x \\leq y\\log(z)\\}</span>
-<span class="sd">             \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}</span>
-
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x : Variable</span>
-<span class="sd">        x in the exponential cone.</span>
-<span class="sd">    y : Variable</span>
-<span class="sd">        y in the exponential cone.</span>
-<span class="sd">    z : Variable</span>
-<span class="sd">        z in the exponential cone.</span>
+<span class="sd">        x: Variable x in the exponential cone.</span>
+<span class="sd">        y: Variable y in the exponential cone.</span>
+<span class="sd">        z: Variable z in the exponential cone.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solver_hook</span><span class="p">,</span>
-                                      <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">],</span>
-                                      <span class="n">constr_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solver_hook</span><span class="p">,</span>
+                                      <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;ExpCone(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;ExpCone(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># TODO(akshayka): The projection should be implemented directly.</span>
-        <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="n">Problem</span><span class="p">,</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">norm2</span><span class="p">,</span> <span class="n">hstack</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="n">ExpCone</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)]</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">norm2</span><span class="p">(</span><span class="n">hstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span> <span class="o">-</span>
-                             <span class="n">hstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">])))</span>
-        <span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eq_constr</span><span class="p">,</span> <span class="n">leq_constr</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Formats EXP constraints for the solver.</span>
@@ -151,44 +122,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Solver does not support exponential cone.&quot;</span><span class="p">)</span>
         <span class="c1"># Update dims.</span>
-        <span class="n">dims</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EXP_DIM</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The number of entries in the combined cones.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO use size of dual variable(s) instead.</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cone_sizes</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The number of elementwise cones.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">cone_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The dimensions of the exponential cones.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            A list of the sizes of the elementwise cones.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
-
-<div class="viewcode-block" id="ExpCone.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;An exponential constraint is DCP if each argument is affine.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span></div>
-
-    <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Canonicalizes by converting expressions to LinOps.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">arg_objs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">arg_constr</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
-            <span class="n">arg_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">canonical_form</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">arg_constr</span> <span class="o">+</span> <span class="n">arg</span><span class="o">.</span><span class="n">canonical_form</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">ExpCone</span><span class="p">(</span><span class="o">*</span><span class="n">arg_objs</span><span class="p">)]</span> <span class="o">+</span> <span class="n">arg_constr</span>
+        <span class="n">dims</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EXP_DIM</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@pu</span><span class="o">.</span><span class="n">lazyprop</span>
     <span class="k">def</span> <span class="nf">__ECOS_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -203,7 +137,7 @@
         <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vars_</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">VARIABLE</span><span class="p">:</span>
-                <span class="n">lone_var</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">lone_var</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
                 <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">create_eq</span><span class="p">(</span><span class="n">lone_var</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">vars_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lone_var</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="p">[])</span>
@@ -220,18 +154,18 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">            _solver_hook() returns the constraint shape and a feasible point.</span>
+<span class="sd">            _solver_hook() returns the constraint size and a feasible point.</span>
 <span class="sd">            _solver_hook(x) returns the function value and gradient at x.</span>
 <span class="sd">            _solver_hook(x, z) returns the function value, gradient,</span>
 <span class="sd">            and (z scaled) Hessian at x.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">cvxopt</span>  <span class="c1"># Not necessary unless using cvxopt solver.</span>
-        <span class="n">entries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">vars_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x_init</span> <span class="o">=</span> <span class="n">entries</span><span class="o">*</span><span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
             <span class="n">y_init</span> <span class="o">=</span> <span class="n">entries</span><span class="o">*</span><span class="p">[</span><span class="mf">0.5</span><span class="p">]</span>
             <span class="n">z_init</span> <span class="o">=</span> <span class="n">entries</span><span class="o">*</span><span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">entries</span><span class="p">,</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">x_init</span> <span class="o">+</span> <span class="n">y_init</span> <span class="o">+</span> <span class="n">z_init</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">x_init</span> <span class="o">+</span> <span class="n">y_init</span> <span class="o">+</span> <span class="n">z_init</span><span class="p">)</span>
         <span class="c1"># Unpack vars_</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">vars_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">entries</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">vars_</span><span class="p">[</span><span class="n">entries</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">entries</span><span class="p">]</span>
@@ -346,7 +280,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

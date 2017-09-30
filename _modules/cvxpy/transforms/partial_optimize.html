@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.transforms.partial_optimize &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,31 +44,29 @@
             
   <h1>Source code for cvxpy.transforms.partial_optimize</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="k">import</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.problem</span> <span class="k">import</span> <span class="n">Problem</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="k">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.variables</span> <span class="k">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="k">import</span> <span class="n">trace</span><span class="p">,</span> <span class="nb">sum</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="k">import</span> <span class="n">trace</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 
 
 <span class="k">def</span> <span class="nf">partial_optimize</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">opt_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dont_opt_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -73,18 +74,6 @@
 
 <span class="sd">    Either opt_vars or dont_opt_vars must be given.</span>
 <span class="sd">    If both are given, they must contain all the variables in the problem.</span>
-
-<span class="sd">    Partial optimize is useful for two-stage optimization and graph implementations.</span>
-<span class="sd">    For example, we can write</span>
-
-<span class="sd">    .. code :: python</span>
-
-<span class="sd">        x = Variable(n)</span>
-<span class="sd">        t = Variable(n)</span>
-<span class="sd">        abs_x = partial_optimize(Problem(Minimize(sum(t)),</span>
-<span class="sd">                  [-t &lt;= x, x &lt;= t]), opt_vars=[t])</span>
-
-<span class="sd">    to define the entrywise absolute value of x.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -99,7 +88,6 @@
 <span class="sd">    -------</span>
 <span class="sd">    Expression</span>
 <span class="sd">        An expression representing the partial optimization.</span>
-<span class="sd">        Convex for minimization objectives and concave for maximization objectives.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># One of the two arguments must be specified.</span>
     <span class="k">if</span> <span class="n">opt_vars</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dont_opt_vars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -123,14 +111,7 @@
                      <span class="s2">&quot;they must contain all variables in the problem.&quot;</span><span class="p">)</span>
                 <span class="p">)</span>
 
-    <span class="c1"># Replace the opt_vars in prob with new variables.</span>
-    <span class="n">id_to_new_var</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">var</span><span class="p">):</span> <span class="n">Variable</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-                                       <span class="o">**</span><span class="n">var</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">opt_vars</span><span class="p">}</span>
-    <span class="n">new_obj</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">tree_copy</span><span class="p">(</span><span class="n">id_to_new_var</span><span class="p">)</span>
-    <span class="n">new_constrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">tree_copy</span><span class="p">(</span><span class="n">id_to_new_var</span><span class="p">)</span>
-                   <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">]</span>
-    <span class="n">new_var_prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">new_obj</span><span class="p">,</span> <span class="n">new_constrs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">PartialProblem</span><span class="p">(</span><span class="n">new_var_prob</span><span class="p">,</span> <span class="n">opt_vars</span><span class="p">,</span> <span class="n">dont_opt_vars</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PartialProblem</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">opt_vars</span><span class="p">,</span> <span class="n">dont_opt_vars</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">PartialProblem</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
@@ -148,7 +129,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">opt_vars</span> <span class="o">=</span> <span class="n">opt_vars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dont_opt_vars</span> <span class="o">=</span> <span class="n">dont_opt_vars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">prob</span><span class="p">]</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">PartialProblem</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Replace the opt_vars in prob with new variables.</span>
+        <span class="n">id_to_new_var</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">var</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt_vars</span><span class="p">}</span>
+        <span class="n">new_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_new_vars</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">id_to_new_var</span><span class="p">)</span>
+        <span class="n">new_constrs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_replace_new_vars</span><span class="p">(</span><span class="n">con</span><span class="p">,</span> <span class="n">id_to_new_var</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">new_obj</span><span class="p">,</span> <span class="n">new_constrs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PartialProblem</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns info needed to reconstruct the expression besides the args.</span>
@@ -167,31 +154,21 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> \
             <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span>
 
-    <span class="k">def</span> <span class="nf">is_nonneg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the expression nonnegative?</span>
+    <span class="k">def</span> <span class="nf">is_positive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression positive?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_positive</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">is_nonpos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the expression nonpositive?</span>
+    <span class="k">def</span> <span class="nf">is_negative</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression negative?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">is_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the Leaf imaginary?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">def</span> <span class="nf">is_complex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the Leaf complex valued?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_negative</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the (row, col) dimensions of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the string representation of the expression.</span>
@@ -201,7 +178,7 @@
     <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the variables in the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dont_opt_vars</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the parameters in the problem.</span>
@@ -237,29 +214,25 @@
 
         <span class="n">old_vals</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">()}</span>
         <span class="n">fix_vars</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dont_opt_vars</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">error_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">fix_vars</span> <span class="o">+=</span> <span class="p">[</span><span class="n">var</span> <span class="o">==</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
-        <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
-                       <span class="n">fix_vars</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
-        <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
+                       <span class="n">fix_vars</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
         <span class="c1"># Compute gradient.</span>
         <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLUTION_PRESENT</span><span class="p">:</span>
             <span class="n">sign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span>
             <span class="c1"># Form Lagrangian.</span>
-            <span class="n">lagr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="n">lagr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
                 <span class="c1"># TODO: better way to get constraint expressions.</span>
                 <span class="n">lagr_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">sign</span><span class="o">*</span><span class="n">constr</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
-                <span class="n">prod</span> <span class="o">=</span> <span class="n">lagr_multiplier</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">constr</span><span class="o">.</span><span class="n">expr</span>
-                <span class="k">if</span> <span class="n">prod</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-                    <span class="n">lagr</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">lagr</span> <span class="o">+=</span> <span class="n">trace</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+                <span class="n">lagr</span> <span class="o">+=</span> <span class="n">trace</span><span class="p">(</span><span class="n">lagr_multiplier</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">constr</span><span class="o">.</span><span class="n">_expr</span><span class="p">)</span>
             <span class="n">grad_map</span> <span class="o">=</span> <span class="n">lagr</span><span class="o">.</span><span class="n">grad</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="p">:</span> <span class="n">grad_map</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dont_opt_vars</span><span class="p">}</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="p">:</span> <span class="n">grad_map</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">()}</span>
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># Unbounded, infeasible, or solver error.</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">error_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="c1"># Restore the original values to the variables.</span>
@@ -272,9 +245,9 @@
         <span class="sd">&quot;&quot;&quot;A list of constraints describing the closure of the region</span>
 <span class="sd">           where the expression is finite.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Variables optimized over are replaced in self.args[0].</span>
-        <span class="n">obj_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">obj_expr</span><span class="o">.</span><span class="n">domain</span>
+        <span class="c1"># Variables optimized over are replaced in self._prob.</span>
+        <span class="n">obj_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">obj_expr</span><span class="o">.</span><span class="n">domain</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -285,17 +258,59 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">old_vals</span> <span class="o">=</span> <span class="p">{</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">()}</span>
         <span class="n">fix_vars</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dont_opt_vars</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">fix_vars</span> <span class="o">+=</span> <span class="p">[</span><span class="n">var</span> <span class="o">==</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
-        <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">fix_vars</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">fix_vars</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
         <span class="c1"># Restore the original values to the variables.</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
             <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">old_vals</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_replace_new_vars</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">id_to_new_var</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replaces the given variables in the object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : Object</span>
+<span class="sd">            The object to replace variables in.</span>
+<span class="sd">        id_to_new_var : dict</span>
+<span class="sd">            A map of id to new variable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Object</span>
+<span class="sd">            An object identical to obj, but with the given variables replaced.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">id_to_new_var</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">id_to_new_var</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+        <span class="c1"># Leaves outside of optimized variables are preserved.</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PartialProblem</span><span class="p">):</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">new_obj</span> <span class="o">=</span> <span class="n">PartialProblem</span><span class="o">.</span><span class="n">_replace_new_vars</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
+                                                       <span class="n">id_to_new_var</span><span class="p">)</span>
+            <span class="n">new_constr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+                <span class="n">new_constr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">PartialProblem</span><span class="o">.</span><span class="n">_replace_new_vars</span><span class="p">(</span><span class="n">constr</span><span class="p">,</span>
+                                                     <span class="n">id_to_new_var</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">new_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">Problem</span><span class="p">(</span><span class="n">new_obj</span><span class="p">,</span> <span class="n">new_constr</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">new_args</span><span class="p">)</span>
+        <span class="c1"># Parent nodes are copied.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_args</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">PartialProblem</span><span class="o">.</span><span class="n">_replace_new_vars</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">id_to_new_var</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">new_args</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
@@ -308,8 +323,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Canonical form for objective and problem switches from minimize</span>
         <span class="c1"># to maximize.</span>
-        <span class="n">obj</span><span class="p">,</span> <span class="n">constrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
-        <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">constrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
+        <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
             <span class="n">constrs</span> <span class="o">+=</span> <span class="n">cons</span><span class="o">.</span><span class="n">canonical_form</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constrs</span><span class="p">)</span>
 </pre></div>
@@ -395,7 +410,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Optimal Power and Bandwidth Allocation in a Gaussian Channel &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -72,11 +75,59 @@ function in CVXPY, which calculates the Kullback-Leibler divergence.</p>
 <p><span class="math">\(-R_i = \text{kl_div}(\alpha_i W_i, \alpha_i(W_i+\beta_iP_i)) - \alpha_i\beta_iP_i\)</span></p>
 <p>Now that the objective function is in DCP form, the problem can be
 solved using CVXPY.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cvx</span>
+</pre></div>
+</div>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">optimal_power</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a_val</span><span class="p">,</span> <span class="n">b_val</span><span class="p">,</span> <span class="n">P_tot</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">W_tot</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+  <span class="c1"># Input parameters: α and β are constants from R_i equation</span>
+  <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">a_val</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">n</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">b_val</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;alpha and beta vectors must have same length!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;failed&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+  <span class="n">P</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+  <span class="n">W</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+  <span class="n">alpha</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+  <span class="n">beta</span> <span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+  <span class="n">alpha</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">a_val</span><span class="p">)</span>
+  <span class="n">beta</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">b_val</span><span class="p">)</span>
+  <span class="c1"># This function will be used as the objective so must be DCP;</span>
+  <span class="c1"># i.e. elementwise multiplication must occur inside kl_div, not outside otherwise the solver does not know if it is DCP...</span>
+  <span class="n">R</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">kl_div</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">W</span><span class="p">),</span>
+               <span class="n">cvx</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">W</span> <span class="o">+</span> <span class="n">cvx</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">P</span><span class="p">)))</span> <span class="o">-</span> \
+    <span class="n">cvx</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">cvx</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
+  <span class="n">objective</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">R</span><span class="p">))</span>
+  <span class="n">constraints</span><span class="o">=</span><span class="p">[</span><span class="n">P</span><span class="o">&gt;=</span><span class="mf">0.0</span><span class="p">,</span>
+               <span class="n">W</span><span class="o">&gt;=</span><span class="mf">0.0</span><span class="p">,</span>
+               <span class="n">cvx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="o">-</span><span class="n">P_tot</span><span class="o">==</span><span class="mf">0.0</span><span class="p">,</span>
+               <span class="n">cvx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">-</span><span class="n">W_tot</span><span class="o">==</span><span class="mf">0.0</span><span class="p">]</span>
+  <span class="n">prob</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+  <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+  <span class="k">return</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">,</span><span class="o">-</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="n">P</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="n">W</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>Consider the case where there are 5 channels, <span class="math">\(n=5\)</span>,
 <span class="math">\(\alpha = \beta = (2.0,2.2,2.4,2.6,2.8)\)</span>,
 <span class="math">\(P_{\text{tot}} = 0.5\)</span> and <span class="math">\(W_{\text{tot}}=1\)</span>.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">n</span><span class="o">=</span><span class="mi">5</span>               <span class="c1"># number of receivers in the system</span>
+<span class="n">a_val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">10</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># α</span>
+<span class="n">b_val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">10</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># β</span>
+<span class="n">P_tot</span><span class="o">=</span><span class="mf">0.5</span>
+<span class="n">W_tot</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="n">status</span><span class="p">,</span><span class="n">utility</span><span class="p">,</span><span class="n">power</span><span class="p">,</span><span class="n">bandwidth</span><span class="o">=</span><span class="n">optimal_power</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">a_val</span><span class="p">,</span><span class="n">b_val</span><span class="p">,</span><span class="n">P_tot</span><span class="p">,</span><span class="n">W_tot</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Status: &#39;</span><span class="p">,</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal utility value = </span><span class="si">%.4g</span><span class="s1"> &#39;</span><span class="o">%</span><span class="n">utility</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal power level:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">power</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal bandwidth:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Status</span> <span class="o">=</span> <span class="n">optimal</span>
 <span class="n">Optimal</span> <span class="n">utility</span> <span class="n">value</span> <span class="o">=</span> <span class="mf">2.451</span>
 <span class="n">Optimal</span> <span class="n">power</span> <span class="n">level</span><span class="p">:</span>
@@ -178,7 +229,7 @@ solved using CVXPY.</p>
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

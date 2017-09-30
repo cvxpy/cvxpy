@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Other Atoms" href="cvxpy.atoms.other_atoms.html" />
@@ -83,20 +86,18 @@ expressions that are supplied to it.</p>
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.elementwise.huber.</code><code class="descname">huber</code><span class="sig-paren">(</span><em>x</em>, <em>M=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/huber.html#huber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.huber.huber" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>The Huber function</p>
-<div class="math">
-\[\begin{split}\operatorname{Huber}(x, M) =
-    \begin{cases}
-        2M|x|-M^2 &amp; \text{for } |x| \geq |M| \\
-              |x|^2 &amp; \text{for } |x| \leq |M|.
-    \end{cases}\end{split}\]</div>
-<p><span class="math">\(M\)</span> defaults to 1.</p>
+<dl class="docutils">
+<dt>Huber(x, M) = 2M|x|-M^2 for <a href="#id18"><span class="problematic" id="id19">|x|</span></a> &gt;= <a href="#id20"><span class="problematic" id="id21">|M|</span></a></dt>
+<dd><a href="#id22"><span class="problematic" id="id23">|x|^2 for |x|</span></a> &lt;= <a href="#id24"><span class="problematic" id="id25">|M|</span></a></dd>
+</dl>
+<p>M defaults to 1.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to which the huber function will be applied.</li>
-<li><strong>M</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.Constant" title="cvxpy.expressions.constants.Constant"><em>Constant</em></a>) – A scalar constant.</li>
+<li><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – A CVXPY expression.</li>
+<li><strong>M</strong> (<em>int/float</em><em> or </em><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><em>Parameter</em></a>) – </li>
 </ul>
 </td>
 </tr>
@@ -110,8 +111,7 @@ expressions that are supplied to it.</p>
 <dl class="function">
 <dt id="cvxpy.atoms.elementwise.inv_pos.inv_pos">
 <code class="descclassname">cvxpy.atoms.elementwise.inv_pos.</code><code class="descname">inv_pos</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/inv_pos.html#inv_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.inv_pos.inv_pos" title="Permalink to this definition">¶</a></dt>
-<dd><p><span class="math">\(x^{-1}\)</span> for <span class="math">\(x &gt; 0\)</span>.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="kl-div">
@@ -158,29 +158,16 @@ than to a scalar which is useful for logistic regression.</p>
 </div>
 <div class="section" id="maximum">
 <span id="id10"></span><h2>maximum<a class="headerlink" href="#maximum" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="cvxpy.atoms.elementwise.maximum.maximum">
-<em class="property">class </em><code class="descclassname">cvxpy.atoms.elementwise.maximum.</code><code class="descname">maximum</code><span class="sig-paren">(</span><em>arg1</em>, <em>arg2</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/maximum.html#maximum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.maximum.maximum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
-<p>Elementwise maximum of a sequence of expressions.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="minimum">
 <span id="id11"></span><h2>minimum<a class="headerlink" href="#minimum" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="cvxpy.atoms.elementwise.minimum.minimum">
-<code class="descclassname">cvxpy.atoms.elementwise.minimum.</code><code class="descname">minimum</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/minimum.html#minimum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.minimum.minimum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Elementwise minimum of a sequence of Expressions.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="neg">
 <span id="id12"></span><h2>neg<a class="headerlink" href="#neg" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.elementwise.neg.neg">
 <code class="descclassname">cvxpy.atoms.elementwise.neg.</code><code class="descname">neg</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/neg.html#neg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.neg.neg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for -minimum{x, 0}.</p>
+<dd><p>Alias for -min_elemwise{x, 0}.</p>
 </dd></dl>
 
 </div>
@@ -189,7 +176,7 @@ than to a scalar which is useful for logistic regression.</p>
 <dl class="function">
 <dt id="cvxpy.atoms.elementwise.pos.pos">
 <code class="descclassname">cvxpy.atoms.elementwise.pos.</code><code class="descname">pos</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/pos.html#pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.pos.pos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for maximum{x,0}.</p>
+<dd><p>Alias for max_elemwise{x,0}.</p>
 </dd></dl>
 
 </div>
@@ -285,7 +272,7 @@ of the function with full domain,</p>
 <dl class="function">
 <dt id="cvxpy.atoms.elementwise.scalene.scalene">
 <code class="descclassname">cvxpy.atoms.elementwise.scalene.</code><code class="descname">scalene</code><span class="sig-paren">(</span><em>x</em>, <em>alpha</em>, <em>beta</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/scalene.html#scalene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.scalene.scalene" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for <code class="docutils literal"><span class="pre">alpha*pos(x)</span> <span class="pre">+</span> <span class="pre">beta*neg(x)</span></code>.</p>
+<dd><p>Alias for alpha*pos(x) + beta*neg(x).</p>
 </dd></dl>
 
 </div>
@@ -294,8 +281,7 @@ of the function with full domain,</p>
 <dl class="function">
 <dt id="cvxpy.atoms.elementwise.sqrt.sqrt">
 <code class="descclassname">cvxpy.atoms.elementwise.sqrt.</code><code class="descname">sqrt</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/sqrt.html#sqrt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.sqrt.sqrt" title="Permalink to this definition">¶</a></dt>
-<dd><p>The square root of an expression.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="square">
@@ -303,8 +289,7 @@ of the function with full domain,</p>
 <dl class="function">
 <dt id="cvxpy.atoms.elementwise.square.square">
 <code class="descclassname">cvxpy.atoms.elementwise.square.</code><code class="descname">square</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/square.html#square"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.square.square" title="Permalink to this definition">¶</a></dt>
-<dd><p>The square of an expression.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -424,7 +409,7 @@ of the function with full domain,</p>
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

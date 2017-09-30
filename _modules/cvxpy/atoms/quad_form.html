@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.quad_form &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,161 +44,46 @@
             
   <h1>Source code for cvxpy.atoms.quad_form</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">Copyright 2013 Steven Diamond, 2017 Robin Verschueren</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
-
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
-
+<span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">LA</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="k">import</span> <span class="n">Atom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants</span> <span class="k">import</span> <span class="n">Constant</span>
+<span class="kn">from</span> <span class="nn">.sum_squares</span> <span class="k">import</span> <span class="n">sum_squares</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">LA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <span class="k">class</span> <span class="nc">CvxPyDomainError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span>
 
 
-<span class="k">class</span> <span class="nc">QuadForm</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">QuadForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
-            <span class="n">prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">prod</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">QuadForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">n</span><span class="p">,)]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid dimensions for arguments.&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns sign (is positive, is negative) of the expression.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_atom_convex</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_concave</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the atom convex?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span> <span class="ow">or</span> \
-               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span> <span class="ow">or</span> \
-               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">is_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the atom quadratic?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="k">def</span> <span class="nf">is_pwl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the atom piecewise linear?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-    <span class="k">def</span> <span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">NotImplemented</span>
-
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">SymbolicQuadForm</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Symbolic form of QuadForm when quadratic matrix is not known (yet).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span> <span class="o">=</span> <span class="n">expr</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">SymbolicQuadForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">NotImplemented</span>
-
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">NotImplemented</span>
-
-    <span class="k">def</span> <span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="o">.</span><span class="n">is_atom_concave</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="o">.</span><span class="n">is_atom_convex</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="o">.</span><span class="n">is_decr</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="o">.</span><span class="n">is_incr</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="o">.</span><span class="n">shape_from_args</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_expression</span><span class="o">.</span><span class="n">sign_from_args</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">is_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">True</span>
-
-
-<span class="k">def</span> <span class="nf">decomp_quad</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">cond</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_decomp_quad</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">cond</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute a matrix decomposition.</span>
 
-<span class="sd">    Compute sgn, scale, M such that P = sgn * scale * dot(M, M.T).</span>
-<span class="sd">    The strategy of determination of eigenvalue negligibility follows</span>
-<span class="sd">    the pinvh contributions from the scikit-learn project to scipy.</span>
+<span class="sd">    Compute scale, M1, M2 such that</span>
+<span class="sd">        P = scale * (dot(M1, M1.T) - dot(M2, M2.T)).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    P : matrix or ndarray</span>
-<span class="sd">        A real symmetric positive or negative (semi)definite input matrix</span>
+<span class="sd">        A real symmetric input matrix</span>
 <span class="sd">    cond, rcond : float, optional</span>
 <span class="sd">        Cutoff for small eigenvalues.</span>
 <span class="sd">        Singular values smaller than rcond * largest_eigenvalue</span>
@@ -225,10 +113,12 @@
         <span class="n">cond</span> <span class="o">=</span> <span class="n">rcond</span>
     <span class="k">if</span> <span class="n">cond</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span> <span class="mf">1e6</span><span class="p">}</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="n">e3</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="n">e6</span><span class="p">}</span>
         <span class="n">cond</span> <span class="o">=</span> <span class="n">factor</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
 
     <span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">&lt;</span> <span class="n">cond</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="n">V</span><span class="p">[:,</span> <span class="p">[]],</span> <span class="n">V</span><span class="p">[:,</span> <span class="p">[]]</span>
     <span class="n">w_scaled</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">scale</span>
     <span class="n">maskp</span> <span class="o">=</span> <span class="n">w_scaled</span> <span class="o">&gt;</span> <span class="n">cond</span>
     <span class="n">maskn</span> <span class="o">=</span> <span class="n">w_scaled</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">cond</span>
@@ -246,13 +136,25 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
     <span class="c1"># Check dimensions.</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">P</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid dimensions for arguments.&quot;</span><span class="p">)</span>
     <span class="c1"># P cannot be a parameter.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;P cannot be a parameter.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
-        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">H</span> <span class="o">*</span> <span class="n">P</span> <span class="o">*</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">P</span> <span class="o">*</span> <span class="n">x</span>
     <span class="k">elif</span> <span class="n">P</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
-        <span class="k">return</span> <span class="n">QuadForm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_NP_INTF</span><span class="o">.</span><span class="n">const_to_matrix</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="c1"># Force symmetry</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="n">P</span> <span class="o">+</span> <span class="n">P</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">scale</span><span class="p">,</span> <span class="n">M1</span><span class="p">,</span> <span class="n">M2</span> <span class="o">=</span> <span class="n">_decomp_quad</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">M1</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">sum_squares</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="n">M1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">M2</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">-=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">sum_squares</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="n">M2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;At least one argument to quad_form must be constant.&quot;</span><span class="p">)</span></div>
 </pre></div>
@@ -338,7 +240,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

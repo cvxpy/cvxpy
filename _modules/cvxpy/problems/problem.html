@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.problems.problem &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,56 +44,56 @@
             
   <h1>Source code for cvxpy.problems.problem</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond, 2017 Akshay Agrawal</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
-<span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="k">import</span> <span class="n">DCPError</span><span class="p">,</span> <span class="n">SolverError</span>
-<span class="c1"># from cvxpy.expressions.variables import Bool, Int</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
+<span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">DCPError</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="k">import</span> <span class="n">EqConstraint</span><span class="p">,</span> <span class="n">LeqConstraint</span><span class="p">,</span> <span class="n">PSDConstraint</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="k">import</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solving_chain</span> <span class="k">import</span> <span class="n">construct_solving_chain</span>
-
-<span class="c1"># TODO(akshayka): This is a hack. Fix this if possible.</span>
+<span class="kn">from</span> <span class="nn">cvxpy.problems.solvers.solver</span> <span class="k">import</span> <span class="n">Solver</span>
+<span class="kn">from</span> <span class="nn">cvxpy.problems.solvers.utilities</span> <span class="k">import</span> <span class="n">SOLVERS</span>
+<span class="kn">from</span> <span class="nn">cvxpy.problems.problem_data.problem_data</span> <span class="k">import</span> <span class="n">ProblemData</span>
 <span class="c1"># Only need to import cvxpy.transform.get_separable_problems, but this creates</span>
 <span class="c1"># a circular import (cvxpy.transforms imports Problem). Hence we need to import</span>
 <span class="c1"># cvxpy here.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span>
-<span class="kn">import</span> <span class="nn">cvxpy.constraints.zero</span> <span class="k">as</span> <span class="nn">eqc</span>
-<span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">cvxpy.constraints.eq_constraint</span> <span class="k">as</span> <span class="nn">eqc</span>
+
 <span class="kn">import</span> <span class="nn">multiprocess</span> <span class="k">as</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 
+<span class="c1"># Used in self._cached_data to check if problem&#39;s objective or constraints have</span>
+<span class="c1"># changed.</span>
+<span class="n">CachedProblem</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;CachedProblem&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;objective&#39;</span><span class="p">,</span> <span class="s1">&#39;constraints&#39;</span><span class="p">])</span>
 
+<span class="c1"># Used by pool.map to send solve result back.</span>
 <span class="n">SolveResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
-    <span class="s1">&#39;SolveResult&#39;</span><span class="p">,</span>
-    <span class="p">[</span><span class="s1">&#39;opt_value&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;primal_values&#39;</span><span class="p">,</span> <span class="s1">&#39;dual_values&#39;</span><span class="p">])</span>
+    <span class="s1">&#39;SolveResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;opt_value&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;primal_values&#39;</span><span class="p">,</span> <span class="s1">&#39;dual_values&#39;</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem">[docs]</a><span class="k">class</span> <span class="nc">Problem</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A convex optimization problem.</span>
 
-<span class="sd">    Problems are immutable, save for modification through the specification</span>
-<span class="sd">    of :class:`~cvxpy.expressions.constants.parameters.Parameter`</span>
-
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    objective : Minimize or Maximize</span>
-<span class="sd">        The problem&#39;s objective.</span>
+<span class="sd">        The expression to minimize or maximize.</span>
 <span class="sd">    constraints : list</span>
 <span class="sd">        The constraints on the problem variables.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -101,60 +104,52 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">constraints</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Problem constraints must be a list.&quot;</span><span class="p">)</span>
         <span class="c1"># Check that objective is Minimize or Maximize.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="p">(</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem objective must be Minimize or Maximize.&quot;</span><span class="p">)</span>
         <span class="c1"># Constraints and objective are immutable.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span> <span class="o">=</span> <span class="n">objective</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span>
-        <span class="c1"># Cache the variables as a list.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">objective</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># The solving chain with which to solve the problem</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Cached processed data for each solver.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_cache</span><span class="p">()</span>
         <span class="c1"># List of separable (sub)problems</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># Information about the shape of the problem and its constituent parts</span>
+        <span class="c1"># Information about the size of the problem and its constituent parts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_size_metrics</span> <span class="o">=</span> <span class="n">SizeMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="c1"># Benchmarks reported by the solver:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span><span class="p">]</span>
-        <span class="c1"># Cache for warm start.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_reset_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resets the cached data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">solver_name</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">[</span><span class="n">solver_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ProblemData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PARALLEL</span><span class="p">]</span> <span class="o">=</span> <span class="n">CachedProblem</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;float : The value from the last time the problem was solved</span>
-<span class="sd">                   (or None if not solved).</span>
+        <span class="sd">&quot;&quot;&quot;The value from the last time the problem was solved.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;str : The status from the last time the problem was solved; one</span>
-<span class="sd">                 of optimal, infeasible, or unbounded.</span>
+        <span class="sd">&quot;&quot;&quot;The status from the last time the problem was solved.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Minimize or Maximize : The problem&#39;s objective.</span>
-
-<span class="sd">        Note that the objective cannot be reassigned after creation,</span>
-<span class="sd">        and modifying the objective after creation will result in</span>
-<span class="sd">        undefined behavior.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A shallow copy of the problem&#39;s constraints.</span>
-
-<span class="sd">        Note that constraints cannot be reassigned, appended to, or otherwise</span>
-<span class="sd">        modified after creation, except through parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span><span class="p">[:]</span>
 
 <div class="viewcode-block" id="Problem.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Does the problem satisfy DCP rules?</span>
@@ -165,88 +160,67 @@
         <span class="sd">&quot;&quot;&quot;Is problem a quadratic program?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">eqc</span><span class="o">.</span><span class="n">Zero</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">eqc</span><span class="o">.</span><span class="n">EqConstraint</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">_expr</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()):</span>
                 <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">():</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_qpwa</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quadratic</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="nf">is_mixed_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;boolean&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
-                   <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
-
-<div class="viewcode-block" id="Problem.variables"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.variables">[docs]</a>    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Accessor method for variables.</span>
+    <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the graph implementation of the problem.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of :class:`~cvxpy.expressions.variable.Variable`</span>
-<span class="sd">            A list of the variables in the problem.</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (affine objective,</span>
+<span class="sd">             constraints dict)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span></div>
+        <span class="n">canon_constr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">canonical_form</span>
+        <span class="n">canon_constr</span> <span class="o">+=</span> <span class="n">constr</span>
 
-    <span class="k">def</span> <span class="nf">_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="n">canon_constr</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">canonical_form</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">canon_constr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Problem.variables"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.variables">[docs]</a>    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list of the variables in the problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vars_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
             <span class="n">vars_</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
-        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="c1"># never use list as a variable name</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="ow">or</span> <span class="n">obj</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">vars_</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">]</span>
+        <span class="c1"># Remove duplicates.</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">vars_</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Problem.parameters"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.parameters">[docs]</a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Accessor method for parameters.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of :class:`~cvxpy.expressions.constants.parameter.Parameter`</span>
-<span class="sd">            A list of the parameters in the problem.</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list of the parameters in the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+        <span class="c1"># Remove duplicates.</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">params</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Problem.constants"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.constants">[docs]</a>    <span class="k">def</span> <span class="nf">constants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Accessor method for parameters.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of :class:`~cvxpy.expressions.constants.constant.Constant`</span>
-<span class="sd">            A list of the constants in the problem.</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list of the constants in the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">const_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">constants_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">constants</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
             <span class="n">constants_</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">constants</span><span class="p">()</span>
-        <span class="c1"># Note that numpy matrices are not hashable, so we use the built-in</span>
-        <span class="c1"># function &quot;id&quot;</span>
+        <span class="c1"># Remove duplicates.</span>
+        <span class="c1"># Note that numpy matrices are not hashable, so we use the buildin function id</span>
         <span class="n">const_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">constant</span><span class="p">):</span> <span class="n">constant</span> <span class="k">for</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">constants_</span><span class="p">}</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">const_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="Problem.atoms"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.atoms">[docs]</a>    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Accessor method for atoms.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of :class:`~cvxpy.atoms.Atom`</span>
-<span class="sd">            A list of the atom types in the problem; note that this list</span>
-<span class="sd">            contains classes, not instances.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-            <span class="n">atoms</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">atoms</span><span class="p">))</span></div>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`~cvxpy.problems.problem.SizeMetrics` : Information about the problem&#39;s size.</span>
+        <span class="sd">&quot;&quot;&quot;Returns an object containing information about the size of the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size_metrics</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solver_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`~cvxpy.problems.problem.SolverStats` : Information returned by the solver.</span>
+        <span class="sd">&quot;&quot;&quot;Returns an object containing additional information returned by the solver.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span>
 
@@ -271,27 +245,16 @@
 <span class="sd">        float</span>
 <span class="sd">            The optimal value for the problem, or a string indicating</span>
 <span class="sd">            why the problem could not be solved.</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        DCPError</span>
-<span class="sd">            Raised if the problem is not DCP.</span>
-<span class="sd">        SolverError</span>
-<span class="sd">            Raised if no suitable solver exists among the installed solvers,</span>
-<span class="sd">            or if an unanticipated error is encountered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">func_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">func_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">solve_func</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">solve_func</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">_solve</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">solve_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">raise</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Problem.register_solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.register_solve">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">register_solve</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">register_solve</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Adds a solve method to the Problem class.</span>
 
 <span class="sd">        Parameters</span>
@@ -299,30 +262,12 @@
 <span class="sd">        name : str</span>
 <span class="sd">            The keyword for the method.</span>
 <span class="sd">        func : function</span>
-<span class="sd">            The function that executes the solve method. This function must</span>
-<span class="sd">            take as its first argument the problem instance to solve.</span>
+<span class="sd">            The function that executes the solve method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
+        <span class="n">cls</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
 
 <div class="viewcode-block" id="Problem.get_problem_data"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.get_problem_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_problem_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the problem data used in the call to the solver.</span>
-
-<span class="sd">        When a problem is solved, a chain of reductions, called a</span>
-<span class="sd">        :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,</span>
-<span class="sd">        compiles it to some low-level representation that is compatible with the</span>
-<span class="sd">        targeted solver. This method returns that low-level representation.</span>
-
-<span class="sd">        For some solving chains, this low-level representation is a dictionary</span>
-<span class="sd">        that contains exactly those arguments that were supplied to the solver;</span>
-<span class="sd">        however, for other solving chains, the data is an intermediate</span>
-<span class="sd">        representation that is compiled even further by libraries other than</span>
-<span class="sd">        CVXPY.</span>
-
-<span class="sd">        A solution to the equivalent low-level problem can be obtained via the</span>
-<span class="sd">        data by invoking the solve_via_data method of the returned solving</span>
-<span class="sd">        chain, a thin wrapper around the code external to CVXPY that further</span>
-<span class="sd">        processes and solves the problem. Invoke the unpack_results method</span>
-<span class="sd">        to recover a solution to the original problem.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -331,24 +276,19 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict or object</span>
-<span class="sd">            lowest level representation of problem</span>
-<span class="sd">        SolvingChain</span>
-<span class="sd">            The solving chain that created the data.</span>
-<span class="sd">        list</span>
-<span class="sd">            The inverse data generated by the chain.</span>
+<span class="sd">        tuple</span>
+<span class="sd">            arguments to solver</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">solving_chain</span> <span class="o">=</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">e</span>
-        <span class="n">data</span><span class="p">,</span> <span class="n">inv_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">solving_chain</span><span class="p">,</span> <span class="n">inv_data</span></div>
+        <span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize</span><span class="p">()</span>
+        <span class="c1"># Raise an error if the solver cannot handle the problem.</span>
+        <span class="n">SOLVERS</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span><span class="o">.</span><span class="n">validate_solver</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SOLVERS</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">ignore_dcp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-               <span class="n">warm_start</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+               <span class="n">warm_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solves a DCP compliant optimization problem.</span>
@@ -361,7 +301,6 @@
 <span class="sd">        solver : str, optional</span>
 <span class="sd">            The solver to use. Defaults to ECOS.</span>
 <span class="sd">        ignore_dcp : bool, optional</span>
-<span class="sd">            TODO(akshayka): This option will probably be eliminated.</span>
 <span class="sd">            Overrides the default of raising an exception if the problem is not</span>
 <span class="sd">            DCP.</span>
 <span class="sd">        warm_start : bool, optional</span>
@@ -381,29 +320,64 @@
 <span class="sd">            The optimal value for the problem, or a string indicating</span>
 <span class="sd">            why the problem could not be solved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">ignore_dcp</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Problem does not follow DCP rules. &quot;</span>
+                      <span class="s2">&quot;Solving a convex relaxation.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem does not follow DCP rules.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">solver</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">LS</span><span class="p">:</span>
+            <span class="n">solver</span> <span class="o">=</span> <span class="n">SOLVERS</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">LS</span><span class="p">]</span>
+            <span class="n">solver</span><span class="o">.</span><span class="n">validate_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+            <span class="n">objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span>
+            <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span>
+
+            <span class="n">sym_data</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">get_sym_data</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+            <span class="n">results_dict</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+                                        <span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_problem_state</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">sym_data</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="c1"># Standard cone problem</span>
+        <span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize</span><span class="p">()</span>
+
+        <span class="c1"># Solve in parallel</span>
         <span class="k">if</span> <span class="n">parallel</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">cvxpy</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">get_separable_problems</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+            <span class="c1"># Check if the objective or constraint has changed</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">objective</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PARALLEL</span><span class="p">]</span><span class="o">.</span><span class="n">objective</span> <span class="ow">or</span>
+                    <span class="n">constraints</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PARALLEL</span><span class="p">]</span><span class="o">.</span><span class="n">constraints</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">get_separable_problems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PARALLEL</span><span class="p">]</span> <span class="o">=</span> <span class="n">CachedProblem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span>
+                                                              <span class="n">constraints</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parallel_solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">ignore_dcp</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span>
                                             <span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="c1"># If a previous chain does not exist, or if the solver is</span>
-        <span class="c1"># specified and it does not match the solver used for the previous</span>
-        <span class="c1"># solve, then construct a new solving chain.</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="ow">or</span> <span class="p">(</span><span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">solver</span><span class="p">)):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="o">=</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                                              <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">e</span>
+        <span class="c1"># Choose a solver/check the chosen solver.</span>
+        <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">solver_name</span> <span class="o">=</span> <span class="n">Solver</span><span class="o">.</span><span class="n">choose_solver</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+            <span class="n">solver</span> <span class="o">=</span> <span class="n">SOLVERS</span><span class="p">[</span><span class="n">solver_name</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="p">:</span>
+            <span class="n">solver</span> <span class="o">=</span> <span class="n">SOLVERS</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
+            <span class="n">solver</span><span class="o">.</span><span class="n">validate_solver</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Unknown solver.&quot;</span><span class="p">)</span>
 
-        <span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
-                                                      <span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
+        <span class="n">sym_data</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">get_sym_data</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">)</span>
+        <span class="c1"># Presolve couldn&#39;t solve the problem.</span>
+        <span class="k">if</span> <span class="n">sym_data</span><span class="o">.</span><span class="n">presolve_status</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">results_dict</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+                                        <span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Presolve determined problem was unbounded or infeasible.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">STATUS</span><span class="p">:</span> <span class="n">sym_data</span><span class="o">.</span><span class="n">presolve_status</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_problem_state</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">sym_data</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">_parallel_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -469,7 +443,7 @@
                                              <span class="n">solve_result</span><span class="o">.</span><span class="n">primal_values</span><span class="p">):</span>
                     <span class="n">var</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">primal_value</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">constr</span><span class="p">,</span> <span class="n">dual_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">subproblem</span><span class="o">.</span><span class="n">constraints</span><span class="p">,</span>
-                                              <span class="n">solve_results</span><span class="p">):</span>
+                                              <span class="n">solve_result</span><span class="o">.</span><span class="n">dual_values</span><span class="p">):</span>
                     <span class="n">constr</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">dual_value</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">solve_result</span><span class="o">.</span><span class="n">opt_value</span>
                               <span class="k">for</span> <span class="n">solve_result</span> <span class="ow">in</span> <span class="n">solve_results</span><span class="p">)</span>
@@ -479,40 +453,147 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">OPTIMAL</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
 
-<div class="viewcode-block" id="Problem.unpack_results"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.unpack_results">[docs]</a>    <span class="k">def</span> <span class="nf">unpack_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_update_problem_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">,</span> <span class="n">sym_data</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Updates the problem state given the solver results.</span>
 
 <span class="sd">        Updates problem.status, problem.value and value of</span>
 <span class="sd">        primal and dual variables.</span>
 
 <span class="sd">        Parameters</span>
-<span class="sd">        __________</span>
-<span class="sd">        solution : Solution</span>
-<span class="sd">            The solution returned by applying the chain to the problem</span>
-<span class="sd">            and invoking the solver on the resulting data.</span>
-<span class="sd">        chain : SolvingChain</span>
-<span class="sd">            A solving chain that was used to solve the problem.</span>
-<span class="sd">        inverse_data : list</span>
-<span class="sd">            The inverse data returned by applying the chain to the problem.</span>
+<span class="sd">        ----------</span>
+<span class="sd">        results_dict : dict</span>
+<span class="sd">            A dictionary containing the solver results.</span>
+<span class="sd">        sym_data : SymData</span>
+<span class="sd">            The symbolic data for the problem.</span>
+<span class="sd">        solver : Solver</span>
+<span class="sd">            The solver type used to obtain the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">solution</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span>
-        <span class="k">if</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLUTION_PRESENT</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-                <span class="n">v</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">:</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">INF_OR_UNB</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-                <span class="n">v</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-                <span class="n">constr</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">STATUS</span><span class="p">]</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLUTION_PRESENT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_values</span><span class="p">(</span><span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PRIMAL</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">(),</span>
+                              <span class="n">sym_data</span><span class="o">.</span><span class="n">var_offsets</span><span class="p">)</span>
+            <span class="c1"># Not all solvers provide dual variables.</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">EQ_DUAL</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_save_dual_values</span><span class="p">(</span><span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EQ_DUAL</span><span class="p">],</span>
+                                       <span class="n">sym_data</span><span class="o">.</span><span class="n">constr_map</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EQ</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="n">EqConstraint</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">INEQ_DUAL</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_save_dual_values</span><span class="p">(</span><span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">INEQ_DUAL</span><span class="p">],</span>
+                                       <span class="n">sym_data</span><span class="o">.</span><span class="n">constr_map</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">LEQ</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="n">LeqConstraint</span><span class="p">,</span> <span class="n">PSDConstraint</span><span class="p">])</span>
+            <span class="c1"># Correct optimal value if the objective was Maximize.</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">VALUE</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">primal_to_result</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="c1"># Infeasible or unbounded.</span>
+        <span class="k">elif</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">STATUS</span><span class="p">]</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">INF_OR_UNB</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_no_solution</span><span class="p">(</span><span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">STATUS</span><span class="p">])</span>
+        <span class="c1"># Solver failed to solve.</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Solver &#39;</span><span class="si">%s</span><span class="s2">&#39; failed. Try another solver.&quot;</span> <span class="o">%</span>
-                              <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="n">SolverStats</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span></div>
+            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
+                <span class="s2">&quot;Solver &#39;</span><span class="si">%s</span><span class="s2">&#39; failed. Try another solver.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">STATUS</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="n">SolverStats</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Problem.unpack_results"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.unpack_results">[docs]</a>    <span class="k">def</span> <span class="nf">unpack_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parses the output from a solver and updates the problem state.</span>
+
+<span class="sd">        Updates problem.status, problem.value and value of</span>
+<span class="sd">        primal and dual variables.</span>
+
+<span class="sd">        Assumes the results are from the given solver.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            The name of the solver being used.</span>
+<span class="sd">        results_dict : dict</span>
+<span class="sd">            The solver output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">solver_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Unknown solver.&quot;</span><span class="p">)</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">SOLVERS</span><span class="p">[</span><span class="n">solver_name</span><span class="p">]</span>
+
+        <span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize</span><span class="p">()</span>
+        <span class="n">sym_data</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">get_sym_data</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">DIMS</span><span class="p">:</span> <span class="n">sym_data</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">OFFSET</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="n">results_dict</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">format_results</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">_cached_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_problem_state</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">sym_data</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_handle_no_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates value fields when the problem is infeasible or unbounded.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        status: str</span>
+<span class="sd">            The status of the solver.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Set all primal and dual variable values to None.</span>
+        <span class="k">for</span> <span class="n">var_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
+            <span class="n">var_</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="n">constr</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># Set the problem value.</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">INFEASIBLE_INACCURATE</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">primal_to_result</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">UNBOUNDED</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">UNBOUNDED_INACCURATE</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">primal_to_result</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_save_dual_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_vec</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">constr_types</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Saves the values of the dual variables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        result_vec : array_like</span>
+<span class="sd">            A vector containing the dual variable values.</span>
+<span class="sd">        constraints : list</span>
+<span class="sd">            A list of the LinEqConstr/LinLeqConstr in the problem.</span>
+<span class="sd">        constr_types : type</span>
+<span class="sd">            A list of constraint types to consider.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">constr_offsets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="n">constr_offsets</span><span class="p">[</span><span class="n">constr</span><span class="o">.</span><span class="n">constr_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">offset</span>
+            <span class="n">offset</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">constr</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">active_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="c1"># Ignore constraints of the wrong type.</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">constr</span><span class="p">)</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
+                <span class="n">active_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_values</span><span class="p">(</span><span class="n">result_vec</span><span class="p">,</span> <span class="n">active_constraints</span><span class="p">,</span> <span class="n">constr_offsets</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_save_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_vec</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">offset_map</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Saves the values of the optimal primal/dual variables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        results_vec : array_like</span>
+<span class="sd">            A vector containing the variable values.</span>
+<span class="sd">        objects : list</span>
+<span class="sd">            The variables or constraints where the values will be stored.</span>
+<span class="sd">        offset_map : dict</span>
+<span class="sd">            A map of object id to offset in the results vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_vec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Cast to desired matrix type.</span>
+            <span class="n">result_vec</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">const_to_matrix</span><span class="p">(</span><span class="n">result_vec</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+            <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">offset_map</span><span class="p">:</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="n">offset_map</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+                <span class="c1"># Handle scalars</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">result_vec</span><span class="p">,</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+                    <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">block_add</span><span class="p">(</span>
+                        <span class="n">value</span><span class="p">,</span> <span class="n">result_vec</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span> <span class="o">+</span> <span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+                <span class="n">offset</span> <span class="o">+=</span> <span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># The variable was multiplied by zero.</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -563,17 +644,16 @@
             <span class="k">return</span> <span class="bp">NotImplemented</span>
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">*</span> <span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
 
-    <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
+    <span class="n">__rmul__</span> <span class="o">=</span> <span class="n">__mul__</span>
 
     <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="k">return</span> <span class="bp">NotImplemented</span>
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">other</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
 
-    <span class="fm">__truediv__</span> <span class="o">=</span> <span class="n">__div__</span></div>
+    <span class="n">__truediv__</span> <span class="o">=</span> <span class="n">__div__</span></div>
 
 
-<span class="c1"># TODO(akshayka): Consider moving this to another file</span>
 <div class="viewcode-block" id="SolverStats"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats">[docs]</a><span class="k">class</span> <span class="nc">SolverStats</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Reports some of the miscellaneous information that is returned</span>
 <span class="sd">    by the solver after solving but that is not captured directly by</span>
@@ -602,39 +682,40 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span><span class="p">]</span></div>
 
 
-<span class="c1"># TODO(akshayka): Consider moving this to another file</span>
 <div class="viewcode-block" id="SizeMetrics"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SizeMetrics">[docs]</a><span class="k">class</span> <span class="nc">SizeMetrics</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Reports various metrics regarding the problem.</span>
+    <span class="sd">&quot;&quot;&quot;Reports various metrics regarding the problem</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    num_scalar_variables : integer</span>
-<span class="sd">        The number of scalar variables in the problem.</span>
-<span class="sd">    num_scalar_data : integer</span>
-<span class="sd">        The number of scalar constants and parameters in the problem. The number of</span>
-<span class="sd">        constants used across all matrices, vectors, in the problem.</span>
-<span class="sd">        Some constants are not apparent when the problem is constructed: for example,</span>
-<span class="sd">        The sum_squares expression is a wrapper for a quad_over_lin expression with a</span>
-<span class="sd">        constant 1 in the denominator.</span>
-<span class="sd">    num_scalar_eq_constr : integer</span>
-<span class="sd">        The number of scalar equality constraints in the problem.</span>
-<span class="sd">    num_scalar_leq_constr : integer</span>
-<span class="sd">        The number of scalar inequality constraints in the problem.</span>
+<span class="sd">    Counts:</span>
+<span class="sd">        num_scalar_variables : integer</span>
+<span class="sd">            The number of scalar variables in the problem.</span>
+<span class="sd">        num_scalar_data : integer</span>
+<span class="sd">            The number of scalar constants and parameters in the problem. The number of</span>
+<span class="sd">            constants used across all matrices, vectors, in the problem.</span>
+<span class="sd">            Some constants are not apparent when the problem is constructed: for example,</span>
+<span class="sd">            The sum_squares expression is a wrapper for a quad_over_lin expression with a</span>
+<span class="sd">            constant 1 in the denominator.</span>
+<span class="sd">        num_scalar_eq_constr : integer</span>
+<span class="sd">            The number of scalar equality constraints in the problem.</span>
+<span class="sd">        num_scalar_leq_constr : integer</span>
+<span class="sd">            The number of scalar inequality constraints in the problem.</span>
 
-<span class="sd">    max_data_dimension : integer</span>
-<span class="sd">        The longest dimension of any data block constraint or parameter.</span>
-<span class="sd">    max_big_small_squared : integer</span>
-<span class="sd">        The maximum value of (big)(small)^2 over all data blocks of the problem, where</span>
-<span class="sd">        (big) is the larger dimension and (small) is the smaller dimension</span>
-<span class="sd">        for each data block.</span>
+<span class="sd">    Max and min sizes:</span>
+<span class="sd">        max_data_dimension : integer</span>
+<span class="sd">            The longest dimension of any data block constraint or parameter.</span>
+<span class="sd">        max_big_small_squared : integer</span>
+<span class="sd">            The maximum value of (big)(small)^2 over all data blocks of the problem, where</span>
+<span class="sd">            (big) is the larger dimension and (small) is the smaller dimension</span>
+<span class="sd">            for each data block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
         <span class="c1"># num_scalar_variables</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_variables</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_variables</span> <span class="o">+=</span> <span class="n">var</span><span class="o">.</span><span class="n">size</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_variables</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
         <span class="c1"># num_scalar_data, max_data_dimension, and max_big_small_squared</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_data_dimension</span> <span class="o">=</span> <span class="mi">0</span>
@@ -643,28 +724,28 @@
         <span class="k">for</span> <span class="n">const</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constants</span><span class="p">()</span><span class="o">+</span><span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="n">big</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="c1"># Compute number of data</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_data</span> <span class="o">+=</span> <span class="n">const</span><span class="o">.</span><span class="n">size</span>
-            <span class="n">big</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">small</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_data</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">big</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">small</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
             <span class="c1"># Get max data dimension:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_dimension</span> <span class="o">&lt;</span> <span class="n">big</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">max_data_dimension</span> <span class="o">=</span> <span class="n">big</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">&lt;</span> <span class="n">big</span><span class="o">*</span><span class="n">small</span><span class="o">**</span><span class="mi">2</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">=</span> <span class="n">big</span><span class="o">*</span><span class="n">small</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">&lt;</span> <span class="n">big</span><span class="o">*</span><span class="n">small</span><span class="o">*</span><span class="n">small</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">=</span> <span class="n">big</span><span class="o">*</span><span class="n">small</span><span class="o">*</span><span class="n">small</span>
 
         <span class="c1"># num_scalar_eq_constr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_eq_constr</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">is</span> <span class="s2">&quot;Zero&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_eq_constr</span> <span class="o">+=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">is</span> <span class="s2">&quot;EqConstraint&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_eq_constr</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">_expr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
         <span class="c1"># num_scalar_leq_constr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_leq_constr</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">is</span> <span class="s2">&quot;NonPos&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_leq_constr</span> <span class="o">+=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span></div>
+            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">is</span> <span class="s2">&quot;LeqConstraint&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_leq_constr</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">_expr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -748,7 +829,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

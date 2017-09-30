@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Affine Atoms &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="cvxpy.atoms.elementwise package" href="cvxpy.atoms.elementwise.html" />
@@ -85,23 +88,6 @@
 <dt id="cvxpy.atoms.affine.binary_operators.MulExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">MulExpression</code><span class="sig-paren">(</span><em>lh_exp</em>, <em>rh_exp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#MulExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.binary_operators.BinaryOperator</span></code></p>
-<p>Matrix multiplication.</p>
-<p>The semantics of multiplication are exactly as those of NumPy’s
-matmul function, except here multiplication by a scalar is permitted.
-MulExpression objects can be created by using the ‘*’ operator of
-the Expression class.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lh_exp</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The left-hand side of the multiplication.</li>
-<li><strong>rh_exp</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The right-hand side of the multiplication.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>
@@ -111,8 +97,6 @@ the Expression class.</p>
 <dt id="cvxpy.atoms.affine.binary_operators.DivExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">DivExpression</code><span class="sig-paren">(</span><em>lh_exp</em>, <em>rh_exp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#DivExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.DivExpression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.binary_operators.BinaryOperator</span></code></p>
-<p>Division by scalar.</p>
-<p>Can be created by using the / operator of expression.</p>
 </dd></dl>
 
 </div>
@@ -146,23 +130,6 @@ The internal lists are stacked vertically.</p>
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.conv.</code><code class="descname">conv</code><span class="sig-paren">(</span><em>lh_expr</em>, <em>rh_expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/conv.html#conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.conv.conv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
 <p>1D discrete convolution of two vectors.</p>
-<p>The discrete convolution <span class="math">\(c\)</span> of vectors <span class="math">\(a\)</span> and <span class="math">\(b\)</span> of
-lengths <span class="math">\(n\)</span> and <span class="math">\(m\)</span>, respectively, is a length-<span class="math">\((n+m-1)\)</span>
-vector where</p>
-<div class="math">
-\[c_k = \sum_{i+j=k} a_ib_j, \quad k=0, \ldots, n+m-2.\]</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lh_expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.Constant" title="cvxpy.expressions.constants.Constant"><em>Constant</em></a>) – A constant 1D vector or a 2D column vector.</li>
-<li><strong>rh_expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – A 1D vector or a 2D column vector.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>
@@ -230,16 +197,8 @@ equivalently diff(diff(x))</p>
 <span id="id6"></span><h2><a class="toc-backref" href="#id27">hstack</a><a class="headerlink" href="#hstack" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.hstack.hstack">
-<code class="descclassname">cvxpy.atoms.affine.hstack.</code><code class="descname">hstack</code><span class="sig-paren">(</span><em>arg_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/hstack.html#hstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.hstack.hstack" title="Permalink to this definition">¶</a></dt>
-<dd><p>Horizontal concatenation of an arbitrary number of Expressions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arg_list</strong> (<em>list of Expression</em>) – The Expressions to concatenate.</td>
-</tr>
-</tbody>
-</table>
+<code class="descclassname">cvxpy.atoms.affine.hstack.</code><code class="descname">hstack</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/hstack.html#hstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.hstack.hstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Horizontal concatenation</p>
 </dd></dl>
 
 </div>
@@ -247,24 +206,9 @@ equivalently diff(diff(x))</p>
 <span id="id7"></span><h2><a class="toc-backref" href="#id28">index</a><a class="headerlink" href="#index" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.index.index">
-<em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.index.</code><code class="descname">index</code><span class="sig-paren">(</span><em>expr</em>, <em>key</em>, <em>orig_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/index.html#index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.index.index" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.index.</code><code class="descname">index</code><span class="sig-paren">(</span><em>expr</em>, <em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/index.html#index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.index.index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
-<p>Indexing/slicing into an Expression.</p>
-<p>CVXPY supports NumPy-like indexing semantics via the Expression
-class’ overloading of the <code class="docutils literal"><span class="pre">[]</span></code> operator. This is a low-level class
-constructed by that operator, and it should not be instantiated directly.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression indexed/sliced into.</li>
-<li><strong>key</strong> – The index/slicing key (i.e. expr[key[0],key[1]]).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<p>Indexing/slicing into a matrix.</p>
 </dd></dl>
 
 </div>
@@ -283,74 +227,21 @@ constructed by that operator, and it should not be instantiated directly.</p>
 </div>
 <div class="section" id="promote">
 <span id="id10"></span><h2><a class="toc-backref" href="#id31">promote</a><a class="headerlink" href="#promote" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="cvxpy.atoms.affine.promote.promote">
-<code class="descclassname">cvxpy.atoms.affine.promote.</code><code class="descname">promote</code><span class="sig-paren">(</span><em>expr</em>, <em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/promote.html#promote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.promote.promote" title="Permalink to this definition">¶</a></dt>
-<dd><p>Promote a scalar expression to a vector/matrix.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to promote.</li>
-<li><strong>shape</strong> (<em>tuple</em>) – The shape to promote to.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If <code class="docutils literal"><span class="pre">expr</span></code> is not a scalar.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
 <div class="section" id="reshape">
 <span id="id11"></span><h2><a class="toc-backref" href="#id32">reshape</a><a class="headerlink" href="#reshape" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.reshape.reshape">
-<em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.reshape.</code><code class="descname">reshape</code><span class="sig-paren">(</span><em>expr</em>, <em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/reshape.html#reshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.reshape.reshape" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.reshape.</code><code class="descname">reshape</code><span class="sig-paren">(</span><em>expr</em>, <em>rows</em>, <em>cols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/reshape.html#reshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.reshape.reshape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
 <p>Reshapes the expression.</p>
 <p>Vectorizes the expression then unvectorizes it into the new shape.
-The entries are reshaped and stored in column-major order, also known
-as Fortran order.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to promote.</li>
-<li><strong>shape</strong> (<em>tuple</em>) – The shape to promote to.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+The entries are stored in column-major order.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="sum">
 <span id="id12"></span><h2><a class="toc-backref" href="#id33">sum</a><a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="cvxpy.atoms.affine.sum.sum">
-<code class="descclassname">cvxpy.atoms.affine.sum.</code><code class="descname">sum</code><span class="sig-paren">(</span><em>expr</em>, <em>axis=None</em>, <em>keepdims=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/sum.html#sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.sum.sum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sum the entries of an expression.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to sum the entries of.</li>
-<li><strong>axis</strong> (<em>int</em>) – The axis along which to sum.</li>
-<li><strong>keepdims</strong> (<em>bool</em>) – Whether to drop dimensions after summing.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
 <div class="section" id="trace">
 <span id="id13"></span><h2><a class="toc-backref" href="#id34">trace</a><a class="headerlink" href="#trace" title="Permalink to this headline">¶</a></h2>
@@ -359,14 +250,12 @@ as Fortran order.</p>
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.trace.</code><code class="descname">trace</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/trace.html#trace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.trace.trace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
 <p>The sum of the diagonal entries of a matrix.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to sum the diagonal of.</td>
-</tr>
-</tbody>
-</table>
+<dl class="attribute">
+<dt id="trace.expr">
+<code class="descname">expr</code><a class="headerlink" href="#trace.expr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>CVXPY Expression</em> – The expression to sum the diagonal of.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -374,9 +263,9 @@ as Fortran order.</p>
 <span id="id14"></span><h2><a class="toc-backref" href="#id35">transpose</a><a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.transpose.transpose">
-<em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.transpose.</code><code class="descname">transpose</code><span class="sig-paren">(</span><em>expr</em>, <em>axes=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/transpose.html#transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.transpose.transpose" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.transpose.</code><code class="descname">transpose</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/transpose.html#transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.transpose.transpose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
-<p>Transpose an expression.</p>
+<p>Matrix transpose.</p>
 </dd></dl>
 
 </div>
@@ -386,7 +275,6 @@ as Fortran order.</p>
 <dt id="cvxpy.atoms.affine.unary_operators.NegExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.unary_operators.</code><code class="descname">NegExpression</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/unary_operators.html#NegExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.unary_operators.NegExpression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.unary_operators.UnaryOperator</span></code></p>
-<p>Negation of an expression.</p>
 </dd></dl>
 
 </div>
@@ -425,8 +313,8 @@ as Fortran order.</p>
 <span id="id18"></span><h2><a class="toc-backref" href="#id39">vstack</a><a class="headerlink" href="#vstack" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.vstack.vstack">
-<code class="descclassname">cvxpy.atoms.affine.vstack.</code><code class="descname">vstack</code><span class="sig-paren">(</span><em>arg_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vstack.html#vstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.vstack.vstack" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper on vstack to ensure list argument.</p>
+<code class="descclassname">cvxpy.atoms.affine.vstack.</code><code class="descname">vstack</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vstack.html#vstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.vstack.vstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vertical concatenation</p>
 </dd></dl>
 
 </div>
@@ -551,7 +439,7 @@ as Fortran order.</p>
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

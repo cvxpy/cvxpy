@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.reductions.qp2quad_form package &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -49,95 +52,14 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.qp2quad_form.qp2symbolic_qp">
-<span id="cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module"></span><h2>cvxpy.reductions.qp2quad_form.qp2symbolic_qp module<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form.qp2symbolic_qp" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2017 Robin Verschueren</p>
-<p>This file is part of CVXPY.</p>
-<p>CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
-<dl class="class">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="descname">Qp2SymbolicQp</code><span class="sig-paren">(</span><em>canon_methods=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
-<p>Reduces a quadratic problem to a problem that consists of affine
-expressions and symbolic quadratic forms.</p>
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">
-<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Problems with quadratic, piecewise affine objectives,
-piecewise-linear constraints inequality constraints, and
-affine equality constraints are accepted.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a QP to an even more symbolic form.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module">
+<h2>cvxpy.reductions.qp2quad_form.qp2symbolic_qp module<a class="headerlink" href="#cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.qp2quad_form.qp_matrix_stuffing">
-<span id="cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module"></span><h2>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form.qp_matrix_stuffing" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2016 Jaehyun Park, 2017 Robin Verschueren</p>
-<p>This file is part of CVXPY.</p>
-<p>CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
-<dl class="class">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</code><code class="descname">QpMatrixStuffing</code><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.matrix_stuffing.MatrixStuffing</span></code></p>
-<p>Fills in numeric values for this problem instance.</p>
-<p>Outputs a DCP-compliant minimization problem with an objective
-of the form</p>
-<blockquote>
-<div>QuadForm(x, p) + q.T * x</div></blockquote>
-<p>and Zero/NonPos constraints, both of which exclusively carry
-affine arguments.</p>
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts">
-<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective">
-<code class="descname">stuffed_objective</code><span class="sig-paren">(</span><em>problem</em>, <em>inverse_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.stuffed_objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module">
+<h2>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing module<a class="headerlink" href="#cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.qp2quad_form">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2013 Steven Diamond</p>
-<p>This file is part of CVXPY.</p>
-<p>CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -223,7 +145,7 @@ along with CVXPY.  If not, see &lt;<a class="reference external" href="http://ww
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

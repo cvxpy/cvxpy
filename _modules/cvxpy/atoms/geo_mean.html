@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.geo_mean &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,29 +44,28 @@
             
   <h1>Source code for cvxpy.atoms.geo_mean</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="k">import</span> <span class="n">Atom</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.index</span> <span class="k">import</span> <span class="n">index</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
-<span class="kn">from</span> <span class="nn">cvxpy.utilities.power_tools</span> <span class="k">import</span> <span class="p">(</span><span class="n">fracify</span><span class="p">,</span> <span class="n">decompose</span><span class="p">,</span> <span class="n">approx_error</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span>
-                                         <span class="n">over_bound</span><span class="p">,</span> <span class="n">prettydict</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..utilities.power_tools</span> <span class="k">import</span> <span class="p">(</span><span class="n">fracify</span><span class="p">,</span> <span class="n">decompose</span><span class="p">,</span> <span class="n">approx_error</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span>
+                                     <span class="n">over_bound</span><span class="p">,</span> <span class="n">prettydict</span><span class="p">,</span> <span class="n">gm_constrs</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
 
 
 <div class="viewcode-block" id="geo_mean"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.geo_mean.geo_mean">[docs]</a><span class="k">class</span> <span class="nc">geo_mean</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
@@ -183,7 +185,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x : Variable</span>
+<span class="sd">    x : cvxpy.Variable</span>
 <span class="sd">        A column or row vector whose elements we will take the geometric mean of.</span>
 
 <span class="sd">    p : Sequence (list, tuple, ...) of ``int``, ``float``, or ``Fraction`` objects</span>
@@ -240,11 +242,13 @@
 <span class="sd">            The number of second order cones used to form this geometric mean</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">geo_mean</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">geo_mean</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">is_vector</span><span class="p">():</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;x must be a row or column vector.&#39;</span><span class="p">)</span>
 
@@ -298,28 +302,28 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A list of SciPy CSC sparse matrices or None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="c1"># No special case when only one non-zero weight.</span>
         <span class="n">w_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">w_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">w_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">])</span>
         <span class="c1"># Outside domain.</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">w_arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">D</span> <span class="o">=</span> <span class="n">w_arr</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">numeric</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">D</span> <span class="o">=</span> <span class="n">w_arr</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">numeric</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="n">D</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, (</span><span class="si">%s</span><span class="s2">))&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, (</span><span class="si">%s</span><span class="s2">))&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
                                  <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
                                  <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">pretty_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">prettydict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the (row, col) shape of the expression.</span>
+    <span class="k">def</span> <span class="nf">size_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the (row, col) size of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns sign (is positive, is negative) of the expression.</span>
@@ -355,7 +359,7 @@
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_dyad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">id_objects</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a shallow copy of the geo_mean atom.</span>
 
 <span class="sd">        Parameters</span>
@@ -371,15 +375,47 @@
         <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
         <span class="c1"># Avoid calling __init__() directly as we do not have p and max_denom.</span>
-        <span class="n">copy</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
-        <span class="nb">super</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">copy</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">copy</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">copy</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="c1"># Emulate __init__()</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">w_dyad</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">approx_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">approx_error</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">cone_lb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_lb</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">cone_num_over</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_num_over</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">cone_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_num</span>
-        <span class="k">return</span> <span class="n">copy</span></div>
+        <span class="k">return</span> <span class="n">copy</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        arg_objs : list</span>
+<span class="sd">            LinExpr for each argument.</span>
+<span class="sd">        size : tuple</span>
+<span class="sd">            The size of the resulting expression.</span>
+<span class="sd">        data :</span>
+<span class="sd">            Additional data required by the atom.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (LinOp for objective, list of constraints)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">w_dyad</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[],</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">))]</span>
+        <span class="k">if</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">))]</span>
+
+        <span class="c1"># todo: catch cases where we have (0, 0, 1)?</span>
+        <span class="c1"># todo: what about curvature case (should be affine) in trivial case of (0, 0 , 1),</span>
+        <span class="c1"># should this behavior match with what we do in power?</span>
+
+        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">gm_constrs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x_list</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -463,7 +499,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

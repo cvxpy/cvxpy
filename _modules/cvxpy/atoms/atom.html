@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.atom &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,22 +44,19 @@
             
   <h1>Source code for cvxpy.atoms.atom</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -78,24 +78,18 @@
         <span class="c1"># Throws error if args is empty.</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;No arguments given to </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="s2">&quot;No arguments given to </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
             <span class="p">)</span>
         <span class="c1"># Convert raw values to Constants.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">Atom</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_from_args</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Atoms must be at most 2D.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_from_args</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the string representation of the function call.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()]</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                           <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                           <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]))</span>
 
     <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Raises an error if the arguments are invalid.</span>
@@ -103,14 +97,14 @@
         <span class="k">pass</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the shape of the expression.</span>
+    <span class="k">def</span> <span class="nf">size_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the (row, col) size of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">NotImplemented</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -119,30 +113,16 @@
         <span class="k">return</span> <span class="bp">NotImplemented</span>
 
     <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">is_nonneg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the expression nonnegative?</span>
+    <span class="k">def</span> <span class="nf">is_positive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression positive?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_from_args</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">is_nonpos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the expression nonpositive?</span>
+    <span class="k">def</span> <span class="nf">is_negative</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression negative?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_from_args</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
-
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">is_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the expression imaginary?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Default is false.</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">is_complex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Is the expression complex valued?</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Default is false.</span>
-        <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="Atom.is_atom_convex"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_convex">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -214,7 +194,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
             <span class="c1"># Parameterized expressions are evaluated later.</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-                <span class="n">param</span> <span class="o">=</span> <span class="n">CallbackParam</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
+                <span class="n">param</span> <span class="o">=</span> <span class="n">CallbackParam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">param</span><span class="o">.</span><span class="n">canonical_form</span>
             <span class="c1"># Non-parameterized expressions are evaluated immediately.</span>
             <span class="k">else</span><span class="p">:</span>
@@ -229,19 +210,20 @@
             <span class="c1"># Special info required by the graph implementation.</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
             <span class="n">graph_obj</span><span class="p">,</span> <span class="n">graph_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span>
-                                                                <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                                                                <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
                                                                 <span class="n">data</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">graph_obj</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">+</span> <span class="n">graph_constr</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">graph_obj</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">+</span> <span class="n">graph_constr</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        arg_objs : list</span>
 <span class="sd">            LinExpr for each argument.</span>
-<span class="sd">        shape : tuple</span>
-<span class="sd">            The shape of the resulting expression.</span>
+<span class="sd">        size : tuple</span>
+<span class="sd">            The size of the resulting expression.</span>
 <span class="sd">        data :</span>
 <span class="sd">            Additional data required by the atom.</span>
 
@@ -252,15 +234,41 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">NotImplemented</span>
 
+    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all the variables present in the arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">var_list</span> <span class="o">+=</span> <span class="n">arg</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
+        <span class="c1"># Remove duplicates.</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">var_list</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all the parameters present in the arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">param_list</span> <span class="o">+=</span> <span class="n">arg</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+        <span class="c1"># Remove duplicates.</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">param_list</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">constants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all the constants present in the arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">const_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">const_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">const_list</span> <span class="o">+=</span> <span class="n">arg</span><span class="o">.</span><span class="n">constants</span><span class="p">()</span>
+        <span class="c1"># Remove duplicates:</span>
+        <span class="n">const_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">constant</span><span class="p">):</span> <span class="n">constant</span> <span class="k">for</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">const_list</span><span class="p">}</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">const_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># shapes with 0&#39;s dropped in presolve.</span>
-        <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
         <span class="c1"># Catch the case when the expression is known to be</span>
         <span class="c1"># zero through DCP analysis.</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">arg_values</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
@@ -277,7 +285,7 @@
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numeric</span><span class="p">(</span><span class="n">arg_values</span><span class="p">)</span>
 
         <span class="c1"># Reduce to a scalar if possible.</span>
-        <span class="k">if</span> <span class="n">intf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">intf</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">intf</span><span class="o">.</span><span class="n">scalar_value</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">result</span>
@@ -368,15 +376,7 @@
                       <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">numeric_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">const_to_matrix</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">new_numeric</span>
-
-    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A list of the atom types present amongst this atom&#39;s arguments.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">atom_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
-            <span class="n">atom_list</span> <span class="o">+=</span> <span class="n">arg</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">atom_list</span> <span class="o">+</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)]))</span></div>
+        <span class="k">return</span> <span class="n">new_numeric</span></div>
 </pre></div>
 
           </div>
@@ -460,7 +460,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cvxpy.atoms.pnorm &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -41,57 +44,39 @@
             
   <h1>Source code for cvxpy.atoms.pnorm</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="k">import</span> <span class="n">Atom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.axis_atom</span> <span class="k">import</span> <span class="n">AxisAtom</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.norm1</span> <span class="k">import</span> <span class="n">norm1</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.norm_inf</span> <span class="k">import</span> <span class="n">norm_inf</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.power_tools</span> <span class="k">import</span> <span class="n">pow_high</span><span class="p">,</span> <span class="n">pow_mid</span><span class="p">,</span> <span class="n">pow_neg</span><span class="p">,</span> <span class="n">gm_constrs</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.second_order</span> <span class="k">import</span> <span class="n">SOC</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.soc_axis</span> <span class="k">import</span> <span class="n">SOC_Axis</span>
 <span class="kn">from</span> <span class="nn">fractions</span> <span class="k">import</span> <span class="n">Fraction</span>
 
 
-<div class="viewcode-block" id="pnorm"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm">[docs]</a><span class="k">def</span> <span class="nf">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_denom</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Factory function for a mathematical p-norm.</span>
+<div class="viewcode-block" id="pnorm"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm">[docs]</a><span class="k">class</span> <span class="nc">pnorm</span><span class="p">(</span><span class="n">AxisAtom</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;The vector p-norm.</span>
 
-<span class="sd">    TODO(akshayka): Documentation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="n">keepdims</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="s1">&#39;inf&#39;</span><span class="p">,</span> <span class="s1">&#39;Inf&#39;</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">norm_inf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="n">keepdims</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="n">keepdims</span><span class="p">,</span> <span class="n">max_denom</span><span class="o">=</span><span class="n">max_denom</span><span class="p">)</span></div>
+<span class="sd">    If given a matrix variable, ``pnorm`` will treat it as a vector, and compute the p-norm</span>
+<span class="sd">    of the concatenated columns.</span>
 
-
-<div class="viewcode-block" id="Pnorm"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm">[docs]</a><span class="k">class</span> <span class="nc">Pnorm</span><span class="p">(</span><span class="n">AxisAtom</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;The vector p-norm, for p not equal to 1 or infinity.</span>
-
-<span class="sd">    If given a matrix variable, ``pnorm`` will treat it as a vector, and</span>
-<span class="sd">    compute the p-norm of the concatenated columns. Only accepts p values</span>
-<span class="sd">    that are not equal to 1 or infinity; the norm1 and norm_inf classes</span>
-<span class="sd">    handle those norms.</span>
-
-<span class="sd">    For :math:`p &gt; 1`, the p-norm is given by</span>
+<span class="sd">    For :math:`p \geq 1`, the p-norm is given by</span>
 
 <span class="sd">    .. math::</span>
 
@@ -108,7 +93,8 @@
 <span class="sd">    with domain :math:`x \in \mathbf{R}^n_+`.</span>
 
 <span class="sd">    - Note that the &quot;p-norm&quot; is actually a **norm** only when</span>
-<span class="sd">      :math:`p &gt; 1`. For these cases, it is convex.</span>
+<span class="sd">      :math:`p \geq 1` or :math:`p = +\infty`. For these cases,</span>
+<span class="sd">      it is convex.</span>
 <span class="sd">    - The expression is not defined when :math:`p = 0`.</span>
 <span class="sd">    - Otherwise, when :math:`p &lt; 1`, the expression is</span>
 <span class="sd">      concave, but it is not a true norm.</span>
@@ -134,15 +120,14 @@
 <span class="sd">    x : cvxpy.Variable</span>
 <span class="sd">        The value to take the norm of.</span>
 
-<span class="sd">    p : int, float, or Fraction</span>
-<span class="sd">        We require that :math:`p &gt; 1`, but :math:`p \neq \infty`. See the</span>
-<span class="sd">        norm1 and norm_inf classes for these norms, or use the pnorm</span>
-<span class="sd">        function wrapper to instantiate them.</span>
+<span class="sd">    p : int, float, Fraction, or string</span>
+<span class="sd">        If ``p`` is an ``int``, ``float``, or ``Fraction`` then we must have :math:`p \geq 1`.</span>
 
+<span class="sd">        The only other valid inputs are ``numpy.inf``, ``float(&#39;inf&#39;)``, ``float(&#39;Inf&#39;)``, or</span>
+<span class="sd">        the strings ``&quot;inf&quot;`` or ``&quot;inf&quot;``, all of which are equivalent and give the infinity norm.</span>
 
 <span class="sd">    max_denom : int</span>
-<span class="sd">        The maximum denominator considered in forming a rational approximation</span>
-<span class="sd">        for ``p``.</span>
+<span class="sd">        The maximum denominator considered in forming a rational approximation for ``p``.</span>
 
 <span class="sd">    axis : 0 or 1</span>
 <span class="sd">           The axis to apply the norm to.</span>
@@ -153,24 +138,29 @@
 <span class="sd">        An Expression representing the norm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_denom</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># TODO(akshayka): Why do we accept p &lt; 0?</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_denom</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="n">p_old</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">,</span> <span class="s1">&#39;Inf&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pow_neg</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">max_denom</span><span class="p">)</span>
         <span class="k">elif</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pow_mid</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">max_denom</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pow_high</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">max_denom</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Use the norm1 class to instantiate a one norm.&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="s1">&#39;inf&#39;</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">==</span> <span class="s1">&#39;Inf&#39;</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Use the norm_inf class to instantiate an &#39;</span>
-                             <span class="s1">&#39;infinity norm.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid p: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">approx_error</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="n">p</span><span class="p">))</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Pnorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="n">keepdims</span><span class="p">)</span>
 
+        <span class="nb">super</span><span class="p">(</span><span class="n">pnorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">approx_error</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">approx_error</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="n">p_old</span><span class="p">))</span>
+
+    <span class="nd">@Atom</span><span class="o">.</span><span class="n">numpy_numeric</span>
     <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the p-norm of x.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -182,15 +172,23 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">values</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">values</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">return</span> <span class="mf">0.0</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span>
-                              <span class="n">keepdims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keepdims</span><span class="p">)</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span>
+
+        <span class="c1"># NOTE: workaround for NumPy &lt;=1.9 and no keepdims for norm()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">retval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">retval</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># self.axis == 1:</span>
+                <span class="n">retval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">retval</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">retval</span>
 
     <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Pnorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
-        <span class="c1"># TODO(akshayka): Why is axis not supported for other norms?</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">pnorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;The axis parameter is only supported for p=2.&quot;</span><span class="p">)</span>
@@ -204,7 +202,7 @@
     <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the atom convex?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
@@ -214,23 +212,23 @@
     <span class="k">def</span> <span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_positive</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">is_decr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the composition non-increasing in argument idx?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_negative</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">is_pwl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the atom piecewise linear?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
                                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
                                <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
 
@@ -266,17 +264,21 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A NumPy ndarray matrix or None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="c1"># Outside domain.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">D_null</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">((</span><span class="n">rows</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">D_null</span> <span class="o">+=</span> <span class="p">(</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">D_null</span> <span class="o">-=</span> <span class="p">(</span><span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="n">D_null</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
         <span class="n">denominator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
         <span class="n">denominator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">denominator</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Subgrad is 0 when denom is 0 (or undefined).</span>
         <span class="k">if</span> <span class="n">denominator</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">D_null</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
@@ -286,15 +288,15 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        arg_objs : list</span>
 <span class="sd">            LinExpr for each argument.</span>
-<span class="sd">        shape : tuple</span>
-<span class="sd">            The shape of the resulting expression.</span>
+<span class="sd">        size : tuple</span>
+<span class="sd">            The size of the resulting expression.</span>
 <span class="sd">        data :</span>
 <span class="sd">            Additional data required by the atom.</span>
 
@@ -378,33 +380,33 @@
         <span class="c1"># first, take care of the special cases of p = 2, inf, and 1</span>
         <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">SOC</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">)]</span>
+                <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">SOC</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">])]</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">SOC</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span>
-                               <span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">)]</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">SOC_Axis</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span>
+                                    <span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">)]</span>
 
         <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
-            <span class="n">t_</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">t_</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_leq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t_</span><span class="p">),</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_geq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum_expr</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">t_</span><span class="p">]))]</span>
 
         <span class="c1"># we need an absolute value constraint for the symmetric convex branches (p &gt;= 1)</span>
         <span class="c1"># we alias |x| as x from this point forward to make the code pretty :)</span>
         <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">absx</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">absx</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
             <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_leq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">absx</span><span class="p">),</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_geq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum_expr</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">absx</span><span class="p">]))]</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">absx</span>
 
         <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">constraints</span>
+            <span class="k">return</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum_entries</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">constraints</span>
 
         <span class="c1"># now, we take care of the remaining convex and concave branches</span>
         <span class="c1"># to create the rational powers, we need a new variable, r, and</span>
         <span class="c1"># the constraint sum(r) == t</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">t_</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_eq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">t</span><span class="p">)]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">t_</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_eq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum_entries</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">t</span><span class="p">)]</span>
 
         <span class="c1"># make p a fraction so that the input weight to gm_constrs</span>
         <span class="c1"># is a nice tuple of fractions.</span>
@@ -503,7 +505,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

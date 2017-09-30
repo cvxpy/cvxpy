@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Overview: module code &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -51,9 +54,7 @@
 <li><a href="cvxpy/atoms/affine/hstack.html">cvxpy.atoms.affine.hstack</a></li>
 <li><a href="cvxpy/atoms/affine/index.html">cvxpy.atoms.affine.index</a></li>
 <li><a href="cvxpy/atoms/affine/kron.html">cvxpy.atoms.affine.kron</a></li>
-<li><a href="cvxpy/atoms/affine/promote.html">cvxpy.atoms.affine.promote</a></li>
 <li><a href="cvxpy/atoms/affine/reshape.html">cvxpy.atoms.affine.reshape</a></li>
-<li><a href="cvxpy/atoms/affine/sum.html">cvxpy.atoms.affine.sum</a></li>
 <li><a href="cvxpy/atoms/affine/trace.html">cvxpy.atoms.affine.trace</a></li>
 <li><a href="cvxpy/atoms/affine/transpose.html">cvxpy.atoms.affine.transpose</a></li>
 <li><a href="cvxpy/atoms/affine/unary_operators.html">cvxpy.atoms.affine.unary_operators</a></li>
@@ -71,8 +72,6 @@
 <li><a href="cvxpy/atoms/elementwise/log.html">cvxpy.atoms.elementwise.log</a></li>
 <li><a href="cvxpy/atoms/elementwise/log1p.html">cvxpy.atoms.elementwise.log1p</a></li>
 <li><a href="cvxpy/atoms/elementwise/logistic.html">cvxpy.atoms.elementwise.logistic</a></li>
-<li><a href="cvxpy/atoms/elementwise/maximum.html">cvxpy.atoms.elementwise.maximum</a></li>
-<li><a href="cvxpy/atoms/elementwise/minimum.html">cvxpy.atoms.elementwise.minimum</a></li>
 <li><a href="cvxpy/atoms/elementwise/neg.html">cvxpy.atoms.elementwise.neg</a></li>
 <li><a href="cvxpy/atoms/elementwise/pos.html">cvxpy.atoms.elementwise.pos</a></li>
 <li><a href="cvxpy/atoms/elementwise/power.html">cvxpy.atoms.elementwise.power</a></li>
@@ -87,13 +86,10 @@
 <li><a href="cvxpy/atoms/log_det.html">cvxpy.atoms.log_det</a></li>
 <li><a href="cvxpy/atoms/log_sum_exp.html">cvxpy.atoms.log_sum_exp</a></li>
 <li><a href="cvxpy/atoms/matrix_frac.html">cvxpy.atoms.matrix_frac</a></li>
-<li><a href="cvxpy/atoms/max.html">cvxpy.atoms.max</a></li>
-<li><a href="cvxpy/atoms/min.html">cvxpy.atoms.min</a></li>
 <li><a href="cvxpy/atoms/mixed_norm.html">cvxpy.atoms.mixed_norm</a></li>
 <li><a href="cvxpy/atoms/norm.html">cvxpy.atoms.norm</a></li>
 <li><a href="cvxpy/atoms/norm1.html">cvxpy.atoms.norm1</a></li>
 <li><a href="cvxpy/atoms/norm2.html">cvxpy.atoms.norm2</a></li>
-<li><a href="cvxpy/atoms/norm_inf.html">cvxpy.atoms.norm_inf</a></li>
 <li><a href="cvxpy/atoms/norm_nuc.html">cvxpy.atoms.norm_nuc</a></li>
 <li><a href="cvxpy/atoms/pnorm.html">cvxpy.atoms.pnorm</a></li>
 <li><a href="cvxpy/atoms/quad_form.html">cvxpy.atoms.quad_form</a></li>
@@ -105,32 +101,15 @@
 <li><a href="cvxpy/atoms/total_variation.html">cvxpy.atoms.total_variation</a></li>
 <li><a href="cvxpy/constraints/constraint.html">cvxpy.constraints.constraint</a></li>
 <li><a href="cvxpy/constraints/exponential.html">cvxpy.constraints.exponential</a></li>
-<li><a href="cvxpy/constraints/nonpos.html">cvxpy.constraints.nonpos</a></li>
-<li><a href="cvxpy/constraints/psd.html">cvxpy.constraints.psd</a></li>
 <li><a href="cvxpy/constraints/second_order.html">cvxpy.constraints.second_order</a></li>
-<li><a href="cvxpy/constraints/zero.html">cvxpy.constraints.zero</a></li>
 <li><a href="cvxpy/expressions/constants/constant.html">cvxpy.expressions.constants.constant</a></li>
 <li><a href="cvxpy/expressions/constants/parameter.html">cvxpy.expressions.constants.parameter</a></li>
 <li><a href="cvxpy/expressions/expression.html">cvxpy.expressions.expression</a></li>
 <li><a href="cvxpy/expressions/leaf.html">cvxpy.expressions.leaf</a></li>
-<li><a href="cvxpy/expressions/variable.html">cvxpy.expressions.variable</a></li>
 <li><a href="cvxpy/problems/objective.html">cvxpy.problems.objective</a></li>
 <li><a href="cvxpy/problems/problem.html">cvxpy.problems.problem</a></li>
-<li><a href="cvxpy/reductions/chain.html">cvxpy.reductions.chain</a></li>
-<li><a href="cvxpy/reductions/cvx_attr2constr.html">cvxpy.reductions.cvx_attr2constr</a></li>
-<li><a href="cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</a></li>
-<li><a href="cvxpy/reductions/dcp2cone/dcp2cone.html">cvxpy.reductions.dcp2cone.dcp2cone</a></li>
-<li><a href="cvxpy/reductions/eval_params.html">cvxpy.reductions.eval_params</a></li>
-<li><a href="cvxpy/reductions/flip_objective.html">cvxpy.reductions.flip_objective</a></li>
-<li><a href="cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html">cvxpy.reductions.qp2quad_form.qp2symbolic_qp</a></li>
-<li><a href="cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing</a></li>
-<li><a href="cvxpy/reductions/reduction.html">cvxpy.reductions.reduction</a></li>
-<li><a href="cvxpy/reductions/solution.html">cvxpy.reductions.solution</a></li>
-<li><a href="cvxpy/reductions/solvers/solving_chain.html">cvxpy.reductions.solvers.solving_chain</a></li>
-<li><a href="cvxpy/transforms/indicator.html">cvxpy.transforms.indicator</a></li>
 <li><a href="cvxpy/transforms/linearize.html">cvxpy.transforms.linearize</a></li>
 <li><a href="cvxpy/transforms/partial_optimize.html">cvxpy.transforms.partial_optimize</a></li>
-<li><a href="cvxpy/transforms/scalarize.html">cvxpy.transforms.scalarize</a></li>
 </ul>
 
           </div>
@@ -214,7 +193,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
