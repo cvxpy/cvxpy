@@ -36,7 +36,7 @@ class Leaf(expression.Expression):
     in some indices and ``integer`` in others.
 
     An error is raised if a leaf is assigned a value that contradicts
-    one or more of its attributes. See the ``round`` method for a convenient
+    one or more of its attributes. See the ``project`` method for a convenient
     way to project a value onto a leaf's domain.
 
     Parameters
@@ -316,7 +316,7 @@ class Leaf(expression.Expression):
         self.save_value(self._validate_value(val))
 
     def project_and_assign(self, val):
-        """Round and assign a value to the variable.
+        """Project and assign a value to the variable.
         """
         self.save_value(self.project(val))
 

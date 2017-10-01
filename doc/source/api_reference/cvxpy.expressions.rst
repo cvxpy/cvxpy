@@ -30,7 +30,7 @@ Leaf
 -------------------------------
 
 .. autoclass:: cvxpy.expressions.leaf.Leaf
-    :members: shape, size, ndim, T, value, round
+    :members: shape, size, ndim, T, value, project, project_and_assign
     :undoc-members:
     :show-inheritance:
 
@@ -38,7 +38,7 @@ Variable
 -----------------------------------
 
 .. autoclass:: cvxpy.expressions.variable.Variable
-    :members: shape, size, ndim, T, value, round, name
+    :members: shape, size, ndim, T, value, project, project_and_assign, name
     :undoc-members:
     :show-inheritance:
 
@@ -46,7 +46,7 @@ Parameter
 -----------------------------------
 
 .. autoclass:: cvxpy.expressions.constants.parameter.Parameter
-    :members: shape, size, ndim, T, value, round
+    :members: shape, size, ndim, T, value, project, project_and_assign, round
     :undoc-members:
     :show-inheritance:
 

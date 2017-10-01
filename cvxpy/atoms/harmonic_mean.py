@@ -22,5 +22,24 @@ from cvxpy.expressions.expression import Expression
 
 
 def harmonic_mean(x):
+    """The harmonic mean of ``x``.
+
+    Parameters
+    ----------
+    x : Expression or numeric
+        The expression whose harmonic mean is to be computed. Must have
+        positive entries.
+
+    Returns
+    -------
+    Expression
+        .. math::
+            \\frac{n}{\\left(\\sum_{i=1}^{n} x_i^{-1} \\right)},
+
+        where :math:`n` is the length of :math:`x`.
+    """
     x = Expression.cast_to_const(x)
+    # TODO(akshayka): Behavior of the below is incorrect when x has negative
+    # entries. Either fail fast or provide a correct expression with
+    # unknown curvature.
     return x.size*pnorm(x, -1)
