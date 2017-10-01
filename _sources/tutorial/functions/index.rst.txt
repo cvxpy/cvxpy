@@ -187,7 +187,7 @@ and returns a scalar.
 
        |decr| for :math:`x_{i} \leq 0`
 
-   * - norm(X, "fro")
+   * - :ref:`norm(X, "fro") <norm>`
      - :math:`\sqrt{\sum_{ij}X_{ij}^2 }`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
@@ -196,7 +196,7 @@ and returns a scalar.
 
        |decr| for :math:`X_{ij} \leq 0`
 
-   * - norm(X, 1)
+   * - :ref:`norm(X, 1) <norm>`
      - :math:`\sum_{ij}\lvert X_{ij} \rvert`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
@@ -205,7 +205,7 @@ and returns a scalar.
 
        |decr| for :math:`X_{ij} \leq 0`
 
-   * - norm(X, "inf")
+   * - :ref:`norm(X, "inf") <norm>`
      - :math:`\max_{ij} \{\lvert X_{ij} \rvert\}`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
@@ -214,14 +214,14 @@ and returns a scalar.
 
        |decr| for :math:`X_{ij} \leq 0`
 
-   * - norm(X, "nuc")
+   * - :ref:`norm(X, "nuc") <norm>`
      - :math:`\mathrm{tr}\left(\left(X^T X\right)^{1/2}\right)`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - None
 
-   * - norm(X)
+   * - :ref:`norm(X) <norm>`
 
        norm(X, 2)
      - :math:`\sqrt{\lambda_{\max}\left(X^T X\right)}`
@@ -230,7 +230,7 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - :ref:`pnorm(X, p) <pnorm>`
+   * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p \geq 1`
 
@@ -243,7 +243,7 @@ and returns a scalar.
 
        |decr| for :math:`X_{ij} \leq 0`
 
-   * - :ref:`pnorm(X, p) <pnorm>`
+   * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p < 1`, :math:`p \neq 0`
      - :math:`\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}`
@@ -266,7 +266,7 @@ and returns a scalar.
 
        |decr| for :math:`x_i \leq 0`
 
-   * - quad_form(x, P)
+   * - :ref:`quad_form(x, P) <quad-form>`
 
        constant :math:`P \in \mathbf{S}^n_-`
      - :math:`x^T P x`
@@ -277,7 +277,7 @@ and returns a scalar.
 
        |incr| for :math:`x_i \leq 0`
 
-   * - quad_form(c, X)
+   * - :ref:`quad_form(c, X) <quad-form>`
 
        constant :math:`c \in \mathbf{R}^n`
      - :math:`c^T X c`
@@ -286,7 +286,7 @@ and returns a scalar.
      - |affine| affine
      - depends |_| on |_| c
 
-   * - :ref:`quad_over_lin(X, y) <quad_over_lin>`
+   * - :ref:`quad_over_lin(X, y) <quad-over-lin>`
 
      - :math:`\left(\sum_{ij}X_{ij}^2\right)/y`
      - :math:`x \in \mathbf{R}^n`
@@ -352,14 +352,14 @@ and returns a scalar.
      - |convex| convex
      - None
 
-   * - tv(X)
+   * - :ref:`tv(x) <tv>`
      - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j} - X_{ij} \\ X_{i,j+1} -X_{ij} \end{matrix}\right] \right\|_2`
      - :math:`X \in \mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
      - None
 
-   * - tv([X1,...,Xk])
+   * - :ref:`tv([X1,...,Xk]) <tv>`
      - :math:`\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
      - |positive| positive

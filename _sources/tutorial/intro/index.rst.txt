@@ -53,8 +53,9 @@ problem.
 Changing the problem
 --------------------
 
-Problems are immutable, meaning they cannot be changed after they are created.
-To change the objective or constraints, create a new problem.
+:py:class:`Problems <cvxpy.problems.problem.Problem>` are immutable, meaning they
+cannot be changed after they are created.  To change the objective or
+constraints, create a new problem.
 
 .. code:: python
 
@@ -146,8 +147,8 @@ For example, to test if a problem was solved successfully, you would use
 Vectors and matrices
 --------------------
 
-Variables can be scalars, vectors, or matrices,
-meaning they are 0, 1, or 2 dimensional.
+:py:class:`Variables <cvxpy.expressions.variable.Variable>` can be scalars,
+vectors, or matrices, meaning they are 0, 1, or 2 dimensional.
 
 
 .. code:: python
@@ -220,8 +221,9 @@ You cannot construct inequalities with ``<`` and ``>``. Strict inequalities don'
 Parameters
 ----------
 
-Parameters are symbolic representations of constants. The purpose of parameters is to change
-the value of a constant in a problem without reconstructing the entire
+:py:class:`Parameters <cvxpy.expressions.constants.parameter.Parameter>` are symbolic
+representations of constants. The purpose of parameters is to change the value
+of a constant in a problem without reconstructing the entire
 problem.
 
 Parameters can be vectors or matrices, just like variables. When you

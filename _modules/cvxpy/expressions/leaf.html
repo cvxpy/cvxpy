@@ -287,7 +287,7 @@
             <span class="n">domain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<div class="viewcode-block" id="Leaf.project"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project">[docs]</a>    <span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Project value onto the attribute set of the leaf.</span>
 
 <span class="sd">        A sensible idiom is ``leaf.value = leaf.project(val)``.</span>
@@ -341,7 +341,7 @@
                 <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">V</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">w</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">val</span>
+            <span class="k">return</span> <span class="n">val</span></div>
 
     <span class="c1"># Getter and setter for parameter value.</span>
     <span class="k">def</span> <span class="nf">save_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
@@ -357,10 +357,10 @@
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_value</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">project_and_assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<div class="viewcode-block" id="Leaf.project_and_assign"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project_and_assign">[docs]</a>    <span class="k">def</span> <span class="nf">project_and_assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Round and assign a value to the variable.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">val</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_validate_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Check that the value satisfies the leaf&#39;s symbolic attributes.</span>

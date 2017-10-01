@@ -391,6 +391,31 @@ boolean argument.</li>
 <dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="cvxpy.expressions.leaf.Leaf.project">
+<code class="descname">project</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project value onto the attribute set of the leaf.</p>
+<p>A sensible idiom is <code class="docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> (<em>numeric type</em>) – The value assigned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The value rounded to the attribute type.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numeric type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.leaf.Leaf.project_and_assign">
+<code class="descname">project_and_assign</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project_and_assign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project_and_assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round and assign a value to the variable.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="cvxpy.expressions.leaf.Leaf.shape">
 <code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.shape" title="Permalink to this definition">¶</a></dt>
@@ -437,6 +462,31 @@ boolean argument.</li>
 <dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="cvxpy.expressions.variable.Variable.project">
+<code class="descname">project</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.project" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project value onto the attribute set of the leaf.</p>
+<p>A sensible idiom is <code class="docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> (<em>numeric type</em>) – The value assigned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The value rounded to the attribute type.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numeric type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.variable.Variable.project_and_assign">
+<code class="descname">project_and_assign</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.project_and_assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round and assign a value to the variable.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="cvxpy.expressions.variable.Variable.shape">
 <code class="descname">shape</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.shape" title="Permalink to this definition">¶</a></dt>
@@ -480,6 +530,31 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 <dt id="cvxpy.expressions.constants.parameter.Parameter.ndim">
 <code class="descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.ndim" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>int</em> – The number of dimensions in the expression’s shape.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.project">
+<code class="descname">project</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project value onto the attribute set of the leaf.</p>
+<p>A sensible idiom is <code class="docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> (<em>numeric type</em>) – The value assigned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The value rounded to the attribute type.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numeric type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.project_and_assign">
+<code class="descname">project_and_assign</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project_and_assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round and assign a value to the variable.</p>
 </dd></dl>
 
 <dl class="attribute">

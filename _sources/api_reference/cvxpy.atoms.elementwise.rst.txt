@@ -36,14 +36,14 @@ huber
 .. autoclass:: cvxpy.atoms.elementwise.huber.huber
     :show-inheritance:
 
-.. _inv_pos:
+.. _inv-pos:
 
 inv_pos
 ------------------------------------------
 
 .. autofunction:: cvxpy.atoms.elementwise.inv_pos.inv_pos
 
-.. _kl_div:
+.. _kl-div:
 
 kl_div
 -----------------------------------------
