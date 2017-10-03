@@ -33,6 +33,7 @@ setup(
               'cvxpy.atoms.affine',
               'cvxpy.atoms.elementwise',
               'cvxpy.CVXcanon',
+              'cvxpy.CVXcanon.python',
               'cvxpy.constraints',
               'cvxpy.expressions',
               'cvxpy.expressions.constants',
@@ -72,7 +73,7 @@ setup(
                       "fastcache",
                       "six",
                       "toolz",
-                      "numpy >= 1.9",
-                      "scipy >= 0.15"],
+                      "numpy >= 1.13",
+                      "scipy >= 0.19"],
     use_2to3=True,
 )

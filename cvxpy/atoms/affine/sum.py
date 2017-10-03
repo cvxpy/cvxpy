@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.interface as intf
 import numpy as np
 from functools import wraps
 
@@ -43,7 +44,13 @@ class Sum(AxisAtom, AffAtom):
     def numeric(self, values):
         """Sums the entries of value.
         """
-        return np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
+        if intf.is_sparse(values[0]):
+            result = np.sum(values[0], axis=self.axis)
+            if not self.keepdims and self.axis is not None:
+                result = result.A.flatten()
+        else:
+            result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
+        return result
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

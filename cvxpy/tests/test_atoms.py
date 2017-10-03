@@ -27,6 +27,7 @@ import numpy as np
 import unittest
 from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
+import scipy.sparse as sp
 
 
 class TestAtoms(BaseTest):
@@ -424,6 +425,12 @@ class TestAtoms(BaseTest):
             sum(self.x, axis=4)
         self.assertEqual(str(cm.exception),
                          "Invalid argument for axis.")
+
+        A = sp.eye(3)
+        self.assertEqual(cvxpy.sum(A).value, 3)
+
+        A = sp.eye(3)
+        self.assertItemsEqual(cvxpy.sum(A, axis=0).value, [1, 1, 1])
 
     def test_multiply(self):
         """Test the multiply atom.
