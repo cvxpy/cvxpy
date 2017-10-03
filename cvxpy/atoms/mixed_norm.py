@@ -22,7 +22,7 @@ from cvxpy.atoms.norm import norm
 
 
 def mixed_norm(X, p=2, q=1):
-    """Lp,q norm; :math:` (\sum_k (\sum_l \lvert x_{k,l} \rvert^p )^q/p)^{1/q}`.
+    """Lp,q norm; :math:`(\\sum_k (\\sum_l \\lvert x_{k,l} \\rvert^p)^{q/p})^{1/q}`.
 
     Parameters
     ----------

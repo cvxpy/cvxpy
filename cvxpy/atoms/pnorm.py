@@ -31,7 +31,16 @@ from fractions import Fraction
 def pnorm(x, p=2, axis=None, keepdims=False, max_denom=1024):
     """Factory function for a mathematical p-norm.
 
-    TODO(akshayka): Documentation.
+    Parameters
+    ----------
+    p : numeric type or string
+       The type of norm to construct; set this to np.inf or 'inf' to
+       construct an infinity norm.
+
+    Returns
+    -------
+    Atom
+       A norm1, norm_inf, or Pnorm object.
     """
     if p == 1:
         return norm1(x, axis=axis, keepdims=keepdims)

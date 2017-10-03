@@ -52,7 +52,9 @@ Attributes
 Variables and parameters can be created with attributes specifying additional properties.
 For example, ``Variable(nonneg=True)`` is a scalar variable constrained to be nonnegative.
 Similarly, ``Parameter(nonpos=True)`` is a scalar parameter constrained to be nonpositive.
-The full constructor for Leaf (the parent class of Variable and Parameter) is given below.
+The full constructor for :py:class:`Leaf <cvxpy.expressions.leaf.Leaf>` (the parent class
+of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
+:py:class:`Parameter <cvxpy.expressions.constants.parameter.Parameter>`) is given below.
 
 .. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
 
@@ -95,7 +97,8 @@ The full constructor for Leaf (the parent class of Variable and Parameter) is gi
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
-A Euclidean projection onto the set defined by the attributes is given by the ``project`` method.
+A Euclidean projection onto the set defined by the attributes is given by the
+:py:meth:`project <cvxpy.expressions.leaf.Leaf.project>` method.
 
 .. code:: python
 
@@ -112,13 +115,16 @@ A Euclidean projection onto the set defined by the attributes is given by the ``
     Parameter value must be nonnegative.
     Projection: 0.0
 
-A sensible idiom for assigning values to leaves is ``leaf.value = leaf.project(val)``,
+A sensible idiom for assigning values to leaves is
+:py:meth:`leaf.value = leaf.project(val) <cvxpy.expressions.leaf.Leaf.project>`,
 ensuring that the assigned value satisfies the leaf's properties.
-A slightly more efficient variant is ``leaf.project_and_assign(val)``,
-which projects and assigns the value directly, without additionally checking that the value satisfies the leaf's properties.
-In most cases ``project`` and checking that a value satisfies a leaf's properties are cheap operations (i.e., :math:`O(n)`),
-but for symmetric positive semidefinite or negative semidefinite leaves,
-the operations compute an eigenvalue decomposition.
+A slightly more efficient variant is
+:py:meth:`leaf.project_and_assign(val) <cvxpy.expressions.leaf.Leaf.project_and_assign>`,
+which projects and assigns the value directly, without additionally checking
+that the value satisfies the leaf's properties.  In most cases ``project`` and
+checking that a value satisfies a leaf's properties are cheap operations (i.e.,
+:math:`O(n)`), but for symmetric positive semidefinite or negative semidefinite
+leaves, the operations compute an eigenvalue decomposition.
 
 Many attributes, such as nonnegativity and symmetry, can be easily specified with constraints.
 What is the advantage then of specifying attributes in a variable?
@@ -241,10 +247,10 @@ Transforms
 ----------
 
 Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.
-For example, the ``indicator`` transform converts a list of constraints
-into an expression representing the convex function that takes value 0 when
-the constraints hold and :math:`\infty` when they are violated.
+beyond the atomic functions.  For example, the :py:class:`indicator
+<cvxpy.transforms.indicator>` transform converts a list of constraints into an
+expression representing the convex function that takes value 0 when the
+constraints hold and :math:`\infty` when they are violated.
 
 
 .. code:: python
