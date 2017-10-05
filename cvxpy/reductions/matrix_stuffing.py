@@ -99,9 +99,10 @@ class MatrixStuffing(Reduction):
             size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
                                              order='F')
-        # Remap dual variables.
-        for old_con, new_con in con_map.items():
-            dual_vars[old_con] = solution.dual_vars[new_con]
+        # Remap dual variables if dual exists (problem is convex).
+        if solution.dual_vars is not None:
+            for old_con, new_con in con_map.items():
+                dual_vars[old_con] = solution.dual_vars[new_con]
 
         # Add constant part
         if inverse_data.minimize:

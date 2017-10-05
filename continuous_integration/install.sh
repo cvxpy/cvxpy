@@ -32,7 +32,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     else
-        conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
+        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     fi
     source activate testenv

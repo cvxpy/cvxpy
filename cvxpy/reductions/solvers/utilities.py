@@ -20,6 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 def extract_dual_value(result_vec, offset, constraint):
     value = result_vec[offset:offset + constraint.size]
+    if constraint.size == 1:
+        value = value[0]
     offset += constraint.size
     return value, offset
 

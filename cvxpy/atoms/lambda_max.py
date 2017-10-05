@@ -36,7 +36,7 @@ class lambda_max(Atom):
         Requires that A be symmetric.
         """
         lo = hi = self.args[0].shape[0]-1
-        return LA.eigvalsh(values[0], eigvals=(lo, hi))
+        return LA.eigvalsh(values[0], eigvals=(lo, hi))[0]
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
