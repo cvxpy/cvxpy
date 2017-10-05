@@ -63,6 +63,7 @@ KNOWN_SOLVER_ERRORS = [
     # See https://github.com/cvxgrp/cvxpy/issues/249
     (log_sum_exp_axis_0, CVXOPT),
     (log_sum_exp_axis_1, CVXOPT),
+    (kl_div, CVXOPT),
 ]
 
 atoms = [
