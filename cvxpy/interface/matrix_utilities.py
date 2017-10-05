@@ -184,7 +184,6 @@ def convert(constant, sparse=False, convert_scalars=False):
 
 
 def scalar_value(constant):
-    assert is_scalar(constant)
     if isinstance(constant, numbers.Number) or np.isscalar(constant):
         return constant
     elif isinstance(constant, list):

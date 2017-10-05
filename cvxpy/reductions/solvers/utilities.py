@@ -17,11 +17,13 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import cvxpy.interface as intf
+
 
 def extract_dual_value(result_vec, offset, constraint):
     value = result_vec[offset:offset + constraint.size]
     if constraint.size == 1:
-        value = value[0]
+        value = intf.scalar_value(value)
     offset += constraint.size
     return value, offset
 
