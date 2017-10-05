@@ -67,6 +67,7 @@
 
 <div class="viewcode-block" id="sigma_max"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.sigma_max.sigma_max">[docs]</a><span class="k">class</span> <span class="nc">sigma_max</span><span class="p">(</span><span class="n">Atom</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Maximum singular value. &quot;&quot;&quot;</span>
+    <span class="n">_allow_complex</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">sigma_max</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>

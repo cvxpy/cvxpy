@@ -41,7 +41,6 @@ lambda_min
 --------------------------------
 
 .. autofunction:: cvxpy.atoms.lambda_min.lambda_min
-    :show-inheritance:
 
 .. _lambda-sum-largest:
 
@@ -141,7 +140,7 @@ normNuc
 .. autoclass:: cvxpy.atoms.norm_nuc.normNuc
     :show-inheritance:
 
-.. _pnorm:
+.. _pnorm_func:
 
 pnorm
 --------------------------

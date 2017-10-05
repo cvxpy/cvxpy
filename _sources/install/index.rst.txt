@@ -22,6 +22,7 @@ CVXPY supports both Python 2 and Python 3 on OS X and Linux.
 
    ::
 
+       git checkout 1.0
        python setup.py install
 
 5. Test the installation with ``nose``.
