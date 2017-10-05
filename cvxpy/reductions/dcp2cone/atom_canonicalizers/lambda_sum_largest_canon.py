@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 from cvxpy.atoms import trace
 from cvxpy.expressions.variable import Variable
-from lambda_max_canon import lambda_max_canon
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_max_canon import lambda_max_canon
 
 
 def lambda_sum_largest_canon(expr, args):

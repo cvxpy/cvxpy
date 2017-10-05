@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import sum_squares
 from cvxpy.atoms.quad_form import decomp_quad
 from cvxpy.expressions.constants import Constant
-from quad_over_lin_canon import quad_over_lin_canon
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 
 
 def quad_form_canon(expr, args):

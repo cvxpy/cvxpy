@@ -29,7 +29,7 @@ Copyright 2017 Steven Diamond
 #    along with CVXcanon.  If not, see <http:#www.gnu.org/licenses/>.
 
 from cvxpy.lin_ops import lin_op as lo
-import CVXcanon
+import cvxpy.CVXcanon.python.CVXcanon as CVXcanon
 import numbers
 import numpy as np
 import scipy.sparse
