@@ -20,7 +20,8 @@ import numpy as np
 
 
 class indicator(Expression):
-    """An expression representing the convex function I(constraints) = 0 if constraints hold, +\infty otherwise.
+    """An expression representing the convex function I(constraints) = 0
+       if constraints hold, +\infty otherwise.
 
     Parameters
     ----------

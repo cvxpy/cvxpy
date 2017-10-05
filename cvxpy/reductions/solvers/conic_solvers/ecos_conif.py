@@ -24,7 +24,6 @@ import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
-import numpy as np
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
