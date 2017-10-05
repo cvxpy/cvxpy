@@ -38,15 +38,18 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.zero import Zero
 from cvxpy.constraints.psd import PSD
-from abs_canon import abs_canon
-from aff_canon import (separable_canon, real_canon,
-                       imag_canon, conj_canon, binary_canon)
-from pnorm_canon import pnorm_canon
-from matrix_canon import (hermitian_canon, quad_canon, lambda_sum_largest_canon,
-                          norm_nuc_canon, matrix_frac_canon)
-from variable_canon import variable_canon
-from constant_canon import constant_canon
-from zero_canon import zero_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (separable_canon,
+                                                                         real_canon,
+                                                                         imag_canon,
+                                                                         conj_canon,
+                                                                         binary_canon)
+from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import pnorm_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
+    hermitian_canon, quad_canon, lambda_sum_largest_canon, norm_nuc_canon, matrix_frac_canon)
+from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import variable_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import constant_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.zero_canon import zero_canon
 
 
 CANON_METHODS = {
