@@ -40,7 +40,7 @@ class MOSEK(QpSolver):
             opt_val = task.getprimalobj(soltype)
 
             primal_vars = {
-                inverse_data.id_map.keys()[0]:
+                list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 

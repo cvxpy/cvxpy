@@ -430,7 +430,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(cvxpy.sum(A).value, 3)
 
         A = sp.eye(3)
-        self.assertItemsEqual(cvxpy.sum(A, axis=0).value, [1, 1, 1])
+        self.assertItemsAlmostEqual(cvxpy.sum(A, axis=0).value, [1, 1, 1])
 
     def test_multiply(self):
         """Test the multiply atom.
@@ -836,13 +836,13 @@ class TestAtoms(BaseTest):
 
         # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve()
+        p1.solve(solver=cvxpy.ECOS_BB)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= 3, y >= 4])
         g = cvxpy.partial_optimize(p2, [y], [x])
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve()
+        p3.solve(solver=cvxpy.ECOS_BB)
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_special_constr(self):

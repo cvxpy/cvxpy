@@ -21,6 +21,7 @@ from .conic_solver import ConicSolver
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
                                                     dims_to_solver_dict, ECOS)
+import numpy as np
 
 
 class ECOS_BB(ECOS):
@@ -56,8 +57,8 @@ class ECOS_BB(ECOS):
         # Because the problem variable is single dimensional, every
         # boolean/integer index has length one.
         var = problem.variables()[0]
-        data[s.BOOL_IDX] = [t[0] for t in var.boolean_idx]
-        data[s.INT_IDX] = [t[0] for t in var.integer_idx]
+        data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         return data, inv_data
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):

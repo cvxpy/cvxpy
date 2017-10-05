@@ -62,6 +62,6 @@ class Chain(Reduction):
     def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.
         """
-        for r, inv in reversed(zip(self.reductions, inverse_data)):
+        for r, inv in reversed(list(zip(self.reductions, inverse_data))):
             solution = r.invert(solution, inv)
         return solution

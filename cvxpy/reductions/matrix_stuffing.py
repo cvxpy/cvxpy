@@ -45,10 +45,10 @@ def extract_mip_idx(variables):
     vert_offset = 0
     for x in variables:
         if x.boolean_idx:
-            multi_index = zip(*x.boolean_idx)
+            multi_index = list(zip(*x.boolean_idx))
             boolean_idx += ravel_multi_index(multi_index, x, vert_offset)
         if x.integer_idx:
-            multi_index = zip(*x.integer_idx)
+            multi_index = list(zip(*x.integer_idx))
             integer_idx += ravel_multi_index(multi_index, x, vert_offset)
         vert_offset += x.size
     return boolean_idx, integer_idx
@@ -93,7 +93,7 @@ class MatrixStuffing(Reduction):
                             solution.attr)
 
         # Split vectorized variable into components.
-        x_opt = solution.primal_vars.values()[0]
+        x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)

@@ -80,8 +80,8 @@ class QpSolver(Solver):
         # should change here.
         eq_cons = [c for c in problem.constraints if type(c) == Zero]
         if eq_cons:
-            eq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
-                              for con in eq_cons])
+            eq_coeffs = list(zip(*[ConicSolver.get_coeff_offset(con.expr)
+                                   for con in eq_cons]))
             A = sp.vstack(eq_coeffs[0])
             b = - np.concatenate(eq_coeffs[1])
         else:
@@ -89,8 +89,8 @@ class QpSolver(Solver):
 
         ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
         if ineq_cons:
-            ineq_coeffs = zip(*[ConicSolver.get_coeff_offset(con.expr)
-                                for con in ineq_cons])
+            ineq_coeffs = list(zip(*[ConicSolver.get_coeff_offset(con.expr)
+                                     for con in ineq_cons]))
             F = sp.vstack(ineq_coeffs[0])
             g = - np.concatenate(ineq_coeffs[1])
         else:
