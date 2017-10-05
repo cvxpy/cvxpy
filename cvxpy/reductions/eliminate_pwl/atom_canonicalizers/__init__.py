@@ -18,12 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import abs, maximum, max, norm1, norm_inf, sum_largest
-from abs_canon import abs_canon
-from maximum_canon import maximum_canon
-from max_canon import max_canon
-from norm1_canon import norm1_canon
-from norm_inf_canon import norm_inf_canon
-from sum_largest_canon import sum_largest_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import maximum_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import max_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm1_canon import norm1_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm_inf_canon import norm_inf_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.sum_largest_canon import sum_largest_canon
 
 
 CANON_METHODS = {
