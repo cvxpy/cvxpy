@@ -258,7 +258,7 @@ class TestProblem(BaseTest):
         backup = sys.stdout
         stdout_fd = 1
         # ####
-        for solver in [cvx.OSQP]:#INSTALLED_SOLVERS:
+        for solver in INSTALLED_SOLVERS:
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
@@ -1155,8 +1155,9 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1, 2, 2])
 
-    # Test multiplication on the left by a non-constant.
     def test_multiplication_on_left(self):
+        """Test multiplication on the left by a non-constant.
+        """
         c = numpy.matrix([1, 2]).T
         p = Problem(cvx.Minimize(c.T*self.A*c), [self.A >= 2])
         result = p.solve()
@@ -1175,6 +1176,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 9)
 
+        # TODO segfaults in Python 3
         A = numpy.ones((5, 10))
         x = Variable(5)
         p = cvx.Problem(cvx.Minimize(cvx.sum(x*A)), [x >= 0])
@@ -1641,7 +1643,7 @@ class TestProblem(BaseTest):
             prob = Problem(cvx.Minimize(cvx.sum(cvx.abs(x-a))), [cvx.pnorm(x, p) >= 0])
             prob.solve()
 
-            self.assertTrue(np.allclose(prob.value, 0))
+            self.assertAlmostEquals(prob.value, 0, places=6)
 
     def test_power(self):
         x = Variable()

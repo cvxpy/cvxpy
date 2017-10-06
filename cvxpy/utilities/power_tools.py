@@ -21,9 +21,7 @@ from fractions import Fraction
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
-from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from collections import defaultdict
 import numbers
@@ -31,17 +29,9 @@ import numbers
 
 def gm(t, x, y):
     length = t.size
-    if isinstance(t, Expression):
-        return SOC(t=reshape(x+y, (length,)),
-                   X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
-                   axis=0)
-    else:
-        two = lu.create_const(2, (1, 1))
-        return SOC(t=lu.reshape(lu.sum_expr([x, y]), (length, 1)),
-                   X=lu.vstack([lu.reshape(lu.sub_expr(x, y), (1, length)),
-                                lu.reshape(lu.mul_expr(two, t), (1, length))],
-                               (2, length)),
-                   axis=0)
+    return SOC(t=reshape(x+y, (length,)),
+               X=vstack([reshape(x-y, (1, length)), reshape(2*t, (1, length))]),
+               axis=0)
 
 
 def gm_constrs(t, x_list, p):
@@ -74,11 +64,7 @@ def gm_constrs(t, x_list, p):
     w = dyad_completion(p)
 
     tree = decompose(w)
-    # HACK until old canonicalization removed.
-    if isinstance(t, Expression):
-        d = defaultdict(lambda: Variable(t.shape))
-    else:
-        d = defaultdict(lambda: lu.create_var(t.shape))
+    d = defaultdict(lambda: Variable(t.shape))
     d[w] = t
 
     if len(x_list) < len(w):
@@ -110,7 +96,7 @@ def pow_high(p, max_denom=1024):
     assert p > 1
     p = Fraction(1/Fraction(p)).limit_denominator(max_denom)
     if 1/p == int(1/p):
-        return np.int32(1/p), (p, 1-p)
+        return int(1/p), (p, 1-p)
     return 1/p, (p, 1-p)
 
 

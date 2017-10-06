@@ -99,12 +99,12 @@ class OSQP(QpSolver):
             # Polish if factorizing.
             solver_opts['polish'] = solver_opts.get('polish', factorizing)
             solver.update_settings(verbose=verbose, **solver_opts)
-            results = solver.solve()
         else:
             # Initialize and solve problem
             solver = osqp.OSQP()
             solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
-            results = solver.solve()
+
+        results = solver.solve()
 
         if solver_cache is not None:
             solver_cache[self.name] = (solver, data, results)
