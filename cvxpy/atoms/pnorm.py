@@ -20,12 +20,9 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
-from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg, gm_constrs
-from cvxpy.constraints.second_order import SOC
-from fractions import Fraction
+from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
 
 
 def pnorm(x, p=2, axis=None, keepdims=False, max_denom=1024):
