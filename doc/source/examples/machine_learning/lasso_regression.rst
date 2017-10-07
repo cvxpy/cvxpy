@@ -28,7 +28,7 @@ Writing the objective function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We can decompose the **objective function** as the sum of a **least
-squares loss function** and an **:math:`\ell_1` regularizer**.
+squares loss function** and an :math:`\ell_1` **regularizer**.
 
 .. code:: ipython2
 
