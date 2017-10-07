@@ -19,7 +19,7 @@ def mse(X, Y, beta):
     return (1.0 / X.shape[0]) * loss_fn(X, Y, beta).value
 
 
-def generate_data(m=100, n=20, sigma=5, density=0.8):
+def generate_data(m=100, n=20, sigma=5, density=0.2):
     "Generates data matrix X and observations Y."
     np.random.seed(1)
     beta_star = np.random.randn(n)

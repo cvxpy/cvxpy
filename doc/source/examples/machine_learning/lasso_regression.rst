@@ -1,31 +1,22 @@
 
-Machine Learning: Ridge Regression
+Machine Learning: Lasso Regression
 ==================================
 
-Ridge regression is a regression technique that is quite similar to
-unadorned least squares linear regression: simply adding an
-:math:`\ell_2` **penalty** on the parameters :math:`\beta` to the
-objective function for linear regression yields the objective function
-for ridge regression.
+Lasso regression is, like ridge regression, a **shrinkage** method. It
+differs from ridge regression in its choice of penalty: lasso imposes an
+:math:`\ell_1` **penalty** on the paramters :math:`\beta`. That is,
+lasso finds an assignment to :math:`\beta` that minimizes the function
 
-Our goal is to find an assignment to :math:`\beta` that minimizes the
-function
-
-.. math:: f(\beta) = \|X\beta - Y\|_2^2 + \lambda \|\beta\|_2^2,
+.. math:: f(\beta) = \|X\beta - Y\|_2^2 + \lambda \|\beta\|_1,
 
 where :math:`\lambda` is a hyperparameter and, as usual, :math:`X` is
-the training data and :math:`Y` the observations. In practice, we tune
-:math:`\lambda` until we find a model that generalizes well to the test
-data.
+the training data and :math:`Y` the observations. The :math:`\ell_1`
+penalty encourages **sparsity** in the learned parameters, and, as we
+will say, can drive many coefficients to zero. In this sense, lasso is a
+continuous **feature selection** method.
 
-Ridge regression is an example of a **shrinkage method**: compared to
-least squares, it shrinks the parameter estimates in the hopes of
-**reducing variance, improving prediction accuracy, and aiding
-interpetation**.
-
-In this notebook, we show how to fit a ridge regression model using
-CVXPY, how to evaluate the model, and how to tune the hyper-parameter
-:math:`\lambda`.
+In this notebook, we show how to fit a lasso model using CVXPY, how to
+evaluate the model, and how to tune the hyperparameter :math:`\lambda`.
 
 .. code:: ipython2
 
@@ -37,15 +28,15 @@ Writing the objective function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We can decompose the **objective function** as the sum of a **least
-squares loss function** and an **:math:`\ell_2` regularizer**.
+squares loss function** and an **:math:`\ell_1` regularizer**.
 
 .. code:: ipython2
 
     def loss_fn(X, Y, beta):
-        return cp.pnorm(cp.matmul(X, beta) - Y, p=2)**2
+        return cp.norm2(cp.matmul(X, beta) - Y)**2
     
     def regularizer(beta):
-        return cp.pnorm(beta, p=2)**2
+        return cp.norm1(beta)
     
     def objective_fn(X, Y, beta, lambd):
         return loss_fn(X, Y, beta) + lambd * regularizer(beta)
@@ -56,28 +47,29 @@ squares loss function** and an **:math:`\ell_2` regularizer**.
 Generating data
 ~~~~~~~~~~~~~~~
 
-Because ridge regression encourages the parameter estimates to be small,
-and as such tends to lead to models with **less variance** than those
-fit with vanilla linear regression. We generate a small dataset that
-will illustrate this.
+We generate training examples and observations that are linearly
+related; we make the relationship *sparse*, and we'll see how lasso will
+approximately recover it.
 
 .. code:: ipython2
 
-    def generate_data(m=100, n=20, sigma=5):
+    def generate_data(m=100, n=20, sigma=5, density=0.2):
         "Generates data matrix X and observations Y."
         np.random.seed(1)
         beta_star = np.random.randn(n)
-        # Generate an ill-conditioned data matrix
-        X = np.random.randn(m, n)
-        # Corrupt the observations with additive Gaussian noise
+        idxs = np.random.choice(range(n), int((1-density)*n), replace=False)
+        for idx in idxs:
+            beta_star[idx] = 0
+        X = np.random.randn(m,n)
         Y = X.dot(beta_star) + np.random.normal(0, sigma, size=m)
-        return X, Y
+        return X, Y, beta_star
     
     m = 100
     n = 20
     sigma = 5
+    density = 0.2
     
-    X, Y = generate_data(m, n, sigma)
+    X, Y, _ = generate_data(m, n, sigma)
     X_train = X[:50, :]
     Y_train = Y[:50]
     X_test = X[50:, :]
@@ -111,11 +103,8 @@ CVXPY problem to obtain estimates for many values of :math:`\lambda`.
 Evaluating the model
 ~~~~~~~~~~~~~~~~~~~~
 
-Notice that, up to a point, penalizing the size of the parameters
-reduces test error at the cost of increasing the training error, trading
-off higher bias for lower variance; in other words, this indicates that,
-for our example, a properly tuned ridge regression **generalizes
-better** than a least squares linear regression.
+Just as we saw for ridge regression, regularization improves
+generalizability.
 
 .. code:: ipython2
 
@@ -135,17 +124,23 @@ better** than a least squares linear regression.
 
 
 
-.. image:: ridge_regression_files/ridge_regression_9_0.svg
+.. image:: lasso_regression_files/lasso_regression_9_0.svg
 
 
-Regularization path
-~~~~~~~~~~~~~~~~~~~
+Regularization path and feature selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As expected, increasing :math:`\lambda` drives the parameters towards
-:math:`0`. In a real-world example, those parameters that approach zero
-slower than others might correspond to the more **informative**
-features. It is in this sense that ridge regression can be considered
-**model selection.**
+As :math:`\lambda` increases, the parameters are driven to :math:`0`. By
+:math:`\lambda \approx 1`, approximately 80 percent of the coefficients
+are *exactly* zero. This parallels the fact that :math:`\beta^*` was
+generated such that 80 percent of its entries were zero. The features
+corresponding to the slowest decaying coefficients can be interpreted as
+the most important ones.
+
+**Qualitatively, lasso differs from ridge in that the former often
+drives parameters to exactly zero, whereas the latter shrinks parameters
+but does not usually zero them out. That is, lasso results in sparse
+models; ridge (usually) does not.**
 
 .. code:: ipython2
 
@@ -162,5 +157,5 @@ features. It is in this sense that ridge regression can be considered
 
 
 
-.. image:: ridge_regression_files/ridge_regression_11_0.svg
+.. image:: lasso_regression_files/lasso_regression_11_0.svg
 
