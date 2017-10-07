@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Machine Learning: Ridge Regression &#8212; CVXPY 1.0.0 documentation</title>
+    <title>Machine Learning: Lasso Regression &#8212; CVXPY 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -42,28 +42,21 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="machine-learning-ridge-regression">
-<h1>Machine Learning: Ridge Regression<a class="headerlink" href="#machine-learning-ridge-regression" title="Permalink to this headline">¶</a></h1>
-<p>Ridge regression is a regression technique that is quite similar to
-unadorned least squares linear regression: simply adding an
-<span class="math">\(\ell_2\)</span> <strong>penalty</strong> on the parameters <span class="math">\(\beta\)</span> to the
-objective function for linear regression yields the objective function
-for ridge regression.</p>
-<p>Our goal is to find an assignment to <span class="math">\(\beta\)</span> that minimizes the
-function</p>
+  <div class="section" id="machine-learning-lasso-regression">
+<h1>Machine Learning: Lasso Regression<a class="headerlink" href="#machine-learning-lasso-regression" title="Permalink to this headline">¶</a></h1>
+<p>Lasso regression is, like ridge regression, a <strong>shrinkage</strong> method. It
+differs from ridge regression in its choice of penalty: lasso imposes an
+<span class="math">\(\ell_1\)</span> <strong>penalty</strong> on the paramters <span class="math">\(\beta\)</span>. That is,
+lasso finds an assignment to <span class="math">\(\beta\)</span> that minimizes the function</p>
 <div class="math">
-\[f(\beta) = \|X\beta - Y\|_2^2 + \lambda \|\beta\|_2^2,\]</div>
+\[f(\beta) = \|X\beta - Y\|_2^2 + \lambda \|\beta\|_1,\]</div>
 <p>where <span class="math">\(\lambda\)</span> is a hyperparameter and, as usual, <span class="math">\(X\)</span> is
-the training data and <span class="math">\(Y\)</span> the observations. In practice, we tune
-<span class="math">\(\lambda\)</span> until we find a model that generalizes well to the test
-data.</p>
-<p>Ridge regression is an example of a <strong>shrinkage method</strong>: compared to
-least squares, it shrinks the parameter estimates in the hopes of
-<strong>reducing variance, improving prediction accuracy, and aiding
-interpetation</strong>.</p>
-<p>In this notebook, we show how to fit a ridge regression model using
-CVXPY, how to evaluate the model, and how to tune the hyper-parameter
-<span class="math">\(\lambda\)</span>.</p>
+the training data and <span class="math">\(Y\)</span> the observations. The <span class="math">\(\ell_1\)</span>
+penalty encourages <strong>sparsity</strong> in the learned parameters, and, as we
+will say, can drive many coefficients to zero. In this sense, lasso is a
+continuous <strong>feature selection</strong> method.</p>
+<p>In this notebook, we show how to fit a lasso model using CVXPY, how to
+evaluate the model, and how to tune the hyperparameter <span class="math">\(\lambda\)</span>.</p>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -72,12 +65,12 @@ CVXPY, how to evaluate the model, and how to tune the hyper-parameter
 <div class="section" id="writing-the-objective-function">
 <h2>Writing the objective function<a class="headerlink" href="#writing-the-objective-function" title="Permalink to this headline">¶</a></h2>
 <p>We can decompose the <strong>objective function</strong> as the sum of a <strong>least
-squares loss function</strong> and an <strong>:math:`ell_2` regularizer</strong>.</p>
+squares loss function</strong> and an <strong>:math:`ell_1` regularizer</strong>.</p>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">-</span> <span class="n">Y</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">-</span> <span class="n">Y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
 
 <span class="k">def</span> <span class="nf">regularizer</span><span class="p">(</span><span class="n">beta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">objective_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">lambd</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">+</span> <span class="n">lambd</span> <span class="o">*</span> <span class="n">regularizer</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
@@ -89,25 +82,26 @@ squares loss function</strong> and an <strong>:math:`ell_2` regularizer</strong>
 </div>
 <div class="section" id="generating-data">
 <h2>Generating data<a class="headerlink" href="#generating-data" title="Permalink to this headline">¶</a></h2>
-<p>Because ridge regression encourages the parameter estimates to be small,
-and as such tends to lead to models with <strong>less variance</strong> than those
-fit with vanilla linear regression. We generate a small dataset that
-will illustrate this.</p>
-<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_data</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<p>We generate training examples and observations that are linearly
+related; we make the relationship <em>sparse</em>, and we’ll see how lasso will
+approximately recover it.</p>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_data</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
     <span class="s2">&quot;Generates data matrix X and observations Y.&quot;</span>
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">beta_star</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-    <span class="c1"># Generate an ill-conditioned data matrix</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-    <span class="c1"># Corrupt the observations with additive Gaussian noise</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="nb">int</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">density</span><span class="p">)</span><span class="o">*</span><span class="n">n</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">idxs</span><span class="p">:</span>
+        <span class="n">beta_star</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
     <span class="n">Y</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">beta_star</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span>
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta_star</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="n">sigma</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">density</span> <span class="o">=</span> <span class="mf">0.2</span>
 
-<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
 <span class="n">X_train</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:</span><span class="mi">50</span><span class="p">,</span> <span class="p">:]</span>
 <span class="n">Y_train</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span>
 <span class="n">X_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">50</span><span class="p">:,</span> <span class="p">:]</span>
@@ -140,11 +134,8 @@ CVXPY problem to obtain estimates for many values of <span class="math">\(\lambd
 </div>
 <div class="section" id="evaluating-the-model">
 <h2>Evaluating the model<a class="headerlink" href="#evaluating-the-model" title="Permalink to this headline">¶</a></h2>
-<p>Notice that, up to a point, penalizing the size of the parameters
-reduces test error at the cost of increasing the training error, trading
-off higher bias for lower variance; in other words, this indicates that,
-for our example, a properly tuned ridge regression <strong>generalizes
-better</strong> than a least squares linear regression.</p>
+<p>Just as we saw for ridge regression, regularization improves
+generalizability.</p>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 <span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;svg&#39;</span>
 
@@ -160,14 +151,19 @@ better</strong> than a least squares linear regression.</p>
 <span class="n">plot_train_test_errors</span><span class="p">(</span><span class="n">train_errors</span><span class="p">,</span> <span class="n">test_errors</span><span class="p">,</span> <span class="n">lambd_values</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../../_images/ridge_regression_9_0.svg" src="../../_images/ridge_regression_9_0.svg" /></div>
-<div class="section" id="regularization-path">
-<h2>Regularization path<a class="headerlink" href="#regularization-path" title="Permalink to this headline">¶</a></h2>
-<p>As expected, increasing <span class="math">\(\lambda\)</span> drives the parameters towards
-<span class="math">\(0\)</span>. In a real-world example, those parameters that approach zero
-slower than others might correspond to the more <strong>informative</strong>
-features. It is in this sense that ridge regression can be considered
-<strong>model selection.</strong></p>
+<img alt="../../_images/lasso_regression_9_0.svg" src="../../_images/lasso_regression_9_0.svg" /></div>
+<div class="section" id="regularization-path-and-feature-selection">
+<h2>Regularization path and feature selection<a class="headerlink" href="#regularization-path-and-feature-selection" title="Permalink to this headline">¶</a></h2>
+<p>As <span class="math">\(\lambda\)</span> increases, the parameters are driven to <span class="math">\(0\)</span>. By
+<span class="math">\(\lambda \approx 1\)</span>, approximately 80 percent of the coefficients
+are <em>exactly</em> zero. This parallels the fact that <span class="math">\(\beta^*\)</span> was
+generated such that 80 percent of its entries were zero. The features
+corresponding to the slowest decaying coefficients can be interpreted as
+the most important ones.</p>
+<p><strong>Qualitatively, lasso differs from ridge in that the former often
+drives parameters to exactly zero, whereas the latter shrinks parameters
+but does not usually zero them out. That is, lasso results in sparse
+models; ridge (usually) does not.</strong></p>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_regularization_path</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">beta_values</span><span class="p">):</span>
     <span class="n">num_coeffs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">beta_values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_coeffs</span><span class="p">):</span>
@@ -180,7 +176,7 @@ features. It is in this sense that ridge regression can be considered
 <span class="n">plot_regularization_path</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">beta_values</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../../_images/ridge_regression_11_0.svg" src="../../_images/ridge_regression_11_0.svg" /></div>
+<img alt="../../_images/lasso_regression_11_0.svg" src="../../_images/lasso_regression_11_0.svg" /></div>
 </div>
 
 
@@ -269,7 +265,7 @@ features. It is in this sense that ridge regression can be considered
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../../_sources/examples/machine_learning/ridge_regression.rst.txt"
+      <a href="../../_sources/examples/machine_learning/lasso_regression.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
