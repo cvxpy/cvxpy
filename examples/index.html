@@ -5,9 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Examples &#8212; CVXPY 1.0.0 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -21,7 +24,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="API Documentation" href="../api_reference/cvxpy.html" />
@@ -43,50 +46,60 @@
             
   <div class="section" id="examples">
 <span id="id1"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
-<p>These examples show many different ways to use CVXPY. The <a class="reference internal" href="#basic"><span class="std std-ref">Basic Examples</span></a> section shows how to solve some common optimization problems in CVXPY. The <a class="reference internal" href="#advanced-python"><span class="std std-ref">Advanced Examples</span></a> and <a class="reference internal" href="#applications"><span class="std std-ref">Advanced Applications</span></a> sections contains more complex examples aimed at experts in convex optimization.</p>
+<p>These examples show many different ways to use CVXPY. The <a class="reference internal" href="#basic"><span class="std std-ref">Basic Examples</span></a> section
+shows how to solve some common optimization problems in CVXPY. The
+<a class="reference internal" href="#machine-learning"><span class="std std-ref">Machine Learning</span></a> section is a tutorial covering convex methods in
+machine learning. The <a class="reference internal" href="#advanced-python"><span class="std std-ref">Advanced</span></a> and <a class="reference internal" href="#applications"><span class="std std-ref">Advanced Applications</span></a> sections
+contains more complex examples aimed at experts in convex optimization.</p>
 <div class="section" id="basic-examples">
 <span id="basic"></span><h2>Basic Examples<a class="headerlink" href="#basic-examples" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><a class="reference internal" href="applications/tv_inpainting.html"><span class="doc">Total variation in-painting</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb">[code]</a></li>
+<li><a class="reference internal" href="applications/tv_inpainting.html"><span class="doc">Total variation in-painting</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb">[.ipynb]</a></li>
 <li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb">Control</a></li>
-<li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/SVM.ipynb">SVM classifier with regularization</a></li>
 <li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb">Portfolio optimization</a></li>
 <li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb">Worst-case risk analysis</a></li>
 <li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_ad.ipynb">Optimal advertising</a></li>
-<li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb">Huber regression</a></li>
-<li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/quantile_regression.ipynb">Quantile regression</a></li>
 <li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb">Model fitting</a></li>
 </ul>
 </div>
-<div class="section" id="advanced-examples">
-<span id="advanced-python"></span><h2>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="machine-learning">
+<span id="id2"></span><h2>Machine Learning<a class="headerlink" href="#machine-learning" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><a class="reference internal" href="applications/OOCO.html"><span class="doc">Object-oriented convex optimization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/consensus_opt.html"><span class="doc">Consensus optimization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/consensus_opt.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/MM.html"><span class="doc">Method of multipliers</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb">[code]</a></li>
+<li><a class="reference internal" href="machine_learning/ridge_regression.html"><span class="doc">Ridge regression</span></a> <a class="reference external" href="http://github.com/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/ridge_regression.py">[.py]</a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/ridge_regression.ipynb">[.ipynb]</a></li>
+<li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/SVM.ipynb">SVM classifier with regularization</a></li>
+<li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb">Huber regression</a></li>
+<li><a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/quantile_regression.ipynb">Quantile regression</a></li>
+</ul>
+</div>
+<div class="section" id="advanced">
+<span id="advanced-python"></span><h2>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="applications/OOCO.html"><span class="doc">Object-oriented convex optimization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/OOCO.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/consensus_opt.html"><span class="doc">Consensus optimization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/consensus_opt.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/MM.html"><span class="doc">Method of multipliers</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/MM.ipynb">[.ipynb]</a></li>
 </ul>
 </div>
 <div class="section" id="advanced-applications">
 <span id="applications"></span><h2>Advanced Applications<a class="headerlink" href="#advanced-applications" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><a class="reference internal" href="applications/interdiction.html"><span class="doc">Allocating interdiction effort to catch a smuggler</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/interdiction.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/ant_array_min_beamwidth.html"><span class="doc">Antenna array design</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/ant_array_min_beamwidth.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/Channel_capacity_BV4.57.html"><span class="doc">Channel capacity</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/Channel_capacity_BV4.57.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/sparse_solution.html"><span class="doc">Computing a sparse solution of a set of linear inequalities</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_solution.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/max_entropy.html"><span class="doc">Entropy maximization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/max_entropy.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/fault_detection.html"><span class="doc">Fault detection</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fault_detection.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/fir_chebychev_design.html"><span class="doc">Filter design</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fir_chebychev_design.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/censored_data.html"><span class="doc">Fitting censored data</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/censored_data.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/l1_trend_filter.html"><span class="doc">L1 trend filtering</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/nonneg_matrix_fact.html"><span class="doc">Nonnegative matrix factorization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/parade_route.html"><span class="doc">Optimal parade route</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/optimal_power_gaussian_channel_BV4.62.html"><span class="doc">Optimal power and bandwidth allocation in a Gaussian broadcast channel</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/maximise_minimum_SINR_BV4.20.html"><span class="doc">Power assignment in a wireless communication system</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/nba_ranking.html"><span class="doc">Predicting NBA game wins</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/robust_kalman.html"><span class="doc">Robust Kalman filtering for vehicle tracking</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/clock_mesh.html"><span class="doc">Sizing of clock meshes</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/sparse_covariance_est.html"><span class="doc">Sparse covariance estimation for Gaussian variables</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb">[code]</a></li>
-<li><a class="reference internal" href="applications/water_filling_BVex5.2.html"><span class="doc">Water filling</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb">[code]</a></li>
+<li><a class="reference internal" href="applications/interdiction.html"><span class="doc">Allocating interdiction effort to catch a smuggler</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/interdiction.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/ant_array_min_beamwidth.html"><span class="doc">Antenna array design</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/ant_array_min_beamwidth.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/Channel_capacity_BV4.57.html"><span class="doc">Channel capacity</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/Channel_capacity_BV4.57.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/sparse_solution.html"><span class="doc">Computing a sparse solution of a set of linear inequalities</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_solution.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/max_entropy.html"><span class="doc">Entropy maximization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/max_entropy.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/fault_detection.html"><span class="doc">Fault detection</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fault_detection.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/fir_chebychev_design.html"><span class="doc">Filter design</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/fir_chebychev_design.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/censored_data.html"><span class="doc">Fitting censored data</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/censored_data.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/l1_trend_filter.html"><span class="doc">L1 trend filtering</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/l1_trend_filter.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/nonneg_matrix_fact.html"><span class="doc">Nonnegative matrix factorization</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nonneg_matrix_fact.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/parade_route.html"><span class="doc">Optimal parade route</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/parade_route.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/optimal_power_gaussian_channel_BV4.62.html"><span class="doc">Optimal power and bandwidth allocation in a Gaussian broadcast channel</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/optimal_power_gaussian_channel_BV4.62.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/maximise_minimum_SINR_BV4.20.html"><span class="doc">Power assignment in a wireless communication system</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/maximise_minimum_SINR_BV4.20.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/nba_ranking.html"><span class="doc">Predicting NBA game wins</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/nba_ranking.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/robust_kalman.html"><span class="doc">Robust Kalman filtering for vehicle tracking</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/robust_kalman.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/clock_mesh.html"><span class="doc">Sizing of clock meshes</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/sparse_covariance_est.html"><span class="doc">Sparse covariance estimation for Gaussian variables</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb">[.ipynb]</a></li>
+<li><a class="reference internal" href="applications/water_filling_BVex5.2.html"><span class="doc">Water filling</span></a> <a class="reference external" href="http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb">[.ipynb]</a></li>
 </ul>
 </div>
 </div>
@@ -135,7 +148,8 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#basic-examples">Basic Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#advanced-examples">Advanced Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced">Advanced</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-applications">Advanced Applications</a></li>
 </ul>
 </li>
@@ -178,7 +192,7 @@
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
