@@ -4,7 +4,7 @@ Machine Learning: Ridge Regression
 
 Ridge regression is a regression technique that is quite similar to
 unadorned least squares linear regression: simply adding an
-**:math:`\ell_2` penalty** on the parameters :math:`\beta` to the
+:math:`\ell_2` **penalty** on the parameters :math:`\beta` to the
 objective function for linear regression yields the objective function
 for ridge regression.
 
@@ -33,8 +33,8 @@ CVXPY, how to evaluate the model, and how to tune the hyper-parameter
     import numpy as np
     import matplotlib.pyplot as plt
 
-Writing the objective function in CVXPY
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Writing the objective function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We can decompose the **objective function** as the sum of a **least
 squares loss function** and an **:math:`\ell_2` regularizer**.
@@ -113,8 +113,8 @@ CVXPY problem to obtain estimates for many values of :math:`\lambda`.
         test_errors.append(mse(X_test, Y_test, beta))
         beta_values.append(beta.value)
 
-Evaluating the model via mean squared error (MSE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Evaluating the model
+~~~~~~~~~~~~~~~~~~~~
 
 Notice that, up to a point, penalizing the size of the parameters
 reduces test error at the cost of increasing the training error, trading
