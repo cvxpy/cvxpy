@@ -31,6 +31,8 @@ Basic Examples
 Machine Learning
 ----------------
 
+- `:doc:Ridge regression <machine_learning/ridge_regression>` `[.py] <http://github.com/cvxgrp/blob/1.0/examples/machine_learning/ridge_regression.py`_ `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/ridge_regression.ipynb>`_
+
 - `SVM classifier with regularization <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/SVM.ipynb>`_
 
 - `Huber regression <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
