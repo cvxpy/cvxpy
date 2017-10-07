@@ -131,7 +131,7 @@ Regularization path and feature selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As :math:`\lambda` increases, the parameters are driven to :math:`0`. By
-:math:`\lambda \approx 1`, approximately 80 percent of the coefficients
+:math:`\lambda \approx 10`, approximately 80 percent of the coefficients
 are *exactly* zero. This parallels the fact that :math:`\beta^*` was
 generated such that 80 percent of its entries were zero. The features
 corresponding to the slowest decaying coefficients can be interpreted as
