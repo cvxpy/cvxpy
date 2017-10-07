@@ -12,7 +12,7 @@ lasso finds an assignment to :math:`\beta` that minimizes the function
 where :math:`\lambda` is a hyperparameter and, as usual, :math:`X` is
 the training data and :math:`Y` the observations. The :math:`\ell_1`
 penalty encourages **sparsity** in the learned parameters, and, as we
-will say, can drive many coefficients to zero. In this sense, lasso is a
+will see, can drive many coefficients to zero. In this sense, lasso is a
 continuous **feature selection** method.
 
 In this notebook, we show how to fit a lasso model using CVXPY, how to
