@@ -65,7 +65,7 @@ evaluate the model, and how to tune the hyperparameter <span class="math">\(\lam
 <div class="section" id="writing-the-objective-function">
 <h2>Writing the objective function<a class="headerlink" href="#writing-the-objective-function" title="Permalink to this headline">¶</a></h2>
 <p>We can decompose the <strong>objective function</strong> as the sum of a <strong>least
-squares loss function</strong> and an <strong>:math:`ell_1` regularizer</strong>.</p>
+squares loss function</strong> and an <span class="math">\(\ell_1\)</span> <strong>regularizer</strong>.</p>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">-</span> <span class="n">Y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
 
