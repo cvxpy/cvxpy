@@ -5,12 +5,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Advanced Features &#8212; CVXPY 1.0.0 documentation</title>
-    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
@@ -24,7 +21,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Examples" href="../../examples/index.html" />
@@ -87,7 +84,7 @@
 For example, <code class="docutils literal"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
 The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">Leaf</span></code></a> (the parent class
-of <code class="xref py py-class docutils literal"><span class="pre">Variable</span></code> and
+of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code></a>) is given below.</p>
 <dl class="function">
 <dt id="Leaf">
@@ -127,7 +124,7 @@ length of shape.</li>
 <p>The <code class="docutils literal"><span class="pre">value</span></code> field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
 A Euclidean projection onto the set defined by the attributes is given by the
-<code class="xref py py-meth docutils literal"><span class="pre">project</span></code> method.</p>
+<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal"><span class="pre">project</span></code></a> method.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -142,10 +139,10 @@ A Euclidean projection onto the set defined by the attributes is given by the
 </pre></div>
 </div>
 <p>A sensible idiom for assigning values to leaves is
-<code class="xref py py-meth docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>,
+<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code></a>,
 ensuring that the assigned value satisfies the leaf’s properties.
 A slightly more efficient variant is
-<code class="xref py py-meth docutils literal"><span class="pre">leaf.project_and_assign(val)</span></code>,
+<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project_and_assign" title="cvxpy.expressions.leaf.Leaf.project_and_assign"><code class="xref py py-meth docutils literal"><span class="pre">leaf.project_and_assign(val)</span></code></a>,
 which projects and assigns the value directly, without additionally checking
 that the value satisfies the leaf’s properties.  In most cases <code class="docutils literal"><span class="pre">project</span></code> and
 checking that a value satisfies a leaf’s properties are cheap operations (i.e.,
@@ -252,7 +249,7 @@ Lastly, equality and postive semidefinite constraints are defined for complex ex
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal"><span class="pre">indicator</span></code> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math">\(\infty\)</span> when they are violated.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -551,12 +548,12 @@ The table below shows the types of problems the supported solvers can handle.</p
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">1.0</span><span class="o">.</span><span class="mi">3</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">A</span><span class="o">.</span> <span class="n">Domahidi</span><span class="p">,</span> <span class="n">Automatic</span> <span class="n">Control</span> <span class="n">Laboratory</span><span class="p">,</span> <span class="n">ETH</span> <span class="n">Zurich</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
 
 <span class="n">It</span>     <span class="n">pcost</span>         <span class="n">dcost</span>      <span class="n">gap</span>     <span class="n">pres</span>    <span class="n">dres</span>     <span class="n">k</span><span class="o">/</span><span class="n">t</span>     <span class="n">mu</span>      <span class="n">step</span>     <span class="n">IR</span>
- <span class="mi">0</span>   <span class="o">+</span><span class="mf">0.000e+00</span>   <span class="o">+</span><span class="mf">4.000e+00</span>   <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>   <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>    <span class="n">N</span><span class="o">/</span><span class="n">A</span>     <span class="mi">1</span> <span class="mi">1</span> <span class="o">-</span>
- <span class="mi">1</span>   <span class="o">+</span><span class="mf">6.451e+00</span>   <span class="o">+</span><span class="mf">8.125e+00</span>   <span class="o">+</span><span class="mi">5</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mf">0.7857</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
- <span class="mi">2</span>   <span class="o">+</span><span class="mf">6.788e+00</span>   <span class="o">+</span><span class="mf">6.839e+00</span>   <span class="o">+</span><span class="mi">9</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>   <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mf">0.9829</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
- <span class="mi">3</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.829e+00</span>   <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>   <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>   <span class="mf">0.9899</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
- <span class="mi">4</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>   <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
- <span class="mi">5</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>   <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">0</span>   <span class="o">+</span><span class="mf">0.000e+00</span>   <span class="o">+</span><span class="mf">4.000e+00</span>   <span class="o">+</span><span class="mf">2e+01</span>   <span class="mf">2e+00</span>   <span class="mf">1e+00</span>   <span class="mf">1e+00</span>   <span class="mf">3e+00</span>    <span class="n">N</span><span class="o">/</span><span class="n">A</span>     <span class="mi">1</span> <span class="mi">1</span> <span class="o">-</span>
+ <span class="mi">1</span>   <span class="o">+</span><span class="mf">6.451e+00</span>   <span class="o">+</span><span class="mf">8.125e+00</span>   <span class="o">+</span><span class="mf">5e+00</span>   <span class="mf">7e-01</span>   <span class="mf">5e-01</span>   <span class="mf">7e-01</span>   <span class="mf">7e-01</span>   <span class="mf">0.7857</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">2</span>   <span class="o">+</span><span class="mf">6.788e+00</span>   <span class="o">+</span><span class="mf">6.839e+00</span>   <span class="o">+</span><span class="mf">9e-02</span>   <span class="mf">1e-02</span>   <span class="mf">8e-03</span>   <span class="mf">3e-02</span>   <span class="mf">2e-02</span>   <span class="mf">0.9829</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">3</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.829e+00</span>   <span class="o">+</span><span class="mf">1e-03</span>   <span class="mf">1e-04</span>   <span class="mf">8e-05</span>   <span class="mf">3e-04</span>   <span class="mf">2e-04</span>   <span class="mf">0.9899</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">4</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">1e-05</span>   <span class="mf">1e-06</span>   <span class="mf">8e-07</span>   <span class="mf">3e-06</span>   <span class="mf">2e-06</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">5</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">1e-07</span>   <span class="mf">1e-08</span>   <span class="mf">8e-09</span>   <span class="mf">4e-08</span>   <span class="mf">2e-08</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
 
 <span class="n">OPTIMAL</span> <span class="p">(</span><span class="n">within</span> <span class="n">feastol</span><span class="o">=</span><span class="mf">1.3e-08</span><span class="p">,</span> <span class="n">reltol</span><span class="o">=</span><span class="mf">1.5e-08</span><span class="p">,</span> <span class="n">abstol</span><span class="o">=</span><span class="mf">1.0e-07</span><span class="p">)</span><span class="o">.</span>
 <span class="n">Runtime</span><span class="p">:</span> <span class="mf">0.000121</span> <span class="n">seconds</span><span class="o">.</span>
@@ -880,7 +877,7 @@ The full set of reductions available is discussed in <a class="reference interna
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
