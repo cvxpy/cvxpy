@@ -81,29 +81,32 @@ def plot_regularization_path(lambd_values, beta_values):
     plt.show()
 
 
-m = 1000
-n = 30
-sigma = 4
+if __name__ == "__main__":
+    m = 1000
+    n = 30
+    sigma = 4
 
-X, Y, beta_star = generate_data(m, n, sigma)
-X_train = X[:800, :]
-Y_train = Y[:800]
-X_test = X[800:, :]
-Y_test = Y[800:]
+    X, Y, beta_star = generate_data(m, n, sigma)
+    X_train = X[:800, :]
+    Y_train = Y[:800]
+    X_test = X[800:, :]
+    Y_test = Y[800:]
 
-beta = cp.Variable(n)
-lambd = cp.Parameter(nonneg=True)
-lambd_values = np.logspace(-2, 2, 50)
-train_errors = []
-test_errors = []
-beta_values = []
-for v in lambd_values:
-    lambd.value = v
-    prob = cp.Problem(cp.Minimize(objective_fn(X_train, Y_train, beta, lambd)))
-    prob.solve()
-    train_errors.append(mse(X_train, Y_train, beta))
-    test_errors.append(mse(X_test, Y_test, beta))
-    beta_values.append(beta.value)
+    beta = cp.Variable(n)
+    lambd = cp.Parameter(nonneg=True)
+    problem = cp.Problem(
+        cp.Minimize(objective_fn(X_train, Y_train, beta, lambd)))
 
-plot_train_test_errors(train_errors, test_errors, lambd_values)
-plot_regularization_path(lambd_values, beta_values)
+    lambd_values = np.logspace(-2, 2, 50)
+    train_errors = []
+    test_errors = []
+    beta_values = []
+    for v in lambd_values:
+        lambd.value = v
+        problem.solve()
+        train_errors.append(mse(X_train, Y_train, beta))
+        test_errors.append(mse(X_test, Y_test, beta))
+        beta_values.append(beta.value)
+
+    plot_train_test_errors(train_errors, test_errors, lambd_values)
+    plot_regularization_path(lambd_values, beta_values)
