@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 
 
 def loss_fn(X, Y, beta):
-    return cp.pnorm(cp.matmul(X, beta) - Y, p=2)**2
+    return cp.norm2(cp.matmul(X, beta) - Y)**2
 
 
 def regularizer(beta):
-    return cp.pnorm(beta, p=2)**2
+    return cp.norm1(beta)
 
 
 def objective_fn(X, Y, beta, lambd):
@@ -19,44 +19,14 @@ def mse(X, Y, beta):
     return (1.0 / X.shape[0]) * loss_fn(X, Y, beta).value
 
 
-def generate_data(m=1000, n=30, sigma=40):
-    """Generates data for regression.
-
-    To experiment with your own data, just replace the contents of this
-    function with code that loads your dataset.
-
-    Args
-    ----
-    m : int
-        The number of examples.
-    n : int
-        The number of features per example.
-    sigma : positive float
-        The standard deviation of the additive noise.
-
-    Returns
-    -------
-    X : np.array
-        An array of featurized examples, shape (m, n), m the number of
-        examples and n the number of features per example.
-
-    Y : np.array
-        An array of shape (m,) containing the observed labels for the
-        examples.
-
-    beta_star : np.array
-        The true parameter. This is the quantity we are trying to
-        estimate.
-    """
+def generate_data(m=100, n=20, sigma=5, density=0.8):
+    "Generates data matrix X and observations Y."
+    np.random.seed(1)
     beta_star = np.random.randn(n)
-    # Generate an ill-conditioned data matrix
-    X = np.random.randn(m, n)
-    U, _, V = np.linalg.svd(X)
-    s = np.linspace(30, 1, min(m, n))
-    S = np.zeros((m, n))
-    S[:min(m, n), :min(m, n)] = np.diag(s)
-    X = np.dot(U, np.dot(S, V))
-    # Corrupt the observations with additive Gaussian noise
+    idxs = np.random.choice(range(n), int((1-density)*n), replace=False)
+    for idx in idxs:
+        beta_star[idx] = 0
+    X = np.random.randn(m,n)
     Y = X.dot(beta_star) + np.random.normal(0, sigma, size=m)
     return X, Y, beta_star
 
@@ -67,7 +37,7 @@ def plot_train_test_errors(train_errors, test_errors, lambd_values):
     plt.xscale("log")
     plt.legend(loc="upper left")
     plt.xlabel(r"$\lambda$", fontsize=16)
-    plt.title("Mean Squared Error (mSE)")
+    plt.title("Mean Squared Error (MSE)")
     plt.show()
 
 
@@ -79,25 +49,27 @@ def plot_regularization_path(lambd_values, beta_values):
     plt.xscale("log")
     plt.title("Regularization Path")
     plt.show()
-
-
+    
+    
 if __name__ == "__main__":
-    m = 1000
-    n = 30
-    sigma = 4
+    m = 100
+    n = 20
+    sigma = 5
+    density = 0.2
 
-    X, Y, beta_star = generate_data(m, n, sigma)
-    X_train = X[:800, :]
-    Y_train = Y[:800]
-    X_test = X[800:, :]
-    Y_test = Y[800:]
+    X, Y, _ = generate_data(m, n, sigma)
+    X_train = X[:50, :]
+    Y_train = Y[:50]
+    X_test = X[50:, :]
+    Y_test = Y[50:]
+
 
     beta = cp.Variable(n)
     lambd = cp.Parameter(nonneg=True)
     problem = cp.Problem(
                     cp.Minimize(objective_fn(X_train, Y_train, beta, lambd)))
 
-    lambd_values = np.logspace(-2, 2, 50)
+    lambd_values = np.logspace(-2, 3, 50)
     train_errors = []
     test_errors = []
     beta_values = []
