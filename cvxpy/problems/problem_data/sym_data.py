@@ -55,7 +55,9 @@ class SymData(object):
         self.objective = objective
         self.constraints = constraints
         self.constr_map = self.filter_constraints(constraints)
-        self.presolve_status = self.presolve(self.objective, self.constr_map)
+        # TODO drop this because it must be inverted.
+        # self.presolve_status = self.presolve(self.objective, self.constr_map)
+        self.presolve_status = None
         self.dims = self.format_for_solver(self.constr_map, solver)
 
         all_ineq = self.constr_map[s.EQ] + self.constr_map[s.LEQ]

@@ -341,7 +341,7 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            elif np.any(self.project(val) != val):
+            elif np.sum(self.project(val) != val):
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
                 elif self.attributes['nonpos']:

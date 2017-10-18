@@ -31,6 +31,7 @@ from collections import deque
 import unittest
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+import scipy.sparse as sp
 import warnings
 import sys
 PY35 = sys.version_info >= (3, 5)
@@ -307,6 +308,11 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), NSD=True, value=[[1,0], [0,-1]])
         self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
+
+        np.random.seed(1)
+        A = sp.random(10, 5, .5)
+        P = Parameter((10, 5), value=A)
+        self.assertItemsAlmostEqual(P.value.todense(), A.todense())
 
     def test_symmetric(self):
         """Test symmetric variables.
