@@ -55,7 +55,7 @@ from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.imag import imag
 from cvxpy.atoms.affine.kron import kron
-from cvxpy.atoms.affine.binary_operators import multiply
+from cvxpy.atoms.affine.binary_operators import multiply, matmul
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import reshape

@@ -70,6 +70,11 @@ class BinaryOperator(AffAtom):
             not (self.args[0].is_imag() and self.args[1].is_imag())
 
 
+def matmul(lh_exp, rh_exp):
+    """Matrix multipliction."""
+    return MulExpression(lh_exp, rh_exp)
+
+
 class MulExpression(BinaryOperator):
     """Matrix multiplication.
 
