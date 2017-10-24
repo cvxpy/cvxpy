@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: cvxpy2sdpa
+Version: 0.1
+Summary: SDPA CVXPY Interface
+Home-page:
+Author: Miguel Paredes QUINONES
+Author-email: miguel.paredes.q@gmail.com
+License: APACHE
+Description: UNKNOWN
+Platform: LINUX

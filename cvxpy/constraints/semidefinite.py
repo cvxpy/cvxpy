@@ -58,7 +58,7 @@ class SDP(Constraint):
         solver : str
             The solver being called.
         """
-        if solver.name() in [s.CVXOPT, s.MOSEK]:
+        if solver.name() in [s.CVXOPT, s.MOSEK, s.SDPA]:
             new_eq_constr, new_leq_constr = self.__CVXOPT_format
         elif solver.name() in [s.SCS, s.SUPERSCS]:
             new_eq_constr, new_leq_constr = self.__SCS_format
