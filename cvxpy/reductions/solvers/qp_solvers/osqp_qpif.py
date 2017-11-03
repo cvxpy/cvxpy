@@ -60,10 +60,10 @@ class OSQP(QpSolver):
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
         data['full_A'] = A
-        u = np.concatenate((data[s.B], data[s.G]))
-        data['u'] = u
-        l = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
-        data['l'] = u
+        uA = np.concatenate((data[s.B], data[s.G]))
+        data['u'] = uA
+        lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
+        data['l'] = lA
 
         if solver_cache is not None and self.name in solver_cache:
             # Use cached data.
@@ -105,7 +105,7 @@ class OSQP(QpSolver):
         else:
             # Initialize and solve problem
             solver = osqp.OSQP()
-            solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
+            solver.setup(P, q, A, lA, uA, verbose=verbose, **solver_opts)
 
         results = solver.solve()
 
