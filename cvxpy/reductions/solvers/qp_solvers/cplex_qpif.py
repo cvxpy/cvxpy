@@ -110,16 +110,16 @@ class CPLEX(QpSolver):
         model.objective.set_sense(model.objective.sense.minimize)
 
         # Add variables and linear objective
-        var_idx = model.variables.add(obj=q,
-                                      lb=-cpx.infinity*np.ones(n_var),
-                                      ub=cpx.infinity*np.ones(n_var))
+        var_idx = list(model.variables.add(obj=q,
+                                           lb=-cpx.infinity*np.ones(n_var),
+                                           ub=cpx.infinity*np.ones(n_var)))
 
         # Constrain binary/integer variables if present
         for i in data[s.BOOL_IDX]:
-            model.variables.set_types(var_idx[data[s.BOOL_IDX][i]],
+            model.variables.set_types(var_idx[i],
                                       model.variables.type.binary)
         for i in data[s.INT_IDX]:
-            model.variables.set_types(var_idx[data[s.INT_IDX][i]],
+            model.variables.set_types(var_idx[i],
                                       model.variables.type.integer)
 
         # Add constraints
@@ -158,9 +158,26 @@ class CPLEX(QpSolver):
             model.set_error_stream(None)
             model.set_warning_stream(None)
 
-        for param, value in solver_opts.items():
-            # TODO (Bartolomeo): Find cleaner way to do this
-            exec("model.parameters.%s.set(%d)" % (param, value))
+        # TODO: The code in cvxpy/problems/solvers/cplex_intf.py sets
+        #       CPLEX parameters in the same way and the code is
+        #       duplicated here. This should be refactored.
+        kwargs = sorted(solver_opts.keys())
+        if "cplex_params" in kwargs:
+            for param, value in solver_opts["cplex_params"].items():
+                try:
+                    eval("model.parameters.{0}.set({1})".format(param, value))
+                except AttributeError:
+                    raise ValueError(
+                        "invalid CPLEX parameter, value pair ({0}, {1})".format(
+                            param, value))
+            kwargs.remove("cplex_params")
+        if "cplex_filename" in kwargs:
+            filename = solver_opts["cplex_filename"]
+            if filename:
+                model.write(filename)
+            kwargs.remove("cplex_filename")
+        if kwargs:
+            raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
         # Solve problem
         results_dict = {}
