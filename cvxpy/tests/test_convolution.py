@@ -49,7 +49,7 @@ class TestConvolution(BaseTest):
         prob = cvx.Problem(cvx.Minimize(cvx.norm(expr, 1)),
                        [x == g])
         result = prob.solve()
-        self.assertAlmostEqual(result, sum(f_conv_g))
+        self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
         # # Expression trees.

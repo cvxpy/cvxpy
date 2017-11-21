@@ -101,6 +101,7 @@ class OSQP(QpSolver):
             solver.update_settings(verbose=verbose, **solver_opts)
         else:
             # Initialize and solve problem
+            solver_opts['polish'] = solver_opts.get('polish', True)
             solver = osqp.OSQP()
             solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
 
