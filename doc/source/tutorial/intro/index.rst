@@ -273,14 +273,14 @@ computes a trade-off curve for a LASSO problem.
     m = 10
     numpy.random.seed(1)
     A = numpy.random.randn(n, m)
-    b = numpy.random.randn(n, 1)
+    b = numpy.random.randn(n)
     # gamma must be nonnegative due to DCP rules.
     gamma = cvx.Parameter(nonneg=True)
 
     # Construct the problem.
     x = cvx.Variable(m)
     error = cvx.sum_squares(A*x - b)
-    obj = cvx.Minimize(error + gamma*norm(x, 1))
+    obj = cvx.Minimize(error + gamma*cvx.norm(x, 1))
     prob = cvx.Problem(obj)
 
     # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
@@ -294,7 +294,7 @@ computes a trade-off curve for a LASSO problem.
         # Use expr.value to get the numerical value of
         # an expression in the problem.
         sq_penalty.append(error.value)
-        l1_penalty.append(norm(x, 1).value)
+        l1_penalty.append(cvx.norm(x, 1).value)
         x_values.append(x.value)
 
     plt.rc('text', usetex=True)
@@ -311,7 +311,7 @@ computes a trade-off curve for a LASSO problem.
     # Plot entries of x vs. gamma.
     plt.subplot(212)
     for i in range(m):
-        plt.plot(gamma_vals, [xi[i,0] for xi in x_values])
+        plt.plot(gamma_vals, [xi[i] for xi in x_values])
     plt.xlabel(r'\gamma', fontsize=16)
     plt.ylabel(r'x_{i}', fontsize=16)
     plt.xscale('log')
