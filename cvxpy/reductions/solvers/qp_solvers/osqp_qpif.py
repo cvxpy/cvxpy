@@ -12,9 +12,12 @@ class OSQP(QpSolver):
 
     # Map of OSQP status to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,
+                  2: s.OPTIMAL_INACCURATE,
                   -2: s.SOLVER_ERROR,     # Maxiter reached
                   -3: s.INFEASIBLE,
+                  3: s.INFEASIBLE_INACCURATE,
                   -4: s.UNBOUNDED,
+                  4: s.UNBOUNDED_INACCURATE,
                   -5: s.SOLVER_ERROR,     # Interrupted by user
                   -10: s.SOLVER_ERROR}    # Unsolved
 
@@ -57,10 +60,10 @@ class OSQP(QpSolver):
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
         data['full_A'] = A
-        u = np.concatenate((data[s.B], data[s.G]))
-        data['u'] = u
-        l = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
-        data['l'] = u
+        uA = np.concatenate((data[s.B], data[s.G]))
+        data['u'] = uA
+        lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
+        data['l'] = lA
 
         if solver_cache is not None and self.name in solver_cache:
             # Use cached data.
@@ -103,7 +106,7 @@ class OSQP(QpSolver):
             # Initialize and solve problem
             solver_opts['polish'] = solver_opts.get('polish', True)
             solver = osqp.OSQP()
-            solver.setup(P, q, A, l, u, verbose=verbose, **solver_opts)
+            solver.setup(P, q, A, lA, uA, verbose=verbose, **solver_opts)
 
         results = solver.solve()
 
