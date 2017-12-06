@@ -63,7 +63,7 @@ def targets_and_priorities(objectives, priorities, targets, limits=None, off_tar
     new_objs = []
     for i in range(num_objs):
         obj = objectives[i]
-        sign = 1 if Constant(priorities[i]).is_positive() else -1
+        sign = 1 if Constant(priorities[i]).is_nonneg() else -1
         off_target *= sign
         if type(obj) == Minimize:
             expr = (priorities[i] - off_target)*atoms.pos(obj.args[0] - targets[i])
