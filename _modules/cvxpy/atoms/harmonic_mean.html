@@ -64,7 +64,26 @@
 
 
 <div class="viewcode-block" id="harmonic_mean"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.harmonic_mean.harmonic_mean">[docs]</a><span class="k">def</span> <span class="nf">harmonic_mean</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The harmonic mean of ``x``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Expression or numeric</span>
+<span class="sd">        The expression whose harmonic mean is to be computed. Must have</span>
+<span class="sd">        positive entries.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Expression</span>
+<span class="sd">        .. math::</span>
+<span class="sd">            \\frac{n}{\\left(\\sum_{i=1}^{n} x_i^{-1} \\right)},</span>
+
+<span class="sd">        where :math:`n` is the length of :math:`x`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># TODO(akshayka): Behavior of the below is incorrect when x has negative</span>
+    <span class="c1"># entries. Either fail fast or provide a correct expression with</span>
+    <span class="c1"># unknown curvature.</span>
     <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="o">*</span><span class="n">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 </pre></div>
 

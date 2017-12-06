@@ -347,7 +347,7 @@ for it. Leafs can have no more than one attribute, with the exception
 that a leaf may be both <code class="docutils literal"><span class="pre">nonpos</span></code> and <code class="docutils literal"><span class="pre">nonneg</span></code> or both <code class="docutils literal"><span class="pre">boolean</span></code>
 in some indices and <code class="docutils literal"><span class="pre">integer</span></code> in others.</p>
 <p>An error is raised if a leaf is assigned a value that contradicts
-one or more of its attributes. See the <code class="docutils literal"><span class="pre">round</span></code> method for a convenient
+one or more of its attributes. See the <code class="docutils literal"><span class="pre">project</span></code> method for a convenient
 way to project a value onto a leaf’s domain.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -413,7 +413,7 @@ boolean argument.</li>
 <dl class="method">
 <dt id="cvxpy.expressions.leaf.Leaf.project_and_assign">
 <code class="descname">project_and_assign</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project_and_assign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project_and_assign" title="Permalink to this definition">¶</a></dt>
-<dd><p>Round and assign a value to the variable.</p>
+<dd><p>Project and assign a value to the variable.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -484,7 +484,7 @@ boolean argument.</li>
 <dl class="method">
 <dt id="cvxpy.expressions.variable.Variable.project_and_assign">
 <code class="descname">project_and_assign</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.project_and_assign" title="Permalink to this definition">¶</a></dt>
-<dd><p>Round and assign a value to the variable.</p>
+<dd><p>Project and assign a value to the variable.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -554,7 +554,7 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 <dl class="method">
 <dt id="cvxpy.expressions.constants.parameter.Parameter.project_and_assign">
 <code class="descname">project_and_assign</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project_and_assign" title="Permalink to this definition">¶</a></dt>
-<dd><p>Round and assign a value to the variable.</p>
+<dd><p>Project and assign a value to the variable.</p>
 </dd></dl>
 
 <dl class="attribute">

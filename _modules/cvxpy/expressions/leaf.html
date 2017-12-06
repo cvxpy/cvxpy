@@ -78,7 +78,7 @@
 <span class="sd">    in some indices and ``integer`` in others.</span>
 
 <span class="sd">    An error is raised if a leaf is assigned a value that contradicts</span>
-<span class="sd">    one or more of its attributes. See the ``round`` method for a convenient</span>
+<span class="sd">    one or more of its attributes. See the ``project`` method for a convenient</span>
 <span class="sd">    way to project a value onto a leaf&#39;s domain.</span>
 
 <span class="sd">    Parameters</span>
@@ -358,7 +358,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_value</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Leaf.project_and_assign"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project_and_assign">[docs]</a>    <span class="k">def</span> <span class="nf">project_and_assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Round and assign a value to the variable.</span>
+        <span class="sd">&quot;&quot;&quot;Project and assign a value to the variable.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">val</span><span class="p">))</span></div>
 

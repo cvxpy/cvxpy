@@ -62,12 +62,9 @@
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.axis_atom</span> <span class="k">import</span> <span class="n">AxisAtom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.norm1</span> <span class="k">import</span> <span class="n">norm1</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.norm_inf</span> <span class="k">import</span> <span class="n">norm_inf</span>
-<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
-<span class="kn">from</span> <span class="nn">cvxpy.utilities.power_tools</span> <span class="k">import</span> <span class="n">pow_high</span><span class="p">,</span> <span class="n">pow_mid</span><span class="p">,</span> <span class="n">pow_neg</span><span class="p">,</span> <span class="n">gm_constrs</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints.second_order</span> <span class="k">import</span> <span class="n">SOC</span>
-<span class="kn">from</span> <span class="nn">fractions</span> <span class="k">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span> <span class="nn">cvxpy.utilities.power_tools</span> <span class="k">import</span> <span class="n">pow_high</span><span class="p">,</span> <span class="n">pow_mid</span><span class="p">,</span> <span class="n">pow_neg</span>
 
 
 <div class="viewcode-block" id="pnorm"><a class="viewcode-back" href="../../../api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm">[docs]</a><span class="k">def</span> <span class="nf">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_denom</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
@@ -286,143 +283,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">nominator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">frac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">nominator</span><span class="p">,</span> <span class="n">denominator</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Reduces the atom to an affine expression and list of constraints.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        arg_objs : list</span>
-<span class="sd">            LinExpr for each argument.</span>
-<span class="sd">        shape : tuple</span>
-<span class="sd">            The shape of the resulting expression.</span>
-<span class="sd">        data :</span>
-<span class="sd">            Additional data required by the atom.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        tuple</span>
-<span class="sd">            (LinOp for objective, list of constraints)</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -----</span>
-
-<span class="sd">        Implementation notes.</span>
-
-<span class="sd">        - For general :math:`p \geq 1`, the inequality :math:`\|x\|_p \leq t`</span>
-<span class="sd">          is equivalent to the following convex inequalities:</span>
-
-<span class="sd">          .. math::</span>
-
-<span class="sd">              |x_i| &amp;\leq r_i^{1/p} t^{1 - 1/p}\\</span>
-<span class="sd">              \sum_i r_i &amp;= t.</span>
-
-<span class="sd">          These inequalities happen to also be correct for :math:`p = +\infty`,</span>
-<span class="sd">          if we interpret :math:`1/\infty` as :math:`0`.</span>
-
-<span class="sd">        - For general :math:`0 &lt; p &lt; 1`, the inequality :math:`\|x\|_p \geq t`</span>
-<span class="sd">          is equivalent to the following convex inequalities:</span>
-
-<span class="sd">          .. math::</span>
-
-<span class="sd">              r_i &amp;\leq x_i^{p} t^{1 - p}\\</span>
-<span class="sd">              \sum_i r_i &amp;= t.</span>
-
-<span class="sd">        - For general :math:`p &lt; 0`, the inequality :math:`\|x\|_p \geq t`</span>
-<span class="sd">          is equivalent to the following convex inequalities:</span>
-
-<span class="sd">          .. math::</span>
-
-<span class="sd">              t &amp;\leq x_i^{-p/(1-p)} r_i^{1/(1 - p)}\\</span>
-<span class="sd">              \sum_i r_i &amp;= t.</span>
-
-
-
-
-<span class="sd">        Although the inequalities above are correct, for a few special cases,</span>
-<span class="sd">        we can represent the p-norm more efficiently and with fewer variables and inequalities.</span>
-
-<span class="sd">        - For :math:`p = 1`, we use the representation</span>
-
-<span class="sd">            .. math::</span>
-
-<span class="sd">                x_i &amp;\leq r_i\\</span>
-<span class="sd">                -x_i &amp;\leq r_i\\</span>
-<span class="sd">                \sum_i r_i &amp;= t</span>
-
-<span class="sd">        - For :math:`p = \infty`, we use the representation</span>
-
-<span class="sd">            .. math::</span>
-
-<span class="sd">                x_i &amp;\leq t\\</span>
-<span class="sd">                -x_i &amp;\leq t</span>
-
-<span class="sd">          Note that we don&#39;t need the :math:`r` variable or the sum inequality.</span>
-
-<span class="sd">        - For :math:`p = 2`, we use the natural second-order cone representation</span>
-
-<span class="sd">            .. math::</span>
-
-<span class="sd">                \|x\|_2 \leq t</span>
-
-<span class="sd">          Note that we could have used the set of inequalities given above if we wanted</span>
-<span class="sd">          an alternate decomposition of a large second-order cone into into several</span>
-<span class="sd">          smaller inequalities.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">axis</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="c1"># first, take care of the special cases of p = 2, inf, and 1</span>
-        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">SOC</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">)]</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">SOC</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span>
-                               <span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">)]</span>
-
-        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
-            <span class="n">t_</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_leq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t_</span><span class="p">),</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_geq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum_expr</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">t_</span><span class="p">]))]</span>
-
-        <span class="c1"># we need an absolute value constraint for the symmetric convex branches (p &gt;= 1)</span>
-        <span class="c1"># we alias |x| as x from this point forward to make the code pretty :)</span>
-        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">absx</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_leq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">absx</span><span class="p">),</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_geq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum_expr</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">absx</span><span class="p">]))]</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">absx</span>
-
-        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">lu</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">constraints</span>
-
-        <span class="c1"># now, we take care of the remaining convex and concave branches</span>
-        <span class="c1"># to create the rational powers, we need a new variable, r, and</span>
-        <span class="c1"># the constraint sum(r) == t</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">t_</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">promote</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lu</span><span class="o">.</span><span class="n">create_eq</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">t</span><span class="p">)]</span>
-
-        <span class="c1"># make p a fraction so that the input weight to gm_constrs</span>
-        <span class="c1"># is a nice tuple of fractions.</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">constraints</span> <span class="o">+=</span> <span class="n">gm_constrs</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">r</span><span class="p">],</span>  <span class="p">(</span><span class="o">-</span><span class="n">p</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">),</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">constraints</span> <span class="o">+=</span> <span class="n">gm_constrs</span><span class="p">(</span><span class="n">r</span><span class="p">,</span>  <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">t_</span><span class="p">],</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">constraints</span> <span class="o">+=</span> <span class="n">gm_constrs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>  <span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">t_</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">constraints</span></div>
-
-        <span class="c1"># todo: no need to run gm_constr to form the tree each time.</span>
-        <span class="c1"># we only need to form the tree once</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="p">(</span><span class="n">frac</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></div>
 </pre></div>
 
           </div>

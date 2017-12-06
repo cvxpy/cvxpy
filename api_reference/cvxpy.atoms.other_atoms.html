@@ -227,7 +227,24 @@ cost of requiring more convex inequalities to represent the geometric mean.</li>
 <dl class="function">
 <dt id="cvxpy.atoms.harmonic_mean.harmonic_mean">
 <code class="descclassname">cvxpy.atoms.harmonic_mean.</code><code class="descname">harmonic_mean</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/harmonic_mean.html#harmonic_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.harmonic_mean.harmonic_mean" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The harmonic mean of <code class="docutils literal"><span class="pre">x</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric</em>) – The expression whose harmonic mean is to be computed. Must have
+positive entries.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><div class="math">
+\[\frac{n}{\left(\sum_{i=1}^{n} x_i^{-1} \right)},\]</div>
+<p>where <span class="math">\(n\)</span> is the length of <span class="math">\(x\)</span>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="lambda-max">
@@ -320,22 +337,26 @@ cost of requiring more convex inequalities to represent the geometric mean.</li>
 <dl class="function">
 <dt id="cvxpy.atoms.mixed_norm.mixed_norm">
 <code class="descclassname">cvxpy.atoms.mixed_norm.</code><code class="descname">mixed_norm</code><span class="sig-paren">(</span><em>X</em>, <em>p=2</em>, <em>q=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/mixed_norm.html#mixed_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.mixed_norm.mixed_norm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Lp,q norm; :math:` (sum_k (sum_l lvert x_{k,l}
-vert^p )^q/p)^{1/q}`.</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>X <span class="classifier-delimiter">:</span> <span class="classifier">Expression or numeric constant</span></dt>
-<dd>The matrix to take the l_{p,q} norm of.</dd>
-<dt>p <span class="classifier-delimiter">:</span> <span class="classifier">int or str, optional</span></dt>
-<dd>The type of inner norm.</dd>
-<dt>q <span class="classifier-delimiter">:</span> <span class="classifier">int or str, optional</span></dt>
-<dd>The type of outer norm.</dd>
-</dl>
-<dl class="docutils">
-<dt>Expression</dt>
-<dd>An Expression representing the mixed norm.</dd>
-</dl>
-</div></blockquote>
+<dd><p>Lp,q norm; <span class="math">\((\sum_k (\sum_l \lvert x_{k,l} \rvert^p)^{q/p})^{1/q}\)</span>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The matrix to take the l_{p,q} norm of.</li>
+<li><strong>p</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The type of inner norm.</li>
+<li><strong>q</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The type of outer norm.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An Expression representing the mixed norm.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
