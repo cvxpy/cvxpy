@@ -46,13 +46,23 @@ class indicator(Expression):
         """
         return False
 
-    def is_positive(self):
+    def is_nonneg(self):
         """Is the expression positive?
         """
         return True
 
-    def is_negative(self):
+    def is_nonpos(self):
         """Is the expression negative?
+        """
+        return False
+
+    def is_imag(self):
+        """Is the Leaf imaginary?
+        """
+        return False
+
+    def is_complex(self):
+        """Is the Leaf complex valued?
         """
         return False
 
@@ -62,10 +72,10 @@ class indicator(Expression):
         return [self.err_tol]
 
     @property
-    def size(self):
+    def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
-        return (1, 1)
+        return ()
 
     def name(self):
         """Returns the string representation of the expression.

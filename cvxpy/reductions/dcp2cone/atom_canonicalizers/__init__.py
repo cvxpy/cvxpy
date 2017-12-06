@@ -18,11 +18,13 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
+from cvxpy.transforms.indicator import indicator
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.cumsum_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.geo_mean_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.huber_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.indicator_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.kl_div_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon import *
@@ -71,4 +73,5 @@ CANON_METHODS = {
     logistic : logistic_canon,
     maximum : maximum_canon,
     power : power_canon,
+    indicator : indicator_canon,
 }

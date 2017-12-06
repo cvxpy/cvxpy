@@ -340,8 +340,8 @@ class Problem(u.Canonical):
             why the problem could not be solved.
         """
         if parallel:
-            self._separable_problems = (
-                cvxpy.transforms.get_separable_problems(self))
+            from cvxpy.transforms.separable_problems import get_separable_problems
+            self._separable_problems = (get_separable_problems(self))
             if len(self._separable_problems) > 1:
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)

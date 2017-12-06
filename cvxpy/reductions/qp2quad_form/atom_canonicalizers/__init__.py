@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import *
+from cvxpy.transforms.indicator import indicator
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS as CONE_METHODS
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers.quad_over_lin_canon import *
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers.power_canon import *
@@ -35,6 +36,7 @@ CANON_METHODS[sum_largest] = CONE_METHODS[sum_largest]
 CANON_METHODS[max] = CONE_METHODS[max]
 CANON_METHODS[norm1] = CONE_METHODS[norm1]
 CANON_METHODS[norm_inf] = CONE_METHODS[norm_inf]
+CANON_METHODS[indicator] = CONE_METHODS[indicator]
 
 # canonicalizations that are different for QPs
 CANON_METHODS[quad_over_lin] = quad_over_lin_canon

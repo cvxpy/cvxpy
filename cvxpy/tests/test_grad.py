@@ -21,6 +21,7 @@ from __future__ import division
 import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
+from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
@@ -664,7 +665,7 @@ class TestGrad(BaseTest):
         for obj in [Minimize((self.a)**-1), Maximize(entr(self.a))]:
             prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
-            expr = cvxpy.partial_optimize(prob, dont_opt_vars=[self.x, self.a])
+            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a])
             self.a.value = None
             self.x.value = None
             grad = expr.grad
@@ -684,7 +685,7 @@ class TestGrad(BaseTest):
             self.assertItemsAlmostEqual(grad[self.x].todense(), [0, 0, 0, 0])
 
             # Optimize over x.
-            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x])
+            expr = partial_optimize(prob, opt_vars=[self.x])
             self.a.value = 1
             grad = expr.grad
             self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a] + 0)
@@ -693,13 +694,13 @@ class TestGrad(BaseTest):
             fix_prob = Problem(obj, [self.x + self.a >= [5, 8], self.x == 0])
             fix_prob.solve()
             dual_val = fix_prob.constraints[0].dual_variables[0].value
-            expr = cvxpy.partial_optimize(prob, opt_vars=[self.a])
+            expr = partial_optimize(prob, opt_vars=[self.a])
             self.x.value = [0, 0]
             grad = expr.grad
             self.assertItemsAlmostEqual(grad[self.x].todense(), dual_val)
 
             # Optimize over x and a.
-            expr = cvxpy.partial_optimize(prob, opt_vars=[self.x, self.a])
+            expr = partial_optimize(prob, opt_vars=[self.x, self.a])
             grad = expr.grad
             self.assertAlmostEqual(grad, {})
 

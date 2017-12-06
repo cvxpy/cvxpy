@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy
 import cvxpy.settings as s
 from cvxpy.atoms import *
+from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter
 import cvxpy.utilities as u
@@ -49,7 +50,7 @@ class TestDomain(BaseTest):
         for obj in [Minimize((self.a)**-1), Maximize(log(self.a))]:
             orig_prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
-            expr = cvxpy.partial_optimize(orig_prob, dont_opt_vars=[self.x, self.a])
+            expr = partial_optimize(orig_prob, dont_opt_vars=[self.x, self.a])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
@@ -59,7 +60,7 @@ class TestDomain(BaseTest):
             assert np.all((self.x + self.a - [5, 8]).value >= -1e-3)
 
             # Optimize over x.
-            expr = cvxpy.partial_optimize(orig_prob, opt_vars=[self.x])
+            expr = partial_optimize(orig_prob, opt_vars=[self.x])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
@@ -69,7 +70,7 @@ class TestDomain(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Optimize over x and a.
-            expr = cvxpy.partial_optimize(orig_prob, opt_vars=[self.x, self.a])
+            expr = partial_optimize(orig_prob, opt_vars=[self.x, self.a])
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
