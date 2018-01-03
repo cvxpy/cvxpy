@@ -319,14 +319,14 @@ class GUROBI(Solver):
         """
         import gurobipy
         constr = []
-        expr_list = {}
+        expr_list = {i:[] for i in rows}
         for k,c in mat.iteritems():
             i,j = k
             v = variables[j]
             try:
                 expr_list[i].append((c,v))
             except:
-                expr_list[i] = [(c,v)]
+                pass
         for i in rows:
             # Ignore empty constraints.
             if expr_list[i]:
@@ -365,14 +365,14 @@ class GUROBI(Solver):
         # Assume first expression (i.e. t) is nonzero.
         lin_expr_list = []
         soc_vars = []
-        expr_list = {}
+        expr_list = {i:[] for i in rows}
         for k,c in mat.iteritems():
             i,j = k
             v = variables[j]
             try:
                 expr_list[i].append((c,v))
             except:
-                expr_list[i] = [(c,v)]
+                pass
         for i in rows:
             lin_expr_list.append(vec[i] - gurobipy.LinExpr(expr_list[i]))
 
