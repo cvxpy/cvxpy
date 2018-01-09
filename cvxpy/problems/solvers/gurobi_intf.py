@@ -363,8 +363,6 @@ class GUROBI(Solver):
         """
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
-        lin_expr_list = []
-        soc_vars = []
         expr_list = {i:[] for i in rows}
         for k,c in mat.iteritems():
             i,j = k
@@ -373,8 +371,7 @@ class GUROBI(Solver):
                 expr_list[i].append((c,v))
             except:
                 pass
-        for i in rows:
-            lin_expr_list.append(vec[i] - gurobipy.LinExpr(expr_list[i]))
+        lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
 
         # Make a variable and equality constraint for each term.
         soc_vars = [
