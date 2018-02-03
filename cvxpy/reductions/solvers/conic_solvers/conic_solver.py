@@ -176,12 +176,21 @@ class ConicSolver(Solver):
         return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsr()
 
     def format_constr(self, problem, constr, exp_cone_order):
-        """Return the coefficient and offset for the constraint in ECOS format.
+        """
+        Return the coefficient "A" and offset "b" for the constraint in the following formats:
+            Linear equations: (A, b) such that A * x == b,
+            Linear inequalities: (A, b) such that A * x <= b,
+            Second order cone: (A, b) such that A * x <=_{SOC} b,
+            Exponential cone: (A, b) such that A * x <=_{EXP} b,
+            Semidefinite cone: NOT IMPLEMENTED.
 
-        TODO(akshayka): This function should not be written for ECOS in
-        particular, and the documentation should not mention ECOS either.
+        The CVXPY standard for the exponential cone is:
+            K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
+        Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
 
-        TODO(akshayka): What is exp_cone_order? This should be documented.
+        The CVXPY standard for the second order cone is:
+            SOC(n) = { x : x[0] >= norm(x[1:n], 2)  }.
+        All currently supported solvers use this convention.
 
         Args:
           problem : Problem
