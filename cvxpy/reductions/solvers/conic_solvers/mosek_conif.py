@@ -214,7 +214,7 @@ class MOSEK(ConicSolver):
         exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
         if len(exp_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, exp_constr, MOSEK.EXP_CONE_ORDER)  # A * x <=_{EXP} b.
-            data[s.DIMS][s.EXP_DIM] = len(lengths)
+            data[s.DIMS][s.EXP_DIM] = lengths
             inv_data['snx_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
             As.append(A)
             bs.append(b)
@@ -279,7 +279,7 @@ class MOSEK(ConicSolver):
                 dims = data[s.DIMS]
                 c = data[s.C]
                 n0 = len(c)
-                n = n0 + sum(dims[s.SOC_DIM]) + 3 * dims[s.EXP_DIM]
+                n = n0 + sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
                 psd_total_dims = sum([el ** 2 for el in dims[s.PSD_DIM]])
                 m = len(h)
                 num_bool = len(data[s.BOOL_IDX])
@@ -305,7 +305,7 @@ class MOSEK(ConicSolver):
                                     0.0,  # unused
                                     np.arange(running_idx, running_idx + size_cone))
                     running_idx += size_cone
-                for k in range(dims[s.EXP_DIM]):
+                for k in range(sum(dims[s.EXP_DIM]) // 3):
                     task.appendcone(mosek.conetype.pexp,
                                     0.0,  # unused
                                     np.arange(running_idx, running_idx + 3))
@@ -336,7 +336,7 @@ class MOSEK(ConicSolver):
                 task.appendcons(m)
                 row, col, vals = sp.sparse.find(G)
                 task.putaijlist(row.tolist(), col.tolist(), vals.tolist())
-                total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + 3 * dims[s.EXP_DIM]
+                total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
                 if total_soc_exp_slacks > 0:
                     i = dims[s.LEQ_DIM] + dims[s.EQ_DIM]  # constraint index in {0, ..., m - 1}
                     j = len(c)  # index of the first slack variable in the block vector "x".
