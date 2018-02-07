@@ -6,6 +6,21 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 import numpy as np
 import scipy.sparse as spa
 
+"""
+Maybe there should not be a separate QP interface, and instead rely on the conic interface.
+
+Yes, MOSEK has a special API for it's QP functionality, but the documentation contains the following statement:
+
+'Any convex quadratic optimization problem can be reformulated as a conic quadratic optimization prob-
+lem, see [MOSEKApS12] and in particular [And13] . In fact MOSEK does such conversion internally
+as a part of the solution process ...
+However, instead of relying on the automatic reformulation we recommend to formulate the problem as
+a conic problem from scratch.'
+
+If there is a specific reason for keeping this file in spite of MOSEK's official recommendation, then this file
+should contain some explanation for that decision.
+"""
+
 
 class MOSEK(QpSolver):
     """QP interface for the Mosek solver"""
