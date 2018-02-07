@@ -152,26 +152,26 @@ class TestSCS(BaseTest):
             p.solve(solver=SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
-    def test_consistency(self):
-        """Test case for non-deterministic behavior in SCS.
-        """
-        import cvxpy
+    # def test_consistency(self):
+    #     """Test case for non-deterministic behavior in SCS.
+    #     """
+    #     import cvxpy
 
-        xs = [0, 1, 2, 3]
-        ys = [51, 60, 70, 75]
+    #     xs = [0, 1, 2, 3]
+    #     ys = [51, 60, 70, 75]
 
-        eta1 = cvxpy.Variable()
-        eta2 = cvxpy.Variable()
-        eta3 = cvxpy.Variable()
-        theta1s = [eta1 + eta3*x for x in xs]
-        lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
-        g_parts = [-cvxpy.quad_over_lin(theta1, -4*eta2) + 0.5 * cvxpy.log(-2 * eta2)
-                   for theta1 in theta1s]
-        objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
-        problem = cvxpy.Problem(cvxpy.Maximize(objective))
-        problem.solve(verbose=True, solver=cvxpy.SCS, max_iters=5000)
-        assert problem.status in [cvxpy.OPTIMAL_INACCURATE, cvxpy.OPTIMAL]
-        return [eta1.value, eta2.value, eta3.value]
+    #     eta1 = cvxpy.Variable()
+    #     eta2 = cvxpy.Variable()
+    #     eta3 = cvxpy.Variable()
+    #     theta1s = [eta1 + eta3*x for x in xs]
+    #     lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
+    #     g_parts = [-cvxpy.quad_over_lin(theta1, -4*eta2) + 0.5 * cvxpy.log(-2 * eta2)
+    #                for theta1 in theta1s]
+    #     objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
+    #     problem = cvxpy.Problem(cvxpy.Maximize(objective))
+    #     problem.solve(verbose=True, solver=cvxpy.SCS, max_iters=5000)
+    #     assert problem.status in [cvxpy.OPTIMAL_INACCURATE, cvxpy.OPTIMAL]
+    #     return [eta1.value, eta2.value, eta3.value]
 
     def test_warm_start(self):
         """Test warm starting.
