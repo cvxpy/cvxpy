@@ -21,7 +21,7 @@ import numpy
 import scipy.sparse as sp
 from scipy.linalg import lstsq
 
-from cvxpy import Minimize, Problem, Parameter
+from cvxpy import Minimize, Problem, Parameter, Maximize
 from cvxpy.atoms import (QuadForm, abs, power,
                          quad_over_lin, sum, sum_squares,
                          norm,
@@ -78,6 +78,7 @@ class TestQp(BaseTest):
             self.square_affine(solver)
             self.quad_form(solver)
             self.affine_problem(solver)
+            self.maximize_problem(solver)
 
             # Do we need the following functionality?
             # self.norm_2(solver)
@@ -147,6 +148,16 @@ class TestQp(BaseTest):
         b = numpy.random.randn(5)
         b = numpy.maximum(b, 0)
         p = Problem(Minimize(sum(self.x)), [self.x >= 0, A*self.x <= b])
+        s = self.solve_QP(p, solver)
+        for var in p.variables():
+            self.assertItemsAlmostEqual([0., 0.], var.value, places=4)
+
+    def maximize_problem(self, solver):
+        A = numpy.random.randn(5, 2)
+        A = numpy.maximum(A, 0)
+        b = numpy.random.randn(5)
+        b = numpy.maximum(b, 0)
+        p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A*self.x <= b])
         s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=4)

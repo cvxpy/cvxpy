@@ -262,6 +262,7 @@ class GUROBI(Solver):
         results_dict = {}
         try:
             model.optimize()
+            print(model)
             results_dict["primal objective"] = model.ObjVal
             results_dict["x"] = np.array([v.X for v in variables])
 
@@ -282,7 +283,7 @@ class GUROBI(Solver):
 
             results_dict["status"] = self.STATUS_MAP.get(model.Status,
                                                          s.SOLVER_ERROR)
-        except gurobipy.GurobiError:
+        except Exception:
             results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model
@@ -324,7 +325,7 @@ class GUROBI(Solver):
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except IndexError:
+            except Exception:
                 pass
         for i in rows:
             # Ignore empty constraints.
@@ -366,7 +367,7 @@ class GUROBI(Solver):
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except IndexError:
+            except Exception:
                 pass
         lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
 
