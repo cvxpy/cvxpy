@@ -30,7 +30,7 @@ class MOSEK(ConicSolver):
     """
 
     # Solver capabilities.
-    MIP_CAPABLE = True
+    MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
 
     # Map of Mosek status to CVXPY status.

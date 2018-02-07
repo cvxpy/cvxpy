@@ -128,6 +128,8 @@ class GUROBI(Solver):
         A = dok_matrix(data[s.A])
         # Save the dok_matrix.
         data[s.A] = A
+        data[s.BOOL_IDX] = solver_opts[s.BOOL_IDX]
+        data[s.INT_IDX] = solver_opts[s.INT_IDX]
 
         n = c.shape[0]
 
