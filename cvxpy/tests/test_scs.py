@@ -153,7 +153,7 @@ class TestSCS(BaseTest):
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_consistency(self):
-        """Test case for non-deterministic behavior in cvxopt.
+        """Test case for non-deterministic behavior in SCS.
         """
         import cvxpy
 
@@ -169,7 +169,7 @@ class TestSCS(BaseTest):
                    for theta1 in theta1s]
         objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
         problem = cvxpy.Problem(cvxpy.Maximize(objective))
-        problem.solve(verbose=True, solver=cvxpy.SCS)
+        problem.solve(verbose=True, solver=cvxpy.SCS, max_iters=5000)
         assert problem.status in [cvxpy.OPTIMAL_INACCURATE, cvxpy.OPTIMAL]
         return [eta1.value, eta2.value, eta3.value]
 
