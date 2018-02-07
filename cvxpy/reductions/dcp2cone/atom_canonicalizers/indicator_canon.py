@@ -21,4 +21,4 @@ from cvxpy.expressions.constants import Constant
 
 
 def indicator_canon(expr, args):
-    return 0, []
+    return 0, args
