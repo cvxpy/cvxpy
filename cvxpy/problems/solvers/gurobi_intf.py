@@ -319,19 +319,17 @@ class GUROBI(Solver):
         """
         import gurobipy
         constr = []
-        expr_list = {i:[] for i in rows}
-        for k,c in mat.iteritems():
-            i,j = k
+        expr_list = {i: [] for i in rows}
+        for (i, j), c in mat.iteritems():
             v = variables[j]
             try:
-                expr_list[i].append((c,v))
+                expr_list[i].append((c, v))
             except:
                 pass
         for i in rows:
             # Ignore empty constraints.
             if expr_list[i]:
                 expr = gurobipy.LinExpr(expr_list[i])
-                
                 constr.append(
                     model.addConstr(expr, ctype, vec[i])
                 )
@@ -363,12 +361,11 @@ class GUROBI(Solver):
         """
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
-        expr_list = {i:[] for i in rows}
-        for k,c in mat.iteritems():
-            i,j = k
+        expr_list = {i: [] for i in rows}
+        for (i, j), c in mat.iteritems():
             v = variables[j]
             try:
-                expr_list[i].append((c,v))
+                expr_list[i].append((c, v))
             except:
                 pass
         lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
