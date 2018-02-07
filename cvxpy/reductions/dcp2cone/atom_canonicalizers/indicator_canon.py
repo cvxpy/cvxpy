@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.expressions.constants import Constant
-
 
 def indicator_canon(expr, args):
     return 0, args

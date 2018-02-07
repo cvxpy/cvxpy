@@ -172,7 +172,7 @@ class GUROBI(QpSolver):
         try:
             # Solve
             model.optimize()
-        except:  # Error in the solution
+        except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model

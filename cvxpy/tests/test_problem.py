@@ -1621,7 +1621,7 @@ class TestProblem(BaseTest):
                 x_true = a**(1.0/(p-1))/a.dot(a**(1.0/(p-1)))
 
             x_alg = np.array(x.value).flatten()
-            self.assertTrue(np.allclose(x_alg, x_true, 1e-3), 'p = {}'.format(p))
+            self.assertTrue(np.allclose(x_alg, x_true, 1e-2), 'p = {}'.format(p))
             self.assertTrue(np.allclose(prob.value, np.linalg.norm(x_alg, p)))
             self.assertTrue(np.allclose(np.linalg.norm(x_alg, p), cvx.pnorm(x_alg, p).value))
 
