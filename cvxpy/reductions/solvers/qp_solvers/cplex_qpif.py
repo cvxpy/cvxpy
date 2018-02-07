@@ -169,7 +169,7 @@ class CPLEX(QpSolver):
             model.solve()
             end = model.get_time()
             results_dict["cputime"] = end - start
-        except:  # Error in the solution
+        except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model

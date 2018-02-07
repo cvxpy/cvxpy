@@ -140,8 +140,7 @@ class CvxAttr2Constr(Reduction):
                     value = np.zeros(var.shape)
                     idxs = np.triu_indices(n)
                     value[idxs] = solution.primal_vars[new_var.id].flatten()
-                    idxs = np.tril_indices(n)
-                    value[idxs] = solution.primal_vars[new_var.id].flatten()
+                    value += value.T - np.diag(value.diagonal())
                     pvars[id] = value
                 else:
                     pvars[id] = var.project(solution.primal_vars[new_var.id])

@@ -22,7 +22,7 @@ import cvxpy.settings as s
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
-from cvxpy.constraints import SOC, PSD, ExpCone, BoolConstr, IntConstr
+from cvxpy.constraints import SOC, PSD, ExpCone
 from toolz.itertoolz import unique
 from collections import OrderedDict
 import numpy as np
@@ -98,10 +98,6 @@ class SymData(object):
                 constr_map[s.PSD].append(c)
             elif isinstance(c, ExpCone):
                 constr_map[s.EXP].append(c)
-            elif isinstance(c, BoolConstr):
-                constr_map[s.BOOL].append(c)
-            elif isinstance(c, IntConstr):
-                constr_map[s.INT].append(c)
         return constr_map
 
     @staticmethod
@@ -177,8 +173,6 @@ class SymData(object):
         dims[s.SOC_DIM] = []
         dims[s.PSD_DIM] = []
         dims[s.EXP_DIM] = 0
-        dims[s.BOOL_IDS] = []
-        dims[s.INT_IDS] = []
         # Formats nonlinear constraints for the solver.
         for constr_type in constr_map.keys():
             if constr_type not in [s.EQ, s.LEQ]:

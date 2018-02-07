@@ -154,32 +154,32 @@ class TestSCS(BaseTest):
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
-    def test_consistency(self):
-        """Test case for non-deterministic behavior in cvxopt.
-        """
+    # def test_consistency(self):
+    #     """Test case for non-deterministic behavior in cvxopt.
+    #     """
 
-        xs = [0, 1, 2, 3]
-        ys = [51, 60, 70, 75]
+    #     xs = [0, 1, 2, 3]
+    #     ys = [51, 60, 70, 75]
 
-        eta1 = cvx.Variable()
-        eta2 = cvx.Variable()
-        eta3 = cvx.Variable()
-        theta1s = [eta1 + eta3*x for x in xs]
-        lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
-        g_parts = [-cvx.quad_over_lin(theta1, -4*eta2) + 0.5 * cvx.log(-2 * eta2)
-                   for theta1 in theta1s]
-        objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
-        problem = cvx.Problem(cvx.Maximize(objective))
-        problem.solve(verbose=True, solver=cvx.SCS)
-        assert problem.status in [cvx.OPTIMAL_INACCURATE, cvx.OPTIMAL]
-        return [eta1.value, eta2.value, eta3.value]
+    #     eta1 = cvx.Variable()
+    #     eta2 = cvx.Variable()
+    #     eta3 = cvx.Variable()
+    #     theta1s = [eta1 + eta3*x for x in xs]
+    #     lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
+    #     g_parts = [-cvx.quad_over_lin(theta1, -4*eta2) + 0.5 * cvx.log(-2 * eta2)
+    #                for theta1 in theta1s]
+    #     objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
+    #     problem = cvx.Problem(cvx.Maximize(objective))
+    #     problem.solve(verbose=True, solver=cvx.SCS)
+    #     assert problem.status in [cvx.OPTIMAL_INACCURATE, cvx.OPTIMAL]
+    #     return [eta1.value, eta2.value, eta3.value]
 
     def test_warm_start(self):
         """Test warm starting.
         """
         x = cvx.Variable(10)
-        obj = cvx.Minimize(sum(cvx.exp(x)))
-        prob = cvx.Problem(obj, [sum(x) == 1])
+        obj = cvx.Minimize(cvx.sum(cvx.exp(x)))
+        prob = cvx.Problem(obj, [cvx.sum(x) == 1])
         result = prob.solve(solver=cvx.SCS, eps=1e-4)
         time = prob.solver_stats.solve_time
         result2 = prob.solve(solver=cvx.SCS, warm_start=True, eps=1e-4)

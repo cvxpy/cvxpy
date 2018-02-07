@@ -445,7 +445,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(cvx.Maximize(x + y), prob.constraints)
         print("optimal value", prob.solve())
 
-        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertAlmostEqual(prob.value, 1.0, places=3)
 
         # Replace the constraint (x + y == 1).
         constraints = prob.constraints
@@ -453,7 +453,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(prob.objective, constraints)
         print("optimal value", prob.solve())
 
-        self.assertAlmostEqual(prob.value, 3.0)
+        self.assertAlmostEqual(prob.value, 3.0, places=2)
 
         ########################################
 

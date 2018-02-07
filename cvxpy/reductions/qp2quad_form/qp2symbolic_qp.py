@@ -37,8 +37,9 @@ class Qp2SymbolicQp(Canonicalization):
         piecewise-linear constraints inequality constraints, and
         affine equality constraints are accepted.
         """
-        return (type(problem.objective) == Minimize
-                and problem.objective.expr.is_qpwa()
+        return (((type(problem.objective) == Minimize
+                  and problem.objective.expr.is_qpwa())
+                 or problem.objective.expr.is_affine())
                 and not set(['PSD', 'NSD']).intersection(convex_attributes(
                                                          problem.variables()))
                 and all(type(c) == NonPos or type(c) == Zero

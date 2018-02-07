@@ -153,11 +153,6 @@ class Solver(object):
         data[s.G], data[s.H] = matrix_data.get_ineq_constr()
         data[s.F] = matrix_data.get_nonlin_constr()
         data[s.DIMS] = sym_data.dims.copy()
-        bool_idx, int_idx = self._noncvx_id_to_idx(data[s.DIMS],
-                                                   sym_data.var_offsets,
-                                                   sym_data.var_shapes)
-        data[s.BOOL_IDX] = bool_idx
-        data[s.INT_IDX] = int_idx
         return data
 
     def nonlin_constr(self):
@@ -217,34 +212,3 @@ class Solver(object):
         """Is the problem a mixed integer program?
         """
         return len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0
-
-    @staticmethod
-    def _noncvx_id_to_idx(dims, var_offsets, var_shapes):
-        """Converts the nonconvex constraint variable ids in dims into indices.
-
-        Parameters
-        ----------
-        dims : dict
-            The dimensions of the cones.
-        var_offsets : dict
-            A dict of variable id to horizontal offset.
-        var_shapes : dict
-            A dict of variable id to variable dimensions.
-
-        Returns
-        -------
-        tuple
-            A list of indices for the boolean variables and integer variables.
-        """
-        bool_idx = []
-        int_idx = []
-        for indices, constr_type in zip([bool_idx, int_idx],
-                                        [s.BOOL_IDS, s.INT_IDS]):
-            for var_id in dims[constr_type]:
-                offset = var_offsets[var_id]
-                shape = var_shapes[var_id]
-                for i in range(shape[0]*shape[1]):
-                    indices.append(offset + i)
-            del dims[constr_type]
-
-        return bool_idx, int_idx

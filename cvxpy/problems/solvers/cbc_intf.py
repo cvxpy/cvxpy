@@ -133,6 +133,8 @@ class CBC(Solver):
         b = data[s.B]
         A = data[s.A]
         dims = data[s.DIMS]
+        data[s.BOOL_IDX] = solver_opts[s.BOOL_IDX]
+        data[s.INT_IDX] = solver_opts[s.INT_IDX]
 
         n = c.shape[0]
 
