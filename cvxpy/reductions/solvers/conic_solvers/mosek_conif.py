@@ -188,7 +188,7 @@ class MOSEK(ConicSolver):
         if len(leq_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, leq_constr)  # A, b : A * x <= b
             inv_data['suc_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.LEQ_DIM] = sum(lengths)
+            data[s.DIMS][s.LEQ_DIM] = np.sum(lengths)
             As.append(A)
             bs.append(b)
 
@@ -197,7 +197,7 @@ class MOSEK(ConicSolver):
         if len(eq_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, eq_constr)  # A, b : A * x == b.
             inv_data['y_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.EQ_DIM] = sum(lengths)
+            data[s.DIMS][s.EQ_DIM] = np.sum(lengths)
             As.append(A)
             bs.append(b)
 
@@ -279,8 +279,8 @@ class MOSEK(ConicSolver):
                 dims = data[s.DIMS]
                 c = data[s.C]
                 n0 = len(c)
-                n = n0 + sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
-                psd_total_dims = sum([el ** 2 for el in dims[s.PSD_DIM]])
+                n = n0 + np.sum(dims[s.SOC_DIM]) + np.sum(dims[s.EXP_DIM])
+                psd_total_dims = np.sum([el ** 2 for el in dims[s.PSD_DIM]])
                 m = len(h)
                 num_bool = len(data[s.BOOL_IDX])
                 num_int = len(data[s.INT_IDX])
@@ -305,7 +305,7 @@ class MOSEK(ConicSolver):
                                     0.0,  # unused
                                     np.arange(running_idx, running_idx + size_cone))
                     running_idx += size_cone
-                for k in range(sum(dims[s.EXP_DIM]) // 3):
+                for k in range(np.sum(dims[s.EXP_DIM]) // 3):
                     task.appendcone(mosek.conetype.pexp,
                                     0.0,  # unused
                                     np.arange(running_idx, running_idx + 3))
@@ -336,7 +336,7 @@ class MOSEK(ConicSolver):
                 task.appendcons(m)
                 row, col, vals = sp.sparse.find(G)
                 task.putaijlist(row.tolist(), col.tolist(), vals.tolist())
-                total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
+                total_soc_exp_slacks = np.sum(dims[s.SOC_DIM]) + np.sum(dims[s.EXP_DIM])
                 if total_soc_exp_slacks > 0:
                     i = dims[s.LEQ_DIM] + dims[s.EQ_DIM]  # constraint index in {0, ..., m - 1}
                     j = len(c)  # index of the first slack variable in the block vector "x".
@@ -404,7 +404,7 @@ class MOSEK(ConicSolver):
                       mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
                       mosek.solsta.unknown: s.SOLVER_ERROR}
 
-        task.getprosta(sol)  # mosek "problem status"; unused.
+        task.getprosta(sol) # mosek "problem status"; unused.
         solution_status = task.getsolsta(sol)
 
         status = STATUS_MAP[solution_status]
