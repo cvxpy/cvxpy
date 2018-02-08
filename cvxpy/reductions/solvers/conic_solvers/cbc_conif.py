@@ -83,8 +83,8 @@ class CBC(ConicSolver):
         data["objective"] = objective
         data["constraints"] = constraints
         variables = problem.variables()[0]
-        data[s.BOOL_IDX] = [t[0] for t in variables.boolean_idx]
-        data[s.INT_IDX] = [t[0] for t in variables.integer_idx]
+        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
 
         # Order and group constraints.
         inv_data = {self.VAR_ID: problem.variables()[0].id}

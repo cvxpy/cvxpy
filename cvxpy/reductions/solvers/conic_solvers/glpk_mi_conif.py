@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cvxpy.settings as s
-from cvxpy.reductions.solvers.conic_solvers import CVXOPT
+from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.problems.problem_data.problem_data import ProblemData
 from cvxpy.reductions.solution import Solution
 import numpy as np
@@ -26,7 +26,7 @@ import numpy as np
 from .conic_solver import ConicSolver
 
 
-class GLPK_MI(CVXOPT):
+class GLPK_MI(GLPK):
     """An interface for the GLPK MI solver.
     """
 
@@ -39,48 +39,8 @@ class GLPK_MI(CVXOPT):
         """
         return s.GLPK_MI
 
-    def import_solver(self):
-        """Imports the solver.
-        """
-        from cvxopt import glpk
-        glpk  # For flake8
-
-    def accepts(self, problem):
-        """Can CVXOPT solve the problem?
-        """
-        # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
-            return False
-        for constr in problem.constraints:
-            if type(constr) not in GLPK_MI.SUPPORTED_CONSTRAINTS:
-                return False
-            for arg in constr.args:
-                if not arg.is_affine():
-                    return False
-        return True
-
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        status = solution['status']
-
-        if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-        else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-        dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
-
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        from cvxpy.problems.solvers.glpk_mi_intf import GLPK as GLPK_OLD
+        from cvxpy.problems.solvers.glpk_mi_intf import GLPK_MI as GLPK_OLD
         solver = GLPK_OLD()
         solver_opts[s.BOOL_IDX] = data[s.BOOL_IDX]
         solver_opts[s.INT_IDX] = data[s.INT_IDX]

@@ -81,7 +81,7 @@ class TestSolvers(BaseTest):
         """Test a basic MILP with CBC. (from test_solver.py::test_cvxopt_glpk_mi)
         """
         # Either the problem is solved or CBC is not installed.
-        if CBC in installed_solvers():
+        if True or CBC in installed_solvers():
             bool_var = Variable(boolean=True)
             int_var = Variable(integer=True)
             prob = Problem(Minimize(norm(self.x, 1)),

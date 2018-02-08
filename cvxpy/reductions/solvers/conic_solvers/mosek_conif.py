@@ -197,7 +197,7 @@ class MOSEK(ConicSolver):
         if len(leq_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, leq_constr)  # A, b : A * x <= b
             inv_data['suc_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.LEQ_DIM] = np.sum(lengths)
+            data[s.DIMS][s.LEQ_DIM] = sum(lengths)
             As.append(A)
             bs.append(b)
 
@@ -206,7 +206,7 @@ class MOSEK(ConicSolver):
         if len(eq_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, eq_constr)  # A, b : A * x == b.
             inv_data['y_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.EQ_DIM] = np.sum(lengths)
+            data[s.DIMS][s.EQ_DIM] = sum(lengths)
             As.append(A)
             bs.append(b)
 
