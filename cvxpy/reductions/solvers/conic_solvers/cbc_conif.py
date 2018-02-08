@@ -93,37 +93,6 @@ class CBC(ConicSolver):
         inv_data['is_mip'] = len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0
         return data, inv_data
 
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data.
-        """
-        status = solution['status']
-
-        primal_vars = None
-        dual_vars = None
-        if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-            if not inverse_data['is_mip']:
-                eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[Solver.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[Solver.NEQ_CONSTR])
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
-        else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
-
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.cbc_intf import CBC as CBC_OLD
         solver = CBC_OLD()
