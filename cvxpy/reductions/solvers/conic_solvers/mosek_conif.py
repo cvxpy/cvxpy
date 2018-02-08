@@ -212,10 +212,10 @@ class MOSEK(ConicSolver):
 
         # Second order cone
         soc_constr = [ci for ci in problem.constraints if type(ci) == SOC]
+        data[s.DIMS][s.SOC_DIM] = [dim for ci in soc_constr for dim in ci.cone_sizes()]
         if len(soc_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, soc_constr)  # A * x <=_{soc} b.
             inv_data['snx_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.SOC_DIM] = lengths
             As.append(A)
             bs.append(b)
 
