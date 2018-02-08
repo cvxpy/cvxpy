@@ -82,8 +82,8 @@ class TestSolvers(BaseTest):
         """
         # Either the problem is solved or CBC is not installed.
         if CBC in installed_solvers():
-            bool_var = Bool()
-            int_var = Int()
+            bool_var = Variable(boolean=True)
+            int_var = Variable(integer=True)
             prob = Problem(Minimize(norm(self.x, 1)),
                            [self.x == bool_var, bool_var == 0])
             prob.solve(solver=CBC, verbose=False)

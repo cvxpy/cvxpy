@@ -23,8 +23,8 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.defines \
     import INSTALLED_SOLVERS
 
-MIP_SOLVERS = [s.ECOS_BB, s.CBC,
-               s.GUROBI, s.MOSEK, s.CPLEX]
+MIP_SOLVERS = [cvx.ECOS_BB, cvx.CBC,
+               cvx.GUROBI, cvx.MOSEK]
 
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
