@@ -1,20 +1,17 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2017 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy.interface as intf
@@ -32,7 +29,7 @@ class GUROBI(Solver):
     # Solver capabilities.
     LP_CAPABLE = True
     SOCP_CAPABLE = True
-    PSD_CAPABLE = False
+    SDP_CAPABLE = False
     EXP_CAPABLE = False
     MIP_CAPABLE = True
 
@@ -131,6 +128,8 @@ class GUROBI(Solver):
         A = dok_matrix(data[s.A])
         # Save the dok_matrix.
         data[s.A] = A
+        data[s.BOOL_IDX] = solver_opts[s.BOOL_IDX]
+        data[s.INT_IDX] = solver_opts[s.INT_IDX]
 
         n = c.shape[0]
 
@@ -170,12 +169,12 @@ class GUROBI(Solver):
 
                 # Figure out which rows of A and elements of b have changed
                 try:
-                    I, _ = zip(*[x for x in A_diff.keys()])
+                    idxs, _ = zip(*[x for x in A_diff.keys()])
                 except ValueError:
-                    I = []
-                I_unique = list(set(I) | set(np.where(b_diff)[0]))
+                    idxs = []
+                I_unique = list(set(idxs) | set(np.where(b_diff)[0]))
 
-                nonzero_locs = gurobipy.tuplelist([x for x in A.keys()])
+                nonzero_locs = gurobipy.tuplelist(A.keys())
 
                 # Update locations which have changed
                 for i in I_unique:
@@ -186,7 +185,7 @@ class GUROBI(Solver):
                         gur_constrs[i] = None
 
                     # Add new constraint
-                    if len(nonzero_locs.select(i, "*")) > 0:
+                    if nonzero_locs.select(i, "*"):
                         expr_list = []
                         for loc in nonzero_locs.select(i, "*"):
                             expr_list.append((A[loc], variables[loc[1]]))
@@ -226,17 +225,16 @@ class GUROBI(Solver):
                 )
             model.update()
 
-            nonzero_locs = gurobipy.tuplelist([x for x in A.keys()])
             eq_constrs = self.add_model_lin_constr(model, variables,
                                                    range(data[s.DIMS][s.EQ_DIM]),
                                                    gurobipy.GRB.EQUAL,
-                                                   nonzero_locs, A, b)
+                                                   A, b)
             leq_start = data[s.DIMS][s.EQ_DIM]
             leq_end = data[s.DIMS][s.EQ_DIM] + data[s.DIMS][s.LEQ_DIM]
             ineq_constrs = self.add_model_lin_constr(model, variables,
                                                      range(leq_start, leq_end),
                                                      gurobipy.GRB.LESS_EQUAL,
-                                                     nonzero_locs, A, b)
+                                                     A, b)
             soc_start = leq_end
             soc_constrs = []
             new_leq_constrs = []
@@ -244,7 +242,7 @@ class GUROBI(Solver):
                 soc_end = soc_start + constr_len
                 soc_constr, new_leq, new_vars = self.add_model_soc_constr(
                     model, variables, range(soc_start, soc_end),
-                    nonzero_locs, A, b
+                    A, b
                 )
                 soc_constrs.append(soc_constr)
                 new_leq_constrs += new_leq
@@ -266,6 +264,7 @@ class GUROBI(Solver):
         results_dict = {}
         try:
             model.optimize()
+            print(model)
             results_dict["primal objective"] = model.ObjVal
             results_dict["x"] = np.array([v.X for v in variables])
 
@@ -286,18 +285,19 @@ class GUROBI(Solver):
 
             results_dict["status"] = self.STATUS_MAP.get(model.Status,
                                                          s.SOLVER_ERROR)
-        except:
+        except Exception:
             results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
+        results_dict[s.SOLVE_TIME] = model.Runtime
 
         return self.format_results(results_dict, data, cached_data)
 
     def add_model_lin_constr(self, model, variables,
                              rows, ctype,
-                             nonzero_locs, mat, vec):
+                             mat, vec):
         """Adds EQ/LEQ constraints to the model using the data from mat and vec.
 
         Parameters
@@ -310,8 +310,6 @@ class GUROBI(Solver):
             The rows to be constrained.
         ctype : GUROBI constraint type
             The type of constraint.
-        nonzero_locs : GUROBI tuplelist
-            A list of all the nonzero locations.
         mat : SciPy COO matrix
             The matrix representing the constraints.
         vec : NDArray
@@ -324,14 +322,17 @@ class GUROBI(Solver):
         """
         import gurobipy
         constr = []
+        expr_list = {i: [] for i in rows}
+        for (i, j), c in mat.iteritems():
+            v = variables[j]
+            try:
+                expr_list[i].append((c, v))
+            except Exception:
+                pass
         for i in rows:
-            expr_list = []
-            for loc in nonzero_locs.select(i, "*"):
-                expr_list.append((mat[loc], variables[loc[1]]))
             # Ignore empty constraints.
-            if len(expr_list) > 0:
-                expr = gurobipy.LinExpr(expr_list)
-
+            if expr_list[i]:
+                expr = gurobipy.LinExpr(expr_list[i])
                 constr.append(
                     model.addConstr(expr, ctype, vec[i])
                 )
@@ -340,7 +341,7 @@ class GUROBI(Solver):
         return constr
 
     def add_model_soc_constr(self, model, variables,
-                             rows, nonzero_locs, mat, vec):
+                             rows, mat, vec):
         """Adds SOC constraint to the model using the data from mat and vec.
 
         Parameters
@@ -351,8 +352,6 @@ class GUROBI(Solver):
             The problem variables.
         rows : range
             The rows to be constrained.
-        nonzero_locs : GUROBI tuplelist
-            A list of all the nonzero locations.
         mat : SciPy COO matrix
             The matrix representing the constraints.
         vec : NDArray
@@ -365,14 +364,14 @@ class GUROBI(Solver):
         """
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
-        lin_expr_list = []
-        soc_vars = []
-        for i in rows:
-            expr_list = []
-            for loc in nonzero_locs.select(i, "*"):
-                expr_list.append((mat[loc], variables[loc[1]]))
-            # Ignore empty constraints.
-            lin_expr_list.append(vec[i] - gurobipy.LinExpr(expr_list))
+        expr_list = {i: [] for i in rows}
+        for (i, j), c in mat.iteritems():
+            v = variables[j]
+            try:
+                expr_list[i].append((c, v))
+            except Exception:
+                pass
+        lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
 
         # Make a variable and equality constraint for each term.
         soc_vars = [
@@ -436,6 +435,7 @@ class GUROBI(Solver):
             }
         new_results = {}
         new_results[s.STATUS] = results_dict['status']
+        new_results[s.SOLVE_TIME] = results_dict[s.SOLVE_TIME]
         if new_results[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]

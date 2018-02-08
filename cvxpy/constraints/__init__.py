@@ -17,10 +17,8 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.constraints.bool_constr import BoolConstr
 from cvxpy.constraints.zero import Zero
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.int_constr import IntConstr
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC

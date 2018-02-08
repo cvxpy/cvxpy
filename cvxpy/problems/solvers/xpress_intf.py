@@ -185,6 +185,8 @@ class XPRESS(Solver):
         # linear constraints
         b = data[s.B][:nrows]  # right-hand side
         A = data[s.A][:nrows]  # coefficient matrix
+        data[s.BOOL_IDX] = solver_opts[s.BOOL_IDX]
+        data[s.INT_IDX] = solver_opts[s.INT_IDX]
 
         n = c.shape[0]  # number of variables
 

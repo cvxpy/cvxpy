@@ -80,6 +80,9 @@ class CVXOPT(ConicSolver):
         data["constraints"] = constraints
         data[ConicSolver.DIMS] = ConeDims(
             group_constraints(problem.constraints))
+        variables = problem.variables()[0]
+        data[s.BOOL_IDX] = [t[0] for t in variables.boolean_idx]
+        data[s.INT_IDX] = [t[0] for t in variables.integer_idx]
 
         inv_data = {self.VAR_ID: problem.variables()[0].id}
 

@@ -74,8 +74,7 @@ CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SCS,
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.MOSEK,
-              s.CPLEX
-              ]
+              s.CPLEX]
 
 
 def installed_solvers():

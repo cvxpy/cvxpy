@@ -31,7 +31,8 @@ def vectorized_lower_tri_to_mat(v, dim):
     """
     :param v: a list of length (dim * (dim + 1) / 2)
     :param dim: the number of rows (equivalently, columns) in the output array.
-    :return: Return the symmetric 2D array defined by taking "v" to specify its lower triangular entries.
+    :return: Return the symmetric 2D array defined by taking "v" to
+      specify its lower triangular entries.
     """
     rows, cols, vals = [], [], []
     running_idx = 0
@@ -48,16 +49,20 @@ def vectorized_lower_tri_to_mat(v, dim):
 
 def psd_coeff_offset(problem, c):
     """
-    Returns an array "A" and vector "b" such that the given constraint is equivalent to "A * x <=_{PSD} b".
+    Returns an array "A" and vector "b" such that the given constraint is
+      equivalent to "A * x <=_{PSD} b".
 
     :param problem: the cvxpy Problem in which "c" arises.
-    :param c: a cvxpy Constraint defining a linear matrix inequality "B + \sum_j A[j] * x[j] >=_{PSD} 0".
-    :return: (A, b) such that "c" holds at "x" iff "A * x <=_{PSD} b" (where the PSD cone is reshaped
-    into a subset of R^N with N = dim ** 2).
+    :param c: a cvxpy Constraint defining a linear matrix inequality
+      "B + \sum_j A[j] * x[j] >=_{PSD} 0".
+    :return: (A, b) such that "c" holds at "x" iff "A * x <=_{PSD} b"
+      (where the PSD cone is reshaped into a subset of R^N with N = dim ** 2).
 
-    Note: It is desirable to change this mosek interface so that PSD constraints are repesented by a vector
-    in R^N with N = (dim * (dim + 1) / 2). This is possible because arguments to a linear matrix inequality
-    are necessarily symmetric. For now we use N = dim ** 2, because it simplifies implementation and only
+    Note: It is desirable to change this mosek interface so that PSD constraints
+    are represented by a vector in R^N with N = (dim * (dim + 1) / 2).
+    This is possible because arguments to a linear matrix inequality
+    are necessarily symmetric. For now we use N = dim ** 2,
+    because it simplifies implementation and only
     makes a modest difference in the size of the problem seen by mosek.
     """
     extractor = CoeffExtractor(InverseData(problem))
@@ -73,8 +78,8 @@ class MOSEK(ConicSolver):
     """
     # Solver capabilities.
     #   Note that "SUPPORTED_CONSTRAINTS" does not include the exponential cone by default.
-    #   CVXPY will check for exponential cone support when "import_solver( ... )" or "accepts( ... )"
-    #   is called.
+    #   CVXPY will check for exponential cone support when "import_solver( ... )"
+    # or "accepts( ... )" is called.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
     EXP_CONE_ORDER = [2, 1, 0]
@@ -89,8 +94,8 @@ class MOSEK(ConicSolver):
 
     Well for whatever reason, NO. After trying all 6 possible values for "EXP_CONE_ORDER",
     the only one that passes our units tests is EXP_CONE_ORDER = [2, 1, 0]. However "hackish",
-    trying all 6 possibilities during development is really not a problem. We recommend doing 
-    the same to add exponential cone support for other solvers.
+    trying all 6 possibilities during development is really not a problem.
+    We recommend doing the same to add exponential cone support for other solvers.
     """
 
     def import_solver(self):
@@ -124,22 +129,26 @@ class MOSEK(ConicSolver):
     def block_format(self, problem, constraints, exp_cone_order=None):
         """
         :param problem: the cvxpy Problem we are preparing for mosek.
-        :param constraints: a list of Constraint objects for which coefficient and offset data ("A", "b" respectively)
-        is needed.
-        :param exp_cone_order: a parameter that is only used when a Constraint object describes membership in the
-         exponential cone.
+        :param constraints: a list of Constraint objects for which coefficient
+          and offset data ("A", "b" respectively) is needed.
+        :param exp_cone_order: a parameter that is only used when a Constraint
+           object describes membership in the exponential cone.
 
-        :return: a large matrix "coeff" and a vector of constants "offset" such that every Constraint in "constraints"
-        holds at x \in R^n iff "coeff * x <=_K offset", where K is a product of cones supported by mosek (the zero
-        cone, the nonnegative orthant, the second order cone, and the exponential cone). The nature of K is inferred
-        later by accessing the data in "lengths" and "ids".
+        :return: a large matrix "coeff" and a vector of constants "offset" such
+          that every Constraint in "constraints" holds at x \in R^n iff
+          "coeff * x <=_K offset", where K is a product of cones supported by mosek
+          (the zero cone, the nonnegative orthant, the second order cone,
+          and the exponential cone). The nature of K is inferred
+          later by accessing the data in "lengths" and "ids".
 
         Notes:
 
-            (1) In practice, this is only called with one type of constraint at a time (i.e. all linear equations, or
-            all exponential cone membership constraints, all linear inequalities, etc...).
+            (1) In practice, this is only called with one type of constraint at a time
+            (i.e. all linear equations, or all exponential cone membership constraints,
+            all linear inequalities, etc...).
 
-            (2) This function cannot be used with linear matrix inequalities. It will throw an error if any Constraint
+            (2) This function cannot be used with linear matrix inequalities.
+            It will throw an error if any Constraint
             c \in constraints defines an LMI.
         """
         if not constraints:
@@ -178,13 +187,13 @@ class MOSEK(ConicSolver):
         data[s.C] = c.ravel()
         inv_data['n0'] = len(data[s.C])
         data[s.OBJ_OFFSET] = constant[0]
-        data[s.DIMS] = {s.SOC_DIM: [], s.EXP_DIM: 0, s.PSD_DIM: [], s.LEQ_DIM: 0, s.EQ_DIM: 0}
+        data[s.DIMS] = {s.SOC_DIM: [], s.EXP_DIM: [], s.PSD_DIM: [], s.LEQ_DIM: 0, s.EQ_DIM: 0}
         inv_data[s.OBJ_OFFSET] = constant[0]
         As = list()
         bs = list()
 
         # Linear inequalities
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
+        leq_constr = [ci for ci in problem.constraints if type(ci) == NonPos]
         if len(leq_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, leq_constr)  # A, b : A * x <= b
             inv_data['suc_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
@@ -193,7 +202,7 @@ class MOSEK(ConicSolver):
             bs.append(b)
 
         # Linear equations
-        eq_constr = [c for c in problem.constraints if type(c) == Zero]
+        eq_constr = [ci for ci in problem.constraints if type(ci) == Zero]
         if len(eq_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, eq_constr)  # A, b : A * x == b.
             inv_data['y_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
@@ -202,7 +211,7 @@ class MOSEK(ConicSolver):
             bs.append(b)
 
         # Second order cone
-        soc_constr = [c for c in problem.constraints if type(c) == SOC]
+        soc_constr = [ci for ci in problem.constraints if type(ci) == SOC]
         if len(soc_constr) > 0:
             A, b, lengths, ids = self.block_format(problem, soc_constr)  # A * x <=_{soc} b.
             inv_data['snx_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
@@ -211,16 +220,18 @@ class MOSEK(ConicSolver):
             bs.append(b)
 
         # Exponential cone
-        exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
+        exp_constr = [ci for ci in problem.constraints if type(ci) == ExpCone]
         if len(exp_constr) > 0:
-            A, b, lengths, ids = self.block_format(problem, exp_constr, MOSEK.EXP_CONE_ORDER)  # A * x <=_{EXP} b.
+            # A * x <=_{EXP} b.
+            A, b, lengths, ids = self.block_format(problem, exp_constr,
+                                                   MOSEK.EXP_CONE_ORDER)
             data[s.DIMS][s.EXP_DIM] = lengths
             inv_data['snx_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
             As.append(A)
             bs.append(b)
 
         # PSD constraints
-        psd_constr = [c for c in problem.constraints if type(c) == PSD]
+        psd_constr = [ci for ci in problem.constraints if type(ci) == PSD]
         if len(psd_constr) > 0:
             data[s.DIMS][s.PSD_DIM] = list()
             for c in psd_constr:
@@ -257,22 +268,30 @@ class MOSEK(ConicSolver):
                     task.set_Stream(mosek.streamtype.log, streamprinter)
                     task.putintparam(mosek.iparam.infeas_report_auto, mosek.onoffkey.on)
 
-                # Check if the cvxpy standard form has zero variables. If so, return a trivial solution.
-                # This is necessary because MOSEK will crash if handed a problem with zero variables.
+                # Check if the cvxpy standard form has zero variables.
+                # If so, return a trivial solution.
+                # This is necessary because MOSEK will crash if handed a problem
+                # with zero variables.
                 if len(data[s.C]) == 0:
                     return {s.STATUS: s.OPTIMAL, s.PRIMAL: [],
                             s.VALUE: data[s.OFFSET], s.EQ_DUAL: [], s.INEQ_DUAL: []}
 
                 # The following lines recover problem parameters, and define helper constants.
                 #
-                #   The problem's constraint set is "G * z <=_K h." The rows in (G, h) are formatted in order of
-                #   (1) linear inequalities, (2) linear equations, (3) soc constraints, (4) exponential cone
-                #   constraints, and (5) vectorized linear matrix inequalities. The parameter "dims" indicates the
-                #   exact dimensions of each of these cones. The problem's objective is "min c.T * z".
+                #   The problem's constraint set is "G * z <=_K h."
+                # The rows in (G, h) are formatted in order of
+                #   (1) linear inequalities, (2) linear equations,
+                # (3) soc constraints, (4) exponential cone
+                #   constraints, and (5) vectorized linear matrix inequalities.
+                # The parameter "dims" indicates the
+                #   exact dimensions of each of these cones.
+                # The problem's objective is "min c.T * z".
                 #
-                #   MOSEK's standard form requires that we replace generalized inequalities with slack variables
-                #   and linear equations. The parameter "n" is the size of the column-vector variable after adding
-                #   slacks for SOC and EXP constraints. To be consistent with MOSEK documentation, subsequent comments
+                #   MOSEK's standard form requires that we replace generalized
+                # inequalities with slack variables and linear equations.
+                # The parameter "n" is the size of the column-vector variable after adding
+                #   slacks for SOC and EXP constraints.
+                # To be consistent with MOSEK documentation, subsequent comments
                 #   refer to this variable as "x".
 
                 G, h = data[s.G], data[s.H]
@@ -287,16 +306,21 @@ class MOSEK(ConicSolver):
 
                 # Define variables, cone constraints, and integrality constraints.
                 #
-                #   From a book-keeping perspective, it is best to think of "x" as a block vector. The first block is
-                #   equal to "z" from "G * z <=_K h", the second block is slacks for SOC constraints, and third block
-                #   is slacks for EXP cone constraints. Once we declare "x" in the MOSEK model, we add the necessary
-                #   cone membership constraints for slack variables. The last step is to add integrality constraints.
+                #   From a book-keeping perspective, it is best to think of "x" as a block vector.
+                # The first block is equal to "z" from "G * z <=_K h",
+                # the second block is slacks for SOC constraints, and third block
+                #   is slacks for EXP cone constraints.
+                # Once we declare "x" in the MOSEK model, we add the necessary
+                #   cone membership constraints for slack variables.
+                # The last step is to add integrality constraints.
                 #
-                #   Note that the API call for PSD variables contains the word "bar". MOSEK documentation consistently
-                #   uses "bar" as a sort of flag, indicating that a function deals with PSD variables.
+                #   Note that the API call for PSD variables contains the word "bar".
+                # MOSEK documentation consistently, uses "bar" as a sort of flag,
+                # indicating that a function deals with PSD variables.
 
                 task.appendvars(n)
-                task.putvarboundlist(np.arange(n, dtype=int), [mosek.boundkey.fr] * n, np.zeros(n), np.zeros(n))
+                task.putvarboundlist(np.arange(n, dtype=int),
+                                     [mosek.boundkey.fr] * n, np.zeros(n), np.zeros(n))
                 if psd_total_dims > 0:
                     task.appendbarvars(dims[s.PSD_DIM])
                 running_idx = n0
@@ -319,18 +343,24 @@ class MOSEK(ConicSolver):
 
                 # Define linear inequality and equality constraints.
                 #
-                #   Mosek will see a total of m linear expressions, which must define linear inequalities and
-                #   equalities. The variable x contributes to these linear expressions by standard matrix-vector
-                #   multiplication; the matrix in question is referred to as "A" in the mosek documentation.
-                #   The PSD variables have a different means of contributing to the linear expressions.
-                #   Specifically, a PSD variable Xj contributes "+tr( \bar{A}_{ij} * Xj )" to the i-th
-                #   linear expression, where \bar{A}_{ij} is specified by a call to putbaraij.
+                #   Mosek will see a total of m linear expressions,
+                #   which must define linear inequalities and
+                #   equalities. The variable x contributes to these linear expressions
+                #   by standard matrix-vector multiplication;
+                #   the matrix in question is referred to as "A" in the mosek documentation.
+                #   The PSD variables have a different means of contributing to the
+                #   linear expressions.
+                #   Specifically, a PSD variable Xj contributes "+tr( \bar{A}_{ij} * Xj )"
+                #   to the i-th linear expression, where \bar{A}_{ij} is specified
+                #   by a call to putbaraij.
                 #
-                #   The following code has three phases. (1) Build the matrix A. (2) Specify the \bar{A}_{ij} for PSD
-                #   variables. (3) Specify the right-hand sides of the m linear (in)equalities seen by mosek.
+                #   The following code has three phases. (1) Build the matrix A.
+                #   (2) Specify the \bar{A}_{ij} for PSD variables.
+                #   (3) Specify the right-hand sides of the m linear (in)equalities seen by mosek.
                 #
-                #   Remark : The parameter G defines the first n0 columns of A. The remaining columns of A
-                #   are for SOC and EXP slack variables. We can actually add all of these slack variables at once
+                #   Remark : The parameter G defines the first n0 columns of A.
+                #   The remaining columns of A are for SOC and EXP slack variables.
+                #   We can actually add all of these slack variables at once
                 #   by specifying a giant identity matrix in the appropriate position.
 
                 task.appendcons(m)
@@ -344,7 +374,8 @@ class MOSEK(ConicSolver):
                     cols = np.arange(j, j + total_soc_exp_slacks).tolist()
                     task.putaijlist(rows, cols, [1] * total_soc_exp_slacks)
 
-                i = dims[s.LEQ_DIM] + dims[s.EQ_DIM] + total_soc_exp_slacks  # constraint index; start of LMIs.
+                # constraint index; start of LMIs.
+                i = dims[s.LEQ_DIM] + dims[s.EQ_DIM] + total_soc_exp_slacks
                 for j, dim in enumerate(dims[s.PSD_DIM]):  # SDP slack variable "Xj"
                     for row_idx in range(dim):
                         for col_idx in range(dim):
@@ -356,7 +387,8 @@ class MOSEK(ConicSolver):
                             i += 1
 
                 num_eq = len(h) - dims[s.LEQ_DIM]
-                type_constraint = [mosek.boundkey.up] * dims[s.LEQ_DIM] + [mosek.boundkey.fx] * num_eq
+                type_constraint = [mosek.boundkey.up] * dims[s.LEQ_DIM] + \
+                                  [mosek.boundkey.fx] * num_eq
                 task.putconboundlist(np.arange(m, dtype=int), type_constraint, h, h)
 
                 # Define the objective, and optimize the mosek task.
@@ -372,17 +404,21 @@ class MOSEK(ConicSolver):
 
     def invert(self, task, inverse_data):
         """
-        Use information contained within "task" and "inverse_data" to properly define a cvxpy Solution object.
+        Use information contained within "task" and "inverse_data" to properly
+        define a cvxpy Solution object.
 
         :param task: the mosek Task object generated during solve_via_data.
-        :param inverse_data: data recorded during "apply", in preparation for constructing the mosek model.
+        :param inverse_data: data recorded during "apply", in preparation for
+          constructing the mosek model.
 
         :return: a cvxpy Solution object, instantiated with the following fields:
 
             (1) status - the mosek status code.
-            (2) opt_val - the optimal objective function value (after translation by a possible constant).
+            (2) opt_val - the optimal objective function value
+            (after translation by a possible constant).
             (3) primal_vars - a dictionary with a single element: "x", represented as a list.
-            (4) dual_vars - a dictionary with as many elements as constraints in the cvxpy standard form problem.
+            (4) dual_vars - a dictionary with as many elements as
+            constraints in the cvxpy standard form problem.
                 The elements of the dictionary are either scalars, or numpy arrays.
         """
         import mosek
@@ -420,17 +456,22 @@ class MOSEK(ConicSolver):
 
             # Dual variables.
             #
-            #   A cvxpy "Constraint" object views itself as "affine_expression( vars ) \in K". As such, the appropriate
-            #   dual variable from the perspective of a Constraint object should be in K^*. However, we need to think
-            #   about where in the mosek formulation that dual variable can be found. One can verify that for a given
-            #   Constraint, the slack in "A * x <=_K b" is equal to the value "affine_expression( vars )." (This is due
-            #   to the implementation of format_constr in ConicSolver, and format_constr's subsequent use in this
-            #   class.) As a result, the appropriate dual variable for a Constraint represented as "A * x + s == b,
-            #   s \in K" for the mosek formulation is the conic dual variable to "s \in K" (rather than the Lagrange
+            #   A cvxpy "Constraint" object views itself as "affine_expression( vars ) \in K".
+            #   As such, the appropriate dual variable from the perspective of
+            #   a Constraint object should be in K^*. However, we need to think
+            #   about where in the mosek formulation that dual variable can be found.
+            #   One can verify that for a given Constraint, the slack in "A * x <=_K b"
+            #   is equal to the value "affine_expression( vars )." (This is due
+            #   to the implementation of format_constr in ConicSolver,
+            #   and format_constr's subsequent use in this class.)
+            #   As a result, the appropriate dual variable for a Constraint
+            #   represented as "A * x + s == b, s \in K" for the mosek formulation
+            #   is the conic dual variable to "s \in K" (rather than the Lagrange
             #   multiplier on the system of linear equations "A * x + s == b").
             #
-            #   The methods for getting dual variables in the mosek API are a little strange. They have no return value,
-            #   and instead they store the desired result in the last argument provided to the function in question.
+            #   The methods for getting dual variables in the mosek API are a little strange.
+            #   They have no return value, and instead they store the desired result
+            #   in the last argument provided to the function in question.
 
             dual_vars = dict()
 
@@ -474,11 +515,14 @@ class MOSEK(ConicSolver):
     def parse_dual_vars(dual_var, constr_id_to_constr_dim):
         """
 
-        :param dual_var: a list of numbers returned by some 'get dual variable' function in mosek's Optimzer API.
-        :param constr_id_to_constr_dim: a list of tuples (id, dim). The entry "id" is the index of the cvxpy Constraint
-         object to which the next "dim" entries of the dual variable belong.
+        :param dual_var: a list of numbers returned by some 'get dual variable'
+          function in mosek's Optimzer API.
+        :param constr_id_to_constr_dim: a list of tuples (id, dim).
+          The entry "id" is the index of the cvxpy Constraint
+          object to which the next "dim" entries of the dual variable belong.
 
-        :return: a dictionary keyed by cvxpy Constraint object indicies, with either scalar or numpy array values.
+        :return: a dictionary keyed by cvxpy Constraint object indicies,
+          with either scalar or numpy array values.
         """
         dual_vars = dict()
         running_idx = 0

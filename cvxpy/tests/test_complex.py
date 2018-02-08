@@ -274,7 +274,7 @@ class TestComplex(BaseTest):
         X = Variable((2, 4), complex=True)
         prob = Problem(Minimize(cvx.norm(X, 'nuc')), [X == P])
         result = prob.solve(solver=cvx.SCS, eps=1e-4)
-        self.assertAlmostEqual(result, norm_nuc, places=2)
+        self.assertAlmostEqual(result, norm_nuc, places=1)
 
     def test_log_det(self):
         """Test log det.
