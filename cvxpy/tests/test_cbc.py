@@ -138,7 +138,7 @@ class TestSolvers(BaseTest):
                       [46, 303, 748, 0], [47, 764, 487, 0], [48, 536, 923, 0],
                       [49, 724, 29, 1], [50, 789, 674, 0]]  # index, p / w / x
 
-            X = Bool(n)
+            X = Variable(n, boolean=True)
             prob = Problem(Maximize(sum(multiply([i[1] for i in coeffs], X))),
                            [sum(multiply([i[2] for i in coeffs], X)) <= c])
             prob.solve(verbose=False, solver=CBC)
@@ -153,7 +153,7 @@ class TestSolvers(BaseTest):
         """Test that all the CBC solver options work.
         """
         if CBC in installed_solvers():
-            prob = Problem(Minimize(norm(self.x, 1)), [self.x == Bool(2)])
+            prob = Problem(Minimize(norm(self.x, 1)), [self.x == Variable(2, boolean=True)])
             for i in range(2):
                 # Some cut-generators seem to be buggy for now -> set to false
                 prob.solve(solver=CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
