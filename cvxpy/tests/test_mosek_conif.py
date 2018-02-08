@@ -119,32 +119,34 @@ class TestMosek(BaseTest):
                 x[1] * log(x[1] / x[0]) + x[2] <= 0.
         """
         if cvx.MOSEK in cvx.installed_solvers():
-            # Formulate and solve the problem with CVXPY
-            x = cvx.Variable(shape=(3, 1))
-            constraints = [sum(x) <= 1.0, sum(x) >= 0.1, x >= 0.01,
-                           cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
-            obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[0])
-            prob = cvx.Problem(obj, constraints)
-            prob.solve(solver=cvx.MOSEK)
-            val_mosek = prob.value
-            x_mosek = x.value.flatten().tolist()
-            duals_mosek = [c.dual_value for c in constraints]
-            prob.solve(solver=cvx.ECOS)
-            val_ecos = prob.value
-            x_ecos = x.value.flatten().tolist()
-            duals_ecos = [c.dual_value for c in constraints]
+            import mosek
+            if hasattr(mosek.conetype, 'pexp'):
+                # Formulate and solve the problem with CVXPY
+                x = cvx.Variable(shape=(3, 1))
+                constraints = [sum(x) <= 1.0, sum(x) >= 0.1, x >= 0.01,
+                            cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
+                obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[0])
+                prob = cvx.Problem(obj, constraints)
+                prob.solve(solver=cvx.MOSEK)
+                val_mosek = prob.value
+                x_mosek = x.value.flatten().tolist()
+                duals_mosek = [c.dual_value for c in constraints]
+                prob.solve(solver=cvx.ECOS)
+                val_ecos = prob.value
+                x_ecos = x.value.flatten().tolist()
+                duals_ecos = [c.dual_value for c in constraints]
 
-            # verify results
-            self.assertAlmostEqual(val_mosek, val_ecos)
-            self.assertItemsAlmostEqual(x_mosek, x_ecos, places=4)
-            self.assertEqual(len(duals_ecos), len(duals_mosek))
-            for i in range(len(duals_mosek)):
-                if isinstance(duals_mosek[i], float):
-                    self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
-                else:
-                    self.assertItemsAlmostEqual(duals_mosek[i].tolist(), duals_ecos[i].tolist(), places=4)
-        else:
-            pass
+                # verify results
+                self.assertAlmostEqual(val_mosek, val_ecos)
+                self.assertItemsAlmostEqual(x_mosek, x_ecos, places=4)
+                self.assertEqual(len(duals_ecos), len(duals_mosek))
+                for i in range(len(duals_mosek)):
+                    if isinstance(duals_mosek[i], float):
+                        self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
+                    else:
+                        self.assertItemsAlmostEqual(duals_mosek[i].tolist(), duals_ecos[i].tolist(), places=4)
+            else:
+                pass
 
     def test_mosek_mi_socp(self):
         """

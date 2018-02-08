@@ -20,6 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import CVXOPT
 from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.reductions.solution import Solution
+import numpy as np
 
 from .conic_solver import ConicSolver
 
@@ -50,7 +52,7 @@ class GLPK_MI(CVXOPT):
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in GLPK.SUPPORTED_CONSTRAINTS:
+            if type(constr) not in GLPK_MI.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
