@@ -273,22 +273,19 @@ class ConicSolver(Solver):
         """
         status = solution['status']
 
-        primal_vars = None
-        dual_vars = None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value']
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-            if not inverse_data.get('is_mip', False):
-                eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[Solver.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[Solver.NEQ_CONSTR])
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
+            eq_dual = utilities.get_dual_values(
+                solution['eq_dual'],
+                utilities.extract_dual_value,
+                inverse_data[Solver.EQ_CONSTR])
+            leq_dual = utilities.get_dual_values(
+                solution['ineq_dual'],
+                utilities.extract_dual_value,
+                inverse_data[Solver.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -296,5 +293,7 @@ class ConicSolver(Solver):
                 opt_val = -np.inf
             else:
                 opt_val = None
+            primal_vars = None
+            dual_vars = None
 
         return Solution(status, opt_val, primal_vars, dual_vars, {})
