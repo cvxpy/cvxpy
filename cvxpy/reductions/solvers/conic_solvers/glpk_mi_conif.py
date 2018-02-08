@@ -20,9 +20,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.problems.problem_data.problem_data import ProblemData
-from cvxpy.reductions.solution import Solution
-import numpy as np
-
 from .conic_solver import ConicSolver
 
 
