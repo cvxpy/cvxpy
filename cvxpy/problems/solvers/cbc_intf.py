@@ -17,13 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import importlib
-import six
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
 import numpy as np
-import scipy.sparse as sp
+
 
 class CBC(Solver):
     """ An interface to the CBC solver
@@ -46,23 +44,6 @@ class CBC(Solver):
                      'stopped due to errors': s.SOLVER_ERROR,
                      'stopped by event handler (virtual int '
                      'ClpEventHandler::event())': s.SOLVER_ERROR}
-
-    SUPPORTED_CUT_GENERATORS = {"GomoryCuts": "CyCglGomory",
-                                "MIRCuts": "CyCglMixedIntegerRounding",
-                                "MIRCuts2": "CyCglMixedIntegerRounding2",
-                                "TwoMIRCuts": "CyCglTwomir",
-                                "ResidualCapacityCuts": "CyCglResidualCapacity",
-                                "KnapsackCuts": "CyCglKnapsackCover",
-                                "FlowCoverCuts": "CyCglFlowCover",
-                                "CliqueCuts": "CyCglClique",
-                                "LiftProjectCuts": "CyCglLiftAndProject",
-                                "AllDifferentCuts": "CyCglAllDifferent",
-                                "OddHoleCuts": "CyCglOddHole",
-                                "RedSplitCuts": "CyCglRedSplit",
-                                "LandPCuts": "CyCglLandP",
-                                "PreProcessCuts": "CyCglPreProcess",
-                                "ProbingCuts": "CyCglProbing",
-                                "SimpleRoundingCuts": "CyCglSimpleRounding"}
 
     def name(self):
         """The name of the solver.
@@ -126,6 +107,7 @@ class CBC(Solver):
         """
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
+        from cylp.py.modeling.CyLPModel import CyLPModel, CyLPArray
 
         # Get problem data
         data = self.get_problem_data(objective, constraints, cached_data)
@@ -140,36 +122,43 @@ class CBC(Solver):
         n = c.shape[0]
 
         # Problem
-        model = CyClpSimplex()
+        model = CyLPModel()
 
         # Variables
         x = model.addVariable('x', n)
 
-        # no boolean vars available in cbc -> model as int + restrict to [0,1]
-        if self.is_mip(data):
-            model.setInteger(x[data[s.BOOL_IDX]])
-            model.setInteger(x[data[s.INT_IDX]])
-            idxs = data[s.BOOL_IDX]
-            n_idxs = len(idxs)
-
-            bin_constrs = sp.coo_matrix((np.ones(n_idxs),
-                                        (np.arange(n_idxs), idxs)),
-                                         shape=(n_idxs, n))
-
-            model.addConstraint(bin_constrs * x >= 0)
-            model.addConstraint(bin_constrs * x <= 1)
-
         # Constraints
         # eq
-        model += A[0:dims[s.EQ_DIM], :] * x == b[0:dims[s.EQ_DIM]]
+        model += A[0:dims[s.EQ_DIM], :] * x == CyLPArray(b[0:dims[s.EQ_DIM]])
 
         # leq
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        model += A[leq_start:leq_end, :] * x <= b[leq_start:leq_end]
+        model += A[leq_start:leq_end, :] * x <= CyLPArray(b[leq_start:leq_end])
 
         # Objective
         model.objective = c
+
+        # Convert model
+        model = CyClpSimplex(model)
+
+        # No boolean vars available in Cbc -> model as int + restrict to [0,1]
+        if self.is_mip(data):
+            # Mark integer- and binary-vars as "integer"
+            model.setInteger(x[data[s.BOOL_IDX]])
+            model.setInteger(x[data[s.INT_IDX]])
+
+            # Restrict binary vars only
+            idxs = data[s.BOOL_IDX]
+            n_idxs = len(idxs)
+
+            model.setColumnLowerSubset(np.arange(n_idxs, dtype=np.int32),
+                                       np.array(idxs, np.int32),
+                                       np.zeros(n_idxs))
+
+            model.setColumnUpperSubset(np.arange(n_idxs, dtype=np.int32),
+                                       np.array(idxs, np.int32),
+                                       np.ones(n_idxs))
 
         # Verbosity Clp
         if not verbose:
@@ -178,37 +167,24 @@ class CBC(Solver):
         # Build model & solve
         status = None
         if self.is_mip(data):
-            model.initialSolve()            # see comment in else-branch
-            cbcModel = model.getCbcModel()  # after initial LP relaxation:
-                                            # need to convert model to use Cbc
+            # Convert model
+            cbcModel = model.getCbcModel()
 
             # Verbosity Cbc
             if not verbose:
                 cbcModel.logLevel = 0
 
-            # Add cut-generators (optional)
-            for cut_name, cut_func in six.iteritems(self.SUPPORTED_CUT_GENERATORS):
-                if cut_name in solver_opts and solver_opts[cut_name]:
-                    module = importlib.import_module("cylp.cy.CyCgl")
-                    funcToCall = getattr(module, cut_func)
-                    cut_gen = funcToCall()
-                    cbcModel.addCutGenerator(cut_gen, name=cut_name)
-
-            # https://www.coin-or.org/Doxygen/Cbc/classCbcModel.html
-            # void CbcModel::branchAndBound(int	doStatistics=0)
-            # Invoke the branch & cut algorithm.
-            # The method assumes that initialSolve() has been called to solve
-            # the LP relaxation. It processes the root node, then proceeds to
-            # explore the branch & cut search tree. The search ends when the
-            # tree is exhausted or one of several execution limits is reached.
-            status = cbcModel.branchAndBound()
+            # cylp: /cylp/cy/CyCbcModel.pyx#L134
+            # Call CbcMain. Solve the problem using the same parameters used by
+            # CbcSolver. Equivalent to solving the model from the command line
+            # using cbc's binary.
+            cbcModel.solve()
+            status = cbcModel.status
         else:
-            # https://www.coin-or.org/Doxygen/Clp/classClpSimplex.html
-            # int ClpSimplex::initialSolve(ClpSolve& options)
-            # General solve algorithm which can do presolve.
+            # cylp: /cylp/cy/CyClpSimplex.pyx
+            # Run CLP's initialSolve. It does a presolve and uses primal or dual
+            # Simplex to solve a problem.
             status = model.initialSolve()
-
-        print(status)
 
         results_dict = {}
         results_dict["status"] = status
