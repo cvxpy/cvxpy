@@ -1,5 +1,5 @@
 """
-Copyright 2016 Sascha-Dominic Schnug
+Copyright 2016, 2018 Sascha-Dominic Schnug
 
 This file is part of CVXPY.
 
@@ -22,7 +22,8 @@ import six
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
-
+import numpy as np
+import scipy.sparse as sp
 
 class CBC(Solver):
     """ An interface to the CBC solver
@@ -149,8 +150,14 @@ class CBC(Solver):
             model.setInteger(x[data[s.BOOL_IDX]])
             model.setInteger(x[data[s.INT_IDX]])
             idxs = data[s.BOOL_IDX]
-            model.addConstraint(x[idxs] >= 0)
-            model.addConstraint(x[idxs] <= 1)
+            n_idxs = len(idxs)
+
+            bin_constrs = sp.coo_matrix((np.ones(n_idxs),
+                                        (np.arange(n_idxs), idxs)),
+                                         shape=(n_idxs, n))
+
+            model.addConstraint(bin_constrs * x >= 0)
+            model.addConstraint(bin_constrs * x <= 1)
 
         # Constraints
         # eq
@@ -164,10 +171,18 @@ class CBC(Solver):
         # Objective
         model.objective = c
 
+        # Verbosity Clp
+        if not verbose:
+            model.logLevel = 0
+
         # Build model & solve
         status = None
         if self.is_mip(data):
-            cbcModel = model.getCbcModel()  # need to convert model
+            model.initialSolve()            # see comment in else-branch
+            cbcModel = model.getCbcModel()  # after initial LP relaxation:
+                                            # need to convert model to use Cbc
+
+            # Verbosity Cbc
             if not verbose:
                 cbcModel.logLevel = 0
 
@@ -179,12 +194,21 @@ class CBC(Solver):
                     cut_gen = funcToCall()
                     cbcModel.addCutGenerator(cut_gen, name=cut_name)
 
-            # solve
+            # https://www.coin-or.org/Doxygen/Cbc/classCbcModel.html
+            # void CbcModel::branchAndBound(int	doStatistics=0)
+            # Invoke the branch & cut algorithm.
+            # The method assumes that initialSolve() has been called to solve
+            # the LP relaxation. It processes the root node, then proceeds to
+            # explore the branch & cut search tree. The search ends when the
+            # tree is exhausted or one of several execution limits is reached.
             status = cbcModel.branchAndBound()
         else:
-            if not verbose:
-                model.logLevel = 0
-            status = model.primal()  # solve
+            # https://www.coin-or.org/Doxygen/Clp/classClpSimplex.html
+            # int ClpSimplex::initialSolve(ClpSolve& options)
+            # General solve algorithm which can do presolve.
+            status = model.initialSolve()
+
+        print(status)
 
         results_dict = {}
         results_dict["status"] = status
