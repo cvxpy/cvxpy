@@ -1,5 +1,5 @@
 """
-Copyright 2016 Sascha-Dominic Schnug
+Copyright 2016, 2018 Sascha-Dominic Schnug
 
 This file is part of CVXPY.
 
@@ -17,11 +17,10 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import importlib
-import six
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver
+import numpy as np
 
 
 class CBC(Solver):
@@ -45,23 +44,6 @@ class CBC(Solver):
                      'stopped due to errors': s.SOLVER_ERROR,
                      'stopped by event handler (virtual int '
                      'ClpEventHandler::event())': s.SOLVER_ERROR}
-
-    SUPPORTED_CUT_GENERATORS = {"GomoryCuts": "CyCglGomory",
-                                "MIRCuts": "CyCglMixedIntegerRounding",
-                                "MIRCuts2": "CyCglMixedIntegerRounding2",
-                                "TwoMIRCuts": "CyCglTwomir",
-                                "ResidualCapacityCuts": "CyCglResidualCapacity",
-                                "KnapsackCuts": "CyCglKnapsackCover",
-                                "FlowCoverCuts": "CyCglFlowCover",
-                                "CliqueCuts": "CyCglClique",
-                                "LiftProjectCuts": "CyCglLiftAndProject",
-                                "AllDifferentCuts": "CyCglAllDifferent",
-                                "OddHoleCuts": "CyCglOddHole",
-                                "RedSplitCuts": "CyCglRedSplit",
-                                "LandPCuts": "CyCglLandP",
-                                "PreProcessCuts": "CyCglPreProcess",
-                                "ProbingCuts": "CyCglProbing",
-                                "SimpleRoundingCuts": "CyCglSimpleRounding"}
 
     def name(self):
         """The name of the solver.
@@ -125,6 +107,7 @@ class CBC(Solver):
         """
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
+        from cylp.py.modeling.CyLPModel import CyLPModel, CyLPArray
 
         # Get problem data
         data = self.get_problem_data(objective, constraints, cached_data)
@@ -139,52 +122,69 @@ class CBC(Solver):
         n = c.shape[0]
 
         # Problem
-        model = CyClpSimplex()
+        model = CyLPModel()
 
         # Variables
         x = model.addVariable('x', n)
 
-        # no boolean vars available in cbc -> model as int + restrict to [0,1]
-        if self.is_mip(data):
-            model.setInteger(x[data[s.BOOL_IDX]])
-            model.setInteger(x[data[s.INT_IDX]])
-            idxs = data[s.BOOL_IDX]
-            model.addConstraint(x[idxs] >= 0)
-            model.addConstraint(x[idxs] <= 1)
-
         # Constraints
         # eq
-        model += A[0:dims[s.EQ_DIM], :] * x == b[0:dims[s.EQ_DIM]]
+        model += A[0:dims[s.EQ_DIM], :] * x == CyLPArray(b[0:dims[s.EQ_DIM]])
 
         # leq
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        model += A[leq_start:leq_end, :] * x <= b[leq_start:leq_end]
+        model += A[leq_start:leq_end, :] * x <= CyLPArray(b[leq_start:leq_end])
 
         # Objective
         model.objective = c
 
+        # Convert model
+        model = CyClpSimplex(model)
+
+        # No boolean vars available in Cbc -> model as int + restrict to [0,1]
+        if self.is_mip(data):
+            # Mark integer- and binary-vars as "integer"
+            model.setInteger(x[data[s.BOOL_IDX]])
+            model.setInteger(x[data[s.INT_IDX]])
+
+            # Restrict binary vars only
+            idxs = data[s.BOOL_IDX]
+            n_idxs = len(idxs)
+
+            model.setColumnLowerSubset(np.arange(n_idxs, dtype=np.int32),
+                                       np.array(idxs, np.int32),
+                                       np.zeros(n_idxs))
+
+            model.setColumnUpperSubset(np.arange(n_idxs, dtype=np.int32),
+                                       np.array(idxs, np.int32),
+                                       np.ones(n_idxs))
+
+        # Verbosity Clp
+        if not verbose:
+            model.logLevel = 0
+
         # Build model & solve
         status = None
         if self.is_mip(data):
-            cbcModel = model.getCbcModel()  # need to convert model
+            # Convert model
+            cbcModel = model.getCbcModel()
+
+            # Verbosity Cbc
             if not verbose:
                 cbcModel.logLevel = 0
 
-            # Add cut-generators (optional)
-            for cut_name, cut_func in six.iteritems(self.SUPPORTED_CUT_GENERATORS):
-                if cut_name in solver_opts and solver_opts[cut_name]:
-                    module = importlib.import_module("cylp.cy.CyCgl")
-                    funcToCall = getattr(module, cut_func)
-                    cut_gen = funcToCall()
-                    cbcModel.addCutGenerator(cut_gen, name=cut_name)
-
-            # solve
-            status = cbcModel.branchAndBound()
+            # cylp: /cylp/cy/CyCbcModel.pyx#L134
+            # Call CbcMain. Solve the problem using the same parameters used by
+            # CbcSolver. Equivalent to solving the model from the command line
+            # using cbc's binary.
+            cbcModel.solve()
+            status = cbcModel.status
         else:
-            if not verbose:
-                model.logLevel = 0
-            status = model.primal()  # solve
+            # cylp: /cylp/cy/CyClpSimplex.pyx
+            # Run CLP's initialSolve. It does a presolve and uses primal or dual
+            # Simplex to solve a problem.
+            status = model.initialSolve()
 
         results_dict = {}
         results_dict["status"] = status
