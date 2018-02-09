@@ -144,11 +144,13 @@ class CBC(Solver):
         # Variables
         x = model.addVariable('x', n)
 
+        # no boolean vars available in cbc -> model as int + restrict to [0,1]
         if self.is_mip(data):
-            for i in data[s.BOOL_IDX]:
-                model.setInteger(x[i])
-            for i in data[s.INT_IDX]:
-                model.setInteger(x[i])
+            model.setInteger(x[data[s.BOOL_IDX]])
+            model.setInteger(x[data[s.INT_IDX]])
+            idxs = data[s.BOOL_IDX]
+            model.addConstraint(x[idxs] >= 0)
+            model.addConstraint(x[idxs] <= 1)
 
         # Constraints
         # eq
@@ -158,11 +160,6 @@ class CBC(Solver):
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
         model += A[leq_start:leq_end, :] * x <= b[leq_start:leq_end]
-
-        # no boolean vars available in cbc -> model as int + restrict to [0,1]
-        if self.is_mip(data):
-            for i in data[s.BOOL_IDX]:
-                model += 0 <= x[i] <= 1
 
         # Objective
         model.objective = c

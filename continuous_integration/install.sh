@@ -70,7 +70,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         # sudo apt-get install coinor-libcbc-dev coinor-libcbc0 coinor-libcbc-doc
 
         # Install cyLP -> which is needed for CBC-interface
-        git clone -b py3 https://github.com/jjhelmus/CyLP.git  # use custom-branch because of py3
+        git clone -b py3 https://github.com/SteveDiamond/CyLP.git  # use custom-branch because of py3
         cd CyLP
         python setup.py install
         cd ..
