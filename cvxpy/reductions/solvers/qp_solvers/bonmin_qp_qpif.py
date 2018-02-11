@@ -3,25 +3,22 @@ Copyright 2018 Sascha-Dominic Schnug
 """
 
 import cvxpy.settings as s
-from cvxpy.reductions.solvers import utilities
 import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-from collections import namedtuple
 import numpy as np
 import scipy.sparse as sp
 
 
 class BONMIN_QP(QpSolver):
-    """QP interface for the OSQP solver"""
+    """QP interface for the BONMIN_QP solver"""
 
     MIP_CAPABLE = True
 
-    # Map of OSQP status to CVXPY status.
+    # Map of BONMIN_QP status to CVXPY status.
     STATUS_MAP = {0: s.OPTIMAL,
                   1: s.INFEASIBLE,
-                  2: s.UNBOUNDED,
-                 }  # TODO handle remaining cases
+                  2: s.UNBOUNDED}
 
     def name(self):
         return s.BONMIN_QP

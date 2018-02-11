@@ -114,10 +114,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
     #    pyMIQP
     pip install pybind11
     python setup.py install
-
-    # TODO DEBUG
-    echo -e "from pyMIQP import MIQP\nprint(MIQP)" | python
     cd ..
+    rm -R -f pyMIQP-0.02  # don't let flake8 run these sources
 
     # if [[ "$INSTALL_MKL" == "true" ]]; then
     #     # Make sure that MKL is used

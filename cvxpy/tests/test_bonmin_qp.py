@@ -525,8 +525,6 @@ class TestStatus(BaseTest):
 
     def test_0(self):
         # feasible -> optimal
-        # TODO BROKEN!
-        # -> bonmin-research needed => if z bool: no bounds on z in LP.relax added?
         x = Variable()
         y = Variable(integer=True)
         z = Variable(boolean=True)
@@ -540,8 +538,6 @@ class TestStatus(BaseTest):
 
     def test_1(self):
         # infeasible
-        # TODO BROKEN
-        # -> bonmin-research needed => if z bool: no bounds on z in LP.relax added?
         x = Variable()
         y = Variable(integer=True)
         z = Variable(boolean=True)
@@ -556,7 +552,6 @@ class TestStatus(BaseTest):
 
     def test_2(self):
         # unbounded
-        # TODO BROKEN
         x = Variable()
         y = Variable(integer=True)
         z = Variable(boolean=True)
