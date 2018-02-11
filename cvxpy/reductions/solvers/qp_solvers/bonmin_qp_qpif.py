@@ -84,7 +84,7 @@ class BONMIN_QP(QpSolver):
         if 'hessian_approximation' in solver_opts:
             hess_approx = solver_opts['hessian_approximation']
 
-        algorithm = 'B-Hyb'
+        algorithm = 'B-BB'
         if 'algorithm' in solver_opts:
             algorithm = solver_opts['algorithm']
 

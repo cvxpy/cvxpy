@@ -446,6 +446,78 @@ class TestMiQp(BaseTest):
                 self.assertItemsAlmostEqual(x.value, [0.0, 1.0, 0.0, 1.0])
                 self.assertAlmostEqual(p.value, -6.0)
 
+    def test_2(self):
+        """ Small integer least-squares example modified from:
+            https://github.com/cvxgrp/cvxpy/blob/master/examples/extensions/integer_ls.py
+        """
+        x = Variable(3, name='x', boolean=True)
+        A = numpy.array([1,2,3,4,5,6,7,8,9]).reshape(3,3)
+        z = numpy.array([3, 7, 9])
+
+        p = Problem(Minimize(sum_squares(A*x - z)))
+
+        for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
+            for hessian_approximation in [False, True]:
+                p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
+                        hessian_approximation=hessian_approximation)
+                self.assertItemsAlmostEqual(x.value, [0.0, 0.0, 1.0])
+                self.assertAlmostEqual(p.value, 1.0)
+
+    def test_3(self):
+        """ Small cardinality-constrained nonnegative least-squares example
+            modified from:
+            http://docs.roguewave.com/imsl/java/7.1/manual/api/com/imsl/math/NonNegativeLeastSquaresEx1.html
+        """
+        # Basic continuous non-nonneg problem
+        x = Variable(3, name='x')
+        A = numpy.array([[1, -3, 2],[-3, 10, -5],[2, -5, 6]])
+        b = numpy.array([27, -78, 64])
+
+        p = Problem(Minimize(sum_squares(A*x - b)))
+
+        for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
+            for hessian_approximation in [False, True]:
+                p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
+                        hessian_approximation=hessian_approximation)
+                self.assertItemsAlmostEqual(x.value, [1.0, -4.0, 7.0])
+
+        # Continuous nonneg problem
+        constraints_nonneg = [x >= 0]
+
+        p = Problem(Minimize(sum_squares(A*x - b)), constraints_nonneg)
+
+        for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
+            for hessian_approximation in [False, True]:
+                p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
+                        hessian_approximation=hessian_approximation)
+                self.assertItemsAlmostEqual(x.value, [1.84492754e+01, 1.04260926e-08,
+                    4.50724637e+00])  # ECOS-BB result
+
+        # Cardinality-constrained nonneg problem
+        # Simple linearization following:
+        # https://orinanobworld.blogspot.de/2010/10/binary-variables-and-quadratic-terms.html
+        upper_bound = 1000.
+        card_n = 2
+        y = Variable(x.size, name='y', boolean=True)
+        z = Variable(x.size, name='z')
+        constraints_card = [z <= upper_bound * y,
+                            z >= 0,                          # lb=0
+                            z <= x,                          # lb=0
+                            z >= x - upper_bound*(1-y),
+                            sum(y) <= card_n]                # cardinality
+
+        p = Problem(Minimize(sum_squares(A*z - b)),
+                constraints_nonneg + constraints_card)
+
+        p.solve(solver='BONMIN_QP', verbose=True)
+        # p.solve(solver='BONMIN_QP', algorithm='B-Hyb', verbose=True) # BUG!
+
+        # compared to ECOS_BB (which is of lower-precision)
+        self.assertItemsAlmostEqual(y.value,
+            [0.9999999999993863, 1.145048366236877e-12, 0.9999999999993624])
+        self.assertItemsAlmostEqual(z.value,
+            [18.449275056142078, 1.1645657355651684e-10, 4.507246518757189])
+
 
 class TestStatus(BaseTest):
     """ Basic tests for status in (optimal, infeasible, unbounded)
@@ -460,8 +532,7 @@ class TestStatus(BaseTest):
         z = Variable(boolean=True)
 
         constraints = [0 <= x, x <=5,
-                      -3 <= y, y <=2,
-                       0 <= z, z <= 1]  # !!! imho: should not be needed
+                      -3 <= y, y <=2]
 
         p = Problem(Maximize(x + y + z), constraints)
         p.solve(solver='BONMIN_QP', verbose=True)
@@ -477,8 +548,7 @@ class TestStatus(BaseTest):
 
         constraints = [0 <= x, x <=5,
                       -3 <= y, y <=2,
-                       x + y + z >= 9,
-                       0 <= z, z <= 1]  # !!! imho: should not be needed
+                       x + y + z >= 9]
 
         p = Problem(Minimize(x + y + z), constraints)
         p.solve(solver='BONMIN_QP', verbose=True)
@@ -493,8 +563,7 @@ class TestStatus(BaseTest):
 
         constraints = [0 <= x, x <=5,
                       -3 <= y,
-                       x + y + z >= 9,
-                       0 <= z, z <= 1]  # !!! imho: should not be needed
+                       x + y + z >= 9]
 
         p = Problem(Maximize(x + y + z), constraints)
         p.solve(solver='BONMIN_QP', verbose=True)
