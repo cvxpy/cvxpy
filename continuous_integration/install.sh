@@ -78,6 +78,47 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd "$oldpath"
     fi
 
+    # Install BONMIN_QP requirements: Bonmin + pyMIQP
+    sudo apt install wget gfortran gcc g++ autotools-dev automake -qq
+    #     Bonmin
+    wget https://www.coin-or.org/download/source/Bonmin/Bonmin-1.8.6.tgz
+    tar -zxvf Bonmin-1.8.6.tgz
+    cd Bonmin-1.8.6
+    cd ThirdParty
+    cd Blas
+    ./get.Blas
+    cd ..
+    cd Lapack
+    ./get.Lapack
+    cd ..
+    cd Mumps
+    ./get.Mumps
+    cd ..
+    cd ..
+    ./configure --prefix=/usr --enable-gnu-packages
+    make
+    sudo make install
+    cd ..
+
+    #     pyMIQP
+    wget https://github.com/sschnug/pyMIQP/archive/v0.02.tar.gz
+    tar -zxvf v0.02.tar.gz
+    cd pyMIQP-0.02
+    cd src
+
+    #        Eigen
+    wget http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
+    tar -zxvf 3.3.4.tar.gz --strip-components=1 eigen-eigen-5a0156e40feb/Eigen/
+    cd ..
+
+    #    pyMIQP
+    pip install pybind11
+    python setup.py install
+
+    # TODO DEBUG
+    echo -e "from pyMIQP import MIQP\nprint(MIQP)" | python
+    cd ..
+
     # if [[ "$INSTALL_MKL" == "true" ]]; then
     #     # Make sure that MKL is used
     #     conda install --yes mkl
