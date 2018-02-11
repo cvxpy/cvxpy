@@ -67,6 +67,12 @@ class TestQp(BaseTest):
         # Check for all installed QP solvers
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
 
+        # Remove BonminQP from these tests (if available):
+        #   tests are outsourced to test_bonmin_qp
+        #   reason: no support for duals; discrete-functionality
+        if 'BONMIN_QP' in self.solvers:
+            self.solvers.remove('BONMIN_QP')
+
     def solve_QP(self, problem, solver_name):
         return problem.solve(solver=solver_name, verbose=True)
 

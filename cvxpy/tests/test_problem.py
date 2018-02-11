@@ -264,7 +264,7 @@ class TestProblem(BaseTest):
                 # condition in setting CVXOPT solver options.
                 if solver in [cvx.GLPK, cvx.GLPK_MI, cvx.MOSEK, cvx.CBC]:
                     continue
-                if solver in [cvx.ELEMENTAL]:
+                if solver in [cvx.ELEMENTAL, cvx.BONMIN_QP]:
                     # ELEMENTAL's stdout is separate from python,
                     # so we have to do this.
                     # Note: This probably breaks (badly) on Windows.
@@ -291,7 +291,7 @@ class TestProblem(BaseTest):
                         p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a[None, None]) >= 2])
                         p.solve(verbose=verbose, solver=solver)
 
-                if solver in [cvx.ELEMENTAL]:
+                if solver in [cvx.ELEMENTAL, cvx.BONMIN_QP]:
                     # ELEMENTAL's stdout is separate from python,
                     # so we have to do this.
                     tmp_handle.seek(0)
