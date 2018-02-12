@@ -81,11 +81,16 @@ class BONMIN_QP(QpSolver):
         if 'hessian_approximation' in solver_opts:
             hess_approx = solver_opts['hessian_approximation']
 
+        deriv_test = 'none'
+        if 'derivative_test' in solver_opts:
+            deriv_test = solver_opts['derivative_test']
+
         algorithm = 'B-BB'
         if 'algorithm' in solver_opts:
             algorithm = solver_opts['algorithm']
 
-        solver = pyMIQP.MIQP(verbose=verbose, hessian_approximation=hess_approx)
+        solver = pyMIQP.MIQP(verbose=verbose, hessian_approximation=hess_approx,
+                             derivative_test=deriv_test)
         solver.set_c(q)
         solver.set_Q(P)
         if A.size > 0:

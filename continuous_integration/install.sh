@@ -101,9 +101,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
     cd ..
 
     #     pyMIQP
-    wget https://github.com/sschnug/pyMIQP/archive/v0.02.tar.gz
-    tar -zxvf v0.02.tar.gz
-    cd pyMIQP-0.02
+    wget https://github.com/sschnug/pyMIQP/archive/v0.03.tar.gz
+    tar -zxvf v0.03.tar.gz
+    cd pyMIQP-0.03
     cd src
 
     #        Eigen
@@ -115,7 +115,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     pip install pybind11
     python setup.py install
     cd ..
-    rm -R -f pyMIQP-0.02  # don't let flake8 run these sources
+    rm -R -f pyMIQP-0.03  # don't let flake8 run these sources
 
     # if [[ "$INSTALL_MKL" == "true" ]]; then
     #     # Make sure that MKL is used

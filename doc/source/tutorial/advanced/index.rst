@@ -729,6 +729,18 @@ If you need additional options, ask for those at cvxpy's `issue-tracker (github)
 
     Check out Bonmin's user-manual to learn more!
 
+``'derivative_test'``
+    whether derivatives should be check against finite-differences (on
+    initial-point, which by default is a zero-vector).
+
+    Possible options are: "none" (default), "first-order", "second-order",
+    "only-second-order".
+
+    See `Derivative Checker`_ (Ipopt documentation).
+
+    This functionality was only added to improve cvxpy's internal tests and
+    should not be touched by the user (it's slow!).
+
 Getting the standard form
 -------------------------
 
@@ -789,3 +801,4 @@ The full set of reductions available is discussed in :ref:`reductions-api`.
 .. _BONMIN_QP: https://github.com/sschnug/pyMIQP
 .. _issue-tracker (github): https://github.com/cvxgrp/cvxpy/issues
 .. _Ipopt: https://projects.coin-or.org/Ipopt
+.. _Derivative Checker: https://www.coin-or.org/Ipopt/documentation/node30.html

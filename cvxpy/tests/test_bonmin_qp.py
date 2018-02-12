@@ -36,6 +36,10 @@ from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.tests.base_test import BaseTest
 
+# Exact-hessian: check by first-order + second-order by finite-differences
+# Hessian-approximation: check first-order only
+# Key in this dict: boolean option: hessian_approximation_
+deriv_check_map = {False: 'second-order', True: 'first-order'}
 
 class TestQp(BaseTest):
     """ Unit tests for the domain module.
@@ -77,7 +81,8 @@ class TestQp(BaseTest):
 
     def solve_QP(self, problem, solver_name, hessian_approximation):
         return problem.solve(solver=solver_name, verbose=True,
-                             hessian_approximation=hessian_approximation)
+                             hessian_approximation=hessian_approximation,
+                             derivative_test=deriv_check_map[hessian_approximation])
 
     def test_all_problems(self):
         solver = 'BONMIN_QP'
@@ -412,7 +417,8 @@ class TestMiQp(BaseTest):
         for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
             for hessian_approximation in [False, True]:
                 p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
-                        hessian_approximation=hessian_approximation)
+                        hessian_approximation=hessian_approximation,
+                        derivative_test=deriv_check_map[hessian_approximation])
                 self.assertItemsAlmostEqual(x.value, [1.0, 1.0])
                 self.assertAlmostEqual(p.value, -7.5)
 
@@ -442,7 +448,8 @@ class TestMiQp(BaseTest):
         for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
             for hessian_approximation in [False, True]:
                 p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
-                        hessian_approximation=hessian_approximation)
+                        hessian_approximation=hessian_approximation,
+                        derivative_test=deriv_check_map[hessian_approximation])
                 self.assertItemsAlmostEqual(x.value, [0.0, 1.0, 0.0, 1.0])
                 self.assertAlmostEqual(p.value, -6.0)
 
@@ -459,7 +466,8 @@ class TestMiQp(BaseTest):
         for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
             for hessian_approximation in [False, True]:
                 p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
-                        hessian_approximation=hessian_approximation)
+                        hessian_approximation=hessian_approximation,
+                        derivative_test=deriv_check_map[hessian_approximation])
                 self.assertItemsAlmostEqual(x.value, [0.0, 0.0, 1.0])
                 self.assertAlmostEqual(p.value, 1.0)
 
@@ -478,7 +486,8 @@ class TestMiQp(BaseTest):
         for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
             for hessian_approximation in [False, True]:
                 p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
-                        hessian_approximation=hessian_approximation)
+                        hessian_approximation=hessian_approximation,
+                        derivative_test=deriv_check_map[hessian_approximation])
                 self.assertItemsAlmostEqual(x.value, [1.0, -4.0, 7.0])
 
         # Continuous nonneg problem
@@ -489,7 +498,8 @@ class TestMiQp(BaseTest):
         for algorithm in ['B-Hyb', 'B-BB', 'B-OA', 'B-QG']:
             for hessian_approximation in [False, True]:
                 p.solve(solver='BONMIN_QP', verbose=True, algorithm=algorithm,
-                        hessian_approximation=hessian_approximation)
+                        hessian_approximation=hessian_approximation,
+                        derivative_test=deriv_check_map[hessian_approximation])
                 self.assertItemsAlmostEqual(x.value, [1.84492754e+01, 1.04260926e-08,
                     4.50724637e+00])  # ECOS-BB result
 
@@ -509,14 +519,17 @@ class TestMiQp(BaseTest):
         p = Problem(Minimize(sum_squares(A*z - b)),
                 constraints_nonneg + constraints_card)
 
-        p.solve(solver='BONMIN_QP', verbose=True)
-        # p.solve(solver='BONMIN_QP', algorithm='B-Hyb', verbose=True) # BUG!
+        for hessian_approximation in [False, True]:
+            p.solve(solver='BONMIN_QP', verbose=True,
+                    hessian_approximation=hessian_approximation,
+                    derivative_test=deriv_check_map[hessian_approximation])
+            # p.solve(solver='BONMIN_QP', algorithm='B-Hyb', verbose=True) # BUG!
 
-        # compared to ECOS_BB (which is of lower-precision)
-        self.assertItemsAlmostEqual(y.value,
-            [0.9999999999993863, 1.145048366236877e-12, 0.9999999999993624])
-        self.assertItemsAlmostEqual(z.value,
-            [18.449275056142078, 1.1645657355651684e-10, 4.507246518757189])
+            # compared to ECOS_BB (which is of lower-precision)
+            self.assertItemsAlmostEqual(y.value,
+                [0.9999999999993863, 1.145048366236877e-12, 0.9999999999993624])
+            self.assertItemsAlmostEqual(z.value,
+                [18.449275056142078, 1.1645657355651684e-10, 4.507246518757189])
 
 
 class TestStatus(BaseTest):
