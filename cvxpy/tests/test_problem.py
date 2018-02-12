@@ -268,8 +268,16 @@ class TestProblem(BaseTest):
                     # ELEMENTAL's stdout is separate from python,
                     # so we have to do this.
                     # Note: This probably breaks (badly) on Windows.
+
+                    # It seems py2to3 is not helping here
+                    # Hack:
                     stdout_save = os.dup(stdout_fd)
-                    tmp_handle = tempfile.TemporaryFile(bufsize=0)
+
+                    if PY2:
+                        tmp_handle = tempfile.TemporaryFile(bufsize=0)
+                    else:
+                        tmp_handle = tempfile.TemporaryFile(buffering=0)
+
                     os.dup2(tmp_handle.fileno(), stdout_fd)
                 else:
                     sys.stdout = StringIO()  # capture output
