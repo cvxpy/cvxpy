@@ -722,10 +722,11 @@ If you need additional options, ask for those at cvxpy's `issue-tracker (github)
     algorithm to use for solving the optimization-problem.
 
     Bonmin supports the following algorithms: "B-BB" (default), "B-OA", "B-QG",
-    "B-Hyb", "B-ECP", "B-iFP".
+    "B-Hyb". ("B-iFP" and "B-Ecp" are part of Bonmin's code, but are not working
+    great for the author).
 
     There is at least one test (currently) not working with "B-Hyb" (which should
-    transfer to "B-OA"). It is recommended to use the default!
+    transfer to "B-OA"). **It is recommended to use the default algorithm!**
 
     Check out Bonmin's user-manual to learn more!
 

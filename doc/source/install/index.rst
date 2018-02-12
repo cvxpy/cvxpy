@@ -10,12 +10,12 @@ CVXPY supports both Python 2 and Python 3 on OS X and Linux.
 
 1. Install `Anaconda`_.
 
-2. Install ``cvxpy`` with ``conda``. 
+2. Install ``cvxpy`` with ``conda``.
 
    ::
 
       conda install numpy scipy pip
-      conda install -c cvxgrp ecos scs multiprocess 
+      conda install -c cvxgrp ecos scs multiprocess
 
 3. Clone the `CVXPY git repository`_.
 4. Navigate to the top-level of the cloned directory and run
@@ -81,9 +81,94 @@ CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindin
 
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
-CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
+CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes, amongst other things,
+Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
 Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
 See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
+
+.. WARNING::
+    Python3-support is still not merged into cylp's master-branch! Consider using one of the following two branches: `SteveDiamond/CyLP py3`_ or `jjhelmus/CyLP py3`_.
+
+Install with BONMIN_QP support
+------------------------------
+CVXPY can use CoinOR's general MINLP-solver `Bonmin`_ to solve MIQP's using a wrapper called `pyMIQP`_.
+
+To use this one you will need:
+
+- Bonmin:
+    - Release-version recommended: ships dependent CoinOR projects and scripts to prepare external dependencies
+- pyMIQP:
+    - Depends on `Eigen`_
+    - Depends on `pybind11`_ (modern C++11 compiler needed!)
+
+Install was only tested on Ubuntu-style Linux with Python 2 and 3 (Windows is not expected to work!)
+
+Install:
+^^^^^^^^
+The following steps are bash-style and related to cvxpy's internal continuous-integration
+scripts doing the same for testing!
+
+(Assumption: residing in home-folder with adequate filesystem-rights)
+
+Prepare system
+""""""""""""""
+::
+
+ sudo apt install wget gfortran gcc g++ autotools-dev automake
+
+Bonmin
+""""""
+This is a system-wide install.
+
+``./configure`` also allows: ``--enable-cbc-parallel`` (one might need to prepare OpenMP).
+
+::
+
+ wget https://www.coin-or.org/download/source/Bonmin/Bonmin-1.8.6.tgz
+ tar -zxvf Bonmin-1.8.6.tgz
+ cd Bonmin-1.8.6
+ cd ThirdParty
+ cd Blas
+ ./get.Blas
+ cd ..
+ cd Lapack
+ ./get.Lapack
+ cd ..
+ cd Mumps
+ ./get.Mumps
+ cd ..
+ cd ..
+ ./configure --prefix=/usr --enable-gnu-packages
+ make
+ sudo make install
+ cd ..
+
+pyMIQP (part 1)
+"""""""""""""""
+::
+
+ wget https://github.com/sschnug/pyMIQP/archive/v0.03.tar.gz
+ tar -zxvf v0.03.tar.gz
+ cd pyMIQP-0.03
+ cd src
+
+Eigen
+"""""
+This will extract the necessary Eigen-headers into the src-dir of *pyMIQP*.
+::
+
+ wget http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz
+ tar -zxvf 3.3.4.tar.gz --strip-components=1 eigen-eigen-5a0156e40feb/Eigen/
+ cd ..
+
+pyMIQP (part 2)
+"""""""""""""""
+Depending on your setup, both of these commands will need ``sudo``.
+
+::
+
+ pip install pybind11
+ python setup.py install
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
@@ -99,3 +184,9 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
 .. _CVXcanon: https://github.com/jacklzhu/CVXcanon
 .. _Swig: http://www.swig.org/
+.. _SteveDiamond/CyLP py3: https://github.com/SteveDiamond/CyLP/tree/py3
+.. _jjhelmus/CyLP py3: https://github.com/jjhelmus/CyLP/tree/py3
+.. _Bonmin: https://projects.coin-or.org/Bonmin
+.. _pyMIQP: https://github.com/sschnug/pyMIQP
+.. _Eigen: http://eigen.tuxfamily.org
+.. _pybind11: https://github.com/pybind/pybind11
