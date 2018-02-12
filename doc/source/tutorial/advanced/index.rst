@@ -58,7 +58,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
 
 .. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
 
-    Creates a Leaf object (e.g., Variable or Parameter). 
+    Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
     :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
@@ -85,7 +85,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type PSD: bool
     :param NSD: Is the variable constrained to be symmetric negative semidefinite?
     :type NSD: bool
-    :param boolean: 
+    :param boolean:
         Is the variable boolean (i.e., 0 or 1)? True, which constrains
         the entire variable to be boolean, False, or a list of
         indices which should be constrained as boolean, where each
@@ -219,7 +219,7 @@ The functions ``is_real``, ``is_complex``, and ``is_imag`` return whether an exp
    x = cvx.Variable(complex=True)
    # A purely imaginary parameter.
    p = cvx.Parameter(imag=True)
-   
+
    print("p.is_imag() = ", p.is_imag())
    print("(x + 2).is_real() = ", (x + 2).is_real())
 
@@ -375,6 +375,8 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `OSQP`_      | X  | X  |      |     |     |     |
 +--------------+----+----+------+-----+-----+-----+
+| `BONMIN_QP`_ | X  | X  |      |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
 | `CPLEX`_     | X  | X  |      |     |     |     |
 +--------------+----+----+------+-----+-----+-----+
 | `Elemental`_ | X  | X  | X    |     |     |     |
@@ -450,6 +452,14 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cvx.CBC)
     print("optimal value with CBC:", prob.value)
 
+    # Solve with OSQP.
+    prob.solve(solver=cvx.OSQP)
+    print("optimal value with OSQP:", prob.value)
+
+    # Solve with BONMIN_QP.
+    prob.solve(solver=cvx.BONMIN_QP)
+    print("optimal value with BONMIN_QP:", prob.value)
+
 ::
 
     optimal value with ECOS: 5.99999999551
@@ -462,6 +472,8 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with MOSEK: 6.0
     optimal value with Elemental: 6.0000044085242727
     optimal value with CBC: 6.0
+    optimal value with OSQP: 6.0
+    optimal value with BONMIN_QP: 5.999999920039999
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -471,7 +483,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'OSQP']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'OSQP', 'BONMIN_QP']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -510,7 +522,7 @@ and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the ``problem.solver_stats`` attribute,
 which returns a :class:`~cvxpy.problems.problem.SolverStats` object.
-For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem. 
+For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem.
 
 Warm start
 ----------
@@ -557,7 +569,7 @@ warm start would only be a good initial point.
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `BONMIN_QP`_ and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -689,17 +701,33 @@ Here is the complete list of solver options.
 
 `CBC`_ options:
 
-Cut-generation through `CGL`_
+Cbc currently supports no option despite ``'verbose'`` supported by all solvers.
 
-General remarks:
-    - some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)
-    - a few of these cut-generators will generate noisy output even if ``'verbose=False'``
+The support for manual control over cutting-plane usage (in cvxpy < 1.0) was dropped
+to provide well-tuned defaults without increasing implementation complexity. Cbc
+now will use the same options as Cbc's standalone solver-binary will do!
 
-The following cut-generators are available:
-    ``GomoryCuts``, ``MIRCuts``, ``MIRCuts2``, ``TwoMIRCuts``, ``ResidualCapacityCuts``, ``KnapsackCuts`` ``FlowCoverCuts``, ``CliqueCuts``, ``LiftProjectCuts``, ``AllDifferentCuts``, ``OddHoleCuts``, ``RedSplitCuts``, ``LandPCuts``, ``PreProcessCuts``, ``ProbingCuts``, ``SimpleRoundingCuts``.
+If you need additional options, ask for those at cvxpy's `issue-tracker (github)`_!
 
-``'CutGenName'``
-    if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
+`BONMIN_QP`_ options:
+
+``'hessian_approximation'``
+    whether `Ipopt`_'s (internal component of Bonmin) limited-memory quasi-Newton
+    (L-BFGS) approximation of the Hessian of the Lagrangian should be used.
+
+    This usually only helps when the Hessian of the optimization problem is dense
+    and therefore exact calculation is used by default.
+
+``'algorithm'``
+    algorithm to use for solving the optimization-problem.
+
+    Bonmin supports the following algorithms: "B-BB" (default), "B-OA", "B-QG",
+    "B-Hyb", "B-ECP", "B-iFP".
+
+    There is at least one test (currently) not working with "B-Hyb" (which should
+    transfer to "B-OA"). It is recommended to use the default!
+
+    Check out Bonmin's user-manual to learn more!
 
 Getting the standard form
 -------------------------
@@ -758,3 +786,6 @@ The full set of reductions available is discussed in :ref:`reductions-api`.
 .. _Elemental: http://libelemental.org/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
+.. _BONMIN_QP: https://github.com/sschnug/pyMIQP
+.. _issue-tracker (github): https://github.com/cvxgrp/cvxpy/issues
+.. _Ipopt: https://projects.coin-or.org/Ipopt
