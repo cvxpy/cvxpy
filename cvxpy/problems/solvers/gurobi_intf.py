@@ -20,6 +20,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from cvxpy.problems.solvers.solver import Solver
 from scipy.sparse import dok_matrix
+from six import iteritems
 
 
 class GUROBI(Solver):
@@ -320,11 +321,11 @@ class GUROBI(Solver):
         import gurobipy
         constr = []
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in iteritems(mat):
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except IndexError:
+            except KeyError:
                 pass
         for i in rows:
             # Ignore empty constraints.
@@ -362,7 +363,7 @@ class GUROBI(Solver):
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in iteritems(mat):
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
