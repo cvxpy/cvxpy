@@ -1609,7 +1609,7 @@ class TestProblem(BaseTest):
 
         for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
             prob = Problem(cvx.Minimize(cvx.pnorm(x, p=p)), [x.T*a >= 1])
-            prob.solve()
+            prob.solve(verbose=True)
 
             # formula is true for any a >= 0 with p > 1
             if p == np.inf:

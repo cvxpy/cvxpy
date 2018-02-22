@@ -20,6 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.reductions.solution import Solution
+import numpy as np
 
 from .conic_solver import ConicSolver
 
@@ -81,8 +83,8 @@ class CBC(ConicSolver):
         data["objective"] = objective
         data["constraints"] = constraints
         variables = problem.variables()[0]
-        data[s.BOOL_IDX] = [t[0] for t in variables.boolean_idx]
-        data[s.INT_IDX] = [t[0] for t in variables.integer_idx]
+        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
 
         # Order and group constraints.
         inv_data = {self.VAR_ID: problem.variables()[0].id}
@@ -90,7 +92,6 @@ class CBC(ConicSolver):
         inv_data[self.EQ_CONSTR] = eq_constr
         leq_constr = [c for c in problem.constraints if type(c) == NonPos]
         inv_data[self.NEQ_CONSTR] = leq_constr
-        inv_data['is_mip'] = len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -98,22 +99,9 @@ class CBC(ConicSolver):
         """
         status = solution['status']
 
-        primal_vars = None
-        dual_vars = None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value']
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-            if not inverse_data['is_mip']:
-                eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[Solver.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[Solver.NEQ_CONSTR])
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -121,6 +109,8 @@ class CBC(ConicSolver):
                 opt_val = -np.inf
             else:
                 opt_val = None
+            primal_vars = None
+        dual_vars = None
 
         return Solution(status, opt_val, primal_vars, dual_vars, {})
 

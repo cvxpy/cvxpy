@@ -75,6 +75,8 @@ class GLPK_MI(GLPK):
         import cvxopt
         import cvxopt.glpk
         data = self.get_problem_data(objective, constraints, cached_data)
+        data[s.BOOL_IDX] = solver_opts[s.BOOL_IDX]
+        data[s.INT_IDX] = solver_opts[s.INT_IDX]
         # Save original cvxopt solver options.
         old_options = cvxopt.glpk.options.copy()
         # Silence cvxopt if verbose is False.
@@ -96,8 +98,8 @@ class GLPK_MI(GLPK):
                                           data[s.H],
                                           data[s.A],
                                           data[s.B],
-                                          set(data[s.INT_IDX]),
-                                          set(data[s.BOOL_IDX]))
+                                          set([int(i) for i in data[s.INT_IDX]]),
+                                          set([int(i) for i in data[s.BOOL_IDX]]))
             results_dict = {}
             results_dict["status"] = results_tup[0]
             results_dict["x"] = results_tup[1]
