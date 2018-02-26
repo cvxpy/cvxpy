@@ -20,6 +20,8 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import CVXOPT
 from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.reductions.solution import Solution
+import numpy as np
 
 from .conic_solver import ConicSolver
 
@@ -56,6 +58,26 @@ class GLPK(CVXOPT):
                 if not arg.is_affine():
                     return False
         return True
+
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = solution['status']
+
+        primal_vars = None
+        dual_vars = None
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value']
+            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+        else:
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+            else:
+                opt_val = None
+
+        return Solution(status, opt_val, primal_vars, dual_vars, {})
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from cvxpy.problems.solvers.glpk_intf import GLPK as GLPK_OLD

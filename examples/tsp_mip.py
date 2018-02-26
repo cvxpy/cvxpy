@@ -25,21 +25,21 @@ from cvxpy import *
 
 np.random.seed(1)
 
-N = 10
+N = 5
 distances = np.random.rand(N, N)
 distances = (distances + distances.T)/2  # make symmetric = symmetric-TSP
 
 # VARS
-x = Bool(N, N)
-u = Int(N)
+x = Variable((N, N), boolean=True)
+u = Variable(N, integer=True)
 
 # CONSTRAINTS
 constraints = []
 for j in range(N):
-    indices = range(0, j) + range(j + 1, N)
+    indices = np.hstack((np.arange(0, j), np.arange(j + 1, N)))
     constraints.append(sum(x[indices, j]) == 1)
 for i in range(N):
-    indices = range(0, i) + range(i + 1, N)
+    indices = np.hstack((np.arange(0, i), np.arange(i + 1, N)))
     constraints.append(sum(x[i, indices]) == 1)
 
 for i in range(1, N):
@@ -53,4 +53,4 @@ obj = Minimize(sum(multiply(distances, x)))
 # SOLVE
 prob = Problem(obj, constraints)
 prob.solve(verbose=True)
-print prob.value
+print(prob.value)

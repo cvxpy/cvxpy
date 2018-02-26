@@ -184,7 +184,7 @@ class ExpCone(NonlinearConstraint):
             and (z scaled) Hessian at x.
         """
         import cvxopt  # Not necessary unless using cvxopt solver.
-        entries = np.prod(self.shape, dtype=int)
+        entries = int(np.prod(self.shape))
         if vars_ is None:
             x_init = entries*[0.0]
             y_init = entries*[0.5]
