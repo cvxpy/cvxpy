@@ -424,7 +424,7 @@ class MOSEK(ConicSolver):
         import mosek
         # Map of MOSEK status to CVXPY status.
         # taken from:
-        # http://docs.mosek.com/7.0/pythonapi/Solution_status_keys.html
+        # https://docs.mosek.com/8.1/pythonapi/constants.html?highlight=solsta#mosek.solsta
         if inverse_data['integer_variables']:
             sol = mosek.soltype.itg
         else:
@@ -438,67 +438,26 @@ class MOSEK(ConicSolver):
                       mosek.solsta.near_integer_optimal: s.OPTIMAL_INACCURATE,
                       mosek.solsta.near_prim_infeas_cer: s.INFEASIBLE_INACCURATE,
                       mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE,
-                      mosek.solsta.unknown: s.SOLVER_ERROR}
+                      mosek.solsta.unknown: s.SOLVER_ERROR,
+                      mosek.solsta.prim_illposed_cer: s.SOLVER_ERROR,
+                      mosek.solsta.dual_illposed_cer: s.SOLVER_ERROR}
 
         task.getprosta(sol)  # mosek "problem status"; unused.
         solution_status = task.getsolsta(sol)
 
         status = STATUS_MAP[solution_status]
         if status in s.SOLUTION_PRESENT:
-
             # get objective value
             opt_val = task.getprimalobj(sol) + inverse_data[s.OBJ_OFFSET]
-
-            # get cvxpy variable value
+            # recover the cvxpy standard-form primal variable
             x = [0.] * inverse_data['n0']
             task.getxxslice(sol, 0, inverse_data['n0'], x)
             primal_vars = {inverse_data[self.VAR_ID]: x}
-
-            # Dual variables.
-            #
-            #   A cvxpy "Constraint" object views itself as "affine_expression( vars ) \in K".
-            #   As such, the appropriate dual variable from the perspective of
-            #   a Constraint object should be in K^*. However, we need to think
-            #   about where in the mosek formulation that dual variable can be found.
-            #   One can verify that for a given Constraint, the slack in "A * x <=_K b"
-            #   is equal to the value "affine_expression( vars )." (This is due
-            #   to the implementation of format_constr in ConicSolver,
-            #   and format_constr's subsequent use in this class.)
-            #   As a result, the appropriate dual variable for a Constraint
-            #   represented as "A * x + s == b, s \in K" for the mosek formulation
-            #   is the conic dual variable to "s \in K" (rather than the Lagrange
-            #   multiplier on the system of linear equations "A * x + s == b").
-            #
-            #   The methods for getting dual variables in the mosek API are a little strange.
-            #   They have no return value, and instead they store the desired result
-            #   in the last argument provided to the function in question.
-
-            dual_vars = dict()
-
-            # Dual variables for the inequality constraints
-            suc_len = sum([ell for _, ell in inverse_data['suc_slacks']])
-            suc = [0.] * suc_len
-            task.getsucslice(sol, 0, suc_len, suc)
-            dual_vars.update(MOSEK.parse_dual_vars(suc, inverse_data['suc_slacks']))
-
-            # Dual variables for the original equality constraints
-            y_len = sum([ell for _, ell in inverse_data['y_slacks']])
-            y = [0.] * y_len
-            task.getyslice(sol, suc_len, suc_len + y_len, y)
-            dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
-
-            # Dual variables for SOC and EXP constraints
-            snx_len = sum([ell for _, ell in inverse_data['snx_slacks']])
-            snx = np.zeros(snx_len)
-            task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
-            dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
-
-            # Dual variables for PSD constraints
-            for j, (id, dim) in enumerate(inverse_data['psd_dims']):
-                sj = [0.] * (dim * (dim + 1) // 2)
-                task.getbarsj(sol, j, sj)
-                dual_vars[id] = vectorized_lower_tri_to_mat(sj, dim)
-
+            # recover the cvxpy standard-form dual variables
+            if sol == mosek.soltype.itg:
+                dual_vars = None
+            else:
+                dual_vars = MOSEK.recover_dual_variables(task, sol, inverse_data)
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -510,6 +469,65 @@ class MOSEK(ConicSolver):
             dual_vars = None
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr={})
+
+    @staticmethod
+    def recover_dual_variables(task, sol, inverse_data):
+        """
+        A cvxpy "Constraint" object views itself as "affine_expression( vars ) \in K".
+        As such, the appropriate dual variable from the perspective of
+        a Constraint object should be in K^*. However, we need to think
+        about where in the mosek formulation that dual variable can be found.
+
+        One can verify that for a given Constraint, the slack in "A * x <=_K b"
+        is equal to the value "affine_expression( vars )." (This is due
+        to the implementation of format_constr in ConicSolver,
+        and format_constr's subsequent use in this class.)
+        As a result, the appropriate dual variable for a Constraint
+        represented as "A * x + s == b, s \in K" for the mosek formulation
+        is the conic dual variable to "s \in K" (rather than the Lagrange
+        multiplier on the system of linear equations "A * x + s == b").
+
+        The methods for getting dual variables in the mosek API are a little strange.
+        They have no return value, and instead they store the desired result
+        in the last argument provided to the function in question.
+
+        :param task: the mosek task object which was just optimized
+        :param sol: the mosek solution type (usually mosek.soltype.itr, but possibly
+         mosek.soltype.bas if the problem was a linear program and the user requested
+         a basic reasible solution).
+        :param inverse_data: data recorded during "apply", in preparation for
+        constructing the mosek model.
+
+        :return: a dictionary mapping a cvxpy constraint object's id to its
+        corresponding dual variables in the current solution.
+        """
+        dual_vars = dict()
+
+        # Dual variables for the inequality constraints
+        suc_len = sum([ell for _, ell in inverse_data['suc_slacks']])
+        suc = [0.] * suc_len
+        task.getsucslice(sol, 0, suc_len, suc)
+        dual_vars.update(MOSEK.parse_dual_vars(suc, inverse_data['suc_slacks']))
+
+        # Dual variables for the original equality constraints
+        y_len = sum([ell for _, ell in inverse_data['y_slacks']])
+        y = [0.] * y_len
+        task.getyslice(sol, suc_len, suc_len + y_len, y)
+        dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
+
+        # Dual variables for SOC and EXP constraints
+        snx_len = sum([ell for _, ell in inverse_data['snx_slacks']])
+        snx = np.zeros(snx_len)
+        task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
+        dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
+
+        # Dual variables for PSD constraints
+        for j, (id, dim) in enumerate(inverse_data['psd_dims']):
+            sj = [0.] * (dim * (dim + 1) // 2)
+            task.getbarsj(sol, j, sj)
+            dual_vars[id] = vectorized_lower_tri_to_mat(sj, dim)
+
+        return dual_vars
 
     @staticmethod
     def parse_dual_vars(dual_var, constr_id_to_constr_dim):
