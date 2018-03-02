@@ -71,7 +71,7 @@ class log_sum_exp(AxisAtom):
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        return (True, False)
+        return (False, False)
 
     def is_atom_convex(self):
         """Is the atom convex?
@@ -86,7 +86,7 @@ class log_sum_exp(AxisAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return False
+        return True
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
