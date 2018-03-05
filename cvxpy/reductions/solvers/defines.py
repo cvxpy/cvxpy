@@ -49,7 +49,6 @@ from cvxpy.reductions.solvers.conic_solvers.julia_opt_conif \
 # QP interfaces
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
-from cvxpy.reductions.solvers.qp_solvers.mosek_qpif import MOSEK as MOSEK_qp
 from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 
 solver_conic_intf = [ECOS_con(), ECOS_BB_con(),
@@ -58,7 +57,6 @@ solver_conic_intf = [ECOS_con(), ECOS_BB_con(),
                      Elemental_con(), MOSEK_con(), JuliaOpt_con()]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
-                  MOSEK_qp(),
                   CPLEX_qp()
                   ]
 
@@ -73,7 +71,6 @@ CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SCS,
                  s.GLPK_MI, s.CBC, s.ELEMENTAL, s.JULIA_OPT, s.CVXOPT]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
-              s.MOSEK,
               s.CPLEX]
 
 
