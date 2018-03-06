@@ -256,7 +256,7 @@ class MOSEK(ConicSolver):
                 # If verbose, then set default logging parameters.
                 if verbose:
                     import sys
-                    
+
                     def streamprinter(text):
                         sys.stdout.write(text)
                         sys.stdout.flush()
