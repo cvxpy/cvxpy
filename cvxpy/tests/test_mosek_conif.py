@@ -171,3 +171,27 @@ class TestMosek(BaseTest):
             self.assertItemsAlmostEqual([1, 1], y.value.tolist())
         else:
             pass
+
+    def test_mosek_LP_solution_selection(self):
+        if cvx.MOSEK in cvx.installed_solvers():
+            # Problem from
+            # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            x = cvx.Variable(shape=(2,))
+            objective = cvx.Minimize(-4 * x[0] - 5 * x[1])
+            constraints = [2 * x[0] + x[1] <= 3,
+                           x[0] + 2 * x[1] <= 3,
+                           x[0] >= 0, x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+
+            # Default solution (interior point)
+            prob.solve(solver=cvx.MOSEK)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(x.value, [1, 1], places=5)
+
+            # Basic feasible solution
+            prob.solve(solver=cvx.MOSEK, bfs=True)
+            self.assertEqual(prob.value, -9)
+            self.assertItemsEqual(x.value, [1, 1])
+        else:
+            pass
+

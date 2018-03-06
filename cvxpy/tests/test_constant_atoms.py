@@ -68,6 +68,10 @@ KNOWN_SOLVER_ERRORS = [
     (log_sum_exp_axis_0, CVXOPT),
     (log_sum_exp_axis_1, CVXOPT),
     (kl_div, CVXOPT),
+    (kl_div, MOSEK),
+    (entr, MOSEK),
+    (log, MOSEK),
+    (log1p, MOSEK)
 ]
 
 atoms = [
@@ -286,7 +290,7 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
         print(problem.objective)
         print(problem.constraints)
         print("solver", solver)
-    if check_solver(problem, solver):
+    if check_solver(problem, solver) and not (atom, solver) in KNOWN_SOLVER_ERRORS:
         tolerance = SOLVER_TO_TOL[solver]
 
         try:
@@ -300,13 +304,11 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
                 return
             raise e
 
-        if problem.status in [OPTIMAL, OPTIMAL_INACCURATE]:
-            if verbose:
-                print(result)
-                print(obj_val)
-            assert(-tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance)
-        else:
-            assert (atom, solver) in KNOWN_SOLVER_ERRORS
+        if verbose:
+            print(result)
+            print(obj_val)
+        assert(-tolerance <= (result - obj_val)/(1+np.abs(obj_val)) <= tolerance)
+
 
 def get_indices(size):
     """Get indices for dimension.
