@@ -532,9 +532,10 @@ class MOSEK(ConicSolver):
 
         # Dual variables for SOC and EXP constraints
         snx_len = sum([ell for _, ell in inverse_data['snx_slacks']])
-        snx = np.zeros(snx_len)
-        task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
-        dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
+        if snx_len > 0:
+            snx = np.zeros(snx_len)
+            task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
+            dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
 
         # Dual variables for PSD constraints
         for j, (id, dim) in enumerate(inverse_data['psd_dims']):
