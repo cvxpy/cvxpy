@@ -190,8 +190,8 @@ class TestMosek(BaseTest):
 
             # Basic feasible solution
             prob.solve(solver=cvx.MOSEK, bfs=True)
-            self.assertAlmostEqual(prob.value, -9)
-            self.assertItemsAlmostEqual(x.value, [1, 1])
+            self.assertAlmostEqual(prob.value, -9, places=10)
+            self.assertItemsAlmostEqual(x.value, [1, 1], places=10)
         else:
             pass
 
