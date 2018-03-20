@@ -81,12 +81,12 @@ class Constraint(u.Canonical):
     def is_imag(self):
         """Is the Leaf imaginary?
         """
-        return all([arg.is_imag() for arg in self.args])
+        return all(arg.is_imag() for arg in self.args)
 
     def is_complex(self):
         """Is the Leaf complex valued?
         """
-        return any([arg.is_complex() for arg in self.args])
+        return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
     def is_dcp(self):

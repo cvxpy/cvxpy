@@ -216,7 +216,7 @@ class Leaf(expression.Expression):
         """Is the Leaf symmetric?
         """
         return self.is_scalar() or \
-            any([self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD']])
+            any(self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD'])
 
     def is_imag(self):
         """Is the Leaf imaginary?

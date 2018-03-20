@@ -25,9 +25,9 @@ def separable_canon(expr, real_args, imag_args, real2imag):
     """Canonicalize linear functions that are seprable
        in real and imaginary parts.
     """
-    if all([val is None for val in imag_args]):
+    if all(val is None for val in imag_args):
         outputs = (expr.copy(real_args), None)
-    elif all([val is None for val in real_args]):
+    elif all(val is None for val in real_args):
         outputs = (None, expr.copy(imag_args))
     else:  # Mixed real_args and imaginaries.
         for idx, real_val in enumerate(real_args):

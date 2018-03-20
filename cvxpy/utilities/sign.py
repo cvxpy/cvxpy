@@ -27,8 +27,8 @@ def sum_signs(exprs):
     Returns:
         The sign (is pos, is neg) of the sum.
     """
-    is_pos = all([expr.is_nonneg() for expr in exprs])
-    is_neg = all([expr.is_nonpos() for expr in exprs])
+    is_pos = all(expr.is_nonneg() for expr in exprs)
+    is_neg = all(expr.is_nonpos() for expr in exprs)
     return (is_pos, is_neg)
 
 

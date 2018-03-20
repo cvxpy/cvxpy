@@ -95,7 +95,7 @@ class indicator(Expression):
         Returns:
             A numpy matrix or a scalar.
         """
-        if all([cons.value for cons in self.args]):
+        if all(cons.value for cons in self.args):
             return 0
         else:
             return np.infty
