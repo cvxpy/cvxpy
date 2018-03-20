@@ -120,7 +120,7 @@ class Leaf(expression.Expression):
             self.integer_idx = []
 
         # Only one attribute be True (except can be boolean and integer).
-        true_attr = sum([1 for k, v in self.attributes.items() if v])
+        true_attr = sum(1 for k, v in self.attributes.items() if v)
         if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
@@ -216,7 +216,7 @@ class Leaf(expression.Expression):
         """Is the Leaf symmetric?
         """
         return self.is_scalar() or \
-            any([self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD']])
+            any(self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD'])
 
     def is_imag(self):
         """Is the Leaf imaginary?

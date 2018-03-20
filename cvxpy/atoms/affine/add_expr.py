@@ -63,13 +63,13 @@ class AddExpression(AffAtom):
     def is_symmetric(self):
         """Is the expression symmetric?
         """
-        symm_args = all([arg.is_symmetric() for arg in self.args])
+        symm_args = all(arg.is_symmetric() for arg in self.args)
         return self.shape[0] == self.shape[1] and symm_args
 
     def is_hermitian(self):
         """Is the expression Hermitian?
         """
-        herm_args = all([arg.is_hermitian() for arg in self.args])
+        herm_args = all(arg.is_hermitian() for arg in self.args)
         return self.shape[0] == self.shape[1] and herm_args
 
     # As __init__ takes in the arg_groups instead of args, we need a special

@@ -44,8 +44,8 @@ class TestShape(unittest.TestCase):
         self.assertEqual(shape.sum_shapes([(1,), (3, 4)]), (3, 4))
         self.assertEqual(shape.sum_shapes([(3, 4), (1,)]), (3, 4))
 
-        self.assertEqual(shape.sum_shapes([tuple([]), (3, 4)]), (3, 4))
-        self.assertEqual(shape.sum_shapes([(3, 4), tuple([])]), (3, 4))
+        self.assertEqual(shape.sum_shapes([tuple(), (3, 4)]), (3, 4))
+        self.assertEqual(shape.sum_shapes([(3, 4), tuple()]), (3, 4))
 
         self.assertEqual(shape.sum_shapes([(1, 1), (4,)]), (1, 4))
         self.assertEqual(shape.sum_shapes([(4,), (1, 1)]), (1, 4))
