@@ -68,10 +68,6 @@ KNOWN_SOLVER_ERRORS = [
     (log_sum_exp_axis_0, CVXOPT),
     (log_sum_exp_axis_1, CVXOPT),
     (kl_div, CVXOPT),
-    (kl_div, MOSEK),
-    (entr, MOSEK),
-    (log, MOSEK),
-    (log1p, MOSEK)
 ]
 
 atoms = [
