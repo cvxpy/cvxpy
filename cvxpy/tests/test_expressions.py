@@ -310,9 +310,9 @@ class TestExpressions(BaseTest):
         self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
 
         np.random.seed(1)
-        A = sp.random(10, 5, .5)
+        A = sp.random(10, 5, .5).todense()
         P = Parameter((10, 5), value=A)
-        self.assertItemsAlmostEqual(P.value.todense(), A.todense())
+        self.assertItemsAlmostEqual(P.value, A)
 
     def test_symmetric(self):
         """Test symmetric variables.

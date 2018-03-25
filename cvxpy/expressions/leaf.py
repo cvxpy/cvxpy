@@ -284,6 +284,8 @@ class Leaf(expression.Expression):
             # boolean in others.
             return np.round(val)
         elif self.attributes['diag']:
+            # is "val" a numpy array, or a scipy matrix? The behavior of np.diag() changes
+            # (in important ways!) between these two cases.
             return sp.diags([np.diag(val)], [0])
         elif self.attributes['hermitian']:
             return (val + np.conj(val).T)/2
@@ -341,7 +343,12 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            elif np.sum(self.project(val) != val):
+            proj = self.project(val)
+            if intf.is_sparse(proj):
+                proj = np.array(proj.todense())
+            if intf.is_sparse(val):
+                val = np.array(val.todense())
+            if not np.allclose(proj, val, rtol=1e-8):
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
                 elif self.attributes['nonpos']:
