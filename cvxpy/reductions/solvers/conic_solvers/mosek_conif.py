@@ -81,11 +81,11 @@ class MOSEK(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
     EXP_CONE_ORDER = [2, 1, 0]
 
-    """    
-    Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone 
-    by default. CVXPY will check for exponential cone support when 
+    """
+    Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone
+    by default. CVXPY will check for exponential cone support when
     "import_solver( ... )" or "accepts( ... )" is called.
-    
+
     The cvxpy standard for the exponential cone is:
         K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
     Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
@@ -96,7 +96,7 @@ class MOSEK(ConicSolver):
 
     Well for whatever reason, NO. After trying all 6 possible values for "EXP_CONE_ORDER",
     the only one that passes units tests is EXP_CONE_ORDER = [2, 1, 0]. However "hackish",
-    trying all 6 possibilities during development is really not a problem. We recommend 
+    trying all 6 possibilities during development is really not a problem. We recommend
     doing the same to add exponential cone support for other solvers.
     """
 
@@ -256,6 +256,7 @@ class MOSEK(ConicSolver):
                 # If verbose, then set default logging parameters.
                 if verbose:
                     import sys
+
                     def streamprinter(text):
                         sys.stdout.write(text)
                         sys.stdout.flush()
@@ -531,9 +532,10 @@ class MOSEK(ConicSolver):
 
         # Dual variables for SOC and EXP constraints
         snx_len = sum([ell for _, ell in inverse_data['snx_slacks']])
-        snx = np.zeros(snx_len)
-        task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
-        dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
+        if snx_len > 0:
+            snx = np.zeros(snx_len)
+            task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
+            dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
 
         # Dual variables for PSD constraints
         for j, (id, dim) in enumerate(inverse_data['psd_dims']):
