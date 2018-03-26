@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-
+import cvxpy
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.sigma_max import sigma_max
@@ -47,7 +47,7 @@ def norm(x, p=2, axis=None):
     # matrix norms take precedence
     if axis is None and x.is_matrix():
         if p == 1:  # matrix 1-norm
-            return np.linalg.norm(x, 1)
+            return cvxpy.atoms.max(norm1(x, axis=0))
         elif p == 2:  # matrix 2-norm is largest singular value
             return sigma_max(x)
         elif p == 'nuc':  # the nuclear norm (sum of singular values)
@@ -55,7 +55,7 @@ def norm(x, p=2, axis=None):
         elif p == 'fro':  # Frobenius norm
             return pnorm(vec(x), 2)
         elif p in [np.inf, "inf", "Inf"]:  # the matrix infinity-norm
-            return np.linalg.norm(x, np.inf)
+            return cvxpy.atoms.max(norm1(x, axis=1))
         else:
             raise RuntimeError('Unsupported matrix norm.')
     else:
