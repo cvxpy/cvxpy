@@ -783,24 +783,24 @@ class TestProblem(BaseTest):
     # Test problems with norm2
     def test_norm2(self):
         # Constant argument.
-        p = Problem(cvx.Minimize(cvx.norm2(-2)))
+        p = Problem(cvx.Minimize(cvx.pnorm(-2, p=2)))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
 
         # Scalar arguments.
-        p = Problem(cvx.Minimize(cvx.norm2(self.a)), [self.a <= -2])
+        p = Problem(cvx.Minimize(cvx.pnorm(self.a, p=2)), [self.a <= -2])
         result = p.solve()
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # cvx.Maximize
-        p = Problem(cvx.Maximize(-cvx.norm2(self.a)), [self.a <= -2])
+        p = Problem(cvx.Maximize(-cvx.pnorm(self.a, p=2)), [self.a <= -2])
         result = p.solve()
         self.assertAlmostEqual(result, -2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
-        p = Problem(cvx.Minimize(cvx.norm2(self.x - self.z) + 5),
+        p = Problem(cvx.Minimize(cvx.pnorm(self.x - self.z, p=2) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
         result = p.solve()
         self.assertAlmostEqual(result, 12.61577)
@@ -808,7 +808,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.z.value, [-1, -4])
 
         # Row  arguments.
-        p = Problem(cvx.Minimize(cvx.norm2((self.x - self.z).T) + 5),
+        p = Problem(cvx.Minimize(cvx.pnorm((self.x - self.z).T, p=2) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
         result = p.solve()
         self.assertAlmostEqual(result, 12.61577)
@@ -856,10 +856,10 @@ class TestProblem(BaseTest):
 
     # Test combining atoms
     def test_mixed_atoms(self):
-        p = Problem(cvx.Minimize(cvx.norm2(5 + cvx.norm1(self.z)
+        p = Problem(cvx.Minimize(cvx.pnorm(5 + cvx.norm1(self.z)
                                    + cvx.norm1(self.x) +
-                                   cvx.norm_inf(self.x - self.z))),
-                    [self.x >= [2, 3], self.z <= [-1, -4], cvx.norm2(self.x + self.z) <= 2])
+                                   cvx.norm_inf(self.x - self.z), p=2)),
+                    [self.x >= [2, 3], self.z <= [-1, -4], cvx.pnorm(self.x + self.z, p=2) <= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 22)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
@@ -867,7 +867,7 @@ class TestProblem(BaseTest):
 
     # Test multiplying by constant atoms.
     def test_mult_constant_atoms(self):
-        p = Problem(cvx.Minimize(cvx.norm2([3, 4])*self.a), [self.a >= 2])
+        p = Problem(cvx.Minimize(cvx.pnorm([3, 4], p=2)*self.a), [self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
         self.assertAlmostEqual(self.a.value, 2)
@@ -884,7 +884,7 @@ class TestProblem(BaseTest):
                 p = Problem(cvx.Minimize(cvx.norm1(self.x + self.z)),
                             [self.x >= [2, 3],
                             [[1, 2], [3, 4]]*self.z == [-1, -4],
-                            cvx.norm2(self.x + self.z) <= 100])
+                            cvx.pnorm(self.x + self.z, p=2) <= 100])
                 result = p.solve(solver=solver)
                 self.assertAlmostEqual(result, 4, places=acc)
                 self.assertItemsAlmostEqual(self.x.value, [4, 3], places=acc)
@@ -931,8 +931,8 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, [1, -2, -3, 4])
 
         # Indexing arithmetic expressions.
-        exp = [[1, 2], [3, 4]]*self.z + self.x
-        p = Problem(cvx.Minimize(exp[1]), [self.x == self.z, self.z == [1, 2]])
+        expr = [[1, 2], [3, 4]]*self.z + self.x
+        p = Problem(cvx.Minimize(expr[1]), [self.x == self.z, self.z == [1, 2]])
         result = p.solve()
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
@@ -997,7 +997,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.C.value[0:2, 0], [1, 2])
         self.assertItemsAlmostEqual(self.A.value, [1, -.5, 1, 1])
 
-        p = Problem(cvx.Minimize(cvx.norm2((self.C[0:2, :] + self.A)[:, 0])),
+        p = Problem(cvx.Minimize(cvx.pnorm((self.C[0:2, :] + self.A)[:, 0], p=2)),
                     [self.C[1:3, :] <= 2, self.C[0, :] == 1,
                      (self.A + self.B)[:, 0] == 3, (self.A + self.B)[:, 1] == 2,
                      self.B == 1])
@@ -1232,8 +1232,8 @@ class TestProblem(BaseTest):
         diff_exp = self.x - self.z
         inf_exp = cvx.norm_inf(diff_exp)
         sum_exp = 5 + cvx.norm1(self.z) + cvx.norm1(self.x) + inf_exp
-        constr_exp = cvx.norm2(self.x + self.z)
-        obj = cvx.norm2(sum_exp)
+        constr_exp = cvx.pnorm(self.x + self.z, p=2)
+        obj = cvx.pnorm(sum_exp, p=2)
         p = Problem(cvx.Minimize(obj),
                     [self.x >= [2, 3], self.z <= [-1, -4], constr_exp <= 2])
         result = p.solve()

@@ -84,20 +84,6 @@ class TestAtoms(BaseTest):
         self.assertEqual(norm1(atom).curvature, s.CONVEX)
         self.assertEqual(norm1(-atom).curvature, s.CONVEX)
 
-    # Test the norm2 class.
-    def test_norm2(self):
-        exp = self.x+self.y
-        atom = norm2(exp)
-        # self.assertEqual(atom.name(), "norm2(x + y)")
-        self.assertEqual(atom.shape, tuple())
-        self.assertEqual(atom.curvature, s.CONVEX)
-        self.assertEqual(norm2(atom).curvature, s.CONVEX)
-        self.assertEqual(norm2(-atom).curvature, s.CONVEX)
-
-        # Test with axis arg.
-        expr = norm(self.A, 2, axis=0)
-        self.assertEqual(expr.shape, (2,))
-
     def test_quad_form(self):
         """Test quad_form atom.
         """
@@ -200,6 +186,8 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.shape, tuple())
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.NONNEG)
+        expr = norm(self.A, 2, axis=0)
+        self.assertEqual(expr.shape, (2,))
 
         atom = pnorm(self.x, p='inf')
         self.assertEqual(atom.shape, tuple())

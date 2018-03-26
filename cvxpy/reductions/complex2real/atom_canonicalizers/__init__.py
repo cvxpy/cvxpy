@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
                          promote, abs, reshape, trace,
                          upper_tri, conj, imag, real,
-                         norm1, norm_inf, norm2, Pnorm,
+                         norm1, norm_inf, Pnorm,
                          sigma_max, lambda_max, lambda_sum_largest,
                          log_det, QuadForm, MatrixFrac)
 from cvxpy.atoms.affine.sum import Sum
@@ -85,7 +85,6 @@ CANON_METHODS = {
     abs: abs_canon,
     norm1: pnorm_canon,
     norm_inf: pnorm_canon,
-    norm2: pnorm_canon,
     Pnorm: pnorm_canon,
 
     lambda_max: hermitian_canon,

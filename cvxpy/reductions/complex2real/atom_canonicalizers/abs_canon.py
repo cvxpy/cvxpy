@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from cvxpy.atoms import abs, vstack, norm2, reshape
+from cvxpy.atoms import abs, vstack, pnorm, reshape
 
 
 def abs_canon(expr, real_args, imag_args, real2imag):
@@ -29,6 +29,6 @@ def abs_canon(expr, real_args, imag_args, real2imag):
     else:  # Complex.
         real = real_args[0].flatten()
         imag = imag_args[0].flatten()
-        norms = norm2(vstack([real, imag]), axis=0)
+        norms = pnorm(vstack([real, imag]), p=2, axis=0)
         output = reshape(norms, real_args[0].shape)
     return output, None

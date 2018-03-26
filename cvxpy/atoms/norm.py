@@ -44,19 +44,24 @@ def norm(x, p=2, axis=None):
         An Expression representing the norm.
     """
     x = Expression.cast_to_const(x)
-    # Norms for scalars same as absolute value.
-    if p == 1 or x.is_scalar():
-        return norm1(x, axis=axis)
-    elif p in [np.inf, "inf", "Inf"]:
-        return norm_inf(x, axis)
-    elif p == "nuc":
-        return normNuc(x)
-    elif p == "fro":
-        return pnorm(vec(x), 2)
-    elif p == 2:
-        if axis is None and x.is_matrix():
+    # matrix norms take precedence
+    if axis is None and x.is_matrix():
+        if p == 1:  # matrix 1-norm
+            return np.linalg.norm(x, 1)
+        elif p == 2:  # matrix 2-norm is largest singular value
             return sigma_max(x)
+        elif p == 'nuc':  # the nuclear norm (sum of singular values)
+            return normNuc(x)
+        elif p == 'fro':  # Frobenius norm
+            return pnorm(vec(x), 2)
+        elif p in [np.inf, "inf", "Inf"]:  # the matrix infinity-norm
+            return np.linalg.norm(x, np.inf)
         else:
-            return pnorm(x, 2, axis)
+            raise RuntimeError('Unsupported matrix norm.')
     else:
-        return pnorm(x, p, axis)
+        if p == 1 or x.is_scalar():
+            return norm1(x, axis=axis)
+        elif p in [np.inf, "inf", "Inf"]:
+            return norm_inf(x, axis)
+        else:
+            return pnorm(x, p, axis)
