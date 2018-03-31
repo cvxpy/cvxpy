@@ -98,8 +98,8 @@ class GLPK_MI(GLPK):
                                           data[s.H],
                                           data[s.A],
                                           data[s.B],
-                                          set([int(i) for i in data[s.INT_IDX]]),
-                                          set([int(i) for i in data[s.BOOL_IDX]]))
+                                          set(int(i) for i in data[s.INT_IDX]),
+                                          set(int(i) for i in data[s.BOOL_IDX]))
             results_dict = {}
             results_dict["status"] = results_tup[0]
             results_dict["x"] = results_tup[1]

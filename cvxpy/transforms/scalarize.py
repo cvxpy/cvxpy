@@ -31,7 +31,7 @@ def weighted_sum(objectives, weights):
       A Minimize/Maximize objective.
     """
     num_objs = len(objectives)
-    return sum([objectives[i]*weights[i] for i in range(num_objs)])
+    return sum(objectives[i]*weights[i] for i in range(num_objs))
 
 
 def targets_and_priorities(objectives, priorities, targets, limits=None, off_target=1e-5):

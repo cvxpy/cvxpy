@@ -59,7 +59,7 @@ class Atom(Expression):
     def validate_arguments(self):
         """Raises an error if the arguments are invalid.
         """
-        if not self._allow_complex and any([arg.is_complex() for arg in self.args]):
+        if not self._allow_complex and any(arg.is_complex() for arg in self.args):
             raise ValueError(
                 "Arguments to %s cannot be complex." % self.__class__.__name__
             )

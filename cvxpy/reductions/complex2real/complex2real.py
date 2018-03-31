@@ -33,7 +33,7 @@ class Complex2Real(Reduction):
 
     def accepts(self, problem):
         leaves = problem.variables() + problem.parameters() + problem.constants()
-        return any([l.is_complex() for l in leaves])
+        return any(l.is_complex() for l in leaves)
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
@@ -123,5 +123,5 @@ class Complex2Real(Reduction):
                 leaf_map[expr] = result
             return result
         else:
-            assert all([v is None for v in imag_args])
+            assert all(v is None for v in imag_args)
             return expr.copy(real_args), None

@@ -89,9 +89,9 @@ class ConeDims(object):
         dimension of the PSD cone of k by k matrices is k.
     """
     def __init__(self, constr_map):
-        self.zero = sum([c.size for c in constr_map[Zero]])
-        self.nonpos = sum([c.size for c in constr_map[NonPos]])
-        self.exp = sum([c.num_cones() for c in constr_map[ExpCone]])
+        self.zero = sum(c.size for c in constr_map[Zero])
+        self.nonpos = sum(c.size for c in constr_map[NonPos])
+        self.exp = sum(c.num_cones() for c in constr_map[ExpCone])
         self.soc = [dim for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [c.shape[0] for c in constr_map[PSD]]
 
@@ -206,7 +206,7 @@ class ConicSolver(Solver):
             coeff, offset = ConicSolver.get_coeff_offset(arg)
             coeffs.append(coeff.tocsr())
             offsets.append(offset)
-        height = sum([c.shape[0] for c in coeffs])
+        height = sum(c.shape[0] for c in coeffs)
 
         if type(constr) in [NonPos, Zero]:
             # Both of these constraints have but a single argument.
