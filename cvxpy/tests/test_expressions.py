@@ -257,6 +257,11 @@ class TestExpressions(BaseTest):
         p = Parameter((100, 100), PSD=True)
         p.value = a2
         self.assertItemsAlmostEqual(p.value, a2, places=10)
+        
+        # Test valid diagonal parameter.
+        p = Parameter((2, 2), diag=True)
+        p.value = sp.csc_matrix(np.eye(2))
+        self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
 
     # Test the Parameter class on bad inputs.
     def test_parameters_failures(self):
