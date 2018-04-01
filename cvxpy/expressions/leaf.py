@@ -345,10 +345,13 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            projection = self.project(val)  # might be a numpy array, or sparse scipy matrix.
-            delta = np.abs(val - projection)  # might be a numpy array, scipy matrix, or sparse scipy matrix.
+            projection = self.project(val)
+            # ^ might be a numpy array, or sparse scipy matrix.
+            delta = np.abs(val - projection)
+            # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
             if intf.is_sparse(delta):  # is a scipy sparse matrix
-                is_close_enough = np.allclose(delta.data, 0)  # only check for near-equality on nonzero values.
+                is_close_enough = np.allclose(delta.data, 0)  
+                # ^ only check for near-equality on nonzero values.
             else:
                 delta = np.array(delta)  # make sure we have a numpy array.
                 is_close_enough = np.allclose(delta, 0, atol=1e-8)
