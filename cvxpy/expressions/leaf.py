@@ -350,7 +350,7 @@ class Leaf(expression.Expression):
             delta = np.abs(val - projection)
             # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
             if intf.is_sparse(delta):  # is a scipy sparse matrix
-                is_close_enough = np.allclose(delta.data, 0)  
+                is_close_enough = np.allclose(delta.data, 0)
                 # ^ only check for near-equality on nonzero values.
             else:
                 delta = np.array(delta)  # make sure we have a numpy array.
