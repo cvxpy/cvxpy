@@ -20,7 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import numpy
 
 from cvxpy import Maximize, Minimize, Problem
-from cvxpy.atoms import norm2, exp, diag
+from cvxpy.atoms import exp, diag, pnorm
 from cvxpy.constraints import SOC, ExpCone
 from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
@@ -215,7 +215,7 @@ class TestLinearCone(BaseTest):
         """
         for solver in self.solvers:
             # Basic.
-            p = Problem(Minimize(self.b), [norm2(self.x) <= self.b])
+            p = Problem(Minimize(self.b), [pnorm(self.x, p=2) <= self.b])
             pmod = Problem(Minimize(self.b), [SOC(self.b, self.x)])
             self.assertTrue(ConeMatrixStuffing().accepts(pmod))
             p_new = ConeMatrixStuffing().apply(pmod)
@@ -231,7 +231,7 @@ class TestLinearCone(BaseTest):
                                             var.value)
 
             # More complex.
-            p = Problem(Minimize(self.b), [norm2(self.x/2 + self.y[:2]) <= self.b+5,
+            p = Problem(Minimize(self.b), [pnorm(self.x/2 + self.y[:2], p=2) <= self.b+5,
                                            self.x >= 1, self.y == 5])
             pmod = Problem(Minimize(self.b), [SOC(self.b+5, self.x/2 + self.y[:2]),
                                               self.x >= 1, self.y == 5])

@@ -226,8 +226,45 @@ class TestExpressions(BaseTest):
         self.assertEqual((c*p).value, 3)
         self.assertEqual((c*self.x).shape, tuple())
 
-    # Test the Parameter class.
-    def test_parameters(self):
+    # Test Parameter class on good inputs.
+    def test_parameters_successes(self):
+        # Parameter names and dimensions
+        p = Parameter(name='p')
+        self.assertEqual(p.name(), "p")
+        self.assertEqual(p.shape, tuple())
+
+        # Entry-wise constraints on parameter values.
+        val = -np.ones((4, 3))
+        val[0, 0] = 2
+        p = Parameter((4, 3))
+        p.value = val
+
+        # Initialize a parameter with a value; later, set it to None.
+        p = Parameter(value=10)
+        self.assertEqual(p.value, 10)
+        p.value = 10
+        p.value = None
+        self.assertEqual(p.value, None)
+
+        # Test parameter representation.
+        p = Parameter((4, 3), nonpos=True)
+        self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
+
+        # Test valid PSD parameter.
+        np.random.seed(42)
+        a = np.random.normal(size=(100, 95))
+        a2 = a.dot(a.T)  # This must be a PSD matrix.
+        p = Parameter((100, 100), PSD=True)
+        p.value = a2
+        self.assertItemsAlmostEqual(p.value, a2, places=10)
+        
+        # Test valid diagonal parameter.
+        p = Parameter((2, 2), diag=True)
+        p.value = sp.csc_matrix(np.eye(2))
+        self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
+
+    # Test the Parameter class on bad inputs.
+    def test_parameters_failures(self):
         p = Parameter(name='p')
         self.assertEqual(p.name(), "p")
         self.assertEqual(p.shape, tuple())
@@ -250,19 +287,6 @@ class TestExpressions(BaseTest):
             p.value = val
         self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
 
-        # No error for unknown sign.
-        p = Parameter((4, 3))
-        p.value = val
-
-        # Initialize a parameter with a value.
-        p = Parameter(value=10)
-        self.assertEqual(p.value, 10)
-
-        # Test assigning None.
-        p.value = 10
-        p.value = None
-        assert p.value == None
-
         with self.assertRaises(Exception) as cm:
             p = Parameter(2, 1, nonpos=True, value=[2, 1])
         self.assertEqual(str(cm.exception), "Parameter value must be nonpositive.")
@@ -271,48 +295,39 @@ class TestExpressions(BaseTest):
             p = Parameter((4, 3), nonneg=True, value=[1, 2])
         self.assertEqual(str(cm.exception), "Invalid dimensions (2,) for Parameter value.")
 
-        # Test repr.
-        p = Parameter((4, 3), nonpos=True)
-        self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
-
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, symmetric=True)
         self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Parameter.")
 
         # Boolean
         with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), boolean=True, value=[[1,1], [1,-1]])
+            p = Parameter((2, 2), boolean=True, value=[[1, 1], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be boolean.")
 
         # Integer
         with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), integer=True, value=[[1,1.5], [1,-1]])
+            p = Parameter((2, 2), integer=True, value=[[1, 1.5], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be integer.")
 
         # Diag.
         with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), diag=True, value=[[1,1], [1,-1]])
+            p = Parameter((2, 2), diag=True, value=[[1, 1], [1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be diagonal.")
 
         # Symmetric.
         with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), symmetric=True, value=[[1,1], [-1,-1]])
+            p = Parameter((2, 2), symmetric=True, value=[[1, 1], [-1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be symmetric.")
 
         # PSD
         with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), PSD=True, value=[[1,0], [0,-1]])
+            p = Parameter((2, 2), PSD=True, value=[[1, 0], [0, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be positive semidefinite.")
 
         # NSD
         with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), NSD=True, value=[[1,0], [0,-1]])
+            p = Parameter((2, 2), NSD=True, value=[[1, 0], [0, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
-
-        np.random.seed(1)
-        A = sp.random(10, 5, .5)
-        P = Parameter((10, 5), value=A)
-        self.assertItemsAlmostEqual(P.value.todense(), A.todense())
 
     def test_symmetric(self):
         """Test symmetric variables.

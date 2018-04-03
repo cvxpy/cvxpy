@@ -520,15 +520,18 @@ class MOSEK(ConicSolver):
 
         # Dual variables for the inequality constraints
         suc_len = sum(ell for _, ell in inverse_data['suc_slacks'])
-        suc = [0.] * suc_len
-        task.getsucslice(sol, 0, suc_len, suc)
-        dual_vars.update(MOSEK.parse_dual_vars(suc, inverse_data['suc_slacks']))
+        if suc_len > 0:
+            suc = [0.] * suc_len
+            task.getsucslice(sol, 0, suc_len, suc)
+            dual_vars.update(MOSEK.parse_dual_vars(suc, inverse_data['suc_slacks']))
 
         # Dual variables for the original equality constraints
         y_len = sum(ell for _, ell in inverse_data['y_slacks'])
-        y = [0.] * y_len
-        task.getyslice(sol, suc_len, suc_len + y_len, y)
-        dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
+        if y_len > 0:
+            y = [0.] * y_len
+            task.getyslice(sol, suc_len, suc_len + y_len, y)
+            dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
+
 
         # Dual variables for SOC and EXP constraints
         snx_len = sum(ell for _, ell in inverse_data['snx_slacks'])

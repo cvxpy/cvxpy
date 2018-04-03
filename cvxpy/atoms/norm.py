@@ -18,7 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-
+import cvxpy
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.sigma_max import sigma_max
@@ -44,19 +44,24 @@ def norm(x, p=2, axis=None):
         An Expression representing the norm.
     """
     x = Expression.cast_to_const(x)
-    # Norms for scalars same as absolute value.
-    if p == 1 or x.is_scalar():
-        return norm1(x, axis=axis)
-    elif p in [np.inf, "inf", "Inf"]:
-        return norm_inf(x, axis)
-    elif p == "nuc":
-        return normNuc(x)
-    elif p == "fro":
-        return pnorm(vec(x), 2)
-    elif p == 2:
-        if axis is None and x.is_matrix():
+    # matrix norms take precedence
+    if axis is None and x.ndim == 2:
+        if p == 1:  # matrix 1-norm
+            return cvxpy.atoms.max(norm1(x, axis=0))
+        elif p == 2:  # matrix 2-norm is largest singular value
             return sigma_max(x)
+        elif p == 'nuc':  # the nuclear norm (sum of singular values)
+            return normNuc(x)
+        elif p == 'fro':  # Frobenius norm
+            return pnorm(vec(x), 2)
+        elif p in [np.inf, "inf", "Inf"]:  # the matrix infinity-norm
+            return cvxpy.atoms.max(norm1(x, axis=1))
         else:
-            return pnorm(x, 2, axis)
+            raise RuntimeError('Unsupported matrix norm.')
     else:
-        return pnorm(x, p, axis)
+        if p == 1 or x.is_scalar():
+            return norm1(x, axis=axis)
+        elif p in [np.inf, "inf", "Inf"]:
+            return norm_inf(x, axis)
+        else:
+            return pnorm(x, p, axis)

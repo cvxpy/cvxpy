@@ -33,10 +33,10 @@ squares loss function** and an :math:`\ell_1` **regularizer**.
 .. code:: ipython2
 
     def loss_fn(X, Y, beta):
-        return cp.norm2(cp.matmul(X, beta) - Y)**2
+        return cp.norm(cp.matmul(X, beta) - Y, p=2)**2
     
     def regularizer(beta):
-        return cp.norm1(beta)
+        return cp.norm(beta, p=1)
     
     def objective_fn(X, Y, beta, lambd):
         return loss_fn(X, Y, beta) + lambd * regularizer(beta)
