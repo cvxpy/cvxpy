@@ -136,7 +136,7 @@ class ExpCone(NonlinearConstraint):
     def is_dcp(self):
         """An exponential constraint is DCP if each argument is affine.
         """
-        return all([arg.is_affine() for arg in self.args])
+        return all(arg.is_affine() for arg in self.args)
 
     def canonicalize(self):
         """Canonicalizes by converting expressions to LinOps.

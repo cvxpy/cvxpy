@@ -45,7 +45,7 @@ class Elementwise(Atom):
     def is_symmetric(self):
         """Is the expression symmetric?
         """
-        symm_args = all([arg.is_symmetric() for arg in self.args])
+        symm_args = all(arg.is_symmetric() for arg in self.args)
         return self.shape[0] == self.shape[1] and symm_args
 
     @staticmethod

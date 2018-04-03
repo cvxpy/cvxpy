@@ -94,7 +94,7 @@ class TestNonlinearAtoms(BaseTest):
         for k in range(kK):
             objkl += cvx.kl_div(v_prob[k, 0], p_refProb[k, 0])
 
-        constrs = [sum([v_prob[k, 0] for k in range(kK)]) == 1]
+        constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
         klprob = cvx.Problem(cvx.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
         if cvx.CVXOPT in cvx.installed_solvers():

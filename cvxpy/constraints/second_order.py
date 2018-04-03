@@ -134,7 +134,7 @@ class SOC(Constraint):
     def is_dcp(self):
         """An SOC constraint is DCP if each of its arguments is affine.
         """
-        return all([arg.is_affine() for arg in self.args])
+        return all(arg.is_affine() for arg in self.args)
 
     # TODO hack
     def canonicalize(self):

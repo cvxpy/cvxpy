@@ -37,7 +37,7 @@ class NonlinearConstraint(Constraint):
         self.f = f
         self.vars_ = vars_
         # The shape of vars_ in f(vars_)
-        self.x_shape = (sum([np.prod(v.shape, dtype=int) for v in self.vars_]), 1)
+        self.x_shape = (sum(np.prod(v.shape, dtype=int) for v in self.vars_), 1)
         super(NonlinearConstraint, self).__init__(self.vars_, constr_id)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,

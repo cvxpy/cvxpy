@@ -50,8 +50,8 @@ class maximum(Elementwise):
         #     ZERO, NEGATIVE = ZERO
         #     UNKNOWN, NEGATIVE = UNKNOWN
         #     NEGATIVE, NEGATIVE = NEGATIVE
-        is_pos = any([arg.is_nonneg() for arg in self.args])
-        is_neg = all([arg.is_nonpos() for arg in self.args])
+        is_pos = any(arg.is_nonneg() for arg in self.args)
+        is_neg = all(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
 
     def is_atom_convex(self):
@@ -77,7 +77,7 @@ class maximum(Elementwise):
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return all([arg.is_pwl() for arg in self.args])
+        return all(arg.is_pwl() for arg in self.args)
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

@@ -45,7 +45,7 @@ class MatrixCache(object):
         self.coo_tup = coo_tup
         self.const_vec = const_vec
         self.constraints = constraints
-        rows = sum([np.prod(c.shape, dtype=int) for c in constraints])
+        rows = sum(np.prod(c.shape, dtype=int) for c in constraints)
         cols = x_length
         self.shape = (rows, cols)
         self.param_coo_tup = ([], [], [])
@@ -141,7 +141,7 @@ class MatrixData(object):
         -------
         ((V, I, J), array)
         """
-        rows = sum([np.prod(c.shape, dtype=int) for c in constraints])
+        rows = sum(np.prod(c.shape, dtype=int) for c in constraints)
         COO = ([], [], [])
         const_vec = self.vec_intf.zeros((rows, 1))
         return MatrixCache(COO, const_vec, constraints, x_length)
@@ -239,7 +239,7 @@ class MatrixData(object):
         Oracle function.
         """
         import cvxopt
-        rows = int(sum([np.prod(c.shape, dtype=int) for c in nonlin_constr]))
+        rows = int(sum(np.prod(c.shape, dtype=int) for c in nonlin_constr))
         cols = int(self.sym_data.x_length)
         var_offsets = self.sym_data.var_offsets
 
