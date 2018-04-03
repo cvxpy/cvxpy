@@ -19,7 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 
 def squeezed(shape):
-    return tuple([dim for dim in shape if dim != 1])
+    return tuple(dim for dim in shape if dim != 1)
 
 
 def sum_shapes(shapes):

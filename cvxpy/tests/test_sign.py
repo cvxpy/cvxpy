@@ -26,7 +26,7 @@ from cvxpy.tests.base_test import BaseTest
 class TestSign(BaseTest):
     """ Unit tests for the expression/sign class. """
     @classmethod
-    def setup_class(self):
+    def setUpClass(self):
         self.pos = Constant(1)
         self.neg = Constant(-1)
         self.zero = Constant(0)

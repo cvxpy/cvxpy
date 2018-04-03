@@ -596,7 +596,7 @@ class TestAtoms(BaseTest):
         # Valid.
         huber(self.x, M)
         M.value = 1
-        self.assertAlmostEquals(huber(2, M).value, 3)
+        self.assertAlmostEqual(huber(2, M).value, 3)
         # Invalid.
         M = Parameter(nonpos=True)
         with self.assertRaises(Exception) as cm:
@@ -754,8 +754,8 @@ class TestAtoms(BaseTest):
 
         p2 = Problem(cvxpy.Maximize(square(t[0])), [-t <= x, x <= t])
         g = partial_optimize(p2, [t], [x])
-        self.assertEquals(g.is_convex(), False)
-        self.assertEquals(g.is_concave(), False)
+        self.assertEqual(g.is_convex(), False)
+        self.assertEqual(g.is_concave(), False)
 
     # Test the partial_optimize atom.
     def test_partial_optimize_eval_1norm(self):

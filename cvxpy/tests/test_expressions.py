@@ -781,16 +781,16 @@ class TestExpressions(BaseTest):
         """Test None as index.
         """
         expr = self.a[None, None]
-        self.assertEquals(expr.shape, (1, 1))
+        self.assertEqual(expr.shape, (1, 1))
 
         expr = self.x[:, None]
-        self.assertEquals(expr.shape, (2, 1))
+        self.assertEqual(expr.shape, (2, 1))
 
         expr = self.x[None, :]
-        self.assertEquals(expr.shape, (1, 2))
+        self.assertEqual(expr.shape, (1, 2))
 
         expr = Constant([1,2])[None, :]
-        self.assertEquals(expr.shape, (1, 2))
+        self.assertEqual(expr.shape, (1, 2))
         self.assertItemsAlmostEqual(expr.value, [1, 2])
 
     def test_out_of_bounds(self):
@@ -805,7 +805,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(str(cm.exception), "Index -100 is out of bounds for axis 0 with size 2.")
 
         exp = self.x[:-100]
-        self.assertEquals(exp.size, (0,))
+        self.assertEqual(exp.size, (0,))
         self.assertItemsAlmostEqual(exp.value, np.array([]))
 
         exp = self.C[100:2]

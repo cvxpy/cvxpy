@@ -44,7 +44,7 @@ for i in range(n):
 
 to_add = [-f[j,i] * p[j] for i in range(n) for j in range(m)]
 obj = sum(to_add)
-obj += sum([f_tilde[i] * pTilde[i] for i in range(n)])
+obj += sum(f_tilde[i] * pTilde[i] for i in range(n))
 
 objective = Maximize(obj)
 problem = Problem(objective, constraints)
