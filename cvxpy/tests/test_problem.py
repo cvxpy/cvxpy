@@ -1643,7 +1643,7 @@ class TestProblem(BaseTest):
             prob = Problem(cvx.Minimize(cvx.sum(cvx.abs(x-a))), [cvx.pnorm(x, p) >= 0])
             prob.solve()
 
-            self.assertAlmostEquals(prob.value, 0, places=6)
+            self.assertAlmostEqual(prob.value, 0, places=6)
 
     def test_power(self):
         x = Variable()

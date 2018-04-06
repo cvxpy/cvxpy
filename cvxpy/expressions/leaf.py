@@ -120,7 +120,7 @@ class Leaf(expression.Expression):
             self.integer_idx = []
 
         # Only one attribute be True (except can be boolean and integer).
-        true_attr = sum([1 for k, v in self.attributes.items() if v])
+        true_attr = sum(1 for k, v in self.attributes.items() if v)
         if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
@@ -216,7 +216,7 @@ class Leaf(expression.Expression):
         """Is the Leaf symmetric?
         """
         return self.is_scalar() or \
-            any([self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD']])
+            any(self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD'])
 
     def is_imag(self):
         """Is the Leaf imaginary?
@@ -284,9 +284,11 @@ class Leaf(expression.Expression):
             # boolean in others.
             return np.round(val)
         elif self.attributes['diag']:
-            # is "val" a numpy array, or a scipy matrix? The behavior of np.diag() changes
-            # (in important ways!) between these two cases.
-            return sp.diags([np.diag(val)], [0])
+            if intf.is_sparse(val):
+                val = val.diagonal()
+            else:
+                val = np.diag(val)
+            return sp.diags([val], [0])
         elif self.attributes['hermitian']:
             return (val + np.conj(val).T)/2
         elif any([self.attributes[key] for
@@ -343,12 +345,17 @@ class Leaf(expression.Expression):
                     "Invalid dimensions %s for %s value." %
                     (intf.shape(val), self.__class__.__name__)
                 )
-            proj = self.project(val)
-            if intf.is_sparse(proj):
-                proj = np.array(proj.todense())
-            if intf.is_sparse(val):
-                val = np.array(val.todense())
-            if not np.allclose(proj, val, rtol=1e-8):
+            projection = self.project(val)
+            # ^ might be a numpy array, or sparse scipy matrix.
+            delta = np.abs(val - projection)
+            # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
+            if intf.is_sparse(delta):  # is a scipy sparse matrix
+                is_close_enough = np.allclose(delta.data, 0)
+                # ^ only check for near-equality on nonzero values.
+            else:
+                delta = np.array(delta)  # make sure we have a numpy array.
+                is_close_enough = np.allclose(delta, 0, atol=1e-8)
+            if not is_close_enough:
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
                 elif self.attributes['nonpos']:

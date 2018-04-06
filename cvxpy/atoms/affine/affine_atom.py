@@ -41,13 +41,13 @@ class AffAtom(Atom):
         """Is the expression imaginary?
         """
         # Default is most generic argument.
-        return all([arg.is_imag() for arg in self.args])
+        return all(arg.is_imag() for arg in self.args)
 
     def is_complex(self):
         """Is the expression complex valued?
         """
         # Default is most generic argument.
-        return any([arg.is_complex() for arg in self.args])
+        return any(arg.is_complex() for arg in self.args)
 
     def is_atom_convex(self):
         """Is the atom convex?
@@ -72,13 +72,13 @@ class AffAtom(Atom):
         return False
 
     def is_quadratic(self):
-        return all([arg.is_quadratic() for arg in self.args])
+        return all(arg.is_quadratic() for arg in self.args)
 
     def is_qpwa(self):
-        return all([arg.is_qpwa() for arg in self.args])
+        return all(arg.is_qpwa() for arg in self.args)
 
     def is_pwl(self):
-        return all([arg.is_pwl() for arg in self.args])
+        return all(arg.is_pwl() for arg in self.args)
 
     @clru_cache(maxsize=100)
     def is_psd(self):

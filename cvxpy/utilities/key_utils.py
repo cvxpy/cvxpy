@@ -43,7 +43,7 @@ def validate_key(key, shape):
     if len(key) == 0:
         raise IndexError("An index cannot be empty.")
     # Change single indices for vectors into double indices.
-    none_count = sum([1 for elem in key if elem is None])
+    none_count = sum(1 for elem in key if elem is None)
     slices = len(key) - none_count
     if slices > len(shape):
         raise IndexError("Too many indices for expression.")

@@ -309,7 +309,7 @@ class MOSEK(ConicSolver):
                 dims = data[s.DIMS]
                 n0 = len(c)
                 n = n0 + sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
-                psd_total_dims = sum([el ** 2 for el in dims[s.PSD_DIM]])
+                psd_total_dims = sum(el ** 2 for el in dims[s.PSD_DIM])
                 m = len(h)
                 num_bool = len(data[s.BOOL_IDX])
                 num_int = len(data[s.INT_IDX])
@@ -519,21 +519,22 @@ class MOSEK(ConicSolver):
         dual_vars = dict()
 
         # Dual variables for the inequality constraints
-        suc_len = sum([ell for _, ell in inverse_data['suc_slacks']])
+        suc_len = sum(ell for _, ell in inverse_data['suc_slacks'])
         if suc_len > 0:
             suc = [0.] * suc_len
             task.getsucslice(sol, 0, suc_len, suc)
             dual_vars.update(MOSEK.parse_dual_vars(suc, inverse_data['suc_slacks']))
 
         # Dual variables for the original equality constraints
-        y_len = sum([ell for _, ell in inverse_data['y_slacks']])
+        y_len = sum(ell for _, ell in inverse_data['y_slacks'])
         if y_len > 0:
             y = [0.] * y_len
             task.getyslice(sol, suc_len, suc_len + y_len, y)
             dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
 
+
         # Dual variables for SOC and EXP constraints
-        snx_len = sum([ell for _, ell in inverse_data['snx_slacks']])
+        snx_len = sum(ell for _, ell in inverse_data['snx_slacks'])
         if snx_len > 0:
             snx = np.zeros(snx_len)
             task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)

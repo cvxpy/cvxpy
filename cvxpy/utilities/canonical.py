@@ -46,28 +46,19 @@ class Canonical(object):
     def variables(self):
         """Returns all the variables present in the arguments.
         """
-        var_list = []
-        for arg in self.args:
-            var_list += arg.variables()
         # Remove duplicates.
-        return list(set(var_list))
+        return list(set(var for arg in self.args for var in arg.variables()))
 
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        param_list = []
-        for arg in self.args:
-            param_list += arg.parameters()
         # Remove duplicates.
-        return list(set(param_list))
+        return list(set(param for arg in self.args for param in arg.parameters()))
 
     def constants(self):
         """Returns all the constants present in the arguments.
         """
-        const_list = []
-        const_dict = {}
-        for arg in self.args:
-            const_list += arg.constants()
+        const_list = (const for arg in self.args for const in arg.constants())
         # Remove duplicates:
         const_dict = {id(constant): constant for constant in const_list}
         return list(const_dict.values())
@@ -76,12 +67,10 @@ class Canonical(object):
         new_args = []
         for arg in self.args:
             if isinstance(arg, list):
-                arg_list = []
-                for elem in arg:
-                    arg_list += [elem.tree_copy(id_objects)]
+                arg_list = [elem.tree_copy(id_objects) for elem in arg]
                 new_args.append(arg_list)
             else:
-                new_args += [arg.tree_copy(id_objects)]
+                new_args.append(arg.tree_copy(id_objects))
         return self.copy(args=new_args, id_objects=id_objects)
 
     def copy(self, args=None, id_objects={}):
@@ -125,8 +114,5 @@ class Canonical(object):
         -------
         list
         """
-        atom_list = []
-        for arg in self.args:
-            atom_list += arg.atoms()
         # Remove duplicates.
-        return list(set(atom_list))
+        return list(set(atom for arg in self.args for atom in arg.atoms()))

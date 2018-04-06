@@ -133,12 +133,20 @@ class Expression(u.Canonical):
     def is_constant(self):
         """Is the expression constant?
         """
-        return len(self.variables()) == 0 or self.is_zero() or 0 in self.shape
+        try:
+            return self.__is_constant
+        except AttributeError:
+            self.__is_constant = len(self.variables()) == 0 or self.is_zero() or 0 in self.shape
+            return self.__is_constant
 
     def is_affine(self):
         """Is the expression affine?
         """
-        return self.is_constant() or (self.is_convex() and self.is_concave())
+        try:
+            return self.__is_affine
+        except AttributeError:
+            self.__is_affine = self.is_constant() or (self.is_convex() and self.is_concave())
+            return self.__is_affine
 
     @abc.abstractmethod
     def is_convex(self):
@@ -221,7 +229,11 @@ class Expression(u.Canonical):
     def is_zero(self):
         """Is the expression all zero?
         """
-        return self.is_nonneg() and self.is_nonpos()
+        try:
+            return self.__is_zero
+        except AttributeError:
+            self.__is_zero = self.is_nonneg() and self.is_nonpos()
+            return self.__is_zero
 
     @abc.abstractmethod
     def is_nonneg(self):

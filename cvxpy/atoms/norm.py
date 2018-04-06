@@ -45,7 +45,7 @@ def norm(x, p=2, axis=None):
     """
     x = Expression.cast_to_const(x)
     # matrix norms take precedence
-    if axis is None and x.is_matrix():
+    if axis is None and x.ndim == 2:
         if p == 1:  # matrix 1-norm
             return cvxpy.atoms.max(norm1(x, axis=0))
         elif p == 2:  # matrix 2-norm is largest singular value

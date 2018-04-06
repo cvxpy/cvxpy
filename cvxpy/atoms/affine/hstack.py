@@ -46,7 +46,7 @@ class Hstack(AffAtom):
     # The shape is the common width and the sum of the heights.
     def shape_from_args(self):
         if self.args[0].ndim == 1:
-            return (sum([arg.size for arg in self.args]),)
+            return (sum(arg.size for arg in self.args),)
         else:
             cols = sum(arg.shape[1] for arg in self.args)
             return (self.args[0].shape[0], cols) + self.args[0].shape[2:]
