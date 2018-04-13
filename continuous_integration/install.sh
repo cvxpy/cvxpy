@@ -31,7 +31,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
     source activate testenv
     conda install -c cvxgrp --yes ecos scs multiprocess
-    conda install -c anaconda flake8
+    conda install -c anaconda --yes flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
         # Install GLPK.
