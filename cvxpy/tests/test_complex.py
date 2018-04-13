@@ -335,7 +335,8 @@ class TestComplex(BaseTest):
         expr = cvx.quad_form(x, P)
         prob = Problem(cvx.Minimize(expr), [x == b])
         result = prob.solve()
-        self.assertAlmostEqual(result, value)
+        normalization = max(abs(result), abs(value))
+        self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
         b = 3j*(np.arange(3) + 10)
         x = Variable(3, imag=True)
@@ -343,7 +344,8 @@ class TestComplex(BaseTest):
         expr = cvx.quad_form(x, P)
         prob = Problem(cvx.Minimize(expr), [x == b])
         result = prob.solve()
-        self.assertAlmostEqual(result, value)
+        normalization = max(abs(result), abs(value))
+        self.assertAlmostEqual(result / normalization, value / normalization)
 
     def test_matrix_frac(self):
         """Test matrix_frac atom.

@@ -641,7 +641,7 @@ class TestProblem(BaseTest):
                      self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 26, places=3)
-        obj = (c.T*self.x + self.a).value
+        obj = (c.T*self.x + self.a).value[0]
         self.assertAlmostEqual(obj, result)
         self.assertItemsAlmostEqual(self.x.value, [8, 8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2, 2], places=3)
