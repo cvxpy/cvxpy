@@ -1,6 +1,4 @@
-language: python
-virtualenv:
-  system_site_packages: true
+language: C
 env:
   global:
     - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.3

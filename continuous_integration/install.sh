@@ -8,18 +8,12 @@ set -e
 
 sudo apt-get update -qq
 if [[ "$INSTALL_ATLAS" == "true" ]]; then
-    #sudo apt-get install -qq libatlas-base-dev
     sudo apt-get install -qq libatlas-base-dev gfortran
     export ATLAS="/usr/lib/atlas-base/libatlas.so"
 fi
 
 if [[ "$DISTRIB" == "conda" ]]; then
-    # Deactivate the travis-provided virtual environment and setup a
-    # conda-based environment instead
-    deactivate
-
-    # Use the miniconda installer for faster download / install of conda
-    # itself
+    # Use miniconda
     wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh \
         -O miniconda.sh
     chmod +x miniconda.sh && ./miniconda.sh -b
@@ -36,8 +30,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     fi
     source activate testenv
-    conda install -c cvxgrp --yes ecos multiprocess
-    pip install flake8
+    conda install -c cvxgrp --yes ecos scs multiprocess
+    conda install -c anaconda flake8
 
     if [[ "$INSTALL_GLPK" == "true" ]]; then
         # Install GLPK.
@@ -67,8 +61,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
         export COIN_INSTALL_DIR=/home/travis/Cbc-2.9.7
         export LD_LIBRARY_PATH=/home/travis/Cbc-2.9.7/lib:$LD_LIBRARY_PATH
 
-        # sudo apt-get install coinor-libcbc-dev coinor-libcbc0 coinor-libcbc-doc
-
         # Install cyLP -> which is needed for CBC-interface
         git clone -b py3 https://github.com/jjhelmus/CyLP.git  # use custom-branch because of py3
         cd CyLP
@@ -78,13 +70,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd "$oldpath"
     fi
 
-    # if [[ "$INSTALL_MKL" == "true" ]]; then
-    #     # Make sure that MKL is used
-    #     conda install --yes mkl
-    # else
-    #     # Make sure that MKL is not used
-    #     conda remove --yes --features mkl || echo "MKL not installed"
-    # fi
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     sudo apt-get update -qq
