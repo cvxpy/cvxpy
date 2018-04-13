@@ -6,12 +6,6 @@
 
 set -e
 
-sudo apt-get update -qq
-if [[ "$INSTALL_ATLAS" == "true" ]]; then
-    sudo apt-get install -qq libatlas-base-dev gfortran
-    export ATLAS="/usr/lib/atlas-base/libatlas.so"
-fi
-
 if [[ "$DISTRIB" == "conda" ]]; then
     # Use miniconda
     wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh \
@@ -41,7 +35,10 @@ if [[ "$DISTRIB" == "conda" ]]; then
         sudo ldconfig
         cd ..
         # Install CVXOPT with GLPK bindings.
-        CVXOPT_BUILD_GLPK=1 CVXOPT_GLPK_LIB_DIR=/usr/local/lib CVXOPT_GLPK_INC_DIR=/usr/local/include pip install cvxopt
+        CVXOPT_BUILD_GLPK=1
+        CVXOPT_GLPK_LIB_DIR=/usr/local/lib
+        CVXOPT_GLPK_INC_DIR=/usr/local/include
+        conda install -c cvxgrp --yes cvxopt
 
         # Install CBC
         oldpath="$PWD"
