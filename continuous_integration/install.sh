@@ -25,6 +25,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
+    conda install -c conda-forge --yes lapack
     conda install -c cvxgrp --yes ecos scs multiprocess
     conda install -c anaconda --yes flake8
 
