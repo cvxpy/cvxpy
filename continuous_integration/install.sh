@@ -22,13 +22,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    if [[ "$INSTALL_GLPK" == "true" ]]; then
-        conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
+    conda create -n testenv --yes python=$PYTHON_VERSION nomkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
-    else
-        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
-              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
-    fi
     source activate testenv
     conda install -c cvxgrp --yes ecos scs multiprocess
     conda install -c anaconda --yes flake8
