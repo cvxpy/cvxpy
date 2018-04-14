@@ -269,7 +269,7 @@ class TestExpressions(BaseTest):
         A = np.random.randn(m, n) + 1j * np.random.randn(m, n)  # a random complex matrix
         A = np.dot(A.T.conj(), A)  # a random Hermitian positive definite matrix
         A = np.bmat([[np.real(A), -np.imag(A)],
-                            [np.imag(A), np.real(A)]])
+                     [np.imag(A), np.real(A)]])
         p = Parameter(shape=(2*n, 2*n), PSD=True)
         p.value = A
         self.assertItemsAlmostEqual(p.value, A)
