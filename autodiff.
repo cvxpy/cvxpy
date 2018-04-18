@@ -1,0 +1,25 @@
+import cvxpy as cvx
+import numpy as np
+
+m = 100
+n = 50
+A = np.random.randn(m, n)
+b= np.random.randn(m)
+gamma = cvx.Parameter()
+
+x = cvx.Variable(n)
+cost = cvx.sum_squares(A*x - b) + gamma*cvx.norm(x, 1)
+prob = cvx.Problem(cvx.Minimize(cost))
+
+gamma.value = 2
+prob.solve()
+
+# Compute Jacobian*params dx.
+gamma.dx = .1
+prob.forward_diff() 
+print(x.dx)
+
+# Compute Jacobian^T*var dx.
+x.dx = .1
+prob.reverse_diff()
+print(gamma.dx)
