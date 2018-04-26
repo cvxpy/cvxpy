@@ -446,7 +446,7 @@ class GUROBI(Solver):
                 new_results[s.EQ_DUAL] = results_dict["y"][0:dims[s.EQ_DIM]]
                 new_results[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM]:]
             except:
-            	if not self.is_mip(data):
-            		new_results[s.STATUS] = s.OPTIMAL_INACCURATE
+                if not self.is_mip(data):
+                    new_results[s.STATUS] = s.OPTIMAL_INACCURATE
 
         return new_results
