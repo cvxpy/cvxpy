@@ -167,10 +167,10 @@ class GUROBI(Solver):
 
                 # Figure out which rows of A and elements of b have changed
                 try:
-                    I, _ = zip(*[x for x in A_diff.keys()])
+                    idxs, _ = zip(*[x for x in A_diff.keys()])
                 except ValueError:
-                    I = []
-                I_unique = list(set(I) | set(np.where(b_diff)[0]))
+                    idxs = []
+                I_unique = list(set(idxs) | set(np.where(b_diff)[0]))
 
                 nonzero_locs = gurobipy.tuplelist(A.keys())
 
@@ -282,7 +282,7 @@ class GUROBI(Solver):
 
             results_dict["status"] = self.STATUS_MAP.get(model.Status,
                                                          s.SOLVER_ERROR)
-        except:
+        except gurobipy.GurobiError:
             results_dict["status"] = s.SOLVER_ERROR
 
         if results_dict["status"] == s.SOLVER_ERROR and model.SolCount:
@@ -321,19 +321,17 @@ class GUROBI(Solver):
         """
         import gurobipy
         constr = []
-        expr_list = {i:[] for i in rows}
-        for k,c in mat.iteritems():
-            i,j = k
+        expr_list = {i: [] for i in rows}
+        for (i, j), c in mat.iteritems():
             v = variables[j]
             try:
-                expr_list[i].append((c,v))
-            except:
+                expr_list[i].append((c, v))
+            except IndexError:
                 pass
         for i in rows:
             # Ignore empty constraints.
             if expr_list[i]:
                 expr = gurobipy.LinExpr(expr_list[i])
-                
                 constr.append(
                     model.addConstr(expr, ctype, vec[i])
                 )
@@ -365,13 +363,12 @@ class GUROBI(Solver):
         """
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
-        expr_list = {i:[] for i in rows}
-        for k,c in mat.iteritems():
-            i,j = k
+        expr_list = {i: [] for i in rows}
+        for (i, j), c in mat.iteritems():
             v = variables[j]
             try:
-                expr_list[i].append((c,v))
-            except:
+                expr_list[i].append((c, v))
+            except IndexError:
                 pass
         lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
 
