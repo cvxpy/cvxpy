@@ -1,12 +1,12 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Transforms &mdash; CVXPY 1.0.0 documentation</title>
+    <title>Transforms &#8212; CVXPY 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,23 +17,27 @@
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="../index.html" />
-    <link rel="up" title="API Documentation" href="cvxpy.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Reductions" href="cvxpy.reductions.html" />
     <link rel="prev" title="Problems" href="cvxpy.problems.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -55,6 +59,52 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 <div class="section" id="other">
 <h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
 <p>Here we list other available transforms.</p>
+<dl class="method">
+<dt id="cvxpy.transforms.linearize">
+<code class="descclassname">transforms.</code><code class="descname">linearize</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.linearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the tangent approximation to the expression.</p>
+<p>Gives an elementwise lower (upper) bound for convex (concave)
+expressions. No guarantees for non-DCP expressions.</p>
+<p>Returns None if cannot be linearized.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expr</strong> – An expression.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An affine expression or None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.partial_optimize">
+<code class="descclassname">transforms.</code><code class="descname">partial_optimize</code><span class="sig-paren">(</span><em>prob</em>, <em>opt_vars=None</em>, <em>dont_opt_vars=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.partial_optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partially optimizes the given problem over the specified variables.</p>
+<p>Either opt_vars or dont_opt_vars must be given.
+If both are given, they must contain all the variables in the problem.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>prob</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to partially optimize.</li>
+<li><strong>opt_vars</strong> (<em>list</em><em>, </em><em>optional</em>) – The variables to optimize over.</li>
+<li><strong>dont_opt_vars</strong> (<em>list</em><em>, </em><em>optional</em>) – The variables to not optimize over.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An expression representing the partial optimization.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 
@@ -70,10 +120,12 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -83,8 +135,8 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -122,7 +174,7 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 <li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What’s New in CVXPY 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
@@ -130,13 +182,16 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions/index.html">Versions</a></li>
+</ul>
 
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -150,11 +205,11 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../_sources/api_reference/cvxpy.transforms.txt"
+      <a href="../_sources/api_reference/cvxpy.transforms.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

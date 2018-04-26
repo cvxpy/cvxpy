@@ -1,12 +1,12 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Optimal parade route &mdash; CVXPY 1.0.0 documentation</title>
+    <title>Optimal parade route &#8212; CVXPY 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,20 +17,25 @@
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="../../index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -49,7 +54,7 @@ heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee36
 </div>
 <div class="section" id="problem-statement">
 <h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
-<p>In this notebook, we&#8217;ll tackle the problem of trying to protect a parade
+<p>In this notebook, we’ll tackle the problem of trying to protect a parade
 route by placing a limited number of guards.</p>
 <p>The parade route is discritized into <span class="math">\(m\)</span> points. There are
 <span class="math">\(n\)</span> possible guard locations with associated decision variable
@@ -57,7 +62,7 @@ route by placing a limited number of guards.</p>
 if a guard is placed at location <span class="math">\(i\)</span>. Associated with guard
 location <span class="math">\(i\)</span> is a <em>coverage vector</em> <span class="math">\(a_i \in \mathbf{R}^m\)</span>,
 which describes how well a guard placed at location <span class="math">\(i\)</span> would
-&#8216;cover&#8217; each point in the parade route. We will assume that guard
+‘cover’ each point in the parade route. We will assume that guard
 coverage is additive, so that the vector describing the total coverage
 of every edge is given by <span class="math">\(Ax\)</span>, where
 <span class="math">\(A \in \mathbf{R}^{m \times n}\)</span> has <span class="math">\(a_i\)</span> as its
@@ -111,9 +116,9 @@ the next iteration.</p>
 <p>We create a parade route in the unit square <span class="math">\([0,1] \times [0,1]\)</span>
 by generating points along a connected sequence of line segments.
 Possible guard locations are a set of randomly placed points in the unit
-square. Guards&#8217; coverage of points in the parade route is a function of
+square. Guards’ coverage of points in the parade route is a function of
 distance between the two points. We also add buildings in the unit
-square to obstruct the guards&#8217; view. The guard has no effect on a point
+square to obstruct the guards’ view. The guard has no effect on a point
 if his line of sight is obstructed. We generate the <span class="math">\(A\)</span> matrix for
 this problem instance below.</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -305,7 +310,7 @@ each iteration.</p>
 <p>Below, we plot the final Boolean allocation. The blue dots represent the
 parade route. The red dots represent the possible guard placement
 locations. The green dots show the actual guard placements. Yellow
-rectangles are buildings which obstruct the guards&#8217; view.</p>
+rectangles are buildings which obstruct the guards’ view.</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span><span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
@@ -336,10 +341,12 @@ rectangles are buildings which obstruct the guards&#8217; view.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -349,8 +356,8 @@ rectangles are buildings which obstruct the guards&#8217; view.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -376,7 +383,7 @@ rectangles are buildings which obstruct the guards&#8217; view.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in CVXPY 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
@@ -384,13 +391,16 @@ rectangles are buildings which obstruct the guards&#8217; view.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
+</ul>
 
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -404,11 +414,11 @@ rectangles are buildings which obstruct the guards&#8217; view.</p>
       &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../../_sources/examples/applications/parade_route.txt"
+      <a href="../../_sources/examples/applications/parade_route.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
