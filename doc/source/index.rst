@@ -100,3 +100,7 @@ Additional solvers are supported, but must be installed separately.
 
    related_projects/index
 
+.. toctree::
+   :hidden:
+
+   versions/index
