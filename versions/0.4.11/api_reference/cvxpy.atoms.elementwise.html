@@ -1,0 +1,255 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Other Atoms" href="cvxpy.atoms.other_atoms.html" />
+    <link rel="prev" title="Affine Atoms" href="cvxpy.atoms.affine.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cvxpy-atoms-elementwise-package">
+<h1>cvxpy.atoms.elementwise package<a class="headerlink" href="#cvxpy-atoms-elementwise-package" title="Permalink to this headline">¶</a></h1>
+<p>All of the atoms listed here operate elementwise on expressions. For example,
+<code class="xref py py-class docutils literal"><span class="pre">exp</span></code> exponentiates each entry of
+expressions that are supplied to it.</p>
+<div class="section" id="abs">
+<span id="id1"></span><h2>abs<a class="headerlink" href="#abs" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="entr">
+<span id="id2"></span><h2>entr<a class="headerlink" href="#entr" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="exp">
+<span id="id3"></span><h2>exp<a class="headerlink" href="#exp" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="huber">
+<span id="id4"></span><h2>huber<a class="headerlink" href="#huber" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="inv-pos">
+<span id="id5"></span><h2>inv_pos<a class="headerlink" href="#inv-pos" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="kl-div">
+<span id="id6"></span><h2>kl_div<a class="headerlink" href="#kl-div" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="log">
+<span id="id7"></span><h2>log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="log1p">
+<span id="id8"></span><h2>log1p<a class="headerlink" href="#log1p" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="logistic">
+<span id="id9"></span><h2>logistic<a class="headerlink" href="#logistic" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="maximum">
+<span id="id10"></span><h2>maximum<a class="headerlink" href="#maximum" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="minimum">
+<span id="id11"></span><h2>minimum<a class="headerlink" href="#minimum" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="neg">
+<span id="id12"></span><h2>neg<a class="headerlink" href="#neg" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pos">
+<span id="id13"></span><h2>pos<a class="headerlink" href="#pos" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="power">
+<span id="id14"></span><h2>power<a class="headerlink" href="#power" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="scalene">
+<span id="id15"></span><h2>scalene<a class="headerlink" href="#scalene" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="sqrt">
+<span id="id16"></span><h2>sqrt<a class="headerlink" href="#sqrt" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="square">
+<span id="id17"></span><h2>square<a class="headerlink" href="#square" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/cvxgrp/cvxpy">
+    <img
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html">Affine Atoms</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Elementwise Atoms</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#abs">abs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#entr">entr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exp">exp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#huber">huber</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#inv-pos">inv_pos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kl-div">kl_div</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log">log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log1p">log1p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#logistic">logistic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#maximum">maximum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#minimum">minimum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#neg">neg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pos">pos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#power">power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scalene">scalene</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sqrt">sqrt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#square">square</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html">Other Atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.html#atom">Atom</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What’s New in CVXPY 1.0</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions/index.html">Versions</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/api_reference/cvxpy.atoms.elementwise.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
