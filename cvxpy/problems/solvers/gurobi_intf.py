@@ -37,17 +37,17 @@ class GUROBI(Solver):
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
-                  6: s.SOLVER_ERROR,
+                  4: s.INFEASIBLE_INACCURATE,
+                  6: s.INFEASIBLE,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
                   # TODO could be anything.
                   # means time expired.
-                  9: s.OPTIMAL_INACCURATE,
+                  9: s.SOLVER_ERROR,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
+                  13: s.OPTIMAL_INACCURATE}
 
     def name(self):
         """The name of the solver.
@@ -167,10 +167,10 @@ class GUROBI(Solver):
 
                 # Figure out which rows of A and elements of b have changed
                 try:
-                    idxs, _ = zip(*[x for x in A_diff.keys()])
+                    I, _ = zip(*[x for x in A_diff.keys()])
                 except ValueError:
-                    idxs = []
-                I_unique = list(set(idxs) | set(np.where(b_diff)[0]))
+                    I = []
+                I_unique = list(set(I) | set(np.where(b_diff)[0]))
 
                 nonzero_locs = gurobipy.tuplelist(A.keys())
 
@@ -282,9 +282,11 @@ class GUROBI(Solver):
 
             results_dict["status"] = self.STATUS_MAP.get(model.Status,
                                                          s.SOLVER_ERROR)
-        except gurobipy.GurobiError:
+        except:
             results_dict["status"] = s.SOLVER_ERROR
 
+        if results_dict["status"] == s.SOLVER_ERROR and model.SolCount:
+        	results_dict["status"] = s.OPTIMAL_INACCURATE
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
@@ -319,17 +321,19 @@ class GUROBI(Solver):
         """
         import gurobipy
         constr = []
-        expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        expr_list = {i:[] for i in rows}
+        for k,c in mat.iteritems():
+            i,j = k
             v = variables[j]
             try:
-                expr_list[i].append((c, v))
-            except IndexError:
+                expr_list[i].append((c,v))
+            except:
                 pass
         for i in rows:
             # Ignore empty constraints.
             if expr_list[i]:
                 expr = gurobipy.LinExpr(expr_list[i])
+                
                 constr.append(
                     model.addConstr(expr, ctype, vec[i])
                 )
@@ -361,12 +365,13 @@ class GUROBI(Solver):
         """
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
-        expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        expr_list = {i:[] for i in rows}
+        for k,c in mat.iteritems():
+            i,j = k
             v = variables[j]
             try:
-                expr_list[i].append((c, v))
-            except IndexError:
+                expr_list[i].append((c,v))
+            except:
                 pass
         lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
 
@@ -437,8 +442,11 @@ class GUROBI(Solver):
             primal_val = results_dict['primal objective']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict['x']
-            if not self.is_mip(data):
+            try:
                 new_results[s.EQ_DUAL] = results_dict["y"][0:dims[s.EQ_DIM]]
                 new_results[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM]:]
+            except:
+                if not self.is_mip(data):
+                    new_results[s.STATUS] = s.OPTIMAL_INACCURATE
 
         return new_results
