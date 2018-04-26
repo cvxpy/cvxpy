@@ -37,17 +37,17 @@ class GUROBI(Solver):
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
-                  6: s.SOLVER_ERROR,
+                  4: s.INFEASIBLE_INACCURATE,
+                  6: s.INFEASIBLE,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
                   # TODO could be anything.
                   # means time expired.
-                  9: s.OPTIMAL_INACCURATE,
+                  9: s.SOLVER_ERROR,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
+                  13: s.OPTIMAL_INACCURATE}
 
     def name(self):
         """The name of the solver.
@@ -285,6 +285,8 @@ class GUROBI(Solver):
         except:
             results_dict["status"] = s.SOLVER_ERROR
 
+        if results_dict["status"] == s.SOLVER_ERROR and model.SolCount:
+        	results_dict["status"] = s.OPTIMAL_INACCURATE
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
@@ -440,8 +442,11 @@ class GUROBI(Solver):
             primal_val = results_dict['primal objective']
             new_results[s.VALUE] = primal_val + data[s.OFFSET]
             new_results[s.PRIMAL] = results_dict['x']
-            if not self.is_mip(data):
+            try:
                 new_results[s.EQ_DUAL] = results_dict["y"][0:dims[s.EQ_DIM]]
                 new_results[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM]:]
+            except:
+            	if not self.is_mip(data):
+            		new_results[s.STATUS] = s.OPTIMAL_INACCURATE
 
         return new_results
