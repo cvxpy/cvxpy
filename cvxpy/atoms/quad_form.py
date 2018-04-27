@@ -26,6 +26,7 @@ import numpy as np
 from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
+from cvxpy.interface.matrix_utilities import is_sparse
 
 
 class CvxPyDomainError(Exception):
@@ -177,7 +178,8 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
         A rectangular ndarray such that P = scale * (dot(M1, M1.T) - dot(M2, M2.T))
 
     """
-
+    if is_sparse(P):
+        P = np.array(P.todense())  # make dense (needs to happen for eigh).
     w, V = LA.eigh(P, lower=lower, check_finite=check_finite)
 
     if rcond is not None:

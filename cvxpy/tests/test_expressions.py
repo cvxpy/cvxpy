@@ -249,19 +249,40 @@ class TestExpressions(BaseTest):
         # Test parameter representation.
         p = Parameter((4, 3), nonpos=True)
         self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
+        
+        # Test valid diagonal parameter.
+        p = Parameter((2, 2), diag=True)
+        p.value = sp.csc_matrix(np.eye(2))
+        self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
 
-        # Test valid PSD parameter.
+    def test_psd_nsd_parameters(self):
+        # Test valid rank-deficeint PSD parameter.
         np.random.seed(42)
         a = np.random.normal(size=(100, 95))
         a2 = a.dot(a.T)  # This must be a PSD matrix.
         p = Parameter((100, 100), PSD=True)
         p.value = a2
         self.assertItemsAlmostEqual(p.value, a2, places=10)
-        
-        # Test valid diagonal parameter.
-        p = Parameter((2, 2), diag=True)
-        p.value = sp.csc_matrix(np.eye(2))
-        self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
+
+        # Test positive definite matrix with non-distinct eigenvalues
+        m, n = 10, 5
+        A = np.random.randn(m, n) + 1j * np.random.randn(m, n)  # a random complex matrix
+        A = np.dot(A.T.conj(), A)  # a random Hermitian positive definite matrix
+        A = np.bmat([[np.real(A), -np.imag(A)],
+                     [np.imag(A), np.real(A)]])
+        p = Parameter(shape=(2*n, 2*n), PSD=True)
+        p.value = A
+        self.assertItemsAlmostEqual(p.value, A)
+
+        # Test invalid PSD parameter
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), PSD=True, value=[[1, 0], [0, -1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be positive semidefinite.")
+
+        # Test invalid NSD parameter
+        with self.assertRaises(Exception) as cm:
+            p = Parameter((2, 2), NSD=True, value=[[1, 0], [0, -1]])
+        self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
 
     # Test the Parameter class on bad inputs.
     def test_parameters_failures(self):
@@ -318,16 +339,6 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), symmetric=True, value=[[1, 1], [-1, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be symmetric.")
-
-        # PSD
-        with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), PSD=True, value=[[1, 0], [0, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be positive semidefinite.")
-
-        # NSD
-        with self.assertRaises(Exception) as cm:
-            p = Parameter((2, 2), NSD=True, value=[[1, 0], [0, -1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
 
     def test_symmetric(self):
         """Test symmetric variables.

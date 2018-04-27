@@ -532,7 +532,6 @@ class MOSEK(ConicSolver):
             task.getyslice(sol, suc_len, suc_len + y_len, y)
             dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
 
-
         # Dual variables for SOC and EXP constraints
         snx_len = sum(ell for _, ell in inverse_data['snx_slacks'])
         if snx_len > 0:

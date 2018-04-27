@@ -318,32 +318,37 @@ class TestComplex(BaseTest):
     def test_quad_form(self):
         """Test quad_form atom.
         """
-        P = np.arange(9) - 2j*np.arange(9)
-        P = np.reshape(P, (3, 3))
-        P = np.conj(P.T).dot(P)/100 + np.eye(3)*.1
+        # Create a random positive definite Hermitian matrix for all tests.
+        np.random.seed(42)
+        P = np.random.randn(3, 3) - 1j*np.random.randn(3, 3)
+        P = np.conj(P.T).dot(P)
+
+        # Solve a problem with real variable
         b = np.arange(3)
         x = Variable(3, complex=False)
         value = cvx.quad_form(b, P).value
-        expr = cvx.quad_form(x, P)
-        prob = Problem(cvx.Minimize(expr), [x == b])
+        prob = Problem(cvx.Minimize(cvx.quad_form(x, P)), [x == b])
         result = prob.solve()
         self.assertAlmostEqual(result, value)
 
+        # Solve a problem with complex variable
         b = np.arange(3) + 3j*(np.arange(3) + 10)
         x = Variable(3, complex=True)
         value = cvx.quad_form(b, P).value
-        expr = cvx.quad_form(x, P)
-        prob = Problem(cvx.Minimize(expr), [x == b])
+        prob = Problem(cvx.Minimize(cvx.quad_form(x, P)), [x == b])
         result = prob.solve()
-        self.assertAlmostEqual(result, value)
+        normalization = max(abs(result), abs(value))
+        self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
+        # Solve a problem with an imaginary variable
         b = 3j*(np.arange(3) + 10)
         x = Variable(3, imag=True)
         value = cvx.quad_form(b, P).value
         expr = cvx.quad_form(x, P)
         prob = Problem(cvx.Minimize(expr), [x == b])
         result = prob.solve()
-        self.assertAlmostEqual(result, value)
+        normalization = max(abs(result), abs(value))
+        self.assertAlmostEqual(result / normalization, value / normalization)
 
     def test_matrix_frac(self):
         """Test matrix_frac atom.

@@ -296,7 +296,7 @@ class Leaf(expression.Expression):
             val = (val + val.T)/2
             if self.attributes['symmetric']:
                 return val
-            w, V = LA.eig(val)
+            w, V = LA.eigh(val)
             if self.attributes['PSD']:
                 w = np.maximum(w, 0)
             else:  # NSD

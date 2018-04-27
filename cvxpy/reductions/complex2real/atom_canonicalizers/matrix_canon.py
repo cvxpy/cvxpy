@@ -18,6 +18,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import bmat, reshape, vstack
+from cvxpy.expressions.constants import Constant
 import numpy as np
 
 # We expand the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]]
@@ -88,6 +89,7 @@ def quad_canon(expr, real_args, imag_args, real2imag):
             imag_args[1] = np.zeros(real_args[1].shape)
         matrix = bmat([[real_args[1], -imag_args[1]],
                        [imag_args[1], real_args[1]]])
+        matrix = Constant(matrix.value)
     return expr.copy([vec, matrix]), None
 
 

@@ -384,18 +384,11 @@ class TestQp(BaseTest):
         prob = Problem(Minimize(sum_squares(A*x - b)))
 
         b.value = numpy.random.randn(m)
-        result = prob.solve(warm_start=True)
-        time =  prob.solver_stats.solve_time
+        result = prob.solve(warm_start=False)
         result2 = prob.solve(warm_start=True)
         self.assertAlmostEqual(result, result2)
-        time2 = prob.solver_stats.solve_time
-        assert time > time2
-
         b.value = numpy.random.randn(m)
-        prob.solve(warm_start=True)
-        time3 = prob.solver_stats.solve_time
-        assert time > time3
-
-        prob.solve(warm_start=False)
-        time4 = prob.solver_stats.solve_time
-        assert time4 > time3
+        result = prob.solve(warm_start=True)
+        result2 = prob.solve(warm_start=False)
+        self.assertAlmostEqual(result, result2)
+        pass
