@@ -1,4 +1,7 @@
 language: C
+os:
+  - linux
+  - osx
 env:
   global:
     - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.3
