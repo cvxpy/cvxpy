@@ -8,11 +8,10 @@ set -e
 
 if [[ "$DISTRIB" == "conda" ]]; then
     # Use miniconda
-    if [[ "$TRAVIS_OS_NAME" == "linux"]]; then
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
        wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh \
           -O miniconda.sh
-    fi
-    if [[ "$TRAVIS_OS_NAME" == "linux"]]; then
+    elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-MacOSX-x86_64.sh \
              -O miniconda.sh
     fi
