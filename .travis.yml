@@ -1,42 +1,27 @@
 language: C
+os:
+  - linux
+  - osx
 env:
   global:
     - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.3
   matrix:
-    - os: linux
-      env: DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true" INSTALL_GLPK="true"
-    - os: linux
-      eng: DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true" INSTALL_GLPK="false"
-    - os: linux
-      env: DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true" INSTALL_GLPK="true"
-    - os: linux
-      env: DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true" INSTALL_GLPK="false"
-    - os: linux
-      env: DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true" INSTALL_GLPK="true"
-    - os: linux
-      env: DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="false"
-    - os: osx
-      env: DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="false"
-    - os: osx
-      eng: DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="false"
-    - os: osx
-      eng: DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true" INSTALL_GLPK="false"
 sudo: required
