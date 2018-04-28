@@ -9,6 +9,8 @@ set -e
 if [[ "$DISTRIB" == "conda" ]]; then
     # Use miniconda
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        sudo apt-get update -qq
+        sudo apt-get install -qq gfortran libgfortran 
         wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh \
            -O miniconda.sh
         chmod +x miniconda.sh && ./miniconda.sh -b
