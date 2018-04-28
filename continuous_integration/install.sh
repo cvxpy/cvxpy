@@ -15,7 +15,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
            -O miniconda.sh
         chmod +x miniconda.sh && ./miniconda.sh -b
-        export PATH=/home/travis/miniconda/bin:$PATH
+        export PATH=/home/travis/miniconda3/bin:$PATH
         conda update --yes conda
 
         # Configure the conda environment and put it in the path using the
@@ -68,7 +68,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
              -O miniconda.sh
         chmod +x miniconda.sh && ./miniconda.sh -b
-        export PATH=/Users/travis/miniconda/bin:$PATH
+        export PATH=/Users/travis/miniconda3/bin:$PATH
         # Configure the conda environment and put it in the path using the
         # provided versions
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
