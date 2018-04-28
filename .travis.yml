@@ -8,22 +8,13 @@ env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="true"
-    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="false"
+      COVERAGE="true"
     - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="true"
-    - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="false"
+      COVERAGE="true"
     - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="true"
-    - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
-      COVERAGE="true" INSTALL_GLPK="false"
+      COVERAGE="true"
 sudo: required
 install: source continuous_integration/install.sh
 script:
