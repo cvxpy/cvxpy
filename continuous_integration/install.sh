@@ -62,7 +62,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
         cd "$oldpath"
     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-MacOSX-x86_64.sh \
+        wget http://repo.continuum.io/miniconda/Miniconda-latest-MacOSX-x86_64.sh \
              -O miniconda.sh
         chmod +x miniconda.sh && ./miniconda.sh -b
         export PATH=/Users/travis/miniconda/bin:$PATH
