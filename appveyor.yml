@@ -4,9 +4,6 @@ environment:
     global:
           PYTHON: "C:\\conda"
           MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
-          CONDA_DEPENDENCIES: "mkl lapack numpy scipy nose pip scs ecos multiprocess cvxcanon"
-
-
     matrix:
           - PYTHON_VERSION: "2.7"
           - PYTHON_VERSION: "3.5"
