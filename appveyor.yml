@@ -15,12 +15,18 @@ environment:
           - PYTHON_VERSION: "2.7"
           - PYTHON_VERSION: "3.5"
 
+# SCS is a required solver.
+# SCS has no 32 bit distribution on conda.
+# As such, cvxpy's AppVeyor tests will only use 64 bit windows.
 platform:
-    - x86
     - x64
 
+# I think this is running with the cmd environment by default
+# Issues
+#     mkl-fft 1.0.0 requires cython, which is not installed.
+#         I don't think this will make a difference; we
+#         don't need FFT functionality in the MKL.
 install:
-    - "conda config --add channels cvxgrp"
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
@@ -31,5 +37,6 @@ install:
 build: false
 
 test_script:
+    - conda info --envs
     - "%CMD_IN_ENV% python setup.py install"
     - "%CMD_IN_ENV% nosetests cvxpy"
