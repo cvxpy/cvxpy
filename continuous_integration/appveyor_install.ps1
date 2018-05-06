@@ -19,7 +19,7 @@ $env:PATH = "${env:PYTHON};${env:PYTHON}\Scripts;" + $env:PATH
 
 # Configure conda
 
-conda create -n testenv --yes -python=$env:PYTHON_VERSION mkl pip nose numpy scipy
+conda create -n testenv --yes python=$env:PYTHON_VERSION mkl pip nose numpy scipy
 conda config --set always_yes true
 activate testenv
 conda install -c conda-forge --yes lapack
