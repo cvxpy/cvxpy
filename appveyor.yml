@@ -20,6 +20,7 @@ platform:
     - x64
 
 install:
+    - "conda config --add channels cvxgrp"
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
