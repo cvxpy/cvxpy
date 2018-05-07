@@ -1,34 +1,37 @@
-# Attempts to install ECOS in Python 2.7 and Python 3.3 on both 64- and
-# 32-bit Windows.
+#  see: https://www.appveyor.com/docs/build-environment/#build-vm-configurations
+#  for details on the AppVeyor build VM configurations
 environment:
     global:
           PYTHON: "C:\\conda"
-          MINICONDA_VERSION: "latest"
-          # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
-          # /E:ON and /V:ON options are not enabled in the batch script intepreter
-          # See: http://stackoverflow.com/a/13751649/163740
-          CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
-          CONDA_CHANNELS: "cvxgrp"
-          CONDA_DEPENDENCIES: "numpy scipy nose pip scs ecos multiprocess cvxcanon"
-
+          ENV_NAME: "testenv"
+          MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
     matrix:
-          - PYTHON_VERSION: "2.7"
-          - PYTHON_VERSION: "3.5"
+          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+            PYTHON_VERSION: "2.7"
+          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+            PYTHON_VERSION: "2.7"
+          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+            PYTHON_VERSION: "3.5"
+          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+            PYTHON_VERSION: "3.5"
 
+
+# SCS is a required solver, and it has no 32 bit distribution
+# on conda; cvxpy's AppVeyor tests will only use 64 bit Windows.
 platform:
-    - x86
     - x64
 
+# The install phase is contained in a PowerShell script.
 install:
-    - "git clone git://github.com/astropy/ci-helpers.git"
-    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
-    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "activate test"
-    - "pip install toolz"
+    - "powershell continuous_integration\\appveyor_install.ps1"
 
-# Not a .NET project, we build CVXPY in the install step instead
+# Not a .NET project, we build CVXPY in the install step instead.
 build: false
 
+# The test phase uses Windows CMD commands (not PowerShell).
 test_script:
-    - "%CMD_IN_ENV% python setup.py install"
-    - "%CMD_IN_ENV% nosetests cvxpy"
+    - "PATH %PYTHON%;%PYTHON%\\Scripts;%PATH%"
+    - "echo %PATH%"
+    - "activate %ENV_NAME%"
+    - "conda env list"
+    - "nosetests cvxpy"
