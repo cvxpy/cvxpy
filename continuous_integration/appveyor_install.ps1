@@ -12,12 +12,10 @@ $install_args = "/InstallationType=AllUsers /S /RegisterPython=1 /D=" + $env:PYT
 Write-Host $filepath $install_args
 Start-Process -Filepath $filepath -ArgumentList $install_args -Wait -Passthru
 # The conda install doesn't work well when called from PowerShell.
-# We need to set some environment variables. First, we set them
+# We need to set some environment variables. For now, just them
 # for the current session of PowerShell:
 $dir_to_add = "${env:PYTHON};${env:PYTHON}\Scripts;"
 $env:PATH = $dir_to_add + $env:PATH
-# but we also need to set them globally:
-setx PATH $env:PATH /m
 echo $env:PATH
 
 # Configure conda
