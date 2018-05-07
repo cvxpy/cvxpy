@@ -8,19 +8,24 @@ $client.DownloadFile($fileurl,  $filepath)
 
 # Install miniconda
 
-$install_args = "/InstallationType=AllUsers /AddToPath=1 /S /RegisterPython=1 /D=" + $env:PYTHON
+$install_args = "/InstallationType=AllUsers /S /RegisterPython=1 /D=" + $env:PYTHON
 Write-Host $filepath $install_args
 Start-Process -Filepath $filepath -ArgumentList $install_args -Wait -Passthru
-# At this point, conda should be installed, and the PATH appropriately updated
-# Problem is, the updated PATH will only visible to SUBSEQUENT PowerShell sessions.
-# In order to have PATH be correctly updated for the remainder of this PowerShell
-# session, we need to manually update it. We do that below.
-$env:PATH = "${env:PYTHON};${env:PYTHON}\Scripts;" + $env:PATH
+# The conda install doesn't work well when called from PowerShell.
+# We need to set some environment variables. First, we set them
+# for the current session of PowerShell:
+$dir_to_add = "${env:PYTHON};${env:PYTHON}\Scripts;"
+$env:PATH = $dir_to_add + $env:PATH
+# but we also need to set them globally:
+setx PATH $dir_to_add$env:PATH 
 
 # Configure conda
 
 conda create -n testenv --yes python=$env:PYTHON_VERSION mkl pip nose numpy scipy
 activate testenv
+# The conda activation doesn't work well from PowerShell.
+# We need to update environment variables, but this need only
+# be done for the current session.
 $env:PATH = "${env:PYTHON}\envs\testenv;${env:PYTHON}\envs\testenv\Scripts;${env:PYTHON}\envs\testenv\Library\bin;" + $env:PATH
 # The above line updates PATH for the same reason as when we installed Miniconda.
 conda install -c conda-forge --yes lapack

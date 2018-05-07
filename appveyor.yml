@@ -22,9 +22,7 @@ install:
 build: false
 
 test_script:
-    - "set PATH=%PYTHON%;%PATH%"
-    - "echo PATH"
+    - "echo %PATH%"
     - "activate %ENV_NAME%"
-    - "echo PATH"
     - "conda env list"
     - "nosetests cvxpy"
