@@ -9,14 +9,14 @@ image:
 
 environment:
     global:
-          - PYTHON: "C:\\conda"
-          - ENV_NAME: "testenv"
+          PYTHON: "C:\\conda"
+          ENV_NAME: "testenv"
     matrix:
+          fast_finish: true
           - PYTHON_VERSION: "2.7"
           - PYTHON_VERSION: "3.5"
           - MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
           - MINICONDA_FILENAME: "Miniconda3-latest-Windows-x86_64.exe"
-          - fast_finish: true
 
 # SCS is a required solver, and it has no 32 bit distribution
 # on conda; cvxpy's AppVeyor tests will only use 64 bit Windows.
