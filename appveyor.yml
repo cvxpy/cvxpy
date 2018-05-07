@@ -22,7 +22,7 @@ install:
 build: false
 
 test_script:
-    - "set PATH %PYTHON%;%PYTHON%\\Scripts;%PATH%"
+    - "PATH %PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "echo %PATH%"
     - "activate %ENV_NAME%"
     - "conda env list"
