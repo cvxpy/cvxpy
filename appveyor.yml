@@ -1,26 +1,36 @@
-# Attempts to install ECOS in Python 2.7 and Python 3.3 on both 64- and
-# 32-bit Windows.
+# Worker images
+#  VS 2015 runs on Windows Server 2012 R2
+#  VS 2017 runs on Windows Server 2016
+#  see: https://www.appveyor.com/docs/build-environment/#build-vm-configurations
+#  for details on these environments.
+image:
+  - Visual Studio 2015
+  - Visual Studio 2017
+
 environment:
-    global:
-          PYTHON: "C:\\conda"
-          MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
-          ENV_NAME: "testenv"
-    matrix:
+  - global:
+          - PYTHON: "C:\\conda"
+          - ENV_NAME: "testenv"
+  - matrix:
           - PYTHON_VERSION: "2.7"
           - PYTHON_VERSION: "3.5"
+          - MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
+          - MINICONDA_FILENAME: "Miniconda3-latest-Windows-x86_64.exe"
+          - fast_finish: true
 
-# SCS is a required solver.
-# SCS has no 32 bit distribution on conda.
-# As such, cvxpy's AppVeyor tests will only use 64 bit windows.
+# SCS is a required solver, and it has no 32 bit distribution
+# on conda; cvxpy's AppVeyor tests will only use 64 bit Windows.
 platform:
     - x64
 
+# The install phase is contained in a PowerShell script.
 install:
     - "powershell continuous_integration\\appveyor_install.ps1"
 
-# Not a .NET project, we build CVXPY in the install step instead
+# Not a .NET project, we build CVXPY in the install step instead.
 build: false
 
+# The test phase uses Windows CMD commands (not PowerShell).
 test_script:
     - "PATH %PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "echo %PATH%"
