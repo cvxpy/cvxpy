@@ -17,7 +17,8 @@ Start-Process -Filepath $filepath -ArgumentList $install_args -Wait -Passthru
 $dir_to_add = "${env:PYTHON};${env:PYTHON}\Scripts;"
 $env:PATH = $dir_to_add + $env:PATH
 # but we also need to set them globally:
-setx PATH $dir_to_add$env:PATH 
+setx PATH $env:PATH /m
+echo $env:PATH
 
 # Configure conda
 
