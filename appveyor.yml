@@ -8,10 +8,10 @@ image:
   - Visual Studio 2017
 
 environment:
-  - global:
+    global:
           - PYTHON: "C:\\conda"
           - ENV_NAME: "testenv"
-  - matrix:
+    matrix:
           - PYTHON_VERSION: "2.7"
           - PYTHON_VERSION: "3.5"
           - MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
