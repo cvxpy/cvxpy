@@ -2,8 +2,9 @@
 # 32-bit Windows.
 environment:
     global:
-          PYTHON: "C:\\conda"
+          PYTHON: "C:\conda"
           MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
+          ENV_NAME: "testenv"
     matrix:
           - PYTHON_VERSION: "2.7"
           - PYTHON_VERSION: "3.5"
@@ -21,6 +22,9 @@ install:
 build: false
 
 test_script:
-    - "powershell echo $env:PATH"
+    - "set PATH=%PYTHON%;%PATH%"
+    - "echo PATH"
+    - "activate %ENV_NAME%"
+    - "echo PATH"
     - "conda env list"
     - "nosetests cvxpy"
