@@ -21,5 +21,6 @@ install:
 build: false
 
 test_script:
+    - "powershell echo $env:PATH"
     - "conda env list"
     - "nosetests cvxpy"

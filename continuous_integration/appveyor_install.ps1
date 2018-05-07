@@ -20,8 +20,9 @@ $env:PATH = "${env:PYTHON};${env:PYTHON}\Scripts;" + $env:PATH
 # Configure conda
 
 conda create -n testenv --yes python=$env:PYTHON_VERSION mkl pip nose numpy scipy
-conda config --set always_yes true
 activate testenv
+$env:PATH = "${env:PYTHON}\envs\testenv;${env:PYTHON}\envs\testenv\Scripts;${env:PYTHON}\envs\testenv\Library\bin;" + $env:PATH
+# The above line updates PATH for the same reason as when we installed Miniconda.
 conda install -c conda-forge --yes lapack
 conda install -c cvxgrp --yes ecos scs multiprocess
 conda install -c anaconda --yes flake8
