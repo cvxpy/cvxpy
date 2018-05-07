@@ -8,22 +8,25 @@ set -e
 
 if [[ "$DISTRIB" == "conda" ]]; then
     # Use miniconda
-    wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh \
-        -O miniconda.sh
-    chmod +x miniconda.sh && ./miniconda.sh -b
-    export PATH=/home/travis/miniconda/bin:$PATH
-    conda update --yes conda
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        sudo apt-get update -qq
+        sudo apt-get install -qq gfortran libgfortran3
+        LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.3
+        wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+           -O miniconda.sh
+        chmod +x miniconda.sh && ./miniconda.sh -b
+        export PATH=/home/travis/miniconda3/bin:$PATH
+        conda update --yes conda
 
-    # Configure the conda environment and put it in the path using the
-    # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
-              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
-    source activate testenv
-    conda install -c conda-forge --yes lapack
-    conda install -c cvxgrp --yes ecos scs multiprocess
-    conda install -c anaconda --yes flake8
+        # Configure the conda environment and put it in the path using the
+        # provided versions
+        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
+                numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        source activate testenv
+        conda install -c conda-forge --yes lapack
+        conda install -c cvxgrp --yes ecos scs multiprocess
+        conda install -c anaconda --yes flake8
 
-    if [[ "$INSTALL_GLPK" == "true" ]]; then
         # Install GLPK.
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
         tar -zxvf glpk-4.60.tar.gz
@@ -61,6 +64,18 @@ if [[ "$DISTRIB" == "conda" ]]; then
         cd ..
 
         cd "$oldpath"
+    elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
+             -O miniconda.sh
+        chmod +x miniconda.sh && ./miniconda.sh -b
+        export PATH=/Users/travis/miniconda3/bin:$PATH
+        # Configure the conda environment and put it in the path using the
+        # provided versions
+        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
+              numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        source activate testenv
+        conda install -c cvxgrp --yes ecos scs multiprocess
+        conda install -c anaconda --yes flake8
     fi
 
 

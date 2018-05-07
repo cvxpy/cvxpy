@@ -6,7 +6,7 @@
 Welcome to CVXPY 1.0
 ====================
 
-**Join the** `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_ **and** `Gitter chat <https://gitter.im/cvxgrp/cvxpy>`_ **for the best CVXPY support!**
+**Join the** `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_ **and use** `StackOverlow <https://stackoverflow.com/questions/tagged/cvxpy>`_ **for the best CVXPY support!**
 
 **CVXPY 1.0 is a major rewrite with many new features! See** :ref:`updates` **for details on changes.**
 
@@ -100,3 +100,7 @@ Additional solvers are supported, but must be installed separately.
 
    related_projects/index
 
+.. toctree::
+   :hidden:
+
+   versions/index
