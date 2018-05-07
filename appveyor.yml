@@ -1,11 +1,9 @@
 # Worker images
-#  VS 2015 runs on Windows Server 2012 R2
-#  VS 2017 runs on Windows Server 2016
 #  see: https://www.appveyor.com/docs/build-environment/#build-vm-configurations
 #  for details on these environments.
 image:
+  - Visual Studio 2013
   - Visual Studio 2015
-  - Visual Studio 2017
 
 environment:
     global:
