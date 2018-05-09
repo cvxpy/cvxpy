@@ -1,12 +1,12 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Citing CVXPY &mdash; CVXPY 1.0.0 documentation</title>
+    <title>Citing CVXPY &#8212; CVXPY 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,22 +17,27 @@
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="What’s New in CVXPY 1.0" href="../updates/index.html" />
     <link rel="prev" title="FAQ" href="../faq/index.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -41,8 +46,10 @@
             
   <div class="section" id="citing-cvxpy">
 <span id="citing"></span><h1>Citing CVXPY<a class="headerlink" href="#citing-cvxpy" title="Permalink to this headline">¶</a></h1>
-<p>If you use CVXPY for published work, we encourage you to cite the accompanying JMLR MLOSS paper.</p>
-<p>Use the following BibTeX citation:</p>
+<p>If you use CVXPY for published work, we encourage you to cite the accompanying
+<a class="reference external" href="https://web.stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf">JMLR MLOSS paper</a>
+and the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/pdf/cvxpy_rewriting.pdf">JCD paper</a>.
+Use the following BibTeX citations:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">cvxpy</span><span class="p">,</span>
   <span class="n">author</span>  <span class="o">=</span> <span class="p">{</span><span class="n">Steven</span> <span class="n">Diamond</span> <span class="ow">and</span> <span class="n">Stephen</span> <span class="n">Boyd</span><span class="p">},</span>
   <span class="n">title</span>   <span class="o">=</span> <span class="p">{{</span><span class="n">CVXPY</span><span class="p">}:</span> <span class="n">A</span> <span class="p">{</span><span class="n">P</span><span class="p">}</span><span class="n">ython</span><span class="o">-</span><span class="n">Embedded</span> <span class="n">Modeling</span> <span class="n">Language</span> <span class="k">for</span> <span class="n">Convex</span> <span class="n">Optimization</span><span class="p">},</span>
@@ -51,6 +58,17 @@
   <span class="n">volume</span>  <span class="o">=</span> <span class="p">{</span><span class="mi">17</span><span class="p">},</span>
   <span class="n">number</span>  <span class="o">=</span> <span class="p">{</span><span class="mi">83</span><span class="p">},</span>
   <span class="n">pages</span>   <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="o">--</span><span class="mi">5</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">cvxpy_rewriting</span><span class="p">,</span>
+  <span class="n">author</span>  <span class="o">=</span> <span class="p">{</span><span class="n">Akshay</span> <span class="n">Agrawal</span><span class="p">,</span> <span class="n">Robin</span> <span class="n">Verschueren</span><span class="p">,</span> <span class="n">Steven</span> <span class="n">Diamond</span> <span class="ow">and</span> <span class="n">Stephen</span> <span class="n">Boyd</span><span class="p">},</span>
+  <span class="n">title</span>   <span class="o">=</span> <span class="p">{</span><span class="n">A</span> <span class="n">Rewriting</span> <span class="n">System</span> <span class="k">for</span> <span class="n">Convex</span> <span class="n">Optimization</span> <span class="n">Problems</span><span class="p">},</span>
+  <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span><span class="n">Journal</span> <span class="n">of</span> <span class="n">Control</span> <span class="ow">and</span> <span class="n">Decision</span><span class="p">},</span>
+  <span class="n">year</span>    <span class="o">=</span> <span class="p">{</span><span class="mi">2018</span><span class="p">},</span>
+  <span class="n">volume</span>  <span class="o">=</span> <span class="p">{</span><span class="mi">5</span><span class="p">},</span>
+  <span class="n">number</span>  <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">},</span>
+  <span class="n">pages</span>   <span class="o">=</span> <span class="p">{</span><span class="mi">42</span><span class="o">--</span><span class="mi">60</span><span class="p">},</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -68,10 +86,12 @@
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -81,8 +101,8 @@
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -108,7 +128,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What’s New in CVXPY 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
@@ -116,13 +136,16 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions/index.html">Versions</a></li>
+</ul>
 
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -133,14 +156,14 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2017, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
+      &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../_sources/citing/index.txt"
+      <a href="../_sources/citing/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
