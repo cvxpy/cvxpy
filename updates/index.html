@@ -1,12 +1,12 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>What’s New in CVXPY 1.0 &#8212; CVXPY 1.0.0 documentation</title>
+    <title>What’s New in CVXPY 1.0 &mdash; CVXPY 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,27 +17,22 @@
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Contributing" href="../contributing/index.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.0.0 documentation" href="../index.html" />
+    <link rel="next" title="Developer Guide" href="../contributing/index.html" />
     <link rel="prev" title="Citing CVXPY" href="../citing/index.html" />
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body>
-  
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
@@ -45,7 +40,7 @@
           <div class="body" role="main">
             
   <div class="section" id="what-s-new-in-cvxpy-1-0">
-<span id="updates"></span><h1>What’s New in CVXPY 1.0<a class="headerlink" href="#what-s-new-in-cvxpy-1-0" title="Permalink to this headline">¶</a></h1>
+<span id="updates"></span><h1>What&#8217;s New in CVXPY 1.0<a class="headerlink" href="#what-s-new-in-cvxpy-1-0" title="Permalink to this headline">¶</a></h1>
 <p>CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
 We only cover changes that might be of interest to users.</p>
 <p>We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available <a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py">here</a>.</p>
@@ -54,7 +49,7 @@ We only cover changes that might be of interest to users.</p>
 <ul class="simple">
 <li>Reductions: CVXPY 1.0 uses a modular system of <em>reductions</em> to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables.</li>
 <li>Attributes: Variables and parameters now support a variety of attributes that describe their symbolic properties, such as nonnegative or symmetric. This unifies the treatment of symbolic properties for variables and parameters and replaces specialized variable classes such as <code class="docutils literal"><span class="pre">Bool</span></code> and <code class="docutils literal"><span class="pre">Semidef</span></code>.</li>
-<li>NumPy compatibility: CVXPY’s interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.</li>
+<li>NumPy compatibility: CVXPY&#8217;s interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.</li>
 <li>Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions, transforms may also take Problem, Objective, or Constraint objects as input.</li>
 </ul>
 </div>
@@ -129,12 +124,10 @@ the constraints hold and <span class="math">\(\infty\)</span> when they are viol
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -144,8 +137,8 @@ the constraints hold and <span class="math">\(\infty\)</span> when they are viol
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
     />
 </a>
 </p>
@@ -171,7 +164,7 @@ the constraints hold and <span class="math">\(\infty\)</span> when they are viol
 <li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s New in CVXPY 1.0</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What&#8217;s New in CVXPY 1.0</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reductions">Reductions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#attributes">Attributes</a></li>
@@ -181,7 +174,7 @@ the constraints hold and <span class="math">\(\infty\)</span> when they are viol
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Developer Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
@@ -194,8 +187,8 @@ the constraints hold and <span class="math">\(\infty\)</span> when they are viol
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -209,11 +202,11 @@ the constraints hold and <span class="math">\(\infty\)</span> when they are viol
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../_sources/updates/index.rst.txt"
+      <a href="../_sources/updates/index.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -1,12 +1,12 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>What is CVXPY? &#8212; CVXPY 0.4.11 documentation</title>
+    <title>What is CVXPY? &mdash; CVXPY 0.4.11 documentation</title>
     
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,27 +17,23 @@
         VERSION:     '0.4.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 0.4.11 documentation" href="../../index.html" />
+    <link rel="up" title="Tutorial" href="../index.html" />
     <link rel="next" title="Disciplined Convex Programming" href="../dcp/index.html" />
     <link rel="prev" title="Tutorial" href="../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body>
-  
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
@@ -77,7 +73,7 @@ and unpacks the results.</p>
 <span class="n">optimal</span> <span class="n">var</span> <span class="mf">1.00000000001</span> <span class="o">-</span><span class="mf">1.19961841702e-11</span>
 </pre></div>
 </div>
-<p>The status, which was assigned a value “optimal” by the solve method,
+<p>The status, which was assigned a value &#8220;optimal&#8221; by the solve method,
 tells us the problem was solved successfully. The optimal value
 (basically 1 here) is the minimum value of the objective over all
 choices of variables that satisfy the constraints. The last thing
@@ -91,7 +87,7 @@ problem.</p>
 <p>The Python examples in this tutorial import CVXPY using the syntax <code class="docutils literal"><span class="pre">from</span> <span class="pre">cvxpy</span> <span class="pre">import</span> <span class="pre">*</span></code>.
 This is done to make the examples simpler and more concise. But for production
 code you should always import CVXPY as a namespace. For example,
-<code class="docutils literal"><span class="pre">import</span> <span class="pre">cvxpy</span> <span class="pre">as</span> <span class="pre">cvx</span></code>. Here’s the code from the previous section with
+<code class="docutils literal"><span class="pre">import</span> <span class="pre">cvxpy</span> <span class="pre">as</span> <span class="pre">cvx</span></code>. Here&#8217;s the code from the previous section with
 CVXPY imported as a namespace.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cvx</span>
 
@@ -141,7 +137,7 @@ and constraints.</p>
 <div class="section" id="infeasible-and-unbounded-problems">
 <h2>Infeasible and unbounded problems<a class="headerlink" href="#infeasible-and-unbounded-problems" title="Permalink to this headline">¶</a></h2>
 <p>If a problem is infeasible or unbounded, the status field will be set to
-“infeasible” or “unbounded”, respectively. The value fields of the
+&#8220;infeasible&#8221; or &#8220;unbounded&#8221;, respectively. The value fields of the
 problem variables are not updated.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="o">*</span>
 
@@ -176,9 +172,9 @@ opposite is true.</p>
 problem status indicates the lower accuracy achieved. The
 statuses indicating lower accuracy are</p>
 <ul class="simple">
-<li>“optimal_inaccurate”</li>
-<li>“unbounded_inaccurate”</li>
-<li>“infeasible_inaccurate”</li>
+<li>&#8220;optimal_inaccurate&#8221;</li>
+<li>&#8220;unbounded_inaccurate&#8221;</li>
+<li>&#8220;infeasible_inaccurate&#8221;</li>
 </ul>
 <p>The problem variables are updated as usual for the type of solution
 found (i.e., optimal, unbounded, or infeasible).</p>
@@ -222,7 +218,7 @@ sparse matrices, etc. <code class="docutils literal"><span class="pre">A</span><
 <li>Numpy matrices</li>
 <li>SciPy sparse matrices</li>
 </ul>
-<p>Here’s an example of a CVXPY problem with vectors and matrices:</p>
+<p>Here&#8217;s an example of a CVXPY problem with vectors and matrices:</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solves a bounded least-squares problem.</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="o">*</span>
@@ -260,7 +256,7 @@ sparse matrices, etc. <code class="docutils literal"><span class="pre">A</span><
 <h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
 <p>As shown in the example code, you can use <code class="docutils literal"><span class="pre">==</span></code>, <code class="docutils literal"><span class="pre">&lt;=</span></code>, and <code class="docutils literal"><span class="pre">&gt;=</span></code> to construct constraints in CVXPY. Equality and inequality constraints are elementwise, whether they involve scalars, vectors, or matrices. For example, together the constraints <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> mean that every entry of <code class="docutils literal"><span class="pre">x</span></code> is between 0 and 1.</p>
 <p>If you want matrix inequalities that represent semi-definite cone constraints, see <a class="reference internal" href="../advanced/index.html#semidefinite"><span class="std std-ref">Semidefinite matrices</span></a>. The section explains how to express a semi-definite cone inequality.</p>
-<p>You cannot construct inequalities with <code class="docutils literal"><span class="pre">&lt;</span></code> and <code class="docutils literal"><span class="pre">&gt;</span></code>. Strict inequalities don’t make sense in a real world setting. Also, you cannot chain constraints together, e.g., <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> or <code class="docutils literal"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">y</span> <span class="pre">==</span> <span class="pre">2</span></code>. The Python interpreter treats chained constraints in such a way that CVXPY cannot capture them. CVXPY will raise an exception if you write a chained constraint.</p>
+<p>You cannot construct inequalities with <code class="docutils literal"><span class="pre">&lt;</span></code> and <code class="docutils literal"><span class="pre">&gt;</span></code>. Strict inequalities don&#8217;t make sense in a real world setting. Also, you cannot chain constraints together, e.g., <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> or <code class="docutils literal"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">y</span> <span class="pre">==</span> <span class="pre">2</span></code>. The Python interpreter treats chained constraints in such a way that CVXPY cannot capture them. CVXPY will raise an exception if you write a chained constraint.</p>
 </div>
 <div class="section" id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
@@ -269,7 +265,7 @@ the value of a constant in a problem without reconstructing the entire
 problem.</p>
 <p>Parameters can be vectors or matrices, just like variables. When you
 create a parameter you have the option of specifying the sign of the
-parameter’s entries (positive, negative, or unknown). The sign is
+parameter&#8217;s entries (positive, negative, or unknown). The sign is
 unknown by default. The sign is used in <a class="reference internal" href="../dcp/index.html#dcp"><span class="std std-ref">Disciplined Convex Programming</span></a>. Parameters can be
 assigned a constant value any time after they are created. The constant
 value must have the same dimensions and sign as those specified when the
@@ -387,12 +383,10 @@ problem above.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -402,8 +396,8 @@ problem above.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
     />
 </a>
 </p>
@@ -457,8 +451,8 @@ problem above.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -472,11 +466,11 @@ problem above.</p>
       &copy;2014, Steven Diamond, Eric Chu, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/tutorial/intro/index.rst.txt"
+      <a href="../../_sources/tutorial/intro/index.txt"
           rel="nofollow">Page source</a>
     </div>
 

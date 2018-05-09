@@ -1,12 +1,12 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>TODO &#8212; CVXPY 1.0.0 documentation</title>
+    <title>TODO &mdash; CVXPY 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -17,25 +17,20 @@
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.0.0 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body>
-  
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
@@ -50,7 +45,7 @@
 </div>
 <div class="section" id="predicting-nba-game-wins">
 <h1>Predicting NBA game wins<a class="headerlink" href="#predicting-nba-game-wins" title="Permalink to this headline">¶</a></h1>
-<p>In this notebook, we’ll form a simple model to predict NBA game winners
+<p>In this notebook, we&#8217;ll form a simple model to predict NBA game winners
 based on which teams are playing, whether they are playing at home or
 away, and which players are playing in the game and for how long.</p>
 <p>The goal is to demonstrate implementing a simple (but non-standard)
@@ -292,12 +287,12 @@ notebook.</p>
 </div>
 <div class="section" id="raw-data">
 <h1>Raw data<a class="headerlink" href="#raw-data" title="Permalink to this headline">¶</a></h1>
-<p>Below, we load the NBA game data from the ‘gamestats’ folder. We have
+<p>Below, we load the NBA game data from the &#8216;gamestats&#8217; folder. We have
 games from NBA seasons 2010-2013. For each game, we identify the winning
 and losing team and the NBA season in which the game was played. For
 each team appearance in a game, we have the score, a list of player
 appearances, and whether the team played at home or away. For each
-player appearance in a game, we have the player’s name, a unique player
+player appearance in a game, we have the player&#8217;s name, a unique player
 ID, and the number of minutes they played in the game.</p>
 </div>
 <div class="section" id="model">
@@ -319,10 +314,10 @@ scalings of <span class="math">\(w\)</span>.</p>
 homogenous strict inequalities in <span class="math">\(w\)</span> is feasible if and only if
 there is some scaling <span class="math">\(\tilde{w} = \alpha w\)</span> such that
 <span class="math">\(f_{\tilde{w}}(x^w_i, x^l_i) \geq 1\)</span> for all <span class="math">\(i\)</span>. This
-motivates the loss function which we’ll use:</p>
+motivates the loss function which we&#8217;ll use:</p>
 <p>The function <span class="math">\(L(w)\)</span> assigns a positive loss whenever the
 classification inequality <span class="math">\(f_w(x^w_i, x^l_i) \geq 1\)</span> is violated.</p>
-<p>We’ll choose <span class="math">\(w\)</span> by minimizing the loss <span class="math">\(L(w)\)</span>, plus a
+<p>We&#8217;ll choose <span class="math">\(w\)</span> by minimizing the loss <span class="math">\(L(w)\)</span>, plus a
 regularization term <span class="math">\(\gamma \| w \|_2\)</span>. The regularization term is
 used to prevent over-fitting.</p>
 <p>We use the <code class="docutils literal"><span class="pre">fit(W,L,gamma)</span></code> function defined below to solve the
@@ -389,7 +384,7 @@ hold-out set.</p>
 <span class="n">Hold</span><span class="o">-</span><span class="n">out</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.582656</span>
 </pre></div>
 </div>
-<p>We can see that we’ve over fit the model because the classification is
+<p>We can see that we&#8217;ve over fit the model because the classification is
 perfect on the training set, but low on the hold-out set. Adding some
 regularization should improve the predictive performance on the hold-out
 set:</p>
@@ -407,15 +402,15 @@ set:</p>
 </div>
 <div class="section" id="regularization-paths">
 <h1>Regularization paths<a class="headerlink" href="#regularization-paths" title="Permalink to this headline">¶</a></h1>
-<p>We’ll find good choices for the regularization hyper-parameter
-<span class="math">\(\gamma\)</span> by plotting a regularization path. We’ll randomly
+<p>We&#8217;ll find good choices for the regularization hyper-parameter
+<span class="math">\(\gamma\)</span> by plotting a regularization path. We&#8217;ll randomly
 partition the data into training and hold-out sets and plot the
 percentage of games predicted correctly over a range of choices of
-<span class="math">\(\gamma\)</span>. We’ll do this several times for each choice of
+<span class="math">\(\gamma\)</span>. We&#8217;ll do this several times for each choice of
 <span class="math">\(\gamma\)</span> and plot the average result.</p>
-<p>We’ll plot the regularization path over different sets of features.
-First, we’ll just use team identities, then we’ll add whether the team
-played at home, and then we’ll add the times played of each player.</p>
+<p>We&#8217;ll plot the regularization path over different sets of features.
+First, we&#8217;ll just use team identities, then we&#8217;ll add whether the team
+played at home, and then we&#8217;ll add the times played of each player.</p>
 <p>We should see an increase in predictive power as we add features.</p>
 <p>Note that some of these examples may take a few minutes to run.</p>
 <div class="section" id="team-identities">
@@ -440,7 +435,7 @@ is hard to over-fit it on our data, so regularization has little effect.</p>
 <div class="section" id="identities-home-away">
 <h2>Identities + home/away<a class="headerlink" href="#identities-home-away" title="Permalink to this headline">¶</a></h2>
 <p>We add a single feature denoting whether the teams played at home. This
-doesn’t add much to our model complexity, so it is still difficult to
+doesn&#8217;t add much to our model complexity, so it is still difficult to
 over-fit. The predictive power is about the same as the previous model.</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
@@ -491,12 +486,10 @@ on the hold-out set with some added regularization.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -506,8 +499,8 @@ on the hold-out set with some added regularization.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
     />
 </a>
 </p>
@@ -533,10 +526,10 @@ on the hold-out set with some added regularization.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in CVXPY 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Developer Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
@@ -549,8 +542,8 @@ on the hold-out set with some added regularization.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -564,11 +557,11 @@ on the hold-out set with some added regularization.</p>
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/nba_ranking.rst.txt"
+      <a href="../../_sources/examples/applications/nba_ranking.txt"
           rel="nofollow">Page source</a>
     </div>
 
