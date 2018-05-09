@@ -26,7 +26,7 @@ The code below solves a simple optimization problem in CVXPY:
     obj = cvx.Minimize((x - y)**2)
 
     # Form and solve problem.
-    prob = Problem(obj, constraints)
+    prob = cvx.Problem(obj, constraints)
     prob.solve()  # Returns the optimal value.
     print("status:", prob.status)
     print("optimal value", prob.value)

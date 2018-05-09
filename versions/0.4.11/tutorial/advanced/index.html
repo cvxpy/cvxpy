@@ -1,0 +1,697 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Advanced Features &mdash; CVXPY 0.4.11 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.4.11',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 0.4.11 documentation" href="../../index.html" />
+    <link rel="up" title="Tutorial" href="../index.html" />
+    <link rel="next" title="Examples" href="../../examples/index.html" />
+    <link rel="prev" title="Functions" href="../functions/index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="advanced-features">
+<span id="advanced"></span><h1>Advanced Features<a class="headerlink" href="#advanced-features" title="Permalink to this headline">¶</a></h1>
+<p>This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.</p>
+<div class="section" id="dual-variables">
+<h2>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this headline">¶</a></h2>
+<p>You can use CVXPY to find the optimal dual variables for a problem. When you call <code class="docutils literal"><span class="pre">prob.solve()</span></code> each dual variable in the solution is stored in the <code class="docutils literal"><span class="pre">dual_value</span></code> field of the constraint it corresponds to.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1"># Create two scalar optimization variables.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+
+<span class="c1"># Create two constraints.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+               <span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Form objective.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span>
+
+<span class="c1"># Form and solve problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="c1"># The optimal dual variable (Lagrange multiplier) for</span>
+<span class="c1"># a constraint is stored in constraint.dual_value.</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal (x + y == 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal (x - y &gt;= 1) dual variable&quot;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span>
+<span class="nb">print</span> <span class="s2">&quot;x - y value:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">6.47610300459e-18</span>
+<span class="n">optimal</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="n">dual</span> <span class="n">variable</span> <span class="mf">2.00025244976</span>
+<span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="n">value</span><span class="p">:</span> <span class="mf">0.999999986374</span>
+</pre></div>
+</div>
+<p>The dual variable for <code class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code> is 2. By complementarity this implies that <code class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></code> is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten <code class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code>, (i.e., increase the right-hand side), the optimal value of the problem will increase.</p>
+</div>
+<div class="section" id="semidefinite-matrices">
+<span id="semidefinite"></span><h2>Semidefinite matrices<a class="headerlink" href="#semidefinite-matrices" title="Permalink to this headline">¶</a></h2>
+<p>Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs).
+You can do this in CVXPY in two ways.
+The first way is to use
+<code class="docutils literal"><span class="pre">Semidef(n)</span></code> to create an <code class="docutils literal"><span class="pre">n</span></code> by <code class="docutils literal"><span class="pre">n</span></code> variable constrained to be symmetric and positive semidefinite. For example,</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Creates a 100 by 100 positive semidefinite variable.</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">Semidef</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># You can use X anywhere you would use</span>
+<span class="c1"># a normal CVXPY variable.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">+</span> <span class="n">sum_entries</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The second way is to create a positive semidefinite cone constraint using the <code class="docutils literal"><span class="pre">&gt;&gt;</span></code> or <code class="docutils literal"><span class="pre">&lt;&lt;</span></code> operator.
+If <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code> are <code class="docutils literal"><span class="pre">n</span></code> by <code class="docutils literal"><span class="pre">n</span></code> variables,
+the constraint <code class="docutils literal"><span class="pre">X</span> <span class="pre">&gt;&gt;</span> <span class="pre">Y</span></code> means that <span class="math">\(z^T(X - Y)z \geq 0\)</span>, for all <span class="math">\(z \in \mathcal{R}^n\)</span>.
+The constraint does not require that <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code> be symmetric.
+Both sides of a postive semidefinite cone constraint must be square matrices and affine.</p>
+<p>The following code shows how to constrain matrix expressions to be positive or negative
+semidefinite (but not necessarily symmetric).</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># expr1 must be positive semidefinite.</span>
+<span class="n">constr1</span> <span class="o">=</span> <span class="p">(</span><span class="n">expr1</span> <span class="o">&gt;&gt;</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># expr2 must be negative semidefinite.</span>
+<span class="n">constr2</span> <span class="o">=</span> <span class="p">(</span><span class="n">expr2</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To constrain a matrix expression to be symmetric, simply write</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># expr must be symmetric.</span>
+<span class="n">constr</span> <span class="o">=</span> <span class="p">(</span><span class="n">expr</span> <span class="o">==</span> <span class="n">expr</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also use <code class="docutils literal"><span class="pre">Symmetric(n)</span></code> to create an <code class="docutils literal"><span class="pre">n</span></code> by <code class="docutils literal"><span class="pre">n</span></code> variable constrained to be symmetric.</p>
+</div>
+<div class="section" id="mixed-integer-programs">
+<span id="mip"></span><h2>Mixed-integer programs<a class="headerlink" href="#mixed-integer-programs" title="Permalink to this headline">¶</a></h2>
+<p>In mixed-integer programs, certain variables are constrained to be boolean or integer valued. You can construct mixed-integer programs using the <code class="docutils literal"><span class="pre">Bool</span></code> and <code class="docutils literal"><span class="pre">Int</span></code> constructors. These take the same arguments as the <code class="docutils literal"><span class="pre">Variable</span></code> constructor, and they return a variable constrained to have only boolean or integer valued entries.</p>
+<p>The following code shows the <code class="docutils literal"><span class="pre">Bool</span></code> and <code class="docutils literal"><span class="pre">Int</span></code> constructors in action:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Creates a 10-vector constrained to have boolean valued entries.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># expr1 must be boolean valued.</span>
+<span class="n">constr1</span> <span class="o">=</span> <span class="p">(</span><span class="n">expr1</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># Creates a 5 by 7 matrix constrained to have integer valued entries.</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+
+<span class="c1"># expr2 must be integer valued.</span>
+<span class="n">constr2</span> <span class="o">=</span> <span class="p">(</span><span class="n">expr2</span> <span class="o">==</span> <span class="n">Z</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="problem-arithmetic">
+<h2>Problem arithmetic<a class="headerlink" href="#problem-arithmetic" title="Permalink to this headline">¶</a></h2>
+<p>For convenience, arithmetic operations have been overloaded for
+problems and objectives.
+Problem arithmetic is useful because it allows you to write a problem as a
+sum of smaller problems.
+The rules for adding, subtracting, and multiplying objectives are given below.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Addition and subtraction.</span>
+
+<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">+</span> <span class="n">expr2</span><span class="p">)</span>
+
+<span class="n">Maximize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">+</span> <span class="n">expr2</span><span class="p">)</span>
+
+<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="c1"># Not allowed.</span>
+
+<span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span><span class="p">)</span> <span class="o">-</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">expr2</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr1</span> <span class="o">-</span> <span class="n">expr2</span><span class="p">)</span>
+
+<span class="c1"># Multiplication (alpha is a positive scalar).</span>
+
+<span class="n">alpha</span><span class="o">*</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+
+<span class="n">alpha</span><span class="o">*</span><span class="n">Maximize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+
+<span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+
+<span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">Maximize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">(</span><span class="o">-</span><span class="n">alpha</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The rules for adding and multiplying problems are equally straightforward:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Addition and subtraction.</span>
+
+<span class="n">prob1</span> <span class="o">+</span> <span class="n">prob2</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">prob1</span><span class="o">.</span><span class="n">objective</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
+                         <span class="n">prob1</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+
+<span class="n">prob1</span> <span class="o">-</span> <span class="n">prob2</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">prob1</span><span class="o">.</span><span class="n">objective</span> <span class="o">-</span> <span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
+                         <span class="n">prob1</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+
+<span class="c1"># Multiplication (alpha is any scalar).</span>
+
+<span class="n">alpha</span><span class="o">*</span><span class="n">prob</span> <span class="o">==</span> <span class="n">Problem</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the <code class="docutils literal"><span class="pre">+</span></code> operator concatenates lists of constraints,
+since this is the default behavior for Python lists.
+The in-place operators <code class="docutils literal"><span class="pre">+=</span></code>, <code class="docutils literal"><span class="pre">-=</span></code>, and <code class="docutils literal"><span class="pre">*=</span></code> are also supported for
+objectives and problems and follow the same rules as above.</p>
+</div>
+<div class="section" id="solve-method-options">
+<h2>Solve method options<a class="headerlink" href="#solve-method-options" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the <code class="docutils literal"><span class="pre">solve</span></code> method:</p>
+<dl class="function">
+<dt id="solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>solver=None</em>, <em>verbose=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves a DCP compliant optimization problem.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>solver</strong> (<em>str, optional</em>) &#8211; The solver to use.</li>
+<li><strong>verbose</strong> (<em>bool, optional</em>) &#8211; Overrides the default of hiding solver output.</li>
+<li><strong>kwargs</strong> &#8211; Additional keyword arguments specifying solver specific options.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The optimal value for the problem, or a string indicating why the problem could not be solved.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>We will discuss the optional arguments in detail below.</p>
+<div class="section" id="choosing-a-solver">
+<span id="solvers"></span><h3>Choosing a solver<a class="headerlink" href="#choosing-a-solver" title="Permalink to this headline">¶</a></h3>
+<p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
+CVXPY also supports <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a> and <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a> via the CVXOPT GLPK interface, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://libelemental.org/">Elemental</a>.
+The table below shows the types of problems the solvers can handle.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="10%" />
+<col width="15%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">&nbsp;</th>
+<th class="head">LP</th>
+<th class="head">SOCP</th>
+<th class="head">SDP</th>
+<th class="head">EXP</th>
+<th class="head">MIP</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a></td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>X</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a></td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a></td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>X</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="http://libelemental.org/">Elemental</a></td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>X</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a></td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>X</td>
+<td>X</td>
+</tr>
+<tr class="row-even"><td><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>X</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="https://www.mosek.com/">MOSEK</a></td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><a class="reference external" href="http://www.fico.com/en/products/fico-xpress-optimization-suite">XPRESS</a></td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>X</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>A special solver LS is also available. It is unable to solve any of the problem types in the table above, but it recognizes and solves linearly constrained least squares problems very quickly.</p>
+<p>Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as</p>
+<blockquote>
+<div><span class="math">\(\{(x,y,z) \mid y &gt; 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\)</span>.</div></blockquote>
+<p>You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.</p>
+<p>By default CVXPY calls the solver most specialized to the problem type. For example, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> is called for SOCPs. <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> and <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> can both handle all problems (except mixed-integer programs). For exponential cone problems, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> uses a general convex solver, which is less robust. <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>, on the other hand, is generally faster but less accurate than interior point methods. <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> is preferred by default. <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a> is called for mixed-integer LPs and SOCPs. If the problem has a quadratic objective function and equality constraints only, CVXPY will use LS.</p>
+<p>You can change the solver called by CVXPY using the <code class="docutils literal"><span class="pre">solver</span></code> keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here&#8217;s example code solving the same problem with different solvers.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solving a problem with different solvers.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="c1"># Solve with ECOS.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">ECOS</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with ECOS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with ECOS_BB.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">ECOS_BB</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with ECOS_BB:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with CVXOPT.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">CVXOPT</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with CVXOPT:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with SCS.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">SCS</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with SCS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with GLPK.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">GLPK</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with GLPK:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with GLPK_MI.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">GLPK_MI</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with GLPK_MI:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with GUROBI.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">GUROBI</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with GUROBI:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with MOSEK.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">MOSEK</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with MOSEK:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with Xpress.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">XPRESS</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with XPRESS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with Elemental.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">ELEMENTAL</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with Elemental:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with CBC.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">CBC</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with CBC:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">ECOS</span><span class="p">:</span> <span class="mf">5.99999999551</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">ECOS_BB</span><span class="p">:</span> <span class="mf">5.99999999551</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CVXOPT</span><span class="p">:</span> <span class="mf">6.00000000512</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCS</span><span class="p">:</span> <span class="mf">6.00046055789</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GLPK</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GLPK_MI</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GUROBI</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">MOSEK</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">XPRESS</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">Elemental</span><span class="p">:</span> <span class="mf">6.0000044085242727</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CBC</span><span class="p">:</span> <span class="mf">6.0</span>
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal"><span class="pre">installed_solvers</span></code> utility function to get a list of the solvers your installation of CVXPY supports.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="n">installed_solvers</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS_BB&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">,</span> <span class="s1">&#39;ELEMENTAL&#39;</span><span class="p">,</span> <span class="s1">&#39;LS&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="viewing-solver-output">
+<h3>Viewing solver output<a class="headerlink" href="#viewing-solver-output" title="Permalink to this headline">¶</a></h3>
+<p>All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from the solvers, set <code class="docutils literal"><span class="pre">verbose=True</span></code> in the solve method.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solve with ECOS and display output.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">ECOS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with ECOS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">1.0</span><span class="o">.</span><span class="mi">3</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">A</span><span class="o">.</span> <span class="n">Domahidi</span><span class="p">,</span> <span class="n">Automatic</span> <span class="n">Control</span> <span class="n">Laboratory</span><span class="p">,</span> <span class="n">ETH</span> <span class="n">Zurich</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
+
+<span class="n">It</span>     <span class="n">pcost</span>         <span class="n">dcost</span>      <span class="n">gap</span>     <span class="n">pres</span>    <span class="n">dres</span>     <span class="n">k</span><span class="o">/</span><span class="n">t</span>     <span class="n">mu</span>      <span class="n">step</span>     <span class="n">IR</span>
+ <span class="mi">0</span>   <span class="o">+</span><span class="mf">0.000e+00</span>   <span class="o">+</span><span class="mf">4.000e+00</span>   <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>   <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>    <span class="n">N</span><span class="o">/</span><span class="n">A</span>     <span class="mi">1</span> <span class="mi">1</span> <span class="o">-</span>
+ <span class="mi">1</span>   <span class="o">+</span><span class="mf">6.451e+00</span>   <span class="o">+</span><span class="mf">8.125e+00</span>   <span class="o">+</span><span class="mi">5</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>   <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mf">0.7857</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">2</span>   <span class="o">+</span><span class="mf">6.788e+00</span>   <span class="o">+</span><span class="mf">6.839e+00</span>   <span class="o">+</span><span class="mi">9</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>   <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mf">0.9829</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">3</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.829e+00</span>   <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>   <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>   <span class="mf">0.9899</span>   <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">4</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>   <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
+ <span class="mi">5</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mf">6.828e+00</span>   <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>   <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>   <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>   <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>   <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>   <span class="mf">0.9899</span>   <span class="mi">2</span> <span class="mi">1</span> <span class="mi">1</span>
+
+<span class="n">OPTIMAL</span> <span class="p">(</span><span class="n">within</span> <span class="n">feastol</span><span class="o">=</span><span class="mf">1.3e-08</span><span class="p">,</span> <span class="n">reltol</span><span class="o">=</span><span class="mf">1.5e-08</span><span class="p">,</span> <span class="n">abstol</span><span class="o">=</span><span class="mf">1.0e-07</span><span class="p">)</span><span class="o">.</span>
+<span class="n">Runtime</span><span class="p">:</span> <span class="mf">0.000121</span> <span class="n">seconds</span><span class="o">.</span>
+
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">ECOS</span><span class="p">:</span> <span class="mf">6.82842708233</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-solver-options">
+<h3>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with SCS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">----------------------------------------------------------------------------</span>
+    <span class="n">SCS</span> <span class="n">v1</span><span class="o">.</span><span class="mf">0.5</span> <span class="o">-</span> <span class="n">Splitting</span> <span class="n">Conic</span> <span class="n">Solver</span>
+    <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Brendan</span> <span class="n">O</span><span class="s1">&#39;Donoghue, Stanford University, 2012</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">Lin</span><span class="o">-</span><span class="n">sys</span><span class="p">:</span> <span class="n">sparse</span><span class="o">-</span><span class="n">indirect</span><span class="p">,</span> <span class="n">nnz</span> <span class="ow">in</span> <span class="n">A</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span> <span class="n">CG</span> <span class="n">tol</span> <span class="o">~</span> <span class="mi">1</span><span class="o">/</span><span class="nb">iter</span><span class="o">^</span><span class="p">(</span><span class="mf">2.00</span><span class="p">)</span>
+<span class="n">EPS</span> <span class="o">=</span> <span class="mf">1.00e-03</span><span class="p">,</span> <span class="n">ALPHA</span> <span class="o">=</span> <span class="mf">1.80</span><span class="p">,</span> <span class="n">MAX_ITERS</span> <span class="o">=</span> <span class="mi">2500</span><span class="p">,</span> <span class="n">NORMALIZE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="mf">5.00</span>
+<span class="n">Variables</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">constraints</span> <span class="n">m</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">Cones</span><span class="p">:</span>  <span class="n">linear</span> <span class="nb">vars</span><span class="p">:</span> <span class="mi">6</span>
+    <span class="n">soc</span> <span class="nb">vars</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">soc</span> <span class="n">blks</span><span class="p">:</span> <span class="mi">1</span>
+<span class="n">Setup</span> <span class="n">time</span><span class="p">:</span> <span class="mf">2.78e-04</span><span class="n">s</span>
+<span class="o">----------------------------------------------------------------------------</span>
+ <span class="n">Iter</span> <span class="o">|</span> <span class="n">pri</span> <span class="n">res</span> <span class="o">|</span> <span class="n">dua</span> <span class="n">res</span> <span class="o">|</span> <span class="n">rel</span> <span class="n">gap</span> <span class="o">|</span> <span class="n">pri</span> <span class="n">obj</span> <span class="o">|</span> <span class="n">dua</span> <span class="n">obj</span> <span class="o">|</span> <span class="n">kap</span><span class="o">/</span><span class="n">tau</span> <span class="o">|</span> <span class="n">time</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="o">----------------------------------------------------------------------------</span>
+     <span class="mi">0</span><span class="o">|</span> <span class="mf">4.60e+00</span>  <span class="mf">5.78e-01</span>       <span class="n">nan</span>      <span class="o">-</span><span class="n">inf</span>       <span class="n">inf</span>       <span class="n">inf</span>  <span class="mf">3.86e-05</span>
+    <span class="mi">60</span><span class="o">|</span> <span class="mf">3.92e-05</span>  <span class="mf">1.12e-04</span>  <span class="mf">6.64e-06</span>  <span class="mf">6.83e+00</span>  <span class="mf">6.83e+00</span>  <span class="mf">1.41e-17</span>  <span class="mf">9.51e-05</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">Status</span><span class="p">:</span> <span class="n">Solved</span>
+<span class="n">Timing</span><span class="p">:</span> <span class="n">Total</span> <span class="n">solve</span> <span class="n">time</span><span class="p">:</span> <span class="mf">9.76e-05</span><span class="n">s</span>
+    <span class="n">Lin</span><span class="o">-</span><span class="n">sys</span><span class="p">:</span> <span class="n">avg</span> <span class="c1"># CG iterations: 1.00, avg solve time: 2.24e-07s</span>
+    <span class="n">Cones</span><span class="p">:</span> <span class="n">avg</span> <span class="n">projection</span> <span class="n">time</span><span class="p">:</span> <span class="mf">4.90e-08</span><span class="n">s</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">Error</span> <span class="n">metrics</span><span class="p">:</span>
+<span class="o">|</span><span class="n">Ax</span> <span class="o">+</span> <span class="n">s</span> <span class="o">-</span> <span class="n">b</span><span class="o">|</span><span class="n">_2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">b</span><span class="o">|</span><span class="n">_2</span><span class="p">)</span> <span class="o">=</span> <span class="mf">3.9223e-05</span>
+<span class="o">|</span><span class="n">A</span><span class="s1">&#39;y + c|_2 / (1 + |c|_2) = 1.1168e-04</span>
+<span class="o">|</span><span class="n">c</span><span class="s1">&#39;x + b&#39;</span><span class="n">y</span><span class="o">|</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="o">|</span><span class="n">c</span><span class="s1">&#39;x| + |b&#39;</span><span class="n">y</span><span class="o">|</span><span class="p">)</span> <span class="o">=</span> <span class="mf">6.6446e-06</span>
+<span class="n">dist</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">K</span><span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="s1">&#39;y = 0</span>
+<span class="o">----------------------------------------------------------------------------</span>
+<span class="n">c</span><span class="s1">&#39;x = 6.8284, -b&#39;</span><span class="n">y</span> <span class="o">=</span> <span class="mf">6.8285</span>
+<span class="o">============================================================================</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCS</span><span class="p">:</span> <span class="mf">6.82837896975</span>
+</pre></div>
+</div>
+<p>Here&#8217;s the complete list of solver options.</p>
+<p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> options:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'max_iters'</span></code></dt>
+<dd>maximum number of iterations (default: 100).</dd>
+<dt><code class="docutils literal"><span class="pre">'abstol'</span></code></dt>
+<dd>absolute accuracy (default: 1e-7).</dd>
+<dt><code class="docutils literal"><span class="pre">'reltol'</span></code></dt>
+<dd>relative accuracy (default: 1e-6).</dd>
+<dt><code class="docutils literal"><span class="pre">'feastol'</span></code></dt>
+<dd>tolerance for feasibility conditions (default: 1e-7).</dd>
+<dt><code class="docutils literal"><span class="pre">'abstol_inacc'</span></code></dt>
+<dd>absolute accuracy for inaccurate solution (default: 5e-5).</dd>
+<dt><code class="docutils literal"><span class="pre">'reltol_inacc'</span></code></dt>
+<dd>relative accuracy for inaccurate solution (default: 5e-5).</dd>
+<dt><code class="docutils literal"><span class="pre">'feastol_inacc'</span></code></dt>
+<dd>tolerance for feasibility condition for inaccurate solution (default: 1e-4).</dd>
+</dl>
+<p><a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a> options:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'mi_max_iters'</span></code></dt>
+<dd>maximum number of branch and bound iterations (default: 1000)</dd>
+<dt><code class="docutils literal"><span class="pre">'mi_abs_eps'</span></code></dt>
+<dd>absolute tolerance between upper and lower bounds (default: 1e-6)</dd>
+<dt><code class="docutils literal"><span class="pre">'mi_rel_eps'</span></code></dt>
+<dd>relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)</dd>
+</dl>
+<p><a class="reference external" href="https://www.mosek.com/">MOSEK</a> options:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'mosek_params'</span></code></dt>
+<dd>A dictionary of MOSEK parameters. Refer to MOSEK&#8217;s Python or C API for
+details. Note that if parameters are given as string-value pairs, parameter
+names must be of the form <code class="docutils literal"><span class="pre">'MSK_DPAR_BASIS_TOL_X'</span></code> as in the C API.
+Alternatively, Python enum options like <code class="docutils literal"><span class="pre">'mosek.dparam.basis_tol_x'</span></code> are
+also supported.</dd>
+</dl>
+<p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a> options:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'max_iters'</span></code></dt>
+<dd>maximum number of iterations (default: 100).</dd>
+<dt><code class="docutils literal"><span class="pre">'abstol'</span></code></dt>
+<dd>absolute accuracy (default: 1e-7).</dd>
+<dt><code class="docutils literal"><span class="pre">'reltol'</span></code></dt>
+<dd>relative accuracy (default: 1e-6).</dd>
+<dt><code class="docutils literal"><span class="pre">'feastol'</span></code></dt>
+<dd>tolerance for feasibility conditions (default: 1e-7).</dd>
+<dt><code class="docutils literal"><span class="pre">'refinement'</span></code></dt>
+<dd>number of iterative refinement steps after solving KKT system (default: 1).</dd>
+<dt><code class="docutils literal"><span class="pre">'kktsolver'</span></code></dt>
+<dd>The KKT solver used. The default, &#8220;chol&#8221;, does a Cholesky factorization with preprocessing to make A and [A; G] full rank.
+The &#8220;robust&#8221; solver does an LDL factorization without preprocessing.
+It is slower, but more robust.</dd>
+</dl>
+<p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> options:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'max_iters'</span></code></dt>
+<dd>maximum number of iterations (default: 2500).</dd>
+<dt><code class="docutils literal"><span class="pre">'eps'</span></code></dt>
+<dd>convergence tolerance (default: 1e-3).</dd>
+<dt><code class="docutils literal"><span class="pre">'alpha'</span></code></dt>
+<dd>relaxation parameter (default: 1.8).</dd>
+<dt><code class="docutils literal"><span class="pre">'scale'</span></code></dt>
+<dd>balance between minimizing primal and dual residual (default: 5.0).</dd>
+<dt><code class="docutils literal"><span class="pre">'normalize'</span></code></dt>
+<dd>whether to precondition data matrices (default: True).</dd>
+<dt><code class="docutils literal"><span class="pre">'use_indirect'</span></code></dt>
+<dd>whether to use indirect solver for KKT sytem (instead of direct) (default: True).</dd>
+<dt><code class="docutils literal"><span class="pre">'warm_start'</span></code></dt>
+<dd>whether to initialize the solver with the previous solution (default: False).
+The use case for warm start is solving the same problem for multiple values of a parameter.</dd>
+</dl>
+<p><a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a> options:</p>
+<p>Cut-generation through <a class="reference external" href="https://projects.coin-or.org/Cgl">CGL</a></p>
+<dl class="docutils">
+<dt>General remarks:</dt>
+<dd><ul class="first last simple">
+<li>some of these cut-generators seem to be buggy (observed problems with AllDifferentCuts, RedSplitCuts, LandPCuts, PreProcessCuts)</li>
+<li>a few of these cut-generators will generate noisy output even if <code class="docutils literal"><span class="pre">'verbose=False'</span></code></li>
+</ul>
+</dd>
+<dt>The following cut-generators are available:</dt>
+<dd><code class="docutils literal"><span class="pre">GomoryCuts</span></code>, <code class="docutils literal"><span class="pre">MIRCuts</span></code>, <code class="docutils literal"><span class="pre">MIRCuts2</span></code>, <code class="docutils literal"><span class="pre">TwoMIRCuts</span></code>, <code class="docutils literal"><span class="pre">ResidualCapacityCuts</span></code>, <code class="docutils literal"><span class="pre">KnapsackCuts</span></code> <code class="docutils literal"><span class="pre">FlowCoverCuts</span></code>, <code class="docutils literal"><span class="pre">CliqueCuts</span></code>, <code class="docutils literal"><span class="pre">LiftProjectCuts</span></code>, <code class="docutils literal"><span class="pre">AllDifferentCuts</span></code>, <code class="docutils literal"><span class="pre">OddHoleCuts</span></code>, <code class="docutils literal"><span class="pre">RedSplitCuts</span></code>, <code class="docutils literal"><span class="pre">LandPCuts</span></code>, <code class="docutils literal"><span class="pre">PreProcessCuts</span></code>, <code class="docutils literal"><span class="pre">ProbingCuts</span></code>, <code class="docutils literal"><span class="pre">SimpleRoundingCuts</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">'CutGenName'</span></code></dt>
+<dd>if cut-generator is activated (e.g. <code class="docutils literal"><span class="pre">'GomoryCuts=True'</span></code>)</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="getting-the-standard-form">
+<h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
+<p>If you are interested in getting the standard form that CVXPY produces for a problem, you can use the <code class="docutils literal"><span class="pre">get_problem_data</span></code> method. Calling <code class="docutils literal"><span class="pre">get_problem_data(solver)</span></code> on a problem object returns a dict of the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get ECOS arguments.</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">ECOS</span><span class="p">)</span>
+
+<span class="c1"># Get ECOS_BB arguments.</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">ECOS_BB</span><span class="p">)</span>
+
+<span class="c1"># Get CVXOPT arguments.</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">CVXOPT</span><span class="p">)</span>
+
+<span class="c1"># Get SCS arguments.</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">SCS</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After you solve the standard conic form problem returned by <code class="docutils literal"><span class="pre">get_problem_data</span></code>, you can unpack the raw solver output using the <code class="docutils literal"><span class="pre">unpack_results</span></code> method. Calling <code class="docutils literal"><span class="pre">unpack_results(solver,</span> <span class="pre">solver_output)</span></code> on a problem will update the values of all primal and dual variables as well as the problem value and status.</p>
+<p>For example, the following code is equivalent to solving the problem directly with CVXPY:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get ECOS arguments.</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">ECOS</span><span class="p">)</span>
+<span class="c1"># Call ECOS solver.</span>
+<span class="n">solver_output</span> <span class="o">=</span> <span class="n">ecos</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span>
+                           <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">])</span>
+<span class="c1"># Unpack raw solver output.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">ECOS</span><span class="p">,</span> <span class="n">solver_output</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/cvxgrp/cvxpy">
+    <img
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../intro/index.html">What is CVXPY?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dual-variables">Dual variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#semidefinite-matrices">Semidefinite matrices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mixed-integer-programs">Mixed-integer programs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#problem-arithmetic">Problem arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solve-method-options">Solve method options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-the-standard-form">Getting the standard form</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../community/index.html">How to Help</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Steven Diamond, Eric Chu, Stephen Boyd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="../../_sources/tutorial/advanced/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
