@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+"""
+THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
+DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
+WE ARE MOVING ALL SOLVER INTERFACES TO THE REDUCTIONS FOLDER.
+"""
+
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.problem_data.compr_matrix import compress_matrix

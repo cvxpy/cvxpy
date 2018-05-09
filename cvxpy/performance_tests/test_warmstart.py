@@ -22,6 +22,10 @@ import unittest
 import time
 from cvxpy import *
 
+"""
+THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
+DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
+"""
 
 class TestWarmstart(unittest.TestCase):
 

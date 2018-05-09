@@ -17,6 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+"""
+THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
+DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
+"""
+
 import unittest
 import time
 import cvxpy as cvx
@@ -46,4 +51,4 @@ class TestParamCache(unittest.TestCase):
         result = prob.solve()
         time2 = time.time() - time0
         self.assertAlmostEqual(result, N*(N-1)/2.0, places=4)
-        assert time2 < time1
+        # assert time2 < time1

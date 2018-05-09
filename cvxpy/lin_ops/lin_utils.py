@@ -17,6 +17,11 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+"""
+THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
+DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
+"""
+
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 import cvxpy.utilities as u

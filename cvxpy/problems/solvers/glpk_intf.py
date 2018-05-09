@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+"""
+THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
+DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
+ALL SOLVER INTERFACES ARE BEING MIGRATED TO REDUCTIONS.
+"""
+
 import cvxpy.settings as s
 from cvxpy.problems.solvers.cvxopt_intf import CVXOPT
 
