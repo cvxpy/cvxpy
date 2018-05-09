@@ -155,7 +155,7 @@ doctest:
 		  "results in $(BUILDDIR)/doctest/output.txt."
 
 gh-pages:
-	git checkout master
+	git checkout 0.4
 	cd doc && make html
 	rm -rf /tmp/cvxpy_docs/*
 	mkdir -p /tmp/cvxpy_docs/
