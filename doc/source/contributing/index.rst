@@ -9,7 +9,7 @@ to help out!
 Deprecated functionality
 ------------------------
 
-CVXPY is a work in progress. The only APIs guaranteed to be stable are those discussed in the tutorial. All other APIs are subject to change without warning.
+CVXPY is a work in progress. The only APIs guaranteed to be stable are those discussed in the API documentation. All other APIs are subject to change without warning.
 Files that are certain to change in the future are marked "DEPRECATED" in the source.
 
 About CVXPY
