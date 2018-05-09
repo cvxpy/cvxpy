@@ -1,10 +1,16 @@
 .. _contributing:
 
-Contributing
-============
+Developer Guide
+===============
 
 We welcome all contributors to CVXPY. You don't need to be an expert in convex
 to help out!
+
+Deprecated functionality
+------------------------
+
+CVXPY is a work in progress. The only APIs guaranteed to be stable are those discussed in the tutorial. All other APIs are subject to change without warning.
+Files that are certain to change in the future are marked "DEPRECATED" in the source.
 
 About CVXPY
 -----------
