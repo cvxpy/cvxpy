@@ -15,12 +15,11 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
-"""
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
+
 
 # A linear operator applied to a variable
 # or a constant or function of parameters.
