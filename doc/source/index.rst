@@ -58,7 +58,9 @@ and many others; it was inspired by the MATLAB package `CVX
 <http://cvxr.com/cvx/>`_.  Version 1.0 of CVXPY brings the API closer to NumPy
 and the architecture closer to software compilers, making it easy for
 developers to write custom problem transformations and target custom solvers.
-For more details, see :ref:`updates`.
+Be aware that CVXPY 1.0 is not backwards compatible with previous versions
+of CVXPY. For more details, see :ref:`updates`, which includes instructions
+for migrating from previous versions of CVXPY.
 
 CVXPY relies on the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Additional solvers are supported, but must be installed separately. For
