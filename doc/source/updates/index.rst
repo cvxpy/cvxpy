@@ -1,6 +1,6 @@
 .. _updates:
 
-What's New in CVXPY 1.0
+What's New in 1.0
 =======================
 
 CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.

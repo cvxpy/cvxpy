@@ -1,8 +1,8 @@
 API Documentation
 =================
 CVXPY is designed to be intuitive enough so that it may be used
-without consulting a bonafide API reference; the **tutorials will
-suffice in acquainting you with our software**. Nonetheless, we include here an
+without consulting an API reference; the tutorials will
+suffice in acquainting you with our software. Nonetheless, we include here an
 API reference for those who are comfortable reading technical documentation.
 
 All of the documented classes and functions are imported into the

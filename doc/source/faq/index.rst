@@ -118,6 +118,13 @@ How do I create variables with more than 2 dimensions?
 You must mimic the extra dimensions using a dict,
 as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/198>`__.
 
+Why does it take so long to compile my Problem?
+----------------------------------------------
+In general, you should vectorize CVXPY expressions whenever possible if you
+care about performance (e.g., write A * x == b instead of a_i  * x == b_i for
+every row a_i of A). Consult this `IPython notebook <https://github.com/cvxgrp/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb>`_ for details.
+
+--------------------
 How does CVXPY work?
 --------------------
 The algorithms and data structures used by CVXPY are discussed in `this paper <http://arxiv.org/abs/1506.00760>`_.

@@ -8,7 +8,7 @@
    "source": [
     "# What's this notebook for?\n",
     "\n",
-    "It is important to specify your models to cvxpy in the most efficient way possible. This means that you should do your best to use the minimum number of cvxpy Constraint and Variable objects necessary to specify your model. For example, if you needed to write the constraint \"Ax = b\", it is grealy preferred that you do this by \"A * x == b\", rather than \"a_i * x == b_i\" for every row a_i of A and every entry b_i of b.\n",
+    "If you care about the compile time for your model, you should minimize the number of cvxpy Constraint and Variable objects necessary to specify your model. For example, if you needed to write the constraint \"Ax = b\", it is grealy preferred that you do this by \"A * x == b\", rather than \"a_i * x == b_i\" for every row a_i of A and every entry b_i of b.\n",
     "\n",
     "This notebook provides explicit demonstrations of how you can expect compile time for cvxpy to vary based on how you specify your model."
    ]
@@ -23,7 +23,7 @@
     "\n",
     "P(A,b,c) = min{ c.T * x  :  A x = b, 0 <= x <= 1}\n",
     "\n",
-    "where A is an m-by-n matrix. Note that this is really the best-case scenario for cvxpy compile times: linear equality and inequality constraints require very few transformations before being handed to a low level solver. If you use more complex constraints (such as norm(x) <= d.T * x, or semidefinite constraints), you can expect the tends demonstrated in this notebook to become even more pronounced.\n",
+    "where A is an m-by-n matrix. Note that this is really the best-case scenario for cvxpy compile times: linear equality and inequality constraints require very few transformations before being handed to a low level solver. If you use more complex constraints (such as norm(x) <= d.T * x, or semidefinite constraints), you can expect the trends demonstrated in this notebook to become even more pronounced.\n",
     "\n",
     "At a high level, our tests are as follows: \n",
     "\tgenerate random problem data A, b, c of the appropriate sizes.\n",
