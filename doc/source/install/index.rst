@@ -3,12 +3,18 @@
 Install
 =======
 
+*Note*: Version 1.0 of CVXPY is incompatible with previous versions in minor
+ways. See :ref:`updates` for how to update legacy code to a form that's
+compatible with 1.0.
+
 Mac OS X and Linux
 ------------------
 
-CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend
-using Anaconda for installation, as we find that most users prefer to let Anaconda
-manage dependencies and environments for them.
+CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend using
+Anaconda for installation, as we find that most users prefer to let Anaconda
+manage dependencies and environments for them. If you are comfortable with
+managing your own environment, you can instead install CVXPY with
+:ref:`pip <pip-installation>`.
 
 1. Install `Anaconda`_.
 
@@ -25,8 +31,6 @@ manage dependencies and environments for them.
        conda install nose
        nosetests cvxpy
 
-If you may are comfortable with managing your own environment, you can
-instead install CVXPY with pip: ``pip install cvxpy``.
 
 Windows
 -------
@@ -34,7 +38,10 @@ Windows
 There are two ways to install CVXPY on Windows.
 One method uses Python(x,y), while the other uses Anaconda.
 Installation with Python(x,y) is less likely to have problems.
-Both installation methods use Python 2.
+Both installation methods use Python 2. If you are comfortable with
+managing your own environment, you can instead install CVXPY with
+:ref:`pip <pip-installation>`.
+
 
 Windows with Python(x,y)
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -91,16 +98,19 @@ Other Platforms
 
 The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
 
-Install from pip
+.. _pip-installation:
+
+Pip
 ----------------
 
-CVXPY can be installed on all platforms with `pip`_. Simply execute:
+CVXPY can be installed on all platforms with `pip`_. We recommend isolating
+your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
+After activating the environment, simply execute:
 
   ::
 
       pip install cvxpy
 
-Though installation with `pip`_ is simple in theory, in practice we have found that novices struggle to install all CVXPY dependencies properly when using `pip`_. We therefore recommend Anaconda as the default installation method.
 
 Install from source
 -------------------
@@ -122,12 +132,10 @@ To test the CVXPY installation, you additionally need `Nose`_.
 
 CVXPY automatically installs `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
 `multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually,
-as will `Swig`_ .  Once you’ve installed these dependencies:
+as will `Swig`_ . Once you’ve installed these dependencies:
 
-1. Remove all existing installations of
-   `CVXcanon <https://github.com/cvxgrp/CVXcanon>`_.
-2. Clone the `CVXPY git repository`_.
-3. Navigate to the top-level of the cloned directory and run
+1. Clone the `CVXPY git repository`_.
+2. Navigate to the top-level of the cloned directory and run
 
    ::
 
