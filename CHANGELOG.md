@@ -112,7 +112,7 @@ Version 0.3.3
 
 Version 0.3.2
 -------------
-* Requires CVXcanon 0.0.21
+* Requires cvxcore 0.0.21
 
 Version 0.3.1
 -------------
@@ -122,7 +122,7 @@ Version 0.3.1
 
 Version 0.3.0
 -------------
-* Added CVXcanon integration.
+* Added cvxcore integration.
 
 Version 0.2.28
 --------------

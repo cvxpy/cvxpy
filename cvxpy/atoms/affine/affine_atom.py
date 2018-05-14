@@ -22,7 +22,7 @@ import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
-from cvxpy.CVXcanon.python import canonInterface
+from cvxpy.cvxcore.python import canonInterface
 from fastcache import clru_cache
 import scipy.sparse as sp
 
@@ -111,7 +111,7 @@ class AffAtom(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        # TODO should be a simple function in CVXcanon for this.
+        # TODO should be a simple function in cvxcore for this.
         # Make a fake lin op tree for the function.
         fake_args = []
         var_offsets = {}

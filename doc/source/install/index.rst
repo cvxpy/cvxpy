@@ -213,6 +213,6 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _SciPy: http://www.scipy.org/
 .. _Nose: http://nose.readthedocs.org
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
-.. _CVXcanon: https://github.com/jacklzhu/CVXcanon
+.. _cvxcore: https://github.com/jacklzhu/cvxcore
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/

@@ -1,23 +1,23 @@
-//    This file is part of CVXcanon.
+//    This file is part of cvxcore.
 //
-//    CVXcanon is free software: you can redistribute it and/or modify
+//    cvxcore is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
 //    the Free Software Foundation, either version 3 of the License, or
 //    (at your option) any later version.
 //
-//    CVXcanon is distributed in the hope that it will be useful,
+//    cvxcore is distributed in the hope that it will be useful,
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //    GNU General Public License for more details.
 //
 //    You should have received a copy of the GNU General Public License
-//    along with CVXcanon.  If not, see <http://www.gnu.org/licenses/>.
+//    along with cvxcore.  If not, see <http://www.gnu.org/licenses/>.
 
-%module CVXcanon
+%module cvxcore
 
 %{
 	#define SWIG_FILE_WITH_INIT
-	#include "CVXcanon.hpp"
+	#include "cvxcore.hpp"
 %}
 
 %include "numpy.i"

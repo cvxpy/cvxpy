@@ -3054,16 +3054,16 @@ static swig_module_info swig_module = {swig_types, 31, 0, 0, 0, 0};
 #endif
 
 /*-----------------------------------------------
-              @(target):= _CVXcanon.so
+              @(target):= _cvxcore.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__CVXcanon
+#  define SWIG_init    PyInit__cvxcore
 
 #else
-#  define SWIG_init    init_CVXcanon
+#  define SWIG_init    init_cvxcore
 
 #endif
-#define SWIG_name    "_CVXcanon"
+#define SWIG_name    "_cvxcore"
 
 #define SWIGVERSION 0x030008 
 #define SWIG_VERSION SWIGVERSION
@@ -3147,7 +3147,7 @@ namespace swig {
 
 
 	#define SWIG_FILE_WITH_INIT
-	#include "CVXcanon.hpp"
+	#include "cvxcore.hpp"
 
 
 #ifndef SWIG_FILE_WITH_INIT

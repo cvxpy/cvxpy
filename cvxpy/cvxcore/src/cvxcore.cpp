@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include "CVXcanon.hpp"
+#include "cvxcore.hpp"
 #include <iostream>
 #include <map>
 #include "LinOp.hpp"

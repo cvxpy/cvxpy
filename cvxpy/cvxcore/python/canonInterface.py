@@ -13,23 +13,23 @@ Copyright 2017 Steven Diamond
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-#    This file is part of CVXcanon.
+#    This file is part of cvxcore.
 #
-#    CVXcanon is free software: you can redistribute it and/or modify
+#    cvxcore is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    CVXcanon is distributed in the hope that it will be useful,
+#    cvxcore is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with CVXcanon.  If not, see <http:#www.gnu.org/licenses/>.
+#    along with cvxcore.  If not, see <http:#www.gnu.org/licenses/>.
 
 from cvxpy.lin_ops import lin_op as lo
-import cvxpy.CVXcanon.python.CVXcanon as CVXcanon
+import cvxpy.cvxcore.python.cvxcore as cvxcore
 import numbers
 import numpy as np
 import scipy.sparse
@@ -52,9 +52,9 @@ def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
         const_vec: a numpy column vector representing the constant_data in our problem
     """
     linOps = [constr.expr for constr in constrs]
-    lin_vec = CVXcanon.LinOpVector()
+    lin_vec = cvxcore.LinOpVector()
 
-    id_to_col_C = CVXcanon.IntIntMap()
+    id_to_col_C = cvxcore.IntIntMap()
     if id_to_col is None:
         id_to_col = {}
 
@@ -72,13 +72,13 @@ def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
         lin_vec.push_back(tree)
 
     if constr_offsets is None:
-        problemData = CVXcanon.build_matrix(lin_vec, id_to_col_C)
+        problemData = cvxcore.build_matrix(lin_vec, id_to_col_C)
     else:
         # Load constraint offsets into a C++ vector
-        constr_offsets_C = CVXcanon.IntVector()
+        constr_offsets_C = cvxcore.IntVector()
         for offset in constr_offsets:
             constr_offsets_C.push_back(int(offset))
-        problemData = CVXcanon.build_matrix(lin_vec, id_to_col_C,
+        problemData = cvxcore.build_matrix(lin_vec, id_to_col_C,
                                             constr_offsets_C)
 
     # Unpacking
@@ -146,37 +146,37 @@ def set_slice_data(linC, linPy):
     since we must load integers into our vector.
     """
     for i, sl in enumerate(linPy.data):
-        vec = CVXcanon.IntVector()
+        vec = cvxcore.IntVector()
         for var in [sl.start, sl.stop, sl.step]:
             vec.push_back(int(var))
         linC.slice.push_back(vec)
 
 
 type_map = {
-    "VARIABLE": CVXcanon.VARIABLE,
-    "PROMOTE": CVXcanon.PROMOTE,
-    "MUL": CVXcanon.MUL,
-    "RMUL": CVXcanon.RMUL,
-    "MUL_ELEM": CVXcanon.MUL_ELEM,
-    "DIV": CVXcanon.DIV,
-    "SUM": CVXcanon.SUM,
-    "NEG": CVXcanon.NEG,
-    "INDEX": CVXcanon.INDEX,
-    "TRANSPOSE": CVXcanon.TRANSPOSE,
-    "SUM_ENTRIES": CVXcanon.SUM_ENTRIES,
-    "TRACE": CVXcanon.TRACE,
-    "RESHAPE": CVXcanon.RESHAPE,
-    "DIAG_VEC": CVXcanon.DIAG_VEC,
-    "DIAG_MAT": CVXcanon.DIAG_MAT,
-    "UPPER_TRI": CVXcanon.UPPER_TRI,
-    "CONV": CVXcanon.CONV,
-    "HSTACK": CVXcanon.HSTACK,
-    "VSTACK": CVXcanon.VSTACK,
-    "SCALAR_CONST": CVXcanon.SCALAR_CONST,
-    "DENSE_CONST": CVXcanon.DENSE_CONST,
-    "SPARSE_CONST": CVXcanon.SPARSE_CONST,
-    "NO_OP": CVXcanon.NO_OP,
-    "KRON": CVXcanon.KRON
+    "VARIABLE": cvxcore.VARIABLE,
+    "PROMOTE": cvxcore.PROMOTE,
+    "MUL": cvxcore.MUL,
+    "RMUL": cvxcore.RMUL,
+    "MUL_ELEM": cvxcore.MUL_ELEM,
+    "DIV": cvxcore.DIV,
+    "SUM": cvxcore.SUM,
+    "NEG": cvxcore.NEG,
+    "INDEX": cvxcore.INDEX,
+    "TRANSPOSE": cvxcore.TRANSPOSE,
+    "SUM_ENTRIES": cvxcore.SUM_ENTRIES,
+    "TRACE": cvxcore.TRACE,
+    "RESHAPE": cvxcore.RESHAPE,
+    "DIAG_VEC": cvxcore.DIAG_VEC,
+    "DIAG_MAT": cvxcore.DIAG_MAT,
+    "UPPER_TRI": cvxcore.UPPER_TRI,
+    "CONV": cvxcore.CONV,
+    "HSTACK": cvxcore.HSTACK,
+    "VSTACK": cvxcore.VSTACK,
+    "SCALAR_CONST": cvxcore.SCALAR_CONST,
+    "DENSE_CONST": cvxcore.DENSE_CONST,
+    "SPARSE_CONST": cvxcore.SPARSE_CONST,
+    "NO_OP": cvxcore.NO_OP,
+    "KRON": cvxcore.KRON
 }
 
 
@@ -201,7 +201,7 @@ def build_lin_op_tree(root_linPy, tmp):
     root_linC: a C++ LinOp tree created through our swig interface
     """
     Q = deque()
-    root_linC = CVXcanon.LinOp()
+    root_linC = cvxcore.LinOp()
     Q.append((root_linPy, root_linC))
 
     while len(Q) > 0:
@@ -209,7 +209,7 @@ def build_lin_op_tree(root_linPy, tmp):
 
         # Updating the arguments our LinOp
         for argPy in linPy.args:
-            tree = CVXcanon.LinOp()
+            tree = cvxcore.LinOp()
             tmp.append(tree)
             Q.append((argPy, tree))
             linC.args.push_back(tree)

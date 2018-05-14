@@ -20,7 +20,7 @@ THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
-from cvxpy.CVXcanon.python import canonInterface
+from cvxpy.cvxcore.python import canonInterface
 import cvxpy.settings as s
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu

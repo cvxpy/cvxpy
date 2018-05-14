@@ -10,14 +10,14 @@ class get_numpy_include(object):
 
 
 canon = Extension(
-    '_CVXcanon',
-    sources=['cvxpy/CVXcanon/src/CVXcanon.cpp',
-             'cvxpy/CVXcanon/src/LinOpOperations.cpp',
-             'cvxpy/CVXcanon/src/Utils.cpp',
-             'cvxpy/CVXcanon/python/CVXcanon_wrap.cpp'],
-    include_dirs=['cvxpy/CVXcanon/src/',
-                  'cvxpy/CVXcanon/python/',
-                  'cvxpy/CVXcanon/include/Eigen',
+    '_cvxcore',
+    sources=['cvxpy/cvxcore/src/cvxcore.cpp',
+             'cvxpy/cvxcore/src/LinOpOperations.cpp',
+             'cvxpy/cvxcore/src/Utils.cpp',
+             'cvxpy/cvxcore/python/cvxcore_wrap.cpp'],
+    include_dirs=['cvxpy/cvxcore/src/',
+                  'cvxpy/cvxcore/python/',
+                  'cvxpy/cvxcore/include/Eigen',
                   get_numpy_include()],
 )
 
@@ -32,8 +32,8 @@ setup(
               'cvxpy.atoms',
               'cvxpy.atoms.affine',
               'cvxpy.atoms.elementwise',
-              'cvxpy.CVXcanon',
-              'cvxpy.CVXcanon.python',
+              'cvxpy.cvxcore',
+              'cvxpy.cvxcore.python',
               'cvxpy.constraints',
               'cvxpy.expressions',
               'cvxpy.expressions.constants',
@@ -60,7 +60,7 @@ setup(
               'cvxpy.tests',
               'cvxpy.transforms',
               'cvxpy.utilities',
-              'cvxpy.CVXcanon.python'],
+              'cvxpy.cvxcore.python'],
     package_dir={'cvxpy': 'cvxpy'},
     url='http://github.com/cvxgrp/cvxpy/',
     license='GPLv3',
