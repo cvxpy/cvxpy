@@ -1,40 +1,39 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Atomic Functions &#8212; CVXPY 1.0.0 documentation</title>
+    
+    <title>Atomic Functions &mdash; CVXPY 1.0.1 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '1.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Tutorial" href="../index.html" />
     <link rel="next" title="Advanced Features" href="../advanced/index.html" />
     <link rel="prev" title="Disciplined Convex Programming" href="../dcp/index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body>
-  
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
@@ -215,7 +214,7 @@ and returns a scalar.</p>
 <p class="last"><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math">\(x_{i} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, &#8220;fro&#8221;)</span></a></td>
 <td><span class="math">\(\sqrt{\sum_{ij}X_{ij}^2 }\)</span></td>
 <td><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></td>
 <td><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</td>
@@ -233,7 +232,7 @@ and returns a scalar.</p>
 <p class="last"><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, &#8220;inf&#8221;)</span></a></td>
 <td><span class="math">\(\max_{ij} \{\lvert X_{ij} \rvert\}\)</span></td>
 <td><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></td>
 <td><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</td>
@@ -242,7 +241,7 @@ and returns a scalar.</p>
 <p class="last"><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math">\(X_{ij} \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “nuc”)</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, &#8220;nuc&#8221;)</span></a></td>
 <td><span class="math">\(\mathrm{tr}\left(\left(X^T X\right)^{1/2}\right)\)</span></td>
 <td><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></td>
 <td><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</td>
@@ -377,7 +376,7 @@ and returns a scalar.</p>
 <td><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</td>
 <td>None</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv([X1,…,Xk])</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#tv"><span class="std std-ref">tv([X1,...,Xk])</span></a></td>
 <td><span class="math">\(\sum_{ij}\left\| \left[\begin{matrix} X_{i+1,j}^{(1)} - X_{ij}^{(1)} \\ X_{i,j+1}^{(1)} -X_{ij}^{(1)} \\ \vdots \\ X_{i+1,j}^{(k)} - X_{ij}^{(k)} \\ X_{i,j+1}^{(k)} -X_{ij}^{(k)}  \end{matrix}\right] \right\|_2\)</span></td>
 <td><span class="math">\(X^{(i)} \in\mathbf{R}^{m \times n}\)</span></td>
 <td><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</td>
@@ -391,7 +390,7 @@ and returns a scalar.</p>
 <p>The domain <span class="math">\(\mathbf{S}^n\)</span> refers to the set of symmetric matrices. The domains <span class="math">\(\mathbf{S}^n_+\)</span> and <span class="math">\(\mathbf{S}^n_-\)</span> refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, <span class="math">\(\mathbf{S}^n_{++}\)</span> and <span class="math">\(\mathbf{S}^n_{--}\)</span> refer to the set of positive definite and negative definite matrices, respectively.</p>
 <p>For a vector expression <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">norm(x)</span></code> and <code class="docutils literal"><span class="pre">norm(x,</span> <span class="pre">2)</span></code> give the Euclidean norm. For a matrix expression <code class="docutils literal"><span class="pre">X</span></code>, however, <code class="docutils literal"><span class="pre">norm(X)</span></code> and <code class="docutils literal"><span class="pre">norm(X,</span> <span class="pre">2)</span></code> give the spectral norm.</p>
 <p>The function <code class="docutils literal"><span class="pre">norm(X,</span> <span class="pre">&quot;fro&quot;)</span></code> is called the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm">Frobenius norm</a>
-and <code class="docutils literal"><span class="pre">norm(X,</span> <span class="pre">&quot;nuc&quot;)</span></code> the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms">nuclear norm</a>. The nuclear norm can also be defined as the sum of <code class="docutils literal"><span class="pre">X</span></code>’s singular values.</p>
+and <code class="docutils literal"><span class="pre">norm(X,</span> <span class="pre">&quot;nuc&quot;)</span></code> the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms">nuclear norm</a>. The nuclear norm can also be defined as the sum of <code class="docutils literal"><span class="pre">X</span></code>&#8216;s singular values.</p>
 <p>The functions <code class="docutils literal"><span class="pre">max</span></code> and <code class="docutils literal"><span class="pre">min</span></code> give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with <code class="docutils literal"><span class="pre">maximum</span></code> and <code class="docutils literal"><span class="pre">minimum</span></code> (see <a class="reference internal" href="#elementwise"><span class="std std-ref">Elementwise functions</span></a>). Use <code class="docutils literal"><span class="pre">maximum</span></code> and <code class="docutils literal"><span class="pre">minimum</span></code> to find the max or min of a list of scalar expressions.</p>
 <p>The CVXPY function <code class="docutils literal"><span class="pre">sum</span></code> sums all the entries in a single expression. The built-in Python <code class="docutils literal"><span class="pre">sum</span></code> should be used to add together a list of expressions. For example, the following code sums a list of three expressions:</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">expr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">expr1</span><span class="p">,</span> <span class="n">expr2</span><span class="p">,</span> <span class="n">expr3</span><span class="p">]</span>
@@ -659,9 +658,9 @@ and returns a vector or matrix.</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#bmat"><span class="std std-ref">bmat([[X11,…,X1q],
-…,
-[Xp1,…,Xpq]])</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#bmat"><span class="std std-ref">bmat([[X11,...,X1q],
+...,
+[Xp1,...,Xpq]])</span></a></td>
 <td><span class="math">\(\left[\begin{matrix} X^{(1,1)} &amp;  \cdots &amp;  X^{(1,q)} \\ \vdots &amp;   &amp; \vdots \\ X^{(p,1)} &amp; \cdots &amp;   X^{(p,q)} \end{matrix}\right]\)</span></td>
 <td><span class="math">\(X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}\)</span></td>
 <td><span class="math">\(\mathrm{sign}\left(\sum_{ij} X^{(i,j)}_{11}\right)\)</span></td>
@@ -707,7 +706,7 @@ and returns a vector or matrix.</p>
 <td><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</td>
 <td><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, ..., Xk])</span></a></td>
 <td><span class="math">\(\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]\)</span></td>
 <td><span class="math">\(X^{(i)} \in\mathbf{R}^{m \times n_i}\)</span></td>
 <td><span class="math">\(\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)\)</span></td>
@@ -723,7 +722,7 @@ and returns a vector or matrix.</p>
 <td><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</td>
 <td>depends&nbsp;on C</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (n’, m’))</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (n&#8217;, m&#8217;))</span></a></td>
 <td><span class="math">\(X' \in\mathbf{R}^{m' \times n'}\)</span></td>
 <td><p class="first"><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></p>
 <p class="last"><span class="math">\(m'n' = mn\)</span></p>
@@ -739,7 +738,7 @@ and returns a vector or matrix.</p>
 <td><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</td>
 <td><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, ..., Xk])</span></a></td>
 <td><span class="math">\(\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]\)</span></td>
 <td><span class="math">\(X^{(i)} \in\mathbf{R}^{m_i \times n}\)</span></td>
 <td><span class="math">\(\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)\)</span></td>
@@ -776,12 +775,10 @@ Formally, <span class="math">\(X'_{ij} = \mathbf{vec}(X)_{m'j + i}\)</span>.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -791,8 +788,8 @@ Formally, <span class="math">\(X'_{ij} = \mathbf{vec}(X)_{m'j + i}\)</span>.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
     />
 </a>
 </p>
@@ -837,7 +834,7 @@ Formally, <span class="math">\(X'_{ij} = \mathbf{vec}(X)_{m'j + i}\)</span>.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What&#8217;s New in 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
@@ -847,8 +844,8 @@ Formally, <span class="math">\(X'_{ij} = \mathbf{vec}(X)_{m'j + i}\)</span>.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -862,11 +859,11 @@ Formally, <span class="math">\(X'_{ij} = \mathbf{vec}(X)_{m'j + i}\)</span>.</p>
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/tutorial/functions/index.rst.txt"
+      <a href="../../_sources/tutorial/functions/index.txt"
           rel="nofollow">Page source</a>
     </div>
 

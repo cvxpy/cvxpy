@@ -1,40 +1,38 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>FAQ &#8212; CVXPY 0.4.11 documentation</title>
+    
+    <title>FAQ &mdash; CVXPY 0.4.11 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '0.4.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 0.4.11 documentation" href="../index.html" />
     <link rel="next" title="Citing CVXPY" href="../citing/index.html" />
     <link rel="prev" title="Examples" href="../examples/index.html" />
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body>
-  
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
@@ -47,14 +45,14 @@
 <ul class="simple">
 <li><a class="reference internal" href="#where-can-i-get-help-with-cvxpy" id="id3">Where can I get help with CVXPY?</a></li>
 <li><a class="reference internal" href="#where-can-i-learn-more-about-convex-optimization" id="id4">Where can I learn more about convex optimization?</a></li>
-<li><a class="reference internal" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" id="id5">How do I know which version of CVXPY I’m using?</a></li>
+<li><a class="reference internal" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" id="id5">How do I know which version of CVXPY I&#8217;m using?</a></li>
 <li><a class="reference internal" href="#what-do-i-do-if-i-get-a-dcperror-exception" id="id6">What do I do if I get a <code class="docutils literal"><span class="pre">DCPError</span></code> exception?</a></li>
 <li><a class="reference internal" href="#how-do-i-find-dcp-errors" id="id7">How do I find DCP errors?</a></li>
 <li><a class="reference internal" href="#what-do-i-do-if-i-get-a-solvererror-exception" id="id8">What do I do if I get a <code class="docutils literal"><span class="pre">SolverError</span></code> exception?</a></li>
 <li><a class="reference internal" href="#what-solvers-does-cvxpy-support" id="id9">What solvers does CVXPY support?</a></li>
-<li><a class="reference internal" href="#what-are-the-differences-between-cvxpy-s-solvers" id="id10">What are the differences between CVXPY’s solvers?</a></li>
-<li><a class="reference internal" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" id="id11">What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?</a></li>
-<li><a class="reference internal" href="#what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded" id="id12">What do I do if I get “RuntimeError: maximum recursion depth exceeded”?</a></li>
+<li><a class="reference internal" href="#what-are-the-differences-between-cvxpy-s-solvers" id="id10">What are the differences between CVXPY&#8217;s solvers?</a></li>
+<li><a class="reference internal" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" id="id11">What do I do if I get &#8220;Exception: Cannot evaluate the truth value of a constraint&#8221;?</a></li>
+<li><a class="reference internal" href="#what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded" id="id12">What do I do if I get &#8220;RuntimeError: maximum recursion depth exceeded&#8221;?</a></li>
 <li><a class="reference internal" href="#can-i-use-numpy-functions-on-cvxpy-objects" id="id13">Can I use NumPy functions on CVXPY objects?</a></li>
 <li><a class="reference internal" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" id="id14">Can I use SciPy sparse matrices with CVXPY?</a></li>
 <li><a class="reference internal" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" id="id15">How do I constrain a CVXPY matrix expression to be positive semidefinite?</a></li>
@@ -69,7 +67,7 @@
 <div class="section" id="where-can-i-get-help-with-cvxpy">
 <h2>Where can I get help with CVXPY?<a class="headerlink" href="#where-can-i-get-help-with-cvxpy" title="Permalink to this headline">¶</a></h2>
 <p>You can post questions about how to use CVXPY on the <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a>.
-If you’ve found a bug in CVXPY or have a feature request,
+If you&#8217;ve found a bug in CVXPY or have a feature request,
 create an issue on the <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
 </div>
 <div class="section" id="where-can-i-learn-more-about-convex-optimization">
@@ -79,7 +77,7 @@ To learn more about disciplined convex programming,
 visit the <a class="reference external" href="http://dcp.stanford.edu/">DCP tutorial website</a>.</p>
 </div>
 <div class="section" id="how-do-i-know-which-version-of-cvxpy-i-m-using">
-<h2>How do I know which version of CVXPY I’m using?<a class="headerlink" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" title="Permalink to this headline">¶</a></h2>
+<h2>How do I know which version of CVXPY I&#8217;m using?<a class="headerlink" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" title="Permalink to this headline">¶</a></h2>
 <p>To check which version of CVXPY you have installed,
 run the following code snippet in the Python prompt:</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span>
@@ -105,22 +103,22 @@ there is a DCP error in that object.</p>
 <p>Sometimes solvers encounter numerical issues and fail to solve a problem, in which case CVXPY raises a <code class="docutils literal"><span class="pre">SolverError</span></code>.
 If this happens to you,
 try using different solvers on your problem,
-as discussed in the “Choosing a solver” section of <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.
+as discussed in the &#8220;Choosing a solver&#8221; section of <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.
 If the solver CVXOPT fails, try using the solver option <code class="docutils literal"><span class="pre">kktsolver=ROBUST_KKTSOLVER</span></code>.</p>
 </div>
 <div class="section" id="what-solvers-does-cvxpy-support">
 <h2>What solvers does CVXPY support?<a class="headerlink" href="#what-solvers-does-cvxpy-support" title="Permalink to this headline">¶</a></h2>
-<p>See the “Solve method options” section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for a list of the solvers CVXPY supports.
+<p>See the &#8220;Solve method options&#8221; section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for a list of the solvers CVXPY supports.
 If you would like to use a solver CVXPY does not support,
 make a feature request on the <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
 </div>
 <div class="section" id="what-are-the-differences-between-cvxpy-s-solvers">
-<h2>What are the differences between CVXPY’s solvers?<a class="headerlink" href="#what-are-the-differences-between-cvxpy-s-solvers" title="Permalink to this headline">¶</a></h2>
+<h2>What are the differences between CVXPY&#8217;s solvers?<a class="headerlink" href="#what-are-the-differences-between-cvxpy-s-solvers" title="Permalink to this headline">¶</a></h2>
 <p>The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
-See the “Solve method options” section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for details.</p>
+See the &#8220;Solve method options&#8221; section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for details.</p>
 </div>
 <div class="section" id="what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint">
-<h2>What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?<a class="headerlink" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" title="Permalink to this headline">¶</a></h2>
+<h2>What do I do if I get &#8220;Exception: Cannot evaluate the truth value of a constraint&#8221;?<a class="headerlink" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" title="Permalink to this headline">¶</a></h2>
 <p>This error likely means you are chaining constraints (e.g., writing an
 expression like <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>) or using the built-in Python <code class="docutils literal"><span class="pre">max</span></code> and <code class="docutils literal"><span class="pre">min</span></code>
 functions on CVXPY expressions.
@@ -128,7 +126,7 @@ It is not possible for CVXPY to correctly handle these use cases,
 so CVXPY throws an (admittedly cryptic) exception.</p>
 </div>
 <div class="section" id="what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded">
-<h2>What do I do if I get “RuntimeError: maximum recursion depth exceeded”?<a class="headerlink" href="#what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded" title="Permalink to this headline">¶</a></h2>
+<h2>What do I do if I get &#8220;RuntimeError: maximum recursion depth exceeded&#8221;?<a class="headerlink" href="#what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference external" href="https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I">this thread</a>
 on the mailing list.</p>
 </div>
@@ -208,12 +206,10 @@ Use the following BibTeX citation:</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -223,8 +219,8 @@ Use the following BibTeX citation:</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
     />
 </a>
 </p>
@@ -263,8 +259,8 @@ Use the following BibTeX citation:</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -278,11 +274,11 @@ Use the following BibTeX citation:</p>
       &copy;2014, Steven Diamond, Eric Chu, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../_sources/faq/index.rst.txt"
+      <a href="../_sources/faq/index.txt"
           rel="nofollow">Page source</a>
     </div>
 
