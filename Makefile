@@ -163,7 +163,7 @@ gh-pages:
 	cd doc && make clean
 	git checkout gh-pages
 	git rm -r .
-	git checkout 1.0 $(GH_PAGES_SOURCES_DOC)
+	git checkout master $(GH_PAGES_SOURCES_DOC)
 	git reset HEAD
 	cp -r doc/* .
 	make html
@@ -173,4 +173,4 @@ gh-pages:
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc
 	git add -A
-	git commit -m "Generated gh-pages for `git log 1.0 -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout 1.0
+	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
