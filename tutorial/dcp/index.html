@@ -1,39 +1,40 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Disciplined Convex Programming &mdash; CVXPY 1.0.0 documentation</title>
-    
+    <title>Disciplined Convex Programming &#8212; CVXPY 1.0.0 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="../../index.html" />
-    <link rel="up" title="Tutorial" href="../index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Atomic Functions" href="../functions/index.html" />
     <link rel="prev" title="What is CVXPY?" href="../intro/index.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -69,7 +70,7 @@ arithmetic operators <code class="docutils literal"><span class="pre">+,</span> 
 The total number of entries is given by <code class="docutils literal"><span class="pre">expr.size</span></code>,
 while the number of dimensions is given by <code class="docutils literal"><span class="pre">expr.ndim</span></code>.
 CVXPY will raise an exception if an
-expression is used in a way that doesn&#8217;t make sense given its
+expression is used in a way that doesn’t make sense given its
 dimensions, for example adding matrices of different size.
 The semantics for how shapes behave under arithmetic operations
 are the same as for NumPy ndarrays (except some broadcasting is banned).</p>
@@ -243,7 +244,7 @@ its curvature on the left and its sign on the right.</p>
 </div>
 <div class="section" id="example-2">
 <h2>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline">¶</a></h2>
-<p>We&#8217;ll walk through the application of the DCP rules to the expression
+<p>We’ll walk through the application of the DCP rules to the expression
 <code class="docutils literal"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>.</p>
 <a class="reference internal image-reference" href="../../_images/example2.png"><img alt="../../_images/example2.png" class="align-center" src="../../_images/example2.png" style="width: 460.8px; height: 400.0px;" /></a>
 <p>The variable <code class="docutils literal"><span class="pre">x</span></code> has affine curvature and unknown sign. The <code class="docutils literal"><span class="pre">square</span></code>
@@ -358,10 +359,12 @@ non-DCP problem.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -371,8 +374,8 @@ non-DCP problem.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -380,7 +383,7 @@ non-DCP problem.</p>
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">Tutorial</a><ul class="current">
@@ -414,13 +417,13 @@ non-DCP problem.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
@@ -430,8 +433,8 @@ non-DCP problem.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -445,11 +448,11 @@ non-DCP problem.</p>
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../../_sources/tutorial/dcp/index.txt"
+      <a href="../../_sources/tutorial/dcp/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

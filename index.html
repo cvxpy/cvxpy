@@ -1,37 +1,39 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Welcome to CVXPY 1.0 &mdash; CVXPY 1.0.0 documentation</title>
-    
+    <title>Welcome to CVXPY 1.0 &#8212; CVXPY 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="#" />
-    <link rel="next" title="Install Guide" href="install/index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Install" href="install/index.html" />
    
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -40,40 +42,54 @@
             
   <div class="section" id="welcome-to-cvxpy-1-0">
 <h1>Welcome to CVXPY 1.0<a class="headerlink" href="#welcome-to-cvxpy-1-0" title="Permalink to this headline">¶</a></h1>
-<p><strong>Join the</strong> <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a> <strong>and use</strong> <a class="reference external" href="https://stackoverflow.com/questions/tagged/cvxpy">StackOverlow</a> <strong>for the best CVXPY support!</strong></p>
-<p><strong>CVXPY 1.0 is a major rewrite with many new features! See</strong> <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">What&#8217;s New in CVXPY 1.0</span></a> <strong>for details on changes.</strong></p>
-<p>CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.</p>
-<p>For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cvx</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
+<p><strong>Convex optimization, for everyone.</strong></p>
+<p><em>For the best support, join the</em> <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a> <em>and post your questions on</em>
+<a class="reference external" href="https://stackoverflow.com/questions/tagged/cvxpy">Stack Overflow</a>.</p>
+<p>CVXPY is a Python-embedded modeling language for convex optimization problems.
+It allows you to express your problem in a natural way that follows the math,
+rather than in the restrictive standard form required by solvers.</p>
+<p>For example, the following code solves a least-squares problem with box constraints:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Problem data.</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">30</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
-<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 
 <span class="c1"># Construct the problem.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">objective</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">))</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">))</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 
-<span class="c1"># The optimal objective is returned by prob.solve().</span>
+<span class="c1"># The optimal objective value is returned by `prob.solve()`.</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-<span class="c1"># The optimal value for x is stored in x.value.</span>
-<span class="nb">print</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
-<span class="c1"># The optimal Lagrange multiplier for a constraint</span>
-<span class="c1"># is stored in constraint.dual_value.</span>
-<span class="nb">print</span> <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span>
+<span class="c1"># The optimal value for x is stored in `x.value`.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="c1"># The optimal Lagrange multiplier for a constraint is stored in</span>
+<span class="c1"># `constraint.dual_value`.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This short script is a basic example of what CVXPY can do. CVXPY also supports simple ways to solve problems in parallel, higher-level abstractions such as object oriented convex optimization, and extensions for non-convex optimization.</p>
-<p>CVXPY was designed and implemented by Steven Diamond, with input and contributions from Stephen Boyd, Eric Chu, and many others.</p>
-<p>CVXPY was inspired by the MATLAB package <a class="reference external" href="http://cvxr.com/cvx/">CVX</a>. See the book <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe for general background on convex optimization.</p>
+<p>This short script is a basic example of what CVXPY can do. See the
+<a class="reference internal" href="examples/index.html"><span class="doc">library of examples</span></a> for applications to machine
+learning, control, finance, and more. For a guided tour of CVXPY, check out the
+<a class="reference internal" href="tutorial/index.html"><span class="doc">tutorial</span></a>, and consult the <a class="reference internal" href="api_reference/cvxpy.html"><span class="doc">API reference</span></a> for documentation about public symbols.</p>
+<hr class="docutils" />
+<p>CVXPY was designed and implemented by Steven Diamond, with input and
+contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
+and many others; it was inspired by the MATLAB package <a class="reference external" href="http://cvxr.com/cvx/">CVX</a>.  Version 1.0 of CVXPY brings the API closer to NumPy
+and the architecture closer to software compilers, making it easy for
+developers to write custom problem transformations and target custom solvers.
+Be aware that CVXPY 1.0 is not backwards compatible with previous versions
+of CVXPY. For more details, see <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">What’s New in 1.0</span></a>, which includes instructions
+for migrating from previous versions of CVXPY.</p>
 <p>CVXPY relies on the open source solvers <a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a>, <a class="reference external" href="http://osqp.readthedocs.io/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
-Additional solvers are supported, but must be installed separately.</p>
+Additional solvers are supported, but must be installed separately. For
+background on convex optimization, see the book <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe.</p>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
@@ -108,10 +124,12 @@ Additional solvers are supported, but must be installed separately.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -121,8 +139,8 @@ Additional solvers are supported, but must be installed separately.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -130,7 +148,7 @@ Additional solvers are supported, but must be installed separately.</p>
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/index.html">Install Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/index.html">Install</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/index.html">Tutorial</a></li>
@@ -148,13 +166,13 @@ Additional solvers are supported, but must be installed separately.</p>
 <li class="toctree-l1"><a class="reference internal" href="citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="updates/index.html">What’s New in 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="versions/index.html">Versions</a></li>
@@ -164,8 +182,8 @@ Additional solvers are supported, but must be installed separately.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -179,11 +197,11 @@ Additional solvers are supported, but must be installed separately.</p>
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="_sources/index.txt"
+      <a href="_sources/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

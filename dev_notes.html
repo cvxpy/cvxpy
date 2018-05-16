@@ -1,36 +1,38 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Developer Notes &mdash; CVXPY 1.0.0 documentation</title>
-    
+    <title>Developer Notes &#8212; CVXPY 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
    
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -42,7 +44,7 @@
 <div class="section" id="autodoc">
 <h2><cite>autodoc</cite><a class="headerlink" href="#autodoc" title="Permalink to this headline">¶</a></h2>
 <p>When using autodoc with latex in docstrings, make sure to use raw strings, such as</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="sd">r&quot;&quot;&quot; This is a docstring.</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot; This is a docstring.</span>
 
 <span class="sd">With more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -64,10 +66,12 @@
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -77,8 +81,8 @@
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -86,7 +90,7 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/index.html">Install Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/index.html">Install</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/index.html">Tutorial</a></li>
@@ -104,13 +108,13 @@
 <li class="toctree-l1"><a class="reference internal" href="citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="updates/index.html">What’s New in 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="versions/index.html">Versions</a></li>
@@ -120,8 +124,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -135,11 +139,11 @@
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="_sources/dev_notes.txt"
+      <a href="_sources/dev_notes.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -1,0 +1,285 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>cvxpy.constraints.psd &#8212; CVXPY 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for cvxpy.constraints.psd</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2013 Steven Diamond</span>
+
+<span class="sd">This file is part of CVXPY.</span>
+
+<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
+<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">pu</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="k">import</span> <span class="n">cvxtypes</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="k">import</span> <span class="n">Constraint</span>
+
+
+<div class="viewcode-block" id="PSD"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.psd.PSD">[docs]</a><span class="k">class</span> <span class="nc">PSD</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A constraint of the form :math:`\\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0`</span>
+
+<span class="sd">    Applying a ``PSD`` constraint to a two-dimensional expression ``X``</span>
+<span class="sd">    constrains its symmetric part to be positive semidefinite: i.e.,</span>
+<span class="sd">    it constrains ``X`` to be such that</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        z^T(X + X^T)z \geq 0,</span>
+
+<span class="sd">    for all :math:`z`.</span>
+
+<span class="sd">    The preferred way of creating a ``PSD`` constraint is through operator</span>
+<span class="sd">    overloading. To constrain an expression ``X`` to be PSD, write</span>
+<span class="sd">    ``X &gt;&gt; 0``; to constrain it to be negative semidefinite, write</span>
+<span class="sd">    ``X &lt;&lt; 0``. Strict definiteness constraints are not provided,</span>
+<span class="sd">    as they do not make sense in a numerical setting.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    expr : Expression.</span>
+<span class="sd">        The expression to constrain; *must* be two-dimensional.</span>
+<span class="sd">    constr_id : int</span>
+<span class="sd">        A unique id for the constraint.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Argument must be square matrix.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Non-square matrix in positive definite constraint.&quot;</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">expr</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> &gt;&gt; 0&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="PSD.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.psd.PSD.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A PSD constraint is DCP if the constrained expression is affine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The residual of the constraint.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NumPy.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">min_eig</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">lambda_min</span><span class="p">()(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">neg</span><span class="p">()(</span><span class="n">min_eig</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
+
+<span class="sd">        Marks the top level constraint as the dual_holder,</span>
+<span class="sd">        so the dual value will be saved to the Zero.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple of (affine expression, [constraints]).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
+        <span class="n">dual_holder</span> <span class="o">=</span> <span class="n">PSD</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="n">dual_holder</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eq_constr</span><span class="p">,</span> <span class="n">leq_constr</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Formats PSD constraints as inequalities for the solver.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        eq_constr : list</span>
+<span class="sd">            A list of the equality constraints in the canonical problem.</span>
+<span class="sd">        leq_constr : list</span>
+<span class="sd">            A list of the inequality constraints in the canonical problem.</span>
+<span class="sd">        dims : dict</span>
+<span class="sd">            A dict with the dimensions of the conic constraints.</span>
+<span class="sd">        solver : str</span>
+<span class="sd">            The solver being called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_leq_constr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__format</span>
+
+        <span class="c1"># 0 &lt;= A</span>
+        <span class="n">leq_constr</span> <span class="o">+=</span> <span class="n">new_leq_constr</span>
+        <span class="c1"># Update dims.</span>
+        <span class="n">dims</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PSD_DIM</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@pu</span><span class="o">.</span><span class="n">lazyprop</span>
+    <span class="k">def</span> <span class="nf">__format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Internal version of format with cached results.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (equality constraints, inequality constraints)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">leq_constr</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_geq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">constr_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">leq_constr</span><span class="p">]</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/cvxgrp/cvxpy">
+    <img
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">What’s New in 1.0</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions/index.html">Versions</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

@@ -1,36 +1,38 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Fitting censored data &mdash; CVXPY 1.0.0 documentation</title>
-    
+    <title>Fitting censored data &#8212; CVXPY 1.0.0 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.0 documentation" href="../../index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -50,7 +52,7 @@ well known distributions.</p>
 <p>We can overcome this challenge by converting the MLE into a convex
 optimization problem and solving it using
 <a class="reference external" href="http://www.cvxpy.org/en/latest/">CVXPY</a>.</p>
-<p>This example is adapted from a homework problem from Boyd&#8217;s <a class="reference external" href="https://class.stanford.edu/courses/Engineering/CVX101/Winter2014/info">CVX 101:
+<p>This example is adapted from a homework problem from Boyd’s <a class="reference external" href="https://class.stanford.edu/courses/Engineering/CVX101/Winter2014/info">CVX 101:
 Convex Optimization
 Course</a>.</p>
 <div class="section" id="setup">
@@ -72,7 +74,7 @@ squares of the errors <span class="math">\(\epsilon^{(i)}\)</span>, namely:</p>
 fully observed and all that is known for the remaining observations is
 that <span class="math">\(y^{(i)} \geq D\)</span> for <span class="math">\(i=\mbox{M+1},\ldots,K\)</span> and some
 constant <span class="math">\(D\)</span>.</p>
-<p>Now let&#8217;s see how this would work in practice.</p>
+<p>Now let’s see how this would work in practice.</p>
 </div>
 <div class="section" id="data-generation">
 <h2>Data Generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
@@ -119,7 +121,7 @@ constant <span class="math">\(D\)</span>.</p>
 </div>
 <div class="section" id="regular-ols">
 <h2>Regular OLS<a class="headerlink" href="#regular-ols" title="Permalink to this headline">¶</a></h2>
-<p>Let&#8217;s see what the OLS result looks like. We&#8217;ll use the
+<p>Let’s see what the OLS result looks like. We’ll use the
 <code class="docutils literal"><span class="pre">np.linalg.lstsq</span></code> function to solve for our coefficients.</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">,</span> <span class="n">y_censored</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">fit_ols</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_ols</span><span class="p">)</span>
@@ -142,7 +144,7 @@ is to simply ignore all censored observations.</p>
   \underset{c}{\mbox{minimize}} &amp; \sum_{i=1}^M (y^{(i)} - c^T x^{(i)})^2
 \end{array}\]</div>
 <p>Give that our <span class="math">\(M\)</span> is much smaller than <span class="math">\(K\)</span>, we are throwing
-away the majority of the dataset in order to accomplish this, let&#8217;s see
+away the majority of the dataset in order to accomplish this, let’s see
 how this new regression does.</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ols_uncensored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">y_censored</span><span class="p">[:</span><span class="n">M</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">fit_ols_uncensored</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_ols_uncensored</span><span class="p">)</span>
@@ -159,7 +161,7 @@ i.e. the fitted values (red points) are now centered around the
 uncensored obsevations (cyan points).</p>
 <p>The one glaring issue with this arrangement is that we are now
 predicting many observations to be <em>below</em> <span class="math">\(D\)</span> (orange) even
-though we are well aware that this is not the case. Let&#8217;s try to fix
+though we are well aware that this is not the case. Let’s try to fix
 this.</p>
 </div>
 <div class="section" id="using-constraints-to-take-into-account-of-censored-data">
@@ -192,7 +194,7 @@ additional constraints:</p>
 predicts inconsistent values with respect to the censored portion of the
 data. But does it do a good job of actually finding coefficients
 <span class="math">\(c\)</span> that are close to our original data?</p>
-<p>We&#8217;ll use a simple Euclidean distance <span class="math">\(\|c_\mbox{true} - c\|_2\)</span> to
+<p>We’ll use a simple Euclidean distance <span class="math">\(\|c_\mbox{true} - c\|_2\)</span> to
 compare:</p>
 <div class="code highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="s2">&quot;norm(c_true - c_cvx): </span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_cvx</span><span class="p">))</span>
 <span class="nb">print</span> <span class="s2">&quot;norm(c_true - c_ols_uncensored): </span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_ols_uncensored</span><span class="p">))</span>
@@ -227,10 +229,12 @@ portions of the data.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -240,8 +244,8 @@ portions of the data.</p>
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -249,7 +253,7 @@ portions of the data.</p>
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
@@ -267,13 +271,13 @@ portions of the data.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What&#8217;s New in CVXPY 1.0</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
@@ -283,8 +287,8 @@ portions of the data.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -298,11 +302,11 @@ portions of the data.</p>
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../../_sources/examples/applications/censored_data.txt"
+      <a href="../../_sources/examples/applications/censored_data.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
