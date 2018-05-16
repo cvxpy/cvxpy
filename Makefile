@@ -168,7 +168,7 @@ gh-pages:
 	cp -r doc/* .
 	make html
 	rsync -a build/html/ ./
-	rm versions/0.4.11/index.html
+	rm -r versions/0.4.11
 	mv /tmp/cvxpy_docs/0.4.11 versions/
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc
