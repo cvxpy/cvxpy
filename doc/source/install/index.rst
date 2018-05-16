@@ -22,7 +22,7 @@ managing your own environment, you can instead install CVXPY with
 
    ::
 
-      conda install -c cvxgrp cvxpy libgcc
+      conda install -c cvxgrp cvxpy
 
 3. Test the installation with ``nose``.
 
@@ -35,61 +35,23 @@ managing your own environment, you can instead install CVXPY with
 Windows
 -------
 
-There are two ways to install CVXPY on Windows.
-One method uses Python(x,y), while the other uses Anaconda.
-Installation with Python(x,y) is less likely to have problems.
-Both installation methods use Python 2. If you are comfortable with
+CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend using
+Anaconda for installation, as we find that most users prefer to let Anaconda
+manage dependencies and environments for them. If you are comfortable with
 managing your own environment, you can instead install CVXPY with
 :ref:`pip <pip-installation>`.
 
-
-Windows with Python(x,y)
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-1. If you have Python installed already, it's probably a good idea to remove it first.
-If you uninstall Anaconda, you may need to take `extra steps to remove all traces of the Anaconda install <http://stackoverflow.com/questions/15828294/problems-in-fully-uninstalling-python-2-7-from-windows-7>`_.
-
-2. Download the `latest version of Python(x,y) <https://python-xy.github.io/downloads.html>`_.
-
-3. Install Python(x,y). When prompted to select optional components, make sure to check CVXOPT and CVXPY, as shown below.
-
-  .. image:: files/windows1.png
-      :scale: 100%
-
-  .. image:: files/windows2.png
-      :scale: 49%
-
-4. To test the CVXPY installation,
-open Python(x,y) and launch the interactive console (highlighted button in the picture).
-This will bring up a console.
-
-  .. image:: files/windows3.png
-      :scale: 100%
-
-5. From the console, run ``nosetests cvxpy``.
-If all but one of the tests pass, your installation was successful.
-
-
-Windows with Anaconda
-^^^^^^^^^^^^^^^^^^^^^
-
-1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_. You must use the Python 2 version.
+1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_.
 
 2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
 
-3. Install SCS from the Anaconda prompt by running the following command:
+3. Install CVXPY from the Anaconda prompt by running the following command:
 
   ::
 
-      conda install -c https://conda.anaconda.org/omnia scs
+      conda install -c cvxgrp cvxpy
 
-4. Install CVXPY from the Anaconda prompt by running the following command:
-
-  ::
-
-      pip install cvxpy
-
-5. From the console, run ``nosetests cvxpy``.
+4. From the console, run ``nosetests cvxpy``.
 If all the tests pass, your installation was successful.
 
 
