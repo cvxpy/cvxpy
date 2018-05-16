@@ -24,7 +24,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.0.0',
+    version='1.0.1',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     ext_modules=[canon],
