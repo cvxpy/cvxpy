@@ -11,34 +11,34 @@ If you're using CVXPY update to it 0.3.0 or higher.
 
 One can expect a 3 - 10x  speed-up over the original CVXPY implementation on most other problems.
 
-## Installation
-cvxcore supports both Python 2 and Python 3.
+<!-- ## Installation -->
+<!-- cvxcore supports both Python 2 and Python 3. -->
 
-1. Install ``numpy`` with ``pip`` from the command-line.
+<!-- 1. Install ``numpy`` with ``pip`` from the command-line. -->
 
-```
-pip install numpy
-```
+<!-- ``` -->
+<!-- pip install numpy -->
+<!-- ``` -->
 
-2. Install ``cvxcore`` with ``pip`` from the command-line.
+<!-- 2. Install ``cvxcore`` with ``pip`` from the command-line. -->
 
-```
-pip install cvxcore
-```
+<!-- ``` -->
+<!-- pip install cvxcore -->
+<!-- ``` -->
 
-Note: If you're installing cvxcore on Windows, a nonstandard system, or wish to build cvxcore directly from source, you need to install ```swig.``` We are currently working to remove this dependency.
+<!-- Note: If you're installing cvxcore on Windows, a nonstandard system, or wish to build cvxcore directly from source, you need to install ```swig.``` We are currently working to remove this dependency. -->
 
-On Linux,
+<!-- On Linux, -->
 
-```
-sudo apt-get install swig
-```
+<!-- ``` -->
+<!-- sudo apt-get install swig -->
+<!-- ``` -->
 
-On Mac OSX, using homebrew,
+<!-- On Mac OSX, using homebrew, -->
 
-```
-brew install swig
-```
+<!-- ``` -->
+<!-- brew install swig -->
+<!-- ``` -->
 
 
 ## Integration with other CVX.* solvers
