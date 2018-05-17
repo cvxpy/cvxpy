@@ -35,10 +35,11 @@ managing your own environment, you can instead install CVXPY with
 Windows
 -------
 
-CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend using
+CVXPY supports Python 2 (with Anaconda and pip) and Python 3 (with pip) on Windows.
+We recommend using
 Anaconda for installation, as we find that most users prefer to let Anaconda
 manage dependencies and environments for them. If you are comfortable with
-managing your own environment, you can instead install CVXPY with
+managing your own environment or need Python 3, you can instead install CVXPY with
 :ref:`pip <pip-installation>`.
 
 1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_.
