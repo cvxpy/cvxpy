@@ -1,38 +1,40 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Contributing &mdash; CVXPY 1.0.1 documentation</title>
-    
+    <title>Contributing &#8212; CVXPY 1.0.1 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.0.1 documentation" href="../index.html" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Related Projects" href="../related_projects/index.html" />
     <link rel="prev" title="Citing CVXPY" href="../citing/index.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -41,7 +43,7 @@
             
   <div class="section" id="contributing">
 <span id="id1"></span><h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
-<p>We welcome all contributors to CVXPY. You don&#8217;t need to be an expert in convex
+<p>We welcome all contributors to CVXPY. You don’t need to be an expert in convex
 optimization to help out!  To get started as a CVXPY developer, install CVXPY
 from <a class="reference internal" href="../install/index.html"><span class="doc">source</span></a>. Contributions to CVXPY are made through
 pull requests or feature branches to our <a class="reference external" href="https://github.com/cvxgrp/cvxpy">Github repository</a>.  For project ideas, consult our Github
@@ -50,7 +52,7 @@ bugs and larger feature requests.</p>
 <p>When navigating the source, keep in mind that CVXPY is a work in progress. The
 only APIs guaranteed to be stable are those discussed in the API documentation.
 All other APIs are subject to change without warning.  Files and symbols that
-are certain to change in the future are marked &#8220;DEPRECATED&#8221; in the source.</p>
+are certain to change in the future are marked “DEPRECATED” in the source.</p>
 <p>Finally, feel free to introduce yourself on the <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">cvxpy</a> mailing list, which is for
 users and developers alike. Use this mailing list to introduce yourself.  You
 can also contact the project leads <a class="reference external" href="http://web.stanford.edu/~stevend2/">Steven Diamond</a>, <a class="reference external" href="https://akshayagrawal.com">Akshay Agrawal</a>, and <a class="reference external" href="http://stanford.edu/~boyd/">Stephen Boyd</a> directly.</p>
@@ -68,10 +70,12 @@ can also contact the project leads <a class="reference external" href="http://we
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -81,8 +85,8 @@ can also contact the project leads <a class="reference external" href="http://we
 <p>
 <a href="https://travis-ci.org/cvxgrp/cvxpy">
     <img
-        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
-        src="https://secure.travis-ci.org/cvxgrp/cvxpy.png?branch=master"
+        alt="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
+        src="https://secure.travis-ci.org/cvxgrp/cvxpy.svg?branch=master"
     />
 </a>
 </p>
@@ -114,7 +118,7 @@ can also contact the project leads <a class="reference external" href="http://we
 <li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What&#8217;s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">What’s New in 1.0</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../versions/index.html">Versions</a></li>
@@ -124,8 +128,8 @@ can also contact the project leads <a class="reference external" href="http://we
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -139,11 +143,11 @@ can also contact the project leads <a class="reference external" href="http://we
       &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../_sources/contributing/index.txt"
+      <a href="../_sources/contributing/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
