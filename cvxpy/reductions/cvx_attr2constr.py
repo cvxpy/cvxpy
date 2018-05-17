@@ -134,7 +134,7 @@ class CvxAttr2Constr(Reduction):
             # Need to map from constrained to symmetric variable.
             if new_var.id in solution.primal_vars:
                 if var.attributes['diag']:
-                    pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten(), [0])
+                    pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten())
                 elif attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
                     value = np.zeros(var.shape)
