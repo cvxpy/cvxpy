@@ -162,7 +162,7 @@ gh-pages:
 	mv doc/build/html /tmp/cvxpy_docs/0.4.11
 	cd doc && make clean
 	git checkout gh-pages
-  mv CNAME /tmp/cvxpy_docs/CNAME
+	mv CNAME /tmp/cvxpy_docs/CNAME
 	git rm -r .
 	git checkout master $(GH_PAGES_SOURCES_DOC)
 	git reset HEAD
@@ -171,7 +171,7 @@ gh-pages:
 	rsync -a build/html/ ./
 	rm -r versions/0.4.11
 	mv /tmp/cvxpy_docs/0.4.11 versions/
-  mv /tmp/cvxpy_docs/CNAME CNAME
+	mv /tmp/cvxpy_docs/CNAME CNAME
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc
 	git add -A
