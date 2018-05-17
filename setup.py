@@ -12,8 +12,12 @@ class get_numpy_include(object):
 canon = Extension(
     '_cvxcore',
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',
+             'cvxpy/cvxcore/src/cvxcore.hpp',
+             'cvxpy/cvxcore/src/LinOp.hpp',
              'cvxpy/cvxcore/src/LinOpOperations.cpp',
+             'cvxpy/cvxcore/src/LinOpOperations.hpp',
              'cvxpy/cvxcore/src/Utils.cpp',
+             'cvxpy/cvxcore/src/Utils.hpp',
              'cvxpy/cvxcore/python/cvxcore_wrap.cpp'],
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
