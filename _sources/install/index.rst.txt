@@ -18,7 +18,7 @@ managing your own environment, you can instead install CVXPY with
 
 1. Install `Anaconda`_.
 
-2. Install ``cvxpy`` with ``conda``. 
+2. Install ``cvxpy`` with ``conda``.
 
    ::
 
@@ -86,6 +86,7 @@ CVXPY has the following dependencies:
 * `six <https://pythonhosted.org/six/>`_
 * `fastcache <https://github.com/pbrady/fastcache>`_
 * `multiprocess`_
+* `OSQP`_
 * `ECOS`_ >= 2
 * `SCS`_ >= 1.1.3
 * `NumPy`_ >= 1.8
@@ -93,7 +94,7 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
+CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
 `multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually,
 as will `Swig`_ . Once you’ve installed these dependencies:
 
@@ -170,6 +171,7 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _multiprocess: https://github.com/uqfoundation/multiprocess/
 .. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
+.. _OSQP: https://osqp.readthedocs.io/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 .. _NumPy: http://www.numpy.org/
