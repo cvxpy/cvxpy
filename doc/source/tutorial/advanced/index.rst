@@ -58,7 +58,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
 
 .. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
 
-    Creates a Leaf object (e.g., Variable or Parameter). 
+    Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
     :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
@@ -85,7 +85,7 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type PSD: bool
     :param NSD: Is the variable constrained to be symmetric negative semidefinite?
     :type NSD: bool
-    :param boolean: 
+    :param boolean:
         Is the variable boolean (i.e., 0 or 1)? True, which constrains
         the entire variable to be boolean, False, or a list of
         indices which should be constrained as boolean, where each
@@ -219,7 +219,7 @@ The functions ``is_real``, ``is_complex``, and ``is_imag`` return whether an exp
    x = cvx.Variable(complex=True)
    # A purely imaginary parameter.
    p = cvx.Parameter(imag=True)
-   
+
    print("p.is_imag() = ", p.is_imag())
    print("(x + 2).is_real() = ", (x + 2).is_real())
 
@@ -410,6 +410,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     constraints = [x >= 2]
     prob = cvx.Problem(obj, constraints)
 
+    # Solve with OSQP.
+    prob.solve(solver=cvx.OSQP)
+    print("optimal value with OSQP:", prob.value)
+
     # Solve with ECOS.
     prob.solve(solver=cvx.ECOS)
     print("optimal value with ECOS:", prob.value)
@@ -452,6 +456,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 
 ::
 
+    optimal value with OSQP: 6.0
     optimal value with ECOS: 5.99999999551
     optimal value with ECOS_BB: 5.99999999551
     optimal value with CVXOPT: 6.00000000512
@@ -510,7 +515,7 @@ and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the ``problem.solver_stats`` attribute,
 which returns a :class:`~cvxpy.problems.problem.SolverStats` object.
-For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem. 
+For example, ``problem.solver_stats.solve_time`` gives the time it took the solver to solve the problem.
 
 Warm start
 ----------
@@ -557,7 +562,7 @@ warm start would only be a good initial point.
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -601,6 +606,10 @@ For example, here we tell SCS to use an indirect method for solving linear equat
     optimal value with SCS: 6.82837896975
 
 Here is the complete list of solver options.
+
+`OSQP`_ options:
+
+See `OSQP documentation <http://osqp.readthedocs.io/en/latest/interfaces/solver_settings.html>`_.
 
 `ECOS`_ options:
 
@@ -707,6 +716,9 @@ Getting the standard form
 If you are interested in getting the standard form that CVXPY produces for a problem, you can use the ``get_problem_data`` method. Calling ``get_problem_data(solver)`` on a problem object returns a dict of the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.
 
 .. code:: python
+
+    # Get OSQP arguments.
+    data = prob.get_problem_data(cvx.OSQP)
 
     # Get ECOS arguments.
     data = prob.get_problem_data(cvx.ECOS)

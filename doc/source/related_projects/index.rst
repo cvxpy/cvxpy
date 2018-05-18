@@ -30,6 +30,8 @@ Modeling frameworks
 Solvers
 -------
 
+- `OSQP <https://osqp.readthedocs.io/>`_ is an open-source C library for solving convex quadratic programs.
+
 - `ECOS <https://www.embotech.com/ECOS>`_ is an open-source C library for solving convex second-order and exponential cone programs.
 
 - `CVXOPT <http://cvxopt.org/>`_ is an open-source Python package for convex optimization.
