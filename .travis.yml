@@ -22,7 +22,7 @@ after_success:
     - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
 deploy:
   provider: pypi
-  user: PYPI_TEST_USER
-  password: PYPI_TEST_PASSWORD
+  user: $PYPI_TEST_USER
+  password: $PYPI_TEST_PASSWORD
   server: https://test.pypi.org/legacy/
   skip_cleanup: true
