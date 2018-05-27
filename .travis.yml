@@ -24,4 +24,5 @@ deploy:
   provider: pypi
   user: PYPI_TEST_USER
   password: PYPI_TEST_PASSWORD
-  server: https://testpypi.python.org/pypi
+  server: https://test.pypi.org/legacy/
+  skip_cleanup: true
