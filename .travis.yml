@@ -24,4 +24,4 @@ deploy:
   provider: pypi
   user: PYPI_TEST_USER
   password: PYPI_TEST_PASSWORD
-  server: testpypi.python.org/pypi
+  server: https://testpypi.python.org/pypi
