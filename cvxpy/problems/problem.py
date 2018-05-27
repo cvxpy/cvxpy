@@ -464,8 +464,9 @@ class Problem(u.Canonical):
             for constr in self.constraints:
                 constr.save_value(None)
         else:
-            raise SolverError("Solver '%s' failed. Try another solver." %
-                              chain.solver.name())
+            raise SolverError(
+                "Solver '%s' failed." % chain.solver.name() + \
+                "Try another solver or solve with verbose=True for more information.")
         self._status = solution.status
         self._solver_stats = SolverStats(solution.attr, chain.solver.name())
 
