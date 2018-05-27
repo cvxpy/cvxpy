@@ -22,6 +22,7 @@ managing your own environment, you can instead install CVXPY with
 
    ::
 
+      conda install -c conda-forge lapack
       conda install -c cvxgrp cvxpy
 
 3. Test the installation with ``nose``.
@@ -50,6 +51,7 @@ managing your own environment or need Python 3, you can instead install CVXPY wi
 
   ::
 
+      conda install -c conda-forge lapack
       conda install -c cvxgrp cvxpy
 
 4. From the console, run ``nosetests cvxpy``.
