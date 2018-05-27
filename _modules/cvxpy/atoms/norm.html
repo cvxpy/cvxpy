@@ -60,7 +60,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
+<span class="kn">import</span> <span class="nn">cvxpy</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.norm_nuc</span> <span class="k">import</span> <span class="n">normNuc</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.sigma_max</span> <span class="k">import</span> <span class="n">sigma_max</span>
@@ -86,22 +86,27 @@
 <span class="sd">        An Expression representing the norm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="c1"># Norms for scalars same as absolute value.</span>
-    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-        <span class="k">return</span> <span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="s2">&quot;inf&quot;</span><span class="p">,</span> <span class="s2">&quot;Inf&quot;</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">norm_inf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="s2">&quot;nuc&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">normNuc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="s2">&quot;fro&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pnorm</span><span class="p">(</span><span class="n">vec</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">is_matrix</span><span class="p">():</span>
+    <span class="c1"># matrix norms take precedence</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># matrix 1-norm</span>
+            <span class="k">return</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># matrix 2-norm is largest singular value</span>
             <span class="k">return</span> <span class="n">sigma_max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="s1">&#39;nuc&#39;</span><span class="p">:</span>  <span class="c1"># the nuclear norm (sum of singular values)</span>
+            <span class="k">return</span> <span class="n">normNuc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="s1">&#39;fro&#39;</span><span class="p">:</span>  <span class="c1"># Frobenius norm</span>
+            <span class="k">return</span> <span class="n">pnorm</span><span class="p">(</span><span class="n">vec</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="s2">&quot;inf&quot;</span><span class="p">,</span> <span class="s2">&quot;Inf&quot;</span><span class="p">]:</span>  <span class="c1"># the matrix infinity-norm</span>
+            <span class="k">return</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unsupported matrix norm.&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="s2">&quot;inf&quot;</span><span class="p">,</span> <span class="s2">&quot;Inf&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">norm_inf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

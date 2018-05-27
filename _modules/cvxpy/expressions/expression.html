@@ -175,12 +175,20 @@
 <div class="viewcode-block" id="Expression.is_constant"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_constant">[docs]</a>    <span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression constant?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_zero</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_constant</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__is_constant</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_zero</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_constant</span></div>
 
 <div class="viewcode-block" id="Expression.is_affine"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_affine">[docs]</a>    <span class="k">def</span> <span class="nf">is_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression affine?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">())</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_affine</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__is_affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_affine</span></div>
 
 <div class="viewcode-block" id="Expression.is_convex"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_convex">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">is_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -263,7 +271,11 @@
 <div class="viewcode-block" id="Expression.is_zero"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_zero">[docs]</a>    <span class="k">def</span> <span class="nf">is_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression all zero?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_zero</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__is_zero</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_zero</span></div>
 
 <div class="viewcode-block" id="Expression.is_nonneg"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_nonneg">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">is_nonneg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

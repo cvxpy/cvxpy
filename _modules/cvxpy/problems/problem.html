@@ -69,7 +69,7 @@
 <span class="c1"># Only need to import cvxpy.transform.get_separable_problems, but this creates</span>
 <span class="c1"># a circular import (cvxpy.transforms imports Problem). Hence we need to import</span>
 <span class="c1"># cvxpy here.</span>
-<span class="kn">import</span> <span class="nn">cvxpy</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span>  <span class="c1"># noqa</span>
 <span class="kn">import</span> <span class="nn">cvxpy.constraints.zero</span> <span class="k">as</span> <span class="nn">eqc</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
@@ -285,10 +285,7 @@
             <span class="n">solve_func</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">solve_func</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">_solve</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">solve_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">raise</span></div>
+        <span class="k">return</span> <span class="n">solve_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Problem.register_solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.register_solve">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">register_solve</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
@@ -509,8 +506,9 @@
             <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
                 <span class="n">constr</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Solver &#39;</span><span class="si">%s</span><span class="s2">&#39; failed. Try another solver.&quot;</span> <span class="o">%</span>
-                              <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
+                <span class="s2">&quot;Solver &#39;</span><span class="si">%s</span><span class="s2">&#39; failed.&quot;</span> <span class="o">%</span> <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">+</span> \
+                <span class="s2">&quot;Try another solver or solve with verbose=True for more information.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="n">SolverStats</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span></div>
 

@@ -92,8 +92,8 @@
         <span class="c1">#     ZERO, NEGATIVE = ZERO</span>
         <span class="c1">#     UNKNOWN, NEGATIVE = UNKNOWN</span>
         <span class="c1">#     NEGATIVE, NEGATIVE = NEGATIVE</span>
-        <span class="n">is_pos</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
-        <span class="n">is_neg</span> <span class="o">=</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="n">is_pos</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">is_neg</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">is_pos</span><span class="p">,</span> <span class="n">is_neg</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -119,7 +119,7 @@
     <span class="k">def</span> <span class="nf">is_pwl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the atom piecewise linear?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the atom w.r.t. each argument.</span>

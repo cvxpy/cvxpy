@@ -68,6 +68,7 @@
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">LA</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="k">import</span> <span class="n">Atom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">cvxpy.interface.matrix_utilities</span> <span class="k">import</span> <span class="n">is_sparse</span>
 
 
 <span class="k">class</span> <span class="nc">CvxPyDomainError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -219,7 +220,8 @@
 <span class="sd">        A rectangular ndarray such that P = scale * (dot(M1, M1.T) - dot(M2, M2.T))</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-
+    <span class="k">if</span> <span class="n">is_sparse</span><span class="p">(</span><span class="n">P</span><span class="p">):</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">todense</span><span class="p">())</span>  <span class="c1"># make dense (needs to happen for eigh).</span>
     <span class="n">w</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">check_finite</span><span class="o">=</span><span class="n">check_finite</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">rcond</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
