@@ -26,4 +26,4 @@ deploy:
   password: $PYPI_TEST_PASSWORD
   server: https://test.pypi.org/legacy/
   skip_cleanup: true
-  distributions: "sdist"
+  distributions: "sdist bdist_wheel"
