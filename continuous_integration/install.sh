@@ -44,6 +44,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda install -c cvxgrp --yes cvxopt
 
         # Install CBC
+        #       Should make this QUIET. Logs are too long for Travis-CI's
+        #       web log viewer.
         oldpath="$PWD"
         cd /home/travis
         wget http://www.coin-or.org/download/source/Cbc/Cbc-2.9.7.tgz
