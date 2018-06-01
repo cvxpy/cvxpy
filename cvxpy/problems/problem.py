@@ -465,8 +465,11 @@ class Problem(u.Canonical):
                 constr.save_value(None)
         else:
             raise SolverError(
-                "Solver '%s' failed." % chain.solver.name() + \
-                "Try another solver or solve with verbose=True for more information.")
+                "Solver '%s' failed. " % chain.solver.name() + \
+                "Try another solver or solve with verbose=True for more information. " + \
+                "Try recentering the problem data around 0 and rescaling " + \
+                "to reduce the dynamic range."
+            )
         self._status = solution.status
         self._solver_stats = SolverStats(solution.attr, chain.solver.name())
 
