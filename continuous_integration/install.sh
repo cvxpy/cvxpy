@@ -20,6 +20,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
         # Configure the conda environment and put it in the path using the
         # provided versions
+        conda config --add channels cvxgrp
+        conda config --add channels conda-forge
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
                 numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
@@ -51,6 +53,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
         export PATH=/Users/travis/miniconda3/bin:$PATH
         # Configure the conda environment and put it in the path using the
         # provided versions
+        conda config --add channels cvxgrp
+        conda config --add channels conda-forge
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv

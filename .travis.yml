@@ -7,15 +7,15 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
-      DEPLOY_SOURCE="false"
+      DEPLOY_PIP="false"
     - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
-      DEPLOY_SOURCE="false"
+      DEPLOY_PIP="false"
     - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
-      DEPLOY_SOURCE="true"
+      DEPLOY_PIP="true"
       PYPI_SERVER="https://test.pypi.org/legacy/"
 sudo: required
 install: source continuous_integration/install.sh
