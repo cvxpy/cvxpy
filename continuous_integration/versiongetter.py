@@ -1,5 +1,4 @@
-import json
-import urllib2
+import requests
 from distutils.version import LooseVersion
 
 
@@ -8,7 +7,8 @@ def version(test=True):
         url = "https://test.pypi.org/pypi/cvxpy/json"
     else:
         url = "https://pypi.org/pypi/cvxpy/json"
-    data = json.load(urllib2.urlopen(urllib2.Request(url)))
+    r = requests.get(url)
+    data = r.json()
     versions = data["releases"].keys()
     versions.sort(key=LooseVersion)
     return versions[-1]
