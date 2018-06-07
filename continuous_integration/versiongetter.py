@@ -3,7 +3,7 @@ import urllib2
 from distutils.version import StrictVersion
 
 
-def version(test=False):
+def version(test=True):
     if test:
         url = "https://test.pypi.org/pypi/cvxpy/json"
     else:
