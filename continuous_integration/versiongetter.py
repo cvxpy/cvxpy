@@ -9,7 +9,7 @@ def version(test=True):
         url = "https://pypi.org/pypi/cvxpy/json"
     r = requests.get(url)
     data = r.json()
-    versions = data["releases"].keys()
+    versions = list(data["releases"].keys())
     versions.sort(key=LooseVersion)
     return versions[-1]
 
