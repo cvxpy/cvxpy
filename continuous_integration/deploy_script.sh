@@ -14,5 +14,6 @@ if [ $REMOTE_VERSION != $LOCAL_VERSION ]; then
     fi
 
     # Definitely build for conda
+    conda install conda-build
     conda build --python=$PYTHON_VERSION .
 fi
