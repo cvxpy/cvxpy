@@ -14,4 +14,4 @@ def version(test=True):
     return versions[-1]
 
 
-print version()
+print(version())
