@@ -3,7 +3,7 @@ package:
   version: "1.0.3"
 
 source:
-  git_url: https://github.com/cvxgrp/cvxpy
+  path: ..
 
 build:
   number: 0
