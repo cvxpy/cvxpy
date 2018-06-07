@@ -7,23 +7,21 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
+      DEPLOY_SOURCE="false"
     - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
+      DEPLOY_SOURCE="false"
     - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
+      DEPLOY_SOURCE="true"
+      PYPI_SERVER="https://test.pypi.org/legacy/"
 sudo: required
 install: source continuous_integration/install.sh
 script:
   - bash continuous_integration/test_script.sh
   - flake8 .
 after_success:
-    - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
-deploy:
-  provider: pypi
-  user: $PYPI_TEST_USER
-  password: $PYPI_TEST_PASSWORD
-  server: https://test.pypi.org/legacy/
-  skip_cleanup: true
-  distributions: "sdist"
+  - bash continuous_integration/success_script.sh
+
