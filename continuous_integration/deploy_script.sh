@@ -1,9 +1,7 @@
 #!/bin/bash
 
-if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
-
 # Consider deploying to PyPI
-if [ $DEPLOY_SOURCE = true ] && [ $TRAVIS_OS_NAME = linux ]; then
+if [ $DEPLOY_SOURCE = true ] && [ $TRAVIS_OS_NAME = osx ]; then
     REMOTE_VERSION=`python versiongetter.py`
     LOCAL_VERSION=`python -c "import cvxpy; print(cvxpy.__version__)"`
     if [ $REMOTE_VERSION -ne $LOCAL_VERSION ]; then
