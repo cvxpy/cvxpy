@@ -1,7 +1,7 @@
 language: C
 os:
-  - linux
   - osx
+  - linux
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
