@@ -34,4 +34,3 @@ def conda_version(python_version, operating_system):
             versions.append(fs[2])
     versions.sort(key=LooseVersion)
     return versions[-1]
-
