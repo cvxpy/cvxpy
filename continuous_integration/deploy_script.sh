@@ -1,5 +1,7 @@
 #!/bin/bash
 
+conda config --add channels cvxgrp
+conda config --add channels conda-forge
 source activate testenv
 conda install --yes requests
 cd continuous_integration
