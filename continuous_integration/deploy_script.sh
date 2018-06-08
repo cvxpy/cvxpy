@@ -24,6 +24,7 @@ fi
 if [ $REMOTE_CONDA_VERSION != $LOCAL_VERSION ]; then
     # Deploy for conda
     conda install --yes conda-build
+    conda install --yes anaconda-client
     conda config --set anaconda_upload yes
     conda build --token=$CONDA_TEST_UPLOAD_TOKEN --user=$CONDA_TEST_USER --python=$PYTHON_VERSION .
 fi
