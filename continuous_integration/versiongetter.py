@@ -1,8 +1,8 @@
 import requests
-from distutils.version import LooseVersion
+from distutils.version import StrictVersion
 
 
-def pypi_version(test=True):
+def pypi_version(test=False):
     if test:
         url = "https://test.pypi.org/pypi/cvxpy/json"
     else:
@@ -10,7 +10,7 @@ def pypi_version(test=True):
     r = requests.get(url)
     data = r.json()
     versions = list(data["releases"].keys())
-    versions.sort(key=LooseVersion)
+    versions.sort(key=StrictVersion)
     return versions[-1]
 
 
@@ -32,5 +32,5 @@ def conda_version(python_version, operating_system):
         # fs = ['cvxgrp', 'cvxpy', '<x.y.z>', '<os>', '<filename>' ]
         if operating_system in fs[3] and pyvers in fs[4]:
             versions.append(fs[2])
-    versions.sort(key=LooseVersion)
+    versions.sort(key=StrictVersion)
     return versions[-1]
