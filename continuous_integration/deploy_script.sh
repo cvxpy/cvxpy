@@ -2,20 +2,27 @@
 
 source activate testenv
 conda install --yes requests
-REMOTE_VERSION=`python continuous_integration/versiongetter.py`
+cd continuous_integration
+REMOTE_PYPI_VERSION=`python -c "import versiongetter; print(versiongetter.pypi_version(test=True))"`
+REMOTE_CONDA_VERSION=`python -c "import versiongetter; print(versiongetter.conda_version('$PYTHON_VERSION',
+'$TRAVIS_OS_NAME'))"`
+cd ..
 LOCAL_VERSION=`python -c "import cvxpy; print(cvxpy.__version__)"`
-if [ $REMOTE_VERSION != $LOCAL_VERSION ]; then
+
+if [ $REMOTE_PYPI_VERSION != $LOCAL_VERSION ]; then
     # Consider deploying to PyPI
-    if [ $DEPLOY_PIP = true ] && [ $TRAVIS_OS_NAME = osx ]; then
+    if [ $DEPLOY_PYPI = true ] && [ $TRAVIS_OS_NAME = osx ]; then
         # Assume the local version is ahead of remote version
         conda install --yes twine
         python setup.py sdist
         twine upload --repository-url $PYPI_SERVER dist/* -u $PYPI_TEST_USER -p $PYPI_TEST_PASSWORD
     fi
+fi
 
-    # Definitely build for conda
-    # Issue: the remote-version local-version check is only valid for PyPI.
-    #   Need to do a separate check for conda.
+if [ $REMOTE_CONDA_VERSION != $LOCAL_VERSION ]; then
+    # Deploy for conda
     conda install --yes conda-build
-    conda build --python=$PYTHON_VERSION .
+    conda install --yes anaconda-client
+    conda config --set anaconda_upload yes
+    conda build --token=$CONDA_TEST_UPLOAD_TOKEN --user=$CONDA_TEST_USER --python=$PYTHON_VERSION .
 fi

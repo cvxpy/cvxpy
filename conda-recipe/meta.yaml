@@ -24,7 +24,7 @@ requirements:
     - scipy >=0.15
     - libgcc
     - lapack
-
+    - mkl
 
   run:
     - python
@@ -39,6 +39,7 @@ requirements:
     - cvxcanon >=0.0.22
     - libgcc
     - lapack
+    - mkl
 
 test:
   # Python imports
