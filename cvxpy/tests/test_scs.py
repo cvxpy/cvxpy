@@ -111,6 +111,9 @@ class TestSCS(BaseTest):
         problem = cvx.Problem(objective, constraints)
 
         sol_scs = problem.solve(solver='SCS')
+        self.assertEqual(constraints[0].dual_value.shape, (4, 4))
+        self.assertEqual(constraints[1].dual_value.shape, (2, 2))
+        self.assertEqual(constraints[2].dual_value.shape, (2, 2))
         self.assertAlmostEqual(sol_scs, n1)
 
     def test_entr(self):
