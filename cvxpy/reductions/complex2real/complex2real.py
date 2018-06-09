@@ -23,6 +23,7 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions import InverseData, Solution
+from cvxpy.constraints import Zero, NonPos, PSD
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
 import cvxpy.settings as s
@@ -81,10 +82,18 @@ class Complex2Real(Reduction):
                 elif cons.is_imag():
                     imag_id = inverse_data.real2imag[cid]
                     dvars[cid] = 1j*solution.dual_vars[imag_id]
-                elif cons.is_complex():
+                # For equality and inequality constraints.
+                elif isinstance(cons, (Zero, NonPos)) and cons.is_complex():
                     imag_id = inverse_data.real2imag[cid]
                     dvars[cid] = solution.dual_vars[cid] + \
                         1j*solution.dual_vars[imag_id]
+                # For PSD constraints.
+                elif isinstance(cons, PSD) and cons.is_complex():
+                    n = cons.args[0].shape[0]
+                    dual = solution.dual_vars[cid]
+                    dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                else:
+                    raise Exception("Unknown constraint type.")
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 
