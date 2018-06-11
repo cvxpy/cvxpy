@@ -42,11 +42,9 @@ class Qp2SymbolicQp(Canonicalization):
                  or problem.objective.expr.is_affine())
                 and not set(['PSD', 'NSD']).intersection(convex_attributes(
                                                          problem.variables()))
-                and all(type(c) == NonPos or type(c) == Zero
-                        for c in problem.constraints)
-                and all(c.expr.is_pwl() for c in problem.constraints
-                        if type(c) == NonPos)
-                and are_args_affine(problem.constraints))
+                and all((type(c) == NonPos and c.args[0].is_pwl()) or
+                        (type(c) == Zero and are_args_affine([c])) for
+                        c in problem.constraints))
 
     def apply(self, problem):
         """Converts a QP to an even more symbolic form."""
