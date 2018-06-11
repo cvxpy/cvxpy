@@ -73,7 +73,7 @@ setup(
                       "fastcache",
                       "six",
                       "toolz",
-                      "numpy >= 1.13",
+                      "numpy >= 1.14",
                       "scipy >= 0.19"],
     use_2to3=True,
 )
