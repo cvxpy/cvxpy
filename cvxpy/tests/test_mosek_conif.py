@@ -130,11 +130,11 @@ class TestMosek(BaseTest):
                 prob.solve(solver=cvx.MOSEK)
                 val_mosek = prob.value
                 x_mosek = x.value.flatten().tolist()
-                duals_mosek = [c.dual_value for c in constraints]
+                duals_mosek = [c.dual_value.flatten().tolist() for c in constraints]
                 prob.solve(solver=cvx.ECOS)
                 val_ecos = prob.value
                 x_ecos = x.value.flatten().tolist()
-                duals_ecos = [c.dual_value for c in constraints]
+                duals_ecos = [c.dual_value.flatten().tolist() for c in constraints]
 
                 # verify results
                 self.assertAlmostEqual(val_mosek, val_ecos)
@@ -144,7 +144,7 @@ class TestMosek(BaseTest):
                     if isinstance(duals_mosek[i], float):
                         self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
                     else:
-                        self.assertItemsAlmostEqual(duals_mosek[i].tolist(), duals_ecos[i].tolist(), places=4)
+                        self.assertItemsAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
             else:
                 pass
 
