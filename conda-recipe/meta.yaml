@@ -14,7 +14,6 @@ requirements:
     - setuptools
     - six
     - toolz
-    - cvxcanon >=0.0.22
     - fastcache
     - python
     - ecos >=2
@@ -36,7 +35,6 @@ requirements:
     - toolz
     - numpy >=1.9
     - scipy >=0.15
-    - cvxcanon >=0.0.22
     - libgcc
     - lapack
     - mkl
