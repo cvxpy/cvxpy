@@ -397,6 +397,16 @@ class TestComplex(BaseTest):
         prob.solve()
         assert prob.status is cvx.INFEASIBLE
 
+    def test_promote(self):
+        """Test promotion of complex variables.
+        """
+        v = Variable(complex=True)
+        obj = cvx.Maximize(cvx.real(cvx.sum(v * np.ones((2, 2)))))
+        con = [cvx.norm(v) <= 1]
+        prob = cvx.Problem(obj, con)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 4.0)
+
     def test_validation(self):
         """Test that complex arguments are rejected.
         """

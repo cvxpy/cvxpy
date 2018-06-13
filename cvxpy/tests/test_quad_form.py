@@ -129,6 +129,4 @@ class TestNonOptimal(BaseTest):
         obj1 = cvxpy.quad_form(B.T * x, A)
         prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
         prob.solve()
-        # print(cvxpy.Constant(A).is_psd())
-        # print(cvxpy.Constant(A).is_nsd())
         self.assertAlmostEqual(prob.value, prob.objective.value)
