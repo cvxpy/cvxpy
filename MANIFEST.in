@@ -1,4 +1,4 @@
 graft cvxpy/cvxcore/src/
 graft cvxpy/cvxcore/include/Eigen
 graft cvxpy/cvxcore/python
-include COPYING
+include LICENSE

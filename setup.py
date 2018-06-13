@@ -63,7 +63,7 @@ setup(
               'cvxpy.cvxcore.python'],
     package_dir={'cvxpy': 'cvxpy'},
     url='http://github.com/cvxgrp/cvxpy/',
-    license='GPLv3',
+    license='Apache2.0',
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization problems in Python.',
     install_requires=["osqp",

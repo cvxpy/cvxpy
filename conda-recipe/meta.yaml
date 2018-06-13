@@ -78,5 +78,5 @@ test:
 
 about:
   home: http://github.com/cvxgrp/cvxpy/
-  license: Apache 2.0
+  license: Apache License, Version 2.0
   summary: 'A domain-specific language for modeling convex optimization problems in Python.'
