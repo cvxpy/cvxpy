@@ -81,6 +81,7 @@ class TestQp(BaseTest):
             self.quad_form(solver)
             self.affine_problem(solver)
             self.maximize_problem(solver)
+            self.abs(solver)
 
             # Do we need the following functionality?
             # self.norm_2(solver)
@@ -109,6 +110,16 @@ class TestQp(BaseTest):
         for con in p.constraints:
             self.assertItemsAlmostEqual(numpy.array([2., 2.]),
                                         con.dual_value, places=4)
+
+    def abs(self, solver):
+        u = Variable(2)
+        constr = []
+        constr += [abs(u[1]-u[0])<=100]
+        prob = Problem(Minimize(sum_squares(u)), constr)
+        print("The problem is QP: ", prob.is_qp())
+        self.assertEqual(prob.is_qp(), True)
+        result = prob.solve(solver=solver)
+        self.assertAlmostEqual(result, 0)
 
     def power(self, solver):
         p = Problem(Minimize(sum(power(self.x, 2))), [])

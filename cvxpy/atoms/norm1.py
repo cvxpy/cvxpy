@@ -64,7 +64,8 @@ class norm1(AxisAtom):
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return self.args[0].is_pwl()
+        return self.args[0].is_pwl() and \
+            (self.args[0].is_real() or self.args[0].is_imag())
 
     def get_data(self):
         return [self.axis]

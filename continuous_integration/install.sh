@@ -37,33 +37,13 @@ if [[ "$DISTRIB" == "conda" ]]; then
         sudo make install
         sudo ldconfig
         cd ..
+
         # Install CVXOPT with GLPK bindings.
         CVXOPT_BUILD_GLPK=1
         CVXOPT_GLPK_LIB_DIR=/usr/local/lib
         CVXOPT_GLPK_INC_DIR=/usr/local/include
         conda install -c cvxgrp --yes cvxopt
 
-        # Install CBC
-        oldpath="$PWD"
-        cd /home/travis
-        wget http://www.coin-or.org/download/source/Cbc/Cbc-2.9.7.tgz
-        tar -zxvf Cbc-2.9.7.tgz
-        cd Cbc-2.9.7
-        sudo ./configure
-        sudo make
-        sudo make install
-        cd ..
-
-        export COIN_INSTALL_DIR=/home/travis/Cbc-2.9.7
-        export LD_LIBRARY_PATH=/home/travis/Cbc-2.9.7/lib:$LD_LIBRARY_PATH
-
-        # Install cyLP -> which is needed for CBC-interface
-        git clone -b py3 https://github.com/jjhelmus/CyLP.git  # use custom-branch because of py3
-        cd CyLP
-        python setup.py install
-        cd ..
-
-        cd "$oldpath"
     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
              -O miniconda.sh

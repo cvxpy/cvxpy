@@ -89,6 +89,7 @@ def quad_canon(expr, real_args, imag_args, real2imag):
             imag_args[1] = np.zeros(real_args[1].shape)
         matrix = bmat([[real_args[1], -imag_args[1]],
                        [imag_args[1], real_args[1]]])
+        # HACK TODO
         matrix = Constant(matrix.value)
     return expr.copy([vec, matrix]), None
 

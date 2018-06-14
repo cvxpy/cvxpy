@@ -1,22 +1,31 @@
 language: C
 os:
-  - linux
   - osx
+  - linux
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
+      DEPLOY_PYPI="false"
     - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
+      DEPLOY_PYPI="false"
     - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
+      DEPLOY_PYPI="true"
+      PYPI_SERVER="https://upload.pypi.org/legacy/"
 sudo: required
 install: source continuous_integration/install.sh
 script:
   - bash continuous_integration/test_script.sh
   - flake8 .
 after_success:
-    - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
+  - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
+deploy:
+  provider: script
+  script: bash continuous_integration/deploy_script.sh
+  on:
+    branch: master

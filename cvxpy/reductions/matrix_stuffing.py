@@ -25,6 +25,7 @@ from cvxpy.reductions import Reduction, Solution, InverseData
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
 from cvxpy import problems
+from cvxpy.constraints import SOC, ExpCone
 from cvxpy.problems.objective import Minimize
 
 
@@ -102,7 +103,17 @@ class MatrixStuffing(Reduction):
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
             for old_con, new_con in con_map.items():
-                dual_vars[old_con] = solution.dual_vars[new_con]
+                con_obj = inverse_data.id2cons[old_con]
+                shape = con_obj.shape
+                # TODO rationalize Exponential.
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                    dual_vars[old_con] = solution.dual_vars[new_con]
+                else:
+                    dual_vars[old_con] = np.reshape(
+                        solution.dual_vars[new_con],
+                        shape,
+                        order='F'
+                    )
 
         # Add constant part
         if inverse_data.minimize:

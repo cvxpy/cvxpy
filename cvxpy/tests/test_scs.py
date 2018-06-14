@@ -21,6 +21,7 @@ import cvxpy as cvx
 from cvxpy.tests.base_test import BaseTest
 import math
 import numpy as np
+import scipy.linalg as la
 import sys
 if sys.version_info >= (3, 0):
     from functools import reduce
@@ -66,7 +67,7 @@ class TestSCS(BaseTest):
         constr = [self.x <= [1, math.e]]
         p = cvx.Problem(obj, constr)
         result = p.solve(solver=cvx.SCS)
-        self.assertAlmostEqual(result, 1)
+
 
     def test_sigma_max(self):
         """Test sigma_max.
@@ -86,6 +87,34 @@ class TestSCS(BaseTest):
         prob = cvx.Problem(cvx.Minimize(0), [X == const])
         prob.solve(verbose=True, solver=cvx.SCS)
         self.assertEqual(prob.status, cvx.INFEASIBLE)
+
+    def test_cplx_mats(self):
+        """Test complex matrices.
+        """
+        # Complex-valued matrix
+        K = np.matrix(np.random.rand(2,2) + 1j * np.random.rand(2,2) ) #  example matrix
+        n1 = la.svdvals(K).sum()  # trace norm of K
+
+        # Dual Problem
+        X = cvx.Variable((2,2), complex=True)
+        Y = cvx.Variable((2,2), complex=True)
+        Z = cvx.Variable((2,2))
+        # X, Y >= 0 so trace is real
+        objective = cvx.Minimize(
+            cvx.real(0.5 * cvx.trace(X) + 0.5 * cvx.trace(Y))
+        )
+        constraints = [
+            cvx.bmat([[X, -K.H], [-K, Y]]) >> 0,
+            X >> 0,
+            Y >> 0,
+        ]
+        problem = cvx.Problem(objective, constraints)
+
+        sol_scs = problem.solve(solver='SCS')
+        self.assertEqual(constraints[0].dual_value.shape, (4, 4))
+        self.assertEqual(constraints[1].dual_value.shape, (2, 2))
+        self.assertEqual(constraints[2].dual_value.shape, (2, 2))
+        self.assertAlmostEqual(sol_scs, n1)
 
     def test_entr(self):
         """Test the entr atom.

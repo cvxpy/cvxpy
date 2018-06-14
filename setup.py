@@ -24,7 +24,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.0.2',
+    version='1.0.6',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     ext_modules=[canon],
@@ -63,7 +63,7 @@ setup(
               'cvxpy.cvxcore.python'],
     package_dir={'cvxpy': 'cvxpy'},
     url='http://github.com/cvxgrp/cvxpy/',
-    license='GPLv3',
+    license='Apache License, Version 2.0',
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization problems in Python.',
     install_requires=["osqp",
@@ -73,7 +73,7 @@ setup(
                       "fastcache",
                       "six",
                       "toolz",
-                      "numpy >= 1.13",
+                      "numpy >= 1.14",
                       "scipy >= 0.19"],
     use_2to3=True,
 )

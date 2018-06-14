@@ -118,3 +118,15 @@ class TestNonOptimal(BaseTest):
         with self.assertRaises(Exception) as cm:
             prob.solve()
         self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+
+    def test_obj_eval(self):
+        """Test case where objective evaluation differs from result.
+        """
+        x = cvxpy.Variable((2, 1))
+        A = np.array([[1.0]])
+        B = np.array([[1.0, 1.0]]).T
+        obj0 = -B.T * x
+        obj1 = cvxpy.quad_form(B.T * x, A)
+        prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
+        prob.solve()
+        self.assertAlmostEqual(prob.value, prob.objective.value)

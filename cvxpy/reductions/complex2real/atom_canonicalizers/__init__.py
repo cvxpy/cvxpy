@@ -18,11 +18,12 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
-                         promote, abs, reshape, trace,
+                         abs, reshape, trace,
                          upper_tri, conj, imag, real,
                          norm1, norm_inf, Pnorm,
                          sigma_max, lambda_max, lambda_sum_largest,
                          log_det, QuadForm, MatrixFrac)
+from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.index import index
@@ -59,7 +60,7 @@ CANON_METHODS = {
     diag: separable_canon,
     Hstack: separable_canon,
     index: separable_canon,
-    promote: separable_canon,
+    Promote: separable_canon,
     reshape: separable_canon,
     Sum: separable_canon,
     trace: separable_canon,

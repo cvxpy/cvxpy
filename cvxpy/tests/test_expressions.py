@@ -449,6 +449,16 @@ class TestExpressions(BaseTest):
         v = Variable((2, 2), hermitian=True)
         self.assertItemsAlmostEqual(v.project(np.array([[1,-1j], [1,0]])), [1,0.5+0.5j,0.5-0.5j,0])
 
+        A = Constant(np.array([[1.0]]))
+        self.assertEqual(A.is_psd(), True)
+        self.assertEqual(A.is_nsd(), False)
+        A = Constant(np.array([[-1.0]]))
+        self.assertEqual(A.is_psd(), False)
+        self.assertEqual(A.is_nsd(), True)
+        A = Constant(np.array([[0.0]]))
+        self.assertEqual(A.is_psd(), True)
+        self.assertEqual(A.is_nsd(), True)
+
     # Test the AddExpresion class.
     def test_add_expression(self):
         # Vectors
