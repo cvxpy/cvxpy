@@ -10,36 +10,19 @@ build:
   script: python setup.py install --single-version-externally-managed --record record.txt
 
 requirements:
-  build:
-    - setuptools
-    - six
-    - toolz
-    - fastcache
+  host:
     - python
-    - osqp
-    - ecos >=2
-    - scs >=1.1.3
-    - multiprocess
-    - numpy >=1.14
-    - scipy >=0.15
-    - libgcc
-    - lapack
-    - mkl
-
+    - setuptools
+    - numpy >=1.9
+  build:
+    - {{ compiler('cxx') }}
   run:
     - python
-    - osqp
-    - ecos >=2
-    - scs >=1.1.3
     - multiprocess
     - fastcache
-    - six
     - toolz
     - numpy >=1.9
     - scipy >=0.15
-    - libgcc
-    - lapack
-    - mkl
 
 test:
   # Python imports
@@ -81,4 +64,5 @@ test:
 about:
   home: http://github.com/cvxgrp/cvxpy/
   license: Apache License, Version 2.0
+  license_file: LICENSE
   summary: 'A domain-specific language for modeling convex optimization problems in Python.'
