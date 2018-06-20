@@ -65,9 +65,9 @@ class OSQP(QpSolver):
         lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
         data['l'] = lA
 
-        if solver_cache is not None and self.name in solver_cache:
+        if solver_cache is not None and self.name() in solver_cache:
             # Use cached data.
-            solver, old_data, results = solver_cache[self.name]
+            solver, old_data, results = solver_cache[self.name()]
             same_pattern = (P.shape == old_data[s.P].shape and
                             all(P.indptr == old_data[s.P].indptr)) and \
                            (A.shape == old_data['full_A'].shape and
@@ -111,5 +111,5 @@ class OSQP(QpSolver):
         results = solver.solve()
 
         if solver_cache is not None:
-            solver_cache[self.name] = (solver, data, results)
+            solver_cache[self.name()] = (solver, data, results)
         return results
