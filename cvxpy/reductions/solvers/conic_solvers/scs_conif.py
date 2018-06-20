@@ -293,9 +293,9 @@ class SCS(ConicSolver):
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if warm_start and solver_cache is not None and \
            self.name in solver_cache:
-            args["x"] = solver_cache[self.name]["x"]
-            args["y"] = solver_cache[self.name]["y"]
-            args["s"] = solver_cache[self.name]["s"]
+            args["x"] = solver_cache[self.name()]["x"]
+            args["y"] = solver_cache[self.name()]["y"]
+            args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         results = scs.solve(
             args,
@@ -303,5 +303,5 @@ class SCS(ConicSolver):
             verbose=verbose,
             **solver_opts)
         if solver_cache is not None:
-            solver_cache[self.name] = results
+            solver_cache[self.name()] = results
         return results
