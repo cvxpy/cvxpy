@@ -609,7 +609,7 @@ Here is the complete list of solver options.
 
 `OSQP`_ options:
 
-See `OSQP documentation <http://osqp.readthedocs.io/en/latest/interfaces/solver_settings.html>`_.
+See `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_.
 
 `ECOS`_ options:
 
@@ -757,7 +757,7 @@ to a solution of the other.
 Reductions take a CVXPY Problem as input and output a CVXPY Problem.
 The full set of reductions available is discussed in :ref:`reductions-api`.
 
-.. _OSQP: http://osqp.readthedocs.io/
+.. _OSQP: https://osqp.org/
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
