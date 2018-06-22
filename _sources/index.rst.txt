@@ -68,7 +68,7 @@ background on convex optimization, see the book `Convex Optimization
 <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
 
-.. _OSQP: http://osqp.readthedocs.io/
+.. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 
@@ -118,6 +118,16 @@ background on convex optimization, see the book `Convex Optimization
    :hidden:
 
    updates/index
+
+.. toctree::
+   :hidden:
+
+   short_course/index
+
+.. toctree::
+   :hidden:
+
+   license/index
 
 .. toctree::
    :hidden:

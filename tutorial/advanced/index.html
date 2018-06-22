@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.0.3 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.0.6 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.3',
+        VERSION:     '1.0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -342,7 +342,7 @@ objectives and problems and follow the same rules as above.</p>
 <p>We will discuss the optional arguments in detail below.</p>
 <div class="section" id="choosing-a-solver">
 <span id="solvers"></span><h3>Choosing a solver<a class="headerlink" href="#choosing-a-solver" title="Permalink to this headline">¶</a></h3>
-<p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="http://osqp.readthedocs.io/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
+<p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.</p>
 <table border="1" class="docutils">
@@ -390,7 +390,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>&#160;</td>
 <td>X</td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="http://osqp.readthedocs.io/">OSQP</a></td>
+<tr class="row-odd"><td><a class="reference external" href="https://osqp.org/">OSQP</a></td>
 <td>X</td>
 <td>X</td>
 <td>&#160;</td>
@@ -468,7 +468,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <blockquote>
 <div><span class="math">\(\{(x,y,z) \mid y &gt; 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\)</span>.</div></blockquote>
 <p>You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.</p>
-<p>By default CVXPY calls the solver most specialized to the problem type. For example, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> is called for SOCPs. <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> can both handle all problems (except mixed-integer programs). <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a> is called for mixed-integer LPs and SOCPs. If the problem is a QP, CVXPY will use <a class="reference external" href="http://osqp.readthedocs.io/">OSQP</a>.</p>
+<p>By default CVXPY calls the solver most specialized to the problem type. For example, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> is called for SOCPs. <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> can both handle all problems (except mixed-integer programs). <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a> is called for mixed-integer LPs and SOCPs. If the problem is a QP, CVXPY will use <a class="reference external" href="https://osqp.org/">OSQP</a>.</p>
 <p>You can change the solver called by CVXPY using the <code class="docutils literal"><span class="pre">solver</span></code> keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here’s example code solving the same problem with different solvers.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solving a problem with different solvers.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -617,7 +617,7 @@ If <code class="docutils literal"><span class="pre">A</span></code> were a param
 warm start would only be a good initial point.</p>
 <div class="section" id="setting-solver-options">
 <h3>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference external" href="http://osqp.readthedocs.io/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -657,8 +657,8 @@ warm start would only be a good initial point.</p>
 </pre></div>
 </div>
 <p>Here is the complete list of solver options.</p>
-<p><a class="reference external" href="http://osqp.readthedocs.io/">OSQP</a> options:</p>
-<p>See <a class="reference external" href="http://osqp.readthedocs.io/en/latest/interfaces/solver_settings.html">OSQP documentation</a>.</p>
+<p><a class="reference external" href="https://osqp.org/">OSQP</a> options:</p>
+<p>See <a class="reference external" href="http://osqp.org/docs/interfaces/solver_settings.html">OSQP documentation</a>.</p>
 <p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> options:</p>
 <dl class="docutils">
 <dt><code class="docutils literal"><span class="pre">'max_iters'</span></code></dt>
@@ -866,6 +866,12 @@ The full set of reductions available is discussed in <a class="reference interna
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>

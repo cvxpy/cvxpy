@@ -173,7 +173,7 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _multiprocess: https://github.com/uqfoundation/multiprocess/
 .. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
-.. _OSQP: https://osqp.readthedocs.io/
+.. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 .. _NumPy: http://www.numpy.org/
