@@ -36,10 +36,11 @@ class entr(Elementwise):
         results = -xlogy(x, x)
         # Return -inf outside the domain
         if np.isscalar(results):
-            return -np.inf
+            if np.isnan(results):
+                return -np.inf
         else:
             results[np.isnan(results)] = -np.inf
-            return results
+        return results
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
