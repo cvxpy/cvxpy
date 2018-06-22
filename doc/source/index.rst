@@ -122,4 +122,14 @@ background on convex optimization, see the book `Convex Optimization
 .. toctree::
    :hidden:
 
+   short_course/index
+
+.. toctree::
+   :hidden:
+
+   license/index
+
+.. toctree::
+   :hidden:
+
    versions/index
