@@ -15,17 +15,17 @@ build:
 requirements:
   host:
     - python {{ python }}
+    - numpy {{ numpy }}
     - setuptools
-    - numpy >=1.9
   build:
     - {{ compiler('cxx') }}
   run:
     - python
+    - {{ pin_compatible('numpy') }}
+    - scipy >=0.15
     - multiprocess
     - fastcache
     - toolz
-    - numpy >=1.9
-    - scipy >=0.15
 
 test:
   # Python imports
