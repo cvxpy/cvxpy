@@ -1,17 +1,20 @@
+{% set version = "1.0.6" %}
+
 package:
-  name: cvxpy
-  version: "1.0.6"
+  name: cvxpy-base
+  version: {{ version }}
 
 source:
-  path: ..
+  git_url: https://github.com/cvxgrp/cvxpy.git
+  git_tag: v{{ version }}
 
 build:
   number: 0
-  script: python setup.py install --single-version-externally-managed --record record.txt
+  script: {{ PYTHON }} setup.py install --single-version-externally-managed --record record.txt
 
 requirements:
   host:
-    - python
+    - python {{ python }}
     - setuptools
     - numpy >=1.9
   build:
@@ -61,8 +64,18 @@ test:
     - cvxpy.utilities
     - cvxpy.cvxcore.python
 
+outputs:
+  - name: cvxpy-base
+  - name: cvxpy
+    requirements:
+      - {{ pin_subpackage('cvxpy-base', exact=True) }}
+      - osqp
+      - ecos >=2
+      - scs >=1.1.3
+    build:
+      noarch: generic
+
 about:
   home: http://github.com/cvxgrp/cvxpy/
   license: Apache License, Version 2.0
-  license_file: LICENSE
   summary: 'A domain-specific language for modeling convex optimization problems in Python.'
