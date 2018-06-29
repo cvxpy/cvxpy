@@ -439,6 +439,7 @@ class MOSEK(ConicSolver):
         # https://docs.mosek.com/8.1/pythonapi/constants.html?highlight=solsta#mosek.solsta
         STATUS_MAP = {mosek.solsta.optimal: s.OPTIMAL,
                       mosek.solsta.integer_optimal: s.OPTIMAL,
+                      mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,    # for integer problems
                       mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
                       mosek.solsta.dual_infeas_cer: s.UNBOUNDED,
                       mosek.solsta.near_optimal: s.OPTIMAL_INACCURATE,
@@ -458,10 +459,15 @@ class MOSEK(ConicSolver):
         else:
             sol = mosek.soltype.itr  # the solution found via interior point method
 
-        task.getprosta(sol)  # mosek "problem status"; unused.
+        problem_status = task.getprosta(sol) 
         solution_status = task.getsolsta(sol)
 
         status = STATUS_MAP[solution_status]
+
+        # For integer problems, problem status determines infeasibility (no solution)
+        if sol == mosek.soltype.itg and problem_status == mosek.prosta.prim_infeas:
+            status = s.INFEASIBLE
+
         if status in s.SOLUTION_PRESENT:
             # get objective value
             opt_val = task.getprimalobj(sol) + inverse_data[s.OBJ_OFFSET]
