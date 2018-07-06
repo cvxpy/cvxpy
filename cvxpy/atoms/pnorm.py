@@ -234,6 +234,25 @@ class pnorm(AxisAtom):
                 return D_null
             else:
                 return None
+        elif self.p == np.inf:
+            nominator = np.power(value, self.p - 1)
+            frac = 0.0 * (nominator != np.inf) + 1.0 * (nominator == np.inf)
+            return np.reshape(frac.A, (frac.size, 1))
+        else:
+            nominator = np.power(value, self.p - 1)
+            frac = np.divide(nominator, denominator)
+            return np.reshape(frac.A, (frac.size, 1))
+        
+ 
+        if denominator == 0:
+            if self.p >= 1:
+                return D_null
+            else:
+                return None
+        elif self.p == np.inf:
+            nominator = np.power(value, self.p - 1)
+            frac = 0.0 * (nominator != np.inf) + 1.0 * (nominator == np.inf)
+            return np.reshape(frac.A, (frac.size, 1))
         else:
             nominator = np.power(value, self.p - 1)
             frac = np.divide(nominator, denominator)
