@@ -459,7 +459,7 @@ class MOSEK(ConicSolver):
         else:
             sol = mosek.soltype.itr  # the solution found via interior point method
 
-        problem_status = task.getprosta(sol) 
+        problem_status = task.getprosta(sol)
         solution_status = task.getsolsta(sol)
 
         status = STATUS_MAP[solution_status]
