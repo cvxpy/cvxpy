@@ -71,7 +71,6 @@ setup(
                       "scs >= 1.1.3",
                       "multiprocess",
                       "fastcache",
-                      "six",
                       "toolz",
                       "numpy >= 1.14",
                       "scipy >= 0.19"],
