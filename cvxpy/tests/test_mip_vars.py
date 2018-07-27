@@ -19,6 +19,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 
 import cvxpy as cvx
 import numpy as np
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.defines \
     import INSTALLED_SOLVERS
@@ -115,6 +116,12 @@ class TestMIPVariable(BaseTest):
         self.assertAlmostEqual(result, 0.04)
 
         self.assertAlmostEqual(self.y_int.value, 0)
+
+        # Infeasible integer problem
+        obj = cvx.Minimize(0)
+        p = cvx.Problem(obj, [self.y_int == 0.5])
+        result = p.solve(solver=solver)
+        self.assertEqual(p.status in s.INF_OR_UNB, True)
 
     def int_socp(self, solver):
         # Int in objective.
