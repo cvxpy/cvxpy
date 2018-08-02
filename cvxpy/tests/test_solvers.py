@@ -234,7 +234,7 @@ class TestSolvers(BaseTest):
             with self.assertRaises(Exception) as cm:
                 prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cvx.CPLEX)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
 
     def test_cplex_socp(self):
         """Test a basic SOCP with CPLEX.
@@ -292,7 +292,7 @@ class TestSolvers(BaseTest):
             with self.assertRaises(Exception) as cm:
                 prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cvx.CPLEX)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
 
     def test_cplex_dual(self):
         """Make sure CPLEX's dual result matches other solvers
@@ -323,7 +323,7 @@ class TestSolvers(BaseTest):
             with self.assertRaises(Exception) as cm:
                 prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cvx.CPLEX)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
 
     def test_cplex_warm_start(self):
         """Make sure that warm starting CPLEX behaves as expected
@@ -390,7 +390,7 @@ class TestSolvers(BaseTest):
             with self.assertRaises(Exception) as cm:
                 prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cvx.CPLEX, warm_start=True)
-            self.assertEqual(str(cm.exception), "The solver %s is not installed." % CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
 
     def test_cplex_params(self):
         if cvx.CPLEX in cvx.installed_solvers():
