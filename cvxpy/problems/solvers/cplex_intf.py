@@ -168,10 +168,10 @@ class CPLEX(Solver):
 
                 # Figure out which rows of A and elements of b have changed
                 try:
-                    I, _ = zip(*[x for x in A_diff.keys()])
+                    idxs, _ = zip(*[x for x in A_diff.keys()])
                 except ValueError:
-                    I = []
-                I_unique = list(set(I) | set(np.where(b_diff)[0]))
+                    idxs = []
+                I_unique = list(set(idxs) | set(np.where(b_diff)[0]))
 
                 # Update locations which have changed
                 csr = A.tocsr()
@@ -334,7 +334,7 @@ class CPLEX(Solver):
                         # Quadratic constraints not queried directly.
                         vals.append(0.0)
                 results_dict["y"] = -np.array(vals)
-        except:
+        except Exception:
             if solve_time < 0.0:
                 solve_time = model.get_time() - start_time
             results_dict["status"] = s.SOLVER_ERROR
@@ -489,7 +489,6 @@ class CPLEX(Solver):
         list
             A list of new linear constraint indices.
         """
-        import cplex
         constr, lin_expr, rhs = [], [], []
         csr = mat.tocsr()
         for i in rows:
