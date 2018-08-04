@@ -15,8 +15,8 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.13" SCIPY_VERSION="0.19"
       COVERAGE="true"
-      DEPLOY_PIP="true"
-      PYPI_SERVER="https://test.pypi.org/legacy/"
+      DEPLOY_PYPI="true"
+      PYPI_SERVER="https://upload.pypi.org/legacy/"
 sudo: required
 install: source continuous_integration/install.sh
 script:

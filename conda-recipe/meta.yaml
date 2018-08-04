@@ -1,6 +1,6 @@
 package:
   name: cvxpy
-  version: "1.0.3"
+  version: "1.0.6"
 
 source:
   path: ..
@@ -14,13 +14,13 @@ requirements:
     - setuptools
     - six
     - toolz
-    - cvxcanon >=0.0.22
     - fastcache
     - python
+    - osqp
     - ecos >=2
     - scs >=1.1.3
     - multiprocess
-    - numpy >=1.9
+    - numpy >=1.14
     - scipy >=0.15
     - libgcc
     - lapack
@@ -28,6 +28,7 @@ requirements:
 
   run:
     - python
+    - osqp
     - ecos >=2
     - scs >=1.1.3
     - multiprocess
@@ -36,7 +37,6 @@ requirements:
     - toolz
     - numpy >=1.9
     - scipy >=0.15
-    - cvxcanon >=0.0.22
     - libgcc
     - lapack
     - mkl
@@ -80,5 +80,5 @@ test:
 
 about:
   home: http://github.com/cvxgrp/cvxpy/
-  license: Apache 2.0
+  license: Apache License, Version 2.0
   summary: 'A domain-specific language for modeling convex optimization problems in Python.'

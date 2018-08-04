@@ -118,6 +118,12 @@ class ExpCone(NonlinearConstraint):
         # TODO use size of dual variable(s) instead.
         return sum(self.cone_sizes())
 
+    # @property
+    # def shape(self):
+    #     """Represented as vectorized.
+    #     """
+    #     return (self.size,)
+
     def num_cones(self):
         """The number of elementwise cones.
         """

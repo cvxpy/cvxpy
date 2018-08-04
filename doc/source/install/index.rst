@@ -22,6 +22,7 @@ managing your own environment, you can instead install CVXPY with
 
    ::
 
+      conda install -c conda-forge lapack
       conda install -c cvxgrp cvxpy
 
 3. Test the installation with ``nose``.
@@ -50,6 +51,7 @@ managing your own environment or need Python 3, you can instead install CVXPY wi
 
   ::
 
+      conda install -c conda-forge lapack
       conda install -c cvxgrp cvxpy
 
 4. From the console, run ``nosetests cvxpy``.
@@ -171,7 +173,7 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _multiprocess: https://github.com/uqfoundation/multiprocess/
 .. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
-.. _OSQP: https://osqp.readthedocs.io/
+.. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
 .. _SCS: http://github.com/cvxgrp/scs
 .. _NumPy: http://www.numpy.org/

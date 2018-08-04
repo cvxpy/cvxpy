@@ -201,7 +201,7 @@ class Constant(Leaf):
         """Is the expression a negative semidefinite matrix?
         """
         # Symbolic only cases.
-        if self.is_scalar() and self.is_nonneg():
+        if self.is_scalar() and self.is_nonpos():
             return True
         elif self.is_scalar():
             return False

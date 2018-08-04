@@ -43,7 +43,7 @@ class QuadForm(Atom):
         if self.args[0].is_complex():
             prod = np.dot(np.conj(values[0]).T, values[1])
         else:
-            prod = np.dot(values[0].T, values[1])
+            prod = np.dot(np.transpose(values[0]), values[1])
         return np.dot(prod, values[0])
 
     def validate_arguments(self):

@@ -63,7 +63,8 @@ class abs(Elementwise):
     def is_pwl(self):
         """Is the atom piecewise linear?
         """
-        return self.args[0].is_pwl()
+        return self.args[0].is_pwl() and \
+            (self.args[0].is_real() or self.args[0].is_imag())
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

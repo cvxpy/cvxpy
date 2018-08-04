@@ -1368,6 +1368,15 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
+    def test_cumsum(self):
+        """Test problems with cumsum.
+        """
+        tt = cvx.Variable(5)
+        prob = cvx.Problem(cvx.Minimize(cvx.sum(tt)),
+                           [cvx.cumsum(tt, 0) >=-0.0001])
+        result = prob.solve()
+        self.assertAlmostEqual(result, -0.0001)
+
     def test_vec(self):
         """Tests problems with vec.
         """
