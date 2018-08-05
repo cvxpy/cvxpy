@@ -38,19 +38,6 @@ class TestSolvers(BaseTest):
         self.B = cvx.Variable((2, 2), name='B')
         self.C = cvx.Variable((3, 2), name='C')
 
-    # TODO this works on some machines.
-    # def test_solver_errors(self):
-    #     """Tests that solver errors throw an exception.
-    #     """
-    #     # For some reason CVXOPT can't handle this problem.
-    #     expr = 500*self.a + square(self.a)
-    #     prob = cvx.Problem(cvx.Minimize(expr))
-
-    #     with self.assertRaises(Exception) as cm:
-    #         prob.solve(solver=cvx.CVXOPT)
-    #     self.assertEqual(str(cm.exception),
-    #         "Solver 'CVXOPT' failed. Try another solver.")
-
     def test_ecos_options(self):
         """Test that all the ECOS solver options work.
         """
@@ -177,6 +164,33 @@ class TestSolvers(BaseTest):
                 prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cvx.GLPK_MI)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.GLPK_MI)
+
+    def test_cvxopt_dual(self):
+        """Make sure CVXOPT's dual result matches other solvers
+        """
+        if cvx.CVXOPT in cvx.installed_solvers():
+            constraints = [self.x == 0]
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
+            prob.solve(solver=cvx.CVXOPT)
+            duals_cvxopt = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cvxopt, duals_ecos)
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CVXOPT)
+            duals_cvxopt = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cvxopt, duals_ecos)
+        else:
+            pass
 
     def test_gurobi(self):
         """Test a basic LP with Gurobi.

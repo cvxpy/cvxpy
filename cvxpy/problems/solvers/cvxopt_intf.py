@@ -406,7 +406,7 @@ class CVXOPT(Solver):
                     new_results[s.EQ_DUAL] = data["Q"]*y
             if "P_leq" in data:
                 leq_len = data[s.DIMS][s.LEQ_DIM]
-                P_rows = data["P_leq"].size[1]
+                P_rows = data["P_leq"].size[0] # changed to a 0
                 new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
                 new_dual = cvxopt.matrix(0., (new_len, 1))
                 z = new_results[s.INEQ_DUAL][:leq_len]
@@ -414,7 +414,7 @@ class CVXOPT(Solver):
                 if z.size[0] == 0:
                     new_dual[:P_rows] = 0
                 else:
-                    new_dual[:P_rows] = data["P_leq"].T*z
+                    new_dual[:P_rows] = data["P_leq"] * z
                 new_dual[P_rows:] = new_results[s.INEQ_DUAL][leq_len:]
                 new_results[s.INEQ_DUAL] = new_dual
 

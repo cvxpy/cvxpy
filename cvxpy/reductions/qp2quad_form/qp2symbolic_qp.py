@@ -18,7 +18,6 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers import (
@@ -37,9 +36,7 @@ class Qp2SymbolicQp(Canonicalization):
         piecewise-linear constraints inequality constraints, and
         affine equality constraints are accepted.
         """
-        return (((type(problem.objective) == Minimize
-                  and problem.objective.expr.is_qpwa())
-                 or problem.objective.expr.is_affine())
+        return (problem.objective.expr.is_qpwa()
                 and not set(['PSD', 'NSD']).intersection(convex_attributes(
                                                          problem.variables()))
                 and all((type(c) == NonPos and c.args[0].is_pwl()) or

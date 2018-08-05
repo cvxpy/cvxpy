@@ -237,12 +237,7 @@ class Atom(Expression):
                 else:
                     arg_values.append(arg_val)
             result = self.numeric(arg_values)
-
-        # Reduce to a scalar if possible.
-        if intf.shape(result) == (1, 1):
-            return intf.scalar_value(result)
-        else:
-            return result
+        return result
 
     @property
     def grad(self):

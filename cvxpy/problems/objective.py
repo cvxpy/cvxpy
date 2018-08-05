@@ -20,6 +20,7 @@ along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
 import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
+from cvxpy.interface.matrix_utilities import scalar_value
 import cvxpy.lin_ops.lin_utils as lu
 
 
@@ -93,7 +94,11 @@ class Objective(u.Canonical):
     def value(self):
         """The value of the objective expression.
         """
-        return self.args[0].value
+        v = self.args[0].value
+        if v is None:
+            return None
+        else:
+            return scalar_value(v)
 
     def is_quadratic(self):
         """Returns if the objective is a quadratic function.

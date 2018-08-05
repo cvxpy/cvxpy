@@ -22,6 +22,7 @@ from cvxpy.error import DCPError, SolverError
 # from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
+from cvxpy.interface.matrix_utilities import scalar_value
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -86,7 +87,10 @@ class Problem(u.Canonical):
         """float : The value from the last time the problem was solved
                    (or None if not solved).
         """
-        return self._value
+        if self._value is None:
+            return None
+        else:
+            return scalar_value(self._value)
 
     @property
     def status(self):
