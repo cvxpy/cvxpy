@@ -12,13 +12,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
-"""
+
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 WE ARE MOVING ALL SOLVER INTERFACES TO THE REDUCTIONS FOLDER.
 """
-
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.problem_data.compr_matrix import compress_matrix
@@ -404,7 +402,7 @@ class CVXOPT(Solver):
                     new_results[s.EQ_DUAL] = data["Q"]*y
             if "P_leq" in data:
                 leq_len = data[s.DIMS][s.LEQ_DIM]
-                P_rows = data["P_leq"].size[0] # changed to a 0
+                P_rows = data["P_leq"].size[0]
                 new_len = P_rows + new_results[s.INEQ_DUAL].size[0] - leq_len
                 new_dual = cvxopt.matrix(0., (new_len, 1))
                 z = new_results[s.INEQ_DUAL][:leq_len]
