@@ -13,21 +13,6 @@ Copyright 2017 Steven Diamond
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-#    This file is part of cvxcore.
-#
-#    cvxcore is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    cvxcore is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with cvxcore.  If not, see <http:#www.gnu.org/licenses/>.
-
 from cvxpy.lin_ops import lin_op as lo
 import cvxpy.cvxcore.python.cvxcore as cvxcore
 import numbers
