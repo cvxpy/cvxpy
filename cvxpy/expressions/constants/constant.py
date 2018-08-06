@@ -191,7 +191,7 @@ class Constant(Leaf):
         # Compute eigenvalues if absent.
         if self._eigvals is None:
             self._compute_eigvals()
-        return all(self._eigvals.real >= 0)
+        return all(self._eigvals.real >= -Leaf.VALIDATION_TOL)
 
     @clru_cache(maxsize=100)
     def is_nsd(self):
@@ -212,7 +212,7 @@ class Constant(Leaf):
         # Compute eigenvalues if absent.
         if self._eigvals is None:
             self._compute_eigvals()
-        return all(self._eigvals.real <= 0)
+        return all(self._eigvals.real <= Leaf.VALIDATION_TOL)
 
     def _compute_eigvals(self):
         """Compute the eigenvalues of the constant.
