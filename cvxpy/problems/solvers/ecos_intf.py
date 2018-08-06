@@ -15,9 +15,8 @@ limitations under the License.
 
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
-ALL SOLVER INTERFACES ARE BEING MIGRATED TO REDUCTIONS.
+WE ARE MOVING ALL SOLVER INTERFACES TO THE REDUCTIONS FOLDER.
 """
-
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.problems.solvers.solver import Solver

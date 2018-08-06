@@ -1,24 +1,20 @@
 """
 Copyright 2017 Robin Verschueren
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers import (
@@ -37,9 +33,7 @@ class Qp2SymbolicQp(Canonicalization):
         piecewise-linear constraints inequality constraints, and
         affine equality constraints are accepted.
         """
-        return (((type(problem.objective) == Minimize
-                  and problem.objective.expr.is_qpwa())
-                 or problem.objective.expr.is_affine())
+        return (problem.objective.expr.is_qpwa()
                 and not set(['PSD', 'NSD']).intersection(convex_attributes(
                                                          problem.variables()))
                 and all((type(c) == NonPos and c.args[0].is_pwl()) or
