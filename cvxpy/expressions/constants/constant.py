@@ -215,9 +215,10 @@ class Constant(Leaf):
         return all(self._eigvals.real <= Leaf.VALIDATION_TOL)
 
     def _compute_eigvals(self):
-        """Compute the eigenvalues of the constant.
+        """Compute the eigenvalues of the Hermitian or
+        symmetric matrix represented by this constant.
         """
         if self._sparse:
-            self._eigvals = LA.eigvals(self.value.todense())
+            self._eigvals = LA.eigvalsh(self.value.todense())
         else:
-            self._eigvals = LA.eigvals(self.value)
+            self._eigvals = LA.eigvalsh(self.value)
