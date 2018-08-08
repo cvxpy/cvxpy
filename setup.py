@@ -31,7 +31,7 @@ setup(
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
-    packages=find_packages(),
+    packages=find_packages(exclude=["cvxpy.performance_tests"]),
     url='http://github.com/cvxgrp/cvxpy/',
     license='Apache License, Version 2.0',
     zip_safe=False,
