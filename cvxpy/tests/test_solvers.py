@@ -1,20 +1,17 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy as cvx
@@ -38,19 +35,6 @@ class TestSolvers(BaseTest):
         self.A = cvx.Variable((2, 2), name='A')
         self.B = cvx.Variable((2, 2), name='B')
         self.C = cvx.Variable((3, 2), name='C')
-
-    # TODO this works on some machines.
-    # def test_solver_errors(self):
-    #     """Tests that solver errors throw an exception.
-    #     """
-    #     # For some reason CVXOPT can't handle this problem.
-    #     expr = 500*self.a + square(self.a)
-    #     prob = cvx.Problem(cvx.Minimize(expr))
-
-    #     with self.assertRaises(Exception) as cm:
-    #         prob.solve(solver=cvx.CVXOPT)
-    #     self.assertEqual(str(cm.exception),
-    #         "Solver 'CVXOPT' failed. Try another solver.")
 
     def test_ecos_options(self):
         """Test that all the ECOS solver options work.
@@ -428,6 +412,33 @@ class TestSolvers(BaseTest):
                 "workdir": '"mydir"',  # string param
             }
             problem.solve(solver=cvx.CPLEX, cplex_params=cplex_params)
+
+    def test_cvxopt_dual(self):
+        """Make sure CVXOPT's dual result matches other solvers
+        """
+        if cvx.CVXOPT in cvx.installed_solvers():
+            constraints = [self.x == 0]
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
+            prob.solve(solver=cvx.CVXOPT)
+            duals_cvxopt = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cvxopt, duals_ecos)
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CVXOPT)
+            duals_cvxopt = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cvxopt, duals_ecos)
+        else:
+            pass
 
     def test_gurobi(self):
         """Test a basic LP with Gurobi.
