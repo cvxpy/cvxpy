@@ -20,6 +20,7 @@ import cvxpy.interface as intf
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif
 import numpy as np
+import unittest
 
 
 class TestExamples(BaseTest):
@@ -268,7 +269,7 @@ class TestExamples(BaseTest):
         print(a.value)
         print(b.value)
 
-    def test_advanced(self):
+    def test_advanced1(self):
         """Code from the advanced tutorial.
         """
         # Solving a problem with different solvers.
@@ -297,6 +298,12 @@ class TestExamples(BaseTest):
         prob.solve(solver=cvx.SCS)
         print("optimal value with SCS:", prob.value)
         self.assertAlmostEqual(prob.value, 6, places=2)
+
+        if cvx.CPLEX in cvx.installed_solvers():
+            # Solve with CPLEX.
+            prob.solve(solver=cvx.CPLEX)
+            print("optimal value with CPLEX:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
 
         if cvx.GLPK in cvx.installed_solvers():
             # Solve with GLPK.
@@ -604,7 +611,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(obj, constraints)
         prob.solve(solver=cvx.SCS)
 
-    def test_advanced(self):
+    def test_advanced2(self):
         """Test code from the advanced section of the tutorial.
         """
         x = cvx.Variable()
@@ -683,3 +690,6 @@ class TestExamples(BaseTest):
     #     risks = [ sqrt(dot(x, S*x)) for x in xs ]
 
     #     # QP solver
+
+if __name__ == '__main__':
+    unittest.main()

@@ -375,7 +375,7 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `OSQP`_      | X  | X  |      |     |     |     |
 +--------------+----+----+------+-----+-----+-----+
-| `CPLEX`_     | X  | X  |      |     |     |     |
+| `CPLEX`_     | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
 | `Elemental`_ | X  | X  | X    |     |     |     |
 +--------------+----+----+------+-----+-----+-----+
@@ -391,6 +391,7 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `SCS`_       | X  | X  | X    | X   | X   |     |
 +--------------+----+----+------+-----+-----+-----+
+
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -454,6 +455,9 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cvx.CBC)
     print("optimal value with CBC:", prob.value)
 
+    # Solve with CPLEX.
+    prob.solve(solver=cvx.CPLEX)
+    print "optimal value with CPLEX:", prob.value
 ::
 
     optimal value with OSQP: 6.0
@@ -467,6 +471,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with MOSEK: 6.0
     optimal value with Elemental: 6.0000044085242727
     optimal value with CBC: 6.0
+    optimal value with CPLEX: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -476,7 +481,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'OSQP']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'ELEMENTAL', 'OSQP', 'CPLEX']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -710,6 +715,14 @@ The following cut-generators are available:
 ``'CutGenName'``
     if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
 
+`CPLEX`_ options:
+
+``'cplex_params'``
+    a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use "advance" for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use "read.datacheck" for the parameter name, and so on.
+
+``'cplex_filename'``
+    a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
+
 Getting the standard form
 -------------------------
 
@@ -758,7 +771,6 @@ Reductions take a CVXPY Problem as input and output a CVXPY Problem.
 The full set of reductions available is discussed in :ref:`reductions-api`.
 
 .. _OSQP: https://osqp.org/
-.. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb
@@ -770,3 +782,4 @@ The full set of reductions available is discussed in :ref:`reductions-api`.
 .. _Elemental: http://libelemental.org/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
+.. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
