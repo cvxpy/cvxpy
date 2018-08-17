@@ -17,6 +17,7 @@ limitations under the License.
 from fastcache import clru_cache
 import cvxpy.interface as intf
 from cvxpy.expressions.leaf import Leaf
+from cvxpy.settings import EIGVAL_TOL
 import cvxpy.lin_ops.lin_utils as lu
 from scipy import linalg as LA
 import numpy as np
@@ -191,7 +192,7 @@ class Constant(Leaf):
         # Compute eigenvalues if absent.
         if self._eigvals is None:
             self._compute_eigvals()
-        return all(self._eigvals.real >= -Leaf.VALIDATION_TOL)
+        return all(self._eigvals.real >= -EIGVAL_TOL)
 
     @clru_cache(maxsize=100)
     def is_nsd(self):
@@ -212,7 +213,7 @@ class Constant(Leaf):
         # Compute eigenvalues if absent.
         if self._eigvals is None:
             self._compute_eigvals()
-        return all(self._eigvals.real <= Leaf.VALIDATION_TOL)
+        return all(self._eigvals.real <= EIGVAL_TOL)
 
     def _compute_eigvals(self):
         """Compute the eigenvalues of the Hermitian or
