@@ -65,7 +65,6 @@ class TestSCS(BaseTest):
         p = cvx.Problem(obj, constr)
         result = p.solve(solver=cvx.SCS)
 
-
     def test_sigma_max(self):
         """Test sigma_max.
         """
@@ -112,12 +111,6 @@ class TestSCS(BaseTest):
         self.assertEqual(constraints[1].dual_value.shape, (2, 2))
         self.assertEqual(constraints[2].dual_value.shape, (2, 2))
         self.assertAlmostEqual(sol_scs, n1)
-
-    def test_entr(self):
-        """Test the entr atom.
-        """
-        self.assertEqual(cvx.entr(0).value, 0)
-        assert np.isneginf(cvx.entr(-1).value)
 
     def test_kl_div(self):
         """Test a problem with kl_div.
@@ -179,26 +172,6 @@ class TestSCS(BaseTest):
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
-
-    # def test_consistency(self):
-    #     """Test case for non-deterministic behavior in cvxopt.
-    #     """
-
-    #     xs = [0, 1, 2, 3]
-    #     ys = [51, 60, 70, 75]
-
-    #     eta1 = cvx.Variable()
-    #     eta2 = cvx.Variable()
-    #     eta3 = cvx.Variable()
-    #     theta1s = [eta1 + eta3*x for x in xs]
-    #     lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
-    #     g_parts = [-cvx.quad_over_lin(theta1, -4*eta2) + 0.5 * cvx.log(-2 * eta2)
-    #                for theta1 in theta1s]
-    #     objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
-    #     problem = cvx.Problem(cvx.Maximize(objective))
-    #     problem.solve(verbose=True, solver=cvx.SCS)
-    #     assert problem.status in [cvx.OPTIMAL_INACCURATE, cvx.OPTIMAL]
-    #     return [eta1.value, eta2.value, eta3.value]
 
     def test_warm_start(self):
         """Test warm starting.

@@ -262,7 +262,8 @@ class TestProblem(BaseTest):
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in [cvx.GLPK, cvx.GLPK_MI, cvx.MOSEK, cvx.CBC]:
+                # SuperSCS doesn't write to the stdout seen by Python.
+                if solver in [cvx.GLPK, cvx.GLPK_MI, cvx.MOSEK, cvx.SUPER_SCS, cvx.CBC]:
                     continue
                 if solver in [cvx.ELEMENTAL]:
                     # ELEMENTAL's stdout is separate from python,
@@ -288,7 +289,8 @@ class TestProblem(BaseTest):
                         p.solve(verbose=verbose, solver=solver)
 
                     if PSD in SOLVER_MAP_CONIC[solver].SUPPORTED_CONSTRAINTS:
-                        p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(self.a[None, None]) >= 2])
+                        a_mat = cvx.reshape(self.a, shape=(1,1))
+                        p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(a_mat) >= 2])
                         p.solve(verbose=verbose, solver=solver)
 
                 if solver in [cvx.ELEMENTAL]:
