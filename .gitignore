@@ -2,6 +2,7 @@
 *.py[cod]
 *#*
 *.swp
+*.ropeproject
 
 # C extensions
 *.so

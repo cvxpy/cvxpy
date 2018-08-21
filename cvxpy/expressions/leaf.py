@@ -1,24 +1,24 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import abc
 from cvxpy.expressions import expression
+from cvxpy.settings import (GENERAL_PROJECTION_TOL,
+                            PSD_NSD_PROJECTION_TOL,
+                            SPARSE_PROJECTION_TOL)
 import cvxpy.interface as intf
 import numbers
 import numpy as np
@@ -349,13 +349,28 @@ class Leaf(expression.Expression):
             # ^ might be a numpy array, or sparse scipy matrix.
             delta = np.abs(val - projection)
             # ^ might be a numpy array, scipy matrix, or sparse scipy matrix.
-            if intf.is_sparse(delta):  # is a scipy sparse matrix
-                is_close_enough = np.allclose(delta.data, 0)
+            if intf.is_sparse(delta):
+                # ^ based on current implementation of project(...),
+                #   is is not possible for this Leaf to be PSD/NSD *and*
+                #   a sparse matrix.
+                close_enough = np.allclose(delta.data, 0,
+                                           atol=SPARSE_PROJECTION_TOL)
                 # ^ only check for near-equality on nonzero values.
             else:
-                delta = np.array(delta)  # make sure we have a numpy array.
-                is_close_enough = np.allclose(delta, 0, atol=1e-8)
-            if not is_close_enough:
+                # the data could be a scipy matrix, or a numpy array.
+                # First we convert to a numpy array.
+                delta = np.array(delta)
+                # Now that we have the residual, we need to measure it
+                # in some canonical way.
+                if self.attributes['PSD'] or self.attributes['NSD']:
+                    # For PSD/NSD Leafs, we use the largest-singular-value norm.
+                    close_enough = LA.norm(delta, ord=2) <= PSD_NSD_PROJECTION_TOL
+                else:
+                    # For all other Leafs we use the infinity norm on
+                    # the vectorized Leaf.
+                    close_enough = np.allclose(delta, 0,
+                                               atol=GENERAL_PROJECTION_TOL)
+            if not close_enough:
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
                 elif self.attributes['nonpos']:
