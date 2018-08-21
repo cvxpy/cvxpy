@@ -19,6 +19,7 @@ import sys
 
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
@@ -32,17 +33,23 @@ if sys.version_info >= (3, 0):
 
 class BinaryOperator(AffAtom):
     """
-    Base class for expressions involving binary operators.
+    Base class for expressions involving binary operators. (other than addition)
 
     """
+
+    OP_NAME = 'BINARY_OP'
 
     def __init__(self, lh_exp, rh_exp):
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
     def name(self):
-        return ' '.join([str(self.args[0].name()),
-                         self.OP_NAME,
-                         str(self.args[1].name())])
+        pretty_args = []
+        for a in self.args:
+            if isinstance(a, (AddExpression, DivExpression)):
+                pretty_args.append('(' + a.name() + ')')
+            else:
+                pretty_args.append(a.name())
+        return pretty_args[0] + ' ' + self.OP_NAME + ' ' + pretty_args[1]
 
     def numeric(self, values):
         """Applies the binary operator to the values.
