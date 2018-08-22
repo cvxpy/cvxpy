@@ -16,7 +16,6 @@ limitations under the License.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
@@ -89,39 +88,3 @@ class cummax(AxisAtom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        axis = data[0]
-        if axis is None:
-            t = lu.create_var((1, 1))
-            promoted_t = lu.promote(t, arg_objs[0].size)
-        elif axis == 0:
-            t = lu.create_var((1, arg_objs[0].size[1]))
-            const_size = (arg_objs[0].size[0], 1)
-            ones = lu.create_const(np.ones(const_size), const_size)
-            promoted_t = lu.mul_expr(ones, t)
-        else:  # axis == 1
-            t = lu.create_var((arg_objs[0].size[0], 1))
-            const_size = (1, arg_objs[0].size[1])
-            ones = lu.create_const(np.ones(const_size), const_size)
-            promoted_t = lu.rmul_expr(t, ones)
-
-        constraints = [lu.create_leq(arg_objs[0], promoted_t)]
-        return (t, constraints)

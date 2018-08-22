@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
-from cvxpy.utilities.power_tools import (is_power2, gm_constrs, pow_mid,
+from cvxpy.utilities.power_tools import (is_power2, pow_mid,
                                          pow_high, pow_neg)
 import scipy.sparse as sp
 
@@ -296,45 +295,6 @@ class power(Elementwise):
         copy.approx_error = self.approx_error
         super(type(self), copy).__init__(*args)
         return copy
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        p, w = data
-
-        if p == 1:
-            return x, []
-        else:
-            one = lu.create_const(np.mat(np.ones(shape)), shape)
-            if p == 0:
-                return one, []
-            else:
-                t = lu.create_var(shape)
-
-                if 0 < p < 1:
-                    return t, gm_constrs(t, [x, one], w)
-                elif p > 1:
-                    return t, gm_constrs(x, [t, one], w)
-                elif p < 0:
-                    return t, gm_constrs(one, [x, t], w)
-                else:
-                    raise NotImplementedError('this power is not yet supported.')
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,

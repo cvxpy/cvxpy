@@ -93,9 +93,6 @@ class QuadForm(Atom):
     def _grad(self):
         return self.args[1] * self.args[0]
 
-    def graph_implementation(self):
-        return NotImplemented
-
     def shape_from_args(self):
         return tuple() if self.args[0].ndim == 0 else (1, 1)
 
@@ -113,9 +110,6 @@ class SymbolicQuadForm(Atom):
         return [self.original_expression]
 
     def _grad(self, values):
-        return NotImplemented
-
-    def graph_implementation(self, arg_objs, shape, data=None):
         return NotImplemented
 
     def is_atom_concave(self):

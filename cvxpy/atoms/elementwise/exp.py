@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 
 
@@ -73,27 +71,3 @@ class exp(Elementwise):
         cols = self.size
         grad_vals = np.exp(values[0])
         return [exp.elemwise_grad_to_diag(grad_vals, rows, cols)]
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        t = lu.create_var(shape)
-        x = arg_objs[0]
-        ones = lu.create_const(np.mat(np.ones(shape)), shape)
-
-        return (t, [ExpCone(x, ones, t)])

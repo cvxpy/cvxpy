@@ -14,9 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
 from cvxpy.atoms.axis_atom import AxisAtom
+import numpy as np
 
 
 class norm_inf(AxisAtom):
@@ -100,7 +99,3 @@ class norm_inf(AxisAtom):
         """
         # TODO(akshayka): Implement this.
         raise NotImplementedError
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        pass

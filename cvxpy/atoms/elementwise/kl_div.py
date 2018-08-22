@@ -15,9 +15,7 @@ limitations under the License.
 """
 
 from __future__ import division
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.special import xlogy
 
@@ -92,30 +90,3 @@ class kl_div(Elementwise):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0, self.args[1] >= 0]
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = Elementwise._promote(arg_objs[0], shape)
-        y = Elementwise._promote(arg_objs[1], shape)
-        t = lu.create_var(shape)
-        constraints = [ExpCone(t, x, y),
-                       lu.create_geq(y)]  # 0 <= y
-        # -t - x + y
-        obj = lu.sub_expr(y, lu.sum_expr([x, t]))
-        return (obj, constraints)
