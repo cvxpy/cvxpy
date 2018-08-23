@@ -1,12 +1,15 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
+from setuptools.command.build_ext import build_ext
 
 
-class get_numpy_include(object):
-    """Returns Numpy's include path with lazy import.
-    """
-    def __str__(self):
+# inject numpy headers
+class build_ext_cvxpy(build_ext):
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+        # Prevent numpy from thinking it is still in its setup process:
+        __builtins__.__NUMPY_SETUP__ = False
         import numpy
-        return numpy.get_include()
+        self.include_dirs.append(numpy.get_include())
 
 
 canon = Extension(
@@ -17,8 +20,7 @@ canon = Extension(
              'cvxpy/cvxcore/python/cvxcore_wrap.cpp'],
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
-                  'cvxpy/cvxcore/include/Eigen',
-                  get_numpy_include()],
+                  'cvxpy/cvxcore/include/Eigen'],
 )
 
 
@@ -27,41 +29,9 @@ setup(
     version='1.0.8',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
+    cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
-    packages=['cvxpy',
-              'cvxpy.atoms',
-              'cvxpy.atoms.affine',
-              'cvxpy.atoms.elementwise',
-              'cvxpy.cvxcore',
-              'cvxpy.cvxcore.python',
-              'cvxpy.constraints',
-              'cvxpy.expressions',
-              'cvxpy.expressions.constants',
-              'cvxpy.interface',
-              'cvxpy.interface.numpy_interface',
-              'cvxpy.lin_ops',
-              'cvxpy.problems',
-              'cvxpy.problems.problem_data',
-              'cvxpy.problems.solvers',
-              'cvxpy.reductions',
-              'cvxpy.reductions.complex2real',
-              'cvxpy.reductions.complex2real.atom_canonicalizers',
-              'cvxpy.reductions.dcp2cone',
-              'cvxpy.reductions.dcp2cone.atom_canonicalizers',
-              'cvxpy.reductions.eliminate_pwl',
-              'cvxpy.reductions.eliminate_pwl.atom_canonicalizers',
-              'cvxpy.reductions.qp2quad_form',
-              'cvxpy.reductions.qp2quad_form.atom_canonicalizers',
-              'cvxpy.reductions.eliminate_pwl.atom_canonicalizers',
-              'cvxpy.reductions.solvers',
-              'cvxpy.reductions.solvers.conic_solvers',
-              'cvxpy.reductions.solvers.qp_solvers',
-              'cvxpy.reductions.solvers.lp_solvers',
-              'cvxpy.tests',
-              'cvxpy.transforms',
-              'cvxpy.utilities',
-              'cvxpy.cvxcore.python'],
-    package_dir={'cvxpy': 'cvxpy'},
+    packages=find_packages(exclude=["cvxpy.performance_tests"]),
     url='http://github.com/cvxgrp/cvxpy/',
     license='Apache License, Version 2.0',
     zip_safe=False,
@@ -75,5 +45,6 @@ setup(
                       "toolz",
                       "numpy >= 1.14",
                       "scipy >= 0.19"],
+    setup_requires=["numpy >= 1.14"],
     use_2to3=True,
 )
