@@ -729,10 +729,6 @@ class TestAtoms(BaseTest):
         b = Parameter((2, 1), nonpos=True)
         expr = kron(a, b)
         assert expr.is_nonpos()
-        with self.assertRaises(Exception) as cm:
-            kron(self.x, -1)
-        self.assertEqual(str(cm.exception),
-                         "The first argument to kron must be constant.")
 
     def test_partial_optimize_dcp(self):
         """Test DCP properties of partial optimize.
