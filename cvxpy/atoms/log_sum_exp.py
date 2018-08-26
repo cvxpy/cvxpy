@@ -14,10 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.atoms.elementwise.exp import exp
 import numpy as np
 from scipy.misc import logsumexp
 
@@ -89,59 +87,3 @@ class log_sum_exp(AxisAtom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        axis = data[0]
-        t = lu.create_var(shape)
-
-        # sum(exp(x - t)) <= 1
-        if axis is None:
-            prom_t = lu.promote(t, x.shape)
-            expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.shape)
-            obj = lu.sum(obj)
-
-        elif axis == 0:
-            prom_shape = (x.shape[0], 1)
-            ones = lu.create_const(np.ones(prom_shape), prom_shape)
-            prom_t = lu.mul_expr(ones, t, x.shape)
-            expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.shape)
-
-            const_shape = (1, x.shape[0])
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.mul_expr(ones, obj, shape)
-
-        else:  # axis == 1
-            prom_shape = (1, x.shape[1])
-            ones = lu.create_const(np.ones(prom_shape), prom_shape)
-            prom_t = lu.rmul_expr(t, ones, x.shape)
-            expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.shape)
-
-            const_shape = (x.shape[1], 1)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.rmul_expr(obj, ones, shape)
-
-        ones = lu.create_const(np.ones(shape), shape)
-        constraints += [lu.create_leq(obj, ones)]
-
-        return (t, constraints)

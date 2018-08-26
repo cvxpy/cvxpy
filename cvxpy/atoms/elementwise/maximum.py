@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import sys
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 if sys.version_info >= (3, 0):
@@ -99,28 +98,3 @@ class maximum(Elementwise):
             grad_list += [maximum.elemwise_grad_to_diag(grad_vals,
                                                         rows, cols)]
         return grad_list
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        t = lu.create_var(shape)
-        constraints = []
-        for obj in arg_objs:
-            obj = Elementwise._promote(obj, shape)
-            constraints.append(lu.create_leq(obj, t))
-        return (t, constraints)

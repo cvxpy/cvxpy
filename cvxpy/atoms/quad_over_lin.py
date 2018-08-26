@@ -15,8 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.constraints.second_order import SOC
 import numpy as np
 import scipy.sparse as sp
 import scipy as scipy
@@ -113,31 +111,3 @@ class quad_over_lin(Atom):
             """Quadratic of piecewise affine if x is PWL and y is constant.
             """
             return self.args[0].is_pwl() and self.args[1].is_constant()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        y = arg_objs[1]  # Known to be a scalar.
-        v = lu.create_var((1, 1))
-        two = lu.create_const(2, (1, 1))
-        t = lu.sum_expr([y, v])
-        X_shape = (y.shape[0] + x.shape[0], 1)
-        X = lu.vstack([lu.sub_expr(y, v), lu.mul_expr(two, x, x.shape)], X_shape)
-        constraints = [SOC(t, X), lu.create_geq(y)]
-        return (v, constraints)

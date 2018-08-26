@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from .elementwise import Elementwise
 import numpy as np
 
@@ -81,28 +80,3 @@ class abs(Elementwise):
         D += (values[0] > 0)
         D -= (values[0] < 0)
         return [abs.elemwise_grad_to_diag(D, rows, cols)]
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        t = lu.create_var(x.shape)
-        constraints = [lu.create_geq(lu.sum_expr([x, t])),
-                       lu.create_leq(x, t),
-                       ]
-        return (t, constraints)

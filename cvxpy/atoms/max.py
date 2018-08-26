@@ -16,7 +16,6 @@ limitations under the License.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
@@ -94,39 +93,3 @@ class max(AxisAtom):
         """Is the atom piecewise linear?
         """
         return self.args[0].is_pwl()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        axis = data[0]
-        if axis is None:
-            t = lu.create_var((1, 1))
-            promoted_t = lu.promote(t, arg_objs[0].shape)
-        elif axis == 0:
-            t = lu.create_var((1, arg_objs[0].shape[1]))
-            const_shape = (arg_objs[0].shape[0], 1)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            promoted_t = lu.mul_expr(ones, t, arg_objs[0].shape)
-        else:  # axis == 1
-            t = lu.create_var((arg_objs[0].shape[0], 1))
-            const_shape = (1, arg_objs[0].shape[1])
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            promoted_t = lu.rmul_expr(t, ones, arg_objs[0].shape)
-
-        constraints = [lu.create_leq(arg_objs[0], promoted_t)]
-        return (t, constraints)

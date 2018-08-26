@@ -138,6 +138,7 @@ class MatrixFrac(Atom):
 @wraps(MatrixFrac)
 def matrix_frac(X, P):
     if isinstance(P, np.ndarray):
-        return QuadForm(X, LA.inv(P))
+        invP = np.matrix(LA.inv(P))
+        return QuadForm(X, (invP + invP.H) / 2.0)
     else:
         return MatrixFrac(X, P)
