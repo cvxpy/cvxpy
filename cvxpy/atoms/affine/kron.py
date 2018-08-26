@@ -54,7 +54,7 @@ class kron(AffAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        cst_loc =  0 if self.args[0].is_constant() else 1
+        cst_loc = 0 if self.args[0].is_constant() else 1
         return self.args[cst_loc].is_nonneg()
 
     def is_decr(self, idx):
