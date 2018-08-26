@@ -23,7 +23,6 @@ import numpy as np
 class kron(AffAtom):
     """Kronecker product.
     """
-    # TODO work with right hand constant.
 
     def __init__(self, lh_expr, rh_expr):
         super(kron, self).__init__(lh_expr, rh_expr)
@@ -37,14 +36,12 @@ class kron(AffAtom):
     def validate_arguments(self):
         """Checks that both arguments are vectors, and the first is constant.
         """
-        if not self.args[0].is_constant():
-            raise ValueError("The first argument to kron must be constant.")
-        elif self.args[0].ndim != 2 or self.args[1].ndim != 2:
+        if not (self.args[0].is_constant() or self.args[1].is_constant()):
+            raise ValueError("At least one argument to kron must be constant.")
+        if self.args[0].ndim != 2 or self.args[1].ndim != 2:
             raise ValueError("kron requires matrix arguments.")
 
     def shape_from_args(self):
-        """The sum of the argument dimensions - 1.
-        """
         rows = self.args[0].shape[0]*self.args[1].shape[0]
         cols = self.args[0].shape[1]*self.args[1].shape[1]
         return (rows, cols)
@@ -57,12 +54,32 @@ class kron(AffAtom):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_nonneg()
+        cst_loc =  0 if self.args[0].is_constant() else 1
+        return self.args[cst_loc].is_nonneg()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_nonpos()
+        cst_loc = 0 if self.args[0].is_constant() else 1
+        return self.args[cst_loc].is_nonpos()
+
+    def is_psd(self):
+        """
+        :return: result of checking a *sufficient condition* that
+         the kronecker product of the given arguments is PSD.
+        """
+        case1 = self.args[0].is_psd() and self.args[1].is_psd()
+        case2 = self.args[0].is_nsd() and self.args[1].is_nsd()
+        return case1 or case2
+
+    def is_nsd(self):
+        """
+        :return: result of checking a *sufficient condition* that
+         the kronecker product of the given arguments is NSD.
+        """
+        case1 = self.args[0].is_psd() and self.args[1].is_nsd()
+        case2 = self.args[0].is_nsd() and self.args[1].is_psd()
+        return case1 or case2
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
