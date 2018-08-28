@@ -1,25 +1,20 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.elementwise.exp import exp
 import numpy as np
 
 
@@ -81,33 +76,3 @@ class logistic(Elementwise):
         exp_val = np.exp(values[0])
         grad_vals = exp_val/(1 + exp_val)
         return [logistic.elemwise_grad_to_diag(grad_vals, rows, cols)]
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        t = lu.create_var(shape)
-
-        # log(1 + exp(x)) <= t <=> exp(-t) + exp(x - t) <= 1
-        obj0, constr0 = exp.graph_implementation([lu.neg_expr(t)], shape)
-        obj1, constr1 = exp.graph_implementation([lu.sub_expr(x, t)], shape)
-        lhs = lu.sum_expr([obj0, obj1])
-        ones = lu.create_const(np.mat(np.ones(shape)), shape)
-        constr = constr0 + constr1 + [lu.create_leq(lhs, ones)]
-
-        return (t, constr)

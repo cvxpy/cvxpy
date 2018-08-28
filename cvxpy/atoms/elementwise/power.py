@@ -1,26 +1,22 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
-from cvxpy.utilities.power_tools import (is_power2, gm_constrs, pow_mid,
+from cvxpy.utilities.power_tools import (is_power2, pow_mid,
                                          pow_high, pow_neg)
 import scipy.sparse as sp
 
@@ -299,45 +295,6 @@ class power(Elementwise):
         copy.approx_error = self.approx_error
         super(type(self), copy).__init__(*args)
         return copy
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        p, w = data
-
-        if p == 1:
-            return x, []
-        else:
-            one = lu.create_const(np.mat(np.ones(shape)), shape)
-            if p == 0:
-                return one, []
-            else:
-                t = lu.create_var(shape)
-
-                if 0 < p < 1:
-                    return t, gm_constrs(t, [x, one], w)
-                elif p > 1:
-                    return t, gm_constrs(x, [t, one], w)
-                elif p < 0:
-                    return t, gm_constrs(one, [x, t], w)
-                else:
-                    raise NotImplementedError('this power is not yet supported.')
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,

@@ -1,20 +1,17 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from __future__ import print_function
@@ -23,6 +20,7 @@ import cvxpy.interface as intf
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif
 import numpy as np
+import unittest
 
 
 class TestExamples(BaseTest):
@@ -271,7 +269,7 @@ class TestExamples(BaseTest):
         print(a.value)
         print(b.value)
 
-    def test_advanced(self):
+    def test_advanced1(self):
         """Code from the advanced tutorial.
         """
         # Solving a problem with different solvers.
@@ -300,6 +298,12 @@ class TestExamples(BaseTest):
         prob.solve(solver=cvx.SCS)
         print("optimal value with SCS:", prob.value)
         self.assertAlmostEqual(prob.value, 6, places=2)
+
+        if cvx.CPLEX in cvx.installed_solvers():
+            # Solve with CPLEX.
+            prob.solve(solver=cvx.CPLEX)
+            print("optimal value with CPLEX:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
 
         if cvx.GLPK in cvx.installed_solvers():
             # Solve with GLPK.
@@ -607,7 +611,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(obj, constraints)
         prob.solve(solver=cvx.SCS)
 
-    def test_advanced(self):
+    def test_advanced2(self):
         """Test code from the advanced section of the tutorial.
         """
         x = cvx.Variable()
@@ -686,3 +690,6 @@ class TestExamples(BaseTest):
     #     risks = [ sqrt(dot(x, S*x)) for x in xs ]
 
     #     # QP solver
+
+if __name__ == '__main__':
+    unittest.main()

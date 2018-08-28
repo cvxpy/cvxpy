@@ -1,26 +1,21 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.atoms.elementwise.exp import exp
 import numpy as np
 from scipy.misc import logsumexp
 
@@ -92,59 +87,3 @@ class log_sum_exp(AxisAtom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        axis = data[0]
-        t = lu.create_var(shape)
-
-        # sum(exp(x - t)) <= 1
-        if axis is None:
-            prom_t = lu.promote(t, x.shape)
-            expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.shape)
-            obj = lu.sum(obj)
-
-        elif axis == 0:
-            prom_shape = (x.shape[0], 1)
-            ones = lu.create_const(np.ones(prom_shape), prom_shape)
-            prom_t = lu.mul_expr(ones, t, x.shape)
-            expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.shape)
-
-            const_shape = (1, x.shape[0])
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.mul_expr(ones, obj, shape)
-
-        else:  # axis == 1
-            prom_shape = (1, x.shape[1])
-            ones = lu.create_const(np.ones(prom_shape), prom_shape)
-            prom_t = lu.rmul_expr(t, ones, x.shape)
-            expr = lu.sub_expr(x, prom_t)
-            obj, constraints = exp.graph_implementation([expr], x.shape)
-
-            const_shape = (x.shape[1], 1)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            obj = lu.rmul_expr(obj, ones, shape)
-
-        ones = lu.create_const(np.ones(shape), shape)
-        constraints += [lu.create_leq(obj, ones)]
-
-        return (t, constraints)

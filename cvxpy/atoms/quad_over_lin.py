@@ -1,25 +1,20 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.constraints.second_order import SOC
 import numpy as np
 import scipy.sparse as sp
 import scipy as scipy
@@ -116,31 +111,3 @@ class quad_over_lin(Atom):
             """Quadratic of piecewise affine if x is PWL and y is constant.
             """
             return self.args[0].is_pwl() and self.args[1].is_constant()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        x = arg_objs[0]
-        y = arg_objs[1]  # Known to be a scalar.
-        v = lu.create_var((1, 1))
-        two = lu.create_const(2, (1, 1))
-        t = lu.sum_expr([y, v])
-        X_shape = (y.shape[0] + x.shape[0], 1)
-        X = lu.vstack([lu.sub_expr(y, v), lu.mul_expr(two, x, x.shape)], X_shape)
-        constraints = [SOC(t, X), lu.create_geq(y)]
-        return (v, constraints)

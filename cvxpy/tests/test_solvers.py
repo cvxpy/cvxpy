@@ -1,25 +1,23 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy as cvx
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
+import unittest
 
 
 class TestSolvers(BaseTest):
@@ -37,19 +35,6 @@ class TestSolvers(BaseTest):
         self.A = cvx.Variable((2, 2), name='A')
         self.B = cvx.Variable((2, 2), name='B')
         self.C = cvx.Variable((3, 2), name='C')
-
-    # TODO this works on some machines.
-    # def test_solver_errors(self):
-    #     """Tests that solver errors throw an exception.
-    #     """
-    #     # For some reason CVXOPT can't handle this problem.
-    #     expr = 500*self.a + square(self.a)
-    #     prob = cvx.Problem(cvx.Minimize(expr))
-
-    #     with self.assertRaises(Exception) as cm:
-    #         prob.solve(solver=cvx.CVXOPT)
-    #     self.assertEqual(str(cm.exception),
-    #         "Solver 'CVXOPT' failed. Try another solver.")
 
     def test_ecos_options(self):
         """Test that all the ECOS solver options work.
@@ -177,6 +162,283 @@ class TestSolvers(BaseTest):
                 prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
                 prob.solve(solver=cvx.GLPK_MI)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.GLPK_MI)
+
+    def test_cplex(self):
+        """Test a basic LP with CPLEX.
+        """
+        if cvx.CPLEX in cvx.installed_solvers():
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob.solve(solver=cvx.CPLEX)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            # CPLEX's default lower bound for a decision variable is zero
+            # This quick test ensures that the cvxpy interface for CPLEX does *not* have that bound
+            objective = cvx.Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+            # Boolean and integer version.
+            bool_var = cvx.Variable(boolean=True)
+            int_var = cvx.Variable(integer=True)
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)),
+                           [self.x == bool_var, bool_var == 0])
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(bool_var.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= int_var,
+                           self.x[0] + 2 * self.x[1] <= 3*bool_var,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0,
+                           int_var == 3*bool_var,
+                           int_var == 3]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertAlmostEqual(int_var.value, 3)
+            self.assertAlmostEqual(bool_var.value, 1)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
+
+    def test_cplex_socp(self):
+        """Test a basic SOCP with CPLEX.
+        """
+        if cvx.CPLEX in cvx.installed_solvers():
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2)), [self.x == 0])
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           (self.x[0] + 2 * self.x[1])**2 <= 9,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            # CPLEX's default lower bound for a decision variable is zero
+            # This quick test ensures that the cvxpy interface for CPLEX does *not* have that bound
+            objective = cvx.Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+            # Boolean and integer version.
+            bool_var = cvx.Variable(boolean=True)
+            int_var = cvx.Variable(integer=True)
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2)),
+                           [self.x == bool_var, bool_var == 0])
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(bool_var.value, 0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= int_var,
+                           (self.x[0] + 2 * self.x[1])**2 <= 9*bool_var,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0,
+                           int_var == 3*bool_var,
+                           int_var == 3]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertAlmostEqual(int_var.value, 3)
+            self.assertAlmostEqual(bool_var.value, 1)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
+
+    def test_cplex_dual(self):
+        """Make sure CPLEX's dual result matches other solvers
+        """
+        if cvx.CPLEX in cvx.installed_solvers():
+            constraints = [self.x == 0]
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
+            prob.solve(solver=cvx.CPLEX)
+            duals_cplex = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cplex, duals_ecos)
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CPLEX)
+            duals_cplex = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cplex, duals_ecos)
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.CPLEX)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
+
+    def test_cplex_warm_start(self):
+        """Make sure that warm starting CPLEX behaves as expected
+           Note: This only checks output, not whether or not CPLEX is warm starting internally
+        """
+        if cvx.CPLEX in cvx.installed_solvers():
+            import numpy as np
+
+            A = cvx.Parameter((2, 2))
+            b = cvx.Parameter(2)
+            h = cvx.Parameter(2)
+            c = cvx.Parameter(2)
+
+            A.value = np.matrix([[1, 0], [0, 0]])
+            b.value = np.array([1, 0])
+            h.value = np.array([2, 2])
+            c.value = np.array([1, 1])
+
+            objective = cvx.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
+            constraints = [self.x[0] <= h[0],
+                           self.x[1] <= h[1],
+                           A * self.x == b]
+            prob = cvx.Problem(objective, constraints)
+            result = prob.solve(solver=cvx.CPLEX, warm_start=True)
+            self.assertEqual(result, 3)
+            self.assertItemsAlmostEqual(self.x.value, [1, 2])
+            orig_objective = result
+            orig_x = self.x.value
+
+            # Change A and b from the original values
+            A.value = np.matrix([[0, 0], [0, 1]])   # <----- Changed
+            b.value = np.array([0, 1])              # <----- Changed
+            h.value = np.array([2, 2])
+            c.value = np.array([1, 1])
+
+            # Without setting update_eq_constrs = False, the results should change to the correct answer
+            result = prob.solve(solver=cvx.CPLEX, warm_start=True)
+            self.assertEqual(result, 3)
+            self.assertItemsAlmostEqual(self.x.value, [2, 1])
+
+            # Change h from the original values
+            A.value = np.matrix([[1, 0], [0, 0]])
+            b.value = np.array([1, 0])
+            h.value = np.array([1, 1])              # <----- Changed
+            c.value = np.array([1, 1])
+
+            # Without setting update_ineq_constrs = False, the results should change to the correct answer
+            result = prob.solve(solver=cvx.CPLEX, warm_start=True)
+            self.assertEqual(result, 2)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            # Change c from the original values
+            A.value = np.matrix([[1, 0], [0, 0]])
+            b.value = np.array([1, 0])
+            h.value = np.array([2, 2])
+            c.value = np.array([2, 1])              # <----- Changed
+
+            # Without setting update_objective = False, the results should change to the correct answer
+            result = prob.solve(solver=cvx.CPLEX, warm_start=True)
+            self.assertEqual(result, 4)
+            self.assertItemsAlmostEqual(self.x.value, [1, 2])
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.CPLEX, warm_start=True)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
+
+    def test_cplex_params(self):
+        if cvx.CPLEX in cvx.installed_solvers():
+            import numpy as np
+            import numpy.random as rnd
+            import cplex
+            from cplex.exceptions import CplexError
+
+            n = 10
+            m = 4
+            A = rnd.randn(m, n)
+            x = rnd.randn(n)
+            y = A.dot(x)
+
+            # Solve a simple basis pursuit problem for testing purposes.
+            z = cvx.Variable(n)
+            objective = cvx.Minimize(cvx.norm1(z))
+            constraints = [A * z == y]
+            problem = cvx.Problem(objective, constraints)
+
+            invalid_cplex_params = {
+                "bogus": "foo"
+            }
+            with self.assertRaises(ValueError):
+                problem.solve(solver=cvx.CPLEX,
+                              cplex_params=invalid_cplex_params)
+
+            with self.assertRaises(ValueError):
+                problem.solve(solver=cvx.CPLEX, invalid_kwarg=None)
+
+            cplex_params = {
+                "advance": 0,  # int param
+                "simplex.limits.iterations": 1000,  # long param
+                "timelimit": 1000.0,  # double param
+                "workdir": '"mydir"',  # string param
+            }
+            problem.solve(solver=cvx.CPLEX, cplex_params=cplex_params)
+
+    def test_cvxopt_dual(self):
+        """Make sure CVXOPT's dual result matches other solvers
+        """
+        if cvx.CVXOPT in cvx.installed_solvers():
+            constraints = [self.x == 0]
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
+            prob.solve(solver=cvx.CVXOPT)
+            duals_cvxopt = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cvxopt, duals_ecos)
+
+            # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.CVXOPT)
+            duals_cvxopt = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_cvxopt, duals_ecos)
+        else:
+            pass
 
     def test_gurobi(self):
         """Test a basic LP with Gurobi.
@@ -660,3 +922,7 @@ class TestSolvers(BaseTest):
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)
+
+
+if __name__ == "__main__":
+    unittest.main()

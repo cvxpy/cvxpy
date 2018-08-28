@@ -1,30 +1,22 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.elementwise.abs import abs
 import scipy.special
 import numpy as np
-from .power import power
-from fractions import Fraction
 
 
 class huber(Elementwise):
@@ -112,47 +104,3 @@ class huber(Elementwise):
         min_val = np.minimum(np.abs(values[0]), self.M.value)
         grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
         return [huber.elemwise_grad_to_diag(grad_vals, rows, cols)]
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        minimize n^2 + 2M|s|
-        subject to s + n = x
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        M = data[0]
-        x = arg_objs[0]
-        n = lu.create_var(shape)
-        s = lu.create_var(shape)
-        two = lu.create_const(2, (1, 1))
-        if isinstance(M, Parameter):
-            M = lu.create_param(M, (1, 1))
-        else:  # M is constant.
-            M = lu.create_const(M.value, (1, 1))
-
-        # n**2 + 2*M*|s|
-        n2, constr_sq = power.graph_implementation(
-            [n],
-            shape, (2, (Fraction(1, 2), Fraction(1, 2)))
-        )
-        abs_s, constr_abs = abs.graph_implementation([s], shape)
-        M_abs_s = lu.mul_expr(M, abs_s)
-        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s)])
-        # x == s + n
-        constraints = constr_sq + constr_abs
-        constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))
-        return (obj, constraints)

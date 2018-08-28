@@ -1,25 +1,23 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from fastcache import clru_cache
 import cvxpy.interface as intf
 from cvxpy.expressions.leaf import Leaf
+from cvxpy.settings import EIGVAL_TOL
 import cvxpy.lin_ops.lin_utils as lu
 from scipy import linalg as LA
 import numpy as np
@@ -194,7 +192,7 @@ class Constant(Leaf):
         # Compute eigenvalues if absent.
         if self._eigvals is None:
             self._compute_eigvals()
-        return all(self._eigvals.real >= 0)
+        return all(self._eigvals.real >= -EIGVAL_TOL)
 
     @clru_cache(maxsize=100)
     def is_nsd(self):
@@ -215,12 +213,13 @@ class Constant(Leaf):
         # Compute eigenvalues if absent.
         if self._eigvals is None:
             self._compute_eigvals()
-        return all(self._eigvals.real <= 0)
+        return all(self._eigvals.real <= EIGVAL_TOL)
 
     def _compute_eigvals(self):
-        """Compute the eigenvalues of the constant.
+        """Compute the eigenvalues of the Hermitian or
+        symmetric matrix represented by this constant.
         """
         if self._sparse:
-            self._eigvals = LA.eigvals(self.value.todense())
+            self._eigvals = LA.eigvalsh(self.value.todense())
         else:
-            self._eigvals = LA.eigvals(self.value)
+            self._eigvals = LA.eigvalsh(self.value)

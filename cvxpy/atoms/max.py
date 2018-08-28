@@ -1,25 +1,21 @@
 """
 Copyright 2013 Steven Diamond
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
@@ -97,39 +93,3 @@ class max(AxisAtom):
         """Is the atom piecewise linear?
         """
         return self.args[0].is_pwl()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        axis = data[0]
-        if axis is None:
-            t = lu.create_var((1, 1))
-            promoted_t = lu.promote(t, arg_objs[0].shape)
-        elif axis == 0:
-            t = lu.create_var((1, arg_objs[0].shape[1]))
-            const_shape = (arg_objs[0].shape[0], 1)
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            promoted_t = lu.mul_expr(ones, t, arg_objs[0].shape)
-        else:  # axis == 1
-            t = lu.create_var((arg_objs[0].shape[0], 1))
-            const_shape = (1, arg_objs[0].shape[1])
-            ones = lu.create_const(np.ones(const_shape), const_shape)
-            promoted_t = lu.rmul_expr(t, ones, arg_objs[0].shape)
-
-        constraints = [lu.create_leq(arg_objs[0], promoted_t)]
-        return (t, constraints)

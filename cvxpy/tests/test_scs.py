@@ -1,20 +1,17 @@
 """
 Copyright 2013 Steven Diamond, Eric Chu
 
-This file is part of CVXPY.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CVXPY is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-CVXPY is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CVXPY.  If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import cvxpy as cvx
@@ -68,7 +65,6 @@ class TestSCS(BaseTest):
         p = cvx.Problem(obj, constr)
         result = p.solve(solver=cvx.SCS)
 
-
     def test_sigma_max(self):
         """Test sigma_max.
         """
@@ -115,12 +111,6 @@ class TestSCS(BaseTest):
         self.assertEqual(constraints[1].dual_value.shape, (2, 2))
         self.assertEqual(constraints[2].dual_value.shape, (2, 2))
         self.assertAlmostEqual(sol_scs, n1)
-
-    def test_entr(self):
-        """Test the entr atom.
-        """
-        self.assertEqual(cvx.entr(0).value, 0)
-        assert np.isneginf(cvx.entr(-1).value)
 
     def test_kl_div(self):
         """Test a problem with kl_div.
@@ -182,26 +172,6 @@ class TestSCS(BaseTest):
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
-
-    # def test_consistency(self):
-    #     """Test case for non-deterministic behavior in cvxopt.
-    #     """
-
-    #     xs = [0, 1, 2, 3]
-    #     ys = [51, 60, 70, 75]
-
-    #     eta1 = cvx.Variable()
-    #     eta2 = cvx.Variable()
-    #     eta3 = cvx.Variable()
-    #     theta1s = [eta1 + eta3*x for x in xs]
-    #     lin_parts = [theta1 * y + eta2 * y**2 for (theta1, y) in zip(theta1s, ys)]
-    #     g_parts = [-cvx.quad_over_lin(theta1, -4*eta2) + 0.5 * cvx.log(-2 * eta2)
-    #                for theta1 in theta1s]
-    #     objective = reduce(lambda x, y: x+y, lin_parts + g_parts)
-    #     problem = cvx.Problem(cvx.Maximize(objective))
-    #     problem.solve(verbose=True, solver=cvx.SCS)
-    #     assert problem.status in [cvx.OPTIMAL_INACCURATE, cvx.OPTIMAL]
-    #     return [eta1.value, eta2.value, eta3.value]
 
     def test_warm_start(self):
         """Test warm starting.
