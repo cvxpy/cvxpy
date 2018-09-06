@@ -293,15 +293,22 @@ class Leaf(expression.Expression):
             return (val + np.conj(val).T)/2
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
-            val = (val + val.T)/2
+            val = val + val.T
+            val /= 2
             if self.attributes['symmetric']:
                 return val
             w, V = LA.eigh(val)
             if self.attributes['PSD']:
-                w = np.maximum(w, 0)
+                bad = w < 0
+                if not bad.any():
+                    return val
+                w[bad] = 0
             else:  # NSD
-                w = np.minimum(w, 0)
-            return V.dot(np.diag(w)).dot(V.T)
+                bad = w > 0
+                if not bad.any():
+                    return val
+                w[bad] = 0
+            return (V * w).dot(V.T)
         else:
             return val
 
