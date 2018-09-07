@@ -290,11 +290,13 @@ class Leaf(expression.Expression):
                 val = np.diag(val)
             return sp.diags([val], [0])
         elif self.attributes['hermitian']:
-            return (val + np.conj(val).T)/2
+            return (val + np.conj(val).T)/2.
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
+            if val.dtype.kind in 'ib':
+                val = val.astype(np.float)
             val = val + val.T
-            val /= 2
+            val /= 2.
             if self.attributes['symmetric']:
                 return val
             w, V = LA.eigh(val)
