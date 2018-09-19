@@ -445,7 +445,7 @@ class MOSEK(ConicSolver):
                                      mosek.solsta.near_integer_optimal: s.OPTIMAL_INACCURATE,
                                      mosek.solsta.near_prim_infeas_cer: s.INFEASIBLE_INACCURATE,
                                      mosek.solsta.near_dual_infeas_cer: s.UNBOUNDED_INACCURATE}
-            STATUS_MAP = dict(STATUS_MAP, **STATUS_MAP_INACCURATE)
+            STATUS_MAP.update(STATUS_MAP_INACCURATE)
         STATUS_MAP = defaultdict(lambda: s.SOLVER_ERROR, STATUS_MAP)
 
         env = results['env']
