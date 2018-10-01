@@ -42,15 +42,17 @@ def norm(x, p=2, axis=None):
     """
     x = Expression.cast_to_const(x)
     # matrix norms take precedence
+    num_nontrivial_idxs = sum([d > 1 for d in x.shape])
     if axis is None and x.ndim == 2:
         if p == 1:  # matrix 1-norm
             return cvxpy.atoms.max(norm1(x, axis=0))
+        # Frobenius norm
+        elif p == 'fro' or (p == 2 and num_nontrivial_idxs == 1):
+            return pnorm(vec(x), 2)
         elif p == 2:  # matrix 2-norm is largest singular value
             return sigma_max(x)
         elif p == 'nuc':  # the nuclear norm (sum of singular values)
             return normNuc(x)
-        elif p == 'fro':  # Frobenius norm
-            return pnorm(vec(x), 2)
         elif p in [np.inf, "inf", "Inf"]:  # the matrix infinity-norm
             return cvxpy.atoms.max(norm1(x, axis=1))
         else:
