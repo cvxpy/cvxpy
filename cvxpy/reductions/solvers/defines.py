@@ -42,8 +42,6 @@ from cvxpy.reductions.solvers.conic_solvers.elemental_conif \
     import Elemental as Elemental_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif \
     import MOSEK as MOSEK_con
-from cvxpy.reductions.solvers.conic_solvers.julia_opt_conif \
-    import JuliaOpt as JuliaOpt_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif \
     import CPLEX as CPLEX_con
 
@@ -55,8 +53,7 @@ from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 solver_conic_intf = [ECOS_con(), ECOS_BB_con(),
                      CVXOPT_con(), GLPK_con(), XPRESS(),
                      GLPK_MI_con(), CBC_con(), SCS_con(), SuperSCS_con(), GUROBI_con(),
-                     Elemental_con(), MOSEK_con(), JuliaOpt_con(),
-                     CPLEX_con()]
+                     Elemental_con(), MOSEK_con(), CPLEX_con()]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp()
