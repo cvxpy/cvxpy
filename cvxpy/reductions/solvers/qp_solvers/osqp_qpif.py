@@ -94,7 +94,8 @@ class OSQP(QpSolver):
             if any(A.data != old_data['full_A'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
-            solver.update(**new_args)
+            if new_args:
+                solver.update(**new_args)
             # Map OSQP statuses back to CVXPY statuses
             status = self.STATUS_MAP.get(results.info.status_val, s.SOLVER_ERROR)
             if status == s.OPTIMAL:
