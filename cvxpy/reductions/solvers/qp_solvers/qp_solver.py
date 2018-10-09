@@ -108,7 +108,7 @@ class QpSolver(Solver):
         data['n_eq'] = A.shape[0]
         data['n_ineq'] = F.shape[0]
 
-        inverse_data.sorted_constraints = ineq_cons + eq_cons
+        inverse_data.sorted_constraints = eq_cons + ineq_cons
 
         # Add information about integer variables
         inverse_data.is_mip = \
