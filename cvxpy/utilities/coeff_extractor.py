@@ -77,8 +77,9 @@ class CoeffExtractor(object):
         return A, b.flatten()
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
-        # TODO(akshayka): What are the assumptions on the affine expression
-        # supplied to this method?
+        """ Assumes quadratic forms all have variable arguments.
+            Affine expressions can be anything.
+        """
 
         # Extract affine data.
         affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
