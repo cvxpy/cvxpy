@@ -492,8 +492,7 @@ class MOSEK(ConicSolver):
 
         # Store computation time
         attr = {}
-        attr[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time) + \
-            task.getdouinf(mosek.dinfitem.presolve_time)
+        attr[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
 
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
