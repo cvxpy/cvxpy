@@ -93,7 +93,7 @@ kron
 multiply
 -------------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.multiply.multiply
+.. autoclass:: cvxpy.atoms.affine.binary_operators.multiply
     :show-inheritance:
 
 .. _promote:
