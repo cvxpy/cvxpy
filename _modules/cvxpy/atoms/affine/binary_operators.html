@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.0.8 documentation</title>
+    <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.0.9 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../../',
-        VERSION:     '1.0.8',
+        VERSION:     '1.0.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -286,7 +286,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">div_expr</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[])</span></div>
 
 
-<span class="k">class</span> <span class="nc">multiply</span><span class="p">(</span><span class="n">MulExpression</span><span class="p">):</span>
+<div class="viewcode-block" id="multiply"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.multiply">[docs]</a><span class="k">class</span> <span class="nc">multiply</span><span class="p">(</span><span class="n">MulExpression</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Multiplies two expressions elementwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -341,7 +341,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">lhs</span><span class="p">),</span> <span class="p">[])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Product of two non-constant expressions is not &quot;</span>
-                           <span class="s2">&quot;DCP.&quot;</span><span class="p">)</span>
+                           <span class="s2">&quot;DCP.&quot;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

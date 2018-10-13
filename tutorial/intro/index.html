@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>What is CVXPY? &#8212; CVXPY 1.0.8 documentation</title>
+    <title>What is CVXPY? &#8212; CVXPY 1.0.9 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.8',
+        VERSION:     '1.0.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -93,8 +93,8 @@ constraints, create a new problem.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
 
 <span class="c1"># Replace the constraint (x + y == 1).</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-<span class="n">prob2</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">prob3</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
 </pre></div>
 </div>
