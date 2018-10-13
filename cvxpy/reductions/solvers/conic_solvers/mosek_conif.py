@@ -490,11 +490,15 @@ class MOSEK(ConicSolver):
             primal_vars = None
             dual_vars = None
 
+        # Store computation time
+        attr = {}
+        attr[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
+
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
         env.__exit__(None, None, None)
 
-        return Solution(status, opt_val, primal_vars, dual_vars, attr={})
+        return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     @staticmethod
     def recover_dual_variables(task, sol, inverse_data):
