@@ -72,33 +72,33 @@ class TestQp(BaseTest):
 
     def test_all_solvers(self):
         for solver in self.solvers:
-            #  self.quad_over_lin(solver)
-            #  self.power(solver)
-            #  self.power_matrix(solver)
-            #  self.square_affine(solver)
-            #  self.quad_form(solver)
-            #  self.affine_problem(solver)
-            #  self.maximize_problem(solver)
-            #  self.abs(solver)
-            #
-            #  # Do we need the following functionality?
-            #  # self.norm_2(solver)
-            #  # self.mat_norm_2(solver)
-            #
-            #  self.quad_form_coeff(solver)
-            #  self.quad_form_bound(solver)
-            #  self.regression_1(solver)
-            #  self.regression_2(solver)
-            #
-            #  # slow tests:
-            #  self.control(solver)
-            #  self.sparse_system(solver)
-            #  self.smooth_ridge(solver)
+            self.quad_over_lin(solver)
+            self.power(solver)
+            self.power_matrix(solver)
+            self.square_affine(solver)
+            self.quad_form(solver)
+            self.affine_problem(solver)
+            self.maximize_problem(solver)
+            self.abs(solver)
+
+            # Do we need the following functionality?
+            # self.norm_2(solver)
+            # self.mat_norm_2(solver)
+
+            self.quad_form_coeff(solver)
+            self.quad_form_bound(solver)
+            self.regression_1(solver)
+            self.regression_2(solver)
+
+            # slow tests:
+            self.control(solver)
+            self.sparse_system(solver)
+            self.smooth_ridge(solver)
             self.huber_small(solver)
             self.huber(solver)
-            #  self.equivalent_forms_1(solver)
-            #  self.equivalent_forms_2(solver)
-            #  self.equivalent_forms_3(solver)
+            self.equivalent_forms_1(solver)
+            self.equivalent_forms_2(solver)
+            self.equivalent_forms_3(solver)
 
     def quad_over_lin(self, solver):
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)),
