@@ -170,7 +170,7 @@ class TestQp(BaseTest):
         p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A*self.x <= b])
         s = self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=4)
+            self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
 
     def norm_2(self, solver):
         A = numpy.random.randn(10, 5)
