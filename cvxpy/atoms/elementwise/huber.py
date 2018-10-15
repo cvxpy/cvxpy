@@ -76,6 +76,11 @@ class huber(Elementwise):
         """
         return self.args[idx].is_nonpos()
 
+    def is_quadratic(self):
+        """Quadratic if x is affine.
+        """
+        return self.args[0].is_affine()
+
     def get_data(self):
         """Returns the parameter M.
         """
