@@ -659,6 +659,11 @@ See `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_
     Alternatively, Python enum options like ``'mosek.dparam.basis_tol_x'`` are
     also supported.
 
+``'save_file'``
+    The name of a file where MOSEK will save the problem just before optimization.
+    Refer to MOSEK documentation for a list of supported file formats. File format
+    is chosen based on the extension.
+
 `CVXOPT`_ options:
 
 ``'max_iters'``

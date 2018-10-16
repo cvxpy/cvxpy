@@ -265,9 +265,13 @@ class MOSEK(ConicSolver):
         # Parse all user-specified parameters (override default logging
         # parameters if applicable).
         kwargs = sorted(solver_opts.keys())
+        save_file = None
         if 'mosek_params' in kwargs:
             self._handle_mosek_params(task, solver_opts['mosek_params'])
             kwargs.remove('mosek_params')
+        if 'save_file' in kwargs:
+            save_file = solver_opts['save_file']
+            kwargs.remove('save_file')
         if 'bfs' in kwargs:
             kwargs.remove('bfs')
         if kwargs:
@@ -403,6 +407,8 @@ class MOSEK(ConicSolver):
 
         task.putclist(np.arange(len(c)), c)
         task.putobjsense(mosek.objsense.minimize)
+        if save_file:
+            task.writedata(save_file)
         task.optimize()
 
         if verbose:
