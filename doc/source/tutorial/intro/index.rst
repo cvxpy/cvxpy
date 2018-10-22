@@ -64,8 +64,8 @@ constraints, create a new problem.
     print("optimal value", prob2.solve())
 
     # Replace the constraint (x + y == 1).
-    constraints = [x + y <= 3] + prob.constraints[1:]
-    prob2 = cvx.Problem(prob.objective, constraints)
+    constraints = [x + y <= 3] + prob2.constraints[1:]
+    prob3 = cvx.Problem(prob2.objective, constraints)
     print("optimal value", prob2.solve())
 
 ::

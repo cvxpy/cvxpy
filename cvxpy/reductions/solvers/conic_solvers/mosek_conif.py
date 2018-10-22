@@ -265,9 +265,13 @@ class MOSEK(ConicSolver):
         # Parse all user-specified parameters (override default logging
         # parameters if applicable).
         kwargs = sorted(solver_opts.keys())
+        save_file = None
         if 'mosek_params' in kwargs:
             self._handle_mosek_params(task, solver_opts['mosek_params'])
             kwargs.remove('mosek_params')
+        if 'save_file' in kwargs:
+            save_file = solver_opts['save_file']
+            kwargs.remove('save_file')
         if 'bfs' in kwargs:
             kwargs.remove('bfs')
         if kwargs:
@@ -403,6 +407,8 @@ class MOSEK(ConicSolver):
 
         task.putclist(np.arange(len(c)), c)
         task.putobjsense(mosek.objsense.minimize)
+        if save_file:
+            task.writedata(save_file)
         task.optimize()
 
         if verbose:
@@ -490,11 +496,15 @@ class MOSEK(ConicSolver):
             primal_vars = None
             dual_vars = None
 
+        # Store computation time
+        attr = {}
+        attr[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
+
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
         env.__exit__(None, None, None)
 
-        return Solution(status, opt_val, primal_vars, dual_vars, attr={})
+        return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     @staticmethod
     def recover_dual_variables(task, sol, inverse_data):

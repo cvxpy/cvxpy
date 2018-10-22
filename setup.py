@@ -7,7 +7,13 @@ class build_ext_cvxpy(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
         # Prevent numpy from thinking it is still in its setup process:
-        __builtins__.__NUMPY_SETUP__ = False
+        # `__builtins__` can be a dict
+        # see https://docs.python.org/2/reference/executionmodel.html
+        if isinstance(__builtins__, dict):
+            __builtins__['__NUMPY_SETUP__'] = False
+        else:
+            __builtins__.__NUMPY_SETUP__ = False
+
         import numpy
         self.include_dirs.append(numpy.get_include())
 
@@ -26,7 +32,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.0.9',
+    version='1.0.10',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
