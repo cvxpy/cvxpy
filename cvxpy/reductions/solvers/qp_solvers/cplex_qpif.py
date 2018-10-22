@@ -64,7 +64,7 @@ class CPLEX(QpSolver):
             # Get solution
             x = np.array(model.solution.get_values())
             primal_vars = {
-                inverse_data.id_map.keys()[0]:
+                list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
