@@ -120,9 +120,9 @@ class SymData(object):
             ids = set()
             uniq_constr = []
             for c in constraints:
-              if c.constr_id not in ids:
-                uniq_constr.append(c)
-                ids.add(c.constr_id)
+                if c.constr_id not in ids:
+                    uniq_constr.append(c)
+                    ids.add(c.constr_id)
             constr_map[key] = uniq_constr
 
         # If there are no constraints, the problem is unbounded
