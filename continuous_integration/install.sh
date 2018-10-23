@@ -25,7 +25,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         source activate testenv
         conda install -c conda-forge --yes lapack
         conda install -c cvxgrp --yes ecos scs multiprocess
-        conda install -c anaconda --yes flake8
+        conda install -c default --yes flake8
 
         # Install GLPK.
         wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
@@ -55,7 +55,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
         conda install -c cvxgrp --yes ecos scs multiprocess
-        conda install -c anaconda --yes flake8
+        conda install -c default --yes flake8
     fi
 
 
