@@ -48,7 +48,6 @@ setup(
                       "multiprocess",
                       "fastcache",
                       "six",
-                      "toolz",
                       "numpy >= 1.14",
                       "scipy >= 0.19"],
     setup_requires=["numpy >= 1.14"],
