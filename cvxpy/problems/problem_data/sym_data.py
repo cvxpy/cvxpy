@@ -22,7 +22,6 @@ import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.lin_ops as lo
 from cvxpy.constraints import SOC, PSD, ExpCone
-from toolz.itertoolz import unique
 from collections import OrderedDict
 import numpy as np
 
@@ -118,9 +117,13 @@ class SymData(object):
         """
         # Remove redundant constraints.
         for key, constraints in constr_map.items():
-            uniq_constr = unique(constraints,
-                                 key=lambda c: c.constr_id)
-            constr_map[key] = list(uniq_constr)
+            ids = set()
+            uniq_constr = []
+            for c in constraints:
+              if c.constr_id not in ids:
+                uniq_constr.append(c)
+                ids.add(c.constr_id)
+            constr_map[key] = uniq_constr
 
         # If there are no constraints, the problem is unbounded
         # if any of the coefficients are non-zero.
