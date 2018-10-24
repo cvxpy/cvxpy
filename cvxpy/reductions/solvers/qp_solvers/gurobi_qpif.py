@@ -30,17 +30,17 @@ class GUROBI(QpSolver):
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
-                  6: s.SOLVER_ERROR,
+                  4: s.INFEASIBLE_INACCURATE,
+                  6: s.INFEASIBLE,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
                   # TODO could be anything.
                   # means time expired.
-                  9: s.OPTIMAL_INACCURATE,
+                  9: s.SOLVER_ERROR,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
+                  13: s.OPTIMAL_INACCURATE}
 
     def name(self):
         return s.GUROBI
