@@ -292,7 +292,7 @@ class GUROBI(Solver):
             results_dict["status"] = s.SOLVER_ERROR
 
         if results_dict["status"] == s.SOLVER_ERROR and model.SolCount:
-        	results_dict["status"] = s.OPTIMAL_INACCURATE
+            results_dict["status"] = s.OPTIMAL_INACCURATE
         results_dict["model"] = model
         results_dict["variables"] = variables
         results_dict["gur_constrs"] = gur_constrs
@@ -448,7 +448,7 @@ class GUROBI(Solver):
             try:
                 new_results[s.EQ_DUAL] = results_dict["y"][0:dims[s.EQ_DIM]]
                 new_results[s.INEQ_DUAL] = results_dict["y"][dims[s.EQ_DIM]:]
-            except:
+            except KeyError:
                 if not self.is_mip(data):
                     new_results[s.STATUS] = s.OPTIMAL_INACCURATE
 
