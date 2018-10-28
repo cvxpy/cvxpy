@@ -66,6 +66,7 @@ class Problem(u.Canonical):
         self._vars = self._variables()
         self._value = None
         self._status = None
+        self._solution = None
         # The solving chain with which to solve the problem
         self._solving_chain = None
         # List of separable (sub)problems
@@ -94,6 +95,12 @@ class Problem(u.Canonical):
                  of optimal, infeasible, or unbounded.
         """
         return self._status
+
+    @property
+    def solution(self):
+        """Solution : The solution from the last time the problem was solved.
+        """
+        return self._solution
 
     @property
     def objective(self):
@@ -210,6 +217,8 @@ class Problem(u.Canonical):
 
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
+
+        Populates the `.status', `.value`
 
         Parameters
         ----------
@@ -356,9 +365,9 @@ class Problem(u.Canonical):
                 raise e
 
         data, inverse_data = self._solving_chain.apply(self)
-        solution = self._solving_chain.solve_via_data(self, data, warm_start, verbose,
-                                                      kwargs)
-        self.unpack_results(solution, self._solving_chain, inverse_data)
+        self._solution = self._solving_chain.solve_via_data(
+          self, data, warm_start, verbose, kwargs)
+        self.unpack_results(self.solution, self._solving_chain, inverse_data)
         return self.value
 
     def _parallel_solve(self,
@@ -452,6 +461,30 @@ class Problem(u.Canonical):
         """
         solution = chain.invert(solution, inverse_data)
         self._value = solution.opt_val
+        try:
+            self.unpack(solution)
+        except ValueError:
+            raise SolverError(
+                "Solver '%s' failed. " % chain.solver.name() +
+                "Try another solver or solve with verbose=True for more "
+                "information. Try recentering the problem data around 0 and "
+                "rescaling to reduce the dynamic range."
+            )
+        self._status = solution.status
+        self._solver_stats = SolverStats(solution.attr, chain.solver.name())
+
+    def unpack(self, solution):
+        """Updates the problem state given a Solution.
+
+        Updates problem.status, problem.value and value of
+        primal and dual variables.
+
+        Parameters
+        __________
+        solution : Solution
+            The solution returned by applying the chain to the problem
+            and invoking the solver on the resulting data.
+        """
         if solution.status in s.SOLUTION_PRESENT:
             for v in self.variables():
                 v.save_value(solution.primal_vars[v.id])
@@ -464,14 +497,7 @@ class Problem(u.Canonical):
             for constr in self.constraints:
                 constr.save_value(None)
         else:
-            raise SolverError(
-                "Solver '%s' failed. " % chain.solver.name() +
-                "Try another solver or solve with verbose=True for more information. " +
-                "Try recentering the problem data around 0 and rescaling " +
-                "to reduce the dynamic range."
-            )
-        self._status = solution.status
-        self._solver_stats = SolverStats(solution.attr, chain.solver.name())
+            raise ValueError("Cannot unpack invalid solution.")
 
     def __str__(self):
         if len(self.constraints) == 0:

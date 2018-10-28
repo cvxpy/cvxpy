@@ -28,9 +28,6 @@ class Canonicalization(Reduction):
     def __init__(self, canon_methods=None):
         self.canon_methods = canon_methods
 
-    # TODO(akshayka): It appears that this class implicitly assumes that
-    # the number of variables is > 0. This assumption should either be made
-    # explicit or eliminated.
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
@@ -64,7 +61,8 @@ class Canonicalization(Reduction):
     def canonicalize_tree(self, expr):
         # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
-            canon_expr, constrs = self.canonicalize_tree(expr.args[0].objective.expr)
+            canon_expr, constrs = self.canonicalize_tree(
+              expr.args[0].objective.expr)
             for constr in expr.args[0].constraints:
                 canon_constr, aux_constr = self.canonicalize_tree(constr)
                 constrs += [canon_constr] + aux_constr

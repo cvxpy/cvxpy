@@ -52,6 +52,49 @@ class Reduction(object):
         return NotImplemented
 
     @abc.abstractmethod
+    def reduce(self, problem):
+        """Reduces a problem to an equivalent problem.
+
+        This method can be called exactly once.
+
+        Parameters
+        ----------
+        problem : Problem
+            The problem to which the reduction will be applied.
+
+        Returns
+        -------
+        Problem or dict
+            An equivalent problem, encoded either as a Problem or a dict.
+        """
+        if hasattr(self, '_retrieval_data'):
+            raise ValueError("The `reduce` method can be called exactly once; "
+                             "consider creating another reduction object, or "
+                             "use the lower-level apply/invert API.")
+        problem, retrieval_data = self.apply(problem)
+        self._retrieval_data = retrieval_data
+        return problem
+
+    @abc.abstractmethod
+    def retrieve(self, solution):
+        """Returns a solution to the original problem given a solution to
+           the reduced-to problem.
+
+        Parameters
+        ----------
+        solution : Solution
+            A solution to a problem that generated the inverse_data.
+
+        Returns
+        -------
+        Solution
+            A solution to the original problem.
+        """
+        if not hasattr(self, '_retrieval_data'):
+            raise ValueError("`reduce()` must be called before `retrieve()`.")
+        return self.invert(solution, self._retrieval_data)
+
+    @abc.abstractmethod
     def apply(self, problem):
         """Applies the reduction to a problem and returns an equivalent problem.
 
