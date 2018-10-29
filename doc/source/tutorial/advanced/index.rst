@@ -361,6 +361,8 @@ Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
 CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `OSQP`_, and `SCS`_.
+On most platforms, :ref:`installation of GLPK support <glpk-installation>` is as
+easy as executing ``pip install cvxpy[glpk]``.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 

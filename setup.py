@@ -51,5 +51,10 @@ setup(
                       "numpy >= 1.14",
                       "scipy >= 0.19"],
     setup_requires=["numpy >= 1.14"],
+    extras_require={
+        'glpk': [
+            'cvxopt >= 1.2.0; sys_platform == "darwin" or sys_platform == "linux" or os_name == "nt" and python_version >= "3.5"',
+        ],
+   },
     use_2to3=True,
 )

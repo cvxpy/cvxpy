@@ -10,28 +10,14 @@ compatible with 1.0.
 Mac OS X and Linux
 ------------------
 
-CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend using
-Anaconda for installation, as we find that most users prefer to let Anaconda
-manage dependencies and environments for them. If you are comfortable with
-managing your own environment, you can instead install CVXPY with
-:ref:`pip <pip-installation>`.
-
-1. Install `Anaconda`_.
-
-2. Install ``cvxpy`` with ``conda``.
+CVXPY supports both Python 2 and Python 3 on OS X and Linux. You can
+install CVXPY as described in :ref:`pip <pip-installation>`, or, if you prefer
+Anaconda, with
 
    ::
 
       conda install -c conda-forge lapack
       conda install -c cvxgrp cvxpy
-
-3. Test the installation with ``nose``.
-
-  ::
-
-       conda install nose
-       nosetests cvxpy
-
 
 Windows
 -------
@@ -68,13 +54,22 @@ The CVXPY installation process on other platforms is less automated and less wel
 Pip
 ----------------
 
-CVXPY can be installed on all platforms with `pip`_. We recommend isolating
-your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
+CVXPY can be installed on all platforms with `pip`_. We recommend isolating your
+installation in a virtual environment, either with `virtualenv
+<https://virtualenv.pypa.io/en/stable/>`_ on Python 2 or with :mod:`venv` on
+Python 3.3 and later.
 After activating the environment, simply execute:
 
   ::
 
       pip install cvxpy
+
+To add optional support for `GLPK`_ on :ref:`most platforms <glpk-installation>`,
+execute:
+
+  ::
+
+      pip install cvxpy[glpk]
 
 
 Install from source
@@ -106,12 +101,47 @@ as will `Swig`_ . Once you’ve installed these dependencies:
 
        python setup.py install
 
-Install with CVXOPT support
----------------------------
+Running the tests
+-----------------
+
+After installation, you may run the tests with ``nose``.
+
+  ::
+
+       pip install nose
+       nosetests cvxpy
+
+
+.. _glpk-installation:
+
+Install with CVXOPT and GLPK support
+-----------------------------------
 
 CVXPY supports the `CVXOPT`_ solver.
-Simply install CVXOPT such that you can ``import cvxopt`` in Python.
-See the `CVXOPT`_ website for installation instructions.
+Additionally, through CVXOPT, CVXPY supports the `GLPK`_ solver. On `most
+platforms <http://cvxopt.org/install/index.html#installing-a-pre-built-package>`_,
+`CVXOPT`_ comes with GLPK bundled. On such platforms, installing CVXPY with
+
+  ::
+
+      pip install cvxpy[glpk]
+
+should suffice to get support for both CVXOPT and GLPK.
+
+On other platforms, to install CVXPY and its dependencies with GLPK support, follow these instructions:
+
+1. Install `GLPK`_. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and Homebrew on OS X.
+
+2. Install `CVXOPT`_ with GLPK bindings.
+
+    ::
+
+      CVXOPT_BUILD_GLPK=1
+      CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
+      CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
+      pip install cvxopt
+
+3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
 Install with Elemental support
 ------------------------------
@@ -141,25 +171,6 @@ CVXPY supports the XPRESS solver.
 Simply install XPRESS such that you can ``import xpress`` in Python.
 See the `XPRESS <http://www.fico.com/en/products/fico-xpress-optimization-suite>`_ website for installation instructions.
 
-Install with GLPK support
--------------------------
-
-CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindings. To install CVXPY and its dependencies with GLPK support, follow these instructions:
-
-1. Install `GLPK <https://www.gnu.org/software/glpk/>`_. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.
-
-2. Install `CVXOPT`_ with GLPK bindings.
-
-    ::
-
-      CVXOPT_BUILD_GLPK=1
-      CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
-      CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
-      pip install cvxopt
-
-3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
-
-
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
 CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
@@ -181,3 +192,4 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _cvxcore: https://github.com/jacklzhu/cvxcore
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/
+.. _GLPK: https://www.gnu.org/software/glpk/
