@@ -112,13 +112,7 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
-    def is_atom_log_log_convex(self):
-        # Multiplication is log-log affine precisely when each argument
-        # is positive.
-        return all(arg.is_pos() for arg in self.args)
-
-    def is_atom_log_log_concave(self):
-        return self.is_atom_log_log_convex()
+    # TODO(akshayka): This should probably be log_log_convex ...
 
     def is_atom_convex(self):
         """Multiplication is convex (affine) in its arguments only if one of
@@ -291,6 +285,12 @@ class multiply(MulExpression):
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
             rh_expr = promote(rh_expr, lh_expr.shape)
         super(multiply, self).__init__(lh_expr, rh_expr)
+
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return True
 
     def numeric(self, values):
         """Multiplies the values elementwise.

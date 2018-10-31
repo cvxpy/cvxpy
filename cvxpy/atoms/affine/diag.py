@@ -49,6 +49,12 @@ class diag_vec(AffAtom):
     def __init__(self, expr):
         super(diag_vec, self).__init__(expr)
 
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return True
+
     def numeric(self, values):
         """Convert the vector constant into a diagonal matrix.
         """
@@ -97,6 +103,12 @@ class diag_mat(AffAtom):
 
     def __init__(self, expr):
         super(diag_mat, self).__init__(expr)
+
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return True
 
     @AffAtom.numpy_numeric
     def numeric(self, values):

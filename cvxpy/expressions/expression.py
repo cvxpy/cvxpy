@@ -174,7 +174,7 @@ class Expression(u.Canonical):
         try:
             return self.__is_log_log_affine
         except AttributeError:
-            self.__is_log_log_affine = self.is_constant() or (
+            self.__is_log_log_affine = (self.is_constant() and self.is_pos()) or (
                                        self.is_log_log_convex() and
                                        self.is_log_log_concave())
             return self.__is_log_log_affine

@@ -205,6 +205,7 @@ class geo_mean(Atom):
 
         if p is None:
             p = [1]*n
+        self.p = p
 
         if len(p) != n:
             raise ValueError('x and p must have the same number of elements.')
@@ -289,6 +290,12 @@ class geo_mean(Atom):
     def is_atom_concave(self):
         """Is the atom concave?
         """
+        return True
+
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
         return True
 
     def is_incr(self, idx):

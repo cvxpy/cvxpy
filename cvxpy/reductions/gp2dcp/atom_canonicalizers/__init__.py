@@ -3,6 +3,7 @@ from cvxpy.atoms.affine.binary_operators import multiply, DivExpression
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
@@ -13,10 +14,11 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.sum_largest_canon import
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.add_canon import add_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.constant_canon import constant_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.div_canon import div_canon
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.zero_constr_canon import zero_constr_canon
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.nonpos_constr_canon import nonpos_constr_canon
+from cvxpy.reductions.gp2dcp.atom_canonicalizers.geo_mean_canon import geo_mean_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.mul_canon import mul_canon
+from cvxpy.reductions.gp2dcp.atom_canonicalizers.nonpos_constr_canon import nonpos_constr_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.power_canon import power_canon
+from cvxpy.reductions.gp2dcp.atom_canonicalizers.zero_constr_canon import zero_constr_canon
 
 
 # TODO(akshayka): canon for matrix multiplication (MulExpression)
@@ -30,15 +32,17 @@ CANON_METHODS = {
     NonPos : nonpos_constr_canon,
     maximum : maximum_canon,
     DivExpression : div_canon,
-    sum_largest : sum_largest_canon,  # TODO(akshayka): Figure out sum_largest canon
+    sum_largest : sum_largest_canon,
+    geo_mean : geo_mean_canon,
 }
 
-# TODO(akshayka): This is a hack, think of something nicer.
 class DgpCanonMethods(dict):
     def __init__(self, *args, **kwargs):
         super(DgpCanonMethods, self).__init__(*args, **kwargs)
-        self.update(CANON_METHODS)
         self._variables = {}
+
+    def __contains__(self, key):
+        return key in CANON_METHODS
 
     def __getitem__(self, key):
         if key == Variable:
@@ -47,6 +51,7 @@ class DgpCanonMethods(dict):
             return CANON_METHODS[key]
 
     def variable_canon(self, expr, args):
+        # Swaps out positive variables for unconstrained variables.
         if expr in self._variables:
             return self._variables[expr], []
         else:

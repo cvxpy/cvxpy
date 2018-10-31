@@ -70,7 +70,7 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals(x.value, 1.0)
         self.assertAlmostEquals(y.value, 4.0)
 
-    def test_sum_largest_basic(self):
+    def test_sum_largest(self):
         x = cvxpy.Variable((4,), pos=True)
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3))
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
@@ -81,7 +81,8 @@ class TestDgp2Dcp(BaseTest):
         dgp.unpack(gp2dcp.retrieve(dcp.solution))
         opt = 6.0
         self.assertAlmostEquals(dgp.value, opt)
-        self.assertAlmostEquals((x[0] * x[1] * x[2] * x[3]).value, 16, places=2)
+        self.assertAlmostEquals((x[0] * x[1] * x[2] * x[3]).value, 16,
+                                places=2)
 
         # An unbounded problem.
         x = cvxpy.Variable((4,), pos=True)
@@ -125,3 +126,21 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals(dgp.value, opt, places=2)
         self.assertAlmostEquals((x[0] * x[1]).value, 16.0, places=2)
         self.assertAlmostEquals(x[3].value, 0.0, places=2)
+
+    def test_geo_mean(self):
+        x = cvxpy.Variable(3, pos=True)
+        p = [1, 2, 0.5]
+        geo_mean = cvxpy.geo_mean(x, p)
+        dgp = cvxpy.Problem(cvxpy.Minimize(geo_mean), [])
+        gp2dcp = cvxpy.reductions.Gp2Dcp()
+        dcp = gp2dcp.reduce(dgp)
+        dcp.solve()
+        self.assertEquals(dcp.value, -float("inf"))
+        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        self.assertEquals(dgp.value, 0.0)
+        self.assertEquals(dgp.status, "unbounded")
+
+    def test_mat_mul(self):
+        # TODO(akshayka): Implement canonicalization ...?
+        # would canonicalization need to actually collapse the multiplication ...?
+        pass
