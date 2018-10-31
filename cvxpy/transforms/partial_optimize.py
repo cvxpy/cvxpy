@@ -122,6 +122,18 @@ class PartialProblem(Expression):
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
+    def is_log_log_convex(self):
+        """Is the expression convex?
+        """
+        return self.args[0].is_dgp() and \
+            type(self.args[0].objective) == Minimize
+
+    def is_log_log_concave(self):
+        """Is the expression convex?
+        """
+        return self.args[0].is_dgp() and \
+            type(self.args[0].objective) == Maximize
+
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
