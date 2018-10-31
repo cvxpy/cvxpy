@@ -69,6 +69,7 @@ class Problem(u.Canonical):
         self._solution = None
         # The solving chain with which to solve the problem
         self._solving_chain = None
+        self._cached_chain_key = None
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
@@ -231,16 +232,19 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        method : function, optional
-            The solve method to use.
         solver : str, optional
-            The solver to use.
+            The solver to use. For example, 'ECOS', 'SCS', or 'OSQP'.
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        gp : bool, optional
+            If True, then parses the problem as a disciplined geometric program
+            instead of a disciplined convex program.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
             imposed by cvxpy.
+        method : function, optional
+            A custom solve method to use.
 
         Returns
         -------
@@ -251,7 +255,9 @@ class Problem(u.Canonical):
         Raises
         ------
         DCPError
-            Raised if the problem is not DCP.
+            Raised if the problem is not DCP and `gp` is False.
+        DGPError
+            Raised if the problem is not DGP and `gp` is True.
         SolverError
             Raised if no suitable solver exists among the installed solvers,
             or if an unanticipated error is encountered.
@@ -323,7 +329,7 @@ class Problem(u.Canonical):
                ignore_dcp=False,
                warm_start=True,
                verbose=False,
-               parallel=False, **kwargs):
+               parallel=False, gp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -343,6 +349,9 @@ class Problem(u.Canonical):
             Overrides the default of hiding solver output.
         parallel : bool, optional
             If problem is separable, solve in parallel.
+        gp : bool, optional
+            If True, then parses the problem as a disciplined geometric program
+            instead of a disciplined convex program.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -361,17 +370,15 @@ class Problem(u.Canonical):
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
 
-        # If a previous chain does not exist, or if the solver is
-        # specified and it does not match the solver used for the previous
-        # solve, then construct a new solving chain.
-        if (self._solving_chain is None
-                or (solver is not None
-                    and self._solving_chain.solver.name != solver)):
+        chain_key = (solver, gp)
+        if chain_key != self._cached_chain_key:
             try:
                 self._solving_chain = construct_solving_chain(self,
-                                                              solver=solver)
+                                                              solver=solver,
+                                                              gp=gp)
             except Exception as e:
                 raise e
+        self._cached_chain_key = chain_key
 
         data, inverse_data = self._solving_chain.apply(self)
         solver_output = self._solving_chain.solve_via_data(

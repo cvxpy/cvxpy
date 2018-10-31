@@ -1,9 +1,9 @@
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
-from cvxpy.error import DCPError, SolverError
+from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
-                              FlipObjective, Qp2SymbolicQp, QpMatrixStuffing,
+                              FlipObjective, Gp2Dcp, Qp2SymbolicQp, QpMatrixStuffing,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -14,7 +14,7 @@ from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC,
                                               QP_SOLVERS)
 
 
-def construct_solving_chain(problem, solver=None):
+def construct_solving_chain(problem, solver=None, gp=False):
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -29,6 +29,9 @@ def construct_solving_chain(problem, solver=None):
         is supplied (i.e., if solver is None), then the targeted solver may be
         any of those that are installed. If the problem is variable-free,
         then this parameter is ignored.
+    gp : bool
+        If True, the problem is parsed as a Disciplined Geometric Program
+        instead of as a Disciplined Convex Program.
 
     Returns
     -------
@@ -38,7 +41,9 @@ def construct_solving_chain(problem, solver=None):
     Raises
     ------
     DCPError
-        Raised if the problem is not DCP.
+        Raised if the problem is not DCP and `gp` is False.
+    DGPError
+        Raised if the problem is not DGP and `gp` is True
     SolverError
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
@@ -51,8 +56,6 @@ def construct_solving_chain(problem, solver=None):
         candidates = INSTALLED_SOLVERS
 
     reductions = []
-    # Evaluate parameters and short-circuit the solver if the problem
-    # is constant.
     if problem.parameters():
         reductions += [EvalParams()]
     if len(problem.variables()) == 0:
@@ -60,19 +63,31 @@ def construct_solving_chain(problem, solver=None):
         return SolvingChain(reductions=reductions)
     if Complex2Real().accepts(problem):
         reductions += [Complex2Real()]
+    if gp:
+        reductions += [Gp2Dcp()]
 
-    #  Presently, we have but two reduction chains:
-    #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> [a QpSolver],
-    #   (2) Dcp2Cone --> ConeMatrixStuffing --> [a ConicSolver]
-    # Both of these chains require that the problem is DCP.
-    if not problem.is_dcp():
-        raise DCPError("Problem does not follow DCP rules.")
+    if not gp and not problem.is_dcp():
+        append = ""
+        if problem.is_dgp():
+            append = (" However, the problem does follow DGP rules. "
+                      "Consider calling this function with `gp=True`.")
+        raise DCPError("Problem does not follow DCP rules." + append)
+    elif gp and not problem.is_dgp():
+        append = ""
+        if problem.is_dcp():
+            append = (" However, the problem does follow DCP rules. "
+                      "Consider calling this function with `gp=False`.")
+        raise DGPError("Problem does not follow DGP rules." + append)
 
-    # Both reduction chains exclusively accept minimization problems.
+    # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
     if type(problem.objective) == Maximize:
         reductions.append(FlipObjective())
 
-    # Attempt to canonicalize the problem to a linearly constrained QP.
+    # Conclude the chain with one of the following:
+    #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> [a QpSolver],
+    #   (2) Dcp2Cone --> ConeMatrixStuffing --> [a ConicSolver]
+    #
+    # First, attempt to canonicalize the problem to a linearly constrained QP.
     candidate_qp_solvers = [s for s in QP_SOLVERS if s in candidates]
     # Consider only MIQP solvers if problem is integer
     if problem.is_mixed_integer():

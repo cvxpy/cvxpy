@@ -27,6 +27,12 @@ class DCPError(Exception):
     pass
 
 
+class DGPError(Exception):
+    """Error thrown for DGP violations.
+    """
+    pass
+
+
 class ParameterError(Exception):
     """Error thrown for accessing the value of an unspecified parameter.
     """

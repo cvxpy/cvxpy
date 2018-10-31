@@ -13,6 +13,12 @@ class Chain(Reduction):
     def __init__(self, reductions=[]):
         self.reductions = reductions
 
+    def __str__(self):
+        return str(self.reductions)
+
+    def __repr__(self):
+        return "Chain(reductions=%s)" % repr(self.reductions)
+
     def accepts(self, problem):
         """A problem is accepted if the sequence of reductions is valid.
 
