@@ -81,6 +81,12 @@ class sum_largest(Atom):
         """
         return False
 
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return False
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """

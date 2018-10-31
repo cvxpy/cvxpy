@@ -74,6 +74,10 @@ class Leaf(expression.Expression):
         boolean argument.
     sparsity : list of tuplewith
         Fixed sparsity pattern for the variable.
+    pos : bool
+        Is the variable positive, ie, nonneg and not nonnpos?
+    neg : bool
+        Is the variable negative, ie, nonpos and not nonneg?
     """
 
     __metaclass__ = abc.ABCMeta
@@ -83,7 +87,7 @@ class Leaf(expression.Expression):
                  symmetric=False, diag=False, PSD=False,
                  NSD=False, hermitian=False,
                  boolean=False, integer=False,
-                 sparsity=None):
+                 sparsity=None, pos=False, neg=False):
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif len(shape) > 2:
@@ -98,6 +102,18 @@ class Leaf(expression.Expression):
                                                                or shape[0] != shape[1]):
             raise ValueError("Invalid dimensions %s. Must be a square matrix."
                              % (shape,))
+
+        if pos and nonpos:
+            raise ValueError("A leaf cannot be both positive and nonnpositive.")
+        if neg and nonneg:
+            raise ValueError("A leaf cannot be both negative and nonnegative.")
+
+        if pos:
+            nonneg = True
+            nonpos = False
+        if neg:
+            nonneg = False
+            nonpos = True
 
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
@@ -195,6 +211,16 @@ class Leaf(expression.Expression):
         """Is the expression concave?
         """
         return True
+
+    def is_log_log_convex(self):
+        """Is the expression log-log convex?
+        """
+        return self.is_pos()
+
+    def is_log_log_concave(self):
+        """Is the expression log-log concave?
+        """
+        return self.is_pos()
 
     def is_nonneg(self):
         """Is the expression nonnegative?

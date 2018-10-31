@@ -36,6 +36,12 @@ def hstack(arg_list):
 
 class Hstack(AffAtom):
     """ Horizontal concatenation """
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return True
+
     # Returns the hstack of the values.
     def numeric(self, values):
         return np.hstack(values)

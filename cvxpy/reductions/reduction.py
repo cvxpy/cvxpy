@@ -51,7 +51,6 @@ class Reduction(object):
         """
         return NotImplemented
 
-    @abc.abstractmethod
     def reduce(self, problem):
         """Reduces a problem to an equivalent problem.
 
@@ -75,7 +74,6 @@ class Reduction(object):
         self._retrieval_data = retrieval_data
         return problem
 
-    @abc.abstractmethod
     def retrieve(self, solution):
         """Returns a solution to the original problem given a solution to
            the reduced-to problem.

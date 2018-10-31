@@ -57,6 +57,13 @@ class AddExpression(AffAtom):
     def numeric(self, values):
         return reduce(op.add, values)
 
+    def is_atom_log_log_convex(self):
+        return all(arg.is_pos() for arg in self.args)
+
+    def is_atom_log_log_concave(self):
+        # TODO(akshayka): x - y, x >= y
+        return False
+
     def is_symmetric(self):
         """Is the expression symmetric?
         """

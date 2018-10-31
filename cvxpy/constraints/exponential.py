@@ -142,6 +142,9 @@ class ExpCone(NonlinearConstraint):
         """
         return all(arg.is_affine() for arg in self.args)
 
+    def is_dgp(self):
+        return False
+
     def canonicalize(self):
         """Canonicalizes by converting expressions to LinOps.
         """

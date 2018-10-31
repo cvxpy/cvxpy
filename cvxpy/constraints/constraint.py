@@ -96,6 +96,17 @@ class Constraint(u.Canonical):
         """
         return NotImplemented
 
+    @abc.abstractmethod
+    def is_dgp(self):
+        """Checks whether the constraint is DGP.
+
+        Returns
+        -------
+        bool
+            True if the constraint is DGP, False otherwise.
+        """
+        return NotImplemented
+
     @abc.abstractproperty
     def residual(self):
         """The residual of the constraint.

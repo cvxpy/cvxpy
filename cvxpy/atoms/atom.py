@@ -120,6 +120,21 @@ class Atom(Expression):
         """
         return self.is_atom_concave() and self.is_atom_convex()
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return False
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
+    def is_atom_log_log_affine(self):
+        """Is the atom log-log affine?
+        """
+        return self.is_atom_log_log_concave() and self.is_atom_log_log_convex()
+
     @abc.abstractmethod
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
@@ -161,6 +176,42 @@ class Atom(Expression):
                 if not (arg.is_affine() or
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+
+    @clru_cache(maxsize=100)
+    def is_log_log_convex(self):
+        """Is the expression log-log convex?
+        """
+        # Verifies DGP composition rule.
+        if self.is_constant():
+            # TODO(akshayka): Needs some thought.
+            return self.is_pos()
+        elif self.is_atom_log_log_convex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_log_log_affine() or
+                        (arg.is_log_log_convex() and self.is_incr(idx)) or
+                        (arg.is_log_log_concave() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+
+    @clru_cache(maxsize=100)
+    def is_log_log_concave(self):
+        """Is the expression log-log concave?
+        """
+        # Verifies DGP composition rule.
+        if self.is_constant():
+            # TODO(akshayka): Needs some thought.
+            return self.is_pos()
+        elif self.is_atom_log_log_concave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_log_log_affine() or
+                        (arg.is_log_log_concave() and self.is_incr(idx)) or
+                        (arg.is_log_log_convex() and self.is_decr(idx))):
                     return False
             return True
         else:

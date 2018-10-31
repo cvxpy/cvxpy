@@ -132,7 +132,8 @@ class Expression(u.Canonical):
         try:
             return self.__is_constant
         except AttributeError:
-            self.__is_constant = len(self.variables()) == 0 or self.is_zero() or 0 in self.shape
+            self.__is_constant = (len(self.variables()) == 0 or
+                                  self.is_zero() or 0 in self.shape)
             return self.__is_constant
 
     def is_affine(self):
@@ -141,7 +142,8 @@ class Expression(u.Canonical):
         try:
             return self.__is_affine
         except AttributeError:
-            self.__is_affine = self.is_constant() or (self.is_convex() and self.is_concave())
+            self.__is_affine = self.is_constant() or (
+                               self.is_convex() and self.is_concave())
             return self.__is_affine
 
     @abc.abstractmethod
@@ -165,6 +167,39 @@ class Expression(u.Canonical):
             True if the constraint is DCP, False otherwise.
         """
         return self.is_convex() or self.is_concave()
+
+    def is_log_log_affine(self):
+        """Is the expression affine?
+        """
+        try:
+            return self.__is_log_log_affine
+        except AttributeError:
+            self.__is_log_log_affine = self.is_constant() or (
+                                       self.is_log_log_convex() and
+                                       self.is_log_log_concave())
+            return self.__is_log_log_affine
+
+    @abc.abstractmethod
+    def is_log_log_convex(self):
+        """Is the expression log-log convex?
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def is_log_log_concave(self):
+        """Is the expression log-log concave?
+        """
+        return NotImplemented
+
+    def is_dgp(self):
+        """Checks whether the constraint is log-log DCP.
+
+        Returns
+        -------
+        bool
+            True if the constraint is log-log DCP, False otherwise.
+        """
+        return self.is_log_log_convex() or self.is_log_log_concave()
 
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
@@ -242,6 +277,16 @@ class Expression(u.Canonical):
         """Is the expression negative?
         """
         return NotImplemented
+
+    def is_pos(self):
+        """Is the expression positive and not negative?
+        """
+        return self.is_nonneg() and not self.is_nonpos()
+
+    def is_neg(self):
+        """Is the expression negative and not positive?
+        """
+        return self.is_nonneg() and not self.is_nonpos()
 
     @abc.abstractproperty
     def shape(self):
@@ -386,6 +431,8 @@ class Expression(u.Canonical):
         elif self.is_constant() or other.is_constant():
             return cvxtypes.mul_expr()(self, other)
         else:
+            # TODO(akshayka): This message will be annoying when
+            # forming GPs.
             warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.mul_expr()(self, other)
 
@@ -411,7 +458,10 @@ class Expression(u.Canonical):
         if other.is_constant() and other.is_scalar():
             return cvxtypes.div_expr()(self, other)
         else:
-            raise DCPError("Can only divide by a scalar constant.")
+            # TODO(akshayka): This message will be obnoxious when creating
+            # GPs.
+            warnings.warn("Forming a nonconvex expression.")
+            return cvxtypes.div_expr()(self, other)
 
     @_cast_other
     def __rdiv__(self, other):
@@ -473,15 +523,25 @@ class Expression(u.Canonical):
     # Comparison operators.
     @_cast_other
     def __eq__(self, other):
-        """Zero : Creates an equality constraint ``self == other``.
+        """Zero : Creates a zero constraint ``self - other == 0``.
         """
-        return Zero(self - other)
+        constr = Zero(self - other)
+        # TODO(akshayka): This is a temporary workaround for GPs;
+        # come up with something nicer.
+        constr._lhs = self
+        constr._rhs = other
+        return constr
 
     @_cast_other
     def __le__(self, other):
         """NonPos : Creates an inequality constraint.
         """
-        return NonPos(self - other)
+        constr = NonPos(self - other)
+        # TODO(akshayka): This is a temporary workaround for GPs;
+        # come up with something nicer.
+        constr._lhs = self
+        constr._rhs = other
+        return constr
 
     def __lt__(self, other):
         """Unsupported.

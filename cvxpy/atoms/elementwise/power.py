@@ -182,6 +182,12 @@ class power(Elementwise):
         # p == 0 is affine here.
         return 0 <= self.p <= 1
 
+    def is_atom_log_log_convex(self):
+        return self.args[0].is_pos()
+
+    def is_atom_log_log_concave(self):
+        return self.args[0].is_pos()
+
     def is_constant(self):
         """Is the expression constant?
         """

@@ -87,7 +87,12 @@ class Canonicalization(Reduction):
                 return param, []
             # Non-parameterized expressions are evaluated immediately.
             else:
-                return Constant(expr.value), []
+                const = (Constant(expr.value) if not isinstance(expr, Constant)
+                         else expr)
+                if Constant in self.canon_methods:
+                    return self.canon_methods[Constant](const, const.args)
+                else:
+                    return const, []
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
         else:

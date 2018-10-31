@@ -58,6 +58,9 @@ class Zero(Constraint):
         """A zero constraint is DCP if its argument is affine."""
         return self.args[0].is_affine()
 
+    def is_dgp(self):
+        return self._lhs.is_log_log_affine() and self._rhs.is_log_log_affine()
+
     @property
     def residual(self):
         """The residual of the constraint.

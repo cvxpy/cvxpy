@@ -112,6 +112,14 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
+    def is_atom_log_log_convex(self):
+        # Multiplication is log-log affine precisely when each argument
+        # is positive.
+        return all(arg.is_pos() for arg in self.args)
+
+    def is_atom_log_log_concave(self):
+        return self.is_atom_log_log_convex()
+
     def is_atom_convex(self):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
@@ -217,15 +225,38 @@ class DivExpression(BinaryOperator):
         """
         return self.args[0].shape
 
+    def is_atom_log_log_convex(self):
+        # Division is log-log affine precisely when each argument is positive;
+        # x / y corresponds to x * y**(-1), and *, power are both affine.
+        return all(arg.is_pos() for arg in self.args)
+
+    def is_atom_log_log_concave(self):
+        return self.is_atom_log_log_convex()
+
+    def is_atom_convex(self):
+        """Division is convex (affine) in its arguments only if
+           the denominator is constant.
+        """
+        return self.args[1].is_constant() and self.args[1].is_scalar()
+
+    def is_atom_concave(self):
+        return self.is_atom_convex()
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[1].is_nonneg()
+        if idx == 0:
+            return self.args[1].is_nonneg()
+        else:
+            return self.args[0].is_nonpos()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[1].is_nonpos()
+        if idx == 0:
+            return self.args[1].is_nonpos()
+        else:
+            return self.args[0].is_nonneg()
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):

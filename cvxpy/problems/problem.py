@@ -124,7 +124,16 @@ class Problem(u.Canonical):
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
-        return all(exp.is_dcp() for exp in self.constraints + [self.objective])
+        return all(
+          expr.is_dcp() for expr in self.constraints + [self.objective])
+
+    def is_dgp(self):
+        """Does the problem satisfy DGP rules?
+        """
+        # TODO(akshayka): Change to `var.is_positive()` once we implement
+        # positive leaves.
+        return all(var.is_nonneg() for var in self.variables()) and all(
+          expr.is_dgp() for expr in self.constraints + [self.objective])
 
     def is_qp(self):
         """Is problem a quadratic program?
@@ -222,7 +231,7 @@ class Problem(u.Canonical):
 
         Parameters
         ----------
-        method : function
+        method : function, optional
             The solve method to use.
         solver : str, optional
             The solver to use.
@@ -365,9 +374,9 @@ class Problem(u.Canonical):
                 raise e
 
         data, inverse_data = self._solving_chain.apply(self)
-        self._solution = self._solving_chain.solve_via_data(
+        solver_output = self._solving_chain.solve_via_data(
           self, data, warm_start, verbose, kwargs)
-        self.unpack_results(self.solution, self._solving_chain, inverse_data)
+        self.unpack_results(solver_output, self._solving_chain, inverse_data)
         return self.value
 
     def _parallel_solve(self,
@@ -443,35 +452,14 @@ class Problem(u.Canonical):
                 self._status = s.OPTIMAL
         return self._value
 
-    def unpack_results(self, solution, chain, inverse_data):
-        """Updates the problem state given the solver results.
-
-        Updates problem.status, problem.value and value of
-        primal and dual variables.
-
-        Parameters
-        __________
-        solution : Solution
-            The solution returned by applying the chain to the problem
-            and invoking the solver on the resulting data.
-        chain : SolvingChain
-            A solving chain that was used to solve the problem.
-        inverse_data : list
-            The inverse data returned by applying the chain to the problem.
-        """
-        solution = chain.invert(solution, inverse_data)
-        self._value = solution.opt_val
-        try:
-            self.unpack(solution)
-        except ValueError:
-            raise SolverError(
-                "Solver '%s' failed. " % chain.solver.name() +
-                "Try another solver or solve with verbose=True for more "
-                "information. Try recentering the problem data around 0 and "
-                "rescaling to reduce the dynamic range."
-            )
-        self._status = solution.status
-        self._solver_stats = SolverStats(solution.attr, chain.solver.name())
+    def _clear_solution(self):
+        for v in self.variables():
+            v.save_value(None)
+        for c in self.constraints:
+            c.save_value(None)
+        self._value = None
+        self._status = None
+        self._solution = None
 
     def unpack(self, solution):
         """Updates the problem state given a Solution.
@@ -482,8 +470,7 @@ class Problem(u.Canonical):
         Parameters
         __________
         solution : Solution
-            The solution returned by applying the chain to the problem
-            and invoking the solver on the resulting data.
+            A Solution object.
         """
         if solution.status in s.SOLUTION_PRESENT:
             for v in self.variables():
@@ -498,6 +485,38 @@ class Problem(u.Canonical):
                 constr.save_value(None)
         else:
             raise ValueError("Cannot unpack invalid solution.")
+        self._value = solution.opt_val
+        self._status = solution.status
+        self._solution = solution
+
+    def unpack_results(self, solution, chain, inverse_data):
+        """Updates the problem state given the solver results.
+
+        Updates problem.status, problem.value and value of
+        primal and dual variables.
+
+        Parameters
+        __________
+        solution : object
+            The solution returned by applying the chain to the problem
+            and invoking the solver on the resulting data.
+        chain : SolvingChain
+            A solving chain that was used to solve the problem.
+        inverse_data : list
+            The inverse data returned by applying the chain to the problem.
+        """
+        solution = chain.invert(solution, inverse_data)
+        try:
+            self.unpack(solution)
+        except ValueError:
+            raise SolverError(
+                "Solver '%s' failed. " % chain.solver.name() +
+                "Try another solver or solve with verbose=True for more "
+                "information. Try recentering the problem data around 0 and "
+                "rescaling to reduce the dynamic range."
+            )
+        self._solver_stats = SolverStats(self._solution.attr,
+                                         chain.solver.name())
 
     def __str__(self):
         if len(self.constraints) == 0:
@@ -558,7 +577,6 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
-# TODO(akshayka): Consider moving this to another file
 class SolverStats(object):
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
@@ -587,7 +605,6 @@ class SolverStats(object):
             self.num_iters = results_dict[s.NUM_ITERS]
 
 
-# TODO(akshayka): Consider moving this to another file
 class SizeMetrics(object):
     """Reports various metrics regarding the problem.
 

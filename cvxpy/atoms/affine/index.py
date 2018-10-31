@@ -48,6 +48,12 @@ class index(AffAtom):
             self.key = key
         super(index, self).__init__(expr)
 
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return True
+
     # The string representation of the atom.
     def name(self):
         # TODO string should be orig_key

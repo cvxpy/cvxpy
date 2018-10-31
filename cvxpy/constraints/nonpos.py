@@ -50,6 +50,9 @@ class NonPos(Constraint):
         """A non-positive constraint is DCP if its argument is convex."""
         return self.args[0].is_convex()
 
+    def is_dgp(self):
+        return self._lhs.is_log_log_convex() and self._rhs.is_log_log_concave()
+
     def canonicalize(self):
         """Returns the graph implementation of the object.
 
