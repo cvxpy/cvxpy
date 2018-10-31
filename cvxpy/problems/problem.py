@@ -25,7 +25,7 @@ from cvxpy.interface.matrix_utilities import scalar_value
 # a circular import (cvxpy.transforms imports Problem). Hence we need to import
 # cvxpy here.
 import cvxpy  # noqa
-import cvxpy.constraints.zero as eqc
+from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
@@ -139,7 +139,7 @@ class Problem(u.Canonical):
         """Is problem a quadratic program?
         """
         for c in self.constraints:
-            if not (isinstance(c, eqc.Zero) or c.args[0].is_pwl()):
+            if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
                 return False
         for var in self.variables():
             if var.is_psd() or var.is_nsd():
@@ -659,11 +659,11 @@ class SizeMetrics(object):
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
-            if constraint.__class__.__name__ is "Zero":
-                self.num_scalar_eq_constr += constraint.args[0].size
+            if isinstance(constraint, (Equality, Zero)):
+                self.num_scalar_eq_constr += constraint.expr.size
 
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
-            if constraint.__class__.__name__ is "NonPos":
-                self.num_scalar_leq_constr += constraint.args[0].size
+            if isinstance(constraint, (Inequality, NonPos)):
+                self.num_scalar_leq_constr += constraint.expr.size

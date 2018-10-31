@@ -67,19 +67,8 @@ class Gp2Dcp(Canonicalization):
             raise ValueError("The supplied problem is not log-log DCP.")
 
         canon_methods = DgpCanonMethods()
-        for constraint in problem._constraints:
-            # For GPs, it makes sense to interpret constraints
-            # in terms of their left-hand sides and right-hand sides
-            # (as opposed to lhs - rhs relop 0), since the permitted relops
-            # are log-log affine == log-log affine and
-            #     log-log convex <= log-log concave.
-            constraint._old_args = constraint.args
-            constraint.args = [constraint._lhs, constraint._rhs]
         equiv_problem, inverse_data = Canonicalization(canon_methods).apply(
           problem)
-        for constraint in problem._constraints:
-            constraint.args = constraint._old_args
-            del constraint._old_args
         inverse_data._problem = problem
         inverse_data._canon_methods = canon_methods
         return equiv_problem, inverse_data

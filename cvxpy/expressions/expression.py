@@ -17,8 +17,7 @@ limitations under the License.
 from functools import wraps
 import warnings
 
-from cvxpy.constraints import Zero, NonPos, PSD
-from cvxpy.error import DCPError
+from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
@@ -457,11 +456,14 @@ class Expression(u.Canonical):
         # Can only divide by scalar constants.
         if other.is_constant() and other.is_scalar():
             return cvxtypes.div_expr()(self, other)
-        else:
-            # TODO(akshayka): This message will be obnoxious when creating
-            # GPs.
+        elif other.is_scalar():
+            # TODO(akshayka): Remove this warning and instead
+            # have better error messages whenever a DCP check fails.
             warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.div_expr()(self, other)
+        else:
+            raise ValueError("Can only divide by a scalar constant, but %s "
+                             "is not scalar." % str(other))
 
     @_cast_other
     def __rdiv__(self, other):
@@ -523,25 +525,16 @@ class Expression(u.Canonical):
     # Comparison operators.
     @_cast_other
     def __eq__(self, other):
-        """Zero : Creates a zero constraint ``self - other == 0``.
+        """Equality : Creates a constraint ``self == other``.
         """
-        constr = Zero(self - other)
-        # TODO(akshayka): This is a temporary workaround for GPs;
-        # come up with something nicer.
-        constr._lhs = self
-        constr._rhs = other
-        return constr
+        # TODO(akshayka): Lower these to `Zero` constraints.
+        return Equality(self, other)
 
     @_cast_other
     def __le__(self, other):
-        """NonPos : Creates an inequality constraint.
+        """Inequality : Creates an inequality constraint ``self <= other``.
         """
-        constr = NonPos(self - other)
-        # TODO(akshayka): This is a temporary workaround for GPs;
-        # come up with something nicer.
-        constr._lhs = self
-        constr._rhs = other
-        return constr
+        return Inequality(self, other)
 
     def __lt__(self, other):
         """Unsupported.

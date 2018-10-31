@@ -17,8 +17,10 @@ limitations under the License.
 import abc
 import numpy as np
 
+from cvxpy.constraints import Equality, Inequality
 import cvxpy.settings as s
 from cvxpy.reductions import Reduction, Solution, InverseData
+from cvxpy.reductions.utilities import lower_equality, lower_inequality
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
 from cvxpy import problems
@@ -58,6 +60,7 @@ class MatrixStuffing(Reduction):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
+        # Lower constraints
 
         new_obj, new_var = self.stuffed_objective(problem, inverse_data)
         # Form the constraints
@@ -65,6 +68,10 @@ class MatrixStuffing(Reduction):
         new_cons = []
         for con in problem.constraints:
             arg_list = []
+            if isinstance(con, Equality):
+                con = lower_equality(con)
+            elif isinstance(con, Inequality):
+                con = lower_inequality(con)
             for arg in con.args:
                 A, b = extractor.get_coeffs(arg)
                 arg_list.append(reshape(A*new_var + b, arg.shape))

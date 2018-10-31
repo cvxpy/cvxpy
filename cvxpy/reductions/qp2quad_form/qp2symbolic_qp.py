@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints import NonPos, Zero
+from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers import (
@@ -36,9 +36,9 @@ class Qp2SymbolicQp(Canonicalization):
         return (problem.objective.expr.is_qpwa()
                 and not set(['PSD', 'NSD']).intersection(convex_attributes(
                                                          problem.variables()))
-                and all((type(c) == NonPos and c.args[0].is_pwl()) or
-                        (type(c) == Zero and are_args_affine([c])) for
-                        c in problem.constraints))
+                and all((type(c) in (Inequality, NonPos) and c.expr.is_pwl()) or
+                        (type(c) in (Equality, Zero) and are_args_affine([c]))
+                        for c in problem.constraints))
 
     def apply(self, problem):
         """Converts a QP to an even more symbolic form."""

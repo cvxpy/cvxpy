@@ -20,6 +20,63 @@ from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
 
+class Inequality(Constraint):
+    """A constraint of the form :math:`x \leq y`.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to constrain.
+    constr_id : int
+        A unique id for the constraint.
+    """
+    def __init__(self, lhs, rhs, constr_id=None):
+        self._expr = lhs - rhs
+        if self._expr.is_complex():
+            raise ValueError("Inequality constraints cannot be complex.")
+        super(Inequality, self).__init__([lhs, rhs], constr_id)
+
+    def _construct_dual_variables(self, args):
+        super(Inequality, self)._construct_dual_variables([self._expr])
+
+    @property
+    def expr(self):
+        return self._expr
+
+    def name(self):
+        return "%s <= %s" % (self.args[0], self.args[1])
+
+    @property
+    def shape(self):
+        """int : The shape of the constrained expression."""
+        return self.expr.shape
+
+    @property
+    def size(self):
+        """int : The size of the constrained expression."""
+        return self.expr.size
+
+    def is_dcp(self):
+        """A non-positive constraint is DCP if its argument is convex."""
+        return self.expr.is_convex()
+
+    def is_dgp(self):
+        return (self.args[0].is_log_log_convex() and
+                self.args[1].is_log_log_concave())
+
+    @property
+    def residual(self):
+        """The residual of the constraint.
+
+        Returns
+        ---------
+        NumPy.ndarray
+        """
+        if self.expr.value is None:
+            return None
+        return np.maximum(self.expr.value, 0)
+
+
 class NonPos(Constraint):
     """A constraint of the form :math:`x \\leq 0`.
 
@@ -51,7 +108,7 @@ class NonPos(Constraint):
         return self.args[0].is_convex()
 
     def is_dgp(self):
-        return self._lhs.is_log_log_convex() and self._rhs.is_log_log_concave()
+        return False
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

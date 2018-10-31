@@ -20,9 +20,10 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.constraints import Zero, NonPos, PSD
+from cvxpy.constraints import Equality, Zero, NonPos, PSD
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
+from cvxpy.reductions import utilities
 import cvxpy.settings as s
 
 
@@ -43,6 +44,8 @@ class Complex2Real(Reduction):
 
         constrs = []
         for constraint in problem.constraints:
+            if type(constraint) == Equality:
+                constraint = utilities.lower_equality(constraint)
             real_constr, imag_constr = self.canonicalize_tree(
                 constraint, inverse_data.real2imag, leaf_map)
             if real_constr is not None:
@@ -80,7 +83,7 @@ class Complex2Real(Reduction):
                     imag_id = inverse_data.real2imag[cid]
                     dvars[cid] = 1j*solution.dual_vars[imag_id]
                 # For equality and inequality constraints.
-                elif isinstance(cons, (Zero, NonPos)) and cons.is_complex():
+                elif isinstance(cons, (Equality, Zero, NonPos)) and cons.is_complex():
                     imag_id = inverse_data.real2imag[cid]
                     dvars[cid] = solution.dual_vars[cid] + \
                         1j*solution.dual_vars[imag_id]

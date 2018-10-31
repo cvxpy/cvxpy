@@ -5,12 +5,9 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.sum_largest import sum_largest
-from cvxpy.constraints.nonpos import NonPos
-from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import maximum_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.sum_largest_canon import sum_largest_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import CANON_METHODS as PWL_METHODS
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.add_canon import add_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.constant_canon import constant_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.div_canon import div_canon
@@ -18,23 +15,21 @@ from cvxpy.reductions.gp2dcp.atom_canonicalizers.geo_mean_canon import geo_mean_
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.mul_canon import mul_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.nonpos_constr_canon import nonpos_constr_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.power_canon import power_canon
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.zero_constr_canon import zero_constr_canon
 
 
 # TODO(akshayka): canon for matrix multiplication (MulExpression)
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
+    DivExpression : div_canon,
+    geo_mean : geo_mean_canon,
     multiply : mul_canon,
     power : power_canon, 
     Variable : None,
-    Zero : zero_constr_canon,
-    NonPos : nonpos_constr_canon,
-    maximum : maximum_canon,
-    DivExpression : div_canon,
-    sum_largest : sum_largest_canon,
-    geo_mean : geo_mean_canon,
 }
+
+CANON_METHODS[maximum] = PWL_METHODS[maximum]
+CANON_METHODS[sum_largest] = PWL_METHODS[sum_largest]
 
 class DgpCanonMethods(dict):
     def __init__(self, *args, **kwargs):
