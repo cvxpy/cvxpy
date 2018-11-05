@@ -4,7 +4,7 @@ os:
   - linux
 env:
   matrix:
-    - DISTRIB="conda" PYTHON_VERSION="2.7" INSTALL_ATLAS="true"
+    - DISTRIB="conda" PYTHON_VERSION="2.7.10" INSTALL_ATLAS="true"
       NUMPY_VERSION="1.14" SCIPY_VERSION="0.19"
       COVERAGE="false"
       DEPLOY_PYPI="false"

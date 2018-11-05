@@ -20,7 +20,7 @@ echo $env:PATH
 
 # Configure miniconda
 
-conda create -n $env:ENV_NAME --yes python=$env:PYTHON_VERSION mkl pip nose numpy scipy
+conda create -n $env:ENV_NAME --yes python=$env:PYTHON_VERSION mkl=2018.0.3 pip nose numpy scipy
 activate $env:ENV_NAME
 # The conda activation doesn't work well from PowerShell.
 # We need to update environment variables.

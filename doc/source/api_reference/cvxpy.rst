@@ -13,8 +13,8 @@ choice, so long as you import the ``cvxpy`` package in your python source file.
 The documentation is grouped five sections: **atoms**, **constraints**,
 **expressions**, **problems**, and **reductions**. The **atoms** section
 documents the classes implementing atomic mathematical functions, like
-``exp``, ``log``, and ``sqrt``; the **constraints** section documents documents
-the constraints that can be imposed upon variabes; the **expressions** section
+``exp``, ``log``, and ``sqrt``; the **constraints** section documents
+the constraints that can be imposed upon variables; the **expressions** section
 documents the classes implementing mathematical expression trees, including the
 :class:`~cvxpy.expressions.variable.Variable` and
 :class:`~cvxpy.expressions.constants.parameter.Parameter` classes; the
