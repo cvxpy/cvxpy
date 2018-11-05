@@ -84,16 +84,12 @@ class OSQP(QpSolver):
                 if any(data[key] != old_data[key]):
                     new_args[key] = data[key]
             factorizing = False
-            if (any(P.data != old_data[s.P].data) or
-                    any(P.indices != old_data[s.P].indices)):
+            if any(P.data != old_data[s.P].data):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
-                new_args['Px_idx'] = np.arange(P_triu.nnz)
                 factorizing = True
-            if (any(A.data != old_data['full_A'].data) or
-                    any(A.indices != old_data['full_A'].indices)):
+            if any(A.data != old_data['full_A'].data):
                 new_args['Ax'] = A.data
-                new_args['Ax_idx'] = np.arange(A.nnz)
                 factorizing = True
 
             if new_args:
