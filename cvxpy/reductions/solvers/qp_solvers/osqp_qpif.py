@@ -11,14 +11,14 @@ class OSQP(QpSolver):
     """QP interface for the OSQP solver"""
 
     # Map of OSQP status to CVXPY status.
-    STATUS_MAP = {  1: s.OPTIMAL,
-                    2: s.OPTIMAL_INACCURATE,
-                   -2: s.SOLVER_ERROR,          # Maxiter reached
-                   -3: s.INFEASIBLE,
-                    3: s.INFEASIBLE_INACCURATE,
-                   -4: s.UNBOUNDED,
-                    4: s.UNBOUNDED_INACCURATE,
-                   -5: s.SOLVER_ERROR,          # Interrupted by user
+    STATUS_MAP = {1: s.OPTIMAL,
+                  2: s.OPTIMAL_INACCURATE,
+                  -2: s.SOLVER_ERROR,           # Maxiter reached
+                  -3: s.INFEASIBLE,
+                  3: s.INFEASIBLE_INACCURATE,
+                  -4: s.UNBOUNDED,
+                  4: s.UNBOUNDED_INACCURATE,
+                  -5: s.SOLVER_ERROR,           # Interrupted by user
                   -10: s.SOLVER_ERROR}          # Unsolved
 
     def name(self):
