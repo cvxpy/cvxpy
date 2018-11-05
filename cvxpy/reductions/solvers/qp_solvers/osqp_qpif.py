@@ -90,7 +90,7 @@ class OSQP(QpSolver):
                 new_args['Px'] = P_triu.data
                 new_args['Px_idx'] = P_triu.indices
                 factorizing = True
-            if (any(A.data != old_data['full_A'].data) and
+            if (any(A.data != old_data['full_A'].data) or
                     any(A.indices != old_data['full_A'].indices)):
                 new_args['Ax'] = A.data
                 new_args['Ax_idx'] = A.indices
