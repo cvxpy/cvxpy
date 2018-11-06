@@ -13,13 +13,13 @@ class OSQP(QpSolver):
     # Map of OSQP status to CVXPY status.
     STATUS_MAP = {1: s.OPTIMAL,
                   2: s.OPTIMAL_INACCURATE,
-                  -2: s.SOLVER_ERROR,     # Maxiter reached
+                  -2: s.SOLVER_ERROR,           # Maxiter reached
                   -3: s.INFEASIBLE,
                   3: s.INFEASIBLE_INACCURATE,
                   -4: s.UNBOUNDED,
                   4: s.UNBOUNDED_INACCURATE,
-                  -5: s.SOLVER_ERROR,     # Interrupted by user
-                  -10: s.SOLVER_ERROR}    # Unsolved
+                  -5: s.SOLVER_ERROR,           # Interrupted by user
+                  -10: s.SOLVER_ERROR}          # Unsolved
 
     def name(self):
         return s.OSQP
@@ -69,9 +69,11 @@ class OSQP(QpSolver):
             # Use cached data.
             solver, old_data, results = solver_cache[self.name()]
             same_pattern = (P.shape == old_data[s.P].shape and
-                            all(P.indptr == old_data[s.P].indptr)) and \
+                            all(P.indptr == old_data[s.P].indptr) and
+                            all(P.indices == old_data[s.P].indices)) and \
                            (A.shape == old_data['full_A'].shape and
-                            all(A.indptr == old_data['full_A'].indptr))
+                            all(A.indptr == old_data['full_A'].indptr) and
+                            all(A.indices == old_data['full_A'].indices))
         else:
             same_pattern = False
 
@@ -82,18 +84,14 @@ class OSQP(QpSolver):
                 if any(data[key] != old_data[key]):
                     new_args[key] = data[key]
             factorizing = False
-            if any(P.indices != old_data[s.P].indices):
-                new_args['Px_idx'] = P.indices
-                factorizing = True
             if any(P.data != old_data[s.P].data):
-                new_args['Px'] = P.data
-                factorizing = True
-            if any(A.indices != old_data['full_A'].indices):
-                new_args['Ax_idx'] = A.indices
+                P_triu = sp.triu(P).tocsc()
+                new_args['Px'] = P_triu.data
                 factorizing = True
             if any(A.data != old_data['full_A'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
+
             if new_args:
                 solver.update(**new_args)
             # Map OSQP statuses back to CVXPY statuses
