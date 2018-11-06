@@ -121,7 +121,7 @@ class GUROBI(QpSolver):
                          lb=-grb.GRB.INFINITY,
                          vtype=vtype)
         model.update()
-        x = model.getVars()
+        x = np.array(model.getVars(), copy=False)
 
         # Add equality constraints: iterate over the rows of A
         # adding each row into the model
@@ -129,7 +129,7 @@ class GUROBI(QpSolver):
             for i in range(A.shape[0]):
                 start = A.indptr[i]
                 end = A.indptr[i+1]
-                variables = [x[j] for j in A.indices[start:end]]  # Get nnz
+                variables = x[A.indices[start:end]]
                 coeff = A.data[start:end]
                 expr = grb.LinExpr(coeff, variables)
                 model.addConstr(expr, grb.GRB.EQUAL, b[i])
@@ -141,7 +141,7 @@ class GUROBI(QpSolver):
             for i in range(F.shape[0]):
                 start = F.indptr[i]
                 end = F.indptr[i+1]
-                variables = [x[j] for j in F.indices[start:end]]  # Get nnz
+                variables = x[F.indices[start:end]]
                 coeff = F.data[start:end]
                 expr = grb.LinExpr(coeff, variables)
                 model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])
