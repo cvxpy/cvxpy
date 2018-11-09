@@ -53,8 +53,8 @@ the missing pixels whited out.
     # Known is 1 if the pixel is known,
     # 0 if the pixel was corrupted.
     Known = np.zeros((rows, cols))
-    for i in xrange(rows):
-        for j in xrange(cols):
+    for i in range(rows):
+        for j in range(cols):
              if Uorig[i, j] == Ucorr[i, j]:
                 Known[i, j] = 1
     
@@ -80,13 +80,13 @@ large problem.
 .. code:: 
 
     # Recover the original image using total variation in-painting.
-    from cvxpy import *
-    U = Variable(shape=(rows, cols))
-    obj = Minimize(tv(U))
-    constraints = [multiply(Known, U) == multiply(Known, Ucorr)]
-    prob = Problem(obj, constraints)
+    import cvxpy as cvx
+    U = cvx.Variable(shape=(rows, cols))
+    obj = cvx.Minimize(cvx.tv(U))
+    constraints = [cvx.multiply(Known, U) == cvx.multiply(Known, Ucorr)]
+    prob = cvx.Problem(obj, constraints)
     # Use SCS to solve the problem.
-    prob.solve(verbose=True, solver=SCS)
+    prob.solve(verbose=True, solver=cvx.SCS)
 
 
 .. parsed-literal::
@@ -211,10 +211,10 @@ has the missing pixels blacked out.
     # 0 if the pixel was corrupted.
     # The Known matrix is initialized randomly.
     Known = np.zeros((rows, cols, colors))
-    for i in xrange(rows):
-        for j in xrange(cols):
+    for i in range(rows):
+        for j in range(cols):
             if np.random.random() > 0.7:
-                for k in xrange(colors):
+                for k in range(colors):
                     Known[i, j, k] = 1
                 
     Ucorr = Known*Uorig
@@ -244,16 +244,16 @@ this large problem.
 .. code:: 
 
     # Recover the original image using total variation in-painting.
-    from cvxpy import *
+    import cvxpy as cvx
     variables = []
     constraints = []
-    for i in xrange(colors):
-        U = Variable(shape=(rows, cols))
+    for i in range(colors):
+        U = cvx.Variable(shape=(rows, cols))
         variables.append(U)
-        constraints.append(multiply(Known[:, :, i], U) == multiply(Known[:, :, i], Ucorr[:, :, i]))
+        constraints.append(cvx.multiply(Known[:, :, i], U) == cvx.multiply(Known[:, :, i], Ucorr[:, :, i]))
     
-    prob = Problem(Minimize(tv(*variables)), constraints)
-    prob.solve(verbose=True, solver=SCS)
+    prob = cvx.Problem(cvx.Minimize(cvx.tv(*variables)), constraints)
+    prob.solve(verbose=True, solver=cvx.SCS)
 
 
 .. parsed-literal::
@@ -312,7 +312,7 @@ differ.
     
     # Load variable values into a single array.
     rec_arr = np.zeros((rows, cols, colors), dtype=np.uint8)
-    for i in xrange(colors):
+    for i in range(colors):
         rec_arr[:, :, i] = variables[i].value
     
     fig, ax = plt.subplots(1, 2,figsize=(10, 5))
