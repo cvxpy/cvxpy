@@ -52,7 +52,7 @@ def psd_coeff_offset(problem, c):
 
     :param problem: the cvxpy Problem in which "c" arises.
     :param c: a cvxpy Constraint defining a linear matrix inequality
-      "B + \sum_j A[j] * z[j] >=_{PSD} 0".
+      "B + sum_j A[j] * z[j] >=_{PSD} 0".
     :return: (G, h) such that "c" holds at "z" iff "G * z <=_{PSD} b"
       (where the PSD cone is reshaped into a subset of R^N with N = dim ** 2).
 
@@ -134,7 +134,7 @@ class MOSEK(ConicSolver):
            object describes membership in the exponential cone.
 
         :return: a large matrix "coeff" and a vector of constants "offset" such
-          that every Constraint in "constraints" holds at z \in R^n iff
+          that every Constraint in "constraints" holds at z in R^n iff
           "coeff * z <=_K offset", where K is a product of cones supported by
           mosek and cvxpy (the zero cone, the nonnegative orthant,
           the second order cone, and the exponential cone). The nature of K
@@ -147,7 +147,7 @@ class MOSEK(ConicSolver):
             all linear inequalities, etc...).
 
             (2) This function cannot be used with linear matrix inequalities.
-            It will throw an error if any Constraint c \in constraints defines an LMI.
+            It will throw an error if any Constraint c in constraints defines an LMI.
         """
         if not constraints:
             return None, None
@@ -510,16 +510,16 @@ class MOSEK(ConicSolver):
     def recover_dual_variables(task, sol, inverse_data):
         """
         A cvxpy Constraint "constr" views itself as
-            affine_expression(z) \in K.
+            affine_expression(z) in K.
         The "apply(...)" function represents constr as
             G * z <=_K h
         for appropriate arrays (G, h).
         After adding slack variables, constr becomes
-            G * z + s == h, s \in K.
+            G * z + s == h, s in K.
         From "apply(...)" and "solve_via_data(...)", one will find
             affine_expression(z) == h - G * z == s.
         As a result, the dual variable suitable for "constr" is
-        the conic dual variable to the constraint "s \in K".
+        the conic dual variable to the constraint "s in K".
 
         Mosek documentation refers to conic dual variables as follows:
             zero cone: 'y'

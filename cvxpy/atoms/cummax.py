@@ -20,7 +20,7 @@ import numpy as np
 
 
 class cummax(AxisAtom):
-    """:math:`\max_{i,j}\{X_{i,j}\}`.
+    """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
     """
 
     def __init__(self, x, axis=None):

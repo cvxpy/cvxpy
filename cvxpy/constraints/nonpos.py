@@ -21,7 +21,7 @@ import numpy as np
 
 
 class NonPos(Constraint):
-    """A constraint of the form :math:`x \leq 0`.
+    """A constraint of the form :math:`x \\leq 0`.
 
     The preferred way of creating a ``NonPos`` constraint is through
     operator overloading. To constrain an expression ``x`` to be non-positive,

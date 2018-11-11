@@ -21,7 +21,7 @@ from scipy.misc import logsumexp
 
 
 class log_sum_exp(AxisAtom):
-    """:math:`\log\sum_i e^{x_i}`
+    """:math:`\\log\\sum_i e^{x_i}`
 
     """
 
