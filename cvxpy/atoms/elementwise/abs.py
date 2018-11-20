@@ -74,12 +74,8 @@ class abs(Elementwise):
             A list of SciPy CSC sparse matrices or None.
         """
         # Grad: +1 if positive, -1 if negative.
-        if self.expr.size != 1:
-            rows = self.expr.shape[0]*self.expr.shape[1]
-        else:
-            rows = 1
-        if self.size != 1:
-            cols = self.shape[0]*self.shape[1]
+        rows = self.expr.size
+        cols = self.size
         else:
             cols = 1
         D = np.matrix(np.zeros(self.expr.shape))
