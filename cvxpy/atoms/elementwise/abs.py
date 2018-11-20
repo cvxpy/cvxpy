@@ -74,15 +74,15 @@ class abs(Elementwise):
             A list of SciPy CSC sparse matrices or None.
         """
         # Grad: +1 if positive, -1 if negative.
-        if self.args[0].size != 1:
-            rows = self.args[0].shape[0]*self.args[0].shape[1]
+        if self.expr.size != 1:
+            rows = self.expr.shape[0]*self.expr.shape[1]
         else:
             rows = 1
         if self.size != 1:
             cols = self.shape[0]*self.shape[1]
         else:
             cols = 1
-        D = np.matrix(np.zeros(self.args[0].shape))
+        D = np.matrix(np.zeros(self.expr.shape))
         D += (values[0] > 0)
         D -= (values[0] < 0)
         return [abs.elemwise_grad_to_diag(D, rows, cols)]
