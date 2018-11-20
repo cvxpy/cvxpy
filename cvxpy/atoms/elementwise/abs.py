@@ -76,8 +76,6 @@ class abs(Elementwise):
         # Grad: +1 if positive, -1 if negative.
         rows = self.expr.size
         cols = self.size
-        else:
-            cols = 1
         D = np.matrix(np.zeros(self.expr.shape))
         D += (values[0] > 0)
         D -= (values[0] < 0)
