@@ -163,6 +163,14 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals((x[0] * x[1]).value, 16.0, places=2)
         self.assertAlmostEquals(x[3].value, 0.0, places=2)
 
+    def test_div(self):
+      x = cvxpy.Variable(pos=True)
+      y = cvxpy.Variable(pos=True)
+      p = cvxpy.Problem(cvxpy.Minimize(x * y), [y / 3  <= x, y >= 1])
+      self.assertAlmostEquals(p.solve(gp=True), 1.0 / 3.0)
+      self.assertAlmostEquals(y.value, 1.0)
+      self.assertAlmostEquals(x.value, 1.0 / 3.0)
+
     def test_geo_mean(self):
         x = cvxpy.Variable(3, pos=True)
         p = [1, 2, 0.5]
