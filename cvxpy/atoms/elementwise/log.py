@@ -47,6 +47,12 @@ class log(Elementwise):
         """
         return True
 
+    def is_atom_log_log_convex(self):
+        return False
+
+    def is_atom_log_log_concave(self):
+        return True
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """

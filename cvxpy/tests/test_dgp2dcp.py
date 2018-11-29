@@ -211,6 +211,40 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEqual(problem.value, 0.0)
 
     def test_mat_mul(self):
-        # TODO(akshayka): Implement canonicalization ...?
-        # would canonicalization need to actually collapse the multiplication ...?
+        # TODO(akshayka): Implement canonicalization ...
+        # canonicalization might need to collapse the multiplication ...
         pass
+
+    def test_one_minus(self):
+        x = cvxpy.Variable(pos=True)
+        obj = cvxpy.Maximize(x)
+        constr = [cvxpy.one_minus(x) >= 0.5]
+        problem = cvxpy.Problem(obj, constr)
+        problem.solve(gp=True)
+        self.assertAlmostEqual(problem.value, 0.5)
+        self.assertAlmostEqual(x.value, 0.5)
+
+    def test_paper_example_sum_largest(self):
+        x = cvxpy.Variable((4,), pos=True)
+        x0, x1, x2, x3 = (x[0], x[1], x[2], x[3])
+        obj = cvxpy.Minimize(cvxpy.sum_largest(
+          cvxpy.hstack([
+            3 * x0**0.5 * x1**0.5,
+            x0 * x1 + 0.5 * x1 * x3**3,
+            x2]), 2))
+        constr = [x0 * x1 * x2 >= 16]
+        p = cvxpy.Problem(obj, constr)
+        # smoke test.
+        p.solve(gp=True)
+
+    def test_paper_example_one_minus(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        obj = cvxpy.Minimize(x * y)
+        constr = [(y * cvxpy.one_minus(x / y)) ** 2 >= 1, x >= y/3]
+        problem = cvxpy.Problem(obj, constr)
+        # smoke test.
+        problem.solve(gp=True)
+        print(problem.value)
+        print(x.value)
+        print(y.value)
