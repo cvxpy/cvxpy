@@ -26,8 +26,8 @@ class huber(Elementwise):
 
         \\operatorname{Huber}(x, M) =
             \\begin{cases}
-                2M|x|-M^2 & \\text{for } |x| \geq |M| \\\\
-                      |x|^2 & \\text{for } |x| \leq |M|.
+                2M|x|-M^2 & \\text{for } |x| \\geq |M| \\\\
+                      |x|^2 & \\text{for } |x| \\\leq |M|.
             \\end{cases}
 
     :math:`M` defaults to 1.

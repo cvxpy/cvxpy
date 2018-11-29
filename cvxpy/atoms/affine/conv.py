@@ -30,7 +30,7 @@ class conv(AffAtom):
 
     .. math::
 
-        c_k = \\sum_{i+j=k} a_ib_j, \quad k=0, \ldots, n+m-2.
+        c_k = \\sum_{i+j=k} a_ib_j, \\quad k=0, \\ldots, n+m-2.
 
     Parameters
     ----------

@@ -21,7 +21,7 @@ import scipy.sparse as sp
 
 
 class log_det(Atom):
-    """:math:`\log\det A`
+    """:math:`\\log\\det A`
 
     """
 

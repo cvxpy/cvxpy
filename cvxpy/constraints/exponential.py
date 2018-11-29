@@ -34,14 +34,14 @@ class ExpCone(NonlinearConstraint):
 
     .. math::
 
-        K = \\{(x,y,z) \mid y > 0, ye^{x/y} <= z\\}
-            \\cup \\{(x,y,z) \mid x \leq 0, y = 0, z \geq 0\\}
+        K = \\{(x,y,z) \\mid y > 0, ye^{x/y} <= z\\}
+            \\cup \\{(x,y,z) \\mid x \leq 0, y = 0, z \\geq 0\\}
 
     Reformulated cone:
 
     .. math::
 
-        K = \\{(x,y,z) \mid y, z > 0, y\\log(y) + x \\leq y\\log(z)\\}
+        K = \\{(x,y,z) \\mid y, z > 0, y\\log(y) + x \\leq y\\log(z)\\}
              \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}
 
     Parameters

@@ -104,7 +104,7 @@ def log_sum_exp(objectives, weights, gamma=1):
 
 
     The objective takes the form
-        log(\sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma
+        log(sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma
     As gamma goes to 0, log_sum_exp approaches weighted_sum. As gamma goes to infinity,
     log_sum_exp approaches max.
 

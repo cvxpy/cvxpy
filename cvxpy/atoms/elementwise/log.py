@@ -19,7 +19,7 @@ import numpy as np
 
 
 class log(Elementwise):
-    """Elementwise :math:`\log x`.
+    """Elementwise :math:`\\log x`.
     """
 
     def __init__(self, x):

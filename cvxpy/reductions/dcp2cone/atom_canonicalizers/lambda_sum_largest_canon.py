@@ -30,9 +30,9 @@ def lambda_sum_largest_canon(expr, args):
     which implies
     t >= ks + trace(Z) >= S_k(sI + Z) >= S_k(X)
     We use the fact that
-    S_k(X) = sup_{sets of k orthonormal vectors u_i}\sum_{i}u_i^T X u_i
+    S_k(X) = sup_{sets of k orthonormal vectors u_i}sum_{i}u_i^T X u_i
     and if Z >= X in PSD sense then
-    \sum_{i}u_i^T Z u_i >= \sum_{i}u_i^T X u_i
+    sum_{i}u_i^T Z u_i >= sum_{i}u_i^T X u_i
 
     We have equality when s = lambda_k and Z diagonal
     with Z_{ii} = (lambda_i - lambda_k)_+

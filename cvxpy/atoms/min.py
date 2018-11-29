@@ -19,7 +19,7 @@ from cvxpy.expressions.expression import Expression
 
 
 def min(x, axis=None):
-    """:math:`\min_{i,j}\{X_{i,j}\}`.
+    """:math:`\\min_{i,j}\\{X_{i,j}\\}`.
     """
     x = Expression.cast_to_const(x)
     return -max(-x, axis=axis)

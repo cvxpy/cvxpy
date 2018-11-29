@@ -20,7 +20,7 @@ from scipy.special import xlogy
 
 
 class entr(Elementwise):
-    """Elementwise :math:`-x\log x`.
+    """Elementwise :math:`-x\\log x`.
     """
 
     def __init__(self, x):
