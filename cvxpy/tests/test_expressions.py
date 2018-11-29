@@ -98,6 +98,10 @@ class TestExpressions(BaseTest):
             p = Variable((2, .5))
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0.5).")
 
+        with self.assertRaises(Exception) as cm:
+            p = Variable(2, 1)
+        self.assertEqual(str(cm.exception), "Variable name 1 must be a string.")
+
     def test_assign_var_value(self):
         """Test assigning a value to a variable.
         """
