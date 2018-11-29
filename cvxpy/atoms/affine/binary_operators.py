@@ -112,8 +112,6 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
-    # TODO(akshayka): This should probably be log_log_convex ...
-
     def is_atom_convex(self):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
@@ -124,6 +122,12 @@ class MulExpression(BinaryOperator):
         """If the multiplication atom is convex, then it is affine.
         """
         return self.is_atom_convex()
+
+    def is_atom_log_log_convex(self):
+        return True
+
+    def is_atom_log_log_concave(self):
+        return False
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?

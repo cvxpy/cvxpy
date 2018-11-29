@@ -1,7 +1,9 @@
 import cvxpy
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.error import DCPError, DGPError
+import cvxpy.reductions.gp2dcp.atom_canonicalizers as atom_canon
 from cvxpy.tests.base_test import BaseTest
+import numpy as np
 
 
 class TestDgp2Dcp(BaseTest):
@@ -210,10 +212,17 @@ class TestDgp2Dcp(BaseTest):
         self.assertEqual(problem.status, "unbounded")
         self.assertAlmostEqual(problem.value, 0.0)
 
-    def test_mat_mul(self):
-        # TODO(akshayka): Implement canonicalization ...
-        # canonicalization might need to collapse the multiplication ...
-        pass
+    def test_matmul_canon(self):
+        X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
+        Y = cvxpy.Constant(np.array([[1.0], [2.0], [3.0]]))
+        Z = cvxpy.matmul(X, Y)
+        canon_matrix, constraints = atom_canon.mulexpression_canon(Z, Z.args)
+        self.assertEqual(len(constraints), 0)
+        self.assertEqual(canon_matrix.shape, (2, 1))
+        first_entry = np.log(np.exp(2.0) + np.exp(4.0) + np.exp(6.0))
+        second_entry = np.log(np.exp(5.0) + np.exp(7.0) + np.exp(9.0))
+        self.assertAlmostEqual(canon_matrix[0, 0].value, first_entry)
+        self.assertAlmostEqual(canon_matrix[1, 0].value, second_entry)
 
     def test_one_minus(self):
         x = cvxpy.Variable(pos=True)
@@ -245,6 +254,3 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
-        print(problem.value)
-        print(x.value)
-        print(y.value)
