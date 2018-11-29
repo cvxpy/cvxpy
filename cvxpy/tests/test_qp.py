@@ -163,7 +163,7 @@ class TestQp(BaseTest):
         p = Problem(Minimize(sum(self.x)), [self.x >= 0, A*self.x <= b])
         self.solve_QP(p, solver)
         for var in p.variables():
-            self.assertItemsAlmostEqual([0., 0.], var.value, places=4)
+            self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
 
     def maximize_problem(self, solver):
         A = np.random.randn(5, 2)
@@ -242,15 +242,13 @@ class TestQp(BaseTest):
         # Number of examples to use
         n = 100
         # Specify the true value of the variable
-        true_coeffs = np.matrix('2; -2; 0.5')
+        true_coeffs = np.array([2, -2, 0.5])
         # Generate data
         x_data = np.random.rand(n) * 5
-        x_data = np.asmatrix(x_data)
         x_data_expanded = np.vstack([np.power(x_data, i)
                                      for i in range(1, 4)])
-        x_data_expanded = np.asmatrix(x_data_expanded)
-        y_data = x_data_expanded.T * true_coeffs + 0.5 * np.random.rand(n, 1)
-        y_data = np.asmatrix(y_data)
+        print(x_data_expanded.shape, true_coeffs.shape)
+        y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n)
 
         quadratic = self.offset + x_data*self.slope + \
             self.quadratic_coeff*np.power(x_data, 2)
