@@ -379,7 +379,7 @@ class Expression(u.Canonical):
     def __mul__(self, other):
         """Expression : The product of two expressions.
         """
-        if self.is_scalar() or other.is_scalar():
+        if self.shape == () or other.shape == ():
             return cvxtypes.multiply_expr()(self, other)
         elif self.is_constant() or other.is_constant():
             return cvxtypes.mul_expr()(self, other)
@@ -391,7 +391,7 @@ class Expression(u.Canonical):
     def __matmul__(self, other):
         """Expression : Matrix multiplication of two expressions.
         """
-        if self.is_scalar() or other.is_scalar():
+        if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
         return self.__mul__(other)
 

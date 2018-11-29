@@ -611,6 +611,27 @@ class TestExpressions(BaseTest):
         exp = [[1], [2]] + c.__matmul__(self.C)
         self.assertEqual(exp.sign, s.UNKNOWN)
 
+        # Testing shape.
+        a = Parameter((1,))
+        x = Variable(shape=(1,))
+        expr = a.__matmul__(x)
+        self.assertEqual(expr.shape, ())
+
+        # Testing shape.
+        a = Parameter((1,))
+        x = Variable(shape=(1,))
+        expr = a.__matmul__(x)
+        self.assertEqual(expr.shape, ())
+
+        A = Parameter((4, 4))
+        z = Variable((4, 1))
+        expr = A.__matmul__(z)
+        self.assertEqual(expr.shape, (4, 1))
+
+        v = Variable((1,1))
+        col_scalar = Parameter((1,1))
+        assert v.shape == col_scalar.shape == col_scalar.T.shape
+
     # Test the DivExpresion class.
     def test_div_expression(self):
         # Vectors

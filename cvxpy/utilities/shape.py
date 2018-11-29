@@ -139,6 +139,11 @@ def mul_shapes(lh_shape, rh_shape):
     lh_shape, rh_shape, shape = mul_shapes_promote(lh_shape, rh_shape)
     if lh_shape != lh_old:
         shape = shape[1:]
+        print("hello")
+        print(lh_shape, rh_shape, shape)
     if rh_shape != rh_old:
         shape = shape[:-1]
+        print("hello2")
+        print(lh_old, rh_old)
+        print(lh_shape, rh_shape, shape)
     return shape
