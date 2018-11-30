@@ -170,7 +170,7 @@ class TestExpressions(BaseTest):
 
     def test_affine_prod(self):
         x = Variable((3, 5))
-        y = Variable(5, 4)
+        y = Variable((5, 4))
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
