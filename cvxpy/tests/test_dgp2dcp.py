@@ -212,6 +212,16 @@ class TestDgp2Dcp(BaseTest):
         self.assertEqual(problem.status, "unbounded")
         self.assertAlmostEqual(problem.value, 0.0)
 
+    def test_add_canon(self):
+        X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
+        Y = cvxpy.Constant(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]]))
+        Z = X + Y
+        canon_matrix, constraints = atom_canon.add_canon(Z, Z.args)
+        self.assertEqual(len(constraints), 0)
+        self.assertEqual(canon_matrix.shape, Z.shape)
+        expected = np.log(np.exp(X.value) + np.exp(Y.value))
+        np.testing.assert_almost_equal(expected, canon_matrix.value)
+
     def test_matmul_canon(self):
         X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
         Y = cvxpy.Constant(np.array([[1.0], [2.0], [3.0]]))
