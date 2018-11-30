@@ -18,6 +18,11 @@ from cvxpy.atoms.atom import Atom
 import numpy as np
 
 
+# TODO(akshayka): documentation.
+def resolvent(X, s):
+    return 1.0 / s * eye_minus_inv(X / s)
+
+
 class eye_minus_inv(Atom):
     def __init__(self, X):
         super(eye_minus_inv, self).__init__(X)
