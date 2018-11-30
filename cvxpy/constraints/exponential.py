@@ -1,6 +1,7 @@
 """
 Copyright 2013 Steven Diamond
 
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -35,7 +36,7 @@ class ExpCone(NonlinearConstraint):
     .. math::
 
         K = \\{(x,y,z) \\mid y > 0, ye^{x/y} <= z\\}
-            \\cup \\{(x,y,z) \\mid x \leq 0, y = 0, z \\geq 0\\}
+            \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}
 
     Reformulated cone:
 
