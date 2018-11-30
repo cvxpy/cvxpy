@@ -380,7 +380,7 @@ class Expression(u.Canonical):
         """Expression : The product of two expressions.
         """
         if self.shape == () or other.shape == () or \
-           (self.shape[-1] != other.shape[0] and \
+           (self.shape[-1] != other.shape[0] and
            (self.is_scalar() or other.is_scalar())):
             return cvxtypes.multiply_expr()(self, other)
         elif self.is_constant() or other.is_constant():
