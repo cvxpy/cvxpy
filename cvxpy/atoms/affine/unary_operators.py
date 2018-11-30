@@ -28,7 +28,7 @@ class UnaryOperator(AffAtom):
         super(UnaryOperator, self).__init__(expr)
 
     def name(self):
-        return self.OP_NAME + self.args[0].name()
+        return "%s(%s)" % (self.OP_NAME, self.args[0].name())
 
     # Applies the unary operator to the value.
     def numeric(self, values):
