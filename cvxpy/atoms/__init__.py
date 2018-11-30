@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.eye_minus_inv import eye_minus_inv
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.lambda_max import lambda_max

@@ -231,8 +231,17 @@ class TestDgp2Dcp(BaseTest):
         self.assertEqual(canon_matrix.shape, (2, 1))
         first_entry = np.log(np.exp(2.0) + np.exp(4.0) + np.exp(6.0))
         second_entry = np.log(np.exp(5.0) + np.exp(7.0) + np.exp(9.0))
-        self.assertAlmostEqual(canon_matrix[0, 0].value, first_entry)
-        self.assertAlmostEqual(canon_matrix[1, 0].value, second_entry)
+        self.assertAlmostEqual(first_entry, canon_matrix[0, 0].value)
+        self.assertAlmostEqual(second_entry, canon_matrix[1, 0].value)
+
+    def test_trace_canon(self):
+        X = cvxpy.Constant(np.array([[1.0, 5.0], [9.0, 14.0]]))
+        Y = cvxpy.trace(X)
+        canon, constraints = atom_canon.trace_canon(Y, Y.args)
+        self.assertEqual(len(constraints), 0)
+        self.assertTrue(canon.is_scalar())
+        expected = np.log(np.exp(1.0) + np.exp(14.0))
+        self.assertAlmostEqual(expected, canon.value)
 
     def test_one_minus(self):
         x = cvxpy.Variable(pos=True)
@@ -261,6 +270,14 @@ class TestDgp2Dcp(BaseTest):
         y = cvxpy.Variable(pos=True)
         obj = cvxpy.Minimize(x * y)
         constr = [(y * cvxpy.one_minus(x / y)) ** 2 >= 1, x >= y/3]
+        problem = cvxpy.Problem(obj, constr)
+        # smoke test.
+        problem.solve(gp=True)
+
+    def test_paper_example_eye_minus_inv(self):
+        X = cvxpy.Variable((2, 2), pos=True)
+        obj = cvxpy.Minimize(cvxpy.trace(cvxpy.eye_minus_inv(X)))
+        constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1]
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)

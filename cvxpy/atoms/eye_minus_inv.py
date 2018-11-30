@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, Eric Chu
+Copyright 2018 Akshay Agrawal
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,32 +14,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.atoms.atom import Atom
 import numpy as np
 
 
-class exp(Elementwise):
-    """Elementwise :math:`e^{x}`.
-    """
+class eye_minus_inv(Atom):
+    def __init__(self, X):
+        super(eye_minus_inv, self).__init__(X)
+        if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
+            raise ValueError("Argument to `eye_minus_inv` must be a "
+                             "square matrix, received ", X)
+        self.args[0] = X
 
-    def __init__(self, x):
-        super(exp, self).__init__(x)
-
-    # Returns the matrix e^x[i, j].
-    @Elementwise.numpy_numeric
     def numeric(self, values):
-        return np.exp(values[0])
+        return np.linalg.inv(np.eye(self.args[0].shape[0]) - values[0])
+
+    def name(self):
+        return "%s(%s)" % (self.__class__.__name__, self.args[0])
+
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
+        """
+        return self.args[0].shape
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        # Always positive.
         return (True, False)
 
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return True
+        return False
 
     def is_atom_concave(self):
         """Is the atom concave?
@@ -47,37 +53,18 @@ class exp(Elementwise):
         return False
 
     def is_atom_log_log_convex(self):
-        """Is the atom log-log convex?
-        """
         return True
 
     def is_atom_log_log_concave(self):
-        """Is the atom log-log convex?
-        """
-        return True
+        return False
 
+    # TODO(akshayka): Figure out monotonicity.
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return True
+        return False
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    def _grad(self, values):
-        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
-
-        Matrix expressions are vectorized, so the gradient is a matrix.
-
-        Args:
-            values: A list of numeric values for the arguments.
-
-        Returns:
-            A list of SciPy CSC sparse matrices or None.
-        """
-        rows = self.args[0].size
-        cols = self.size
-        grad_vals = np.exp(values[0])
-        return [exp.elemwise_grad_to_diag(grad_vals, rows, cols)]

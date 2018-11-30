@@ -131,6 +131,7 @@ class Pnorm(AxisAtom):
         else:
             raise ValueError('Invalid p: {}'.format(p))
         self.approx_error = float(abs(self.p - p))
+        self.original_p = p
         super(Pnorm, self).__init__(x, axis=axis, keepdims=keepdims)
 
     def numeric(self, values):
@@ -174,6 +175,17 @@ class Pnorm(AxisAtom):
         """Is the atom concave?
         """
         return self.p < 1
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
