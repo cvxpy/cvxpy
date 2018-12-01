@@ -57,7 +57,7 @@ class cummax(AxisAtom):
             A NumPy ndarray or None.
         """
         # Grad: 1 for a largest index.
-        value = np.matrix(value).A.ravel(order='F')
+        value = np.array(value).A.ravel(order='F')
         idx = np.argmax(value)
         D = np.zeros((value.size, 1))
         D[idx] = 1

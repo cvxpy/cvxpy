@@ -103,10 +103,7 @@ class diag_mat(AffAtom):
         """Extract the diagonal from a square matrix constant.
         """
         # The return type in numpy versions < 1.10 was ndarray.
-        v = np.diag(values[0])
-        if isinstance(v, np.matrix):
-            v = v.A[0]
-        return v
+        return np.diag(values[0])
 
     def shape_from_args(self):
         """A column vector.
