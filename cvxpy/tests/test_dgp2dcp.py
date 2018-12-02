@@ -281,3 +281,29 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
+        print(problem.value)
+        print(X.value)
+
+    def test_paper_example_exp_log(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        obj = cvxpy.Minimize(x * y)
+        constr = [cvxpy.exp(y/x) <= cvxpy.log(y), x/y <= 1]
+        problem = cvxpy.Problem(obj, constr)
+        # smoke test.
+        problem.solve(gp=True)
+
+    def test_pf_matrix_completion(self):
+        X = cvxpy.Variable((3, 3), pos=True)
+        obj = cvxpy.Minimize(cvxpy.spectral_radius(X))
+        constr = [
+          X[0, 0] == 1.0,
+          X[0, 2] == 1.9,
+          X[1, 1] == 0.8,
+          X[2, 0] == 3.2,
+          X[2, 1] == 5.9,
+          X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
+        ]
+        problem = cvxpy.Problem(obj, constr)
+        # smoke test.
+        problem.solve(gp=True)

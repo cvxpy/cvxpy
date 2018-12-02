@@ -9,6 +9,7 @@ from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.one_minus import one_minus
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
 from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.spectral_radius import spectral_radius
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
@@ -16,7 +17,7 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import CANON_METHODS as 
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.add_canon import add_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.constant_canon import constant_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.div_canon import div_canon
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.exp_canon import exp
+from cvxpy.reductions.gp2dcp.atom_canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.eye_minus_inv_canon import eye_minus_inv_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.geo_mean_canon import geo_mean_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.log_canon import log_canon
@@ -26,6 +27,7 @@ from cvxpy.reductions.gp2dcp.atom_canonicalizers.nonpos_constr_canon import nonp
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.one_minus_canon import one_minus_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.power_canon import power_canon
+from cvxpy.reductions.gp2dcp.atom_canonicalizers.spectral_radius_canon import spectral_radius_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
 
@@ -47,6 +49,7 @@ CANON_METHODS = {
     pnorm : pnorm_canon,
     power : power_canon, 
     trace : trace_canon,
+    spectral_radius : spectral_radius_canon,
     Variable : None,
 }
 
