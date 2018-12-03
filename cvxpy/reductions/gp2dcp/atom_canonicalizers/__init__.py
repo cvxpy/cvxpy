@@ -1,5 +1,6 @@
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression, DivExpression, multiply
+from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.log import log
@@ -28,6 +29,7 @@ from cvxpy.reductions.gp2dcp.atom_canonicalizers.one_minus_canon import one_minu
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.power_canon import power_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.spectral_radius_canon import spectral_radius_canon
+from cvxpy.reductions.gp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.gp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
 
@@ -50,6 +52,7 @@ CANON_METHODS = {
     power : power_canon, 
     trace : trace_canon,
     spectral_radius : spectral_radius_canon,
+    Sum : sum_canon,
     Variable : None,
 }
 

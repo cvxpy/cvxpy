@@ -281,14 +281,12 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
-        print(problem.value)
-        print(X.value)
 
     def test_paper_example_exp_log(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         obj = cvxpy.Minimize(x * y)
-        constr = [cvxpy.exp(y/x) <= cvxpy.log(y), x/y <= 1]
+        constr = [cvxpy.exp(y/x) <= cvxpy.log(y)]
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
@@ -307,3 +305,24 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
+
+    def test_rank_one_nmf(self):
+        X = cvxpy.Variable((3, 3), pos=True)
+        x = cvxpy.Variable((3,), pos=True)
+        y = cvxpy.Variable((3,), pos=True)
+        xy = cvxpy.vstack([x[0] * y, x[1] * y, x[2] * y])
+        R = cvxpy.maximum(
+          cvxpy.multiply(X, (xy) ** (-1.0)),
+          cvxpy.multiply(X ** (-1.0), xy))
+        objective = cvxpy.sum(R)
+        constraints = [
+          X[0, 0] == 1.0,
+          X[0, 2] == 1.9,
+          X[1, 1] == 0.8,
+          X[2, 0] == 3.2,
+          X[2, 1] == 5.9,
+          x[0] * x[1] * x[2] == 1.0,
+        ]
+        # smoke test.
+        prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
+        prob.solve(gp=True)

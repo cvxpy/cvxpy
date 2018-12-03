@@ -71,6 +71,14 @@ class Promote(AffAtom):
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?"""
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log convex?"""
+        return True
+
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
