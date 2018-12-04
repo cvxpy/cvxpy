@@ -77,8 +77,8 @@ class Gp2Dcp(Canonicalization):
         solution = super(Gp2Dcp, self).invert(solution, inverse_data)
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)
-        # We unpack the solution in order to obtain objective value in terms of
-        # the original variables.
+        # We unpack the solution in order to obtain the objective value in
+        # terms of the original variables.
         if solution.status in s.SOLUTION_PRESENT:
             inverse_data._problem.unpack(solution)
             solution = inverse_data._problem.solution
@@ -86,5 +86,4 @@ class Gp2Dcp(Canonicalization):
             inverse_data._problem._clear_solution()
         elif solution.status in s.INF_OR_UNB:
             solution.opt_val = np.exp(solution.opt_val)
-        # TODO(akshayka): Verify that the dual variables are correct.
         return solution
