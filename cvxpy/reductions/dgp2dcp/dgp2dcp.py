@@ -15,17 +15,17 @@ limitations under the License.
 """
 import cvxpy.settings as s
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.gp2dcp.atom_canonicalizers import DgpCanonMethods
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers import DgpCanonMethods
 
 import numpy as np
 
 
-class Gp2Dcp(Canonicalization):
-    """Reduce log-log DCP problems to DCP problems.
+class Dgp2Dcp(Canonicalization):
+    """Reduce DGP problems to DCP problems.
 
-    This reduction takes as input a (minimization) log-log DCP problem and
+    This reduction takes as input a (minimization) DGP problem and
     returns an equivalent DCP problem. Note that every generalized
-    geometric program is a log-log DCP problem, so this reduction
+    geometric program is a DGP problem, so this reduction
     can be used to convert geometric programs into convex form.
 
     Example
@@ -44,7 +44,7 @@ class Gp2Dcp(Canonicalization):
     >>> dcp2cone = cvxpy.reductions.Dcp2Cone()
     >>> assert not dcp2cone.accepts(problem)
     >>>
-    >>> gp2dcp = cvxpy.reductions.Gp2Dcp()
+    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp()
     >>> assert gp2dcp.accepts(problem)
     >>>
     >>> dcp_problem = gp2dcp.reduce(problem)
@@ -64,7 +64,7 @@ class Gp2Dcp(Canonicalization):
         """Converts a DGP problem to a DCP problem.
         """
         if not self.accepts(problem):
-            raise ValueError("The supplied problem is not log-log DCP.")
+            raise ValueError("The supplied problem is not DGP.")
 
         canon_methods = DgpCanonMethods()
         equiv_problem, inverse_data = Canonicalization(canon_methods).apply(
@@ -74,7 +74,7 @@ class Gp2Dcp(Canonicalization):
         return equiv_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        solution = super(Gp2Dcp, self).invert(solution, inverse_data)
+        solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)
         # We unpack the solution in order to obtain the objective value in

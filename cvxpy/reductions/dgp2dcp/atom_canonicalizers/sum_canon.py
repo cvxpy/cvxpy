@@ -1,7 +1,7 @@
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vec import vec
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.add_canon import add_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
 
 
 def sum_canon(expr, args):

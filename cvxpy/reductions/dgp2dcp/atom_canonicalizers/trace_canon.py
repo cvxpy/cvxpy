@@ -1,5 +1,5 @@
 from cvxpy.atoms.affine.diag import diag
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.add_canon import add_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
 
 
 def trace_canon(expr, args):

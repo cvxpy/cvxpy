@@ -3,7 +3,7 @@ from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
-                              FlipObjective, Gp2Dcp, Qp2SymbolicQp, QpMatrixStuffing,
+                              FlipObjective, Dgp2Dcp, Qp2SymbolicQp, QpMatrixStuffing,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -64,7 +64,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
     if Complex2Real().accepts(problem):
         reductions += [Complex2Real()]
     if gp:
-        reductions += [Gp2Dcp()]
+        reductions += [Dgp2Dcp()]
 
     if not gp and not problem.is_dcp():
         append = ""

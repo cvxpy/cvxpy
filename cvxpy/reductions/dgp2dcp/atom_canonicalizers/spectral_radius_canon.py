@@ -1,7 +1,7 @@
 from cvxpy.atoms.affine.binary_operators import matmul
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.mul_canon import mul_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mul_canon import mul_canon
 
 
 def spectral_radius_canon(expr, args):

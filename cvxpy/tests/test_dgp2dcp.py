@@ -1,7 +1,7 @@
 import cvxpy
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.error import DCPError, DGPError
-import cvxpy.reductions.gp2dcp.atom_canonicalizers as atom_canon
+import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
@@ -12,9 +12,9 @@ class TestDgp2Dcp(BaseTest):
         y = cvxpy.Variable(pos=True)
         prod = x * y 
         dgp = cvxpy.Problem(cvxpy.Minimize(prod), [])
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
 
-        dcp = gp2dcp.reduce(dgp)
+        dcp = dgp2dcp.reduce(dgp)
         self.assertIsInstance(dcp.objective.expr, AddExpression)
         self.assertEqual(len(dcp.objective.expr.args), 2)
         self.assertIsInstance(dcp.objective.expr.args[0], cvxpy.Variable)
@@ -25,7 +25,7 @@ class TestDgp2Dcp(BaseTest):
         self.assertEqual(opt, -float("inf"))
         self.assertEqual(dcp.status, "unbounded")
 
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEqual(dgp.value, 0.0)
         self.assertEqual(dgp.status, "unbounded")
         dgp._clear_solution()
@@ -34,12 +34,12 @@ class TestDgp2Dcp(BaseTest):
         self.assertEqual(dgp.status, "unbounded")
 
         dgp = cvxpy.Problem(cvxpy.Maximize(prod), [])
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         self.assertEqual(dcp.solve(), float("inf"))
         self.assertEqual(dcp.status, "unbounded")
 
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertEqual(dgp.value, float("inf"))
         self.assertEqual(dgp.status, "unbounded")
         dgp._clear_solution()
@@ -50,15 +50,15 @@ class TestDgp2Dcp(BaseTest):
     def test_basic_equality_constraint(self):
         x = cvxpy.Variable(pos=True)
         dgp = cvxpy.Problem(cvxpy.Minimize(x), [x == 1.0])
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
 
-        dcp = gp2dcp.reduce(dgp)
+        dcp = dgp2dcp.reduce(dgp)
         self.assertIsInstance(dcp.objective.expr, cvxpy.Variable)
         opt = dcp.solve()
         self.assertAlmostEqual(opt, 0.0)
         self.assertAlmostEqual(dcp.variables()[0].value, 0.0)
 
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEquals(dgp.value, 1.0)
         self.assertAlmostEquals(x.value, 1.0)
         dgp._clear_solution()
@@ -77,10 +77,10 @@ class TestDgp2Dcp(BaseTest):
         constr = [x == 1.0, y == 4.0]
         
         dgp = cvxpy.Problem(obj, constr)
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         opt = dcp.solve()
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEquals(dgp.value, 6.0)
         self.assertAlmostEquals(x.value, 1.0)
         self.assertAlmostEquals(y.value, 4.0)
@@ -95,10 +95,10 @@ class TestDgp2Dcp(BaseTest):
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3))
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
         dgp = cvxpy.Problem(obj, constr)
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         dcp.solve()
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         opt = 6.0
         self.assertAlmostEquals(dgp.value, opt)
         self.assertAlmostEquals((x[0] * x[1] * x[2] * x[3]).value, 16,
@@ -115,11 +115,11 @@ class TestDgp2Dcp(BaseTest):
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3) * y)
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
         dgp = cvxpy.Problem(obj, constr)
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         opt = dcp.solve()
         self.assertEquals(dcp.value, -float("inf"))
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEquals(dgp.value, 0.0)
         self.assertAlmostEquals(dgp.status, "unbounded")
         dgp._clear_solution()
@@ -131,11 +131,11 @@ class TestDgp2Dcp(BaseTest):
         x = cvxpy.Variable(2, pos=True)
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 1))
         dgp = cvxpy.Problem(obj, [])
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         opt = dcp.solve()
         self.assertEquals(dcp.value, -float("inf"))
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEquals(dgp.value, 0.0)
         self.assertAlmostEquals(dgp.status, "unbounded")
         dgp._clear_solution()
@@ -150,10 +150,10 @@ class TestDgp2Dcp(BaseTest):
                        x[0] * x[1] + 0.5 * x[1] * x[3]**3, x[2]]), 2))
         constr = [x[0] * x[1] >= 16]
         dgp = cvxpy.Problem(obj, constr)
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         dcp.solve()
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         # opt = 3 * sqrt(4) * sqrt(4) + (4 * 4 + 0.5 * 4 * epsilon) = 28
         opt = 28.0
         self.assertAlmostEquals(dgp.value, opt, places=2)
@@ -178,11 +178,11 @@ class TestDgp2Dcp(BaseTest):
         p = [1, 2, 0.5]
         geo_mean = cvxpy.geo_mean(x, p)
         dgp = cvxpy.Problem(cvxpy.Minimize(geo_mean), [])
-        gp2dcp = cvxpy.reductions.Gp2Dcp()
-        dcp = gp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dcp = dgp2dcp.reduce(dgp)
         dcp.solve()
         self.assertEquals(dcp.value, -float("inf"))
-        dgp.unpack(gp2dcp.retrieve(dcp.solution))
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertEquals(dgp.value, 0.0)
         self.assertEquals(dgp.status, "unbounded")
         dgp._clear_solution()
@@ -216,7 +216,7 @@ class TestDgp2Dcp(BaseTest):
         X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
         Y = cvxpy.Constant(np.array([[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]]))
         Z = X + Y
-        canon_matrix, constraints = atom_canon.add_canon(Z, Z.args)
+        canon_matrix, constraints = dgp_atom_canon.add_canon(Z, Z.args)
         self.assertEqual(len(constraints), 0)
         self.assertEqual(canon_matrix.shape, Z.shape)
         expected = np.log(np.exp(X.value) + np.exp(Y.value))
@@ -226,7 +226,8 @@ class TestDgp2Dcp(BaseTest):
         X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
         Y = cvxpy.Constant(np.array([[1.0], [2.0], [3.0]]))
         Z = cvxpy.matmul(X, Y)
-        canon_matrix, constraints = atom_canon.mulexpression_canon(Z, Z.args)
+        canon_matrix, constraints = dgp_atom_canon.mulexpression_canon(
+          Z, Z.args)
         self.assertEqual(len(constraints), 0)
         self.assertEqual(canon_matrix.shape, (2, 1))
         first_entry = np.log(np.exp(2.0) + np.exp(4.0) + np.exp(6.0))
@@ -237,7 +238,7 @@ class TestDgp2Dcp(BaseTest):
     def test_trace_canon(self):
         X = cvxpy.Constant(np.array([[1.0, 5.0], [9.0, 14.0]]))
         Y = cvxpy.trace(X)
-        canon, constraints = atom_canon.trace_canon(Y, Y.args)
+        canon, constraints = dgp_atom_canon.trace_canon(Y, Y.args)
         self.assertEqual(len(constraints), 0)
         self.assertTrue(canon.is_scalar())
         expected = np.log(np.exp(1.0) + np.exp(14.0))

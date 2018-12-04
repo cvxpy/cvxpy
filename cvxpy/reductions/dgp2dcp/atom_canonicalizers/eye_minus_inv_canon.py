@@ -1,6 +1,6 @@
 from cvxpy.atoms.affine.binary_operators import matmul
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.gp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
 import numpy as np
 
 
