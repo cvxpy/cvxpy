@@ -158,7 +158,7 @@ matrices :math:`A` and :math:`B`.
 Helper Functions
 ----------------
 
-.. code:: 
+.. code:: ipython3
 
     import matplotlib
     import matplotlib.pyplot as plt
@@ -232,7 +232,7 @@ with :math:`\sigma = 20`.
 Below, we set the problem parameters and define the matrices :math:`A`,
 :math:`B`, and :math:`C`.
 
-.. code:: 
+.. code:: ipython3
 
     n = 1000 # number of timesteps
     T = 50 # time will vary from 0 to T with step delt
@@ -270,7 +270,7 @@ We plot the position, velocity, and system input :math:`w` in both
 dimensions as a function of time. We also plot the sets of true and
 observed vehicle positions.
 
-.. code:: 
+.. code:: ipython3
 
     sigma = 20
     p = .20
@@ -316,26 +316,26 @@ The code below solves the standard Kalman filtering problem using CVXPY.
 We plot and compare the true and recovered vehicle states. Note that the
 recovery is distorted by outliers in the measurements.
 
-.. code:: 
+.. code:: ipython3
 
     %%time
-    from cvxpy import *
+    import cvxpy as cp
     
-    x = Variable(shape=(4, n+1))
-    w = Variable(shape=(2, n))
-    v = Variable(shape=(2, n))
+    x = cp.Variable(shape=(4, n+1))
+    w = cp.Variable(shape=(2, n))
+    v = cp.Variable(shape=(2, n))
     
     tau = .08
         
-    obj = sum_squares(w) + tau*sum_squares(v)
-    obj = Minimize(obj)
+    obj = cp.sum_squares(w) + tau*cp.sum_squares(v)
+    obj = cp.Minimize(obj)
     
     constr = []
     for t in range(n):
         constr += [ x[:,t+1] == A*x[:,t] + B*w[:,t] ,
                     y[:,t]   == C*x[:,t] + v[:,t]   ]
     
-    Problem(obj, constr).solve(verbose=True)
+    cp.Problem(obj, constr).solve(verbose=True)
     
     x = np.array(x.value)
     w = np.array(w.value)
@@ -343,40 +343,43 @@ recovery is distorted by outliers in the measurements.
     plot_state(ts,(x_true,w_true),(x,w))
     plot_positions([x_true,y], ['True', 'Noisy'], [-4,14,-5,20])
     plot_positions([x_true,x], ['True', 'KF recovery'], [-4,14,-5,20], 'rkf2.pdf')
+    
+    print("optimal objective value: {}".format(obj.value))
 
 
 .. parsed-literal::
 
+    -----------------------------------------------------------------
+               OSQP v0.4.1  -  Operator Splitting QP Solver
+                  (c) Bartolomeo Stellato,  Goran Banjac
+            University of Oxford  -  Stanford University 2018
+    -----------------------------------------------------------------
+    problem:  variables n = 8004, constraints m = 6000
+              nnz(P) + nnz(A) = 22000
+    settings: linear system solver = qdldl,
+              eps_abs = 1.0e-03, eps_rel = 1.0e-03,
+              eps_prim_inf = 1.0e-04, eps_dual_inf = 1.0e-04,
+              rho = 1.00e-01 (adaptive),
+              sigma = 1.00e-06, alpha = 1.60, max_iter = 4000
+              check_termination: on (interval 25),
+              scaling: on, scaled_termination: off
+              warm start: on, polish: on
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    iter   objective    pri res    dua res    rho        time
+       1   0.0000e+00   6.14e+01   6.14e+03   1.00e-01   1.28e-02s
+      50   1.1057e+04   3.57e-07   8.27e-08   1.00e-01   3.01e-02s
+    plsh   1.1057e+04   7.11e-15   1.24e-14   --------   3.78e-02s
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +0.000e+00   -3.414e+00   +3e+03   5e+02   1e+00   1e+00   4e+02    N/A     1 1 -
-     1   +3.287e+02   +3.646e+02   +4e+02   2e+02   5e-01   4e+01   7e+01   0.8666   2 2 2
-     2   +9.613e+02   +1.284e+03   +2e+02   2e+02   7e-01   3e+02   3e+01   0.8524   3 2 2
-     3   +3.398e+02   +5.369e+02   +1e+02   9e+01   3e-01   2e+02   2e+01   0.6979   2 2 2
-     4   +6.031e+02   +8.107e+02   +2e+01   3e+01   1e-01   2e+02   3e+00   0.8582   2 2 1
-     5   +1.344e+03   +2.462e+03   +8e+00   7e+01   2e-01   1e+03   1e+00   0.8006   3 2 1
-     6   +2.830e+03   +3.316e+03   +1e+00   2e+01   5e-02   5e+02   2e-01   0.9639   2 2 2
-     7   +2.686e+03   +2.896e+03   +6e-01   7e+00   2e-02   2e+02   9e-02   0.7906   3 2 2
-     8   +5.190e+03   +7.816e+03   +3e-01   3e+01   8e-02   3e+03   4e-02   0.9228   2 3 2
-     9   +4.379e+03   +5.386e+03   +2e-01   1e+01   4e-02   1e+03   3e-02   0.3498   3 2 2
-    10   +6.829e+03   +7.204e+03   +1e-02   1e+00   4e-03   4e+02   2e-03   0.9552   2 2 2
-    11   +8.845e+03   +9.140e+03   +4e-03   6e-01   2e-03   3e+02   6e-04   0.9002   3 3 3
-    12   +9.958e+03   +1.023e+04   +1e-03   3e-01   9e-04   3e+02   2e-04   0.9424   3 3 3
-    13   +1.070e+04   +1.077e+04   +3e-04   8e-02   2e-04   7e+01   6e-05   0.8269   3 3 3
-    14   +1.077e+04   +1.084e+04   +3e-04   7e-02   2e-04   7e+01   5e-05   0.4583   3 3 3
-    15   +1.104e+04   +1.104e+04   +1e-05   4e-03   1e-05   3e+00   2e-06   0.9622   3 3 3
-    16   +1.106e+04   +1.106e+04   +6e-07   1e-04   4e-07   9e-02   1e-07   0.9718   3 3 3
-    17   +1.106e+04   +1.106e+04   +8e-09   6e-05   6e-09   1e-03   1e-09   0.9873   2 2 2
-    18   +1.108e+04   +1.108e+04   -8e+14   -3e+13   -2e+01   -1e-03   -1e+14   0.0001   0 0 0
-    Unreliable search direction detected, recovering best iterate (17) and stopping.
+    status:               solved
+    solution polish:      successful
+    number of iterations: 50
+    optimal objective:    11057.3550
+    run time:             3.78e-02s
+    optimal rho estimate: 7.70e-02
     
-    Close to OPTIMAL (within feastol=6.3e-05, reltol=7.5e-13, abstol=8.3e-09).
-    Runtime: 0.232002 seconds.
-    
-    CPU times: user 10.9 s, sys: 79.3 ms, total: 11 s
-    Wall time: 11.3 s
+    optimal objective value: 11057.354957764113
+    CPU times: user 13 s, sys: 598 ms, total: 13.6 s
+    Wall time: 13.8 s
 
 
 
@@ -398,27 +401,28 @@ Here we implement robust Kalman filtering with CVXPY. We get a better
 recovery than the standard Kalman filtering, which can be seen in the
 plots below.
 
-.. code:: 
+.. code:: ipython3
 
     %%time
-    from cvxpy import *
-    x = Variable(shape=(4, n+1))
-    w = Variable(shape=(2, n))
-    v = Variable(shape=(2, n))
+    import cvxpy as cp
+    
+    x = cp.Variable(shape=(4, n+1))
+    w = cp.Variable(shape=(2, n))
+    v = cp.Variable(shape=(2, n))
     
     tau = 2
     rho = 2
         
-    obj = sum_squares(w)
-    obj += sum(tau*huber(norm(v[:,t]),rho) for t in range(n))
-    obj = Minimize(obj)
+    obj = cp.sum_squares(w)
+    obj += cp.sum([tau*cp.huber(cp.norm(v[:,t]),rho) for t in range(n)])
+    obj = cp.Minimize(obj)
     
     constr = []
     for t in range(n):
         constr += [ x[:,t+1] == A*x[:,t] + B*w[:,t] ,
                     y[:,t]   == C*x[:,t] + v[:,t]   ]
     
-    Problem(obj, constr).solve(verbose=True)
+    cp.Problem(obj, constr).solve(verbose=True)
     
     x = np.array(x.value)
     w = np.array(w.value)
@@ -426,40 +430,53 @@ plots below.
     plot_state(ts,(x_true,w_true),(x,w))
     plot_positions([x_true,y], ['True', 'Noisy'], [-4,14,-5,20])
     plot_positions([x_true,x], ['True', 'Robust KF recovery'], [-4,14,-5,20],'rkf3.pdf')
+    
+    print("optimal objective value: {}".format(obj.value))
 
 
 .. parsed-literal::
 
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    ECOS 2.0.4 - (C) embotech GmbH, Zurich Switzerland, 2012-15. Web: www.embotech.com/ECOS
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +0.000e+00   -2.850e+03   +2e+06   1e+02   2e-01   1e+00   3e+02    N/A     1 1 -
-     1   +3.189e+03   +1.216e+03   +2e+06   8e+01   2e-01   9e+01   2e+02   0.5782   1 1 1
-     2   +4.398e+03   +4.036e+03   +3e+05   2e+01   3e-02   2e+01   5e+01   0.8069   1 1 1
-     3   +1.564e+04   +1.539e+04   +2e+05   1e+01   2e-02   2e+01   3e+01   0.5374   1 1 1
-     4   +2.547e+04   +2.537e+04   +9e+04   4e+00   9e-03   1e+01   1e+01   0.6977   2 1 1
-     5   +3.019e+04   +3.014e+04   +4e+04   2e+00   4e-03   6e+00   6e+00   0.6786   2 1 1
-     6   +3.356e+04   +3.353e+04   +2e+04   1e+00   2e-03   3e+00   3e+00   0.6066   2 1 1
-     7   +3.528e+04   +3.526e+04   +1e+04   6e-01   1e-03   2e+00   2e+00   0.6694   2 1 1
-     8   +3.673e+04   +3.672e+04   +6e+03   3e-01   6e-04   1e+00   9e-01   0.7467   3 1 1
-     9   +3.807e+04   +3.807e+04   +2e+03   1e-01   2e-04   4e-01   3e-01   0.8736   2 1 1
-    10   +3.887e+04   +3.887e+04   +4e+02   2e-02   4e-05   7e-02   6e-02   0.9156   2 1 1
-    11   +3.901e+04   +3.901e+04   +1e+02   7e-03   1e-05   2e-02   2e-02   0.8073   2 1 1
-    12   +3.905e+04   +3.905e+04   +5e+01   3e-03   6e-06   1e-02   7e-03   0.7572   2 1 1
-    13   +3.907e+04   +3.907e+04   +2e+01   1e-03   2e-06   4e-03   3e-03   0.8667   2 1 1
-    14   +3.908e+04   +3.908e+04   +4e+00   2e-04   5e-07   8e-04   6e-04   0.9865   2 1 1
-    15   +3.908e+04   +3.908e+04   +5e-01   3e-05   5e-08   8e-05   6e-05   0.8989   2 1 1
-    16   +3.908e+04   +3.908e+04   +1e-01   6e-06   1e-08   2e-05   1e-05   0.9899   3 2 2
-    17   +3.908e+04   +3.908e+04   +2e-02   1e-06   2e-09   3e-06   3e-06   0.8616   3 2 2
-    18   +3.908e+04   +3.908e+04   +7e-03   4e-07   7e-10   1e-06   9e-07   0.9899   2 2 2
-    19   +3.908e+04   +3.908e+04   +6e-04   4e-08   6e-11   1e-07   8e-08   0.9423   3 1 2
+    It     pcost       dcost      gap   pres   dres    k/t    mu     step   sigma     IR    |   BT
+     0  +0.000e+00  -2.923e+02  +7e+05  3e-01  3e-02  1e+00  2e+02    ---    ---    1  1  - |  -  - 
+     1  +5.090e+02  +4.360e+02  +2e+05  4e-01  1e-02  3e+01  6e+01  0.8051  2e-01   2  1  1 |  0  0
+     2  +4.188e+03  +4.134e+03  +2e+05  3e-01  9e-03  3e+01  5e+01  0.4259  6e-01   1  1  1 |  0  0
+     3  +9.956e+03  +9.923e+03  +1e+05  3e-01  8e-03  4e+01  4e+01  0.5830  5e-01   1  1  2 |  0  0
+     4  +1.881e+04  +1.880e+04  +7e+04  3e-01  5e-03  3e+01  2e+01  0.7189  3e-01   1  1  1 |  0  0
+     5  +2.572e+04  +2.572e+04  +4e+04  2e-01  3e-03  2e+01  1e+01  0.5464  3e-01   1  1  1 |  0  0
+     6  +2.986e+04  +2.985e+04  +3e+04  2e-01  2e-03  1e+01  6e+00  0.5716  3e-01   2  2  1 |  0  0
+     7  +3.262e+04  +3.262e+04  +1e+04  9e-02  1e-03  7e+00  3e+00  0.6007  2e-01   2  2  2 |  0  0
+     8  +3.425e+04  +3.425e+04  +8e+03  5e-02  7e-04  5e+00  2e+00  0.5871  3e-01   2  2  2 |  0  0
+     9  +3.601e+04  +3.601e+04  +4e+03  3e-02  3e-04  2e+00  9e-01  0.6383  2e-01   2  2  2 |  0  0
+    10  +3.728e+04  +3.727e+04  +2e+03  1e-02  2e-04  1e+00  5e-01  0.7925  4e-01   2  2  2 |  0  0
+    11  +3.759e+04  +3.759e+04  +1e+03  1e-02  1e-04  1e+00  3e-01  0.5191  5e-01   2  2  2 |  0  0
+    12  +3.824e+04  +3.824e+04  +6e+02  6e-03  5e-05  5e-01  2e-01  0.9890  4e-01   2  2  2 |  0  0
+    13  +3.860e+04  +3.860e+04  +3e+02  3e-03  2e-05  3e-01  7e-02  0.6740  2e-01   2  2  2 |  0  0
+    14  +3.864e+04  +3.864e+04  +3e+02  3e-03  2e-05  3e-01  7e-02  0.2982  7e-01   2  2  3 |  0  0
+    15  +3.876e+04  +3.876e+04  +2e+02  2e-03  1e-05  2e-01  4e-02  0.9890  6e-01   2  2  2 |  0  0
+    16  +3.889e+04  +3.889e+04  +8e+01  1e-03  4e-06  1e-01  2e-02  0.7740  4e-01   3  3  3 |  0  0
+    17  +3.899e+04  +3.899e+04  +2e+01  4e-04  1e-06  3e-02  6e-03  0.9702  3e-01   3  3  3 |  0  0
+    18  +3.901e+04  +3.901e+04  +1e+01  4e-04  6e-07  3e-02  4e-03  0.6771  5e-01   4  3  3 |  0  0
+    19  +3.903e+04  +3.903e+04  +7e+00  2e-04  3e-07  2e-02  2e-03  0.9383  5e-01   3  2  3 |  0  0
+    20  +3.905e+04  +3.905e+04  +2e+00  1e-04  1e-07  1e-02  6e-04  0.8982  3e-01   4  4  4 |  0  0
+    21  +3.906e+04  +3.906e+04  +9e-01  5e-05  5e-08  5e-03  2e-04  0.9342  3e-01   3  2  3 |  0  0
+    22  +3.907e+04  +3.907e+04  +3e-01  4e-05  3e-08  4e-03  8e-05  0.8457  3e-01   5  4  4 |  0  0
+    23  +3.908e+04  +3.908e+04  +8e-02  1e-05  8e-09  1e-03  2e-05  0.9890  3e-01   3  3  3 |  0  0
+    24  +3.908e+04  +3.908e+04  +1e-02  2e-06  2e-09  2e-04  3e-06  0.9013  5e-02   3  3  3 |  0  0
+    25  +3.908e+04  +3.908e+04  +2e-03  4e-07  4e-10  4e-05  5e-07  0.9207  8e-02   3  2  2 |  0  0
+    26  +3.908e+04  +3.908e+04  +7e-04  2e-07  2e-10  2e-05  2e-07  0.9890  4e-01   2  2  2 |  0  0
+    27  +3.908e+04  +3.908e+04  +8e-05  3e-08  5e-11  2e-06  2e-08  0.9009  2e-02   2  2  2 |  0  0
+    28  +3.908e+04  +3.908e+04  +2e-05  1e-08  2e-11  4e-07  5e-09  0.9890  2e-01   2  2  2 |  0  0
+    29  +3.908e+04  +3.908e+04  +2e-06  3e-09  5e-12  5e-08  5e-10  0.9058  2e-02   2  1  1 |  0  0
     
-    OPTIMAL (within feastol=3.6e-08, reltol=1.5e-08, abstol=5.7e-04).
-    Runtime: 0.363771 seconds.
+    OPTIMAL (within feastol=3.1e-09, reltol=5.3e-11, abstol=2.1e-06).
+    Runtime: 1.129066 seconds.
     
-    CPU times: user 28.6 s, sys: 77.1 ms, total: 28.6 s
-    Wall time: 29.4 s
+    optimal objective value: 39077.76954636933
+    CPU times: user 3min 37s, sys: 3.44 s, total: 3min 41s
+    Wall time: 3min 55s
 
 
 

@@ -52,7 +52,7 @@ Now let's see how this would work in practice.
 Data Generation
 ---------------
 
-.. code:: 
+.. code:: ipython3
 
     import numpy as np
     n = 30 # number of variables
@@ -77,24 +77,20 @@ Data Generation
     # applying censoring
     y_censored = np.concatenate((y_ordered[:M], np.ones(K-M)*D))
     
-    #plot helper
-    %pylab inline
+    import matplotlib.pyplot as plt
+    
+    # Show plot inline in ipython.
+    %matplotlib inline
     
     def plot_fit(fit, fit_label):
-        figsize(10,6)
-        grid()
-        plot(y_censored, 'bo', label = 'censored data')
-        plot(y_ordered, 'co', label = 'uncensored data')
-        plot(fit, 'ro', label=fit_label)
-        ylabel('y')
-        legend(loc=0)
-        xlabel('observations');
-
-
-
-.. parsed-literal::
-
-    Populating the interactive namespace from numpy and matplotlib
+        plt.figure(figsize=(10,6))
+        plt.grid()
+        plt.plot(y_censored, 'bo', label = 'censored data')
+        plt.plot(y_ordered, 'co', label = 'uncensored data')
+        plt.plot(fit, 'ro', label=fit_label)
+        plt.ylabel('y')
+        plt.legend(loc=0)
+        plt.xlabel('observations');
 
 
 Regular OLS
@@ -103,9 +99,9 @@ Regular OLS
 Let's see what the OLS result looks like. We'll use the
 ``np.linalg.lstsq`` function to solve for our coefficients.
 
-.. code:: 
+.. code:: ipython3
 
-    c_ols = np.linalg.lstsq(X_ordered, y_censored)[0]
+    c_ols = np.linalg.lstsq(X_ordered, y_censored, rcond=None)[0]
     fit_ols = X_ordered.dot(c_ols)
     plot_fit(fit_ols, 'OLS fit')
 
@@ -137,14 +133,14 @@ Give that our :math:`M` is much smaller than :math:`K`, we are throwing
 away the majority of the dataset in order to accomplish this, let's see
 how this new regression does.
 
-.. code:: 
+.. code:: ipython3
 
-    c_ols_uncensored = np.linalg.lstsq(X_ordered[:M], y_censored[:M])[0]
+    c_ols_uncensored = np.linalg.lstsq(X_ordered[:M], y_censored[:M], rcond=None)[0]
     fit_ols_uncensored = X_ordered.dot(c_ols_uncensored)
     plot_fit(fit_ols_uncensored, 'OLS fit with uncensored data only')
     
     bad_predictions = (fit_ols_uncensored<=D) & (np.arange(K)>=M)
-    plot(np.arange(K)[bad_predictions], fit_ols_uncensored[bad_predictions], color='orange', marker='o', lw=0);
+    plt.plot(np.arange(K)[bad_predictions], fit_ols_uncensored[bad_predictions], color='orange', marker='o', lw=0);
 
 
 
@@ -178,14 +174,14 @@ additional constraints:
      & \mbox{for } i=\mbox{M+1},\ldots,K
    \end{array}
 
-.. code:: 
+.. code:: ipython3
 
-    import cvxpy as cvx
+    import cvxpy as cp
     X_uncensored = X_ordered[:M, :]
-    c = cvx.Variable(shape=(n,1))
-    objective = cvx.Minimize(cvx.sum_squares(X_uncensored*c - y_ordered[:M]))
+    c = cp.Variable(shape=n)
+    objective = cp.Minimize(cp.sum_squares(X_uncensored*c - y_ordered[:M]))
     constraints = [ X_ordered[M:,:]*c >= D]
-    prob = cvx.Problem(objective, constraints)
+    prob = cp.Problem(objective, constraints)
     result = prob.solve()
     
     c_cvx = np.array(c.value).flatten()
@@ -205,10 +201,10 @@ data. But does it do a good job of actually finding coefficients
 We'll use a simple Euclidean distance :math:`\|c_\mbox{true} - c\|_2` to
 compare:
 
-.. code:: 
+.. code:: ipython3
 
-    print "norm(c_true - c_cvx): %.2f" % np.linalg.norm((c_true - c_cvx))
-    print "norm(c_true - c_ols_uncensored): %.2f" % np.linalg.norm((c_true - c_ols_uncensored))
+    print("norm(c_true - c_cvx): {:.2f}".format(np.linalg.norm((c_true - c_cvx))))
+    print("norm(c_true - c_ols_uncensored): {:.2f}".format(np.linalg.norm((c_true - c_ols_uncensored))))
 
 
 .. parsed-literal::

@@ -91,11 +91,11 @@ square to obstruct the guards' view. The guard has no effect on a point
 if his line of sight is obstructed. We generate the :math:`A` matrix for
 this problem instance below.
 
-.. code:: 
+.. code:: ipython3
 
     import numpy as np
     import matplotlib.pyplot as plt
-    import cvxpy as cvx
+    import cvxpy as cp
     
     def form_path(points,n):
         x, y = [], []
@@ -207,7 +207,7 @@ this problem instance below.
                     detect_p.append(p_evade(point,r,r=.5,m=0))
                 locations.append((point,np.array(detect_p)))
 
-.. code:: 
+.. code:: ipython3
 
     np.random.seed(0)
     
@@ -252,7 +252,7 @@ this problem instance below.
 
 .. parsed-literal::
 
-    [<matplotlib.lines.Line2D at 0x11220b390>]
+    [<matplotlib.lines.Line2D at 0x105d17cc0>]
 
 
 
@@ -264,7 +264,7 @@ We perform the iterative algorithm below. At each step, we plot the
 vector :math:`x`, demonstrating that it becomes increasingly sparse at
 each iteration.
 
-.. code:: 
+.. code:: ipython3
 
     num_guards = 12
     tau = 1e-2
@@ -274,22 +274,25 @@ each iteration.
     w = np.zeros(n)
     
     for i in range(3):
-        x = cvx.Variable(shape=(n,1))
-        t = cvx.Variable(shape=(1,1))
+        x = cp.Variable(shape=n)
+        t = cp.Variable(shape=1)
     
-        objective = cvx.Maximize(t - x.T*w)
-        constr = [0 <=x, x <= 1, t <= A*x,cvx.sum(x) == num_guards]
-        cvx.Problem(objective, constr).solve(verbose=False)
+        objective = cp.Maximize(t - x.T*w)
+        constr = [0 <=x, x <= 1, t <= A*x, cp.sum(x) == num_guards]
+        cp.Problem(objective, constr).solve(verbose=False)
         x = np.array(x.value).flatten()
         w = 2/(tau+np.abs(x))
         fig = plt.figure(figsize=(5,5))
         ax = fig.add_subplot(111)
         ax.plot(x,'o')
+    
     xsol = x
+    print("final objective value: {}".format(objective.value))
 
 
+.. parsed-literal::
 
-.. image:: parade_route_files/parade_route_4_0.png
+    final objective value: -10.27091799207174
 
 
 
@@ -300,34 +303,37 @@ each iteration.
 .. image:: parade_route_files/parade_route_4_2.png
 
 
+
+.. image:: parade_route_files/parade_route_4_3.png
+
+
 Below, we plot the final Boolean allocation. The blue dots represent the
 parade route. The red dots represent the possible guard placement
 locations. The green dots show the actual guard placements. Yellow
 rectangles are buildings which obstruct the guards' view.
 
-.. code:: 
+.. code:: ipython3
 
     fig = plt.figure(figsize=(10,10))
     ax = plt.subplot(111,aspect='equal')
     for x,y,w,h in buildings:
-        rect = plt.Rectangle((x,y),w,h,fc='y',alpha=.3)
+        rect = plt.Rectangle((x,y), w, h, fc='y', alpha=.3)
         ax.add_patch(rect)
     
-    ax.plot(path[:,0],path[:,1],'o')
+    ax.plot(path[:,0], path[:,1], 'o')
     
-    ax.plot(g[0,:],g[1,:],'ro',alpha=.3)
-    ax.plot(g[0,xsol > .5],g[1,xsol > .5],'go',markersize=20,alpha=.5)
+    ax.plot(g[0,:], g[1,:], 'ro', alpha=.3)
+    ax.plot(g[0,xsol > .5], g[1,xsol > .5], 'go', markersize=20, alpha=.5)
 
 
 
 
 .. parsed-literal::
 
-    [<matplotlib.lines.Line2D at 0x112a47610>]
+    [<matplotlib.lines.Line2D at 0xb1853f1d0>]
 
 
 
 
 .. image:: parade_route_files/parade_route_6_1.png
-
 

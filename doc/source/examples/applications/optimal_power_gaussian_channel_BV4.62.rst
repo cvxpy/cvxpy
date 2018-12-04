@@ -53,36 +53,41 @@ solved using CVXPY.
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
     
     import numpy as np
-    import cvxpy as cvx
+    import cvxpy as cp
 
 .. code:: ipython3
 
     def optimal_power(n, a_val, b_val, P_tot=1.0, W_tot=1.0):
-      # Input parameters: α and β are constants from R_i equation
-      n=len(a_val)
-      if n!=len(b_val):
-        print('alpha and beta vectors must have same length!')
-        return 'failed',np.nan,np.nan,np.nan
+        # Input parameters: α and β are constants from R_i equation
+        n = len(a_val)
+        if n != len(b_val):
+            print('alpha and beta vectors must have same length!')
+            return 'failed', np.nan, np.nan, np.nan
         
-      P=cvx.Variable(shape=(n,1))
-      W=cvx.Variable(shape=(n,1))
-      alpha=cvx.Parameter(shape=(n,1))
-      beta =cvx.Parameter(shape=(n,1))
-      alpha.value=np.array(a_val)
-      beta.value =np.array(b_val)
-      # This function will be used as the objective so must be DCP; 
-      # i.e. elementwise multiplication must occur inside kl_div, not outside otherwise the solver does not know if it is DCP...
-      R=cvx.kl_div(cvx.multiply(alpha, W),
-                   cvx.multiply(alpha, W + cvx.multiply(beta, P))) - \
-        cvx.multiply(alpha, cvx.multiply(beta, P))
-      objective=cvx.Minimize(cvx.sum(R))
-      constraints=[P>=0.0,
-                   W>=0.0,
-                   cvx.sum(P)-P_tot==0.0,
-                   cvx.sum(W)-W_tot==0.0]
-      prob=cvx.Problem(objective, constraints)
-      prob.solve()
-      return prob.status,-prob.value,P.value,W.value
+        P = cp.Variable(shape=n)
+        W = cp.Variable(shape=n)
+        alpha = cp.Parameter(shape=n)
+        beta = cp.Parameter(shape=n)
+        alpha.value = np.array(a_val)
+        beta.value = np.array(b_val)
+    
+        # This function will be used as the objective so must be DCP; 
+        # i.e. elementwise multiplication must occur inside kl_div, 
+        # not outside otherwise the solver does not know if it is DCP...
+        R = cp.kl_div(cp.multiply(alpha, W),
+                      cp.multiply(alpha, W + cp.multiply(beta, P))) - \
+                      cp.multiply(alpha, cp.multiply(beta, P))
+    
+        objective = cp.Minimize(cp.sum(R))
+        constraints = [P>=0.0,
+                       W>=0.0,
+                       cp.sum(P)-P_tot==0.0,
+                       cp.sum(W)-W_tot==0.0]
+        
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+          
+        return prob.status, -prob.value, P.value, W.value
 
 Example
 -------
@@ -93,33 +98,27 @@ Consider the case where there are 5 channels, :math:`n=5`,
 
 .. code:: ipython3
 
-      np.set_printoptions(precision=3)
-      n=5               # number of receivers in the system
-      a_val=np.arange(10,n+10)/(1.0*n)  # α
-      b_val=np.arange(10,n+10)/(1.0*n)  # β
-      P_tot=0.5
-      W_tot=1.0
-      status,utility,power,bandwidth=optimal_power(n,a_val,b_val,P_tot,W_tot)
-      print('Status: ',status)
-      print('Optimal utility value = %.4g '%utility)
-      print('Optimal power level:\n', power)
-      print('Optimal bandwidth:\n', bandwidth)
+    np.set_printoptions(precision=3)
+    n = 5               # number of receivers in the system
+    
+    a_val = np.arange(10,n+10)/(1.0*n)  # α
+    b_val = np.arange(10,n+10)/(1.0*n)  # β
+    P_tot = 0.5
+    W_tot = 1.0
+    status, utility, power, bandwidth = optimal_power(n, a_val, b_val, P_tot, W_tot)
+    
+    print('Status: {}'.format(status))
+    print('Optimal utility value = {:.4g}'.format(utility))
+    print('Optimal power level:\n{}'.format(power))
+    print('Optimal bandwidth:\n{}'.format(bandwidth))
 
 
 .. parsed-literal::
 
-    Status = optimal
-    Optimal utility value = 2.451 
+    Status: optimal
+    Optimal utility value = 2.451
     Optimal power level:
-     [[  1.150e-09]
-     [  1.706e-09]
-     [  2.754e-09]
-     [  5.785e-09]
-     [  5.000e-01]]
+    [1.151e-09 1.708e-09 2.756e-09 5.788e-09 5.000e-01]
     Optimal bandwidth:
-     [[  3.091e-09]
-     [  3.956e-09]
-     [  5.910e-09]
-     [  1.193e-08]
-     [  1.000e+00]]
+    [3.091e-09 3.955e-09 5.908e-09 1.193e-08 1.000e+00]
 
