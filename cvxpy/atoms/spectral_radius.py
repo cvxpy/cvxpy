@@ -68,3 +68,6 @@ class spectral_radius(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
+
+    def _grad(self, values):
+        return None
