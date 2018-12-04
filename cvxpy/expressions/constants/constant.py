@@ -23,8 +23,6 @@ from scipy import linalg as LA
 import numpy as np
 
 
-# TODO(akshayka): Canonicalizing constants in a GP ...? Constants aren't
-# actually atoms, which sort of breaks the abstraction. I wouldn't ...
 class Constant(Leaf):
     """
     A constant value.

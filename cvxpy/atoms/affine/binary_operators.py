@@ -124,9 +124,13 @@ class MulExpression(BinaryOperator):
         return self.is_atom_convex()
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
         return False
 
     def is_incr(self, idx):
@@ -223,14 +227,6 @@ class DivExpression(BinaryOperator):
         """
         return self.args[0].shape
 
-    def is_atom_log_log_convex(self):
-        # Division is log-log affine precisely when each argument is positive;
-        # x / y corresponds to x * y**(-1), and *, power are both affine.
-        return all(arg.is_pos() for arg in self.args)
-
-    def is_atom_log_log_concave(self):
-        return self.is_atom_log_log_convex()
-
     def is_atom_convex(self):
         """Division is convex (affine) in its arguments only if
            the denominator is constant.
@@ -239,6 +235,16 @@ class DivExpression(BinaryOperator):
 
     def is_atom_concave(self):
         return self.is_atom_convex()
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
@@ -291,9 +297,13 @@ class multiply(MulExpression):
         super(multiply, self).__init__(lh_expr, rh_expr)
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
         return True
 
     def numeric(self, values):

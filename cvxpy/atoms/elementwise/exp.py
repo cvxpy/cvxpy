@@ -52,9 +52,9 @@ class exp(Elementwise):
         return True
 
     def is_atom_log_log_concave(self):
-        """Is the atom log-log convex?
+        """Is the atom log-log concave?
         """
-        return True
+        return False
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?

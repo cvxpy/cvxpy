@@ -183,10 +183,14 @@ class power(Elementwise):
         return 0 <= self.p <= 1
 
     def is_atom_log_log_convex(self):
-        return self.args[0].is_pos()
+        """Is the atom log-log convex?
+        """
+        return True
 
     def is_atom_log_log_concave(self):
-        return self.args[0].is_pos()
+        """Is the atom log-log concave?
+        """
+        return True
 
     def is_constant(self):
         """Is the expression constant?

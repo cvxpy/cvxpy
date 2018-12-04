@@ -33,10 +33,10 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
 
-# TODO(akshayka): canon for ...
-#   sum_smallest,
+# TODO(akshayka): Consider adding support for
+#   sum_smallest
 #   minimum, (add a class and lower it to maximum in a canonicalizer)
-#   cumsum,
+#   cumsum
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
@@ -59,6 +59,8 @@ CANON_METHODS = {
 CANON_METHODS[maximum] = PWL_METHODS[maximum]
 CANON_METHODS[sum_largest] = PWL_METHODS[sum_largest]
 
+# Canonicalization of DGPs is a stateful procedure, hence the need
+# for a class.
 class DgpCanonMethods(dict):
     def __init__(self, *args, **kwargs):
         super(DgpCanonMethods, self).__init__(*args, **kwargs)
@@ -73,11 +75,12 @@ class DgpCanonMethods(dict):
         else:
             return CANON_METHODS[key]
 
-    def variable_canon(self, expr, args):
+    def variable_canon(self, variable, args):
+        del args
         # Swaps out positive variables for unconstrained variables.
-        if expr in self._variables:
-            return self._variables[expr], []
+        if variable in self._variables:
+            return self._variables[variable], []
         else:
-            log_variable =  Variable(expr.shape, var_id=expr.id)
-            self._variables[expr] = log_variable
+            log_variable =  Variable(variable.shape, var_id=variable.id)
+            self._variables[variable] = log_variable
             return log_variable, []

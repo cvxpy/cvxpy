@@ -39,8 +39,14 @@ class Sum(AxisAtom, AffAtom):
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def is_atom_log_log_convex(self):
-        """Is the atom log-log convex?"""
+        """Is the atom log-log convex?
+        """
         return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
 
     def numeric(self, values):
         """Sums the entries of value.

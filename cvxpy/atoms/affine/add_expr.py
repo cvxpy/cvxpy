@@ -58,10 +58,13 @@ class AddExpression(AffAtom):
         return reduce(op.add, values)
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
-        # TODO(akshayka): x - y, x >= y
+        """Is the atom log-log concave?
+        """
         return False
 
     def is_symmetric(self):

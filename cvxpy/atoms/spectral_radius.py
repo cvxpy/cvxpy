@@ -53,9 +53,13 @@ class spectral_radius(Atom):
         return False
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
         return False
 
     # TODO(akshayka): Figure out monotonicity.
