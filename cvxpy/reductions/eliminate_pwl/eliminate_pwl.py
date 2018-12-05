@@ -23,6 +23,9 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
 class EliminatePwl(Canonicalization):
     """Eliminates piecewise linear atoms."""
 
+    def __init__(self):
+        super(EliminatePwl, self).__init__(canon_methods=elim_pwl_methods)
+
     def accepts(self, problem):
         atom_types = [type(atom) for atom in problem.atoms()]
         pwl_types = [abs, maximum, sum_largest, max, norm1, norm_inf]
@@ -30,5 +33,5 @@ class EliminatePwl(Canonicalization):
 
     def apply(self, problem):
         if not self.accepts(problem):
-            raise ValueError("Cannot canonicalize away pwl atoms.")
-        return Canonicalization(elim_pwl_methods).apply(problem)
+            raise ValueError("Cannot canonicalize pwl atoms.")
+        return super(EliminatePwl, self).apply(problem)

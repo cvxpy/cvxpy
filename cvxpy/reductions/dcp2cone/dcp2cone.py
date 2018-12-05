@@ -27,6 +27,9 @@ class Dcp2Cone(Canonicalization):
     them into problems with affine objectives and conic constraints whose
     arguments are affine.
     """
+    def __init__(self):
+        super(Dcp2Cone, self).__init__(canon_methods=cone_canon_methods)
+
     def accepts(self, problem):
         """A problem is accepted if it is a minimization and is DCP.
         """
@@ -37,4 +40,4 @@ class Dcp2Cone(Canonicalization):
         """
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to cone program")
-        return Canonicalization(cone_canon_methods).apply(problem)
+        return super(Dcp2Cone, self).apply(problem)

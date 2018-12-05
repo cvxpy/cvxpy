@@ -27,6 +27,9 @@ class Qp2SymbolicQp(Canonicalization):
     Reduces a quadratic problem to a problem that consists of affine
     expressions and symbolic quadratic forms.
     """
+    def __init__(self):
+        super(Qp2SymbolicQp, self).__init__(canon_methods=qp_canon_methods)
+
     def accepts(self, problem):
         """
         Problems with quadratic, piecewise affine objectives,
@@ -44,4 +47,4 @@ class Qp2SymbolicQp(Canonicalization):
         """Converts a QP to an even more symbolic form."""
         if not self.accepts(problem):
             raise ValueError("Cannot reduce problem to symbolic QP")
-        return Canonicalization(qp_canon_methods).apply(problem)
+        return super(Qp2SymbolicQp, self).apply(problem)
