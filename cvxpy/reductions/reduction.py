@@ -27,14 +27,24 @@ class Reduction(object):
     to :math:`B`, we can convert it to a solution of :math:`A` with at most a
     moderate amount of effort.
 
-    Every reduction supports three methods: accepts, apply, and invert.
-    The accepts method of a particular reduction codifies the types of problems
+    A reduction that was instantiated with a non-None problem offers
+    two key methods: `reduce` and `retrieve`. The `reduce()` method converts
+    the problem the reduction was instantiated with to an equivalent
+    problem. The `retrieve()` method takes as an argument a solution
+    for the equivalent problem and returns a solution for the problem
+    owned by the reduction.
+
+    Every reduction supports three low-level methods: accepts, apply, and invert.
+    The accepts method of a particular reduction specifies the types of problems
     that it is applicable to; the apply method takes a problem and reduces
-    it to a (new) equivalent form, and the invert method maps solutions
+    it to an equivalent form, and the invert method maps solutions
     from reduced-to problems to their problems of provenance.
     """
 
     __metaclass__ = abc.ABCMeta
+
+    def __init__(self, problem=None):
+        self.problem = problem
 
     def accepts(self, problem):
         """States whether the reduction accepts a problem.
@@ -51,26 +61,28 @@ class Reduction(object):
         """
         return NotImplemented
 
-    def reduce(self, problem):
-        """Reduces a problem to an equivalent problem.
-
-        This method can be called exactly once.
-
-        Parameters
-        ----------
-        problem : Problem
-            The problem to which the reduction will be applied.
+    def reduce(self):
+        """Reduces the owned problem to an equivalent problem.
 
         Returns
         -------
         Problem or dict
             An equivalent problem, encoded either as a Problem or a dict.
+
+        Raises
+        ------
+        ValueError
+            If this Reduction was constructed without a Problem.
         """
-        if hasattr(self, '_retrieval_data'):
-            raise ValueError("The `reduce` method can be called exactly once; "
-                             "consider creating another reduction object, or "
-                             "use the lower-level apply/invert API.")
-        problem, retrieval_data = self.apply(problem)
+        if hasattr(self, '_emitted_problem'):
+            return self._emitted_problem
+
+        if self.problem is None:
+            raise ValueError(
+              "The reduction was constructed without a Problem.")
+
+        problem, retrieval_data = self.apply(self.problem)
+        self._emitted_problem = problem
         self._retrieval_data = retrieval_data
         return problem
 

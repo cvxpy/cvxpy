@@ -43,17 +43,19 @@ class Dgp2Dcp(Canonicalization):
     >>> dcp2cone = cvxpy.reductions.Dcp2Cone()
     >>> assert not dcp2cone.accepts(problem)
     >>>
-    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp()
-    >>> assert gp2dcp.accepts(problem)
+    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp(problem)
+    >>> dcp_problem = gp2dcp.reduce()
     >>>
-    >>> dcp_problem = gp2dcp.reduce(problem)
     >>> assert dcp2cone.accepts(dcp_problem)
     >>> dcp_probem.solve()
-    >>> gp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
     >>>
+    >>> gp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
     >>> print(gp_problem.value)
     >>> print(gp_problem.variables())
     """
+    def __init__(self, problem=None):
+        super(Dgp2Dcp, self).__init__(problem=problem)
+
     def accepts(self, problem):
         """A problem is accepted if it is DGP.
         """

@@ -12,9 +12,9 @@ class TestDgp2Dcp(BaseTest):
         y = cvxpy.Variable(pos=True)
         prod = x * y 
         dgp = cvxpy.Problem(cvxpy.Minimize(prod), [])
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
 
-        dcp = dgp2dcp.reduce(dgp)
+        dcp = dgp2dcp.reduce()
         self.assertIsInstance(dcp.objective.expr, AddExpression)
         self.assertEqual(len(dcp.objective.expr.args), 2)
         self.assertIsInstance(dcp.objective.expr.args[0], cvxpy.Variable)
@@ -34,8 +34,8 @@ class TestDgp2Dcp(BaseTest):
         self.assertEqual(dgp.status, "unbounded")
 
         dgp = cvxpy.Problem(cvxpy.Maximize(prod), [])
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         self.assertEqual(dcp.solve(), float("inf"))
         self.assertEqual(dcp.status, "unbounded")
 
@@ -50,9 +50,9 @@ class TestDgp2Dcp(BaseTest):
     def test_basic_equality_constraint(self):
         x = cvxpy.Variable(pos=True)
         dgp = cvxpy.Problem(cvxpy.Minimize(x), [x == 1.0])
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
 
-        dcp = dgp2dcp.reduce(dgp)
+        dcp = dgp2dcp.reduce()
         self.assertIsInstance(dcp.objective.expr, cvxpy.Variable)
         opt = dcp.solve()
         self.assertAlmostEqual(opt, 0.0)
@@ -77,8 +77,8 @@ class TestDgp2Dcp(BaseTest):
         constr = [x == 1.0, y == 4.0]
         
         dgp = cvxpy.Problem(obj, constr)
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         opt = dcp.solve()
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         self.assertAlmostEquals(dgp.value, 6.0)
@@ -95,8 +95,8 @@ class TestDgp2Dcp(BaseTest):
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3))
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
         dgp = cvxpy.Problem(obj, constr)
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         dcp.solve()
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         opt = 6.0
@@ -115,8 +115,8 @@ class TestDgp2Dcp(BaseTest):
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3) * y)
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
         dgp = cvxpy.Problem(obj, constr)
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         opt = dcp.solve()
         self.assertEquals(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
@@ -131,8 +131,8 @@ class TestDgp2Dcp(BaseTest):
         x = cvxpy.Variable(2, pos=True)
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 1))
         dgp = cvxpy.Problem(obj, [])
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         opt = dcp.solve()
         self.assertEquals(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
@@ -150,8 +150,8 @@ class TestDgp2Dcp(BaseTest):
                        x[0] * x[1] + 0.5 * x[1] * x[3]**3, x[2]]), 2))
         constr = [x[0] * x[1] >= 16]
         dgp = cvxpy.Problem(obj, constr)
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         dcp.solve()
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         # opt = 3 * sqrt(4) * sqrt(4) + (4 * 4 + 0.5 * 4 * epsilon) = 28
@@ -178,8 +178,8 @@ class TestDgp2Dcp(BaseTest):
         p = [1, 2, 0.5]
         geo_mean = cvxpy.geo_mean(x, p)
         dgp = cvxpy.Problem(cvxpy.Minimize(geo_mean), [])
-        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
-        dcp = dgp2dcp.reduce(dgp)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
         dcp.solve()
         self.assertEquals(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))

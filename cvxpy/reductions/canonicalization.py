@@ -25,7 +25,8 @@ from cvxpy.expressions.constants import CallbackParam
 class Canonicalization(Reduction):
     """TODO(akshayka): Document this class."""
 
-    def __init__(self, canon_methods=None):
+    def __init__(self, problem=None, canon_methods=None):
+        super(Canonicalization, self).__init__(problem=problem)
         self.canon_methods = canon_methods
 
     def apply(self, problem):

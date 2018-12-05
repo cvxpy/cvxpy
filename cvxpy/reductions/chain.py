@@ -10,7 +10,8 @@ class Chain(Reduction):
         A list of reductions.
     """
 
-    def __init__(self, reductions=[]):
+    def __init__(self, problem=None, reductions=[]):
+        super(Chain, self).__init__(problem=problem)
         self.reductions = reductions
 
     def __str__(self):
