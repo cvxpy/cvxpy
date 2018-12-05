@@ -90,8 +90,8 @@ class QuadForm(Atom):
                                self.args[0],
                                self.args[1])
 
-    def _grad(self):
-        return self.args[1] * self.args[0]
+    def _grad(self, values):
+        return 2 * np.dot(values[1], values[0])
 
     def shape_from_args(self):
         return tuple() if self.args[0].ndim == 0 else (1, 1)
