@@ -23,23 +23,22 @@ import numpy as np
 class Dgp2Dcp(Canonicalization):
     """Reduce DGP problems to DCP problems.
 
-    This reduction takes as input a (minimization) DGP problem and
-    returns an equivalent DCP problem. Note that every generalized
-    geometric program is a DGP problem, so this reduction
-    can be used to convert geometric programs into convex form.
+    This reduction takes as input a DGP problem and returns an equivalent DCP
+    problem. Because every (generalized) geometric program is a DGP problem,
+    this reduction can be used to convert geometric programs into convex form.
 
     Example
     -------
 
-    >>> import cvxpy
+    >>> import cvxpy as cp
     >>>
-    >>> x1 = cvxpy.Variable(nonneg=True)
-    >>> x2 = cvxpy.Variable(nonneg=True)
-    >>> x3 = cvxpy.Variable(nonneg=True)
+    >>> x1 = cp.Variable(pos=True)
+    >>> x2 = cp.Variable(pos=True)
+    >>> x3 = cp.Variable(pos=True)
     >>>
     >>> monomial = 3.0 * x_1**0.4 * x_2 ** 0.2 * x_3 ** -1.4
     >>> posynomial = monomial + 2.0 * x_1 * x_2
-    >>> problem = cvxpy.Problem(cvxpy.minimize(posynomial), [monomial == 4.0])
+    >>> problem = cp.Problem(cp.Minimize(posynomial), [monomial == 4.0])
     >>>
     >>> dcp2cone = cvxpy.reductions.Dcp2Cone()
     >>> assert not dcp2cone.accepts(problem)
@@ -66,11 +65,9 @@ class Dgp2Dcp(Canonicalization):
         if not self.accepts(problem):
             raise ValueError("The supplied problem is not DGP.")
 
-        canon_methods = DgpCanonMethods()
-        equiv_problem, inverse_data = Canonicalization(canon_methods).apply(
-          problem)
+        self.canon_methods = DgpCanonMethods()
+        equiv_problem, inverse_data = super(Dgp2Dcp, self).apply(problem)
         inverse_data._problem = problem
-        inverse_data._canon_methods = canon_methods
         return equiv_problem, inverse_data
 
     def invert(self, solution, inverse_data):
