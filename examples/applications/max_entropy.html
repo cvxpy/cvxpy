@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Entropy maximization &#8212; CVXPY 1.0.9 documentation</title>
+    <title>Entropy maximization &#8212; CVXPY 1.0.10 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.9',
+        VERSION:     '1.0.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -51,78 +51,29 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
-<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cvx</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="c1"># Make random input repeatable.</span>
-<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="c1"># Matrix size parameters.</span>
-<span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
-<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">p</span> <span class="o">=</span> <span class="mi">5</span>
-
-<span class="c1"># Generate random problem data.</span>
-<span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">A</span><span class="o">*</span><span class="n">tmp</span>
-<span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
-<span class="n">g</span> <span class="o">=</span> <span class="n">F</span><span class="o">*</span><span class="n">tmp</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">mat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-</pre></div>
-</div>
 </div>
 <div class="section" id="formulate-and-solve-problem">
 <h2>Formulate and solve problem<a class="headerlink" href="#formulate-and-solve-problem" title="Permalink to this headline">¶</a></h2>
-<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Entropy maximization.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">entr</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="n">b</span><span class="p">,</span>
-               <span class="n">F</span><span class="o">*</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">g</span> <span class="p">]</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># Print result.</span>
-<span class="nb">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The optimal value is:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
-<span class="nb">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">The optimal solution is:&#39;</span>
-<span class="nb">print</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>     <span class="n">pcost</span>       <span class="n">dcost</span>       <span class="n">gap</span>    <span class="n">pres</span>   <span class="n">dres</span>
- <span class="mi">0</span><span class="p">:</span>  <span class="mf">0.0000e+00</span> <span class="o">-</span><span class="mf">7.5220e+00</span>  <span class="mf">2e+01</span>  <span class="mf">1e+00</span>  <span class="mf">1e+00</span>
- <span class="mi">1</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.0720e+00</span> <span class="o">-</span><span class="mf">5.9875e+00</span>  <span class="mf">2e+00</span>  <span class="mf">1e-01</span>  <span class="mf">2e-01</span>
- <span class="mi">2</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4688e+00</span> <span class="o">-</span><span class="mf">5.5885e+00</span>  <span class="mf">4e-01</span>  <span class="mf">2e-02</span>  <span class="mf">5e-02</span>
- <span class="mi">3</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4595e+00</span> <span class="o">-</span><span class="mf">5.4889e+00</span>  <span class="mf">5e-02</span>  <span class="mf">2e-03</span>  <span class="mf">2e-02</span>
- <span class="mi">4</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4763e+00</span> <span class="o">-</span><span class="mf">5.4816e+00</span>  <span class="mf">1e-02</span>  <span class="mf">3e-04</span>  <span class="mf">7e-03</span>
- <span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4804e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">1e-03</span>  <span class="mf">4e-05</span>  <span class="mf">2e-03</span>
- <span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">3e-05</span>  <span class="mf">1e-06</span>  <span class="mf">4e-04</span>
- <span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-07</span>  <span class="mf">1e-08</span>  <span class="mf">2e-05</span>
- <span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-09</span>  <span class="mf">1e-10</span>  <span class="mf">3e-07</span>
- <span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-11</span>  <span class="mf">1e-12</span>  <span class="mf">5e-09</span>
+ <span class="mi">0</span><span class="p">:</span>  <span class="mf">0.0000e+00</span> <span class="o">-</span><span class="mf">2.8736e+00</span>  <span class="mf">2e+01</span>  <span class="mf">1e+00</span>  <span class="mf">1e+00</span>
+ <span class="mi">1</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.0720e+00</span> <span class="o">-</span><span class="mf">5.9687e+00</span>  <span class="mf">2e+00</span>  <span class="mf">8e-02</span>  <span class="mf">2e-01</span>
+ <span class="mi">2</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4688e+00</span> <span class="o">-</span><span class="mf">5.5883e+00</span>  <span class="mf">4e-01</span>  <span class="mf">8e-03</span>  <span class="mf">4e-02</span>
+ <span class="mi">3</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4595e+00</span> <span class="o">-</span><span class="mf">5.4889e+00</span>  <span class="mf">5e-02</span>  <span class="mf">6e-04</span>  <span class="mf">1e-02</span>
+ <span class="mi">4</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4763e+00</span> <span class="o">-</span><span class="mf">5.4816e+00</span>  <span class="mf">1e-02</span>  <span class="mf">1e-04</span>  <span class="mf">5e-03</span>
+ <span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4804e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">1e-03</span>  <span class="mf">1e-05</span>  <span class="mf">2e-03</span>
+ <span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">3e-05</span>  <span class="mf">5e-07</span>  <span class="mf">3e-04</span>
+ <span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-07</span>  <span class="mf">6e-09</span>  <span class="mf">1e-05</span>
+ <span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-09</span>  <span class="mf">6e-11</span>  <span class="mf">3e-07</span>
+ <span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4809e+00</span> <span class="o">-</span><span class="mf">5.4809e+00</span>  <span class="mf">4e-11</span>  <span class="mf">6e-13</span>  <span class="mf">4e-09</span>
 <span class="n">Optimal</span> <span class="n">solution</span> <span class="n">found</span><span class="o">.</span>
 
-<span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span><span class="p">:</span> <span class="mf">5.48090148635</span>
+<span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span><span class="p">:</span> <span class="mf">5.480901486350394</span>
 
 <span class="n">The</span> <span class="n">optimal</span> <span class="n">solution</span> <span class="ow">is</span><span class="p">:</span>
-<span class="p">[[</span> <span class="mf">0.43483319</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.66111715</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.49201039</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.36030618</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.38416629</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.30283658</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.41730232</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.79107794</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.76667302</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.38292365</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">1.2479328</span> <span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.50416987</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.68053832</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.67163958</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.13877259</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.5248668</span> <span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.08418897</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.56927148</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.50000248</span><span class="p">]</span>
- <span class="p">[</span> <span class="mf">0.78291311</span><span class="p">]]</span>
+<span class="p">[</span><span class="mf">0.43483319</span> <span class="mf">0.66111715</span> <span class="mf">0.49201039</span> <span class="mf">0.36030618</span> <span class="mf">0.38416629</span> <span class="mf">0.30283658</span>
+ <span class="mf">0.41730232</span> <span class="mf">0.79107794</span> <span class="mf">0.76667302</span> <span class="mf">0.38292365</span> <span class="mf">1.2479328</span>  <span class="mf">0.50416987</span>
+ <span class="mf">0.68053832</span> <span class="mf">0.67163958</span> <span class="mf">0.13877259</span> <span class="mf">0.5248668</span>  <span class="mf">0.08418897</span> <span class="mf">0.56927148</span>
+ <span class="mf">0.50000248</span> <span class="mf">0.78291311</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>

@@ -84,7 +84,6 @@ CVXPY has the following dependencies:
 
 * Python 2.7 or Python 3.4
 * `setuptools`_ >= 1.4
-* `toolz`_
 * `six <https://pythonhosted.org/six/>`_
 * `fastcache <https://github.com/pbrady/fastcache>`_
 * `multiprocess`_
@@ -96,7 +95,7 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
+CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, six, fastcache, and
 `multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually,
 as will `Swig`_ . Once you’ve installed these dependencies:
 
@@ -171,7 +170,6 @@ See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _multiprocess: https://github.com/uqfoundation/multiprocess/
-.. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos

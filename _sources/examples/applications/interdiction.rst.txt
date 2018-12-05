@@ -116,7 +116,7 @@ and plotting the results. This is the majority of the code. The actual
 CVXPY optimization code is only a few lines. We'll go over the
 optimization code later in the notebook.
 
-.. code:: 
+.. code:: ipython3
 
     #%config InlineBackend.figure_format = 'pdf'
     #%config InlineBackend.figure_format = 'svg'
@@ -125,7 +125,7 @@ optimization code later in the notebook.
     import matplotlib.pyplot as plt
     import numpy as np
     import networkx as nx
-    import cvxpy as cvx
+    import cvxpy as cp
     
     from matplotlib import rcParams
     rcParams.update({'font.size': 16})
@@ -171,7 +171,7 @@ optimization code later in the notebook.
         
         # remove edges that cross buildings
         if buildings is not None and buildings != []:
-            for e in G.edges():
+            for e in list(G.edges()):
                 blocked = False
                 for x,y,w,h in buildings:
                     if intersect(pos[e[0]],pos[e[1]],x,x+w,y,y+h):
@@ -210,20 +210,23 @@ optimization code later in the notebook.
             visibleNodes = G.nodes()
             
         # draw the regular interior nodes in the graph
-        nx.draw_networkx_nodes(G,pos,nodelist=visibleNodes,node_color='w',node_size=100,ax=ax)
-        
+        nx.draw_networkx_nodes(G,pos,nodelist=visibleNodes, edgecolors='k',
+                               node_color='w',node_size=100,ax=ax)
+    
         # draw the origin and destination nodes
         for nodes, color in zip([Gnodes,Rnodes],['g','r']):
             for color2, alpha in zip(['w',color],[1,.2]):
                 nx.draw_networkx_nodes(G,pos,
                                nodelist=nodes,
                                node_color=color2,
+                               edgecolors='k',
                                node_size=200,
                                ax=ax,alpha=alpha)
-            
+    
         # draw guard nodes
         if guards is not None:
-            nx.draw_networkx_nodes(G,pos,nodelist=guards,node_color='.0',node_size=100,ax=ax)
+            nx.draw_networkx_nodes(G,pos,nodelist=guards,node_color='k',
+                                   node_size=100,ax=ax)
           
             
         if path is None:
@@ -244,12 +247,12 @@ optimization code later in the notebook.
             edgeProbs = [edgeProbs]*G.number_of_edges()
             
         p = [edgeProbs[i] for i in visibleEdges]
-        
+    
         # draw edges of graph, make transparent if we're drawing a path over them
         edges = nx.draw_networkx_edges(G,pos,edge_color=p,width=4,
                                        edge_cmap=plt.cm.RdYlGn,arrows=False,edgelist=edgelist,edge_vmin=0.0,
                                        edge_vmax=1.0,ax=ax,alpha=alpha)
-            
+    
         # draw the path, only between visible nodes
         if path is not None:
             visiblePath = [i for i in path if ind2edge[i][0] in visibleNodes and ind2edge[i][1] in visibleNodes]
@@ -469,7 +472,7 @@ lower-right corner of the graph plot.
 
 We show the graph with the edge evasion probabilities below.
 
-.. code:: 
+.. code:: ipython3
 
     N = 10
     G, pos = formGraph(N,.12,1.2,seed=5)
@@ -481,16 +484,22 @@ We show the graph with the edge evasion probabilities below.
     fig, ax = showPaths(G,pos,p,Gnodes=[0],Rnodes=[n-1])
 
 
+.. parsed-literal::
 
-.. image:: interdiction_files/interdiction_5_0.png
-   :width: 463px
-   :height: 376px
+    /anaconda3/envs/cvxpy/lib/python3.6/site-packages/networkx/drawing/nx_pylab.py:611: MatplotlibDeprecationWarning: isinstance(..., numbers.Number)
+      if cb.is_numlike(alpha):
+
+
+
+.. image:: interdiction_files/interdiction_5_1.png
+   :width: 438px
+   :height: 360px
 
 
 We form the smuggler's relaxed convex problem and solve it to find his
 optimal path. We plot the path below.
 
-.. code:: 
+.. code:: ipython3
 
     A = nx.incidence_matrix(G,oriented=True).toarray()
     n,m = A.shape
@@ -501,9 +510,9 @@ optimal path. We plot the path below.
     
     c = np.log(p)
     
-    edge2ind = {e: i for i,e in enumerate(G.edges_iter())}
+    edge2ind = {e: i for i,e in enumerate(G.edges())}
     
-    B = np.zeros((m/2,m))
+    B = np.zeros((int(m/2),m))
     count = 0
     for i in G:
         for j in G[i]:
@@ -513,50 +522,60 @@ optimal path. We plot the path below.
                 count += 1
     
     
-    x = cvx.Variable(shape=(m,1))
+    x = cp.Variable(shape=m)
     constr = [A*x == b,x>=0, x <= 1]
-    cvx.Problem(cvx.Maximize(x.T*c),constr).solve(verbose=True)
+    cp.Problem(cp.Maximize(x.T*c),constr).solve(verbose=True)
     x = np.array(x.value).flatten()
 
 
 .. parsed-literal::
 
+    -----------------------------------------------------------------
+               OSQP v0.4.1  -  Operator Splitting QP Solver
+                  (c) Bartolomeo Stellato,  Goran Banjac
+            University of Oxford  -  Stanford University 2018
+    -----------------------------------------------------------------
+    problem:  variables n = 354, constraints m = 808
+              nnz(P) + nnz(A) = 1416
+    settings: linear system solver = qdldl,
+              eps_abs = 1.0e-03, eps_rel = 1.0e-03,
+              eps_prim_inf = 1.0e-04, eps_dual_inf = 1.0e-04,
+              rho = 1.00e-01 (adaptive),
+              sigma = 1.00e-06, alpha = 1.60, max_iter = 4000
+              check_termination: on (interval 25),
+              scaling: on, scaled_termination: off
+              warm start: on, polish: on
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    iter   objective    pri res    dua res    rho        time
+       1  -8.9458e+02   8.00e+00   9.97e+01   1.00e-01   2.10e-03s
+      75   5.0606e+00   1.47e-03   5.64e-05   1.00e-01   8.35e-03s
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +8.219e+01   -4.479e+02   +5e+02   1e-02   3e-16   1e+00   8e-01    N/A     1 1 -
-     1   +5.388e+01   -3.725e+01   +9e+01   2e-03   4e-16   2e-01   1e-01   0.8500   1 1 1
-     2   +1.745e+01   -8.925e+00   +3e+01   7e-04   5e-16   5e-02   4e-02   0.7788   1 1 1
-     3   +9.313e+00   +4.727e-01   +9e+00   2e-04   7e-16   2e-02   1e-02   0.6993   1 1 1
-     4   +5.212e+00   +4.172e+00   +1e+00   3e-05   3e-16   2e-03   2e-03   0.9673   1 1 1
-     5   +4.788e+00   +4.650e+00   +1e-01   4e-06   5e-16   2e-04   2e-04   0.8829   2 1 1
-     6   +4.723e+00   +4.717e+00   +7e-03   2e-07   1e-15   9e-06   9e-06   0.9750   2 1 1
-     7   +4.720e+00   +4.720e+00   +7e-05   2e-09   3e-16   1e-07   1e-07   0.9899   2 1 1
-     8   +4.720e+00   +4.720e+00   +7e-07   2e-11   3e-16   1e-09   1e-09   0.9899   3 1 1
-     9   +4.720e+00   +4.720e+00   +7e-09   3e-12   2e-16   1e-11   1e-11   0.9899   2 1 1
-    
-    OPTIMAL (within feastol=3.3e-12, reltol=1.5e-09, abstol=7.1e-09).
-    Runtime: 0.004822 seconds.
+    status:               solved
+    solution polish:      unsuccessful
+    number of iterations: 75
+    optimal objective:    5.0606
+    run time:             1.15e-02s
+    optimal rho estimate: 5.09e-01
     
 
 
-.. code:: 
+.. code:: ipython3
 
     path = list(np.flatnonzero(x > .1))
     showPaths(G,pos,p,path,Gnodes=[0],Rnodes=[n-1])
-    print "The evasion probability of the smuggler's optimal path is %e, or %.3f%%."%(np.exp(x.dot(c)), np.exp(x.dot(c))*100)
+    print("The evasion probability of the smuggler's "
+          "optimal path is %e, or %.3f%%."%(np.exp(x.dot(c)), np.exp(x.dot(c))*100))
 
 
 .. parsed-literal::
 
-    The evasion probability of the smuggler's optimal path is 8.913907e-03, or 0.891%.
+    The evasion probability of the smuggler's optimal path is 6.341943e-03, or 0.634%.
 
 
 
 .. image:: interdiction_files/interdiction_8_1.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
 We run a discrete graph-theoretic shortest path algorithm on the same
@@ -565,23 +584,24 @@ graph to check that we get the same optimal path. The function
 `Dijkstra's\_algorithm <http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm>`__
 to compute the optimal path.
 
-.. code:: 
+.. code:: ipython3
 
     y = optPath(G,p)
     path = list(np.flatnonzero(y > .1))
     showPaths(G,pos,p,path,Gnodes=[0],Rnodes=[n-1])
-    print "The evasion probability of the smuggler's optimal path is %e, or %.3f%%."%(np.exp(y.dot(c)), np.exp(y.dot(c))*100)
+    print("The evasion probability of the smuggler's "
+          "optimal path is %e, or %.3f%%."%(np.exp(y.dot(c)), np.exp(y.dot(c))*100))
 
 
 .. parsed-literal::
 
-    The evasion probability of the smuggler's optimal path is 8.913907e-03, or 0.891%.
+    The evasion probability of the smuggler's optimal path is 6.343747e-03, or 0.634%.
 
 
 
 .. image:: interdiction_files/interdiction_10_1.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
 Security's objective
@@ -656,60 +676,63 @@ The final model is \\[ ]
 We solve the model below with :math:`R=5` and report the evasion
 probability of the smuggler's optimal path.
 
-.. code:: 
+.. code:: ipython3
 
-    nu = cvx.Variable(shape=(n,1))
-    r = cvx.Variable(shape=(m,1))
-    constr = [A.T*nu >= -cvx.multiply(a,r), cvx.sum(r) == m, r >= 0, B*r == 0, r <= 5]
-    cvx.Problem(cvx.Minimize(nu.T*b),constr).solve(verbose=True)
+    nu = cp.Variable(shape=n)
+    r = cp.Variable(shape=m)
+    constr = [A.T*nu >= -cp.multiply(a,r), cp.sum(r) == m, r >= 0, B*r == 0, r <= 5]
+    cp.Problem(cp.Minimize(nu.T*b),constr).solve(verbose=True)
     nu = np.array(nu.value).flatten()
     r = np.array(r.value).flatten()
 
 
 .. parsed-literal::
 
+    -----------------------------------------------------------------
+               OSQP v0.4.1  -  Operator Splitting QP Solver
+                  (c) Bartolomeo Stellato,  Goran Banjac
+            University of Oxford  -  Stanford University 2018
+    -----------------------------------------------------------------
+    problem:  variables n = 454, constraints m = 1240
+              nnz(P) + nnz(A) = 2478
+    settings: linear system solver = qdldl,
+              eps_abs = 1.0e-03, eps_rel = 1.0e-03,
+              eps_prim_inf = 1.0e-04, eps_dual_inf = 1.0e-04,
+              rho = 1.00e-01 (adaptive),
+              sigma = 1.00e-06, alpha = 1.60, max_iter = 4000
+              check_termination: on (interval 25),
+              scaling: on, scaled_termination: off
+              warm start: on, polish: on
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    iter   objective    pri res    dua res    rho        time
+       1  -3.3084e+01   3.54e+02   3.54e+04   1.00e-01   2.59e-03s
+     100  -2.2269e+01   3.28e-01   1.58e-03   5.35e-03   9.06e-03s
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +8.656e-17   -2.680e+03   +3e+03   3e-03   5e+00   1e+00   3e+00    N/A     1 1 -
-     1   -1.558e+00   -4.454e+02   +5e+02   6e-04   9e-01   2e-01   4e-01   0.8475   1 1 1
-     2   -5.901e+00   -1.399e+02   +1e+02   2e-04   3e-01   1e-01   1e-01   0.8810   1 1 1
-     3   -9.799e+00   -8.402e+01   +8e+01   1e-04   1e-01   6e-02   7e-02   0.5281   2 2 2
-     4   -1.353e+01   -4.576e+01   +3e+01   4e-05   6e-02   3e-02   3e-02   0.6240   1 2 2
-     5   -1.668e+01   -3.615e+01   +2e+01   3e-05   4e-02   2e-02   2e-02   0.4594   1 1 2
-     6   -1.805e+01   -3.053e+01   +1e+01   2e-05   2e-02   1e-02   1e-02   0.4915   1 1 1
-     7   -1.894e+01   -2.786e+01   +9e+00   1e-05   2e-02   8e-03   9e-03   0.3545   1 1 2
-     8   -1.954e+01   -2.486e+01   +6e+00   7e-06   1e-02   5e-03   5e-03   0.7330   1 1 2
-     9   -2.008e+01   -2.274e+01   +3e+00   3e-06   5e-03   3e-03   3e-03   0.8195   1 1 1
-    10   -2.074e+01   -2.178e+01   +1e+00   1e-06   2e-03   1e-03   1e-03   0.7700   2 1 2
-    11   -2.098e+01   -2.153e+01   +6e-01   7e-07   1e-03   6e-04   5e-04   0.7530   2 2 2
-    12   -2.121e+01   -2.126e+01   +5e-02   6e-08   1e-04   5e-05   5e-05   0.9767   2 2 2
-    13   -2.124e+01   -2.124e+01   +1e-03   2e-09   2e-06   1e-06   1e-06   0.9768   2 1 1
-    14   -2.124e+01   -2.124e+01   +1e-05   2e-11   2e-08   1e-08   1e-08   0.9899   3 1 1
-    15   -2.124e+01   -2.124e+01   +1e-07   1e-12   2e-10   1e-10   1e-10   0.9899   3 1 1
-    
-    OPTIMAL (within feastol=2.5e-10, reltol=6.3e-09, abstol=1.3e-07).
-    Runtime: 0.012406 seconds.
+    status:               solved
+    solution polish:      unsuccessful
+    number of iterations: 100
+    optimal objective:    -22.2692
+    run time:             1.05e-02s
+    optimal rho estimate: 4.10e-03
     
 
 
-.. code:: 
+.. code:: ipython3
 
-    print "The evasion probability of the smuggler's optimal path is %e."%(np.exp(nu.dot(b)),)
-    print "The smuggler's chance of evasion is %.2f times smaller than with the uniform resource allocation."%(np.exp(x.dot(c))/np.exp(nu.dot(b)))
+    print("The evasion probability of the smuggler's optimal path is %e."%(np.exp(nu.dot(b)),))
+    print("The smuggler's chance of evasion is %.2f times smaller than with the uniform resource allocation."%(np.exp(x.dot(c))/np.exp(nu.dot(b))))
 
 
 .. parsed-literal::
 
-    The evasion probability of the smuggler's optimal path is 5.963000e-10.
-    The smuggler's chance of evasion is 14948695.12 times smaller than with the uniform resource allocation.
+    The evasion probability of the smuggler's optimal path is 2.131035e-10.
+    The smuggler's chance of evasion is 29759913.87 times smaller than with the uniform resource allocation.
 
 
 Here we plot the resulting edge evasion probabilities from the optimal
 allocation.
 
-.. code:: 
+.. code:: ipython3
 
     p = np.exp(-a*r)
     showPaths(G,pos,p,Gnodes=[0],Rnodes=[n-1])
@@ -719,15 +742,15 @@ allocation.
 
 .. parsed-literal::
 
-    (<matplotlib.figure.Figure at 0x10e9b5810>,
-     <matplotlib.axes.AxesSubplot at 0x10e9b5c10>)
+    (<Figure size 576x432 with 2 Axes>,
+     <matplotlib.axes._subplots.AxesSubplot at 0xd19325278>)
 
 
 
 
 .. image:: interdiction_files/interdiction_15_1.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
 We can now solve the smuggler's problem with these optimal resource
@@ -735,45 +758,55 @@ allocations, but we won't recover a Boolean solution for
 :math:`x^{\star}` because the optimal path is not unique. Note, however,
 that the optimal evasion probability is the same.
 
-.. code:: 
+.. code:: ipython3
 
     c = np.log(p)
-    x = cvx.Variable(shape=(m,1))
+    x = cp.Variable(shape=m)
     constr = [A*x == b,x>=0, x <= 1]
-    cvx.Problem(cvx.Maximize(x.T*c),constr).solve(verbose=True)
+    cp.Problem(cp.Maximize(x.T*c),constr).solve(verbose=True)
     x = np.array(x.value).flatten()
     
     plt.plot(x)
-    print "The evasion probability of the smuggler's optimal path is %e."%(np.exp(x.dot(c)),)
+    print("The evasion probability of the smuggler's optimal path is %e."%(np.exp(x.dot(c)),))
 
 
 .. parsed-literal::
 
+    -----------------------------------------------------------------
+               OSQP v0.4.1  -  Operator Splitting QP Solver
+                  (c) Bartolomeo Stellato,  Goran Banjac
+            University of Oxford  -  Stanford University 2018
+    -----------------------------------------------------------------
+    problem:  variables n = 354, constraints m = 808
+              nnz(P) + nnz(A) = 1416
+    settings: linear system solver = qdldl,
+              eps_abs = 1.0e-03, eps_rel = 1.0e-03,
+              eps_prim_inf = 1.0e-04, eps_dual_inf = 1.0e-04,
+              rho = 1.00e-01 (adaptive),
+              sigma = 1.00e-06, alpha = 1.60, max_iter = 4000
+              check_termination: on (interval 25),
+              scaling: on, scaled_termination: off
+              warm start: on, polish: on
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    iter   objective    pri res    dua res    rho        time
+       1  -8.8977e+02   8.00e+00   4.71e+02   1.00e-01   9.14e-04s
+     200   2.0447e+01   7.16e-03   6.89e-03   1.00e-01   6.66e-03s
+     325   2.0607e+01   9.79e-04   2.46e-03   1.00e-01   9.95e-03s
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +9.649e+01   -1.080e+03   +1e+03   1e-02   4e-16   1e+00   2e+00    N/A     1 1 -
-     1   +5.962e+01   -4.143e+02   +5e+02   6e-03   6e-16   5e-01   7e-01   0.6885   1 1 1
-     2   +2.876e+01   -6.403e+01   +1e+02   1e-03   5e-16   1e-01   1e-01   0.8229   1 1 1
-     3   +2.198e+01   +3.683e+00   +2e+01   2e-04   8e-16   2e-02   3e-02   0.8212   1 1 1
-     4   +2.128e+01   +2.055e+01   +8e-01   9e-06   5e-16   9e-04   1e-03   0.9712   1 1 1
-     5   +2.124e+01   +2.123e+01   +8e-03   9e-08   3e-16   9e-06   1e-05   0.9899   1 1 1
-     6   +2.124e+01   +2.124e+01   +1e-04   1e-09   7e-16   1e-07   1e-07   0.9872   2 1 1
-     7   +2.124e+01   +2.124e+01   +1e-05   2e-10   5e-16   2e-08   2e-08   0.8558   3 3 3
-     8   +2.124e+01   +2.124e+01   +3e-06   5e-11   2e-13   4e-09   5e-09   0.8147   3 3 3
-     9   +2.124e+01   +2.124e+01   +1e-06   9e-11   1e-11   1e-09   1e-09   0.8312   3 3 3
+    status:               solved
+    solution polish:      unsuccessful
+    number of iterations: 325
+    optimal objective:    20.6072
+    run time:             1.08e-02s
+    optimal rho estimate: 1.37e-01
     
-    OPTIMAL (within feastol=8.6e-11, reltol=4.6e-08, abstol=9.9e-07).
-    Runtime: 0.004146 seconds.
-    
-    The evasion probability of the smuggler's optimal path is 5.962999e-10.
+    The evasion probability of the smuggler's optimal path is 1.123036e-09.
 
 
 
 .. image:: interdiction_files/interdiction_17_1.png
-   :width: 391px
-   :height: 264px
+   :width: 373px
+   :height: 250px
 
 
 We use
@@ -782,23 +815,23 @@ again to recover an optimal path for the smuggler in the case that the
 path is not unique and plot it below. We again check that the detection
 probability is what we predicted previously.
 
-.. code:: 
+.. code:: ipython3
 
     x = optPath(G,p)
     path = list(np.flatnonzero(x > .1))
     showPaths(G,pos,p,path,Gnodes=[0],Rnodes=[n-1])
-    print "The evasion probability of the smuggler's optimal path is %e."%(np.exp(x.dot(c)),)
+    print("The evasion probability of the smuggler's optimal path is %e."%(np.exp(x.dot(c)),))
 
 
 .. parsed-literal::
 
-    The evasion probability of the smuggler's optimal path is 5.963000e-10.
+    The evasion probability of the smuggler's optimal path is 9.553365e-10.
 
 
 
 .. image:: interdiction_files/interdiction_19_1.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
 Guard placement example
@@ -836,7 +869,7 @@ probability 1. The plot below demonstrates the idea. We won't plot the
 dummy nodes or edges, but we will highlight the 'new' source and sink
 nodes with light green and red as before.
 
-.. code:: 
+.. code:: ipython3
 
     # show dummy source and destination node
     N = 10
@@ -848,8 +881,8 @@ nodes with light green and red as before.
 
 
 .. image:: interdiction_files/interdiction_21_0.png
-   :width: 485px
-   :height: 364px
+   :width: 469px
+   :height: 350px
 
 
 Guards
@@ -865,7 +898,7 @@ consider guards placed on node positions to make them easy to visualize.
 An example of a few guards and the resulting evasion probabilities is
 shown below.
 
-.. code:: 
+.. code:: ipython3
 
     N = 10
     k = 5
@@ -886,8 +919,8 @@ shown below.
 
 
 .. image:: interdiction_files/interdiction_23_0.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
 Buildings
@@ -896,7 +929,7 @@ Buildings
 We'll also add buildings, which will modify the graph topology and also
 restrict the view of the guards.
 
-.. code:: 
+.. code:: ipython3
 
     N = 10
     k = 5
@@ -927,8 +960,8 @@ restrict the view of the guards.
 
 
 .. image:: interdiction_files/interdiction_25_0.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
 Example to solve
@@ -947,7 +980,7 @@ TODO
 -  use iterative reweighting to get boolean solution
 -  use relaxation to give bounds on distance to true optimal
 
-.. code:: 
+.. code:: ipython3
 
     N = 17
     buildings = [(.2,.8,.3,.1),
@@ -968,7 +1001,7 @@ TODO
     edgeProbs = edgeVals.sum(axis=1)
     edgeProbs = np.exp(edgeProbs)
 
-.. code:: 
+.. code:: ipython3
 
     fig, ax = showPaths(G,pos,edgeProbs,visibleNodes=visibleNodes,Gnodes=Gnodes,Rnodes=Rnodes,guards=guardIdxs)
     
@@ -980,11 +1013,11 @@ TODO
 
 
 .. image:: interdiction_files/interdiction_28_0.png
-   :width: 603px
-   :height: 488px
+   :width: 575px
+   :height: 469px
 
 
-.. code:: 
+.. code:: ipython3
 
     A = nx.incidence_matrix(G,oriented=True).toarray()
     n,m = A.shape
@@ -998,10 +1031,10 @@ TODO
     w = np.ones(numGuards)
     
     for i in range(2):
-        nu = cvx.Variable(shape=(n,1))
-        r = cvx.Variable(shape=(numGuards,1))
-        constr = [A.T*nu >= edgeVals*r, cvx.sum(r) == 10, r >= 0, r <= 1]
-        cvx.Problem(cvx.Minimize(nu.T*b/100 + r.T*w),constr).solve(verbose=True)
+        nu = cp.Variable(shape=n)
+        r = cp.Variable(shape=numGuards)
+        constr = [A.T*nu >= edgeVals*r, cp.sum(r) == 10, r >= 0, r <= 1]
+        cp.Problem(cp.Minimize(nu.T*b/100 + r.T*w),constr).solve(verbose=True)
         nu = np.array(nu.value).flatten()
         r = np.array(r.value).flatten()
         w = 1/(eps+np.abs(r))
@@ -1009,66 +1042,69 @@ TODO
 
 .. parsed-literal::
 
+    -----------------------------------------------------------------
+               OSQP v0.4.1  -  Operator Splitting QP Solver
+                  (c) Bartolomeo Stellato,  Goran Banjac
+            University of Oxford  -  Stanford University 2018
+    -----------------------------------------------------------------
+    problem:  variables n = 448, constraints m = 1305
+              nnz(P) + nnz(A) = 27688
+    settings: linear system solver = qdldl,
+              eps_abs = 1.0e-03, eps_rel = 1.0e-03,
+              eps_prim_inf = 1.0e-04, eps_dual_inf = 1.0e-04,
+              rho = 1.00e-01 (adaptive),
+              sigma = 1.00e-06, alpha = 1.60, max_iter = 4000
+              check_termination: on (interval 25),
+              scaling: on, scaled_termination: off
+              warm start: on, polish: on
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    iter   objective    pri res    dua res    rho        time
+       1  -1.5225e-02   1.00e+01   1.24e+03   1.00e-01   1.50e-02s
+     200   9.8653e+00   5.33e-03   1.96e-03   1.98e-02   1.10e-01s
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +1.000e+01   -1.967e+02   +2e+03   3e+00   2e+01   1e+00   1e+00    N/A     1 1 -
-     1   +1.001e+01   -2.165e+01   +8e+02   5e-01   3e+00   1e+00   6e-01   0.8149   1 1 1
-     2   +1.000e+01   +7.747e+00   +9e+01   3e-02   2e-01   2e-01   7e-02   0.9210   1 1 1
-     3   +9.969e+00   +9.677e+00   +1e+01   4e-03   2e-02   2e-02   1e-02   0.8876   2 2 2
-     4   +9.901e+00   +9.801e+00   +4e+00   1e-03   8e-03   7e-03   3e-03   0.7160   2 2 2
-     5   +9.882e+00   +9.837e+00   +2e+00   7e-04   4e-03   2e-03   2e-03   0.6887   2 2 2
-     6   +9.873e+00   +9.843e+00   +1e+00   4e-04   2e-03   7e-04   1e-03   0.6929   2 2 2
-     7   +9.873e+00   +9.844e+00   +1e+00   4e-04   2e-03   6e-04   9e-04   0.1589   2 2 2
-     8   +9.872e+00   +9.845e+00   +1e+00   4e-04   2e-03   4e-04   9e-04   0.3356   2 2 2
-     9   +9.867e+00   +9.850e+00   +7e-01   2e-04   1e-03   2e-04   6e-04   0.3922   2 2 2
-    10   +9.865e+00   +9.853e+00   +5e-01   2e-04   9e-04   2e-05   4e-04   0.9899   2 2 2
-    11   +9.862e+00   +9.856e+00   +2e-01   8e-05   5e-04   9e-06   2e-04   0.5289   2 2 2
-    12   +9.860e+00   +9.857e+00   +1e-01   4e-05   2e-04   4e-06   9e-05   0.9518   2 2 2
-    13   +9.859e+00   +9.858e+00   +6e-02   2e-05   1e-04   2e-06   5e-05   0.5953   2 2 2
-    14   +9.859e+00   +9.858e+00   +4e-02   1e-05   7e-05   1e-06   3e-05   0.4644   2 2 2
-    15   +9.859e+00   +9.858e+00   +2e-02   6e-06   3e-05   6e-07   1e-05   0.7346   2 2 2
-    16   +9.859e+00   +9.858e+00   +1e-02   4e-06   2e-05   4e-07   9e-06   0.6513   2 2 2
-    17   +9.858e+00   +9.858e+00   +3e-03   1e-06   6e-06   1e-07   3e-06   0.7849   3 2 2
-    18   +9.858e+00   +9.858e+00   +5e-04   2e-07   9e-07   2e-08   4e-07   0.8749   3 2 2
-    19   +9.858e+00   +9.858e+00   +8e-06   3e-09   2e-08   3e-10   6e-09   0.9861   3 3 3
-    20   +9.858e+00   +9.858e+00   +1e-07   3e-11   2e-10   3e-12   8e-11   0.9889   2 2 1
+    status:               solved
+    solution polish:      unsuccessful
+    number of iterations: 200
+    optimal objective:    9.8653
+    run time:             1.13e-01s
+    optimal rho estimate: 1.08e-02
     
-    OPTIMAL (within feastol=1.8e-10, reltol=1.0e-08, abstol=9.8e-08).
-    Runtime: 0.161358 seconds.
+    -----------------------------------------------------------------
+               OSQP v0.4.1  -  Operator Splitting QP Solver
+                  (c) Bartolomeo Stellato,  Goran Banjac
+            University of Oxford  -  Stanford University 2018
+    -----------------------------------------------------------------
+    problem:  variables n = 448, constraints m = 1305
+              nnz(P) + nnz(A) = 27688
+    settings: linear system solver = qdldl,
+              eps_abs = 1.0e-03, eps_rel = 1.0e-03,
+              eps_prim_inf = 1.0e-04, eps_dual_inf = 1.0e-04,
+              rho = 1.00e-01 (adaptive),
+              sigma = 1.00e-06, alpha = 1.60, max_iter = 4000
+              check_termination: on (interval 25),
+              scaling: on, scaled_termination: off
+              warm start: on, polish: on
     
+    iter   objective    pri res    dua res    rho        time
+       1  -5.7726e+02   1.00e+01   1.23e+04   1.00e-01   1.10e-02s
+     200   1.8639e+01   1.36e-02   4.08e-01   1.00e-01   5.95e-02s
+     400   1.9265e+01   2.46e-02   7.13e-02   1.92e-02   1.13e-01s
+     600   1.8962e+01   1.23e-02   5.74e-02   1.92e-02   1.61e-01s
+     800   1.8931e+01   7.97e-03   4.31e-02   1.92e-02   2.23e-01s
+    1000   1.8566e+01   6.39e-03   3.56e-02   1.92e-02   2.74e-01s
+    1200   1.8689e+01   8.31e-03   1.31e-02   1.92e-02   3.23e-01s
+    1225   1.8471e+01   7.94e-03   3.93e-03   1.92e-02   3.30e-01s
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
-    
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +9.846e+01   -9.459e+02   +9e+03   3e+00   9e+00   1e+00   7e+00    N/A     1 1 -
-     1   -6.134e+01   -3.585e+02   +5e+03   8e-01   2e+00   2e+00   3e+00   0.7426   2 1 1
-     2   -3.992e+01   -2.121e+02   +3e+03   5e-01   1e+00   2e+00   2e+00   0.3914   2 1 1
-     3   -1.953e+01   -1.187e+02   +2e+03   3e-01   8e-01   9e-01   1e+00   0.4868   2 1 1
-     4   -4.987e+00   -5.829e+01   +1e+03   1e-01   4e-01   5e-01   8e-01   0.5444   1 1 1
-     5   +5.937e+00   -2.055e+01   +6e+02   7e-02   2e-01   2e-01   4e-01   0.6100   1 1 1
-     6   +9.139e+00   -3.756e+00   +3e+02   4e-02   1e-01   8e-02   2e-01   0.6404   1 1 1
-     7   +1.068e+01   +4.133e+00   +1e+02   2e-02   5e-02   4e-02   1e-01   0.5708   1 1 2
-     8   +1.124e+01   +6.854e+00   +1e+02   1e-02   4e-02   2e-02   8e-02   0.4755   2 2 2
-     9   +1.219e+01   +1.092e+01   +3e+01   3e-03   1e-02   5e-03   2e-02   0.8123   2 2 2
-    10   +1.231e+01   +1.134e+01   +2e+01   3e-03   8e-03   3e-03   2e-02   0.5214   2 2 2
-    11   +1.228e+01   +1.203e+01   +6e+00   7e-04   2e-03   8e-04   5e-03   0.8063   2 2 2
-    12   +1.228e+01   +1.219e+01   +2e+00   2e-04   7e-04   3e-04   2e-03   0.6807   2 2 2
-    13   +1.228e+01   +1.223e+01   +1e+00   1e-04   4e-04   2e-04   1e-03   0.5780   2 2 2
-    14   +1.228e+01   +1.226e+01   +5e-01   6e-05   2e-04   6e-05   4e-04   0.6916   2 2 2
-    15   +1.228e+01   +1.227e+01   +3e-01   3e-05   1e-04   3e-05   2e-04   0.8870   2 2 2
-    16   +1.228e+01   +1.228e+01   +2e-02   2e-06   6e-06   2e-06   1e-05   0.9454   3 2 2
-    17   +1.228e+01   +1.228e+01   +8e-04   9e-08   3e-07   8e-08   6e-07   0.9800   3 2 3
-    18   +1.228e+01   +1.228e+01   +8e-06   1e-09   3e-09   9e-10   6e-09   0.9894   3 3 3
-    19   +1.228e+01   +1.228e+01   +7e-07   2e-09   3e-10   7e-11   6e-10   0.9134   0 1 0
-    
-    OPTIMAL (within feastol=1.7e-09, reltol=5.9e-08, abstol=7.2e-07).
-    Runtime: 0.159205 seconds.
+    status:               solved
+    solution polish:      unsuccessful
+    number of iterations: 1225
+    optimal objective:    18.4712
+    run time:             3.31e-01s
+    optimal rho estimate: 2.86e-02
     
 
 
-.. code:: 
+.. code:: ipython3
 
     plt.plot(r,'o')
 
@@ -1077,17 +1113,17 @@ TODO
 
 .. parsed-literal::
 
-    [<matplotlib.lines.Line2D at 0x10eb95dd0>]
+    [<matplotlib.lines.Line2D at 0xd1b50d438>]
 
 
 
 
 .. image:: interdiction_files/interdiction_30_1.png
-   :width: 402px
-   :height: 264px
+   :width: 373px
+   :height: 250px
 
 
-.. code:: 
+.. code:: ipython3
 
     c = edgeVals.dot(r)
     edgeProbs = np.exp(c)
@@ -1102,16 +1138,16 @@ TODO
 
 
 .. image:: interdiction_files/interdiction_31_0.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 
 
-.. code:: 
+.. code:: ipython3
 
     x = optPath(G,edgeProbs)
     path_inds = list(np.flatnonzero(x > .1))
     fig, ax = showPaths(G,pos,edgeProbs,path=path_inds,visibleNodes=visibleNodes,Gnodes=Gnodes,Rnodes=Rnodes,guards=guards)
-    print "The evasion probability of the smuggler's optimal path is %e."%(np.exp(x.dot(c)),)
+    print("The evasion probability of the smuggler's optimal path is %e."%(np.exp(x.dot(c)),))
     for x,y,w,h in buildings:
         rect = plt.Rectangle((x,y),w,h,fc='y',alpha=.3)
         ax.add_patch(rect)
@@ -1119,11 +1155,11 @@ TODO
 
 .. parsed-literal::
 
-    The evasion probability of the smuggler's optimal path is 4.944881e-06.
+    The evasion probability of the smuggler's optimal path is 9.213215e-05.
 
 
 
 .. image:: interdiction_files/interdiction_32_1.png
-   :width: 463px
-   :height: 376px
+   :width: 438px
+   :height: 360px
 

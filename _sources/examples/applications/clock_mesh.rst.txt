@@ -38,9 +38,9 @@ widths and a constraint in the dominant time constant, we solve the SDP
 Import and setup packages
 -------------------------
 
-.. code:: 
+.. code:: ipython3
 
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy as np
     import scipy as scipy
     import matplotlib.pyplot as plt
@@ -51,31 +51,30 @@ Import and setup packages
     # Plot properties.
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
-    font = {'family' : 'normal',
-            'weight' : 'normal',
+    font = {'weight' : 'normal',
             'size'   : 16}
     plt.rc('font', **font)
 
 Helper functions
 ----------------
 
-.. code:: 
+.. code:: ipython3
 
     # Computes the step response of a linear system.
     def simple_step(A, B, DT, N):
         n  = A.shape[0]
         Ad = scipy.linalg.expm((A * DT))
-        Bd = (Ad - np.eye(n)) * B
+        Bd = (Ad - np.eye(n)).dot(B)
         Bd = np.linalg.solve(A, Bd)
-        X  = np.mat(np.zeros((n, N)))
+        X  = np.zeros((n, N))
         for k in range(1, N):
-            X[:, k] = Ad * X[:, k-1] + Bd;
+            X[:, k] = Ad.dot(X[:, k-1]) + Bd;
         return X
 
 Generate problem data
 ---------------------
 
-.. code:: 
+.. code:: ipython3
 
     #
     # Circuit parameters.
@@ -108,22 +107,21 @@ Generate problem data
     # Constant terms.
     # - Reshape order='F' is fortran order to match original
     #   version in MATLAB code.
-    CC[:, :, :, :, 0] = np.diag(C0.flatten(1)).reshape(dim+1, dim+1,
-                                    dim+1, dim+1, order='F').copy()
+    CC[:, :, :, :, 0] = np.diag(C0.flatten(order='F')).reshape(dim+1, dim+1,
+                                                               dim+1, dim+1, order='F').copy()
     zo13 = np.zeros((2, 1, 2, 1))
-    zo13[:,0,:,0] = np.mat([(1, 0), (0, 1)])
+    zo13[:,0,:,0] = np.array([(1, 0), (0, 1)])
     zo24 = np.zeros((1, 2, 1, 2))
     zo24[0,:,0,:] = zo13[:, 0, :, 0]
     pn13 = np.zeros((2, 1, 2, 1))
-    pn13[:,0,:,0] = np.mat([(1, -1), (-1, 1)]).reshape(2, 1, 2, 1,
-                                                  order='F').copy()
+    pn13[:,0,:,0] = np.array([[1, -1], [-1, 1]])
     pn24 = np.zeros((1, 2, 1, 2))
     pn24[0, :, 0, :] = pn13[:, 0, :, 0]
     
     for i in range(dim+1):
         # Source conductance.
         # First driver in the middle of row 1.
-        GG[dim/2, i, dim/2, i, 0] = G0
+        GG[int(dim/2), i, int(dim/2), i, 0] = G0
         for j in range(dim):
             # Horizontal segments.
             node = 1 + j + i * dim
@@ -152,7 +150,7 @@ Generate problem data
 Solve problem and display results
 ---------------------------------
 
-.. code:: 
+.. code:: ipython3
 
     # Iterate over all points, and revisit specific points
     for i in range(npts + xnpts):
@@ -174,28 +172,34 @@ Solve problem and display results
         #
     
         # Variables.
-        xt = cvx.Variable(shape=(m+1,1)) # Element 1 of xt == 1 below.
-        G = cvx.Variable((n,n), symmetric=True)  # Symmetric constraint below.
-        C = cvx.Variable((n,n), symmetric=True)  # Symmetric constraint below.
+        xt = cp.Variable(shape=(m+1)) # Element 1 of xt == 1 below.
+        G = cp.Variable((n,n), symmetric=True)  # Symmetric constraint below.
+        C = cp.Variable((n,n), symmetric=True)  # Symmetric constraint below.
         
         # Objective.
-        obj = cvx.Minimize(cvx.sum(C))
+        obj = cp.Minimize(cp.sum(C))
     
         # Constraints.
         constraints = [ xt[0] == 1,
                         G == G.T,
                         C == C.T,
-                        G == cvx.reshape(GG*xt,n,n),
-                        C == cvx.reshape(CC*xt,n,n),
-                        delay * G - C == cvx.Variable(shape=(n,n), PSD=True),
+                        G == cp.reshape(GG*xt, (n,n)),
+                        C == cp.reshape(CC*xt, (n,n)),
+                        delay * G - C == cp.Variable(shape=(n,n), PSD=True),
                         0 <= xt[1:],
                         xt[1:] <= wmax,
                       ]
     
-        #Solve problem
-        prob = cvx.Problem(obj, constraints)
-        prob.solve()
-        if prob.status != cvx.OPTIMAL:
+        # Solve problem (use CVXOPT instead of SCS to match original results;
+        # cvxopt produces lower objective values as well, but is much slower)
+        prob = cp.Problem(obj, constraints)
+        try:
+            prob.solve(solver=cp.CVXOPT)
+        except cp.SolverError:
+            print("CVXOPT failed, trying robust KKT")
+            prob.solve(solver=cp.CVXOPT, kktsolver='robust')
+                
+        if prob.status not in [cp.OPTIMAL, cp.OPTIMAL_INACCURATE]:
             raise Exception('CVXPY Error')
         
         # Chop off the first element of x, which is 
@@ -214,30 +218,31 @@ Solve problem and display results
             # Print display sizes.
             #
     
-            print 'Solution {}:'.format(xi+1)
-            print 'Vertical segments:'
-            print x[0:dim*(dim+1)].reshape(dim, dim+1, order='F').copy()
-            print 'Horizontal segments:'
-            print x[dim*(dim+1):].reshape(dim, dim+1, order='F').copy()
+            print('Solution {}:'.format(xi+1))
+            print('Vertical segments:')
+            print(x[0:dim*(dim+1)].reshape(dim, dim+1, order='F').copy())
+            print('Horizontal segments:')
+            print(x[dim*(dim+1):].reshape(dim, dim+1, order='F').copy())
     
             #
             # Determine and plot the step responses.
             #
     
-            A = -np.linalg.inv(C.value)*G.value
-            B = -A*np.ones((n, 1))
+            A = -np.linalg.inv(C.value).dot(G.value)
+            B = -A.dot(np.ones(n))
             T = np.linspace(0, 500, 2000)
             Y = simple_step(A, B, T[1], len(T))
             indmax = -1
             indmin = np.inf
             for j in range(Y.shape[0]):
-                inds = np.amin(np.nonzero(Y[j, :] >= 0.5)[1])
+                inds = np.amin(np.nonzero(Y[j, :] >= 0.5)[0])
                 if ( inds > indmax ):
-                   indmax = inds
-                   jmax = j
+                    indmax = inds
+                    jmax = j
                 if ( inds < indmin ):
-                   indmin = inds
-                   jmin = j
+                    indmin = inds
+                    jmin = j
+    
             tthres = T[indmax]
             GinvC  = np.linalg.solve(G.value, C.value)
             tdom   = max(np.linalg.eig(GinvC)[0])
@@ -271,78 +276,80 @@ Solve problem and display results
     plt.title('Area-delay tradeoff curve')
     # Label the specific cases.
     for k in range(xnpts):
-        plt.text(xareas[k][0, 0], xdelays[k], '({})'.format(k+1))
+        plt.text(xareas[k], xdelays[k], '({})'.format(k+1))
     plt.show()
 
 
 .. parsed-literal::
 
     Point 1 of 50 on the tradeoff curve (Tmax = 50.0)
-    Point 2 of 50 on the tradeoff curve (Tmax = 52.0408163265)
-    Point 3 of 50 on the tradeoff curve (Tmax = 54.0816326531)
-    Point 4 of 50 on the tradeoff curve (Tmax = 56.1224489796)
-    Point 5 of 50 on the tradeoff curve (Tmax = 58.1632653061)
-    Point 6 of 50 on the tradeoff curve (Tmax = 60.2040816327)
-    Point 7 of 50 on the tradeoff curve (Tmax = 62.2448979592)
-    Point 8 of 50 on the tradeoff curve (Tmax = 64.2857142857)
-    Point 9 of 50 on the tradeoff curve (Tmax = 66.3265306122)
-    Point 10 of 50 on the tradeoff curve (Tmax = 68.3673469388)
-    Point 11 of 50 on the tradeoff curve (Tmax = 70.4081632653)
-    Point 12 of 50 on the tradeoff curve (Tmax = 72.4489795918)
-    Point 13 of 50 on the tradeoff curve (Tmax = 74.4897959184)
-    Point 14 of 50 on the tradeoff curve (Tmax = 76.5306122449)
-    Point 15 of 50 on the tradeoff curve (Tmax = 78.5714285714)
-    Point 16 of 50 on the tradeoff curve (Tmax = 80.612244898)
-    Point 17 of 50 on the tradeoff curve (Tmax = 82.6530612245)
-    Point 18 of 50 on the tradeoff curve (Tmax = 84.693877551)
-    Point 19 of 50 on the tradeoff curve (Tmax = 86.7346938776)
-    Point 20 of 50 on the tradeoff curve (Tmax = 88.7755102041)
-    Point 21 of 50 on the tradeoff curve (Tmax = 90.8163265306)
-    Point 22 of 50 on the tradeoff curve (Tmax = 92.8571428571)
-    Point 23 of 50 on the tradeoff curve (Tmax = 94.8979591837)
-    Point 24 of 50 on the tradeoff curve (Tmax = 96.9387755102)
-    Point 25 of 50 on the tradeoff curve (Tmax = 98.9795918367)
-    Point 26 of 50 on the tradeoff curve (Tmax = 101.020408163)
-    Point 27 of 50 on the tradeoff curve (Tmax = 103.06122449)
-    Point 28 of 50 on the tradeoff curve (Tmax = 105.102040816)
-    Point 29 of 50 on the tradeoff curve (Tmax = 107.142857143)
-    Point 30 of 50 on the tradeoff curve (Tmax = 109.183673469)
-    Point 31 of 50 on the tradeoff curve (Tmax = 111.224489796)
-    Point 32 of 50 on the tradeoff curve (Tmax = 113.265306122)
-    Point 33 of 50 on the tradeoff curve (Tmax = 115.306122449)
-    Point 34 of 50 on the tradeoff curve (Tmax = 117.346938776)
-    Point 35 of 50 on the tradeoff curve (Tmax = 119.387755102)
-    Point 36 of 50 on the tradeoff curve (Tmax = 121.428571429)
-    Point 37 of 50 on the tradeoff curve (Tmax = 123.469387755)
-    Point 38 of 50 on the tradeoff curve (Tmax = 125.510204082)
-    Point 39 of 50 on the tradeoff curve (Tmax = 127.551020408)
-    Point 40 of 50 on the tradeoff curve (Tmax = 129.591836735)
-    Point 41 of 50 on the tradeoff curve (Tmax = 131.632653061)
-    Point 42 of 50 on the tradeoff curve (Tmax = 133.673469388)
-    Point 43 of 50 on the tradeoff curve (Tmax = 135.714285714)
-    Point 44 of 50 on the tradeoff curve (Tmax = 137.755102041)
-    Point 45 of 50 on the tradeoff curve (Tmax = 139.795918367)
-    Point 46 of 50 on the tradeoff curve (Tmax = 141.836734694)
-    Point 47 of 50 on the tradeoff curve (Tmax = 143.87755102)
-    Point 48 of 50 on the tradeoff curve (Tmax = 145.918367347)
-    Point 49 of 50 on the tradeoff curve (Tmax = 147.959183673)
+    CVXOPT failed, trying robust KKT
+    Point 2 of 50 on the tradeoff curve (Tmax = 52.04081632653061)
+    Point 3 of 50 on the tradeoff curve (Tmax = 54.08163265306123)
+    Point 4 of 50 on the tradeoff curve (Tmax = 56.12244897959184)
+    Point 5 of 50 on the tradeoff curve (Tmax = 58.16326530612245)
+    Point 6 of 50 on the tradeoff curve (Tmax = 60.20408163265306)
+    Point 7 of 50 on the tradeoff curve (Tmax = 62.244897959183675)
+    Point 8 of 50 on the tradeoff curve (Tmax = 64.28571428571429)
+    Point 9 of 50 on the tradeoff curve (Tmax = 66.3265306122449)
+    Point 10 of 50 on the tradeoff curve (Tmax = 68.36734693877551)
+    Point 11 of 50 on the tradeoff curve (Tmax = 70.40816326530611)
+    Point 12 of 50 on the tradeoff curve (Tmax = 72.44897959183673)
+    Point 13 of 50 on the tradeoff curve (Tmax = 74.48979591836735)
+    Point 14 of 50 on the tradeoff curve (Tmax = 76.53061224489795)
+    Point 15 of 50 on the tradeoff curve (Tmax = 78.57142857142857)
+    Point 16 of 50 on the tradeoff curve (Tmax = 80.61224489795919)
+    Point 17 of 50 on the tradeoff curve (Tmax = 82.65306122448979)
+    Point 18 of 50 on the tradeoff curve (Tmax = 84.6938775510204)
+    Point 19 of 50 on the tradeoff curve (Tmax = 86.73469387755102)
+    Point 20 of 50 on the tradeoff curve (Tmax = 88.77551020408163)
+    Point 21 of 50 on the tradeoff curve (Tmax = 90.81632653061224)
+    Point 22 of 50 on the tradeoff curve (Tmax = 92.85714285714286)
+    Point 23 of 50 on the tradeoff curve (Tmax = 94.89795918367346)
+    Point 24 of 50 on the tradeoff curve (Tmax = 96.93877551020408)
+    Point 25 of 50 on the tradeoff curve (Tmax = 98.9795918367347)
+    Point 26 of 50 on the tradeoff curve (Tmax = 101.0204081632653)
+    Point 27 of 50 on the tradeoff curve (Tmax = 103.06122448979592)
+    Point 28 of 50 on the tradeoff curve (Tmax = 105.10204081632654)
+    Point 29 of 50 on the tradeoff curve (Tmax = 107.14285714285714)
+    Point 30 of 50 on the tradeoff curve (Tmax = 109.18367346938776)
+    Point 31 of 50 on the tradeoff curve (Tmax = 111.22448979591837)
+    Point 32 of 50 on the tradeoff curve (Tmax = 113.26530612244898)
+    Point 33 of 50 on the tradeoff curve (Tmax = 115.3061224489796)
+    Point 34 of 50 on the tradeoff curve (Tmax = 117.34693877551021)
+    Point 35 of 50 on the tradeoff curve (Tmax = 119.38775510204081)
+    Point 36 of 50 on the tradeoff curve (Tmax = 121.42857142857143)
+    Point 37 of 50 on the tradeoff curve (Tmax = 123.46938775510205)
+    Point 38 of 50 on the tradeoff curve (Tmax = 125.51020408163265)
+    Point 39 of 50 on the tradeoff curve (Tmax = 127.55102040816327)
+    Point 40 of 50 on the tradeoff curve (Tmax = 129.59183673469389)
+    Point 41 of 50 on the tradeoff curve (Tmax = 131.6326530612245)
+    Point 42 of 50 on the tradeoff curve (Tmax = 133.67346938775512)
+    Point 43 of 50 on the tradeoff curve (Tmax = 135.71428571428572)
+    Point 44 of 50 on the tradeoff curve (Tmax = 137.75510204081633)
+    Point 45 of 50 on the tradeoff curve (Tmax = 139.79591836734693)
+    Point 46 of 50 on the tradeoff curve (Tmax = 141.83673469387756)
+    Point 47 of 50 on the tradeoff curve (Tmax = 143.87755102040816)
+    Point 48 of 50 on the tradeoff curve (Tmax = 145.9183673469388)
+    Point 49 of 50 on the tradeoff curve (Tmax = 147.9591836734694)
     Point 50 of 50 on the tradeoff curve (Tmax = 150.0)
     Particular solution 1 of 2 (Tmax = 50)
+    CVXOPT failed, trying robust KKT
     Solution 1:
     Vertical segments:
-    [[ 0.65284882  0.43914815  0.52378621  0.47092764  0.2363529 ]
-     [ 0.99999993  0.85353862  0.99999992  0.93601078  0.56994586]
-     [ 0.92325575  0.29557654  0.80041338  0.99999998  0.99999997]
-     [ 0.41300012  0.13553757  0.2669595   0.67052446  0.88916616]]
+    [[0.65284441 0.4391586  0.52378143 0.47092764 0.2363529 ]
+     [0.99999993 0.85353862 0.99999992 0.93601078 0.56994586]
+     [0.92325575 0.29557654 0.80041338 0.99999998 0.99999997]
+     [0.41300012 0.13553757 0.26699524 0.67049218 0.88916807]]
     Horizontal segments:
-    [[  1.96483126e-01   1.40596803e-01   9.70626705e-08   7.79402881e-08
-        5.27443052e-08]
-     [  7.07398539e-02   6.38484524e-02   1.02140260e-07   8.59944055e-08
-        6.28925713e-08]
-     [  6.05767602e-09   1.16283806e-08   3.91571854e-08   9.48410302e-02
-        1.58066266e-01]
-     [  3.82545950e-07   4.85731010e-07   5.75605677e-07   8.39881857e-02
-        5.38622815e-02]]
+    [[1.96487539e-01 1.40591789e-01 9.70591442e-08 7.79376843e-08
+      5.27429285e-08]
+     [7.07446433e-02 6.38430105e-02 1.02136471e-07 8.59913722e-08
+      6.28906472e-08]
+     [6.05807467e-09 1.16285450e-08 3.91561390e-08 9.48052913e-02
+      1.58096913e-01]
+     [3.82528741e-07 4.85708568e-07 5.75578696e-07 8.39862772e-02
+      5.38639181e-02]]
 
 
 
@@ -354,19 +361,19 @@ Solve problem and display results
     Particular solution 2 of 2 (Tmax = 100)
     Solution 2:
     Vertical segments:
-    [[ 0.2687881   0.04368684  0.17122094  0.133796    0.07360396]
-     [ 0.41346231  0.08016135  0.30642705  0.2224136   0.1484946 ]
-     [ 0.25755998  0.08016077  0.11200259  0.38352317  0.28159768]
-     [ 0.13439419  0.04368697  0.02445701  0.24083502  0.24534599]]
+    [[0.2687881  0.04368684 0.17122095 0.133796   0.07360396]
+     [0.41346231 0.08016135 0.30642705 0.2224136  0.1484946 ]
+     [0.25755998 0.08016077 0.11200259 0.38352317 0.28159768]
+     [0.13439419 0.04368697 0.02445701 0.24083502 0.24534599]]
     Horizontal segments:
-    [[  1.53855410e-09  -5.23587127e-10  -9.80490802e-10  -5.24181222e-10
-        1.57139441e-09]
-     [  9.23247193e-10  -9.62055797e-10  -1.35575286e-09  -1.00214999e-09
-        1.03091536e-09]
-     [  9.28915561e-10  -9.17583441e-10  -2.28746351e-10  -7.97319598e-10
-        1.50656575e-09]
-     [  1.31797933e-09  -8.55786438e-10  -1.39925180e-09  -8.38253904e-10
-        1.27501273e-09]]
+    [[ 1.53896782e-09 -5.18600578e-10 -9.75218556e-10 -5.19196383e-10
+       1.57176577e-09]
+     [ 9.30752726e-10 -9.56673760e-10 -1.35065528e-09 -9.96797753e-10
+       1.03852376e-09]
+     [ 9.35404466e-10 -9.12219313e-10 -2.22938358e-10 -7.91865186e-10
+       1.51304362e-09]
+     [ 1.31975762e-09 -8.50790152e-10 -1.39421076e-09 -8.33247519e-10
+       1.27680128e-09]]
 
 
 
