@@ -35,10 +35,10 @@ from cvxpy.atoms.mixed_norm import mixed_norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.one_minus import one_minus
+from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm, Pnorm
 from cvxpy.atoms.quad_form import quad_form, QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
-from cvxpy.atoms.spectral_radius import spectral_radius
 from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.sum_smallest import sum_smallest

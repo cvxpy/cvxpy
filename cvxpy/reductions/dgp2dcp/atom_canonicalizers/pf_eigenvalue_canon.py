@@ -4,7 +4,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mul
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mul_canon import mul_canon
 
 
-def spectral_radius_canon(expr, args):
+def pf_eigenvalue_canon(expr, args):
     X = args[0]
     # rho(X) \leq lambda iff there exists v s.t. Xv \leq lambda v
     # v and lambd represent log variables, hence no positivity constraints

@@ -9,8 +9,8 @@ from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.one_minus import one_minus
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
+from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm
-from cvxpy.atoms.spectral_radius import spectral_radius
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.variable import Variable
@@ -28,7 +28,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.nonpos_constr_canon import non
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_canon import one_minus_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.spectral_radius_canon import spectral_radius_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pf_eigenvalue_canon import pf_eigenvalue_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
@@ -48,10 +48,10 @@ CANON_METHODS = {
     MulExpression : mulexpression_canon,
     multiply : mul_canon,
     one_minus : one_minus_canon,
+    pf_eigenvalue : pf_eigenvalue_canon,
     pnorm : pnorm_canon,
     power : power_canon, 
     trace : trace_canon,
-    spectral_radius : spectral_radius_canon,
     Sum : sum_canon,
     Variable : None,
 }

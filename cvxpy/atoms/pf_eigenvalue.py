@@ -18,12 +18,12 @@ from cvxpy.atoms.atom import Atom
 import numpy as np
 
 
-class spectral_radius(Atom):
+class pf_eigenvalue(Atom):
     def __init__(self, X):
-        super(spectral_radius, self).__init__(X)
-        if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
+        super(pf_eigenvalue, self).__init__(X)
+        if len(X.shape) != 2 or X.shape[0] != X.shape[1] or not X.is_pos():
             raise ValueError("Argument to `spectral radius` must be a "
-                             "square matrix, received ", X)
+                             "positive square matrix, received ", X)
         self.args[0] = X
 
     def numeric(self, values):

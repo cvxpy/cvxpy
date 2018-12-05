@@ -294,7 +294,7 @@ class TestDgp2Dcp(BaseTest):
 
     def test_pf_matrix_completion(self):
         X = cvxpy.Variable((3, 3), pos=True)
-        obj = cvxpy.Minimize(cvxpy.spectral_radius(X))
+        obj = cvxpy.Minimize(cvxpy.pf_eigenvalue(X))
         constr = [
           X[0, 0] == 1.0,
           X[0, 2] == 1.9,
