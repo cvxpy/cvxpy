@@ -23,6 +23,7 @@ from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
+import scipy.sparse as sp
 
 
 class CvxPyDomainError(Exception):
@@ -91,7 +92,10 @@ class QuadForm(Atom):
                                self.args[1])
 
     def _grad(self, values):
-        return 2 * np.dot(values[1], values[0])
+        x = np.matrix(values[0])
+        P = np.matrix(values[1])
+        D = 2 * np.dot(P, x.T)
+        return [sp.csc_matrix(D.A.ravel(order='F')).T]
 
     def shape_from_args(self):
         return tuple() if self.args[0].ndim == 0 else (1, 1)
