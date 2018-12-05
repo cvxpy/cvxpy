@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.elementwise.maximum import maximum
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import maximum_canon
+from cvxpy.atoms.max import max
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import max_canon
 
 
-def minimum_canon(expr, args):
+def min_canon(expr, args):
     del expr
-    tmp = maximum(*[-arg for arg in args])
-    canon, constr = maximum_canon(tmp, tmp.args)
+    assert len(args) == 1
+    tmp = max(-args[0])
+    canon, constr = max_canon(tmp, tmp.args)
     return -canon, constr

@@ -10,6 +10,8 @@ from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.one_minus import one_minus
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
+from cvxpy.atoms.max import max
+from cvxpy.atoms.min import min
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm
 from cvxpy.atoms.sum_largest import sum_largest
@@ -56,6 +58,8 @@ CANON_METHODS = {
     Variable : None,
 }
 
+CANON_METHODS[max] = PWL_METHODS[max]
+CANON_METHODS[min] = PWL_METHODS[min]
 CANON_METHODS[maximum] = PWL_METHODS[maximum]
 CANON_METHODS[minimum] = PWL_METHODS[minimum]
 CANON_METHODS[sum_largest] = PWL_METHODS[sum_largest]

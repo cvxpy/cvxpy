@@ -39,7 +39,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_form_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon,
-    maximum_canon, max_canon, minimum_canon, norm1_canon,
+    maximum_canon, max_canon, minimum_canon, min_canon, norm1_canon,
     norm_inf_canon, sum_largest_canon)
 
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
@@ -52,6 +52,7 @@ CANON_METHODS = {
     log_sum_exp : log_sum_exp_canon,
     MatrixFrac : matrix_frac_canon,
     max : max_canon,
+    min : min_canon,
     norm1 : norm1_canon,
     normNuc : normNuc_canon,
     norm_inf : norm_inf_canon,

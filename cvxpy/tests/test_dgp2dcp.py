@@ -89,6 +89,29 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals(dgp.value, 6.0)
         self.assertAlmostEquals(x.value, 1.0)
 
+    def test_max(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        z = cvxpy.Variable(pos=True)
+
+        prod1 = x * y**0.5
+        prod2 = 3.0 * x * y**0.5
+        obj = cvxpy.Minimize(cvxpy.max(cvxpy.hstack([prod1, prod2])))
+        constr = [x == 1.0, y == 4.0]
+        
+        dgp = cvxpy.Problem(obj, constr)
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
+        opt = dcp.solve()
+        dgp.unpack(dgp2dcp.retrieve(dcp.solution))
+        self.assertAlmostEquals(dgp.value, 6.0)
+        self.assertAlmostEquals(x.value, 1.0)
+        self.assertAlmostEquals(y.value, 4.0)
+        dgp._clear_solution()
+        dgp.solve(gp=True)
+        self.assertAlmostEquals(dgp.value, 6.0)
+        self.assertAlmostEquals(x.value, 1.0)
+
     def test_minimum(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
@@ -98,6 +121,23 @@ class TestDgp2Dcp(BaseTest):
         prod2 = 3.0 * x * y**0.5
         posy = prod1 + prod2
         obj = cvxpy.Maximize(cvxpy.minimum(prod1, prod2, 1/posy))
+        constr = [x == 1.0, y == 4.0]
+        
+        dgp = cvxpy.Problem(obj, constr)
+        dgp.solve(gp=True)
+        self.assertAlmostEquals(dgp.value, 1.0 / (2.0 + 6.0))
+        self.assertAlmostEquals(x.value, 1.0)
+        self.assertAlmostEquals(y.value, 4.0)
+
+    def test_min(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        z = cvxpy.Variable(pos=True)
+
+        prod1 = x * y**0.5
+        prod2 = 3.0 * x * y**0.5
+        posy = prod1 + prod2
+        obj = cvxpy.Maximize(cvxpy.min(cvxpy.hstack([prod1, prod2, 1/posy])))
         constr = [x == 1.0, y == 4.0]
         
         dgp = cvxpy.Problem(obj, constr)
