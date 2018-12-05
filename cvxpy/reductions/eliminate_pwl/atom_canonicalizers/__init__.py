@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import abs, maximum, max, norm1, norm_inf, sum_largest
+from cvxpy.atoms import abs, maximum, max, minimum, norm1, norm_inf, sum_largest
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import maximum_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.minimum_canon import minimum_canon
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import max_canon
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm_inf_canon import norm_inf_canon
@@ -27,6 +28,7 @@ CANON_METHODS = {
     abs: abs_canon,
     maximum: maximum_canon,
     max: max_canon,
+    minimum: minimum_canon,
     norm1: norm1_canon,
     norm_inf: norm_inf_canon,
     sum_largest: sum_largest_canon

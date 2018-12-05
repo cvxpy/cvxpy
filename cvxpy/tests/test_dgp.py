@@ -120,7 +120,28 @@ class TestDgp(BaseTest):
         expr = posynomial * expr + expr
         self.assertTrue(expr.is_dgp())
         self.assertTrue(expr.is_log_log_convex())
-        self.assertTrue(not expr.is_log_log_concave())
+
+    def test_minimum(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        z = cvxpy.Variable(pos=True)
+        monomial = 5.0 * (x ** 0.1) * y ** (-0.1) * z ** (3)
+        posynomial = 5.0 * x * y + 1.2 * y * y
+        another_posynomial = posynomial * posynomial
+        expr = cvxpy.minimum(monomial, 1 / posynomial, 1 / another_posynomial)
+        self.assertTrue(expr.is_dgp())
+        self.assertTrue(not expr.is_log_log_convex())
+        self.assertTrue(expr.is_log_log_concave())
+
+        expr = (1 / posynomial) * expr
+        self.assertTrue(expr.is_dgp())
+        self.assertTrue(not expr.is_log_log_convex())
+        self.assertTrue(expr.is_log_log_concave())
+
+        expr = expr ** 2
+        self.assertTrue(expr.is_dgp())
+        self.assertTrue(not expr.is_log_log_convex())
+        self.assertTrue(expr.is_log_log_concave())
 
     def test_constant(self):
         x = cvxpy.Constant(1.0)

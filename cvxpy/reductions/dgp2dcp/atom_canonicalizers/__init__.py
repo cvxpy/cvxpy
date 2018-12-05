@@ -6,6 +6,7 @@ from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.one_minus import one_minus
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
@@ -35,7 +36,6 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
 # TODO(akshayka): Consider adding support for
 #   sum_smallest
-#   minimum, (add a class and lower it to maximum in a canonicalizer)
 #   cumsum
 CANON_METHODS = {
     AddExpression : add_canon,
@@ -57,6 +57,7 @@ CANON_METHODS = {
 }
 
 CANON_METHODS[maximum] = PWL_METHODS[maximum]
+CANON_METHODS[minimum] = PWL_METHODS[minimum]
 CANON_METHODS[sum_largest] = PWL_METHODS[sum_largest]
 
 # Canonicalization of DGPs is a stateful procedure, hence the need
