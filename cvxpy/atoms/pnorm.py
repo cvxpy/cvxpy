@@ -186,7 +186,6 @@ class Pnorm(AxisAtom):
         """
         return False
 
-
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
