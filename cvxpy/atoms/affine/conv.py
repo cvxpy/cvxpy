@@ -40,6 +40,7 @@ class conv(AffAtom):
         A 1D vector or a 2D column vector.
     """
     # TODO work with right hand constant.
+    # TODO(akshayka): make DGP-compatible
 
     def __init__(self, lh_expr, rh_expr):
         super(conv, self).__init__(lh_expr, rh_expr)

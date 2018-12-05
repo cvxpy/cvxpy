@@ -49,9 +49,13 @@ class index(AffAtom):
         super(index, self).__init__(expr)
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
         return True
 
     # The string representation of the atom.

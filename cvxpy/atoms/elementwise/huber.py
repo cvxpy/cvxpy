@@ -18,6 +18,8 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 import scipy.special
 import numpy as np
 
+# TODO(akshayka): DGP support.
+
 
 class huber(Elementwise):
     """The Huber function

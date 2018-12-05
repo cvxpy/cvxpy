@@ -50,9 +50,13 @@ class diag_vec(AffAtom):
         super(diag_vec, self).__init__(expr)
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
         return True
 
     def numeric(self, values):
@@ -105,9 +109,13 @@ class diag_mat(AffAtom):
         super(diag_mat, self).__init__(expr)
 
     def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
         return True
 
     def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
         return True
 
     @AffAtom.numpy_numeric
