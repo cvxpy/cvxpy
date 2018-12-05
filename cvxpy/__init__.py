@@ -22,7 +22,7 @@ from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 import cvxpy.interface.scipy_wrapper
-from cvxpy.error import SolverError
+from cvxpy.error import SolverError, disable_warnings, enable_warnings, warnings_enabled
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, JULIA_OPT, OSQP,
                             ECOS, ECOS_BB, SUPER_SCS, SCS, GUROBI, ELEMENTAL, MOSEK, XPRESS,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,

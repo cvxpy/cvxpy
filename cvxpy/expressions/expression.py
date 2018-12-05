@@ -17,6 +17,7 @@ limitations under the License.
 from functools import wraps
 import warnings
 
+from cvxpy import error
 from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
 import cvxpy.utilities as u
@@ -430,9 +431,8 @@ class Expression(u.Canonical):
         elif self.is_constant() or other.is_constant():
             return cvxtypes.mul_expr()(self, other)
         else:
-            # TODO(akshayka): This message will be annoying when
-            # forming GPs.
-            warnings.warn("Forming a nonconvex expression.")
+            if error.warnings_enabled():
+                warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.mul_expr()(self, other)
 
     @_cast_other
@@ -457,9 +457,8 @@ class Expression(u.Canonical):
         if other.is_constant() and other.is_scalar():
             return cvxtypes.div_expr()(self, other)
         elif other.is_scalar():
-            # TODO(akshayka): Remove this warning and instead
-            # have better error messages whenever a DCP check fails.
-            warnings.warn("Forming a nonconvex expression.")
+            if error.warnings_enabled():
+                warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.div_expr()(self, other)
         else:
             raise ValueError("Can only divide by a scalar constant, but %s "
