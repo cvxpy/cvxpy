@@ -20,6 +20,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.constants.constant import Constant
+from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import CANON_METHODS as PWL_METHODS
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
@@ -36,6 +37,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm_inf_canon import norm_inf
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_canon import one_minus_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.parameter_canon import parameter_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pf_eigenvalue_canon import pf_eigenvalue_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_form_canon import quad_form_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import quad_over_lin_canon
@@ -56,6 +58,7 @@ CANON_METHODS = {
     norm1 : norm1_canon,
     norm_inf : norm_inf_canon,
     one_minus : one_minus_canon,
+    Parameter : parameter_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
     pnorm : pnorm_canon,
     power : power_canon, 

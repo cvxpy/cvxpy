@@ -15,6 +15,10 @@ limitations under the License.
 """
 
 
+from cvxpy.expressions.constants import Constant, Parameter
+import numpy as np
+
+
 def sum_signs(exprs):
     """Give the sign resulting from summing a list of expressions.
 
@@ -57,3 +61,20 @@ def mul_sign(lh_expr, rh_expr):
     is_pos = is_zero or (lh_nonneg and rh_nonneg) or (lh_nonpos and rh_nonpos)
     is_neg = is_zero or (lh_nonneg and rh_nonpos) or (lh_nonpos and rh_nonneg)
     return (is_pos, is_neg)
+
+
+def is_constant_positive(constant):
+    """Returns whether a constant expression is elementwise positive.
+
+    Args:
+        constant: An expression for which `.is_constant()` is True
+
+    Returns:
+        A bool indicating whether the expression is positive.
+    """
+    if isinstance(constant, Constant):
+        return constant._is_positive
+    elif isinstance(constant, Parameter):
+        return constant.is_pos()
+    else:
+        return constant.value is not None and np.all(constant.value > 0)

@@ -126,6 +126,22 @@ class Expression(u.Canonical):
             curvature_str = s.UNKNOWN
         return curvature_str
 
+    @property
+    def log_log_curvature(self):
+        """str : The log-log curvature of the expression.
+        """
+        if self.is_constant():
+            curvature_str = s.CONSTANT
+        elif self.is_log_log_affine():
+            curvature_str = s.LOG_LOG_AFFINE
+        elif self.is_log_log_convex():
+            curvature_str = s.LOG_LOG_CONVEX
+        elif self.is_log_log_concave():
+            curvature_str = s.LOG_LOG_CONCAVE
+        else:
+            curvature_str = s.UNKNOWN
+        return curvature_str
+
     def is_constant(self):
         """Is the expression constant?
         """
@@ -159,12 +175,12 @@ class Expression(u.Canonical):
         return NotImplemented
 
     def is_dcp(self):
-        """Checks whether the constraint is DCP.
+        """Checks whether the Expression is DCP.
 
         Returns
         -------
         bool
-            True if the constraint is DCP, False otherwise.
+            True if the Expression is DCP, False otherwise.
         """
         return self.is_convex() or self.is_concave()
 
@@ -192,12 +208,12 @@ class Expression(u.Canonical):
         return NotImplemented
 
     def is_dgp(self):
-        """Checks whether the constraint is log-log DCP.
+        """Checks whether the Expression is log-log DCP.
 
         Returns
         -------
         bool
-            True if the constraint is log-log DCP, False otherwise.
+            True if the Expression is log-log DCP, False otherwise.
         """
         return self.is_log_log_convex() or self.is_log_log_concave()
 

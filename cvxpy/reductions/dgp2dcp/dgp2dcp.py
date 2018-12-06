@@ -72,6 +72,12 @@ class Dgp2Dcp(Canonicalization):
         inverse_data._problem = problem
         return equiv_problem, inverse_data
 
+    def canonicalize_expr(self, expr, args):
+        if type(expr) in self.canon_methods:
+            return self.canon_methods[type(expr)](expr, args)
+        else:
+            return expr.copy(args), []
+
     def invert(self, solution, inverse_data):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
         for vid, value in solution.primal_vars.items():

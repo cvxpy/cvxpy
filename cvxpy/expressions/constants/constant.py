@@ -67,6 +67,14 @@ class Constant(Leaf):
         return self._value
 
     @property
+    def _is_positive(self):
+        """Returns whether the constant is elementwise positive.
+        """
+        if not hasattr(self, '._cached_is_pos'):
+            self._cached_is_pos = np.all(self._value > 0)
+        return self._cached_is_pos
+
+    @property
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 

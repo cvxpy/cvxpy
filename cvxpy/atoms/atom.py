@@ -187,8 +187,7 @@ class Atom(Expression):
         """
         # Verifies DGP composition rule.
         if self.is_constant():
-            # TODO(akshayka): Needs some thought.
-            return self.is_pos()
+            u.sign.is_constant_positive(self)
         elif self.is_atom_log_log_convex():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_log_log_affine() or
@@ -205,8 +204,7 @@ class Atom(Expression):
         """
         # Verifies DGP composition rule.
         if self.is_constant():
-            # TODO(akshayka): Needs some thought.
-            return self.is_pos()
+            u.sign.is_constant_positive(self)
         elif self.is_atom_log_log_concave():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_log_log_affine() or

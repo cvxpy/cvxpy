@@ -75,9 +75,9 @@ class Leaf(expression.Expression):
     sparsity : list of tuplewith
         Fixed sparsity pattern for the variable.
     pos : bool
-        Is the variable positive, ie, nonneg and not nonnpos?
+        Is the variable positive?
     neg : bool
-        Is the variable negative, ie, nonpos and not nonneg?
+        Is the variable negative?
     """
 
     __metaclass__ = abc.ABCMeta
@@ -103,20 +103,9 @@ class Leaf(expression.Expression):
             raise ValueError("Invalid dimensions %s. Must be a square matrix."
                              % (shape,))
 
-        if pos and nonpos:
-            raise ValueError("A leaf cannot be both positive and nonnpositive.")
-        if neg and nonneg:
-            raise ValueError("A leaf cannot be both negative and nonnegative.")
-
-        if pos:
-            nonneg = True
-            nonpos = False
-        if neg:
-            nonneg = False
-            nonpos = True
-
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
+                           'pos': pos, 'neg': neg,
                            'complex': complex, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
@@ -225,12 +214,13 @@ class Leaf(expression.Expression):
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
-        return self.attributes['nonneg'] or self.attributes['boolean']
+        return (self.attributes['nonneg'] or self.attributes['pos'] or
+                self.attributes['boolean'])
 
     def is_nonpos(self):
         """Is the expression nonpositive?
         """
-        return self.attributes['nonpos']
+        return self.attributes['nonpos'] or self.attributes['neg']
 
     def is_hermitian(self):
         """Is the Leaf hermitian?

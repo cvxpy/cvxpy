@@ -49,8 +49,10 @@ class Canonical(object):
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        # Remove duplicates.
-        return list(set(param for arg in self.args for param in arg.parameters()))
+        if not hasattr(self, '_parameters'):
+            self._parameters = list(set(
+              param for arg in self.args for param in arg.parameters()))
+        return self._parameters
 
     def constants(self):
         """Returns all the constants present in the arguments.
