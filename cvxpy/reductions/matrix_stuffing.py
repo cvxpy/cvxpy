@@ -60,8 +60,6 @@ class MatrixStuffing(Reduction):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
-        # Lower constraints
-
         new_obj, new_var = self.stuffed_objective(problem, inverse_data)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data)

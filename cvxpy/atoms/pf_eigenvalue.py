@@ -19,11 +19,25 @@ import numpy as np
 
 
 class pf_eigenvalue(Atom):
+    """The Perron-Frobenius eigenvalue of a positive matrix.
+
+    For an elementwise positive matrix :math:`X`, this atom represents its
+    spectral radius, i.e., the magnitude of its largest eigenvalue. Because
+    :math:`X` is positive, the spectral radius equals its largest eigenvalue,
+    which is guaranteed to be positive.
+
+    This atom is log-log convex.
+
+    Parameters
+    ----------
+    X : cvxpy.Expression
+        A positive square matrix.
+    """
     def __init__(self, X):
         super(pf_eigenvalue, self).__init__(X)
-        if len(X.shape) != 2 or X.shape[0] != X.shape[1] or not X.is_pos():
+        if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
             raise ValueError("Argument to `spectral radius` must be a "
-                             "positive square matrix, received ", X)
+                             "square matrix, received ", X)
         self.args[0] = X
 
     def numeric(self, values):

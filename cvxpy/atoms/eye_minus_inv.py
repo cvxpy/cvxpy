@@ -18,16 +18,54 @@ from cvxpy.atoms.atom import Atom
 import numpy as np
 
 
-# TODO(akshayka): documentation.
 def resolvent(X, s):
+    r"""The resolvent of a positive matrix, :math:`(sI - X)^{-1}`.
+
+    For an elementwise positive matrix :math:`X` and a positive scalar
+    :math:`s`, this atom computes
+
+    .. math::
+
+        (sI - X)^{-1},
+
+    and it enforces the constraint that the spectral radius of :math:`X/s`
+    is at most :math:`1`.
+
+    This atom is log-log convex.
+
+    Parameters
+    ----------
+    X : cvxpy.Expression
+        A positive square matrix.
+    s : cvxpy.Expression or numeric
+        A positive scalar.
+    """
     return 1.0 / s * eye_minus_inv(X / s)
 
 
 class eye_minus_inv(Atom):
+    r"""The unity resolvent of a positive matrix, :math:`(I - X)^{-1}`.
+
+    For an elementwise positive matrix :math:`X`, this atom represents
+
+    .. math::
+
+        (I - X)^{-1},
+
+    and it enforces the constraint that the spectral radius of :math:`X`
+    is at most :math:`1`.
+
+    This atom is log-log convex.
+
+    Parameters
+    ----------
+    X : cvxpy.Expression
+        A positive square matrix.
+    """
     def __init__(self, X):
         super(eye_minus_inv, self).__init__(X)
         if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
-            raise ValueError("Argument to `eye_minus_inv` must be a "
+            raise ValueError("The argument to `eye_minus_inv` must be a "
                              "square matrix, received ", X)
         self.args[0] = X
 

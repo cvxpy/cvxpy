@@ -38,20 +38,20 @@ class Dgp2Dcp(Canonicalization):
     >>>
     >>> monomial = 3.0 * x_1**0.4 * x_2 ** 0.2 * x_3 ** -1.4
     >>> posynomial = monomial + 2.0 * x_1 * x_2
-    >>> problem = cp.Problem(cp.Minimize(posynomial), [monomial == 4.0])
+    >>> dgp_problem = cp.Problem(cp.Minimize(posynomial), [monomial == 4.0])
     >>>
     >>> dcp2cone = cvxpy.reductions.Dcp2Cone()
-    >>> assert not dcp2cone.accepts(problem)
+    >>> assert not dcp2cone.accepts(dgp_problem)
     >>>
-    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp(problem)
+    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp(dgp_problem)
     >>> dcp_problem = gp2dcp.reduce()
     >>>
     >>> assert dcp2cone.accepts(dcp_problem)
     >>> dcp_probem.solve()
     >>>
-    >>> gp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
-    >>> print(gp_problem.value)
-    >>> print(gp_problem.variables())
+    >>> dgp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
+    >>> print(dgp_problem.value)
+    >>> print(dgp_problem.variables())
     """
     def __init__(self, problem=None):
         super(Dgp2Dcp, self).__init__(problem=problem)
