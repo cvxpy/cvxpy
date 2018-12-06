@@ -542,7 +542,6 @@ class Expression(u.Canonical):
     def __eq__(self, other):
         """Equality : Creates a constraint ``self == other``.
         """
-        # TODO(akshayka): Lower these to `Zero` constraints.
         return Equality(self, other)
 
     @_cast_other

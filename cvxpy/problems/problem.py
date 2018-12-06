@@ -131,9 +131,7 @@ class Problem(u.Canonical):
     def is_dgp(self):
         """Does the problem satisfy DGP rules?
         """
-        # TODO(akshayka): Change to `var.is_positive()` once we implement
-        # positive leaves.
-        return all(var.is_nonneg() for var in self.variables()) and all(
+        return all(
           expr.is_dgp() for expr in self.constraints + [self.objective])
 
     def is_qp(self):
