@@ -116,7 +116,7 @@ and plotting the results. This is the majority of the code. The actual
 CVXPY optimization code is only a few lines. We'll go over the
 optimization code later in the notebook.
 
-.. code:: ipython3
+.. code:: python
 
     #%config InlineBackend.figure_format = 'pdf'
     #%config InlineBackend.figure_format = 'svg'
@@ -472,7 +472,7 @@ lower-right corner of the graph plot.
 
 We show the graph with the edge evasion probabilities below.
 
-.. code:: ipython3
+.. code:: python
 
     N = 10
     G, pos = formGraph(N,.12,1.2,seed=5)
@@ -499,7 +499,7 @@ We show the graph with the edge evasion probabilities below.
 We form the smuggler's relaxed convex problem and solve it to find his
 optimal path. We plot the path below.
 
-.. code:: ipython3
+.. code:: python
 
     A = nx.incidence_matrix(G,oriented=True).toarray()
     n,m = A.shape
@@ -559,7 +559,7 @@ optimal path. We plot the path below.
     
 
 
-.. code:: ipython3
+.. code:: python
 
     path = list(np.flatnonzero(x > .1))
     showPaths(G,pos,p,path,Gnodes=[0],Rnodes=[n-1])
@@ -584,7 +584,7 @@ graph to check that we get the same optimal path. The function
 `Dijkstra's\_algorithm <http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm>`__
 to compute the optimal path.
 
-.. code:: ipython3
+.. code:: python
 
     y = optPath(G,p)
     path = list(np.flatnonzero(y > .1))
@@ -676,7 +676,7 @@ The final model is \\[ ]
 We solve the model below with :math:`R=5` and report the evasion
 probability of the smuggler's optimal path.
 
-.. code:: ipython3
+.. code:: python
 
     nu = cp.Variable(shape=n)
     r = cp.Variable(shape=m)
@@ -717,7 +717,7 @@ probability of the smuggler's optimal path.
     
 
 
-.. code:: ipython3
+.. code:: python
 
     print("The evasion probability of the smuggler's optimal path is %e."%(np.exp(nu.dot(b)),))
     print("The smuggler's chance of evasion is %.2f times smaller than with the uniform resource allocation."%(np.exp(x.dot(c))/np.exp(nu.dot(b))))
@@ -732,7 +732,7 @@ probability of the smuggler's optimal path.
 Here we plot the resulting edge evasion probabilities from the optimal
 allocation.
 
-.. code:: ipython3
+.. code:: python
 
     p = np.exp(-a*r)
     showPaths(G,pos,p,Gnodes=[0],Rnodes=[n-1])
@@ -758,7 +758,7 @@ allocations, but we won't recover a Boolean solution for
 :math:`x^{\star}` because the optimal path is not unique. Note, however,
 that the optimal evasion probability is the same.
 
-.. code:: ipython3
+.. code:: python
 
     c = np.log(p)
     x = cp.Variable(shape=m)
@@ -815,7 +815,7 @@ again to recover an optimal path for the smuggler in the case that the
 path is not unique and plot it below. We again check that the detection
 probability is what we predicted previously.
 
-.. code:: ipython3
+.. code:: python
 
     x = optPath(G,p)
     path = list(np.flatnonzero(x > .1))
@@ -869,7 +869,7 @@ probability 1. The plot below demonstrates the idea. We won't plot the
 dummy nodes or edges, but we will highlight the 'new' source and sink
 nodes with light green and red as before.
 
-.. code:: ipython3
+.. code:: python
 
     # show dummy source and destination node
     N = 10
@@ -898,7 +898,7 @@ consider guards placed on node positions to make them easy to visualize.
 An example of a few guards and the resulting evasion probabilities is
 shown below.
 
-.. code:: ipython3
+.. code:: python
 
     N = 10
     k = 5
@@ -929,7 +929,7 @@ Buildings
 We'll also add buildings, which will modify the graph topology and also
 restrict the view of the guards.
 
-.. code:: ipython3
+.. code:: python
 
     N = 10
     k = 5
@@ -980,7 +980,7 @@ TODO
 -  use iterative reweighting to get boolean solution
 -  use relaxation to give bounds on distance to true optimal
 
-.. code:: ipython3
+.. code:: python
 
     N = 17
     buildings = [(.2,.8,.3,.1),
@@ -1001,7 +1001,7 @@ TODO
     edgeProbs = edgeVals.sum(axis=1)
     edgeProbs = np.exp(edgeProbs)
 
-.. code:: ipython3
+.. code:: python
 
     fig, ax = showPaths(G,pos,edgeProbs,visibleNodes=visibleNodes,Gnodes=Gnodes,Rnodes=Rnodes,guards=guardIdxs)
     
@@ -1017,7 +1017,7 @@ TODO
    :height: 469px
 
 
-.. code:: ipython3
+.. code:: python
 
     A = nx.incidence_matrix(G,oriented=True).toarray()
     n,m = A.shape
@@ -1104,7 +1104,7 @@ TODO
     
 
 
-.. code:: ipython3
+.. code:: python
 
     plt.plot(r,'o')
 
@@ -1123,7 +1123,7 @@ TODO
    :height: 250px
 
 
-.. code:: ipython3
+.. code:: python
 
     c = edgeVals.dot(r)
     edgeProbs = np.exp(c)
@@ -1142,7 +1142,7 @@ TODO
    :height: 360px
 
 
-.. code:: ipython3
+.. code:: python
 
     x = optPath(G,edgeProbs)
     path_inds = list(np.flatnonzero(x > .1))

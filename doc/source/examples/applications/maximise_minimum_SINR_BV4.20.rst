@@ -63,7 +63,7 @@ If :math:`\alpha_0` is infeasible then :math:`L_1 = \alpha_1`,
 This bisection process is repeated until :math:`U_N - L_N < \epsilon`,
 where :math:`\epsilon` is the desired tolerance.
 
-.. code:: ipython3
+.. code:: python
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
@@ -71,7 +71,7 @@ where :math:`\epsilon` is the desired tolerance.
     import cvxpy as cp
     import numpy as np
 
-.. code:: ipython3
+.. code:: python
 
     def maxmin_sinr(G, P_max, P_received, sigma, Group, Group_max, epsilon = 0.001):
         # find n and m from the size of the path gain matrix
@@ -189,7 +189,7 @@ first group contains transmitters 1 & 2, while the second group contains
 For all receivers :math:`P_i^{\text{rc}} = 4` and
 :math:`\sigma_i = 0.1`.
 
-.. code:: ipython3
+.. code:: python
 
     np.set_printoptions(precision=3)
     

@@ -38,7 +38,7 @@ where :math:`Y` is the sample covariance of :math:`y_1,\dots,y_N`, and
 Generate problem data
 ---------------------
 
-.. code:: ipython3
+.. code:: python
 
     import cvxpy as cp
     import numpy as np
@@ -70,7 +70,7 @@ Generate problem data
 Solve for several :math:`\alpha` values
 ---------------------------------------
 
-.. code:: ipython3
+.. code:: python
 
     # The alpha values for each attempt at generating a sparse inverse cov. matrix.
     alphas = [10, 2, 1]
@@ -121,7 +121,7 @@ Solve for several :math:`\alpha` values
 Result plots
 ------------
 
-.. code:: ipython3
+.. code:: python
 
     import matplotlib.pyplot as plt
     

@@ -91,7 +91,7 @@ That is,
    \sqrt{\frac{\mathbf{E}\|Ax \|^2_2}{\mathbf{E} \|v\|_2^2}} = 5.
    \end{equation}
 
-.. code:: ipython3
+.. code:: python
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -113,7 +113,7 @@ That is,
 
 Below, we show :math:`x`, :math:`Ax` and the noise :math:`v`.
 
-.. code:: ipython3
+.. code:: python
 
     plt.plot(range(n),x_true)
 
@@ -130,7 +130,7 @@ Below, we show :math:`x`, :math:`Ax` and the noise :math:`v`.
 .. image:: fault_detection_files/fault_detection_3_1.png
 
 
-.. code:: ipython3
+.. code:: python
 
     plt.plot(range(m), A.dot(x_true),range(m),v)
     plt.legend(('Ax','v'))
@@ -154,7 +154,7 @@ Recovery
 We solve the relaxed maximum likelihood problem with CVXPY and then
 round the result to get a Boolean solution.
 
-.. code:: ipython3
+.. code:: python
 
     %%time
     import cvxpy as cp
@@ -217,7 +217,7 @@ We define a function for computing the estimation errors, and a function
 for plotting :math:`x`, the relaxed ML estimate, and the rounded
 solutions.
 
-.. code:: ipython3
+.. code:: python
 
     import matplotlib
     
@@ -256,7 +256,7 @@ solutions.
 We see that out of 20 actual faults, the rounded solution gives perfect
 recovery with 0 false negatives and 0 false positives.
 
-.. code:: ipython3
+.. code:: python
 
     plotXs(x_true, x_rml, x_rnd, 'fault.pdf')
 

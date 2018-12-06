@@ -38,7 +38,7 @@ widths and a constraint in the dominant time constant, we solve the SDP
 Import and setup packages
 -------------------------
 
-.. code:: ipython3
+.. code:: python
 
     import cvxpy as cp
     import numpy as np
@@ -58,7 +58,7 @@ Import and setup packages
 Helper functions
 ----------------
 
-.. code:: ipython3
+.. code:: python
 
     # Computes the step response of a linear system.
     def simple_step(A, B, DT, N):
@@ -74,7 +74,7 @@ Helper functions
 Generate problem data
 ---------------------
 
-.. code:: ipython3
+.. code:: python
 
     #
     # Circuit parameters.
@@ -150,7 +150,7 @@ Generate problem data
 Solve problem and display results
 ---------------------------------
 
-.. code:: ipython3
+.. code:: python
 
     # Iterate over all points, and revisit specific points
     for i in range(npts + xnpts):
