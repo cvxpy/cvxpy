@@ -16,7 +16,6 @@ limitations under the License.
 
 import cvxpy.settings as s
 from cvxpy.error import DCPError, SolverError
-# from cvxpy.expressions.variables import Bool, Int
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
