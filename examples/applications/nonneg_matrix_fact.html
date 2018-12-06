@@ -59,9 +59,65 @@ initial guess for <span class="math">\(Y\)</span> and then alternatively minimiz
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Ensure repeatably random problem data.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Generate random data matrix A.</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+<span class="c1"># Initialize Y randomly.</span>
+<span class="n">Y_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="perform-alternating-minimization">
 <h2>Perform alternating minimization<a class="headerlink" href="#perform-alternating-minimization" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Ensure same initial random Y, rather than generate new one</span>
+<span class="c1"># when executing this cell.</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">Y_init</span>
+
+<span class="c1"># Perform alternating minimization.</span>
+<span class="n">MAX_ITERS</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">residual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">MAX_ITERS</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">iter_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="n">MAX_ITERS</span><span class="p">):</span>
+    <span class="c1"># At the beginning of an iteration, X and Y are NumPy</span>
+    <span class="c1"># array types, NOT CVXPY variables.</span>
+
+    <span class="c1"># For odd iterations, treat Y constant, optimize over X.</span>
+    <span class="k">if</span> <span class="n">iter_num</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># For even iterations, treat X constant, optimize over Y.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+        <span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Solve the problem.</span>
+    <span class="c1"># increase max iters otherwise, a few iterations are &quot;OPTIMAL_INACCURATE&quot;</span>
+    <span class="c1"># (eg a few of the entries in X or Y are negative beyond standard tolerances)</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">*</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;fro&#39;</span><span class="p">))</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraint</span><span class="p">)</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Solver did not converge!&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Iteration </span><span class="si">{}</span><span class="s1">, residual norm </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="n">residual</span><span class="p">[</span><span class="n">iter_num</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="c1"># Convert variable to NumPy array constant for next iteration.</span>
+    <span class="k">if</span> <span class="n">iter_num</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">2.766300564135502</span>
 <span class="n">Iteration</span> <span class="mi">2</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.5840356930600721</span>
 <span class="n">Iteration</span> <span class="mi">3</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.3356679970549085</span>
@@ -97,6 +153,42 @@ initial guess for <span class="math">\(Y\)</span> and then alternatively minimiz
 </div>
 <div class="section" id="output-results">
 <h2>Output results<a class="headerlink" href="#output-results" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<span class="c1"># Plot residuals.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plot inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Set plot properties.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span> <span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;size&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
+
+<span class="c1"># Create the plot.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Iteration Number&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Residual Norm&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Print results.</span>
+<span class="c1">#</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Original matrix:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Left factor Y:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Right factor X:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Residual A - Y * X:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">Y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Residual after </span><span class="si">{}</span><span class="s1"> iterations: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iter_num</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</pre></div>
+</div>
 <img alt="../../_images/nonneg_matrix_fact_5_0.png" src="../../_images/nonneg_matrix_fact_5_0.png" />
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Original</span> <span class="n">matrix</span><span class="p">:</span>
 <span class="p">[[</span><span class="mf">1.323426</span>   <span class="mf">1.11061189</span> <span class="mf">1.69137835</span> <span class="mf">1.20020115</span> <span class="mf">1.13216889</span> <span class="mf">0.5980743</span>

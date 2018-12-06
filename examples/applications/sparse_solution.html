@@ -79,9 +79,49 @@ M. S. Lobo, M. Fazel, and S. Boyd</li>
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Fix random number generator so we can repeat the experiment.</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># The threshold value below which we consider an element to be zero.</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-8</span>
+
+<span class="c1"># Problem dimensions (m inequalities in n-dimensional space).</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">50</span>
+
+<span class="c1"># Construct a feasible set of inequalities.</span>
+<span class="c1"># (This system is feasible for the x0 point.)</span>
+<span class="n">A</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">b</span>  <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="norm-heuristic">
 <h2><span class="math">\(\ell_1\)</span>-norm heuristic<a class="headerlink" href="#norm-heuristic" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Create variable.</span>
+<span class="n">x_l1</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># Create constraint.</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x_l1</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">]</span>
+
+<span class="c1"># Form objective.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x_l1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="c1"># Form and solve problem.</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;status: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">status</span><span class="p">))</span>
+
+<span class="c1"># Number of nonzero elements in the solution (its cardinality or diversity).</span>
+<span class="n">nnz_l1</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">x_l1</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">delta</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found a feasible x in R^</span><span class="si">{}</span><span class="s1"> that has </span><span class="si">{}</span><span class="s1"> nonzeros.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nnz_l1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
 <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="n">that</span> <span class="n">has</span> <span class="mi">40</span> <span class="n">nonzeros</span><span class="o">.</span>
 <span class="n">optimal</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="mf">28.582394099513873</span>
@@ -90,6 +130,44 @@ M. S. Lobo, M. Fazel, and S. Boyd</li>
 </div>
 <div class="section" id="iterative-log-heuristic">
 <h2>Iterative log heuristic<a class="headerlink" href="#iterative-log-heuristic" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Do 15 iterations, allocate variable to hold number of non-zeros</span>
+<span class="c1"># (cardinality of x) for each run.</span>
+<span class="n">NUM_RUNS</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">nnzs_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(())</span>
+
+<span class="c1"># Store W as a positive parameter for simple modification of the problem.</span>
+<span class="n">W</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">);</span>
+<span class="n">x_log</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+
+<span class="c1"># Initial weights.</span>
+<span class="n">W</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+
+<span class="c1"># Setup the problem.</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span> <span class="n">W</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x_log</span><span class="p">)</span> <span class="p">)</span> <span class="c1"># sum of elementwise product</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">x_log</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="c1"># Do the iterations of the problem, solving and updating W.</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">NUM_RUNS</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># Solve problem.</span>
+    <span class="c1"># The ECOS solver has known numerical issues with this problem</span>
+    <span class="c1"># so force a different solver.</span>
+    <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">)</span>
+
+    <span class="c1"># Check for error.</span>
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Solver did not converge!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Display new number of nonzeros in the solution vector.</span>
+    <span class="n">nnz</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">x_log</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">delta</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">nnzs_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnzs_log</span><span class="p">,</span> <span class="n">nnz</span><span class="p">);</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Iteration </span><span class="si">{}</span><span class="s1">: Found a feasible x in R^</span><span class="si">{}</span><span class="s1">&#39;</span>
+          <span class="s1">&#39; with </span><span class="si">{}</span><span class="s1"> nonzeros...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">nnz</span><span class="p">))</span>
+
+    <span class="c1"># Adjust the weights elementwise and re-iterate</span>
+    <span class="n">W</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">delta</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">x_log</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">48</span> <span class="n">nonzeros</span><span class="o">...</span>
 <span class="n">Iteration</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">36</span> <span class="n">nonzeros</span><span class="o">...</span>
 <span class="n">Iteration</span> <span class="mi">3</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">33</span> <span class="n">nonzeros</span><span class="o">...</span>
@@ -113,6 +191,31 @@ M. S. Lobo, M. Fazel, and S. Boyd</li>
 <p>The following code plots the result of the <span class="math">\(\ell_1\)</span>-norm
 heuristic, as well as the result for each iteration of the log
 heuristic.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plot inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Plot properties.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="c1"># Plot the two data series.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">+</span><span class="n">NUM_RUNS</span><span class="p">),</span> <span class="n">nnzs_log</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;log heuristic&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">NUM_RUNS</span><span class="p">),</span> <span class="p">(</span><span class="n">nnz_l1</span><span class="p">,</span> <span class="n">nnz_l1</span><span class="p">),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;l1-norm heuristic&#39;</span><span class="p">)</span>
+
+<span class="c1"># Format and show plot.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;iteration&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;number of non-zeros (cardinality)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">NUM_RUNS</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
 <img alt="../../_images/sparse_solution_7_0.png" src="../../_images/sparse_solution_7_0.png" />
 </div>
 </div>

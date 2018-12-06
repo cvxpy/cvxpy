@@ -47,7 +47,7 @@ function in CVXPY, which calculates the Kullback-Leibler divergence.
 Now that the objective function is in DCP form, the problem can be
 solved using CVXPY.
 
-.. code:: ipython
+.. code:: python
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
@@ -55,7 +55,7 @@ solved using CVXPY.
     import numpy as np
     import cvxpy as cp
 
-.. code:: ipython
+.. code:: python
 
     def optimal_power(n, a_val, b_val, P_tot=1.0, W_tot=1.0):
         # Input parameters: α and β are constants from R_i equation
@@ -96,7 +96,7 @@ Consider the case where there are 5 channels, :math:`n=5`,
 :math:`\alpha = \beta = (2.0,2.2,2.4,2.6,2.8)`,
 :math:`P_{\text{tot}} = 0.5` and :math:`W_{\text{tot}}=1`.
 
-.. code:: ipython
+.. code:: python
 
     np.set_printoptions(precision=3)
     n = 5               # number of receivers in the system

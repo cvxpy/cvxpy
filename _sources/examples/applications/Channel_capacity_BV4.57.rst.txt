@@ -48,7 +48,7 @@ subject to :math:`\sum_{i=1}^{n}x_i = 1 \quad x \succeq 0 \quad` since
 Due to the entropy function in CVXPY, this can be written quite easily
 in DCP.
 
-.. code:: ipython
+.. code:: python
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
@@ -56,7 +56,7 @@ in DCP.
     import cvxpy as cp
     import numpy as np
 
-.. code:: ipython
+.. code:: python
 
     def channel_capacity(n, m, P, sum_x=1):
         '''
@@ -124,7 +124,7 @@ we use in this case is:
 Note that the rows of :math:`P` must sum to 1 and all elements of
 :math:`P` must be positive.
 
-.. code:: ipython
+.. code:: python
 
     np.set_printoptions(precision=3)
     n = 2
