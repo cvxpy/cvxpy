@@ -158,7 +158,7 @@ matrices :math:`A` and :math:`B`.
 Helper Functions
 ----------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib
     import matplotlib.pyplot as plt
@@ -232,7 +232,7 @@ with :math:`\sigma = 20`.
 Below, we set the problem parameters and define the matrices :math:`A`,
 :math:`B`, and :math:`C`.
 
-.. code:: ipython
+.. code:: ipython3
 
     n = 1000 # number of timesteps
     T = 50 # time will vary from 0 to T with step delt
@@ -270,7 +270,7 @@ We plot the position, velocity, and system input :math:`w` in both
 dimensions as a function of time. We also plot the sets of true and
 observed vehicle positions.
 
-.. code:: ipython
+.. code:: ipython3
 
     sigma = 20
     p = .20
@@ -316,7 +316,7 @@ The code below solves the standard Kalman filtering problem using CVXPY.
 We plot and compare the true and recovered vehicle states. Note that the
 recovery is distorted by outliers in the measurements.
 
-.. code:: ipython
+.. code:: ipython3
 
     %%time
     import cvxpy as cp
@@ -401,7 +401,7 @@ Here we implement robust Kalman filtering with CVXPY. We get a better
 recovery than the standard Kalman filtering, which can be seen in the
 plots below.
 
-.. code:: ipython
+.. code:: ipython3
 
     %%time
     import cvxpy as cp

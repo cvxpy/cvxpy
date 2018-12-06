@@ -25,7 +25,7 @@ This problem can be formulated in CVXPY using the ``entr`` atom.
 Generate problem data
 ---------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import cvxpy as cp
     import numpy as np
@@ -48,7 +48,7 @@ Generate problem data
 Formulate and solve problem
 ---------------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     # Entropy maximization.
     x = cp.Variable(shape=n)

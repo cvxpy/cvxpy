@@ -31,7 +31,7 @@ corresponding to an impulse response :math:`h`.
 Initialize problem data
 -----------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import numpy as np
     import cvxpy as cp
@@ -61,7 +61,7 @@ Initialize problem data
 Solve the minimax (Chebychev) design problem
 --------------------------------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     # A is the matrix used to compute the frequency response
     # from a vector of filter coefficients:
@@ -115,7 +115,7 @@ Solve the minimax (Chebychev) design problem
 Result plots
 ------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
     

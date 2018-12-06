@@ -69,7 +69,7 @@ This algorithm is described in papers:
 Generate problem data
 ---------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import cvxpy as cp
     import numpy as np
@@ -93,7 +93,7 @@ Generate problem data
 :math:`\ell_1`-norm heuristic
 -----------------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     # Create variable.
     x_l1 = cp.Variable(shape=n)
@@ -125,7 +125,7 @@ Generate problem data
 Iterative log heuristic
 -----------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     # Do 15 iterations, allocate variable to hold number of non-zeros
     # (cardinality of x) for each run.
@@ -191,7 +191,7 @@ The following code plots the result of the :math:`\ell_1`-norm
 heuristic, as well as the result for each iteration of the log
 heuristic.
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
     

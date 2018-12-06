@@ -38,7 +38,7 @@ For large problems, use l1\_tf (http://www.stanford.edu/~boyd/l1\_tf/).
 Formulate and solve problem
 ---------------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import numpy as np
     import cvxpy as cp
@@ -108,7 +108,7 @@ Formulate and solve problem
 Results plot
 ------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
     

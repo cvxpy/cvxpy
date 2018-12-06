@@ -34,7 +34,7 @@ We load the original image and the corrupted image and construct the
 Known matrix. Both images are displayed below. The corrupted image has
 the missing pixels whited out.
 
-.. code:: ipython
+.. code:: ipython3
 
     from PIL import Image
     import matplotlib.pyplot as plt
@@ -77,7 +77,7 @@ CVXPY. We use the solver SCS, which finds the optimal value in a few
 seconds. The solvers ECOS and CVXOPT take much longer to solve this
 large problem.
 
-.. code:: ipython
+.. code:: ipython3
 
     # Recover the original image using total variation in-painting.
     import cvxpy as cp
@@ -132,7 +132,7 @@ After solving the problem, the in-painted image is stored in
 difference between the original and in-painted images. The intensity
 difference is magnified by a factor of 10 so it is more visible.
 
-.. code:: ipython
+.. code:: ipython3
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
     # Display the in-painted image.
@@ -189,7 +189,7 @@ selecting 30% of the pixels to keep and discarding the others. The
 original and corrupted images are displayed below. The corrupted image
 has the missing pixels blacked out.
 
-.. code:: ipython
+.. code:: ipython3
 
     from PIL import Image
     import matplotlib.pyplot as plt
@@ -237,7 +237,7 @@ and one for the green values). We use the solver SCS, which finds the
 optimal value in 25 seconds. The solvers ECOS and CVXOPT don't scale to
 this large problem.
 
-.. code:: ipython
+.. code:: ipython3
 
     # Recover the original image using total variation in-painting.
     import cvxpy as cp
@@ -298,7 +298,7 @@ original and in-painted image. Though the in-painted image looks almost
 identical to the original image, you can see that many of the RGB values
 differ.
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm

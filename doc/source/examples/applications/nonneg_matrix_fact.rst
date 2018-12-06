@@ -31,7 +31,7 @@ initial guess for :math:`Y` and then alternatively minimizing over
 Generate problem data
 ---------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import cvxpy as cp
     import numpy as np
@@ -51,7 +51,7 @@ Generate problem data
 Perform alternating minimization
 --------------------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     # Ensure same initial random Y, rather than generate new one
     # when executing this cell.
@@ -130,7 +130,7 @@ Perform alternating minimization
 Output results
 --------------
 
-.. code:: ipython
+.. code:: ipython3
 
     #
     # Plot residuals.

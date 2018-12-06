@@ -27,14 +27,14 @@ subject to :math:`x_i \succeq 0` and :math:`\sum_{i=1}^N x_i = P`
 This form is also very straightforward to put into DCP format and thus
 can be simply solved using CVXPY.
 
-.. code:: ipython
+.. code:: ipython3
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
     import numpy as np
     import cvxpy as cp
 
-.. code:: ipython
+.. code:: ipython3
 
     def water_filling(n, a, sum_x=1):
         '''
@@ -77,14 +77,14 @@ The function outputs whether the problem status, the maximum
 communication rate and the power allocation required is achieved with
 this maximum communication rate.
 
-.. code:: ipython
+.. code:: ipython3
 
     # As an example, we will solve the water filling problem with 3 buckets, each with different α
     np.set_printoptions(precision=3) 
     buckets = 3
     alpha = np.array([0.8, 1.0, 1.2])
 
-.. code:: ipython
+.. code:: ipython3
 
     stat, prob, x = water_filling(buckets, alpha)
     print('Problem status: {}'.format(stat))
@@ -104,7 +104,7 @@ To illustrate the water filling principle, we will plot
 :math:`\alpha_i + x_i` and check that this level is flat where power has
 been allocated:
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib
     import matplotlib.pylab as plt

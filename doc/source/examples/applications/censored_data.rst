@@ -52,7 +52,7 @@ Now let's see how this would work in practice.
 Data Generation
 ---------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import numpy as np
     n = 30 # number of variables
@@ -99,7 +99,7 @@ Regular OLS
 Let's see what the OLS result looks like. We'll use the
 ``np.linalg.lstsq`` function to solve for our coefficients.
 
-.. code:: ipython
+.. code:: ipython3
 
     c_ols = np.linalg.lstsq(X_ordered, y_censored, rcond=None)[0]
     fit_ols = X_ordered.dot(c_ols)
@@ -133,7 +133,7 @@ Give that our :math:`M` is much smaller than :math:`K`, we are throwing
 away the majority of the dataset in order to accomplish this, let's see
 how this new regression does.
 
-.. code:: ipython
+.. code:: ipython3
 
     c_ols_uncensored = np.linalg.lstsq(X_ordered[:M], y_censored[:M], rcond=None)[0]
     fit_ols_uncensored = X_ordered.dot(c_ols_uncensored)
@@ -174,7 +174,7 @@ additional constraints:
      & \mbox{for } i=\mbox{M+1},\ldots,K
    \end{array}
 
-.. code:: ipython
+.. code:: ipython3
 
     import cvxpy as cp
     X_uncensored = X_ordered[:M, :]
@@ -201,7 +201,7 @@ data. But does it do a good job of actually finding coefficients
 We'll use a simple Euclidean distance :math:`\|c_\mbox{true} - c\|_2` to
 compare:
 
-.. code:: ipython
+.. code:: ipython3
 
     print("norm(c_true - c_cvx): {:.2f}".format(np.linalg.norm((c_true - c_cvx))))
     print("norm(c_true - c_ols_uncensored): {:.2f}".format(np.linalg.norm((c_true - c_ols_uncensored))))

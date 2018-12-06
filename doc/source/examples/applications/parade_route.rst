@@ -91,7 +91,7 @@ square to obstruct the guards' view. The guard has no effect on a point
 if his line of sight is obstructed. We generate the :math:`A` matrix for
 this problem instance below.
 
-.. code:: ipython
+.. code:: ipython3
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -207,7 +207,7 @@ this problem instance below.
                     detect_p.append(p_evade(point,r,r=.5,m=0))
                 locations.append((point,np.array(detect_p)))
 
-.. code:: ipython
+.. code:: ipython3
 
     np.random.seed(0)
     
@@ -264,7 +264,7 @@ We perform the iterative algorithm below. At each step, we plot the
 vector :math:`x`, demonstrating that it becomes increasingly sparse at
 each iteration.
 
-.. code:: ipython
+.. code:: ipython3
 
     num_guards = 12
     tau = 1e-2
@@ -312,7 +312,7 @@ parade route. The red dots represent the possible guard placement
 locations. The green dots show the actual guard placements. Yellow
 rectangles are buildings which obstruct the guards' view.
 
-.. code:: ipython
+.. code:: ipython3
 
     fig = plt.figure(figsize=(10,10))
     ax = plt.subplot(111,aspect='equal')

@@ -80,7 +80,7 @@ Choose either:
 -  A uniform 1D positioning of antennas along a line.
 -  A uniform 2D positioning of antennas along a grid.
 
-.. code:: ipython
+.. code:: ipython3
 
     import cvxpy as cp
     import numpy as np
@@ -93,7 +93,7 @@ Choose either:
 Data generation
 ---------------
 
-.. code:: ipython
+.. code:: ipython3
 
     #
     # Problem specs.
@@ -162,7 +162,7 @@ Data generation
 Solve using bisection algorithm
 -------------------------------
 
-.. code:: ipython
+.. code:: ipython3
 
     # Bisection range limits. Reduce by half each step.
     halfbeam_bot = 1
@@ -298,7 +298,7 @@ Solve using bisection algorithm
 Result plots
 ------------
 
-.. code:: ipython
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
     
