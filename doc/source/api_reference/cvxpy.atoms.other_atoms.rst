@@ -8,7 +8,16 @@ The atoms listed here are neither affine nor elementwise.
 
 cummax
 ------
+
 .. autoclass:: cvxpy.atoms.cummax.cummax
+    :show-inheritance:
+
+.. _eye_minus_inv:
+
+eye_minus_inv
+------
+
+.. autoclass:: cvxpy.atoms.eye_minus_inv.eye_minus_inv
     :show-inheritance:
 
 .. _geo-mean:
@@ -18,7 +27,6 @@ geo_mean
 
 .. autoclass:: cvxpy.atoms.geo_mean.geo_mean
     :show-inheritance:
-
 
 .. _harmonic-mean:
 
@@ -140,6 +148,14 @@ normNuc
 .. autoclass:: cvxpy.atoms.norm_nuc.normNuc
     :show-inheritance:
 
+.. _pf-eigenvalue:
+
+pf_eigenvalue
+------------------------------
+
+.. autoclass:: cvxpy.atoms.pf_eigenvalue.pf_eigenvalue
+    :show-inheritance:
+
 .. _pnorm_func:
 
 pnorm
@@ -168,6 +184,13 @@ quad_over_lin
 
 .. autoclass:: cvxpy.atoms.quad_over_lin.quad_over_lin
     :show-inheritance:
+
+.. _resolvent:
+
+resolvent
+--------------------------
+
+.. autofunction:: cvxpy.atoms.eye_minus_inv.resolvent
 
 .. _sigma-max:
 

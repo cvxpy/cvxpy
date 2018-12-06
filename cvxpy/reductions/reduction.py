@@ -27,23 +27,33 @@ class Reduction(object):
     to :math:`B`, we can convert it to a solution of :math:`A` with at most a
     moderate amount of effort.
 
-    A reduction that was instantiated with a non-None problem offers
+    A reduction that is instantiated with a non-None problem offers
     two key methods: `reduce` and `retrieve`. The `reduce()` method converts
     the problem the reduction was instantiated with to an equivalent
-    problem. The `retrieve()` method takes as an argument a solution
-    for the equivalent problem and returns a solution for the problem
+    problem. The `retrieve()` method takes as an argument a Solution
+    for the equivalent problem and returns a Solution for the problem
     owned by the reduction.
 
-    Every reduction supports three low-level methods: accepts, apply, and invert.
+    Every reduction offers three low-level methods: accepts, apply, and invert.
     The accepts method of a particular reduction specifies the types of problems
     that it is applicable to; the apply method takes a problem and reduces
     it to an equivalent form, and the invert method maps solutions
     from reduced-to problems to their problems of provenance.
+
+    Attributes:
+    ----------
+    problem : Problem
+        A problem owned by this reduction; possibly None.
     """
 
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, problem=None):
+        """Construct a reduction for reducing `problem`.
+
+        If `problem` is not None, then a subsequent invocation of `reduce()`
+        will reduce `problem` and return an equivalent one.
+        """
         self.problem = problem
 
     def accepts(self, problem):
@@ -87,18 +97,23 @@ class Reduction(object):
         return problem
 
     def retrieve(self, solution):
-        """Returns a solution to the original problem given a solution to
-           the reduced-to problem.
+        """Retrieves a solution to the owned problem.
 
         Parameters
         ----------
         solution : Solution
-            A solution to a problem that generated the inverse_data.
+            A solution to the problem emitted by `reduce()`.
 
         Returns
         -------
         Solution
-            A solution to the original problem.
+            A solution to the owned problem.
+
+        Raises
+        ------
+        ValueError
+            If `self.problem` is None, or if `reduce()` was not previously
+            called.
         """
         if not hasattr(self, '_retrieval_data'):
             raise ValueError("`reduce()` must be called before `retrieve()`.")

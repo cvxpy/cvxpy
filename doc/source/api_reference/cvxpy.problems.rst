@@ -53,14 +53,14 @@ accessed via the :meth:`~cvxpy.problems.problem.Problem.size_metrics` and
 Minimize
 --------
 .. autoclass:: cvxpy.problems.objective.Minimize
-    :members: is_dcp
+    :members: is_dcp, is_dgp
     :undoc-members:
     :show-inheritance:
 
 Maximize
 --------
 .. autoclass:: cvxpy.problems.objective.Maximize
-    :members: is_dcp
+    :members: is_dcp, is_dgp
     :undoc-members:
     :show-inheritance:
 
@@ -81,7 +81,7 @@ SolverStats
 Problem
 -------
 .. autoclass:: cvxpy.problems.problem.Problem
-    :members: value, status, objective, constraints, is_dcp, is_qp,
+    :members: value, status, objective, constraints, is_dcp, is_dgp, is_qp,
               variables, parameters, constants, atoms, size_metrics,
               solver_stats, solve, register_solve, get_problem_data,
               unpack_results,

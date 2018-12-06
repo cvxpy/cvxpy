@@ -21,7 +21,8 @@ Atom
 ----
 
 .. autoclass:: cvxpy.atoms.atom.Atom
-    :members: is_atom_convex, is_atom_concave, is_atom_affine, is_incr,
-              is_decr, cummax, grad, domain
+    :members: is_atom_convex, is_atom_concave, is_atom_affine,
+              is_atom_log_log_convex, is_atom_log_log_concave,
+              is_atom_log_log_affine, is_incr, is_decr, grad, domain
     :undoc-members:
     :show-inheritance:

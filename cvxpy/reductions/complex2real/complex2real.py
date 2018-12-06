@@ -28,7 +28,7 @@ import cvxpy.settings as s
 
 
 class Complex2Real(Reduction):
-    """Eliminates piecewise linear atoms."""
+    """Lifts complex numbers to a real representation."""
 
     def accepts(self, problem):
         leaves = problem.variables() + problem.parameters() + problem.constants()
