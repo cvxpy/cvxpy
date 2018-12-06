@@ -39,7 +39,7 @@ gradient ascent reduces to the :math:`x` and :math:`y` updates
 The following CVXPY script implements the method of multipliers and uses
 it to solve an optimization problem.
 
-.. code:: ipython3
+.. code:: ipython
 
     import cvxpy as cp
     import numpy as np
