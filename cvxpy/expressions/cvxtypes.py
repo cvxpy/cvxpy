@@ -47,6 +47,11 @@ def index():
     return index.index
 
 
+def special_index():
+    from cvxpy.atoms.affine import index
+    return index.special_index
+
+
 def indicator():
     from cvxpy.transforms.indicator import indicator
     return indicator

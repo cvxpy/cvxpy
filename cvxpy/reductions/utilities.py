@@ -14,9 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.zero import Zero
 from cvxpy.constraints.nonpos import NonPos
+import numpy as np
+import scipy.sparse as sp
 
 
 def lower_inequality(inequality):
@@ -29,6 +32,17 @@ def lower_equality(equality):
     lhs = equality.args[0]
     rhs = equality.args[1]
     return Zero(lhs - rhs, constr_id=equality.constr_id)
+
+
+def special_index_canon(expr, args):
+    select_mat = expr._select_mat
+    final_shape = expr._select_mat.shape
+    select_vec = np.reshape(select_mat, select_mat.size, order='F')
+    # Select the chosen entries from expr.
+    arg = args[0]
+    identity = sp.eye(arg.size).tocsc()
+    lowered = reshape(identity[select_vec]*vec(arg), final_shape)
+    return lowered, []
 
 
 def are_args_affine(constraints):

@@ -100,28 +100,70 @@ class index(AffAtom):
         obj = lu.index(arg_objs[0], shape, data[0])
         return (obj, [])
 
-    @staticmethod
-    def get_special_slice(expr, key):
-        """Indexing using logical indexing or a list of indices.
 
-        Parameters
-        ----------
-        expr : Expression
-            The expression being indexed/sliced into.
-        key : tuple
-            ndarrays or lists.
-        Returns
-        -------
-        Expression
-            An expression representing the index/slice.
-        """
-        expr = index.cast_to_const(expr)
+class special_index(AffAtom):
+    """Indexing using logical indexing or a list of indices.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression being indexed/sliced into.
+    key : tuple
+        ndarrays or lists.
+    """
+
+    def __init__(self, expr, key):
+        self.key = key
         # Order the entries of expr and select them using key.
+        expr = index.cast_to_const(expr)
         idx_mat = np.arange(expr.size)
         idx_mat = np.reshape(idx_mat, expr.shape, order='F')
-        select_mat = idx_mat[key]
-        final_shape = select_mat.shape
-        select_vec = np.reshape(select_mat, select_mat.size, order='F')
-        # Select the chosen entries from expr.
-        identity = sp.eye(expr.size).tocsc()
-        return reshape(identity[select_vec]*vec(expr), final_shape)
+        self._select_mat = idx_mat[key]
+        self._shape = self._select_mat.shape
+        super(special_index, self).__init__(expr)
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
+    # The string representation of the atom.
+    def name(self):
+        return self.args[0].name() + str(self.key)
+
+    def numeric(self, values):
+        """ Returns the index/slice into the given value.
+        """
+        return values[0][self.key]
+
+    def shape_from_args(self):
+        """Returns the shape of the index expression.
+        """
+        return self._shape
+
+    def get_data(self):
+        """Returns the key.
+        """
+        return [self.key]
+
+    @property
+    def grad(self):
+        """Gives the (sub/super)gradient of the expression w.r.t. each variable.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+        None indicates variable values unknown or outside domain.
+
+        Returns:
+            A map of variable to SciPy CSC sparse matrix or None.
+        """
+        select_vec = np.reshape(
+          self._select_mat, self._select_mat.size, order='F')
+        identity = sp.eye(self.args[0].size).tocsc()
+        lowered = reshape(
+          identity[select_vec]*vec(self.args[0]), self._shape)
+        return lowered.grad

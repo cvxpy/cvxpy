@@ -12,6 +12,13 @@ cummax
 .. autoclass:: cvxpy.atoms.cummax.cummax
     :show-inheritance:
 
+.. _diff_pos:
+
+diff_pos
+------
+
+.. autofunction:: cvxpy.atoms.one_minus.diff_pos
+
 .. _eye_minus_inv:
 
 eye_minus_inv
@@ -146,6 +153,14 @@ normNuc
 ------------------------------
 
 .. autoclass:: cvxpy.atoms.norm_nuc.normNuc
+    :show-inheritance:
+
+.. _one-minus:
+
+one_minus
+------------------------------
+
+.. autoclass:: cvxpy.atoms.one_minus
     :show-inheritance:
 
 .. _pf-eigenvalue:

@@ -3,5 +3,4 @@ from cvxpy.atoms.elementwise.exp import exp
 
 
 def one_minus_canon(expr, args):
-    del expr
-    return log(1 - exp(args[0])), []
+    return log(expr._ones - exp(args[0])), []

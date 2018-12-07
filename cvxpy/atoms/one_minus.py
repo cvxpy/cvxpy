@@ -15,23 +15,46 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+import numpy as np
 import scipy.sparse as sp
 
 
+def diff_pos(x, y):
+    r"""The difference :math:`x - y` with domain `\{x, y : x > y\}`.
+
+    This atom is log-log concave.
+
+    Parameters:
+    ----------
+    x : :class:`~cvxpy.expressions.expression.Expression`
+        An Expression.
+    y : :class:`~cvxpy.expressions.expression.Expression`
+        An Expression.
+    """
+    return x * one_minus(y/x)
+
+
 class one_minus(Atom):
+    r"""The difference :math:`1 - x` with domain `\{x : x < 1\}`.
+
+    This atom is log-log concave.
+
+    Parameters:
+    ----------
+    x : :class:`~cvxpy.expressions.expression.Expression`
+        An Expression.
+    """
     def __init__(self, x):
         super(one_minus, self).__init__(x)
-        if x.shape != tuple():
-            raise ValueError("Argument to `one_minus` must be a scalar, "
-                             "received ", x)
         self.args[0] = x
+        self._ones = np.ones(self.args[0].shape)
 
     def numeric(self, values):
-        return 1.0 - values[0]
+        return self._ones - values[0]
 
     def _grad(self, values):
         del values
-        return sp.csc_matrix(-1.0)
+        return sp.csc_matrix(-1.0 * self._ones)
 
     def name(self):
         return "%s(%s)" % (self.__class__.__name__, self.args[0])
@@ -39,7 +62,7 @@ class one_minus(Atom):
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return tuple()
+        return self.args[0].shape
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.

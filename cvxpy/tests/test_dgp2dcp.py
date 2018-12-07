@@ -303,11 +303,11 @@ class TestDgp2Dcp(BaseTest):
     def test_one_minus(self):
         x = cvxpy.Variable(pos=True)
         obj = cvxpy.Maximize(x)
-        constr = [cvxpy.one_minus(x) >= 0.5]
+        constr = [cvxpy.one_minus(x) >= 0.4]
         problem = cvxpy.Problem(obj, constr)
         problem.solve(gp=True)
-        self.assertAlmostEqual(problem.value, 0.5)
-        self.assertAlmostEqual(x.value, 0.5)
+        self.assertAlmostEqual(problem.value, 0.6)
+        self.assertAlmostEqual(x.value, 0.6)
 
     def test_paper_example_sum_largest(self):
         x = cvxpy.Variable((4,), pos=True)
@@ -351,17 +351,16 @@ class TestDgp2Dcp(BaseTest):
     def test_pf_matrix_completion(self):
         X = cvxpy.Variable((3, 3), pos=True)
         obj = cvxpy.Minimize(cvxpy.pf_eigenvalue(X))
-        constr = [
-          X[0, 0] == 1.0,
-          X[0, 2] == 1.9,
-          X[1, 1] == 0.8,
-          X[2, 0] == 3.2,
-          X[2, 1] == 5.9,
+        known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1], [2, 0], [2, 1]]))
+        constr = [ 
+          X[known_indices] == [1.0, 1.9, 0.8, 3.2, 5.9],
           X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
         ]
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
+        print(problem.value)
+        print(X.value)
 
     def test_rank_one_nmf(self):
         X = cvxpy.Variable((3, 3), pos=True)

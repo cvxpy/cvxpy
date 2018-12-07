@@ -11,10 +11,9 @@ Operators
 ---------
 
 The infix operators ``+, -, *, /`` are treated as functions. ``+`` and
-``-`` are affine functions. ``*`` and ``/`` are affine in
-CVXPY because ``expr1*expr2`` is allowed only when one of the
-expressions is constant and ``expr1/expr2`` is allowed only when
-``expr2`` is a scalar constant.
+``-`` are affine functions. The expression ``expr1*expr2`` is are affine in
+CVXPY when one of the expressions is constant, and ``expr1/expr2`` is affine
+when ``expr2`` is a scalar constant.
 
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^
