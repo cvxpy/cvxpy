@@ -8,7 +8,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.geo_mean import geo_mean
-from cvxpy.atoms.one_minus import one_minus
+from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
 from cvxpy.atoms.max import max
 from cvxpy.atoms.min import min
@@ -34,7 +34,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mul_canon import mul_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm_inf_canon import norm_inf_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_canon import one_minus_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_pos_canon import one_minus_pos_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.parameter_canon import parameter_canon
@@ -57,7 +57,7 @@ CANON_METHODS = {
     multiply : mul_canon,
     norm1 : norm1_canon,
     norm_inf : norm_inf_canon,
-    one_minus : one_minus_canon,
+    one_minus_pos : one_minus_pos_canon,
     Parameter : parameter_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
     pnorm : pnorm_canon,

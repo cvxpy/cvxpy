@@ -300,10 +300,10 @@ class TestDgp2Dcp(BaseTest):
         expected = np.log(np.exp(1.0) + np.exp(14.0))
         self.assertAlmostEqual(expected, canon.value)
 
-    def test_one_minus(self):
+    def test_one_minus_pos(self):
         x = cvxpy.Variable(pos=True)
         obj = cvxpy.Maximize(x)
-        constr = [cvxpy.one_minus(x) >= 0.4]
+        constr = [cvxpy.one_minus_pos(x) >= 0.4]
         problem = cvxpy.Problem(obj, constr)
         problem.solve(gp=True)
         self.assertAlmostEqual(problem.value, 0.6)
@@ -322,11 +322,11 @@ class TestDgp2Dcp(BaseTest):
         # smoke test.
         p.solve(gp=True)
 
-    def test_paper_example_one_minus(self):
+    def test_paper_example_one_minus_pos(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         obj = cvxpy.Minimize(x * y)
-        constr = [(y * cvxpy.one_minus(x / y)) ** 2 >= 1, x >= y/3]
+        constr = [(y * cvxpy.one_minus_pos(x / y)) ** 2 >= 1, x >= y/3]
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)

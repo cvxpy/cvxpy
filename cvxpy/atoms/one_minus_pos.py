@@ -31,10 +31,10 @@ def diff_pos(x, y):
     y : :class:`~cvxpy.expressions.expression.Expression`
         An Expression.
     """
-    return x * one_minus(y/x)
+    return x * one_minus_pos(y/x)
 
 
-class one_minus(Atom):
+class one_minus_pos(Atom):
     r"""The difference :math:`1 - x` with domain `\{x : x < 1\}`.
 
     This atom is log-log concave.
@@ -45,7 +45,7 @@ class one_minus(Atom):
         An Expression.
     """
     def __init__(self, x):
-        super(one_minus, self).__init__(x)
+        super(one_minus_pos, self).__init__(x)
         self.args[0] = x
         self._ones = np.ones(self.args[0].shape)
 
