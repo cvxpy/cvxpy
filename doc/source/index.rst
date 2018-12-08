@@ -67,6 +67,11 @@ Additional solvers are supported, but must be installed separately. For
 background on convex optimization, see the book `Convex Optimization
 <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
+*News*: CVXPY will soon support disciplined geometric programming (DGP), which
+lets you formulate traditional geometric programs, generalized
+geometric programs, and what are more generally known as log-log convex
+programs. See the `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_
+for more information. DGP will be available in CVXPY by January 2019.
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
