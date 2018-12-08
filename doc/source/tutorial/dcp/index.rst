@@ -20,11 +20,11 @@ arithmetic operators ``+, -, *, /``, and a library of
 
 .. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
 
     # Create variables and parameters.
-    x, y = cvx.Variable(), cvx.Variable()
-    a, b = cvx.Parameter(), cvx.Parameter()
+    x, y = cp.Variable(), cp.Variable()
+    a, b = cp.Parameter(), cp.Parameter()
 
     # Examples of CVXPY expressions.
     3.69 + b/3
@@ -47,14 +47,14 @@ are the same as for NumPy ndarrays (except some broadcasting is banned).
 
     import numpy
 
-    X = cvx.Variable((5, 4))
+    X = cp.Variable((5, 4))
     A = numpy.ones((3, 5))
 
     # Use expr.shape to get the dimensions.
     print("dimensions of X:", X.shape)
     print("size of X:", X.size)
     print("number of dimensions:", X.ndim)
-    print("dimensions of sum(X):", cvx.sum(X).shape)
+    print("dimensions of sum(X):", cp.sum(X).shape)
     print("dimensions of A*X:", (A*X).shape)
 
     # ValueError raised for invalid dimensions.
@@ -99,13 +99,13 @@ The sign of an expression is stored as ``expr.sign``:
 
 .. code:: python
 
-    x = cvx.Variable()
-    a = cvx.Parameter(nonpos=True)
+    x = cp.Variable()
+    a = cp.Parameter(nonpos=True)
     c = numpy.array([1, -1])
 
     print("sign of x:", x.sign)
     print("sign of a:", a.sign)
-    print("sign of square(x):", cvx.square(x).sign)
+    print("sign of square(x):", cp.square(x).sign)
     print("sign of c*a:", (c*a).sign)
 
 ::
@@ -176,13 +176,13 @@ The curvature of an expression is stored as ``expr.curvature``:
 
 .. code:: python
 
-    x = cvx.Variable()
-    a = cvx.Parameter(nonneg=True)
+    x = cp.Variable()
+    a = cp.Parameter(nonneg=True)
 
     print("curvature of x:", x.curvature)
     print("curvature of a:", a.curvature)
-    print("curvature of square(x):", cvx.square(x).curvature)
-    print("curvature of sqrt(x):", cvx.sqrt(x).curvature)
+    print("curvature of square(x):", cp.square(x).curvature)
+    print("curvature of sqrt(x):", cp.sqrt(x).curvature)
 
 ::
 
@@ -249,9 +249,9 @@ certified as convex using the DCP rules.
 .. code:: python
 
     print("sqrt(1 + square(x)) curvature:",
-          cvx.sqrt(1 + cvx.square(x)).curvature)
+          cp.sqrt(1 + cp.square(x)).curvature)
     print("norm(hstack([1, x]), 2) curvature:",
-          cvx.norm(cvx.hstack([1, x]), 2).curvature)
+          cp.norm(cp.hstack([1, x]), 2).curvature)
 
 ::
 
@@ -281,15 +281,15 @@ non-DCP problems:
 
 .. code:: python
 
-    x = cvx.Variable()
-    y = cvx.Variable()
+    x = cp.Variable()
+    y = cp.Variable()
 
     # DCP problems.
-    prob1 = cvx.Problem(cvx.Minimize(cvx.square(x - y)),
+    prob1 = cp.Problem(cp.Minimize(cp.square(x - y)),
                         [x + y >= 0])
-    prob2 = cvx.Problem(cvx.Maximize(cvx.sqrt(x - y)),
+    prob2 = cp.Problem(cp.Maximize(cp.sqrt(x - y)),
                     [2*x - 3 == y,
-                     cvx.square(x) <= 2])
+                     cp.square(x) <= 2])
 
     print("prob1 is DCP:", prob1.is_dcp())
     print("prob2 is DCP:", prob2.is_dcp())
@@ -297,18 +297,18 @@ non-DCP problems:
     # Non-DCP problems.
 
     # A non-DCP objective.
-    obj = cvx.Maximize(cvx.square(x))
-    prob3 = cvx.Problem(obj)
+    obj = cp.Maximize(cp.square(x))
+    prob3 = cp.Problem(obj)
 
     print("prob3 is DCP:", prob3.is_dcp())
     print("Maximize(square(x)) is DCP:", obj.is_dcp())
 
     # A non-DCP constraint.
-    prob4 = cvx.Problem(cvx.Minimize(cvx.square(x)),
-                        [cvx.sqrt(x) <= 2])
+    prob4 = cp.Problem(cp.Minimize(cp.square(x)),
+                        [cp.sqrt(x) <= 2])
 
     print "prob4 is DCP:", prob4.is_dcp()
-    print "sqrt(x) <= 2 is DCP:", (cvx.sqrt(x) <= 2).is_dcp()
+    print "sqrt(x) <= 2 is DCP:", (cp.sqrt(x) <= 2).is_dcp()
 
 ::
 
@@ -326,7 +326,7 @@ non-DCP problem.
 .. code:: python
 
     # A non-DCP problem.
-    prob = cvx.Problem(cvx.Minimize(cvx.sqrt(x)))
+    prob = cp.Problem(cp.Minimize(cp.sqrt(x)))
 
     try:
         prob.solve()

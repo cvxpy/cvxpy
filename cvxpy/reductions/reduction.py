@@ -56,6 +56,7 @@ class Reduction(object):
         """
         self.problem = problem
 
+    # TODO(akshayka): This should be a static method!
     def accepts(self, problem):
         """States whether the reduction accepts a problem.
 

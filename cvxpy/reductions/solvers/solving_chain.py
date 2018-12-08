@@ -7,11 +7,7 @@ from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC,
-                                              SOLVER_MAP_QP,
-                                              INSTALLED_SOLVERS,
-                                              CONIC_SOLVERS,
-                                              QP_SOLVERS)
+import cvxpy.reductions.solvers.defines as slv_def
 
 
 def construct_solving_chain(problem, solver=None, gp=False):
@@ -43,17 +39,17 @@ def construct_solving_chain(problem, solver=None, gp=False):
     DCPError
         Raised if the problem is not DCP and `gp` is False.
     DGPError
-        Raised if the problem is not DGP and `gp` is True
+        Raised if the problem is not DGP and `gp` is True.
     SolverError
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
     if solver is not None:
-        if solver not in INSTALLED_SOLVERS:
+        if solver not in slv_def.INSTALLED_SOLVERS:
             raise SolverError("The solver %s is not installed." % solver)
         candidates = [solver]
     else:
-        candidates = INSTALLED_SOLVERS
+        candidates = slv_def.INSTALLED_SOLVERS
 
     reductions = []
     if problem.parameters():
@@ -65,6 +61,13 @@ def construct_solving_chain(problem, solver=None, gp=False):
         reductions += [Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
+        if solver is not None and solver not in slv_def.CONIC_SOLVERS:
+            raise SolverError(
+              "When `gp=True`, `solver` must be a conic solver "
+              "(received '%s'); try calling `solve()` with `solver=cvxpy.ECOS`."
+              % solver)
+        elif solver is None:
+            candidates = slv_def.INSTALLED_CONIC_SOLVERS
 
     if not gp and not problem.is_dcp():
         append = ""
@@ -88,27 +91,26 @@ def construct_solving_chain(problem, solver=None, gp=False):
     #   (2) Dcp2Cone --> ConeMatrixStuffing --> [a ConicSolver]
     #
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    candidate_qp_solvers = [s for s in QP_SOLVERS if s in candidates]
+    candidate_qp_solvers = [s for s in slv_def.QP_SOLVERS if s in candidates]
     # Consider only MIQP solvers if problem is integer
     if problem.is_mixed_integer():
-        candidate_qp_solvers = \
-            [s for s in candidate_qp_solvers if
-             SOLVER_MAP_QP[s].MIP_CAPABLE]
+        candidate_qp_solvers = [
+          s for s in candidate_qp_solvers if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
     if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
         solver = sorted(candidate_qp_solvers,
-                        key=lambda s: QP_SOLVERS.index(s))[0]
-        solver_instance = SOLVER_MAP_QP[solver]
+                        key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
+        solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp(),
                        QpMatrixStuffing(),
                        solver_instance]
         return SolvingChain(reductions=reductions)
 
-    candidate_conic_solvers = [s for s in CONIC_SOLVERS if s in candidates]
+    candidate_conic_solvers = [s for s in slv_def.CONIC_SOLVERS if s in candidates]
     if problem.is_mixed_integer():
         candidate_conic_solvers = \
             [s for s in candidate_conic_solvers if
-             SOLVER_MAP_CONIC[s].MIP_CAPABLE]
+             slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
         if not candidate_conic_solvers and \
                 not candidate_qp_solvers:
             raise SolverError("Problem is mixed-integer, but candidate "
@@ -142,8 +144,8 @@ def construct_solving_chain(problem, solver=None, gp=False):
     has_constr = len(cones) > 0 or len(problem.constraints) > 0
 
     for solver in sorted(candidate_conic_solvers,
-                         key=lambda s: CONIC_SOLVERS.index(s)):
-        solver_instance = SOLVER_MAP_CONIC[solver]
+                         key=lambda s: slv_def.CONIC_SOLVERS.index(s)):
+        solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             reductions += [Dcp2Cone(),

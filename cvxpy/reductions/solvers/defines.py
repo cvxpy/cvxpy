@@ -94,3 +94,4 @@ def installed_solvers():
 
 
 INSTALLED_SOLVERS = installed_solvers()
+INSTALLED_CONIC_SOLVERS = [s for s in INSTALLED_SOLVERS if s in CONIC_SOLVERS]

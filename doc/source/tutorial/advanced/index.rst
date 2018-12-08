@@ -13,21 +13,21 @@ You can use CVXPY to find the optimal dual variables for a problem. When you cal
 
 .. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
 
     # Create two scalar optimization variables.
-    x = cvx.Variable()
-    y = cvx.Variable()
+    x = cp.Variable()
+    y = cp.Variable()
 
     # Create two constraints.
     constraints = [x + y == 1,
                    x - y >= 1]
 
     # Form objective.
-    obj = cvx.Minimize((x - y)**2)
+    obj = cp.Minimize((x - y)**2)
 
     # Form and solve problem.
-    prob = cvx.Problem(obj, constraints)
+    prob = cp.Problem(obj, constraints)
     prob.solve()
 
     # The optimal dual variable (Lagrange multiplier) for
@@ -146,11 +146,11 @@ The first way is to use
 .. code:: python
 
     # Creates a 100 by 100 positive semidefinite variable.
-    X = cvx.Variable((100, 100), PSD=True)
+    X = cp.Variable((100, 100), PSD=True)
 
     # You can use X anywhere you would use
     # a normal CVXPY variable.
-    obj = cvx.Minimize(cvx.norm(X) + cvx.sum(X))
+    obj = cp.Minimize(cp.norm(X) + cp.sum(X))
 
 The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,
@@ -192,13 +192,13 @@ You can construct mixed-integer programs by creating variables with the attribut
 .. code:: python
 
     # Creates a 10-vector constrained to have boolean valued entries.
-    x = cvx.Variable(10, boolean=True)
+    x = cp.Variable(10, boolean=True)
 
     # expr1 must be boolean valued.
     constr1 = (expr1 == x)
 
     # Creates a 5 by 7 matrix constrained to have integer valued entries.
-    Z = cvx.Variable((5, 7), integer=True)
+    Z = cp.Variable((5, 7), integer=True)
 
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
@@ -216,9 +216,9 @@ The functions ``is_real``, ``is_complex``, and ``is_imag`` return whether an exp
 .. code:: python
 
    # A complex valued variable.
-   x = cvx.Variable(complex=True)
+   x = cp.Variable(complex=True)
    # A purely imaginary parameter.
-   p = cvx.Parameter(imag=True)
+   p = cp.Parameter(imag=True)
 
    print("p.is_imag() = ", p.is_imag())
    print("(x + 2).is_real() = ", (x + 2).is_real())
@@ -255,9 +255,9 @@ constraints hold and :math:`\infty` when they are violated.
 
 .. code:: python
 
-   x = cvx.Variable()
+   x = cp.Variable()
    constraints = [0 <= x, x <= 1]
-   expr = cvx.indicator(constraints)
+   expr = cp.indicator(constraints)
    x.value = .5
    print("expr.value = ", expr.value)
    x.value = 2
@@ -342,7 +342,7 @@ Solve method options
 
 The ``solve`` method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the ``solve`` method:
 
-.. function:: solve(solver=None, verbose=False, **kwargs)
+.. function:: solve(solver=None, verbose=False, gp=False, **kwargs)
 
    Solves a DCP compliant optimization problem.
 
@@ -350,6 +350,8 @@ The ``solve`` method takes optional arguments that let you change how CVXPY solv
    :type solver: str, optional
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
+   :param gp:  If True, parses the problem as a disciplined geometric program instead of a disciplined convex program.
+   :type gp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.
 
@@ -406,57 +408,57 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 .. code:: python
 
     # Solving a problem with different solvers.
-    x = cvx.Variable(2)
-    obj = cvx.Minimize(x[0] + cvx.norm(x, 1))
+    x = cp.Variable(2)
+    obj = cp.Minimize(x[0] + cp.norm(x, 1))
     constraints = [x >= 2]
-    prob = cvx.Problem(obj, constraints)
+    prob = cp.Problem(obj, constraints)
 
     # Solve with OSQP.
-    prob.solve(solver=cvx.OSQP)
+    prob.solve(solver=cp.OSQP)
     print("optimal value with OSQP:", prob.value)
 
     # Solve with ECOS.
-    prob.solve(solver=cvx.ECOS)
+    prob.solve(solver=cp.ECOS)
     print("optimal value with ECOS:", prob.value)
 
     # Solve with ECOS_BB.
-    prob.solve(solver=cvx.ECOS_BB)
+    prob.solve(solver=cp.ECOS_BB)
     print("optimal value with ECOS_BB:", prob.value)
 
     # Solve with CVXOPT.
-    prob.solve(solver=cvx.CVXOPT)
+    prob.solve(solver=cp.CVXOPT)
     print("optimal value with CVXOPT:", prob.value)
 
     # Solve with SCS.
-    prob.solve(solver=cvx.SCS)
+    prob.solve(solver=cp.SCS)
     print("optimal value with SCS:", prob.value)
 
     # Solve with GLPK.
-    prob.solve(solver=cvx.GLPK)
+    prob.solve(solver=cp.GLPK)
     print("optimal value with GLPK:", prob.value)
 
     # Solve with GLPK_MI.
-    prob.solve(solver=cvx.GLPK_MI)
+    prob.solve(solver=cp.GLPK_MI)
     print("optimal value with GLPK_MI:", prob.value)
 
     # Solve with GUROBI.
-    prob.solve(solver=cvx.GUROBI)
+    prob.solve(solver=cp.GUROBI)
     print("optimal value with GUROBI:", prob.value)
 
     # Solve with MOSEK.
-    prob.solve(solver=cvx.MOSEK)
+    prob.solve(solver=cp.MOSEK)
     print("optimal value with MOSEK:", prob.value)
 
     # Solve with Elemental.
-    prob.solve(solver=cvx.ELEMENTAL)
+    prob.solve(solver=cp.ELEMENTAL)
     print("optimal value with Elemental:", prob.value)
 
     # Solve with CBC.
-    prob.solve(solver=cvx.CBC)
+    prob.solve(solver=cp.CBC)
     print("optimal value with CBC:", prob.value)
 
     # Solve with CPLEX.
-    prob.solve(solver=cvx.CPLEX)
+    prob.solve(solver=cp.CPLEX)
     print "optimal value with CPLEX:", prob.value
 ::
 
@@ -491,7 +493,7 @@ All the solvers can print out information about their progress while solving the
 .. code:: python
 
     # Solve with ECOS and display output.
-    prob.solve(solver=cvx.ECOS, verbose=True)
+    prob.solve(solver=cp.ECOS, verbose=True)
     print "optimal value with ECOS:", prob.value
 
 ::
@@ -510,6 +512,11 @@ All the solvers can print out information about their progress while solving the
     Runtime: 0.000121 seconds.
 
     optimal value with ECOS: 6.82842708233
+
+Solving disciplined geometric programs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TODO see XXX
 
 Solver stats
 ------------
@@ -532,7 +539,7 @@ The code below shows how warm start can accelerate solving a sequence of related
 
 .. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy
 
     # Problem data.
@@ -540,11 +547,11 @@ The code below shows how warm start can accelerate solving a sequence of related
     n = 1000
     numpy.random.seed(1)
     A = numpy.random.randn(m, n)
-    b = cvx.Parameter(m)
+    b = cp.Parameter(m)
 
     # Construct the problem.
-    x = cvx.Variable(n)
-    prob = cvx.Problem(cvx.Minimize(cvx.sum_squares(A*x - b)),
+    x = cp.Variable(n)
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(A*x - b)),
                        [x >= 0])
 
     b.value = numpy.random.randn(m)
@@ -574,7 +581,7 @@ For example, here we tell SCS to use an indirect method for solving linear equat
 .. code:: python
 
     # Solve with SCS, use sparse-indirect method.
-    prob.solve(solver=cvx.SCS, verbose=True, use_indirect=True)
+    prob.solve(solver=cp.SCS, verbose=True, use_indirect=True)
     print "optimal value with SCS:", prob.value
 
 ::

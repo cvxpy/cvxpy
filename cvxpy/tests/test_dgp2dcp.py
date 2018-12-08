@@ -1,6 +1,6 @@
 import cvxpy
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.error import DCPError, DGPError
+import cvxpy.error as error
 import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
@@ -248,7 +248,7 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(DGPError, "Problem does not follow "
+        with self.assertRaisesRegexp(error.DGPError, "Problem does not follow "
           "DGP rules. However, the problem does follow DCP rules. "
           "Consider calling this function with `gp=False`."):
             problem.solve(gp=True)
@@ -260,7 +260,7 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
             [])
-        with self.assertRaisesRegexp(DCPError, "Problem does not follow "
+        with self.assertRaisesRegexp(error.DCPError, "Problem does not follow "
           "DCP rules. However, the problem does follow DGP rules. "
           "Consider calling this function with `gp=True`."):
             problem.solve()
@@ -308,6 +308,16 @@ class TestDgp2Dcp(BaseTest):
         problem.solve(gp=True)
         self.assertAlmostEqual(problem.value, 0.6)
         self.assertAlmostEqual(x.value, 0.6)
+
+    def test_qp_solver_not_allowed(self):
+        x = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(x))
+        error_msg = ("When `gp=True`, `solver` must be a conic solver "
+                    "(received 'OSQP'); try calling `solve()` with "
+                    "`solver=cvxpy.ECOS`.")
+        with self.assertRaises(error.SolverError) as err:
+            problem.solve(solver="OSQP", gp=True)
+            self.assertEqual(error_msg, str(err))
 
     def test_paper_example_sum_largest(self):
         x = cvxpy.Variable((4,), pos=True)
@@ -359,8 +369,6 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
         problem.solve(gp=True)
-        print(problem.value)
-        print(X.value)
 
     def test_rank_one_nmf(self):
         X = cvxpy.Variable((3, 3), pos=True)
@@ -382,3 +390,15 @@ class TestDgp2Dcp(BaseTest):
         # smoke test.
         prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
         prob.solve(gp=True)
+
+    def test_documentation_prob(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        z = cvxpy.Variable(pos=True)
+
+        objective_fn = x * y * z
+        constraints = [
+          4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
+        problem = cvxpy.Problem(cvxpy.Maximize(objective_fn), constraints)
+        # Smoke test.
+        problem.solve(gp=True)
