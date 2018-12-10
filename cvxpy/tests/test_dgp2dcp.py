@@ -278,6 +278,16 @@ class TestDgp2Dcp(BaseTest):
         expected = np.log(np.exp(X.value) + np.exp(Y.value))
         np.testing.assert_almost_equal(expected, canon_matrix.value)
 
+        # Test promotion
+        X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
+        y = cvxpy.Constant(2.0)
+        Z = X + y
+        canon_matrix, constraints = dgp_atom_canon.add_canon(Z, Z.args)
+        self.assertEqual(len(constraints), 0)
+        self.assertEqual(canon_matrix.shape, Z.shape)
+        expected = np.log(np.exp(X.value) + np.exp(y.value))
+        np.testing.assert_almost_equal(expected, canon_matrix.value)
+
     def test_matmul_canon(self):
         X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
         Y = cvxpy.Constant(np.array([[1.0], [2.0], [3.0]]))
