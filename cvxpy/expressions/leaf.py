@@ -222,6 +222,16 @@ class Leaf(expression.Expression):
         """
         return self.attributes['nonpos'] or self.attributes['neg']
 
+    def is_pos(self):
+        """Is the expression positive?
+        """
+        return self.attributes['pos']
+
+    def is_neg(self):
+        """Is the expression negative?
+        """
+        return self.attributes['neg']
+
     def is_hermitian(self):
         """Is the Leaf hermitian?
         """

@@ -12,7 +12,7 @@ In this problem, we are given some entries of an elementwise positive
 matrix :math:`A`, and the goal is to choose the missing entries so as to
 minimize the Perron-Frobenius eigenvalue or spectral radius. Letting
 :math:`\Omega` denote the set of indices :math:`(i, j)` for which
-:math:`A-ij` is known, the optimization problem is
+:math:`A_{ij}` is known, the optimization problem is
 
 .. math::
 

@@ -206,7 +206,7 @@ class Expression(u.Canonical):
         try:
             return self.__is_log_log_affine
         except AttributeError:
-            self.__is_log_log_affine = (self.is_constant() and self.is_pos()) or (
+            self.__is_log_log_affine = (self.is_log_log_constant()) or (
                                        self.is_log_log_convex() and
                                        self.is_log_log_concave())
             return self.__is_log_log_affine
@@ -309,16 +309,6 @@ class Expression(u.Canonical):
         """Is the expression negative?
         """
         return NotImplemented
-
-    def is_pos(self):
-        """Is the expression positive and not negative?
-        """
-        return self.is_nonneg() and not self.is_nonpos()
-
-    def is_neg(self):
-        """Is the expression negative and not positive?
-        """
-        return self.is_nonneg() and not self.is_nonpos()
 
     @abc.abstractproperty
     def shape(self):
