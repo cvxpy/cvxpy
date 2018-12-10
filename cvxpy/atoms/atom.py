@@ -262,6 +262,11 @@ class Atom(Expression):
 
     @property
     def value(self):
+        if any([p.value is None for p in self.parameters()]):
+            return None
+        return self._value_impl()
+
+    def _value_impl(self):
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
@@ -277,7 +282,7 @@ class Atom(Expression):
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,
                 # so it isn't None.
-                arg_val = arg.value
+                arg_val = arg._value_impl()
                 if arg_val is None and not self.is_constant():
                     return None
                 else:
