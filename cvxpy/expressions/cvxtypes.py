@@ -37,6 +37,11 @@ def constant():
     return constants.Constant
 
 
+def parameter():
+    from cvxpy.expressions import constants
+    return constants.Parameter
+
+
 def variable():
     from cvxpy.expressions import variable
     return variable.Variable

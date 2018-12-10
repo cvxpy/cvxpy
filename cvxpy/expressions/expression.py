@@ -64,6 +64,11 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    def _value_impl(self):
+        """Implementation of .value.
+        """
+        return self.value
+
     @abc.abstractproperty
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
@@ -130,7 +135,7 @@ class Expression(u.Canonical):
     def log_log_curvature(self):
         """str : The log-log curvature of the expression.
         """
-        if self.is_constant():
+        if self.is_log_log_constant():
             curvature_str = s.LOG_LOG_CONSTANT
         elif self.is_log_log_affine():
             curvature_str = s.LOG_LOG_AFFINE

@@ -205,7 +205,7 @@ at least one of the methods :code:`is_log_log_constant()`,
 :code:`is_log_log_affine()`, :code:`is_log_log_convex()`,
 :code:`is_log_log_concave()` will return :code:`True`.
 
-DGP Problems
+DGP problems
 ------------
 
 A :class:`~cvxpy.problems.problem.Problem` is constructed from an objective and
@@ -239,7 +239,7 @@ non-DGP problems:
     constraints = [
       4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
     assert objective_fn.is_log_log_concave()
-    assert constraint.is_dgp() for constraint in constraints
+    assert all(constraint.is_dgp() for constraint in constraints)
     problem = cp.Problem(cp.Maximize(objective_fn), constraints)
     assert problem.is_dgp()
 
@@ -438,7 +438,7 @@ and returns a scalar.
      - |incr| incr.
 
 Elementwise functions
----------------------
+*********************
 
 These functions operate on each element of their arguments. For example, if
 ``X`` is a 5 by 4 matrix variable, then ``sqrt(X)`` is a 5 by 4 matrix
@@ -541,7 +541,7 @@ dimensions or be scalars, which are promoted.
      - |incr| incr.
 
 Vector/matrix functions
------------------------
+***********************
 
 A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.
