@@ -20,7 +20,7 @@ import scipy.sparse as sp
 
 
 def diff_pos(x, y):
-    r"""The difference :math:`x - y` with domain `\{x, y : x > y\}`.
+    r"""The difference :math:`x - y` with domain `\{x, y : x > y > 0\}`.
 
     This atom is log-log concave.
 
@@ -35,7 +35,7 @@ def diff_pos(x, y):
 
 
 class one_minus_pos(Atom):
-    r"""The difference :math:`1 - x` with domain `\{x : x < 1\}`.
+    r"""The difference :math:`1 - x` with domain `\{x : 0 < x < 1\}`.
 
     This atom is log-log concave.
 

@@ -283,9 +283,9 @@ class Leaf(expression.Expression):
 
         if self.attributes['nonpos'] and self.attributes['nonneg']:
             return 0*val
-        elif self.attributes['nonpos']:
+        elif self.attributes['nonpos'] or self.attributes['neg']:
             return np.minimum(val, 0.)
-        elif self.attributes['nonneg']:
+        elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
         elif self.attributes['imag']:
             return np.imag(val)
@@ -398,8 +398,12 @@ class Leaf(expression.Expression):
             if not close_enough:
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
+                elif self.attributes['pos']:
+                    attr_str = 'positive'
                 elif self.attributes['nonpos']:
                     attr_str = 'nonpositive'
+                elif self.attributes['neg']:
+                    attr_str = 'negative'
                 elif self.attributes['diag']:
                     attr_str = 'diagonal'
                 elif self.attributes['PSD']:

@@ -186,8 +186,8 @@ class Atom(Expression):
         """Is the expression log-log convex?
         """
         # Verifies DGP composition rule.
-        if self.is_constant():
-            u.sign.is_constant_positive(self)
+        if self.is_log_log_constant():
+            return True
         elif self.is_atom_log_log_convex():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_log_log_affine() or
@@ -203,8 +203,8 @@ class Atom(Expression):
         """Is the expression log-log concave?
         """
         # Verifies DGP composition rule.
-        if self.is_constant():
-            u.sign.is_constant_positive(self)
+        if self.is_log_log_constant():
+            return True
         elif self.is_atom_log_log_concave():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_log_log_affine() or

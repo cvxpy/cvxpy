@@ -131,7 +131,7 @@ class Expression(u.Canonical):
         """str : The log-log curvature of the expression.
         """
         if self.is_constant():
-            curvature_str = s.CONSTANT
+            curvature_str = s.LOG_LOG_CONSTANT
         elif self.is_log_log_affine():
             curvature_str = s.LOG_LOG_AFFINE
         elif self.is_log_log_convex():
@@ -183,6 +183,17 @@ class Expression(u.Canonical):
             True if the Expression is DCP, False otherwise.
         """
         return self.is_convex() or self.is_concave()
+
+    def is_log_log_constant(self):
+        """Is the expression log-log constant, ie, elementwise positive?
+        """
+        if not self.is_constant():
+            return False
+
+        if isinstance(self, (cvxtypes.constant(), cvxtypes.parameter())):
+            return self.is_pos()
+        else:
+            return self.value is not None and np.all(self.value > 0)
 
     def is_log_log_affine(self):
         """Is the expression affine?

@@ -200,9 +200,8 @@ The infix operators ``+`` and ``-`` are affine, so the rules above are
 used to flag the curvature. For example, ``expr1 + expr2`` is flagged as
 convex if ``expr1`` and ``expr2`` are convex.
 
-``expr1*expr2`` is allowed only when one of the expressions is constant.
-If both expressions are non-constant, CVXPY will raise an exception.
-``expr1/expr2`` is allowed only when ``expr2`` is a scalar constant. The
+``expr1*expr2`` is DCP only when one of the expressions is constant.
+``expr1/expr2`` is DCP only when ``expr2`` is a scalar constant. The
 curvature rules above apply. For example, ``expr1/expr2`` is convex when
 ``expr1`` is concave and ``expr2`` is negative and constant.
 

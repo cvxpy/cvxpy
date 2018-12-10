@@ -66,8 +66,7 @@ class Constant(Leaf):
         """
         return self._value
 
-    @property
-    def _is_positive(self):
+    def is_pos(self):
         """Returns whether the constant is elementwise positive.
         """
         if not hasattr(self, '._cached_is_pos'):
