@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import cvxpy.settings as s
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers import DgpCanonMethods
 
@@ -82,13 +81,6 @@ class Dgp2Dcp(Canonicalization):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)
-        # We unpack the solution in order to obtain the objective value in
-        # terms of the original variables.
-        if solution.status in s.SOLUTION_PRESENT:
-            inverse_data._problem.unpack(solution)
-            solution = inverse_data._problem.solution
-            solution.opt_val = inverse_data._problem.objective.value
-            inverse_data._problem._clear_solution()
-        elif solution.status in s.INF_OR_UNB:
-            solution.opt_val = np.exp(solution.opt_val)
+        # f(x) = e^{F(u)}.
+        solution.opt_val = np.exp(solution.opt_val)
         return solution

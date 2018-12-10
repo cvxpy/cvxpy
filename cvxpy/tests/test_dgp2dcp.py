@@ -147,6 +147,7 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals(y.value, 4.0)
 
     def test_sum_largest(self):
+        self.skipTest("Enable test once sum_largest is implemented.")
         x = cvxpy.Variable((4,), pos=True)
         obj = cvxpy.Minimize(cvxpy.sum_largest(x, 3))
         constr = [x[0] * x[1] * x[2] * x[3] >= 16]
@@ -330,6 +331,7 @@ class TestDgp2Dcp(BaseTest):
             self.assertEqual(error_msg, str(err))
 
     def test_paper_example_sum_largest(self):
+        self.skipTest("Enable test once sum_largest is implemented.")
         x = cvxpy.Variable((4,), pos=True)
         x0, x1, x2, x3 = (x[0], x[1], x[2], x[3])
         obj = cvxpy.Minimize(cvxpy.sum_largest(

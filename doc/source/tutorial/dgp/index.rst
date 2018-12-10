@@ -408,14 +408,6 @@ and returns a scalar.
      - |convex| log-log convex
      - |incr| incr.
 
-   * - :ref:`sum_largest(X, k) <sum-largest>`
-
-       :math:`k = 1,2,\ldots`
-     - :math:`\text{sum of } k\text{ largest }X_{ij}`
-     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
-     - |convex| log-log convex
-     - |incr| incr.
-
    * - :ref:`sum_squares(X) <sum-squares>`
 
      - :math:`\sum_{ij}X_{ij}^2`

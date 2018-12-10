@@ -16,7 +16,6 @@ from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm
-from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.constants.constant import Constant
@@ -45,6 +44,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
 
+# TODO(akshayka): Implement sum_largest/smallest.
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
@@ -73,7 +73,6 @@ CANON_METHODS[max] = PWL_METHODS[max]
 CANON_METHODS[min] = PWL_METHODS[min]
 CANON_METHODS[maximum] = PWL_METHODS[maximum]
 CANON_METHODS[minimum] = PWL_METHODS[minimum]
-CANON_METHODS[sum_largest] = PWL_METHODS[sum_largest]
 
 # Canonicalization of DGPs is a stateful procedure, hence the need
 # for a class.
