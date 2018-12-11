@@ -7,7 +7,7 @@ from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-import cvxpy.reductions.solvers.defines as slv_def
+from cvxpy.reductions.solvers import defines as slv_def
 
 
 def construct_solving_chain(problem, solver=None, gp=False):
