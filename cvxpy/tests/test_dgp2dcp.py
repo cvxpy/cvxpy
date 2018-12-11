@@ -89,6 +89,64 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals(dgp.value, 6.0)
         self.assertAlmostEquals(x.value, 1.0)
 
+    def test_prod(self):
+        X = np.arange(12).reshape((4, 3))
+        np.testing.assert_almost_equal(np.prod(X), cvxpy.prod(X).value)
+        np.testing.assert_almost_equal(
+          np.prod(X, axis=0), cvxpy.prod(X, axis=0).value)
+        np.testing.assert_almost_equal(
+          np.prod(X, axis=1), cvxpy.prod(X, axis=1).value)
+        np.testing.assert_almost_equal(
+          np.prod(X, axis=0, keepdims=True),
+          cvxpy.prod(X, axis=0, keepdims=True).value)
+        np.testing.assert_almost_equal(
+          np.prod(X, axis=1, keepdims=True),
+          cvxpy.prod(X, axis=1, keepdims=True).value)
+
+        prod = cvxpy.prod(X)
+        X_canon, _ = dgp_atom_canon.prod_canon(prod, prod.args)
+        np.testing.assert_almost_equal(np.sum(X), X_canon.value)
+
+        prod = cvxpy.prod(X, axis=0)
+        X_canon, _ = dgp_atom_canon.prod_canon(prod, prod.args)
+        np.testing.assert_almost_equal(np.sum(X, axis=0), X_canon.value)
+
+        prod = cvxpy.prod(X, axis=1)
+        X_canon, _ = dgp_atom_canon.prod_canon(prod, prod.args)
+        np.testing.assert_almost_equal(np.sum(X, axis=1), X_canon.value)
+
+        prod = cvxpy.prod(X, axis=0, keepdims=True)
+        X_canon, _ = dgp_atom_canon.prod_canon(prod, prod.args)
+        np.testing.assert_almost_equal(
+          np.sum(X, axis=0, keepdims=True), X_canon.value)
+
+        prod = cvxpy.prod(X, axis=1, keepdims=True)
+        X_canon, _ = dgp_atom_canon.prod_canon(prod, prod.args)
+        np.testing.assert_almost_equal(
+          np.sum(X, axis=1, keepdims=True), X_canon.value)
+
+        X = np.arange(12)
+        np.testing.assert_almost_equal(np.prod(X), cvxpy.prod(X).value)
+        np.testing.assert_almost_equal(np.prod(X, keepdims=True),
+                                       cvxpy.prod(X, keepdims=True).value)
+
+        prod = cvxpy.prod(X)
+        X_canon, _ = dgp_atom_canon.prod_canon(prod, prod.args)
+        np.testing.assert_almost_equal(np.sum(X), X_canon.value)
+
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        posy1 = x * y**0.5 + 3.0 * x * y**0.5
+        posy2 = x * y**0.5 + 3.0 * x ** 2 * y**0.5
+        self.assertTrue(cvxpy.prod([posy1, posy2]).is_log_log_convex())
+        self.assertFalse(cvxpy.prod([posy1, posy2]).is_log_log_concave())
+        self.assertFalse(cvxpy.prod([posy1, 1/posy1]).is_dgp())
+
+        m = x * y**0.5
+        self.assertTrue(cvxpy.prod([m, m]).is_log_log_affine())
+        self.assertTrue(cvxpy.prod([m, 1/posy1]).is_log_log_concave())
+        self.assertFalse(cvxpy.prod([m, 1/posy1]).is_log_log_convex())
+
     def test_max(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)

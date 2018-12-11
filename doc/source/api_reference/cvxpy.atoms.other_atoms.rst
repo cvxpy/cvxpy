@@ -185,6 +185,13 @@ Pnorm
 
 .. autoclass:: cvxpy.atoms.pnorm.Pnorm
 
+.. _prod:
+
+prod
+--------------------------
+
+.. autofunction:: cvxpy.atoms.prod.prod
+
 .. _quad-form:
 
 quad_form

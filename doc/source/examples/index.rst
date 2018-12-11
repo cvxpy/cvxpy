@@ -11,7 +11,7 @@ These examples show many different ways to use CVXPY.
   machine learning.
 * The :ref:`advanced-python` and :ref:`applications` sections contains
   more complex examples aimed at experts in convex optimization.
-* The :ref:`dgp` section contains an interactive tutorial on :ref:`disciplined
+* The :ref:`dgp-examples` section contains an interactive tutorial on :ref:`disciplined
   geometric programming <dgp>` and various examples of DGP problems.
 
 .. _basic:
@@ -82,7 +82,7 @@ Advanced Applications
 - :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
 - :doc:`Water filling <applications/water_filling_BVex5.2>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
 
-.. _dgp:
+.. _dgp-examples:
 
 Disciplined Geometric Programming
 ---------------------------------------

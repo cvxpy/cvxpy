@@ -16,6 +16,7 @@ from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm
+from cvxpy.atoms.prod import Prod
 from cvxpy.atoms.quad_form import quad_form
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.expressions.constants.constant import Constant
@@ -34,10 +35,11 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mul
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm_inf_canon import norm_inf_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_pos_canon import one_minus_pos_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.parameter_canon import parameter_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pf_eigenvalue_canon import pf_eigenvalue_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.prod_canon import prod_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_form_canon import quad_form_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
@@ -62,6 +64,7 @@ CANON_METHODS = {
     pf_eigenvalue : pf_eigenvalue_canon,
     pnorm : pnorm_canon,
     power : power_canon, 
+    Prod : prod_canon,
     quad_form : quad_form_canon,
     quad_over_lin : quad_over_lin_canon,
     trace : trace_canon,

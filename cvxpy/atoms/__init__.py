@@ -37,6 +37,7 @@ from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm, Pnorm
+from cvxpy.atoms.prod import prod, Prod
 from cvxpy.atoms.quad_form import quad_form, QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max

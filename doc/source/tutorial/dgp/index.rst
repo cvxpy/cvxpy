@@ -48,13 +48,17 @@ and it prints the below output.
 Note that to solve DGP problems, you must pass the option
 ``gp=True`` to the ``solve()`` method.
 
-This section explains what DGP is and shows how to construct and solve DGP
-problems in CVXPY. At the end of the section are tables listing all the
+This section explains what DGP is, and it shows how to construct and solve DGP
+problems using CVXPY. At the end of the section are tables listing all the
 atoms that can be used in DGP problems, similar to the tables presented in
-the section on :ref:`atoms for DCP <functions>`.
+the section on :ref:`DCP atoms <functions>`.
 
 For an in-depth reference on DGP, see our
 `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_.
+For interactive code examples, check out our :ref:`notebooks <dgp-examples>`.
+
+*Note: DGP is a recent addition to CVXPY. If you have feedback, please file an
+issue or make a pull request on* `Github <https://github.com/cvxgrp/cvxpy>`_.
 
 Log-log curvature
 -----------------
@@ -273,10 +277,11 @@ is log-log convex in both its arguments.
 Note that in CVXPY, ``expr1 * expr2`` denotes matrix multiplication
 when ``expr1`` and ``expr2`` are matrices; if you're running Python 3,
 you can alternatively use the ``@`` operator for matrix multiplication.
-Regardless of your Python version, you can also use the function
-:function:`~cvxpy.atoms.affine.binary_operators.matmul` to multiply
-two matrices. To multiply two arrays or matrices elementwise, use
-:function:`~cvxpy.atoms.affine.binary_operators.multiply`_.
+Regardless of your Python version, you can also use the :ref:`matmul atom
+<matmul>` to multiply two matrices. To multiply two arrays or matrices
+elementwise, use the :ref:`multiply atom <multiply>`. Finally,
+to take the product of the entries of an Expression, use
+the :ref:`prod atom <prod>`.
 
 Transpose
 *********
@@ -292,7 +297,9 @@ Scalar functions
 ****************
 
 A scalar function takes one or more scalars, vectors, or matrices as arguments
-and returns a scalar.
+and returns a scalar. Note that several of these atoms may be
+applied along an axis; see the API reference or the :ref:`DCP atoms
+tutorial <functions>` for more information.
 
 .. |_| unicode:: 0xA0
    :trim:
@@ -385,9 +392,16 @@ and returns a scalar.
      - |convex| log-log convex
      - |incr| incr.
 
+   * - :ref:`prod(X) <prod>`
+
+     - :math:`\prod_{ij}X_{ij}`
+     - :math:`X \in\mathbf{R}^{m \times n}_{++}`
+     - |affine| log-log affine
+     - |incr| incr.
+
    * - :ref:`quad_form(x, P) <quad-form>`
      - :math:`x^T P x`
-     - :math:`x \in \mathbf{R}^n`, `P \in \mathbf{R}^{n \times n}_{++}`
+     - :math:`x \in \mathbf{R}^n`, :math:`P \in \mathbf{R}^{n \times n}_{++}`
      - |convex| log-log convex
      - |incr| incr.
 
@@ -424,7 +438,7 @@ and returns a scalar.
 
    * - :ref:`pf_eigenvalue(X) <pf-eigenvalue>`
 
-     - :math:`\mathrm{\lambda_{\text{pf}}}\left(X \right)`
+     - spectral radius of :math:`X`
      - :math:`X \in\mathbf{R}^{n \times n}_{++}`
      - |convex| log-log convex
      - |incr| incr.
@@ -456,7 +470,9 @@ dimensions or be scalars, which are promoted.
      - :math:`x - y`
      - :math:`0 < y < x`
      - |concave| log-log concave
-     - |decr| decr.
+     - |incr| incr.  in :math:`x`
+
+       |decr| decr. in :math:`y`
 
    * - :ref:`entr(x) <entr>`
 
@@ -508,7 +524,7 @@ dimensions or be scalars, which are promoted.
      - :math:`1`
      - :math:`x > 0`
      - constant
-     - |_|
+     - constant
 
    * - :ref:`power(x, p) <power>`
      - :math:`x`
