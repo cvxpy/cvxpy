@@ -82,7 +82,7 @@ class NonPos(Constraint):
 
 
 class Inequality(Constraint):
-    """A constraint of the form :math:`x \leq y`.
+    """A constraint of the form :math:`x \\leq y`.
 
     Parameters
     ----------
