@@ -87,5 +87,7 @@ Advanced Applications
 Disciplined Geometric Programming
 ---------------------------------------
 - :doc:`DGP fundamentals <dgp/dgp_fundamentals>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb>`_
+- :doc:`Maximizing the volume of a box <dgp/max_volume_box>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb>`_
+- :doc:`Power control <dgp/power_control>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb>`_
 - :doc:`Perron-Frobenius matrix completion <dgp/pf_matrix_completion>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb>`_
 - :doc:`Rank-one nonnegative matrix factorization <dgp/rank_one_nmf>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb>`_
