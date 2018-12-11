@@ -83,8 +83,7 @@ class Canonicalization(Reduction):
             # Parameterized expressions are evaluated in a subsequent
             # reduction.
             if expr.parameters():
-                rows, cols = expr.shape
-                param = CallbackParam(lambda: expr.value, (rows, cols))
+                param = CallbackParam(lambda: expr.value, expr.shape)
                 return param, []
             # Non-parameterized expressions are evaluated immediately.
             else:

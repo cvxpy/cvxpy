@@ -417,7 +417,7 @@ class TestDgp2Dcp(BaseTest):
         constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1]
         problem = cvxpy.Problem(obj, constr)
         # smoke test.
-        problem.solve(gp=True)
+        problem.solve(gp=True, solver="SCS")
 
     def test_paper_example_exp_log(self):
         x = cvxpy.Variable(pos=True)
