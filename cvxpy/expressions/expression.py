@@ -475,16 +475,13 @@ class Expression(u.Canonical):
     def __div__(self, other):
         """Expression : One expression divided by another.
         """
-        # Can only divide by scalar constants.
-        if other.is_constant() and other.is_scalar():
-            return cvxtypes.div_expr()(self, other)
-        elif other.is_scalar():
+        if other.is_scalar() or other.shape == self.shape:
             if error.warnings_enabled():
                 warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.div_expr()(self, other)
         else:
-            raise ValueError("Can only divide by a scalar constant, but %s "
-                             "is not scalar." % str(other))
+            raise ValueError("Incompatible shapes for division (%s / %s)" % (
+                             self.shape, other.shape))
 
     @_cast_other
     def __rdiv__(self, other):
