@@ -42,8 +42,8 @@ and use following BibTeX citation:
       author  = {Akshay Agrawal, Steven Diamond and Stephen Boyd},
       title   = {Disciplined Geometric Programming},
       journal = {arXiv},
-      archivePrefix = "arXiv",
-      eprint = {},
-      primaryClass = "math.OC",
+      archivePrefix = {arXiv},
+      eprint = {1812.04074},
+      primaryClass = {math.OC},
       year    = {2018},
     }
