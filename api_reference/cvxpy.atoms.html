@@ -45,13 +45,13 @@
 <h1>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h1>
 <p>Atoms are mathematical functions that can be applied to
 <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal"><span class="pre">Expression</span></code></a> instances.
-Applying an atom to an expression yields yet another expression.
+Applying an atom to an expression yields another expression.
 Atoms and compositions thereof are precisely the mechanisms that allow you to
-build up mathematical expression trees.</p>
+build up mathematical expression trees in CVXPY.</p>
 <p>Every atom is tagged with information about its domain, sign, curvature,
-and monotonicity; this information lets atom instances reason about whether or
-not they are DCP. See the <a class="reference internal" href="../tutorial/functions/index.html#functions"><span class="std std-ref">Atomic Functions</span></a> page for a compact, accessible
-summary of each atom’s attributes.</p>
+log-log curvature, and monotonicity; this information lets atom instances
+reason about whether or not they are DCP or DGP. See the <a class="reference internal" href="../tutorial/functions/index.html#functions"><span class="std std-ref">Atomic Functions</span></a> page
+for a compact, accessible summary of each atom’s attributes.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cvxpy.atoms.affine.html">Affine Atoms</a><ul>
@@ -66,6 +66,7 @@ summary of each atom’s attributes.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#hstack">hstack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#index">index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#kron">kron</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#matmul">matmul</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#multiply">multiply</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#promote">promote</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#reshape">reshape</a></li>
@@ -100,6 +101,8 @@ summary of each atom’s attributes.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cvxpy.atoms.other_atoms.html">Other Atoms</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#cummax">cummax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#diff-pos">diff_pos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#eye-minus-inv">eye_minus_inv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#geo-mean">geo_mean</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#harmonic-mean">harmonic_mean</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#lambda-max">lambda_max</a></li>
@@ -117,10 +120,14 @@ summary of each atom’s attributes.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#norm2">norm2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#norm-inf">norm_inf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#normnuc">normNuc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#one-minus-pos">one_minus_pos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#pf-eigenvalue">pf_eigenvalue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#pnorm">pnorm</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#id18">Pnorm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#id22">Pnorm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#prod">prod</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#quad-form">quad_form</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#quad-over-lin">quad_over_lin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#resolvent">resolvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sigma-max">sigma_max</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sum-largest">sum_largest</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.other_atoms.html#sum-smallest">sum_smallest</a></li>
@@ -239,8 +246,8 @@ None indicates variable values unknown or outside domain.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
 </ul>
 </li>
 </ul>

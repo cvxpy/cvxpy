@@ -46,31 +46,32 @@
 <p>All of the atoms listed here are affine in their arguments.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#addexpression" id="id19">AddExpression</a></li>
-<li><a class="reference internal" href="#mulexpression" id="id20">MulExpression</a></li>
-<li><a class="reference internal" href="#divexpression" id="id21">DivExpression</a></li>
-<li><a class="reference internal" href="#bmat" id="id22">Bmat</a></li>
-<li><a class="reference internal" href="#conv" id="id23">conv</a></li>
-<li><a class="reference internal" href="#cumsum" id="id24">cumsum</a></li>
-<li><a class="reference internal" href="#diag" id="id25">diag</a></li>
-<li><a class="reference internal" href="#diff" id="id26">diff</a></li>
-<li><a class="reference internal" href="#hstack" id="id27">hstack</a></li>
-<li><a class="reference internal" href="#index" id="id28">index</a></li>
-<li><a class="reference internal" href="#kron" id="id29">kron</a></li>
-<li><a class="reference internal" href="#multiply" id="id30">multiply</a></li>
-<li><a class="reference internal" href="#promote" id="id31">promote</a></li>
-<li><a class="reference internal" href="#reshape" id="id32">reshape</a></li>
-<li><a class="reference internal" href="#sum" id="id33">sum</a></li>
-<li><a class="reference internal" href="#trace" id="id34">trace</a></li>
-<li><a class="reference internal" href="#transpose" id="id35">transpose</a></li>
-<li><a class="reference internal" href="#negexpression" id="id36">NegExpression</a></li>
-<li><a class="reference internal" href="#upper-tri" id="id37">upper_tri</a></li>
-<li><a class="reference internal" href="#vec" id="id38">vec</a></li>
-<li><a class="reference internal" href="#vstack" id="id39">vstack</a></li>
+<li><a class="reference internal" href="#addexpression" id="id20">AddExpression</a></li>
+<li><a class="reference internal" href="#mulexpression" id="id21">MulExpression</a></li>
+<li><a class="reference internal" href="#divexpression" id="id22">DivExpression</a></li>
+<li><a class="reference internal" href="#bmat" id="id23">Bmat</a></li>
+<li><a class="reference internal" href="#conv" id="id24">conv</a></li>
+<li><a class="reference internal" href="#cumsum" id="id25">cumsum</a></li>
+<li><a class="reference internal" href="#diag" id="id26">diag</a></li>
+<li><a class="reference internal" href="#diff" id="id27">diff</a></li>
+<li><a class="reference internal" href="#hstack" id="id28">hstack</a></li>
+<li><a class="reference internal" href="#index" id="id29">index</a></li>
+<li><a class="reference internal" href="#kron" id="id30">kron</a></li>
+<li><a class="reference internal" href="#matmul" id="id31">matmul</a></li>
+<li><a class="reference internal" href="#multiply" id="id32">multiply</a></li>
+<li><a class="reference internal" href="#promote" id="id33">promote</a></li>
+<li><a class="reference internal" href="#reshape" id="id34">reshape</a></li>
+<li><a class="reference internal" href="#sum" id="id35">sum</a></li>
+<li><a class="reference internal" href="#trace" id="id36">trace</a></li>
+<li><a class="reference internal" href="#transpose" id="id37">transpose</a></li>
+<li><a class="reference internal" href="#negexpression" id="id38">NegExpression</a></li>
+<li><a class="reference internal" href="#upper-tri" id="id39">upper_tri</a></li>
+<li><a class="reference internal" href="#vec" id="id40">vec</a></li>
+<li><a class="reference internal" href="#vstack" id="id41">vstack</a></li>
 </ul>
 </div>
 <div class="section" id="addexpression">
-<span id="add-expression"></span><h2><a class="toc-backref" href="#id19">AddExpression</a><a class="headerlink" href="#addexpression" title="Permalink to this headline">¶</a></h2>
+<span id="add-expression"></span><h2><a class="toc-backref" href="#id20">AddExpression</a><a class="headerlink" href="#addexpression" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.add_expr.AddExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.add_expr.</code><code class="descname">AddExpression</code><span class="sig-paren">(</span><em>arg_groups</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/add_expr.html#AddExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.add_expr.AddExpression" title="Permalink to this definition">¶</a></dt>
@@ -80,7 +81,7 @@
 
 </div>
 <div class="section" id="mulexpression">
-<span id="mul-expression"></span><h2><a class="toc-backref" href="#id20">MulExpression</a><a class="headerlink" href="#mulexpression" title="Permalink to this headline">¶</a></h2>
+<span id="mul-expression"></span><h2><a class="toc-backref" href="#id21">MulExpression</a><a class="headerlink" href="#mulexpression" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.binary_operators.MulExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">MulExpression</code><span class="sig-paren">(</span><em>lh_exp</em>, <em>rh_exp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#MulExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="Permalink to this definition">¶</a></dt>
@@ -106,7 +107,7 @@ the Expression class.</p>
 
 </div>
 <div class="section" id="divexpression">
-<span id="div-expression"></span><h2><a class="toc-backref" href="#id21">DivExpression</a><a class="headerlink" href="#divexpression" title="Permalink to this headline">¶</a></h2>
+<span id="div-expression"></span><h2><a class="toc-backref" href="#id22">DivExpression</a><a class="headerlink" href="#divexpression" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.binary_operators.DivExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">DivExpression</code><span class="sig-paren">(</span><em>lh_exp</em>, <em>rh_exp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#DivExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.DivExpression" title="Permalink to this definition">¶</a></dt>
@@ -117,7 +118,7 @@ the Expression class.</p>
 
 </div>
 <div class="section" id="bmat">
-<span id="id1"></span><h2><a class="toc-backref" href="#id22">Bmat</a><a class="headerlink" href="#bmat" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2><a class="toc-backref" href="#id23">Bmat</a><a class="headerlink" href="#bmat" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.bmat.bmat">
 <code class="descclassname">cvxpy.atoms.affine.bmat.</code><code class="descname">bmat</code><span class="sig-paren">(</span><em>block_lists</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/bmat.html#bmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.bmat.bmat" title="Permalink to this definition">¶</a></dt>
@@ -140,7 +141,7 @@ The internal lists are stacked vertically.</p>
 
 </div>
 <div class="section" id="conv">
-<span id="id2"></span><h2><a class="toc-backref" href="#id23">conv</a><a class="headerlink" href="#conv" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2><a class="toc-backref" href="#id24">conv</a><a class="headerlink" href="#conv" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.conv.conv">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.conv.</code><code class="descname">conv</code><span class="sig-paren">(</span><em>lh_expr</em>, <em>rh_expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/conv.html#conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.conv.conv" title="Permalink to this definition">¶</a></dt>
@@ -167,7 +168,7 @@ vector where</p>
 
 </div>
 <div class="section" id="cumsum">
-<span id="id3"></span><h2><a class="toc-backref" href="#id24">cumsum</a><a class="headerlink" href="#cumsum" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2><a class="toc-backref" href="#id25">cumsum</a><a class="headerlink" href="#cumsum" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.cumsum.cumsum">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.cumsum.</code><code class="descname">cumsum</code><span class="sig-paren">(</span><em>expr</em>, <em>axis=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/cumsum.html#cumsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.cumsum.cumsum" title="Permalink to this definition">¶</a></dt>
@@ -189,7 +190,7 @@ vector where</p>
 
 </div>
 <div class="section" id="diag">
-<span id="id4"></span><h2><a class="toc-backref" href="#id25">diag</a><a class="headerlink" href="#diag" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2><a class="toc-backref" href="#id26">diag</a><a class="headerlink" href="#diag" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.diag.diag">
 <code class="descclassname">cvxpy.atoms.affine.diag.</code><code class="descname">diag</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diag.html#diag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.diag.diag" title="Permalink to this definition">¶</a></dt>
@@ -210,7 +211,7 @@ vector where</p>
 
 </div>
 <div class="section" id="diff">
-<span id="id5"></span><h2><a class="toc-backref" href="#id26">diff</a><a class="headerlink" href="#diff" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2><a class="toc-backref" href="#id27">diff</a><a class="headerlink" href="#diff" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.diff.diff">
 <code class="descclassname">cvxpy.atoms.affine.diff.</code><code class="descname">diff</code><span class="sig-paren">(</span><em>x</em>, <em>k=1</em>, <em>axis=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diff.html#diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.diff.diff" title="Permalink to this definition">¶</a></dt>
@@ -227,7 +228,7 @@ equivalently diff(diff(x))</p>
 
 </div>
 <div class="section" id="hstack">
-<span id="id6"></span><h2><a class="toc-backref" href="#id27">hstack</a><a class="headerlink" href="#hstack" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2><a class="toc-backref" href="#id28">hstack</a><a class="headerlink" href="#hstack" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.hstack.hstack">
 <code class="descclassname">cvxpy.atoms.affine.hstack.</code><code class="descname">hstack</code><span class="sig-paren">(</span><em>arg_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/hstack.html#hstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.hstack.hstack" title="Permalink to this definition">¶</a></dt>
@@ -244,7 +245,7 @@ equivalently diff(diff(x))</p>
 
 </div>
 <div class="section" id="index">
-<span id="id7"></span><h2><a class="toc-backref" href="#id28">index</a><a class="headerlink" href="#index" title="Permalink to this headline">¶</a></h2>
+<span id="id7"></span><h2><a class="toc-backref" href="#id29">index</a><a class="headerlink" href="#index" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.index.index">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.index.</code><code class="descname">index</code><span class="sig-paren">(</span><em>expr</em>, <em>key</em>, <em>orig_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/index.html#index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.index.index" title="Permalink to this definition">¶</a></dt>
@@ -269,7 +270,7 @@ constructed by that operator, and it should not be instantiated directly.</p>
 
 </div>
 <div class="section" id="kron">
-<span id="id8"></span><h2><a class="toc-backref" href="#id29">kron</a><a class="headerlink" href="#kron" title="Permalink to this headline">¶</a></h2>
+<span id="id8"></span><h2><a class="toc-backref" href="#id30">kron</a><a class="headerlink" href="#kron" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.kron.kron">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.kron.</code><code class="descname">kron</code><span class="sig-paren">(</span><em>lh_expr</em>, <em>rh_expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/kron.html#kron"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.kron.kron" title="Permalink to this definition">¶</a></dt>
@@ -278,8 +279,17 @@ constructed by that operator, and it should not be instantiated directly.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="matmul">
+<span id="id9"></span><h2><a class="toc-backref" href="#id31">matmul</a><a class="headerlink" href="#matmul" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cvxpy.atoms.affine.binary_operators.matmul">
+<code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">matmul</code><span class="sig-paren">(</span><em>lh_exp</em>, <em>rh_exp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#matmul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.matmul" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix multipliction.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="multiply">
-<span id="id9"></span><h2><a class="toc-backref" href="#id30">multiply</a><a class="headerlink" href="#multiply" title="Permalink to this headline">¶</a></h2>
+<span id="id10"></span><h2><a class="toc-backref" href="#id32">multiply</a><a class="headerlink" href="#multiply" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.binary_operators.multiply">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">multiply</code><span class="sig-paren">(</span><em>lh_expr</em>, <em>rh_expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#multiply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.multiply" title="Permalink to this definition">¶</a></dt>
@@ -289,7 +299,7 @@ constructed by that operator, and it should not be instantiated directly.</p>
 
 </div>
 <div class="section" id="promote">
-<span id="id10"></span><h2><a class="toc-backref" href="#id31">promote</a><a class="headerlink" href="#promote" title="Permalink to this headline">¶</a></h2>
+<span id="id11"></span><h2><a class="toc-backref" href="#id33">promote</a><a class="headerlink" href="#promote" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.promote.promote">
 <code class="descclassname">cvxpy.atoms.affine.promote.</code><code class="descname">promote</code><span class="sig-paren">(</span><em>expr</em>, <em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/promote.html#promote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.promote.promote" title="Permalink to this definition">¶</a></dt>
@@ -313,7 +323,7 @@ constructed by that operator, and it should not be instantiated directly.</p>
 
 </div>
 <div class="section" id="reshape">
-<span id="id11"></span><h2><a class="toc-backref" href="#id32">reshape</a><a class="headerlink" href="#reshape" title="Permalink to this headline">¶</a></h2>
+<span id="id12"></span><h2><a class="toc-backref" href="#id34">reshape</a><a class="headerlink" href="#reshape" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.reshape.reshape">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.reshape.</code><code class="descname">reshape</code><span class="sig-paren">(</span><em>expr</em>, <em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/reshape.html#reshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.reshape.reshape" title="Permalink to this definition">¶</a></dt>
@@ -338,7 +348,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="sum">
-<span id="id12"></span><h2><a class="toc-backref" href="#id33">sum</a><a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
+<span id="id13"></span><h2><a class="toc-backref" href="#id35">sum</a><a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.sum.sum">
 <code class="descclassname">cvxpy.atoms.affine.sum.</code><code class="descname">sum</code><span class="sig-paren">(</span><em>expr</em>, <em>axis=None</em>, <em>keepdims=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/sum.html#sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.sum.sum" title="Permalink to this definition">¶</a></dt>
@@ -360,7 +370,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="trace">
-<span id="id13"></span><h2><a class="toc-backref" href="#id34">trace</a><a class="headerlink" href="#trace" title="Permalink to this headline">¶</a></h2>
+<span id="id14"></span><h2><a class="toc-backref" href="#id36">trace</a><a class="headerlink" href="#trace" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.trace.trace">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.trace.</code><code class="descname">trace</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/trace.html#trace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.trace.trace" title="Permalink to this definition">¶</a></dt>
@@ -378,7 +388,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="transpose">
-<span id="id14"></span><h2><a class="toc-backref" href="#id35">transpose</a><a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h2>
+<span id="id15"></span><h2><a class="toc-backref" href="#id37">transpose</a><a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.transpose.transpose">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.transpose.</code><code class="descname">transpose</code><span class="sig-paren">(</span><em>expr</em>, <em>axes=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/transpose.html#transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.transpose.transpose" title="Permalink to this definition">¶</a></dt>
@@ -388,7 +398,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="negexpression">
-<span id="id15"></span><h2><a class="toc-backref" href="#id36">NegExpression</a><a class="headerlink" href="#negexpression" title="Permalink to this headline">¶</a></h2>
+<span id="id16"></span><h2><a class="toc-backref" href="#id38">NegExpression</a><a class="headerlink" href="#negexpression" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.unary_operators.NegExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.unary_operators.</code><code class="descname">NegExpression</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/unary_operators.html#NegExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.unary_operators.NegExpression" title="Permalink to this definition">¶</a></dt>
@@ -398,7 +408,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="upper-tri">
-<span id="id16"></span><h2><a class="toc-backref" href="#id37">upper_tri</a><a class="headerlink" href="#upper-tri" title="Permalink to this headline">¶</a></h2>
+<span id="id17"></span><h2><a class="toc-backref" href="#id39">upper_tri</a><a class="headerlink" href="#upper-tri" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.upper_tri.upper_tri">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.upper_tri.</code><code class="descname">upper_tri</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/upper_tri.html#upper_tri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.upper_tri.upper_tri" title="Permalink to this definition">¶</a></dt>
@@ -408,7 +418,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="vec">
-<span id="id17"></span><h2><a class="toc-backref" href="#id38">vec</a><a class="headerlink" href="#vec" title="Permalink to this headline">¶</a></h2>
+<span id="id18"></span><h2><a class="toc-backref" href="#id40">vec</a><a class="headerlink" href="#vec" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.vec.vec">
 <code class="descclassname">cvxpy.atoms.affine.vec.</code><code class="descname">vec</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vec.html#vec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.vec.vec" title="Permalink to this definition">¶</a></dt>
@@ -429,7 +439,7 @@ as Fortran order.</p>
 
 </div>
 <div class="section" id="vstack">
-<span id="id18"></span><h2><a class="toc-backref" href="#id39">vstack</a><a class="headerlink" href="#vstack" title="Permalink to this headline">¶</a></h2>
+<span id="id19"></span><h2><a class="toc-backref" href="#id41">vstack</a><a class="headerlink" href="#vstack" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="cvxpy.atoms.affine.vstack.vstack">
 <code class="descclassname">cvxpy.atoms.affine.vstack.</code><code class="descname">vstack</code><span class="sig-paren">(</span><em>arg_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vstack.html#vstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.vstack.vstack" title="Permalink to this definition">¶</a></dt>
@@ -486,6 +496,7 @@ as Fortran order.</p>
 <li class="toctree-l4"><a class="reference internal" href="#hstack">hstack</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#index">index</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kron">kron</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#matmul">matmul</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#multiply">multiply</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#promote">promote</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#reshape">reshape</a></li>
@@ -506,8 +517,8 @@ as Fortran order.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
 </ul>
 </li>
 </ul>

@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Middle-End Reductions" href="cvxpy.reductions.middle_end.html" />
-    <link rel="prev" title="Transforms" href="cvxpy.transforms.html" />
+    <link rel="prev" title="Problems" href="cvxpy.problems.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -66,9 +66,11 @@ as might those who are simply curious to learn how CVXPY works.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End Reductions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#flipobjective">FlipObjective</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#evalparams">EvalParams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#complex2real">Complex2Real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxattr2constr">CvxAttr2Constr</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#dgp2dcp">Dgp2Dcp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#evalparams">EvalParams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#flipobjective">FlipObjective</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End Reductions</a><ul>
@@ -144,6 +146,12 @@ The accepts method of a particular reduction codifies the types of problems
 that it is applicable to; the apply method takes a problem and reduces
 it to a (new) equivalent form, and the invert method maps solutions
 from reduced-to problems to their problems of provenance.</p>
+<dl class="attribute">
+<dt id="cvxpy.reductions.reduction.Reduction.__init__">
+<code class="descname">__init__</code><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(…) initializes x; see help(type(x)) for signature</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="cvxpy.reductions.reduction.Reduction.accepts">
 <code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts" title="Permalink to this definition">¶</a></dt>
@@ -411,7 +419,6 @@ a Solution object.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Reductions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End Reductions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End Reductions</a></li>
@@ -421,6 +428,7 @@ a Solution object.</p>
 <li class="toctree-l3"><a class="reference internal" href="#solvingchain">SolvingChain</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
 </ul>
 </li>
 </ul>
