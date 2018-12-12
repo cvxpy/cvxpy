@@ -239,10 +239,9 @@ class Pnorm(AxisAtom):
             value: A numeric value for a column.
 
         Returns:
-            A NumPy ndarray matrix or None.
+            A NumPy ndarray or None.
         """
         rows = self.args[0].size
-        value = np.matrix(value)
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return None
@@ -258,4 +257,4 @@ class Pnorm(AxisAtom):
         else:
             nominator = np.power(value, self.p - 1)
             frac = np.divide(nominator, denominator)
-            return np.reshape(frac.A, (frac.size, 1))
+            return np.reshape(frac, (frac.size, 1))
