@@ -27,15 +27,36 @@ class Reduction(object):
     to :math:`B`, we can convert it to a solution of :math:`A` with at most a
     moderate amount of effort.
 
-    Every reduction supports three methods: accepts, apply, and invert.
-    The accepts method of a particular reduction codifies the types of problems
+    A reduction that is instantiated with a non-None problem offers
+    two key methods: `reduce` and `retrieve`. The `reduce()` method converts
+    the problem the reduction was instantiated with to an equivalent
+    problem. The `retrieve()` method takes as an argument a Solution
+    for the equivalent problem and returns a Solution for the problem
+    owned by the reduction.
+
+    Every reduction offers three low-level methods: accepts, apply, and invert.
+    The accepts method of a particular reduction specifies the types of problems
     that it is applicable to; the apply method takes a problem and reduces
-    it to a (new) equivalent form, and the invert method maps solutions
+    it to an equivalent form, and the invert method maps solutions
     from reduced-to problems to their problems of provenance.
+
+    Attributes:
+    ----------
+    problem : Problem
+        A problem owned by this reduction; possibly None.
     """
 
     __metaclass__ = abc.ABCMeta
 
+    def __init__(self, problem=None):
+        """Construct a reduction for reducing `problem`.
+
+        If `problem` is not None, then a subsequent invocation of `reduce()`
+        will reduce `problem` and return an equivalent one.
+        """
+        self.problem = problem
+
+    # TODO(akshayka): This should be a static method!
     def accepts(self, problem):
         """States whether the reduction accepts a problem.
 
@@ -50,6 +71,54 @@ class Reduction(object):
             True if the reduction can be applied, False otherwise.
         """
         return NotImplemented
+
+    def reduce(self):
+        """Reduces the owned problem to an equivalent problem.
+
+        Returns
+        -------
+        Problem or dict
+            An equivalent problem, encoded either as a Problem or a dict.
+
+        Raises
+        ------
+        ValueError
+            If this Reduction was constructed without a Problem.
+        """
+        if hasattr(self, '_emitted_problem'):
+            return self._emitted_problem
+
+        if self.problem is None:
+            raise ValueError(
+              "The reduction was constructed without a Problem.")
+
+        problem, retrieval_data = self.apply(self.problem)
+        self._emitted_problem = problem
+        self._retrieval_data = retrieval_data
+        return problem
+
+    def retrieve(self, solution):
+        """Retrieves a solution to the owned problem.
+
+        Parameters
+        ----------
+        solution : Solution
+            A solution to the problem emitted by `reduce()`.
+
+        Returns
+        -------
+        Solution
+            A solution to the owned problem.
+
+        Raises
+        ------
+        ValueError
+            If `self.problem` is None, or if `reduce()` was not previously
+            called.
+        """
+        if not hasattr(self, '_retrieval_data'):
+            raise ValueError("`reduce()` must be called before `retrieve()`.")
+        return self.invert(solution, self._retrieval_data)
 
     @abc.abstractmethod
     def apply(self, problem):

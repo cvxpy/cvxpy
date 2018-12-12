@@ -17,8 +17,8 @@ limitations under the License.
 from functools import wraps
 import warnings
 
-from cvxpy.constraints import Zero, NonPos, PSD
-from cvxpy.error import DCPError
+from cvxpy import error
+from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
@@ -63,6 +63,11 @@ class Expression(u.Canonical):
         """NumPy.ndarray or None : The numeric value of the expression.
         """
         return NotImplemented
+
+    def _value_impl(self):
+        """Implementation of .value.
+        """
+        return self.value
 
     @abc.abstractproperty
     def grad(self):
@@ -126,13 +131,30 @@ class Expression(u.Canonical):
             curvature_str = s.UNKNOWN
         return curvature_str
 
+    @property
+    def log_log_curvature(self):
+        """str : The log-log curvature of the expression.
+        """
+        if self.is_log_log_constant():
+            curvature_str = s.LOG_LOG_CONSTANT
+        elif self.is_log_log_affine():
+            curvature_str = s.LOG_LOG_AFFINE
+        elif self.is_log_log_convex():
+            curvature_str = s.LOG_LOG_CONVEX
+        elif self.is_log_log_concave():
+            curvature_str = s.LOG_LOG_CONCAVE
+        else:
+            curvature_str = s.UNKNOWN
+        return curvature_str
+
     def is_constant(self):
         """Is the expression constant?
         """
         try:
             return self.__is_constant
         except AttributeError:
-            self.__is_constant = len(self.variables()) == 0 or self.is_zero() or 0 in self.shape
+            self.__is_constant = (len(self.variables()) == 0 or
+                                  self.is_zero() or 0 in self.shape)
             return self.__is_constant
 
     def is_affine(self):
@@ -141,7 +163,8 @@ class Expression(u.Canonical):
         try:
             return self.__is_affine
         except AttributeError:
-            self.__is_affine = self.is_constant() or (self.is_convex() and self.is_concave())
+            self.__is_affine = self.is_constant() or (
+                               self.is_convex() and self.is_concave())
             return self.__is_affine
 
     @abc.abstractmethod
@@ -157,14 +180,58 @@ class Expression(u.Canonical):
         return NotImplemented
 
     def is_dcp(self):
-        """Checks whether the constraint is DCP.
+        """Checks whether the Expression is DCP.
 
         Returns
         -------
         bool
-            True if the constraint is DCP, False otherwise.
+            True if the Expression is DCP, False otherwise.
         """
         return self.is_convex() or self.is_concave()
+
+    def is_log_log_constant(self):
+        """Is the expression log-log constant, ie, elementwise positive?
+        """
+        if not self.is_constant():
+            return False
+
+        if isinstance(self, (cvxtypes.constant(), cvxtypes.parameter())):
+            return self.is_pos()
+        else:
+            return self.value is not None and np.all(self.value > 0)
+
+    def is_log_log_affine(self):
+        """Is the expression affine?
+        """
+        try:
+            return self.__is_log_log_affine
+        except AttributeError:
+            self.__is_log_log_affine = (self.is_log_log_constant()) or (
+                                       self.is_log_log_convex() and
+                                       self.is_log_log_concave())
+            return self.__is_log_log_affine
+
+    @abc.abstractmethod
+    def is_log_log_convex(self):
+        """Is the expression log-log convex?
+        """
+        return NotImplemented
+
+    @abc.abstractmethod
+    def is_log_log_concave(self):
+        """Is the expression log-log concave?
+        """
+        return NotImplemented
+
+    def is_dgp(self):
+        """Checks whether the Expression is log-log DCP.
+
+        Returns
+        -------
+        bool
+            True if the Expression is log-log DCP, False otherwise.
+        """
+        return self.is_log_log_convex() or self.is_log_log_concave()
 
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
@@ -306,7 +373,7 @@ class Expression(u.Canonical):
         if isinstance(key, tuple) and len(key) == 0:
             return self
         elif ku.is_special_slice(key):
-            return cvxtypes.index().get_special_slice(self, key)
+            return cvxtypes.special_index()(self, key)
         else:
             return cvxtypes.index()(self, key)
 
@@ -386,7 +453,8 @@ class Expression(u.Canonical):
         elif self.is_constant() or other.is_constant():
             return cvxtypes.mul_expr()(self, other)
         else:
-            warnings.warn("Forming a nonconvex expression.")
+            if error.warnings_enabled():
+                warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.mul_expr()(self, other)
 
     @_cast_other
@@ -407,11 +475,13 @@ class Expression(u.Canonical):
     def __div__(self, other):
         """Expression : One expression divided by another.
         """
-        # Can only divide by scalar constants.
-        if other.is_constant() and other.is_scalar():
+        if other.is_scalar() or other.shape == self.shape:
+            if error.warnings_enabled():
+                warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.div_expr()(self, other)
         else:
-            raise DCPError("Can only divide by a scalar constant.")
+            raise ValueError("Incompatible shapes for division (%s / %s)" % (
+                             self.shape, other.shape))
 
     @_cast_other
     def __rdiv__(self, other):
@@ -473,15 +543,15 @@ class Expression(u.Canonical):
     # Comparison operators.
     @_cast_other
     def __eq__(self, other):
-        """Zero : Creates an equality constraint ``self == other``.
+        """Equality : Creates a constraint ``self == other``.
         """
-        return Zero(self - other)
+        return Equality(self, other)
 
     @_cast_other
     def __le__(self, other):
-        """NonPos : Creates an inequality constraint.
+        """Inequality : Creates an inequality constraint ``self <= other``.
         """
-        return NonPos(self - other)
+        return Inequality(self, other)
 
     def __lt__(self, other):
         """Unsupported.

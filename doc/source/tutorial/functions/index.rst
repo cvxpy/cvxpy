@@ -11,10 +11,18 @@ Operators
 ---------
 
 The infix operators ``+, -, *, /`` are treated as functions. ``+`` and
-``-`` are affine functions. ``*`` and ``/`` are affine in
-CVXPY because ``expr1*expr2`` is allowed only when one of the
-expressions is constant and ``expr1/expr2`` is allowed only when
-``expr2`` is a scalar constant.
+``-`` are affine functions. The expression ``expr1*expr2`` is are affine in
+CVXPY when one of the expressions is constant, and ``expr1/expr2`` is affine
+when ``expr2`` is a scalar constant.
+
+Note that in CVXPY, ``expr1 * expr2`` denotes matrix multiplication
+when ``expr1`` and ``expr2`` are matrices; if you're running Python 3,
+you can alternatively use the ``@`` operator for matrix multiplication.
+Regardless of your Python version, you can also use the function
+:function:`~cvxpy.atoms.affine.binary_operators.matmul` to multiply
+two matrices. To multiply two arrays or matrices elementwise, use
+:function:`~cvxpy.atoms.affine.binary_operators.multiply`_.
+
 
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^

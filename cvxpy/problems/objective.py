@@ -146,6 +146,11 @@ class Minimize(Objective):
         """
         return self.args[0].is_convex()
 
+    def is_dgp(self):
+        """The objective must be log_log_convex.
+        """
+        return self.args[0].is_log_log_convex()
+
     @staticmethod
     def primal_to_result(result):
         """The value of the objective given the solver primal value.
@@ -191,6 +196,11 @@ class Maximize(Objective):
         """The objective must be concave.
         """
         return self.args[0].is_concave()
+
+    def is_dgp(self):
+        """The objective must be log-log concave.
+        """
+        return self.args[0].is_log_log_concave()
 
     @staticmethod
     def primal_to_result(result):

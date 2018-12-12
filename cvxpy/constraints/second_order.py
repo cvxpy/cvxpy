@@ -133,6 +133,9 @@ class SOC(Constraint):
         """
         return all(arg.is_affine() for arg in self.args)
 
+    def is_dgp(self):
+        return False
+
     # TODO hack
     def canonicalize(self):
         t, t_cons = self.args[0].canonical_form

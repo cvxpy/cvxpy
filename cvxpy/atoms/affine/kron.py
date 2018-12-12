@@ -24,6 +24,7 @@ class kron(AffAtom):
     """Kronecker product.
     """
     # TODO work with right hand constant.
+    # TODO(akshayka): make DGP-compatible
 
     def __init__(self, lh_expr, rh_expr):
         super(kron, self).__init__(lh_expr, rh_expr)

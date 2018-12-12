@@ -25,7 +25,7 @@ from cvxpy.interface.matrix_utilities import scalar_value
 # a circular import (cvxpy.transforms imports Problem). Hence we need to import
 # cvxpy here.
 import cvxpy  # noqa
-import cvxpy.constraints.zero as eqc
+from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
@@ -66,8 +66,10 @@ class Problem(u.Canonical):
         self._vars = self._variables()
         self._value = None
         self._status = None
+        self._solution = None
         # The solving chain with which to solve the problem
         self._solving_chain = None
+        self._cached_chain_key = None
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
@@ -96,6 +98,12 @@ class Problem(u.Canonical):
         return self._status
 
     @property
+    def solution(self):
+        """Solution : The solution from the last time the problem was solved.
+        """
+        return self._solution
+
+    @property
     def objective(self):
         """Minimize or Maximize : The problem's objective.
 
@@ -117,13 +125,20 @@ class Problem(u.Canonical):
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
-        return all(exp.is_dcp() for exp in self.constraints + [self.objective])
+        return all(
+          expr.is_dcp() for expr in self.constraints + [self.objective])
+
+    def is_dgp(self):
+        """Does the problem satisfy DGP rules?
+        """
+        return all(
+          expr.is_dgp() for expr in self.constraints + [self.objective])
 
     def is_qp(self):
         """Is problem a quadratic program?
         """
         for c in self.constraints:
-            if not (isinstance(c, eqc.Zero) or c.args[0].is_pwl()):
+            if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
                 return False
         for var in self.variables():
             if var.is_psd() or var.is_nsd():
@@ -211,18 +226,23 @@ class Problem(u.Canonical):
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
 
+        Populates the `.status', `.value`
+
         Parameters
         ----------
-        method : function
-            The solve method to use.
         solver : str, optional
-            The solver to use.
+            The solver to use. For example, 'ECOS', 'SCS', or 'OSQP'.
         verbose : bool, optional
             Overrides the default of hiding solver output.
+        gp : bool, optional
+            If True, parses the problem as a disciplined geometric program
+            instead of a disciplined convex program.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
             imposed by cvxpy.
+        method : function, optional
+            A custom solve method to use.
 
         Returns
         -------
@@ -233,7 +253,9 @@ class Problem(u.Canonical):
         Raises
         ------
         DCPError
-            Raised if the problem is not DCP.
+            Raised if the problem is not DCP and `gp` is False.
+        DGPError
+            Raised if the problem is not DGP and `gp` is True.
         SolverError
             Raised if no suitable solver exists among the installed solvers,
             or if an unanticipated error is encountered.
@@ -264,8 +286,8 @@ class Problem(u.Canonical):
 
         When a problem is solved, a chain of reductions, called a
         :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
-        compiles it to some low-level representation that is compatible with the
-        targeted solver. This method returns that low-level representation.
+        compiles it to some low-level representation that is compatible with
+        the targeted solver. This method returns that low-level representation.
 
         For some solving chains, this low-level representation is a dictionary
         that contains exactly those arguments that were supplied to the solver;
@@ -305,7 +327,7 @@ class Problem(u.Canonical):
                ignore_dcp=False,
                warm_start=True,
                verbose=False,
-               parallel=False, **kwargs):
+               parallel=False, gp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -325,6 +347,9 @@ class Problem(u.Canonical):
             Overrides the default of hiding solver output.
         parallel : bool, optional
             If problem is separable, solve in parallel.
+        gp : bool, optional
+            If True, then parses the problem as a disciplined geometric program
+            instead of a disciplined convex program.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -343,22 +368,20 @@ class Problem(u.Canonical):
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
 
-        # If a previous chain does not exist, or if the solver is
-        # specified and it does not match the solver used for the previous
-        # solve, then construct a new solving chain.
-        if (self._solving_chain is None
-                or (solver is not None
-                    and self._solving_chain.solver.name != solver)):
+        chain_key = (solver, gp)
+        if chain_key != self._cached_chain_key:
             try:
                 self._solving_chain = construct_solving_chain(self,
-                                                              solver=solver)
+                                                              solver=solver,
+                                                              gp=gp)
             except Exception as e:
                 raise e
+        self._cached_chain_key = chain_key
 
         data, inverse_data = self._solving_chain.apply(self)
-        solution = self._solving_chain.solve_via_data(self, data, warm_start, verbose,
-                                                      kwargs)
-        self.unpack_results(solution, self._solving_chain, inverse_data)
+        solver_output = self._solving_chain.solve_via_data(
+          self, data, warm_start, verbose, kwargs)
+        self.unpack_results(solver_output, self._solving_chain, inverse_data)
         return self.value
 
     def _parallel_solve(self,
@@ -434,24 +457,26 @@ class Problem(u.Canonical):
                 self._status = s.OPTIMAL
         return self._value
 
-    def unpack_results(self, solution, chain, inverse_data):
-        """Updates the problem state given the solver results.
+    def _clear_solution(self):
+        for v in self.variables():
+            v.save_value(None)
+        for c in self.constraints:
+            c.save_value(None)
+        self._value = None
+        self._status = None
+        self._solution = None
 
-        Updates problem.status, problem.value and value of
-        primal and dual variables.
+    def unpack(self, solution):
+        """Updates the problem state given a Solution.
+
+        Updates problem.status, problem.value and value of primal and dual
+        variables.
 
         Parameters
         __________
-        solution : Solution
-            The solution returned by applying the chain to the problem
-            and invoking the solver on the resulting data.
-        chain : SolvingChain
-            A solving chain that was used to solve the problem.
-        inverse_data : list
-            The inverse data returned by applying the chain to the problem.
+        solution : cvxpy.Solution
+            A Solution object.
         """
-        solution = chain.invert(solution, inverse_data)
-        self._value = solution.opt_val
         if solution.status in s.SOLUTION_PRESENT:
             for v in self.variables():
                 v.save_value(solution.primal_vars[v.id])
@@ -464,14 +489,39 @@ class Problem(u.Canonical):
             for constr in self.constraints:
                 constr.save_value(None)
         else:
+            raise ValueError("Cannot unpack invalid solution.")
+        self._value = solution.opt_val
+        self._status = solution.status
+        self._solution = solution
+
+    def unpack_results(self, solution, chain, inverse_data):
+        """Updates the problem state given the solver results.
+
+        Updates problem.status, problem.value and value of
+        primal and dual variables.
+
+        Parameters
+        __________
+        solution : object
+            The solution returned by applying the chain to the problem
+            and invoking the solver on the resulting data.
+        chain : SolvingChain
+            A solving chain that was used to solve the problem.
+        inverse_data : list
+            The inverse data returned by applying the chain to the problem.
+        """
+        solution = chain.invert(solution, inverse_data)
+        try:
+            self.unpack(solution)
+        except ValueError:
             raise SolverError(
                 "Solver '%s' failed. " % chain.solver.name() +
-                "Try another solver or solve with verbose=True for more information. " +
-                "Try recentering the problem data around 0 and rescaling " +
-                "to reduce the dynamic range."
+                "Try another solver or solve with verbose=True for more "
+                "information. Try recentering the problem data around 0 and "
+                "rescaling to reduce the dynamic range."
             )
-        self._status = solution.status
-        self._solver_stats = SolverStats(solution.attr, chain.solver.name())
+        self._solver_stats = SolverStats(self._solution.attr,
+                                         chain.solver.name())
 
     def __str__(self):
         if len(self.constraints) == 0:
@@ -532,7 +582,6 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
-# TODO(akshayka): Consider moving this to another file
 class SolverStats(object):
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
@@ -561,7 +610,6 @@ class SolverStats(object):
             self.num_iters = results_dict[s.NUM_ITERS]
 
 
-# TODO(akshayka): Consider moving this to another file
 class SizeMetrics(object):
     """Reports various metrics regarding the problem.
 
@@ -616,11 +664,11 @@ class SizeMetrics(object):
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
         for constraint in problem.constraints:
-            if constraint.__class__.__name__ is "Zero":
-                self.num_scalar_eq_constr += constraint.args[0].size
+            if isinstance(constraint, (Equality, Zero)):
+                self.num_scalar_eq_constr += constraint.expr.size
 
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
-            if constraint.__class__.__name__ is "NonPos":
-                self.num_scalar_leq_constr += constraint.args[0].size
+            if isinstance(constraint, (Inequality, NonPos)):
+                self.num_scalar_leq_constr += constraint.expr.size

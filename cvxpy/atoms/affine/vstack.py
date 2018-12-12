@@ -27,6 +27,16 @@ def vstack(arg_list):
 
 class Vstack(AffAtom):
     """ Vertical concatenation """
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     # Returns the vstack of the values.
     @AffAtom.numpy_numeric
     def numeric(self, values):

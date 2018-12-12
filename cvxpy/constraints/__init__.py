@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.zero import Zero
+from cvxpy.constraints.zero import Equality, Zero
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.nonpos import NonPos
+from cvxpy.constraints.nonpos import Inequality, NonPos
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.soc_axis import SOC_Axis

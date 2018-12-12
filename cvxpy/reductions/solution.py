@@ -71,6 +71,10 @@ class Solution(object):
                         self.attr)
 
     def __str__(self):
+        return "Solution(status=%s, opt_val=%s, primal_vars=%s, dual_vars=%s, attr=%s)" % (
+          self.status, self.opt_val, self.primal_vars, self.dual_vars, self.attr)
+
+    def __repr__(self):
         return "Solution(%s, %s, %s, %s)" % (self.status,
                                              self.primal_vars,
                                              self.dual_vars,

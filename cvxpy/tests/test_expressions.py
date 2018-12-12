@@ -650,7 +650,12 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.x/[2, 2, 3])
         print(cm.exception)
-        self.assertEqual(str(cm.exception), "Can only divide by a scalar constant.")
+        self.assertRegexpMatches(str(cm.exception),
+                         "Incompatible shapes for division.*")
+
+        c = Constant([3.0, 4.0, 12.0])
+        self.assertItemsAlmostEqual(
+          (c / Constant([1.0, 2.0, 3.0])).value, np.array([3.0, 2.0, 4.0]))
 
         # Constant expressions.
         c = Constant(2)

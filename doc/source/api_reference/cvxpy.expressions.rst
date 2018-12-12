@@ -18,11 +18,13 @@ Expression
 
 .. autoclass:: cvxpy.expressions.expression.Expression
     :members: value, grad, domain, name, curvature, is_constant, is_affine,
-              is_convex, is_concave, is_dcp, sign, is_zero, is_nonneg,
-              is_nonpos, shape, size, ndim, T, __pow__, __add__, __radd__,
-              __sub__, __rsub__, __mul__, __rmul__, __matmul__, __rmatmul__,
-              __div__, __rdiv__, __rshift__, __rrshift__, __lshift__,
-              __rlshift__, __eq__, __le__, __ge__, __truediv__, __rtruediv__
+              is_convex, is_concave, is_dcp, is_log_log_affine,
+              is_log_log_convex, is_log_log_concave, is_dgp, sign, is_zero,
+              is_nonneg, is_nonpos, shape, size, ndim, T, __pow__, __add__,
+              __radd__, __sub__, __rsub__, __mul__, __rmul__, __matmul__,
+              __rmatmul__, __div__, __rdiv__, __rshift__, __rrshift__,
+              __lshift__, __rlshift__, __eq__, __le__, __ge__, __truediv__,
+              __rtruediv__
     :undoc-members:
     :show-inheritance:
 

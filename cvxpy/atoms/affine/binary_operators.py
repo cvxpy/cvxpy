@@ -123,6 +123,16 @@ class MulExpression(BinaryOperator):
         """
         return self.is_atom_convex()
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
@@ -204,7 +214,7 @@ class DivExpression(BinaryOperator):
     """
 
     OP_NAME = "/"
-    OP_FUNC = op.__truediv__ if (sys.version_info >= (3, 0)) else op.__div__
+    OP_FUNC = np.divide
 
     def is_quadratic(self):
         return self.args[0].is_quadratic() and self.args[1].is_constant()
@@ -217,15 +227,40 @@ class DivExpression(BinaryOperator):
         """
         return self.args[0].shape
 
+    def is_atom_convex(self):
+        """Division is convex (affine) in its arguments only if
+           the denominator is constant.
+        """
+        return self.args[1].is_constant() and self.args[1].is_scalar()
+
+    def is_atom_concave(self):
+        return self.is_atom_convex()
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[1].is_nonneg()
+        if idx == 0:
+            return self.args[1].is_nonneg()
+        else:
+            return self.args[0].is_nonpos()
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[1].is_nonpos()
+        if idx == 0:
+            return self.args[1].is_nonpos()
+        else:
+            return self.args[0].is_nonneg()
 
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
@@ -260,6 +295,16 @@ class multiply(MulExpression):
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
             rh_expr = promote(rh_expr, lh_expr.shape)
         super(multiply, self).__init__(lh_expr, rh_expr)
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
 
     def numeric(self, values):
         """Multiplies the values elementwise.
