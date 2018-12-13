@@ -192,15 +192,15 @@ that the <code class="docutils literal"><span class="pre">Expression</span></cod
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
-<span class="n">monomial</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">constant</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="n">monomial</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
 <span class="n">posynomial</span> <span class="o">=</span> <span class="n">monomial</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">monomial</span><span class="p">,</span> <span class="s2">&quot;is dgp?&quot;</span><span class="p">,</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">posynomial</span><span class="p">,</span> <span class="s2">&quot;is dgp?&quot;</span><span class="p">,</span> <span class="n">posynomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">())</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>2.0 * 2.0 * x * y is dgp? True
-2.0 * 2.0 * x * y + power(x, 3/2) * power(y, -1) is dgp? True
+<div class="highlight-default"><div class="highlight"><pre><span></span>2.0 * x * y is dgp? True
+2.0 * x * y + power(x, 3/2) * power(y, -1) is dgp? True
 </pre></div>
 </div>
 </div>
@@ -223,14 +223,29 @@ concave function is also an LLCP.</p>
 <p>A problem is DGP if additionally all the functions are DGP. You can
 check whether a CVXPY <code class="docutils literal"><span class="pre">Problem</span></code> is DGP by calling its <code class="docutils literal"><span class="pre">.is_dgp()</span></code>
 method.</p>
-<p>x = cp.Variable(pos=True, name=”x”) y = cp.Variable(pos=True, name=”y”)
-z = cp.Variable(pos=True, name=”z”)</p>
-<p>objective_fn = x * y * z constraints = [ 4 * x * y * z + 2 * x *
-z &lt;= 10, x &lt;= 2<em>y, y &lt;= 2</em>x, z &gt;= 1] assert
-objective_fn.is_log_log_concave() assert all(constraint.is_dgp()
-for constraint in constraints) problem =
-cp.Problem(cp.Maximize(objective_fn), constraints) assert
-problem.is_dgp()</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+
+<span class="n">objective_fn</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="mi">4</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">objective_fn</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span>
+<span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span> <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is this problem DGP?&quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>maximize x * y * z
+subject to 4.0 * x * y * z + 2.0 * x * z &lt;= 10.0
+           x &lt;= 2.0 * y
+           y &lt;= 2.0 * x
+           1.0 &lt;= z
+Is this problem DGP? True
+</pre></div>
+</div>
 <div class="section" id="solving-dgp-problems">
 <h2>Solving DGP problems<a class="headerlink" href="#solving-dgp-problems" title="Permalink to this headline">¶</a></h2>
 <p>You can solve a DGP <code class="docutils literal"><span class="pre">Problem</span></code> by calling its <code class="docutils literal"><span class="pre">solve</span></code> method with
@@ -243,7 +258,7 @@ problem.is_dgp()</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dual values: &quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dual_value</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.999999992689052</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.9999999926890524</span>
 <span class="n">x</span> <span class="p">:</span> <span class="mf">0.9999999989968756</span>
 <span class="n">y</span> <span class="p">:</span> <span class="mf">1.9999999529045318</span>
 <span class="n">z</span> <span class="p">:</span> <span class="mf">1.000000020895385</span>
@@ -269,7 +284,7 @@ Problem does not follow DCP rules. However, the problem does follow DGP rules. C
 <p>CVXPY has a large library of log-log convex functions, including common
 functions like <span class="math">\(\exp\)</span>, <span class="math">\(\log\)</span>, and the difference between
 two numbers. Check out the tutorial on our website for the full list of
-atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dcp/index.html">https://www.cvxpy.org/tutorial/dcp/index.html</a></p>
+atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/index.html">https://www.cvxpy.org/tutorial/dgp/index.html</a></p>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>

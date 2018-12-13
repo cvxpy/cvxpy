@@ -56,9 +56,9 @@ when <code class="docutils literal"><span class="pre">expr2</span></code> is a s
 when <code class="docutils literal"><span class="pre">expr1</span></code> and <code class="docutils literal"><span class="pre">expr2</span></code> are matrices; if you’re running Python 3,
 you can alternatively use the <code class="docutils literal"><span class="pre">&#64;</span></code> operator for matrix multiplication.
 Regardless of your Python version, you can also use the function
-<a href="#id1"><span class="problematic" id="id2">:function:`~cvxpy.atoms.affine.binary_operators.matmul`</span></a> to multiply
+<a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul</span></a> to multiply
 two matrices. To multiply two arrays or matrices elementwise, use
-<a href="#id3"><span class="problematic" id="id4">:function:`~cvxpy.atoms.affine.binary_operators.multiply`_</span></a>.</p>
+<a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply</span></a>.</p>
 <div class="section" id="indexing-and-slicing">
 <h3>Indexing and slicing<a class="headerlink" href="#indexing-and-slicing" title="Permalink to this headline">¶</a></h3>
 <p>Indexing in CVXPY follows exactly the same semantics as <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html">NumPy ndarrays</a>.
@@ -69,7 +69,7 @@ If <code class="docutils literal"><span class="pre">expr</span></code> is a matr
 while <code class="docutils literal"><span class="pre">expr[i:j:k,</span> <span class="pre">r:s:t]</span></code> selects both rows and columns.
 Indexing drops dimensions while slicing preserves dimenions.
 For example,</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;0 dimensional&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;1 dimensional&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
@@ -416,13 +416,13 @@ The syntax <code class="docutils literal"><span class="pre">func(expr,</span> <s
 returning an <code class="docutils literal"><span class="pre">m</span></code> by 1 expression.
 By default <code class="docutils literal"><span class="pre">keepdims=False</span></code>, which means dimensions of length 1 are dropped.
 For example, the following code sums
-along the columns and rows of a matrix variable:
-.. code:: python</p>
-<blockquote>
-<div>X = cvx.Variable((5, 4))
-col_sums = cvx.sum(X, axis=0, keepdims=True) # Has size (1, 4)
-col_sums = cvx.sum(X, axis=0) # Has size (4,)
-row_sums = cvx.sum(X, axis=1) # Has size (5,)</div></blockquote>
+along the columns and rows of a matrix variable:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">X</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">col_sums</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Has size (1, 4)</span>
+<span class="n">col_sums</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Has size (4,)</span>
+<span class="n">row_sums</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># Has size (5,)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="elementwise-functions">
 <span id="elementwise"></span><h2>Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Permalink to this headline">¶</a></h2>
@@ -754,8 +754,8 @@ and returns a vector or matrix.</p>
 </tr>
 </tbody>
 </table>
-<div class="section" id="id5">
-<h3>Clarifications<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h3>Clarifications<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>The input to <code class="docutils literal"><span class="pre">bmat</span></code> is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.</p>

@@ -190,7 +190,7 @@ that the ``Expression`` “is DGP.” You can check whether an
     x = cp.Variable(pos=True, name="x")
     y = cp.Variable(pos=True, name="y")
     
-    monomial = 2.0 * constant * x * y
+    monomial = 2.0 * x * y
     posynomial = monomial + (x ** 1.5) * (y ** -1)
     
     print(monomial, "is dgp?", monomial.is_dgp())
@@ -199,8 +199,8 @@ that the ``Expression`` “is DGP.” You can check whether an
 
 .. parsed-literal::
 
-    2.0 * 2.0 * x * y is dgp? True
-    2.0 * 2.0 * x * y + power(x, 3/2) * power(y, -1) is dgp? True
+    2.0 * x * y is dgp? True
+    2.0 * x * y + power(x, 3/2) * power(y, -1) is dgp? True
 
 
 3. DGP problems
@@ -229,15 +229,32 @@ A problem is DGP if additionally all the functions are DGP. You can
 check whether a CVXPY ``Problem`` is DGP by calling its ``.is_dgp()``
 method.
 
-x = cp.Variable(pos=True, name="x") y = cp.Variable(pos=True, name="y")
-z = cp.Variable(pos=True, name="z")
+.. code:: python
 
-objective\_fn = x \* y \* z constraints = [ 4 \* x \* y \* z + 2 \* x \*
-z <= 10, x <= 2\ *y, y <= 2*\ x, z >= 1] assert
-objective\_fn.is\_log\_log\_concave() assert all(constraint.is\_dgp()
-for constraint in constraints) problem =
-cp.Problem(cp.Maximize(objective\_fn), constraints) assert
-problem.is\_dgp()
+    x = cp.Variable(pos=True, name="x")
+    y = cp.Variable(pos=True, name="y")
+    z = cp.Variable(pos=True, name="z")
+    
+    objective_fn = x * y * z
+    constraints = [
+      4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
+    assert objective_fn.is_log_log_concave()
+    assert all(constraint.is_dgp() for constraint in constraints)
+    problem = cp.Problem(cp.Maximize(objective_fn), constraints)
+    
+    print(problem)
+    print("Is this problem DGP?", problem.is_dgp())
+
+
+.. parsed-literal::
+
+    maximize x * y * z
+    subject to 4.0 * x * y * z + 2.0 * x * z <= 10.0
+               x <= 2.0 * y
+               y <= 2.0 * x
+               1.0 <= z
+    Is this problem DGP? True
+
 
 Solving DGP problems
 --------------------
@@ -257,7 +274,7 @@ You can solve a DGP ``Problem`` by calling its ``solve`` method with
 
 .. parsed-literal::
 
-    Optimal value: 1.999999992689052
+    Optimal value: 1.9999999926890524
     x : 0.9999999989968756
     y : 1.9999999529045318
     z : 1.000000020895385
@@ -288,7 +305,7 @@ Atoms
 CVXPY has a large library of log-log convex functions, including common
 functions like :math:`\exp`, :math:`\log`, and the difference between
 two numbers. Check out the tutorial on our website for the full list of
-atoms: https://www.cvxpy.org/tutorial/dcp/index.html
+atoms: https://www.cvxpy.org/tutorial/dgp/index.html
 
 References
 ----------

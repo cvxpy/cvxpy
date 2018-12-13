@@ -79,24 +79,25 @@ to convex programming, CVXPY also supports a generalization of geometric
 programming.</p>
 <p>For a guided tour of CVXPY, check out the <a class="reference internal" href="tutorial/index.html"><span class="doc">tutorial</span></a>. Browse the <a class="reference internal" href="examples/index.html"><span class="doc">library of examples</span></a> for applications to machine learning, control, finance, and
 more.</p>
-<hr class="docutils" />
-<p>CVXPY was designed and implemented by Steven Diamond, with input and
-contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
-and many others; it was inspired by the MATLAB package <a class="reference external" href="http://cvxr.com/cvx/">CVX</a>.</p>
-<p>Version 1.0 of CVXPY brings the API closer to NumPy
+<p><strong>News.</strong></p>
+<ul class="simple">
+<li>CVXPY v1.0.11 supports
+<a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">disciplined geometric programming</a>,
+which lets you formulate geometric programs and log-log convex programs.
+See the <a class="reference internal" href="tutorial/dgp/index.html"><span class="doc">tutorial</span></a> for more information.</li>
+<li>Version 1.0 of CVXPY brings the API closer to NumPy
 and the architecture closer to software compilers, making it easy for
 developers to write custom problem transformations and target custom solvers.
-Be aware that CVXPY 1.0 is not backwards compatible with previous versions
+CVXPY 1.0 is not backwards compatible with previous versions
 of CVXPY. For more details, see <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">What’s New in 1.0</span></a>, which includes instructions
-for migrating from previous versions of CVXPY.</p>
+for migrating from previous versions of CVXPY.</li>
+</ul>
 <p>CVXPY relies on the open source solvers <a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
 Additional solvers are supported, but must be installed separately. For
 background on convex optimization, see the book <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe.</p>
-<p><em>News</em>: CVXPY will soon support disciplined geometric programming (DGP), which
-lets you formulate traditional geometric programs, generalized
-geometric programs, and what are more generally known as log-log convex
-programs. See the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">accompanying paper</a>
-for more information. DGP will be available in CVXPY by January 2019.</p>
+<p>CVXPY was designed and implemented by Steven Diamond, with input and
+contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
+and many others; it was inspired by the MATLAB package <a class="reference external" href="http://cvxr.com/cvx/">CVX</a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">

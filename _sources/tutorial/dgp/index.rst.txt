@@ -597,6 +597,12 @@ and returns a vector or matrix.
      - |affine| log-log affine
      - |incr| incr.
 
+   * - :ref:`matmul(X, Y) <matmul>`
+     - :math:`XY`
+     - :math:`X \in\mathbf{R}^{m \times n}_{++}, Y \in\mathbf{R}^{n \times p}_{++}``
+     - |convex| log-log convex
+     - |incr| incr.
+
    * - :ref:`resolvent(X) <resolvent>`
      - :math:`(sI - X)^{-1}`
      - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < s`
