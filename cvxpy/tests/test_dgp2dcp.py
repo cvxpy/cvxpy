@@ -66,6 +66,13 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEquals(dgp.value, 1.0)
         self.assertAlmostEquals(x.value, 1.0)
 
+    def test_basic_gp(self):
+        x, y, z = cvxpy.Variable((3,), pos=True)
+        constraints = [2*x*y + 2*x*z + 2*y*z <= 1.0, x >= 2*y]
+        problem = cvxpy.Problem(cvxpy.Minimize(1/(x*y*z)), constraints)
+        problem.solve(gp=True)
+        self.assertAlmostEqual(15.59, problem.value, places=2)
+
     def test_maximum(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
