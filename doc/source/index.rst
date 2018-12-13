@@ -55,8 +55,9 @@ more.
 
 **News.**
 
-* CVXPY v1.0.11 supports disciplined geometric programming, which
-  lets you formulate geometric programs and log-log convex programs.
+* CVXPY v1.0.11 supports
+  `disciplined geometric programming <https://web.stanford.edu/~boyd/papers/dgp.html>`_,
+  which lets you formulate geometric programs and log-log convex programs.
   See the :doc:`tutorial </tutorial/dgp/index>` for more information.
 
 * Version 1.0 of CVXPY brings the API closer to NumPy
