@@ -53,30 +53,30 @@ For a guided tour of CVXPY, check out the :doc:`tutorial
 </examples/index>` for applications to machine learning, control, finance, and
 more. 
 
-----------
+**News.**
 
-CVXPY was designed and implemented by Steven Diamond, with input and
-contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
-and many others; it was inspired by the MATLAB package `CVX
-<http://cvxr.com/cvx/>`_. 
+* CVXPY v1.0.11 supports disciplined geometric programming, which
+  lets you formulate geometric programs and log-log convex programs.
+  See the :doc:`tutorial </tutorial/dgp/index>` for more information.
 
-Version 1.0 of CVXPY brings the API closer to NumPy
-and the architecture closer to software compilers, making it easy for
-developers to write custom problem transformations and target custom solvers.
-Be aware that CVXPY 1.0 is not backwards compatible with previous versions
-of CVXPY. For more details, see :ref:`updates`, which includes instructions
-for migrating from previous versions of CVXPY.
+* Version 1.0 of CVXPY brings the API closer to NumPy
+  and the architecture closer to software compilers, making it easy for
+  developers to write custom problem transformations and target custom solvers.
+  CVXPY 1.0 is not backwards compatible with previous versions
+  of CVXPY. For more details, see :ref:`updates`, which includes instructions
+  for migrating from previous versions of CVXPY.
 
 CVXPY relies on the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Additional solvers are supported, but must be installed separately. For
 background on convex optimization, see the book `Convex Optimization
 <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
-*News*: CVXPY will soon support disciplined geometric programming (DGP), which
-lets you formulate traditional geometric programs, generalized
-geometric programs, and what are more generally known as log-log convex
-programs. See the `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_
-for more information. DGP will be available in CVXPY by January 2019.
+CVXPY was designed and implemented by Steven Diamond, with input and
+contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
+and many others; it was inspired by the MATLAB package `CVX
+<http://cvxr.com/cvx/>`_. 
+
+
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
