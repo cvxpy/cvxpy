@@ -19,9 +19,9 @@ Note that in CVXPY, ``expr1 * expr2`` denotes matrix multiplication
 when ``expr1`` and ``expr2`` are matrices; if you're running Python 3,
 you can alternatively use the ``@`` operator for matrix multiplication.
 Regardless of your Python version, you can also use the function
-:function:`~cvxpy.atoms.affine.binary_operators.matmul` to multiply
+:ref:`matmul` to multiply
 two matrices. To multiply two arrays or matrices elementwise, use
-:function:`~cvxpy.atoms.affine.binary_operators.multiply`_.
+:ref:`multiply`.
 
 
 Indexing and slicing
@@ -38,7 +38,7 @@ For example,
 
 .. code:: python
 
-     x = cvx.Variable(5)
+     x = cvxpy.Variable(5)
      print("0 dimensional", x[0].shape)
      print("1 dimensional", x[0:1].shape)
 
@@ -406,12 +406,13 @@ returning an ``m`` by 1 expression.
 By default ``keepdims=False``, which means dimensions of length 1 are dropped.
 For example, the following code sums
 along the columns and rows of a matrix variable: 
+
 .. code:: python
 
-    X = cvx.Variable((5, 4))
-    col_sums = cvx.sum(X, axis=0, keepdims=True) # Has size (1, 4)
-    col_sums = cvx.sum(X, axis=0) # Has size (4,)
-    row_sums = cvx.sum(X, axis=1) # Has size (5,)
+    X = cvxpy.Variable((5, 4))
+    col_sums = cvxpy.sum(X, axis=0, keepdims=True) # Has size (1, 4)
+    col_sums = cvxpy.sum(X, axis=0) # Has size (4,)
+    row_sums = cvxpy.sum(X, axis=1) # Has size (5,)
 
 
 .. _elementwise:
