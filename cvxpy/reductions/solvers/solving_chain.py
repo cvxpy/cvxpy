@@ -59,7 +59,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
-    if complex2real.is_complex(problem):
+    if complex2real.accepts(problem):
         reductions += [Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
@@ -98,7 +98,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
     if problem.is_mixed_integer():
         candidate_qp_solvers = [
           s for s in candidate_qp_solvers if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
-    if candidate_qp_solvers and qp2symbolic_qp.is_qp(problem):
+    if candidate_qp_solvers and qp2symbolic_qp.accepts(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]

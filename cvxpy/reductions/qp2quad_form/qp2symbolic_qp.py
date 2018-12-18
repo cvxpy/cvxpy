@@ -22,7 +22,7 @@ from cvxpy.reductions.qp2quad_form.atom_canonicalizers import (
 from cvxpy.reductions.utilities import are_args_affine
 
 
-def is_qp(problem):
+def accepts(problem):
     """
     Problems with quadratic, piecewise affine objectives,
     piecewise-linear constraints inequality constraints, and
@@ -51,7 +51,7 @@ class Qp2SymbolicQp(Canonicalization):
         piecewise-linear constraints inequality constraints, and
         affine equality constraints are accepted.
         """
-        return is_qp(problem)
+        return accepts(problem)
 
     def apply(self, problem):
         """Converts a QP to an even more symbolic form."""
