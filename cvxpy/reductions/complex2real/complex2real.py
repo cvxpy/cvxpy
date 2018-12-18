@@ -27,12 +27,16 @@ from cvxpy.reductions import utilities
 import cvxpy.settings as s
 
 
+def is_complex(problem):
+    leaves = problem.variables() + problem.parameters() + problem.constants()
+    return any(l.is_complex() for l in leaves)
+
+
 class Complex2Real(Reduction):
     """Lifts complex numbers to a real representation."""
 
     def accepts(self, problem):
-        leaves = problem.variables() + problem.parameters() + problem.constants()
-        return any(l.is_complex() for l in leaves)
+        is_complex(problem)
 
     def apply(self, problem):
         inverse_data = InverseData(problem)

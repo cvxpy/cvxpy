@@ -5,6 +5,8 @@ from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
                               FlipObjective, Dgp2Dcp, Qp2SymbolicQp, QpMatrixStuffing,
                               CvxAttr2Constr, Complex2Real)
+from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def
@@ -57,7 +59,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
-    if Complex2Real().accepts(problem):
+    if complex2real.is_complex(problem):
         reductions += [Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
@@ -96,7 +98,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
     if problem.is_mixed_integer():
         candidate_qp_solvers = [
           s for s in candidate_qp_solvers if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
-    if candidate_qp_solvers and Qp2SymbolicQp().accepts(problem):
+    if candidate_qp_solvers and qp2symbolic_qp.is_qp(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
