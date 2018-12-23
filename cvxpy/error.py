@@ -15,6 +15,23 @@ limitations under the License.
 """
 
 
+WARN = False
+
+
+def disable_warnings():
+    global WARN
+    WARN = False
+
+
+def enable_warnings():
+    global WARN
+    WARN = True
+
+
+def warnings_enabled():
+    return WARN
+
+
 class SolverError(Exception):
     """Error thrown when a solver encounters an error solving a problem.
     """
@@ -23,6 +40,12 @@ class SolverError(Exception):
 
 class DCPError(Exception):
     """Error thrown for DCP violations.
+    """
+    pass
+
+
+class DGPError(Exception):
+    """Error thrown for DGP violations.
     """
     pass
 

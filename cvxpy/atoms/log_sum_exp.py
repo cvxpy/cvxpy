@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import numpy as np
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 
 
 class log_sum_exp(AxisAtom):

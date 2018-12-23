@@ -64,6 +64,9 @@ class PSD(Constraint):
         """
         return self.args[0].is_affine()
 
+    def is_dgp(self):
+        return False
+
     @property
     def residual(self):
         """The residual of the constraint.

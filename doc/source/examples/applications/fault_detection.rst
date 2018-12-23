@@ -91,7 +91,7 @@ That is,
    \sqrt{\frac{\mathbf{E}\|Ax \|^2_2}{\mathbf{E} \|v\|_2^2}} = 5.
    \end{equation}
 
-.. code:: 
+.. code:: python
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -113,7 +113,7 @@ That is,
 
 Below, we show :math:`x`, :math:`Ax` and the noise :math:`v`.
 
-.. code:: 
+.. code:: python
 
     plt.plot(range(n),x_true)
 
@@ -122,7 +122,7 @@ Below, we show :math:`x`, :math:`Ax` and the noise :math:`v`.
 
 .. parsed-literal::
 
-    [<matplotlib.lines.Line2D at 0x110695dd0>]
+    [<matplotlib.lines.Line2D at 0x11ae42518>]
 
 
 
@@ -130,7 +130,7 @@ Below, we show :math:`x`, :math:`Ax` and the noise :math:`v`.
 .. image:: fault_detection_files/fault_detection_3_1.png
 
 
-.. code:: 
+.. code:: python
 
     plt.plot(range(m), A.dot(x_true),range(m),v)
     plt.legend(('Ax','v'))
@@ -140,7 +140,7 @@ Below, we show :math:`x`, :math:`Ax` and the noise :math:`v`.
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x110ee63d0>
+    <matplotlib.legend.Legend at 0x11aee9630>
 
 
 
@@ -154,15 +154,16 @@ Recovery
 We solve the relaxed maximum likelihood problem with CVXPY and then
 round the result to get a Boolean solution.
 
-.. code:: 
+.. code:: python
 
     %%time
-    from cvxpy import *
-    x = Variable(shape=(n,1))
-    tau = 2*log(1/p - 1)*sigma**2
-    obj = Minimize(sum_squares(A*x - y) + tau*sum(x))
+    import cvxpy as cp
+    x = cp.Variable(shape=n)
+    tau = 2*cp.log(1/p - 1)*sigma**2
+    obj = cp.Minimize(cp.sum_squares(A*x - y) + tau*cp.sum(x))
     const = [0 <= x, x <= 1]
-    Problem(obj,const).solve(verbose=True)
+    cp.Problem(obj,const).solve(verbose=True)
+    print("final objective value: {}".format(obj.value))
     
     # relaxed ML estimate
     x_rml = np.array(x.value).flatten()
@@ -174,38 +175,39 @@ round the result to get a Boolean solution.
 .. parsed-literal::
 
     
-    ECOS 1.0.4 - (c) A. Domahidi, Automatic Control Laboratory, ETH Zurich, 2012-2014.
+    ECOS 2.0.4 - (C) embotech GmbH, Zurich Switzerland, 2012-15. Web: www.embotech.com/ECOS
     
-    It     pcost         dcost      gap     pres    dres     k/t     mu      step     IR
-     0   +7.127e+03   -6.144e+04   +8e+05   8e+00   1e-01   1e+00   2e+02    N/A     1 1 -
-     1   +7.014e+02   -1.137e+04   +4e+05   1e+00   2e-02   4e+01   1e+02   0.9899   1 1 1
-     2   +5.300e+01   -1.510e+03   +9e+04   2e-01   2e-03   2e+01   2e+01   0.9406   2 1 1
-     3   +1.140e+02   -7.533e+02   +5e+04   1e-01   1e-03   1e+01   1e+01   0.5426   2 2 2
-     4   +1.378e+02   -3.905e+02   +3e+04   6e-02   8e-04   5e+00   8e+00   0.5017   2 2 2
-     5   +1.391e+02   -2.656e+02   +3e+04   5e-02   6e-04   3e+00   7e+00   0.4344   2 2 1
-     6   +1.645e+02   +8.938e+00   +1e+04   2e-02   2e-04   9e-01   3e+00   0.6950   2 2 2
-     7   +1.740e+02   +7.476e+01   +6e+03   1e-02   2e-04   5e-01   2e+00   0.5070   2 2 2
-     8   +1.739e+02   +7.682e+01   +6e+03   1e-02   2e-04   4e-01   2e+00   0.0978   3 2 1
-     9   +1.844e+02   +1.482e+02   +2e+03   4e-03   6e-05   2e-02   6e-01   0.9899   2 2 2
-    10   +1.889e+02   +1.755e+02   +9e+02   2e-03   2e-05   9e-03   2e-01   0.7568   2 2 2
-    11   +1.907e+02   +1.864e+02   +3e+02   5e-04   7e-06   3e-03   7e-02   0.8071   2 2 2
-    12   +1.912e+02   +1.892e+02   +1e+02   2e-04   3e-06   1e-03   3e-02   0.8099   2 2 2
-    13   +1.914e+02   +1.906e+02   +6e+01   1e-04   1e-06   5e-04   1e-02   0.7158   3 2 2
-    14   +1.916e+02   +1.912e+02   +3e+01   4e-05   6e-07   2e-04   6e-03   0.8640   3 1 1
-    15   +1.916e+02   +1.916e+02   +4e+00   7e-06   9e-08   3e-05   1e-03   0.8722   3 2 2
-    16   +1.916e+02   +1.916e+02   +4e-01   7e-07   1e-08   4e-06   1e-04   0.9258   2 2 2
-    17   +1.916e+02   +1.916e+02   +6e-02   1e-07   2e-09   5e-07   2e-05   0.8804   3 2 2
-    18   +1.916e+02   +1.916e+02   +2e-02   4e-08   5e-10   2e-07   5e-06   0.7988   3 3 3
-    19   +1.916e+02   +1.916e+02   +3e-03   6e-09   8e-11   3e-08   8e-07   0.9092   3 3 3
-    20   +1.916e+02   +1.916e+02   +5e-04   9e-10   1e-11   5e-09   1e-07   0.9134   3 2 2
-    21   +1.916e+02   +1.916e+02   +1e-04   2e-10   2e-12   9e-10   3e-08   0.8726   3 2 1
-    22   +1.916e+02   +1.916e+02   +1e-05   2e-11   3e-13   1e-10   4e-09   0.9512   2 1 1
+    It     pcost       dcost      gap   pres   dres    k/t    mu     step   sigma     IR    |   BT
+     0  +7.343e+03  -3.862e+03  +5e+04  5e-01  5e-04  1e+00  1e+01    ---    ---    1  1  - |  -  - 
+     1  +4.814e+02  -9.580e+02  +8e+03  1e-01  6e-05  2e-01  2e+00  0.8500  1e-02   1  2  2 |  0  0
+     2  -2.079e+02  -1.428e+03  +6e+03  1e-01  4e-05  8e-01  2e+00  0.7544  7e-01   2  2  2 |  0  0
+     3  -1.321e+02  -1.030e+03  +5e+03  8e-02  3e-05  7e-01  1e+00  0.3122  2e-01   2  2  2 |  0  0
+     4  -2.074e+02  -8.580e+02  +4e+03  6e-02  2e-05  6e-01  9e-01  0.7839  7e-01   2  2  2 |  0  0
+     5  -1.121e+02  -6.072e+02  +3e+03  5e-02  1e-05  5e-01  7e-01  0.3859  4e-01   2  3  3 |  0  0
+     6  -4.898e+01  -4.060e+02  +2e+03  3e-02  8e-06  3e-01  5e-01  0.5780  5e-01   2  2  2 |  0  0
+     7  +7.778e+01  -5.711e+01  +8e+02  1e-02  3e-06  1e-01  2e-01  0.9890  4e-01   2  3  2 |  0  0
+     8  +1.307e+02  +6.143e+01  +4e+02  6e-03  1e-06  6e-02  1e-01  0.5528  1e-01   3  3  3 |  0  0
+     9  +1.607e+02  +1.286e+02  +2e+02  3e-03  4e-07  3e-02  5e-02  0.8303  3e-01   3  3  3 |  0  0
+    10  +1.741e+02  +1.557e+02  +1e+02  2e-03  2e-07  2e-02  3e-02  0.6242  3e-01   3  3  3 |  0  0
+    11  +1.834e+02  +1.749e+02  +5e+01  8e-04  9e-08  8e-03  1e-02  0.8043  3e-01   3  3  3 |  0  0
+    12  +1.888e+02  +1.861e+02  +2e+01  3e-04  3e-08  2e-03  4e-03  0.9175  3e-01   3  3  2 |  0  0
+    13  +1.909e+02  +1.902e+02  +4e+00  7e-05  7e-09  6e-04  1e-03  0.8198  1e-01   3  3  3 |  0  0
+    14  +1.914e+02  +1.912e+02  +1e+00  2e-05  2e-09  2e-04  3e-04  0.8581  2e-01   3  2  3 |  0  0
+    15  +1.916e+02  +1.916e+02  +1e-01  2e-06  3e-10  2e-05  4e-05  0.9004  3e-02   3  3  3 |  0  0
+    16  +1.916e+02  +1.916e+02  +4e-02  7e-07  8e-11  7e-06  1e-05  0.8174  1e-01   3  3  3 |  0  0
+    17  +1.916e+02  +1.916e+02  +8e-03  1e-07  1e-11  1e-06  2e-06  0.8917  9e-02   3  2  2 |  0  0
+    18  +1.916e+02  +1.916e+02  +2e-03  4e-08  4e-12  4e-07  5e-07  0.8588  2e-01   3  3  3 |  0  0
+    19  +1.916e+02  +1.916e+02  +2e-04  3e-09  3e-13  3e-08  5e-08  0.9309  2e-02   3  2  2 |  0  0
+    20  +1.916e+02  +1.916e+02  +2e-05  4e-10  4e-14  4e-09  6e-09  0.8768  1e-02   4  2  2 |  0  0
+    21  +1.916e+02  +1.916e+02  +4e-06  6e-11  6e-15  6e-10  9e-10  0.9089  6e-02   4  2  2 |  0  0
+    22  +1.916e+02  +1.916e+02  +1e-06  2e-11  2e-15  2e-10  2e-10  0.8362  1e-01   2  1  1 |  0  0
     
-    OPTIMAL (within feastol=2.5e-11, reltol=7.3e-08, abstol=1.4e-05).
-    Runtime: 4.225071 seconds.
+    OPTIMAL (within feastol=1.8e-11, reltol=5.1e-09, abstol=9.8e-07).
+    Runtime: 6.538894 seconds.
     
-    CPU times: user 4.66 s, sys: 123 ms, total: 4.78 s
-    Wall time: 4.97 s
+    final objective value: 191.6347201927456
+    CPU times: user 6.51 s, sys: 291 ms, total: 6.8 s
+    Wall time: 7.5 s
 
 
 Evaluation
@@ -215,7 +217,7 @@ We define a function for computing the estimation errors, and a function
 for plotting :math:`x`, the relaxed ML estimate, and the rounded
 solutions.
 
-.. code:: 
+.. code:: python
 
     import matplotlib
     
@@ -254,7 +256,7 @@ solutions.
 We see that out of 20 actual faults, the rounded solution gives perfect
 recovery with 0 false negatives and 0 false positives.
 
-.. code:: 
+.. code:: python
 
     plotXs(x_true, x_rml, x_rnd, 'fault.pdf')
 

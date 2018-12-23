@@ -63,105 +63,117 @@ If :math:`\alpha_0` is infeasible then :math:`L_1 = \alpha_1`,
 This bisection process is repeated until :math:`U_N - L_N < \epsilon`,
 where :math:`\epsilon` is the desired tolerance.
 
-.. code:: ipython3
+.. code:: python
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
     
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy as np
 
-.. code:: ipython3
+.. code:: python
 
-    def maxmin_sinr(G,P_max,P_received,sigma,Group,Group_max,epsilon = 0.001):
+    def maxmin_sinr(G, P_max, P_received, sigma, Group, Group_max, epsilon = 0.001):
+        # find n and m from the size of the path gain matrix
+        n, m = np.shape(G)
+        
+        # Checks sizes of inputs
+        if m != np.size(P_max):
+            print('Error: P_max dimensions do not match gain matrix dimensions\n')
+            return 'Error: P_max dimensions do not match gain matrix dimensions\n', np.nan, np.nan, np.nan
+        
+        if n != np.size(P_received):
+            print('Error: P_received dimensions do not match gain matrix dimensions\n')
+            return 'Error: P_received dimensions do not match gain matrix dimensions', np.nan, np.nan, np.nan
+        
+        if n != np.size(sigma):
+            print('Error: σ dimensions do not match gain matrix dimensions\n')
+            return 'Error: σ dimensions do not match gain matrix dimensions', np.nan, np.nan, np.nan
     
-      # find n and m from the size of the path gain matrix
-      n,m = np.shape(G)
-      # Checks sizes of inputs
-      if m != np.size(P_max):
-        print('Error: P_max dimensions do not match gain matrix dimensions\n')
-        return 'Error: P_max dimensions do not match gain matrix dimensions\n',np.nan,np.nan,np.nan
+        #I = np.zeros((n,m))
+        #S = np.zeros((n,m))
     
-      if n != np.size(P_received):
-        print('Error: P_received dimensions do not match gain matrix dimensions\n')
-        return 'Error: P_received dimensions do not match gain matrix dimensions',np.nan,np.nan,np.nan
+        delta = np.identity(n)
+        S = G*delta # signal power matrix
+        I = G-S # interference power matrix
     
-      if n != np.size(sigma):
-        print('Error: σ dimensions do not match gain matrix dimensions\n')
-        return 'Error: σ dimensions do not match gain matrix dimensions',np.nan,np.nan,np.nan
+        # group matrix: number of groups by number of transmitters
+        num_groups = int(np.size(Group,0))
     
-      #I = np.zeros((n,m))
-      #S = np.zeros((n,m))
+        if num_groups != np.size(Group_max):
+            print('Error: Number of groups from Group matrix does not match dimensions of Group_max\n')
+            return ('Error: Number of groups from Group matrix does not match dimensions of Group_max',
+                    np.nan, np.nan, np.nan, np.nan)
     
-      delta = np.identity(n)
-      S = G*delta # signal power matrix
-      I = G-S # interference power matrix
-      # group matrix: number of groups by number of transmitters
-      num_groups = int(np.size(Group,0))
+        # normalising the max power of a group so it is in the range [0,1]
+        Group_norm = Group/np.sum(Group,axis=1).reshape((num_groups,1))
+        
+        # create scalar optimisation variable p: the power of the n transmitters
+        p = cp.Variable(shape=n)
+        best = np.zeros(n)
     
-      if num_groups != np.size(Group_max):
-        print('Error: Number of groups from Group matrix does not match dimensions of Group_max\n')
-        return 'Error: Number of groups from Group matrix does not match dimensions of Group_max',np.nan,np.nan,np.nan,np.nan
+        # set upper and lower bounds for sub-level set
+        u = 1e4
+        l = 0
     
-      # normalising the max power of a group so it is in the range [0,1]
-      Group_norm = Group/np.sum(Group,axis=1).reshape((num_groups,1))
-      # create scalar optimisation variable p: the power of the n transmitters
-      p = cvx.Variable(shape=(n,1))
-      best = np.zeros(n)
-      # set upper and lower bounds for sub-level set
-      u = 1e4
-      l = 0
-      # alpha defines the sub-level sets of the generalised linear fractional problem
-      # in this case α is the reciprocal of the minimum SINR
-      alpha = cvx.Parameter(shape=(1, 1))
-      # set up the constraints for the bisection feasibility test
-      constraints = [I*p + sigma <= alpha*S*p, p <= P_max, p >= 0, G*p <= P_received, Group_norm*p <= Group_max]
+        # alpha defines the sub-level sets of the generalised linear fractional problem
+        # in this case α is the reciprocal of the minimum SINR
+        alpha = cp.Parameter(shape=1)
+        
+        # set up the constraints for the bisection feasibility test
+        constraints = [I*p + sigma <= alpha*S*p, p <= P_max, p >= 0, G*p <= P_received, Group_norm*p <= Group_max]
     
-      # define objective function, in our case it's constant as only want to test the solution's feasibility
-      obj = cvx.Minimize(alpha)
-      # now check whether the solution lies between u and l
-      alpha.value = u
-      prob = cvx.Problem(obj, constraints)
-      prob.solve()
-      if prob.status != 'optimal':
-        # in this case the level set u is below the solution
-        print('No optimal solution within bounds\n')
-        return 'Error: no optimal solution within bounds',np.nan,np.nan,np.nan
-    
-      alpha.value = l
-      prob = cvx.Problem(obj, constraints)
-      prob.solve()
-      if prob.status == 'optimal':
-        # in this case the level set l is below the solution
-        print('No optimal solution within bounds\n')
-        return 'Error: no optimal solution within bounds',np.nan,np.nan,np.nan
-    
-      # Bisection algortithm starts
-      maxLoop = int(1e7)
-      for i in range(1,maxLoop):
-        # First check that u is in the feasible domain and l is not, loop finishes here if this is not the case
-        # set α as the midpoint of the interval
-        alpha.value = (u + l)/2.0
-        # test the size of the interval against the specified tolerance
-        if u-l <= epsilon:
-          break
-    
-        # form and solve problem
-        prob = cvx.Problem(obj, constraints)
+        # define objective function, in our case it's constant as only want to test the solution's feasibility
+        obj = cp.Minimize(alpha)
+        
+        # now check whether the solution lies between u and l
+        alpha.value = [u]
+        prob = cp.Problem(obj, constraints)
         prob.solve()
-        # If the problem is feasible u -> α, if not l -> α, best takes the last feasible value as the optimal one as
-        # when the tolerance is reached the new α may be out of bounds
+        
+        if prob.status != 'optimal':
+            # in this case the level set u is below the solution
+            print('No optimal solution within bounds\n')
+            return 'Error: no optimal solution within bounds', np.nan, np.nan, np.nan
+        
+        alpha.value = [l]
+        prob = cp.Problem(obj, constraints)
+        prob.solve()
+    
         if prob.status == 'optimal':
-          u = alpha.value
-          best = p.value
-        else:
-          l = alpha.value
+            # in this case the level set l is below the solution
+            print('No optimal solution within bounds\n')
+            return 'Error: no optimal solution within bounds', np.nan, np.nan, np.nan
+        
+        # Bisection algortithm starts
+        maxLoop = int(1e7)
+        for i in range(1,maxLoop):
+            # First check that u is in the feasible domain and l is not, loop finishes here if this is not the case
+            # set α as the midpoint of the interval
+            alpha.value = np.atleast_1d((u + l)/2.0)
     
-        # final condition to check that the interval has converged to order ε, i.e. the range of the optimal sublevel set is <=ε
-        if u - l > epsilon and i == (maxLoop-1):
-          print("Solution not converged to order epsilon")
+            # test the size of the interval against the specified tolerance
+            if u-l <= epsilon:
+                break
+            
+            # form and solve problem
+            prob = cp.Problem(obj, constraints)
+            prob.solve()
     
-      return l,u,alpha.value,best
+            # If the problem is feasible u -> α, if not l -> α, best takes the last feasible value as the optimal one as
+            # when the tolerance is reached the new α may be out of bounds
+            if prob.status == 'optimal':
+                u = alpha.value
+                best = p.value
+            else:
+                l = alpha.value
+                
+            # final condition to check that the interval has converged to order ε, i.e. the range of the optimal sublevel set is <=ε
+            if u - l > epsilon and i == (maxLoop-1):
+                print("Solution not converged to order epsilon")
+        
+        return l, u, float(alpha.value), best
+
 
 Example
 -------
@@ -177,39 +189,45 @@ first group contains transmitters 1 & 2, while the second group contains
 For all receivers :math:`P_i^{\text{rc}} = 4` and
 :math:`\sigma_i = 0.1`.
 
-.. code:: ipython3
+.. code:: python
 
-      np.set_printoptions(precision=3)
-      # in this case we will use a gain matrix with a signal weight of 0.6 and interference weight of 0.1
-      G = np.array([[0.6,0.1,0.1,0.1,0.1],
-                    [0.1,0.6,0.1,0.1,0.1],
-                    [0.1,0.1,0.6,0.1,0.1],
-                    [0.1,0.1,0.1,0.6,0.1],
-                    [0.1,0.1,0.1,0.1,0.6]])
-      # in this case m=n, but this generalises if we want n receivers and m transmitters
-      n,m = np.shape(G)
-      # set maximum power of each transmitter and receiver saturation level
-      P_max = np.array([1.]*n)
-      # normalised received power, total possible would be all power from all transmitters so 1/n
-      P_received = np.array([4.,4.,4.,4.,4.])/n
-      # set noise level
-      sigma = np.array([0.1,0.1,0.1,0.1,0.1])
-      # group matrix: number of groups by number of transmitters
-      Group = np.array([[1.,1.,0,0,0],[0,0,1.,1.,1.]])
-      # max normalised power for groups, number of groups by 1
-      Group_max = np.array([[1.8],[1.8]])
-      # now run the optimisation problem
-      l,u,alpha,best=maxmin_sinr(G,P_max,P_received,sigma,Group,Group_max)
-      print('Minimum SINR=%.4g'%(1/alpha))
-      print('Power=%s'%(best))
+    np.set_printoptions(precision=3)
+    
+    # in this case we will use a gain matrix with a signal weight of 0.6 and interference weight of 0.1
+    G = np.array([[0.6,0.1,0.1,0.1,0.1],
+                  [0.1,0.6,0.1,0.1,0.1],
+                  [0.1,0.1,0.6,0.1,0.1],
+                  [0.1,0.1,0.1,0.6,0.1],
+                  [0.1,0.1,0.1,0.1,0.6]])
+    
+    # in this case m=n, but this generalises if we want n receivers and m transmitters
+    n, m = np.shape(G)
+    
+    # set maximum power of each transmitter and receiver saturation level
+    P_max = np.array([1.]*n)
+    
+    # normalised received power, total possible would be all power from all transmitters so 1/n
+    P_received = np.array([4.,4.,4.,4.,4.])/n
+    
+    # set noise level
+    sigma = np.array([0.1,0.1,0.1,0.1,0.1])
+    
+    # group matrix: number of groups by number of transmitters
+    Group = np.array([[1.,1.,0,0,0],[0,0,1.,1.,1.]])
+    
+    # max normalised power for groups, number of groups by 1
+    Group_max = np.array([1.8,1.8])
+    
+    # now run the optimisation problem
+    l, u, alpha, best = maxmin_sinr(G, P_max, P_received, sigma, Group, Group_max)
+    
+    print('Minimum SINR={:.4g}'.format(1/alpha))
+    print('Power={}'.format(best))
+
 
 
 .. parsed-literal::
 
-    Minimum SINR=1.142
-    Power=[[ 0.798]
-     [ 0.798]
-     [ 0.798]
-     [ 0.798]
-     [ 0.798]]
+    Minimum SINR=1.148
+    Power=[0.8 0.8 0.8 0.8 0.8]
 

@@ -18,6 +18,8 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 import scipy.special
 import numpy as np
 
+# TODO(akshayka): DGP support.
+
 
 class huber(Elementwise):
     """The Huber function
@@ -27,7 +29,7 @@ class huber(Elementwise):
         \\operatorname{Huber}(x, M) =
             \\begin{cases}
                 2M|x|-M^2 & \\text{for } |x| \\geq |M| \\\\
-                      |x|^2 & \\text{for } |x| \\\leq |M|.
+                      |x|^2 & \\text{for } |x| \\leq |M|.
             \\end{cases}
 
     :math:`M` defaults to 1.

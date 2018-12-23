@@ -49,6 +49,16 @@ class diag_vec(AffAtom):
     def __init__(self, expr):
         super(diag_vec, self).__init__(expr)
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     def numeric(self, values):
         """Convert the vector constant into a diagonal matrix.
         """
@@ -98,15 +108,22 @@ class diag_mat(AffAtom):
     def __init__(self, expr):
         super(diag_mat, self).__init__(expr)
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Extract the diagonal from a square matrix constant.
         """
         # The return type in numpy versions < 1.10 was ndarray.
-        v = np.diag(values[0])
-        if isinstance(v, np.matrix):
-            v = v.A[0]
-        return v
+        return np.diag(values[0])
 
     def shape_from_args(self):
         """A column vector.

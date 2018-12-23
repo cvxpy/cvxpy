@@ -166,6 +166,13 @@ CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which inclu
 Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
 See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
 
+Install with CPLEX support
+---------------------------
+
+CVXPY supports the CPLEX solver.
+Simply install CPLEX such that you can ``import cplex`` in Python.
+See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools

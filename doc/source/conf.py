@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 sys.path.append('/home/docs/checkouts/readthedocs.org/user_builds/cvxpy/checkouts/1.0/cvxpy')
 
-__version__ = "1.0.10"
+__version__ = "1.0.11"
 
 # -- General configuration -----------------------------------------------------
 
@@ -146,7 +146,7 @@ html_theme_options = {
    'github_repo': 'cvxpy',
    'github_banner': True,
    'github_type': 'star',
-   'travis_button': True,
+   'travis_button': False,
    'analytics_id': 'UA-50248335-1',
 }
 

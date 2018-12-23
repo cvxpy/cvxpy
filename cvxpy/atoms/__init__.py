@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.lambda_max import lambda_max
@@ -33,7 +34,10 @@ from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.mixed_norm import mixed_norm
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
+from cvxpy.atoms.one_minus_pos import one_minus_pos
+from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm, Pnorm
+from cvxpy.atoms.prod import prod, Prod
 from cvxpy.atoms.quad_form import quad_form, QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max

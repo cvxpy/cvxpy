@@ -57,7 +57,7 @@ class max(AxisAtom):
             A NumPy ndarray or None.
         """
         # Grad: 1 for a largest index.
-        value = np.matrix(value).A.ravel(order='F')
+        value = np.array(value).ravel(order='F')
         idx = np.argmax(value)
         D = np.zeros((value.size, 1))
         D[idx] = 1
@@ -76,6 +76,16 @@ class max(AxisAtom):
 
     def is_atom_concave(self):
         """Is the atom concave?
+        """
+        return False
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
         """
         return False
 

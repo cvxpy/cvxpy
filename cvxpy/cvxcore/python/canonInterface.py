@@ -89,7 +89,7 @@ def format_matrix(matrix, shape=None, format='dense'):
     elif(format == 'sparse'):
         return scipy.sparse.coo_matrix(matrix)
     elif(format == 'scalar'):
-        return np.asfortranarray(np.matrix(matrix))
+        return np.asfortranarray([[matrix]])
     else:
         raise NotImplementedError()
 

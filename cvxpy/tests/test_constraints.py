@@ -46,11 +46,11 @@ class TestConstraints(BaseTest):
     #     constr = 2*self.x >= self.x
     #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
 
-    def test_zero(self):
-        """Test the Zero class.
+    def test_equality(self):
+        """Test the Equality class.
         """
         constr = self.x == self.z
-        self.assertEqual(constr.name(), "x + -z == 0")
+        self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.shape, (2,))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         # Test value and dual_value.
@@ -90,11 +90,11 @@ class TestConstraints(BaseTest):
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
-    def test_nonpos(self):
-        """Test the NonPos class.
+    def test_inequality(self):
+        """Test the Inequality class.
         """
         constr = self.x <= self.z
-        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.shape, (2,))
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -196,7 +196,7 @@ class TestConstraints(BaseTest):
         """Test the >= operator.
         """
         constr = self.z >= self.x
-        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.shape, (2,))
 
         # Incompatible dimensions

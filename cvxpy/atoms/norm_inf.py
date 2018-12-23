@@ -22,7 +22,7 @@ class norm_inf(AxisAtom):
     _allow_complex = True
 
     def numeric(self, values):
-        """Returns the one norm of x.
+        """Returns the inf norm of x.
         """
         if self.axis is None:
             values = np.array(values[0]).flatten()
@@ -43,6 +43,16 @@ class norm_inf(AxisAtom):
 
     def is_atom_concave(self):
         """Is the atom concave?
+        """
+        return False
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
         """
         return False
 

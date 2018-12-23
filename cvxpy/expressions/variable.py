@@ -69,8 +69,10 @@ class Variable(Leaf):
             self.id = var_id
         if name is None:
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
-        else:
+        elif isinstance(name, str):
             self._name = name
+        else:
+            raise TypeError("Variable name %s must be a string." % name)
 
         self._value = None
         super(Variable, self).__init__(shape, **kwargs)

@@ -87,12 +87,12 @@ class log_det(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        X = np.matrix(values[0])
+        X = values[0]
         eigen_val = LA.eigvals(X)
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T
-            return [sp.csc_matrix(D.A.ravel(order='F')).T]
+            return [sp.csc_matrix(D.ravel(order='F')).T]
         # Outside domain.
         else:
             return [None]

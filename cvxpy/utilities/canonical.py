@@ -40,6 +40,9 @@ class Canonical(object):
         """
         return self.canonicalize()
 
+    # TODO(akshayka): Reocomputing .variables, etc. is expensive.
+    # We need a mutability contract that lets us cache/invalidate these
+    # fields (separable_problems.py mutates expressions).
     def variables(self):
         """Returns all the variables present in the arguments.
         """
@@ -49,8 +52,8 @@ class Canonical(object):
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        # Remove duplicates.
-        return list(set(param for arg in self.args for param in arg.parameters()))
+        return list(
+          set(param for arg in self.args for param in arg.parameters()))
 
     def constants(self):
         """Returns all the constants present in the arguments.

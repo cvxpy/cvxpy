@@ -101,9 +101,9 @@ class CvxAttr2Constr(Reduction):
                     id2new_var[var.id] = obj
 
                 id2new_obj[id(var)] = obj
-                if var.is_nonneg():
+                if var.is_pos() or var.is_nonneg():
                     constr.append(obj >= 0)
-                elif var.is_nonpos():
+                elif var.is_neg() or var.is_nonpos():
                     constr.append(obj <= 0)
                 elif var.is_psd():
                     constr.append(obj >> 0)

@@ -34,7 +34,7 @@ We load the original image and the corrupted image and construct the
 Known matrix. Both images are displayed below. The corrupted image has
 the missing pixels whited out.
 
-.. code:: 
+.. code:: python
 
     from PIL import Image
     import matplotlib.pyplot as plt
@@ -53,8 +53,8 @@ the missing pixels whited out.
     # Known is 1 if the pixel is known,
     # 0 if the pixel was corrupted.
     Known = np.zeros((rows, cols))
-    for i in xrange(rows):
-        for j in xrange(cols):
+    for i in range(rows):
+        for j in range(cols):
              if Uorig[i, j] == Ucorr[i, j]:
                 Known[i, j] = 1
     
@@ -77,58 +77,54 @@ CVXPY. We use the solver SCS, which finds the optimal value in a few
 seconds. The solvers ECOS and CVXOPT take much longer to solve this
 large problem.
 
-.. code:: 
+.. code:: python
 
     # Recover the original image using total variation in-painting.
-    from cvxpy import *
-    U = Variable(shape=(rows, cols))
-    obj = Minimize(tv(U))
-    constraints = [multiply(Known, U) == multiply(Known, Ucorr)]
-    prob = Problem(obj, constraints)
+    import cvxpy as cp
+    U = cp.Variable(shape=(rows, cols))
+    obj = cp.Minimize(cp.tv(U))
+    constraints = [cp.multiply(Known, U) == cp.multiply(Known, Ucorr)]
+    prob = cp.Problem(obj, constraints)
+    
     # Use SCS to solve the problem.
-    prob.solve(verbose=True, solver=SCS)
+    prob.solve(verbose=True, solver=cp.SCS)
+    print("optimal objective value: {}".format(obj.value))
 
 
 .. parsed-literal::
 
     ----------------------------------------------------------------------------
-    	SCS v1.0.5 - Splitting Conic Solver
-    	(c) Brendan O'Donoghue, Stanford University, 2012
+    	SCS v1.2.6 - Splitting Conic Solver
+    	(c) Brendan O'Donoghue, Stanford University, 2012-2016
     ----------------------------------------------------------------------------
-    Lin-sys: sparse-direct, nnz in A = 1547594
-    EPS = 1.00e-03, ALPHA = 1.80, MAX_ITERS = 2500, NORMALIZE = 1, SCALE = 5.00
+    Lin-sys: sparse-indirect, nnz in A = 1547594, CG tol ~ 1/iter^(2.00)
+    eps = 1.00e-03, alpha = 1.50, max_iters = 2500, normalize = 1, scale = 1.00
     Variables n = 523265, constraints m = 1045507
     Cones:	primal zero / dual free vars: 262144
     	soc vars: 783363, soc blks: 261121
-    Setup time: 3.84e+00s
+    Setup time: 2.24e-01s
     ----------------------------------------------------------------------------
      Iter | pri res | dua res | rel gap | pri obj | dua obj | kap/tau | time (s)
     ----------------------------------------------------------------------------
-         0| 2.97e+00  5.93e+00  1.00e+00 -2.92e+07  6.59e+06  7.18e-09  2.58e-01 
-       100| 3.38e-04  2.47e-03  3.84e-05  2.21e+06  2.21e+06  6.98e-10  9.92e+00 
-       140| 1.01e-04  7.24e-04  1.24e-05  2.21e+06  2.21e+06  6.98e-10  1.36e+01 
+         0| 5.33e+00  4.95e+00  1.00e+00 -1.49e+08  6.22e+06  3.51e-08  1.78e+00 
+       100| 3.43e-03  1.35e-03  5.41e-03  2.16e+06  2.18e+06  4.13e-09  3.87e+01 
+       200| 1.09e-03  2.52e-04  1.18e-03  2.20e+06  2.20e+06  4.25e-09  7.21e+01 
+       220| 9.27e-04  1.95e-04  9.53e-04  2.20e+06  2.21e+06  4.26e-09  7.86e+01 
     ----------------------------------------------------------------------------
     Status: Solved
-    Timing: Total solve time: 1.37e+01s
-    	Lin-sys: nnz in L factor: 12280804, avg solve time: 6.61e-02s
-    	Cones: avg projection time: 4.14e-03s
+    Timing: Solve time: 7.87e+01s
+    	Lin-sys: avg # CG iterations: 9.54, avg solve time: 3.04e-01s
+    	Cones: avg projection time: 5.71e-03s
     ----------------------------------------------------------------------------
     Error metrics:
-    |Ax + s - b|_2 / (1 + |b|_2) = 1.0084e-04
-    |A'y + c|_2 / (1 + |c|_2) = 7.2392e-04
-    |c'x + b'y| / (1 + |c'x| + |b'y|) = 1.2426e-05
-    dist(s, K) = 0, dist(y, K*) = 0, s'y = 0
+    dist(s, K) = 4.9738e-14, dist(y, K*) = 2.2204e-16, s'y/|s||y| = 1.6244e-17
+    |Ax + s - b|_2 / (1 + |b|_2) = 9.2692e-04
+    |A'y + c|_2 / (1 + |c|_2) = 1.9490e-04
+    |c'x + b'y| / (1 + |c'x| + |b'y|) = 9.5346e-04
     ----------------------------------------------------------------------------
-    c'x = 2209202.9055, -b'y = 2209257.8084
+    c'x = 2201748.4016, -b'y = 2205950.9682
     ============================================================================
-
-
-
-
-.. parsed-literal::
-
-    2209202.9055004898
-
+    optimal objective value: 2199728.631919451
 
 
 After solving the problem, the in-painted image is stored in
@@ -136,9 +132,9 @@ After solving the problem, the in-painted image is stored in
 difference between the original and in-painted images. The intensity
 difference is magnified by a factor of 10 so it is more visible.
 
-.. code:: 
+.. code:: python
 
-    fig, ax = plt.subplots(1, 2,figsize=(10, 5))
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
     # Display the in-painted image.
     img_rec = Image.fromarray(U.value)
     ax[0].imshow(img_rec);
@@ -193,7 +189,7 @@ selecting 30% of the pixels to keep and discarding the others. The
 original and corrupted images are displayed below. The corrupted image
 has the missing pixels blacked out.
 
-.. code:: 
+.. code:: python
 
     from PIL import Image
     import matplotlib.pyplot as plt
@@ -211,10 +207,10 @@ has the missing pixels blacked out.
     # 0 if the pixel was corrupted.
     # The Known matrix is initialized randomly.
     Known = np.zeros((rows, cols, colors))
-    for i in xrange(rows):
-        for j in xrange(cols):
+    for i in range(rows):
+        for j in range(cols):
             if np.random.random() > 0.7:
-                for k in xrange(colors):
+                for k in range(colors):
                     Known[i, j, k] = 1
                 
     Ucorr = Known*Uorig
@@ -241,60 +237,58 @@ and one for the green values). We use the solver SCS, which finds the
 optimal value in 25 seconds. The solvers ECOS and CVXOPT don't scale to
 this large problem.
 
-.. code:: 
+.. code:: python
 
     # Recover the original image using total variation in-painting.
-    from cvxpy import *
+    import cvxpy as cp
     variables = []
     constraints = []
-    for i in xrange(colors):
-        U = Variable(shape=(rows, cols))
+    for i in range(colors):
+        U = cp.Variable(shape=(rows, cols))
         variables.append(U)
-        constraints.append(multiply(Known[:, :, i], U) == multiply(Known[:, :, i], Ucorr[:, :, i]))
+        constraints.append(cp.multiply(Known[:, :, i], U) == cp.multiply(Known[:, :, i], Ucorr[:, :, i]))
     
-    prob = Problem(Minimize(tv(*variables)), constraints)
-    prob.solve(verbose=True, solver=SCS)
+    prob = cp.Problem(cp.Minimize(cp.tv(*variables)), constraints)
+    prob.solve(verbose=True, solver=cp.SCS)
+    print("optimal objective value: {}".format(obj.value))
 
 
 .. parsed-literal::
 
+    WARN: A->p (column pointers) not strictly increasing, column 523264 empty
+    WARN: A->p (column pointers) not strictly increasing, column 785408 empty
+    WARN: A->p (column pointers) not strictly increasing, column 1047552 empty
     ----------------------------------------------------------------------------
-    	SCS v1.0.5 - Splitting Conic Solver
-    	(c) Brendan O'Donoghue, Stanford University, 2012
+    	SCS v1.2.6 - Splitting Conic Solver
+    	(c) Brendan O'Donoghue, Stanford University, 2012-2016
     ----------------------------------------------------------------------------
-    Lin-sys: sparse-direct, nnz in A = 3630814
-    EPS = 1.00e-03, ALPHA = 1.80, MAX_ITERS = 2500, NORMALIZE = 1, SCALE = 5.00
+    Lin-sys: sparse-indirect, nnz in A = 3630814, CG tol ~ 1/iter^(2.00)
+    eps = 1.00e-03, alpha = 1.50, max_iters = 2500, normalize = 1, scale = 1.00
     Variables n = 1047553, constraints m = 2614279
     Cones:	primal zero / dual free vars: 786432
     	soc vars: 1827847, soc blks: 261121
-    Setup time: 1.16e+01s
+    Setup time: 4.98e-01s
     ----------------------------------------------------------------------------
      Iter | pri res | dua res | rel gap | pri obj | dua obj | kap/tau | time (s)
     ----------------------------------------------------------------------------
-         0| 4.87e+00  2.03e+01       nan      -inf       inf       inf  6.55e-01 
-       100| 7.28e-05  4.92e-04  5.96e-06  2.91e+06  2.91e+06  7.28e-10  3.22e+01 
+         0| 1.15e+01  1.16e+01  1.00e+00 -3.08e+08  8.93e+06  4.08e-08  5.82e+00 
+       100| 1.48e-03  4.97e-04  7.91e-04  2.90e+06  2.90e+06  4.38e-09  1.07e+02 
+       140| 7.64e-04  1.78e-04  3.23e-04  2.90e+06  2.91e+06  4.40e-09  1.46e+02 
     ----------------------------------------------------------------------------
     Status: Solved
-    Timing: Total solve time: 3.24e+01s
-    	Lin-sys: nnz in L factor: 35251632, avg solve time: 2.35e-01s
-    	Cones: avg projection time: 7.62e-03s
+    Timing: Solve time: 1.46e+02s
+    	Lin-sys: avg # CG iterations: 11.11, avg solve time: 9.13e-01s
+    	Cones: avg projection time: 7.61e-03s
     ----------------------------------------------------------------------------
     Error metrics:
-    |Ax + s - b|_2 / (1 + |b|_2) = 7.2806e-05
-    |A'y + c|_2 / (1 + |c|_2) = 4.9207e-04
-    |c'x + b'y| / (1 + |c'x| + |b'y|) = 5.9594e-06
-    dist(s, K) = 0, dist(y, K*) = 0, s'y = 0
+    dist(s, K) = 5.6843e-14, dist(y, K*) = 2.2204e-16, s'y/|s||y| = 2.8317e-17
+    |Ax + s - b|_2 / (1 + |b|_2) = 7.6373e-04
+    |A'y + c|_2 / (1 + |c|_2) = 1.7788e-04
+    |c'x + b'y| / (1 + |c'x| + |b'y|) = 3.2341e-04
     ----------------------------------------------------------------------------
-    c'x = 2906748.2457, -b'y = 2906782.8906
+    c'x = 2903331.8699, -b'y = 2905210.4273
     ============================================================================
-
-
-
-
-.. parsed-literal::
-
-    2906748.2456711144
-
+    optimal objective value: 2199728.631919451
 
 
 After solving the problem, the RGB values of the in-painted image are
@@ -304,7 +298,7 @@ original and in-painted image. Though the in-painted image looks almost
 identical to the original image, you can see that many of the RGB values
 differ.
 
-.. code:: 
+.. code:: python
 
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
@@ -312,7 +306,7 @@ differ.
     
     # Load variable values into a single array.
     rec_arr = np.zeros((rows, cols, colors), dtype=np.uint8)
-    for i in xrange(colors):
+    for i in range(colors):
         rec_arr[:, :, i] = variables[i].value
     
     fig, ax = plt.subplots(1, 2,figsize=(10, 5))

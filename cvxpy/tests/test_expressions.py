@@ -98,6 +98,10 @@ class TestExpressions(BaseTest):
             p = Variable((2, .5))
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0.5).")
 
+        with self.assertRaises(Exception) as cm:
+            p = Variable(2, 1)
+        self.assertEqual(str(cm.exception), "Variable name 1 must be a string.")
+
     def test_assign_var_value(self):
         """Test assigning a value to a variable.
         """
@@ -611,6 +615,27 @@ class TestExpressions(BaseTest):
         exp = [[1], [2]] + c.__matmul__(self.C)
         self.assertEqual(exp.sign, s.UNKNOWN)
 
+        # Testing shape.
+        a = Parameter((1,))
+        x = Variable(shape=(1,))
+        expr = a.__matmul__(x)
+        self.assertEqual(expr.shape, ())
+
+        # Testing shape.
+        a = Parameter((1,))
+        x = Variable(shape=(1,))
+        expr = a.__matmul__(x)
+        self.assertEqual(expr.shape, ())
+
+        A = Parameter((4, 4))
+        z = Variable((4, 1))
+        expr = A.__matmul__(z)
+        self.assertEqual(expr.shape, (4, 1))
+
+        v = Variable((1,1))
+        col_scalar = Parameter((1,1))
+        assert v.shape == col_scalar.shape == col_scalar.T.shape
+
     # Test the DivExpresion class.
     def test_div_expression(self):
         # Vectors
@@ -625,7 +650,12 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.x/[2, 2, 3])
         print(cm.exception)
-        self.assertEqual(str(cm.exception), "Can only divide by a scalar constant.")
+        self.assertRegexpMatches(str(cm.exception),
+                         "Incompatible shapes for division.*")
+
+        c = Constant([3.0, 4.0, 12.0])
+        self.assertItemsAlmostEqual(
+          (c / Constant([1.0, 2.0, 3.0])).value, np.array([3.0, 2.0, 4.0]))
 
         # Constant expressions.
         c = Constant(2)
