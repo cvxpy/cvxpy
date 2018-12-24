@@ -42,8 +42,8 @@ class log_det(Atom):
 
     # Any argument shape is valid.
     def validate_arguments(self):
-        n, m = self.args[0].shape
-        if n != m:
+        shape = self.args[0].shape
+        if len(shape) == 1 or shape[0] != shape[1]:
             raise TypeError("The argument to log_det must be a square matrix.")
 
     def shape_from_args(self):
