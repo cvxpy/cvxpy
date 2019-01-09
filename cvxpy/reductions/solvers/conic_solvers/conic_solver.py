@@ -212,11 +212,13 @@ class ConicSolver(Solver):
         elif type(constr) == SOC:
             # Group each t row with appropriate X rows.
             mat_arr = []
-            offset = np.zeros(height, dtype=np.float64)
             if constr.axis == 0:
                 gap = constr.args[1].shape[0] + 1
             else:
+                # TODO why does this work?
+                skip = constr.args[1].shape[0] + 1
                 gap = constr.args[1].shape[1] + 1
+            offset = np.zeros(height, dtype=np.float64)
             for i in range(constr.args[0].size):
                 offset[i*gap] = offsets[0][i]
                 mat_arr.append(coeffs[0][i, :])
@@ -225,8 +227,8 @@ class ConicSolver(Solver):
                         i*(gap-1):(i+1)*(gap-1)]
                     mat_arr.append(coeffs[1][i*(gap-1):(i+1)*(gap-1), :])
                 else:
-                    offset[i*gap+1:(i+1)*gap] = offsets[1][i::gap-1]
-                    mat_arr.append(coeffs[1][i::gap-1, :])
+                    offset[i*gap+1:(i+1)*gap] = offsets[1][i::skip-1]
+                    mat_arr.append(coeffs[1][i::skip-1, :])
             return -sp.vstack(mat_arr), offset
         elif type(constr) == ExpCone:
             for i, coeff in enumerate(coeffs):

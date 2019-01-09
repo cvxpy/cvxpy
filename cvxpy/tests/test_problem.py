@@ -1707,3 +1707,24 @@ class TestProblem(BaseTest):
         problem = cvx.Problem(objective, constraints)
         problem.solve()
         self.assertItemsAlmostEqual(x.value, [1, 1])
+
+    def test_pnorm_axis(self):
+        """Test pnorm with axis != 0.
+        """
+        b = numpy.arange(2)
+        X = cvx.Variable(shape=(2, 10))
+        expr = cvx.pnorm(X, p=2, axis=1) - b
+        con = [expr <= 0]
+        obj = cvx.Maximize(cvx.sum(X))
+        prob = cvx.Problem(obj, con)
+        result = prob.solve(solver='ECOS')
+        self.assertItemsAlmostEqual(expr.value, numpy.zeros(2))
+
+        b = numpy.arange(10)
+        X = cvx.Variable(shape=(10, 2))
+        expr = cvx.pnorm(X, p=2, axis=1) - b
+        con = [expr <= 0]
+        obj = cvx.Maximize(cvx.sum(X))
+        prob = cvx.Problem(obj, con)
+        result = prob.solve(solver='ECOS')
+        self.assertItemsAlmostEqual(expr.value, numpy.zeros(10))
