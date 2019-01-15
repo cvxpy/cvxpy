@@ -2,6 +2,8 @@ import cvxpy
 from cvxpy.atoms.affine.add_expr import AddExpression
 import cvxpy.error as error
 import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
+from cvxpy.reductions import solution
+from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
@@ -479,3 +481,14 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(cvxpy.Maximize(objective_fn), constraints)
         # Smoke test.
         problem.solve(gp=True)
+
+    def test_solver_error(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        prod = x * y 
+        dgp = cvxpy.Problem(cvxpy.Minimize(prod), [])
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp()
+        _, inverse_data = dgp2dcp.apply(dgp)
+        soln = solution.Solution(SOLVER_ERROR, None, {}, {}, {})
+        dgp_soln = dgp2dcp.invert(soln, inverse_data)
+        self.assertEqual(dgp_soln.status, SOLVER_ERROR)

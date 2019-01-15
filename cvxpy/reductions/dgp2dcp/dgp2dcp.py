@@ -15,6 +15,7 @@ limitations under the License.
 """
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers import DgpCanonMethods
+from cvxpy import settings
 
 import numpy as np
 
@@ -79,6 +80,8 @@ class Dgp2Dcp(Canonicalization):
 
     def invert(self, solution, inverse_data):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
+        if solution.status == settings.SOLVER_ERROR:
+            return solution
         for vid, value in solution.primal_vars.items():
             solution.primal_vars[vid] = np.exp(value)
         # f(x) = e^{F(u)}.
