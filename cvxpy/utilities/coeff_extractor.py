@@ -23,7 +23,6 @@ import scipy.sparse as sp
 
 import cvxpy
 from cvxpy.cvxcore.python import canonInterface
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP

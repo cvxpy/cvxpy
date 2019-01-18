@@ -18,12 +18,9 @@ from cvxpy.atoms import QuadForm
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy import problems
-from cvxpy.reductions import InverseData
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
 class QpMatrixStuffing(MatrixStuffing):

@@ -19,7 +19,6 @@ import numpy as np
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.utilities import are_args_affine
 
