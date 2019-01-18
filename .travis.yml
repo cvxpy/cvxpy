@@ -5,15 +5,15 @@ os:
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7.10" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.14" SCIPY_VERSION="0.19"
+      NUMPY_VERSION="1.14" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI="false"
     - DISTRIB="conda" PYTHON_VERSION="3.5" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.14" SCIPY_VERSION="0.19"
+      NUMPY_VERSION="1.14" SCIPY_VERSION="1.1.0"
       COVERAGE="true"
       DEPLOY_PYPI="false"
     - DISTRIB="conda" PYTHON_VERSION="3.6" INSTALL_ATLAS="true"
-      NUMPY_VERSION="1.14" SCIPY_VERSION="0.19"
+      NUMPY_VERSION="1.14" SCIPY_VERSION="1.1.0"
       COVERAGE="true"
       DEPLOY_PYPI="true"
       PYPI_SERVER="https://upload.pypi.org/legacy/"

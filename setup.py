@@ -49,7 +49,7 @@ setup(
                       "fastcache",
                       "six",
                       "numpy >= 1.14",
-                      "scipy >= 0.19"],
+                      "scipy >= 1.1.0"],
     setup_requires=["numpy >= 1.14"],
     use_2to3=True,
 )
