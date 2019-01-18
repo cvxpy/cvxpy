@@ -60,19 +60,31 @@ class MatrixStuffing(Reduction):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
-        new_obj, new_var = self.stuffed_objective(problem, inverse_data)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data)
-        new_cons = []
+        new_obj, new_var, r = self.stuffed_objective(problem, extractor)
+        inverse_data.r = r
+        # Lower equality and inequality to Zero and NonPos.
+        cons = []
         for con in problem.constraints:
-            arg_list = []
             if isinstance(con, Equality):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_inequality(con)
+            cons.append(con)
+
+        # Batch expressions together, then split apart.
+        expr_list = [arg for con in cons for arg in con.args]
+        Afull, bfull = extractor.affine(expr_list)
+        new_cons = []
+        offset = 0
+        for con in cons:
+            arg_list = []
             for arg in con.args:
-                A, b = extractor.get_coeffs(arg)
+                A = Afull[offset:offset+arg.size, :]
+                b = bfull[offset:offset+arg.size]
                 arg_list.append(reshape(A*new_var + b, arg.shape))
+                offset += arg.size
             new_cons.append(con.copy(arg_list))
             inverse_data.cons_id_map[con.id] = new_cons[-1].id
 

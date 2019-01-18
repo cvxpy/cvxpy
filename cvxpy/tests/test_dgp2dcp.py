@@ -485,7 +485,7 @@ class TestDgp2Dcp(BaseTest):
     def test_solver_error(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
-        prod = x * y 
+        prod = x * y
         dgp = cvxpy.Problem(cvxpy.Minimize(prod), [])
         dgp2dcp = cvxpy.reductions.Dgp2Dcp()
         _, inverse_data = dgp2dcp.apply(dgp)

@@ -124,7 +124,7 @@ class AffAtom(Atom):
                                                  self.get_data())
         # Get the matrix representation of the function.
         V, I, J, _ = canonInterface.get_problem_matrix(
-            [lu.create_eq(fake_expr)],
+            [fake_expr],
             var_offsets,
             None
         )
