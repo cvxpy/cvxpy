@@ -43,16 +43,14 @@ class ConeMatrixStuffing(MatrixStuffing):
                 and not convex_attributes(problem.variables())
                 and are_args_affine(problem.constraints))
 
-    def stuffed_objective(self, problem, inverse_data):
-        extractor = CoeffExtractor(inverse_data)
-        # Extract to c.T * x, store r
-        C, R = extractor.get_coeffs(problem.objective.expr)
+    def stuffed_objective(self, problem, extractor):
+        # Extract to c.T * x + r
+        C, R = extractor.affine(problem.objective.expr)
 
         c = np.asarray(C.todense()).flatten()
         boolean, integer = extract_mip_idx(problem.variables())
-        x = Variable(inverse_data.x_length, boolean=boolean, integer=integer)
+        x = Variable(extractor.N, boolean=boolean, integer=integer)
 
         new_obj = c.T * x + 0
 
-        inverse_data.r = R[0]
-        return new_obj, x
+        return new_obj, x, R[0]

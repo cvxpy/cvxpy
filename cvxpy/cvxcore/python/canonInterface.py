@@ -21,14 +21,14 @@ import scipy.sparse
 from collections import deque
 
 
-def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
+def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
     """
     Builds a sparse representation of the problem data by calling CVXCanon's
     C++ build_matrix function.
 
     Parameters
     ----------
-        constrs: A list of python linOp trees
+        linOps: A list of python linOp trees
         id_to_col: A map from variable id to offset withoun our matrix
 
     Returns
@@ -36,7 +36,6 @@ def get_problem_matrix(constrs, id_to_col=None, constr_offsets=None):
         V, I, J: numpy arrays encoding a sparse representation of our problem
         const_vec: a numpy column vector representing the constant_data in our problem
     """
-    linOps = [constr.expr for constr in constrs]
     lin_vec = cvxcore.LinOpVector()
 
     id_to_col_C = cvxcore.IntIntMap()
