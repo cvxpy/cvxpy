@@ -17,14 +17,13 @@ limitations under the License.
 import abc
 import numpy as np
 
-from cvxpy.constraints import Equality, Inequality
+from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
 import cvxpy.settings as s
 from cvxpy.reductions import Reduction, Solution, InverseData
 from cvxpy.reductions.utilities import lower_equality, lower_inequality
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
 from cvxpy import problems
-from cvxpy.constraints import SOC, ExpCone
 from cvxpy.problems.objective import Minimize
 
 
@@ -71,6 +70,9 @@ class MatrixStuffing(Reduction):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_inequality(con)
+            elif isinstance(con, SOC) and con.axis == 1:
+                con = SOC(con.args[0], con.args[1].T, axis=0,
+                          constr_id=con.constr_id)
             cons.append(con)
 
         # Batch expressions together, then split apart.

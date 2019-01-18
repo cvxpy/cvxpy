@@ -18,7 +18,7 @@ from scipy import misc
 import matplotlib.pyplot as plt
 import numpy as np
 
-l = misc.lena()
+l = misc.ascent()
 l = l.astype(np.float64, copy=False)
 l = l/np.max(l) #rescale pixels into [0,1]
 
