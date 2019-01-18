@@ -64,24 +64,20 @@ def scaled_lower_tri(matrix):
     """
     rows = cols = matrix.shape[0]
     entries = rows * (cols + 1)//2
-    val_arr = []
-    row_arr = []
-    col_arr = []
-    count = 0
-    for j in range(cols):
-        for i in range(rows):
-            if j <= i:
-                # Index in the original matrix.
-                col_arr.append(j*rows + i)
-                # Index in the extracted vector.
-                row_arr.append(count)
-                if j == i:
-                    val_arr.append(1.0)
-                else:
-                    val_arr.append(np.sqrt(2))
-                count += 1
+
+    row_arr = np.arange(0, entries)
+
+    lower_diag_indices = np.tril_indices(rows)
+    col_arr = np.sort(np.ravel_multi_index(lower_diag_indices, (rows, cols), order='F'))
+
+    val_arr = np.zeros((rows, cols))
+    val_arr[lower_diag_indices] = np.sqrt(2)
+    np.fill_diagonal(val_arr, 1)
+    val_arr = np.ravel(val_arr, order='F')
+    val_arr = val_arr[np.nonzero(val_arr)]
+
     shape = (entries, rows*cols)
-    coeff = Constant(sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsc())
+    coeff = Constant(sp.csc_matrix((val_arr, (row_arr, col_arr)), shape))
     vectorized_matrix = reshape(matrix, (rows*cols, 1))
     return coeff * vectorized_matrix
 
@@ -106,14 +102,12 @@ def tri_to_full(lower_tri, n):
         triangular array.
     """
     full = np.zeros((n, n))
-    for col in range(n):
-        for row in range(col, n):
-            idx = row - col + n*(n+1)//2 - (n-col)*(n-col+1)//2
-            if row != col:
-                full[row, col] = lower_tri[idx]/np.sqrt(2)
-                full[col, row] = lower_tri[idx]/np.sqrt(2)
-            else:
-                full[row, col] = lower_tri[idx]
+    full[np.triu_indices(n)] = lower_tri
+    full[np.tril_indices(n)] = lower_tri
+
+    full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
+    full[np.triu_indices(n, k=1)] /= np.sqrt(2)
+
     return np.reshape(full, n*n, order="F")
 
 
