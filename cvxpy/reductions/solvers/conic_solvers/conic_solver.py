@@ -159,7 +159,7 @@ class ConicSolver(Solver):
 
         Returns
         -------
-        SciPy CSR matrix
+        SciPy CSC matrix
             A sparse matrix
         """
         val_arr = []
@@ -170,7 +170,7 @@ class ConicSolver(Solver):
             val_arr.append(np.float64(1.0))
             row_arr.append(spacing*var_row + offset)
             col_arr.append(var_row)
-        return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsr()
+        return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsc()
 
     def format_constr(self, problem, constr, exp_cone_order):
         """
@@ -196,7 +196,7 @@ class ConicSolver(Solver):
             The constraint to format.
 
         Returns:
-          (SciPy CSR sparse matrix, NumPy 1D array)
+          (SciPy CSC sparse matrix, NumPy 1D array)
         """
         coeffs, offsets = [], []
         for arg in constr.args:
@@ -208,7 +208,7 @@ class ConicSolver(Solver):
         if type(constr) in [NonPos, Zero]:
             # Both of these constraints have but a single argument.
             # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
-            return coeffs[0].tocsr(), -offsets[0]
+            return coeffs[0].tocsc(), -offsets[0]
         elif type(constr) == SOC:
             # Group each t row with appropriate X rows.
             assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -233,7 +233,7 @@ class ConicSolver(Solver):
             offset = np.hstack([
               np.expand_dims(offsets[0], 1),
               offsets[1].reshape((offsets[0].shape[0], -1))]).ravel()
-            return stacked.tocsr(), offset
+            return stacked.tocsc(), offset
         elif type(constr) == ExpCone:
             for i, coeff in enumerate(coeffs):
                 mat = ConicSolver.get_spacing_matrix(
@@ -242,7 +242,7 @@ class ConicSolver(Solver):
                                                 exp_cone_order[i])
                 offsets[i] = mat*offsets[i]
                 coeffs[i] = -mat*coeffs[i]
-            return sum(coeffs).tocsr(), sum(offsets)
+            return sum(coeffs).tocsc(), sum(offsets)
         else:
             # subclasses must handle PSD constraints.
             raise ValueError("Unsupported constraint type.")
