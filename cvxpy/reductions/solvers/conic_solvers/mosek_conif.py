@@ -239,8 +239,14 @@ class MOSEK(ConicSolver):
                 Gs.append(G_vec)
                 hs.append(h_vec)
 
-        data[s.G] = sp.sparse.vstack(tuple(Gs))
-        data[s.H] = np.hstack(tuple(hs))
+        if Gs:
+            data[s.G] = sp.sparse.vstack(tuple(Gs))
+        else:
+            data[s.G] = sp.sparse.csc_matrix((0, 0))
+        if hs:
+            data[s.H] = np.hstack(tuple(hs))
+        else:
+            data[s.H] = np.array([])
         inv_data['is_LP'] = (len(psd_constr) + len(exp_constr) + len(soc_constr)) == 0
 
         return data, inv_data

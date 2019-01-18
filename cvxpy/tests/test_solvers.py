@@ -693,7 +693,7 @@ class TestSolvers(BaseTest):
             Ainv = np.linalg.inv(A)
 
             t = cvx.Variable()
-            Z = cvx.Variable(n, n)
+            Z = cvx.Variable((n, n))
             d = cvx.Variable(n)
             D = cvx.diag(d)
             constr = [Art*D*Art.T - np.eye(n) == cvx.Variable((n, n), PSD=True), cvx.Variable((n, n), PSD=True) == t*np.eye(n) - Art*D*Art.T, d >= 0]
