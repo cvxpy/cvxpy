@@ -76,7 +76,7 @@ class MatrixStuffing(Reduction):
             cons.append(con)
 
         # Batch expressions together, then split apart.
-        expr_list = [arg for con in cons for arg in con.args]
+        expr_list = [arg for c in cons for arg in c.args]
         Afull, bfull = extractor.affine(expr_list)
         new_cons = []
         offset = 0
