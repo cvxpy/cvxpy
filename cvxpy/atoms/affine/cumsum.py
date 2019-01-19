@@ -51,8 +51,8 @@ def get_diff_mat(dim, axis):
             row_arr.append(i)
             col_arr.append(i-1)
 
-    mat = sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                        (dim, dim)).tocsc()
+    mat = sp.csc_matrix((val_arr, (row_arr, col_arr)),
+                        (dim, dim))
     if axis == 0:
         return mat
     else:

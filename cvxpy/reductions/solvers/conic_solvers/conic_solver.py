@@ -170,7 +170,7 @@ class ConicSolver(Solver):
             val_arr.append(np.float64(1.0))
             row_arr.append(spacing*var_row + offset)
             col_arr.append(var_row)
-        return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsc()
+        return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
     def format_constr(self, problem, constr, exp_cone_order):
         """
