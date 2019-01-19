@@ -205,10 +205,10 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(z, var.value, places=4)
 
     def quad_form_bound(self, solver):
-        P = np.matrix([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
-        q = np.matrix([[-22], [-14.5], [13]])
+        P = np.array([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
+        q = np.array([[-22], [-14.5], [13]])
         r = 1
-        y_star = np.matrix([[1], [0.5], [-1]])
+        y_star = np.array([[1], [0.5], [-1]])
         p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T*self.y + r),
                     [self.y >= -1, self.y <= 1])
         self.solve_QP(p, solver)
@@ -220,15 +220,15 @@ class TestQp(BaseTest):
         # Number of examples to use
         n = 100
         # Specify the true value of the variable
-        true_coeffs = np.matrix('2; -2; 0.5')
+        true_coeffs = np.array([[2, -2, 0.5]]).T
         # Generate data
         x_data = np.random.rand(n) * 5
-        x_data = np.asmatrix(x_data)
+        x_data = np.atleast_2d(x_data)
         x_data_expanded = np.vstack([np.power(x_data, i)
                                      for i in range(1, 4)])
-        x_data_expanded = np.asmatrix(x_data_expanded)
-        y_data = x_data_expanded.T * true_coeffs + 0.5 * np.random.rand(n, 1)
-        y_data = np.asmatrix(y_data)
+        x_data_expanded = np.atleast_2d(x_data_expanded)
+        y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n, 1)
+        y_data = np.atleast_2d(y_data)
 
         line = self.offset + x_data * self.slope
         residuals = line.T - y_data

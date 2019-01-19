@@ -108,7 +108,7 @@ class TestExpressions(BaseTest):
     def test_quadratic_form(self):
         x = Variable(5)
         P = np.eye(5) - 2*np.ones((5, 5))
-        q = np.asmatrix(np.ones((5, 1)))
+        q = np.ones((5, 1))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             s = x.T*P*x + q.T*x

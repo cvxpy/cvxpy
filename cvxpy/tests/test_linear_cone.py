@@ -156,7 +156,7 @@ class TestLinearCone(BaseTest):
             self.assertItemsAlmostEqual(inv_sltn.primal_vars[self.x.id],
                                         self.x.value)
 
-            A = Constant(numpy.matrix([[3, 5], [1, 2]]).T).value
+            A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
             I = Constant([[1, 0], [0, 1]])
             p = Problem(Minimize(c.T*self.x + self.a),
                         [A*self.x >= [-1, 1],

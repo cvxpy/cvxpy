@@ -88,8 +88,8 @@ class minimum(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        min_vals = np.matrix(self.numeric(values))
-        unused = np.matrix(np.ones(min_vals.shape), dtype=bool)
+        min_vals = np.array(self.numeric(values))
+        unused = np.array(np.ones(min_vals.shape), dtype=bool)
         grad_list = []
         for idx, value in enumerate(values):
             rows = self.args[idx].size

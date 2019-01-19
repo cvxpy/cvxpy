@@ -93,7 +93,7 @@ class TestSCS(BaseTest):
         """
         if cvx.SUPER_SCS in cvx.installed_solvers():
             # Complex-valued matrix
-            K = np.matrix(np.random.rand(2,2) + 1j * np.random.rand(2,2) ) #  example matrix
+            K = np.array(np.random.rand(2,2) + 1j * np.random.rand(2,2) ) #  example matrix
             n1 = la.svdvals(K).sum()  # trace norm of K
             # Dual Problem
             X = cvx.Variable((2,2), complex=True)

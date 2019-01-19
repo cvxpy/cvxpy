@@ -321,7 +321,7 @@ class TestSolvers(BaseTest):
             h = cvx.Parameter(2)
             c = cvx.Parameter(2)
 
-            A.value = np.matrix([[1, 0], [0, 0]])
+            A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
@@ -338,7 +338,7 @@ class TestSolvers(BaseTest):
             orig_x = self.x.value
 
             # Change A and b from the original values
-            A.value = np.matrix([[0, 0], [0, 1]])   # <----- Changed
+            A.value = np.array([[0, 0], [0, 1]])   # <----- Changed
             b.value = np.array([0, 1])              # <----- Changed
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
@@ -349,7 +349,7 @@ class TestSolvers(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [2, 1])
 
             # Change h from the original values
-            A.value = np.matrix([[1, 0], [0, 0]])
+            A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([1, 1])              # <----- Changed
             c.value = np.array([1, 1])
@@ -360,7 +360,7 @@ class TestSolvers(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
             # Change c from the original values
-            A.value = np.matrix([[1, 0], [0, 0]])
+            A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
             c.value = np.array([2, 1])              # <----- Changed
@@ -750,7 +750,7 @@ class TestSolvers(BaseTest):
             h = cvx.Parameter(2)
             c = cvx.Parameter(2)
 
-            A.value = np.matrix([[1, 0], [0, 0]])
+            A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
@@ -767,7 +767,7 @@ class TestSolvers(BaseTest):
             orig_x = self.x.value
 
             # Change A and b from the original values
-            A.value = np.matrix([[0, 0], [0, 1]])   # <----- Changed
+            A.value = np.array([[0, 0], [0, 1]])   # <----- Changed
             b.value = np.array([0, 1])              # <----- Changed
             h.value = np.array([2, 2])
             c.value = np.array([1, 1])
@@ -778,7 +778,7 @@ class TestSolvers(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [2, 1])
 
             # Change h from the original values
-            A.value = np.matrix([[1, 0], [0, 0]])
+            A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([1, 1])              # <----- Changed
             c.value = np.array([1, 1])
@@ -789,7 +789,7 @@ class TestSolvers(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
             # Change c from the original values
-            A.value = np.matrix([[1, 0], [0, 0]])
+            A.value = np.array([[1, 0], [0, 0]])
             b.value = np.array([1, 0])
             h.value = np.array([2, 2])
             c.value = np.array([2, 1])              # <----- Changed

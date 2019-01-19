@@ -110,7 +110,7 @@ class TestDomain(BaseTest):
     #     dom = lambda_max(self.A).domain
     #     A0 = [[1, 2], [3, 4]]
     #     Problem(Minimize(norm2(self.A-A0)), dom).solve()
-    #     self.assertItemsAlmostEqual(self.A.value, np.matrix([[1, 2.5], [2.5, 4]]))
+    #     self.assertItemsAlmostEqual(self.A.value, np.array([[1, 2.5], [2.5, 4]]))
 
     def test_pnorm(self):
         """ Test domain for pnorm.

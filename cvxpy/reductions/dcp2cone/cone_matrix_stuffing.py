@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
@@ -46,7 +44,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Extract to c.T * x + r
         C, R = extractor.affine(problem.objective.expr)
 
-        c = np.asarray(C.todense()).flatten()
+        c = C.toarray().flatten()
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(extractor.N, boolean=boolean, integer=integer)
 

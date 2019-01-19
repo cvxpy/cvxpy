@@ -64,7 +64,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
 
     # Get the value of the passed matrix, interpreted as a scalar.
     def scalar_value(self, matrix):
-        return numpy.asscalar(matrix)
+        return matrix.item()
 
     # A matrix with all entries equal to the given scalar value.
     def scalar_matrix(self, value, shape):
