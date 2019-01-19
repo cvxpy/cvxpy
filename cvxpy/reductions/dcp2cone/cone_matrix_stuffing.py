@@ -46,7 +46,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Extract to c.T * x + r
         C, R = extractor.affine(problem.objective.expr)
 
-        c = np.asarray(C.todense()).flatten()
+        c = C.toarray().flatten()
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(extractor.N, boolean=boolean, integer=integer)
 

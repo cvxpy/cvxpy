@@ -175,7 +175,7 @@ class TestInterfaces(BaseTest):
         mat = interface.const_to_matrix([[1, 2, 3, 4], [3, 4, 5, 6]])
         self.assertEqual(interface.index(mat, (0, 1)), 3)
         mat = interface.index(mat, (slice(1, 4, 2), slice(0, 2, None)))
-        assert not (mat - np.matrix("2 4; 4 6")).any()
+        assert not (mat - np.array([[2, 4], [4, 6]])).any()
         # Sign
         self.sign_for_intf(interface)
 
@@ -212,7 +212,7 @@ class TestInterfaces(BaseTest):
         mat = interface.const_to_matrix([[1, 2, 3, 4], [3, 4, 5, 6]])
         self.assertEqual(interface.index(mat, (0, 1)), 3)
         mat = interface.index(mat, (slice(1, 4, 2), slice(0, 2, None)))
-        assert not (mat - np.matrix("2 4; 4 6")).any()
+        assert not (mat - np.array([[2, 4], [4, 6]])).any()
         # scalar value
         mat = sp.eye(1)
         self.assertEqual(intf.scalar_value(mat), 1.0)

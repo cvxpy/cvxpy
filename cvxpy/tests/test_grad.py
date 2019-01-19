@@ -46,14 +46,14 @@ class TestGrad(BaseTest):
         """Test gradient for affine_prod
         """
         expr = self.C * self.A
-        self.C.value = np.matrix([[1, -2], [3, 4], [-1, -3]])
-        self.A.value = np.matrix([[3, 2], [-5, 1]])
+        self.C.value = np.array([[1, -2], [3, 4], [-1, -3]])
+        self.A.value = np.array([[3, 2], [-5, 1]])
 
-        self.assertItemsAlmostEqual(expr.grad[self.C].todense(),
-                                    np.matrix([[3, 0, 0, 2, 0, 0], [0, 3, 0, 0, 2, 0], [0, 0, 3, 0, 0, 2],
+        self.assertItemsAlmostEqual(expr.grad[self.C].toarray(),
+                                    np.array([[3, 0, 0, 2, 0, 0], [0, 3, 0, 0, 2, 0], [0, 0, 3, 0, 0, 2],
                                                [-5, 0, 0, 1, 0, 0], [0, -5, 0, 0, 1, 0], [0, 0, -5, 0, 0, 1]]))
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),
-                                    np.matrix([[1, 3, -1, 0, 0, 0], [-2, 4, -3, 0, 0, 0],
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
+                                    np.array([[1, 3, -1, 0, 0, 0], [-2, 4, -3, 0, 0, 0],
                                                [0, 0, 0, 1, 3, -1], [0, 0, 0, -2, 4, -3]]))
 
     def test_pnorm(self):
@@ -61,14 +61,14 @@ class TestGrad(BaseTest):
         """
         expr = pnorm(self.x, 1)
         self.x.value = [-1, 0]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [-1, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [-1, 0])
 
         self.x.value = [0, 10]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [0, 1])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [0, 1])
 
         expr = pnorm(self.x, 2)
         self.x.value = [-3, 4]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), np.matrix([[-3.0/5], [4.0/5]]))
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), np.array([[-3.0/5], [4.0/5]]))
 
         expr = pnorm(self.x, 0.5)
         self.x.value = [-1, 2]
@@ -80,57 +80,57 @@ class TestGrad(BaseTest):
 
         expr = pnorm(self.x, 2)
         self.x.value = [0, 0]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [0, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [0, 0])
 
         expr = pnorm(self.x[:,None], 2, axis=1)
         self.x.value = [1, 2]
         val = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = pnorm(self.A, 2)
-        self.A.value = np.matrix([[2, -2], [2, 2]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0.5, 0.5, -0.5, 0.5])
+        self.A.value = np.array([[2, -2], [2, 2]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0.5, 0.5, -0.5, 0.5])
 
         expr = pnorm(self.A, 2, axis=0)
-        self.A.value = np.matrix([[3, -3], [4, 4]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), np.matrix([[0.6, 0], [0.8, 0], [0, -0.6], [0, 0.8]]))
+        self.A.value = np.array([[3, -3], [4, 4]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), np.array([[0.6, 0], [0.8, 0], [0, -0.6], [0, 0.8]]))
 
         expr = pnorm(self.A, 2, axis=1)
-        self.A.value = np.matrix([[3, -4], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), np.matrix([[0.6, 0], [0, 0.8], [-0.8, 0], [0, 0.6]]))
+        self.A.value = np.array([[3, -4], [4, 3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), np.array([[0.6, 0], [0, 0.8], [-0.8, 0], [0, 0.6]]))
 
         expr = pnorm(self.A, 0.5)
-        self.A.value = np.matrix([[3, -4], [4, 3]])
+        self.A.value = np.array([[3, -4], [4, 3]])
         self.assertAlmostEqual(expr.grad[self.A], None)
 
     def test_log_sum_exp(self):
         expr = log_sum_exp(self.x)
         self.x.value = [0, 1]
         e = np.exp(1)
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [1.0/(1+e), e/(1+e)])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1.0/(1+e), e/(1+e)])
 
         expr = log_sum_exp(self.A)
-        self.A.value = np.matrix([[0, 1], [-1, 0]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1.0/(2+e+1.0/e), 1.0/e/(2+e+1.0/e), e/(2+e+1.0/e), 1.0/(2+e+1.0/e)])
+        self.A.value = np.array([[0, 1], [-1, 0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1.0/(2+e+1.0/e), 1.0/e/(2+e+1.0/e), e/(2+e+1.0/e), 1.0/(2+e+1.0/e)])
 
         expr = log_sum_exp(self.A, axis=0)
-        self.A.value = np.matrix([[0, 1], [-1, 0]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(),
-                                    np.transpose(np.matrix([[1.0/(1+1.0/e), 1.0/e/(1+1.0/e), 0, 0], [0, 0, e/(1+e), 1.0/(1+e)]])))
+        self.A.value = np.array([[0, 1], [-1, 0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
+                                    np.transpose(np.array([[1.0/(1+1.0/e), 1.0/e/(1+1.0/e), 0, 0], [0, 0, e/(1+e), 1.0/(1+e)]])))
 
     def test_geo_mean(self):
         """Test gradient for geo_mean
         """
         expr = geo_mean(self.x)
         self.x.value = [1, 2]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [np.sqrt(2)/2, 1.0/2/np.sqrt(2)])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [np.sqrt(2)/2, 1.0/2/np.sqrt(2)])
 
         self.x.value = [0, 2]
         self.assertAlmostEqual(expr.grad[self.x], None)
 
         expr = geo_mean(self.x, [1, 0])
         self.x.value = [1, 2]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [1, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 0])
 
         # No exception for single weight.
         self.x.value = [-1, 2]
@@ -141,13 +141,13 @@ class TestGrad(BaseTest):
         """
         expr = lambda_max(self.A)
         self.A.value = [[2, 0], [0, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1, 0, 0, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 0])
 
         self.A.value = [[1, 0], [0, 2]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0, 0, 0, 1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0, 0, 1])
 
         self.A.value = [[1, 0], [0, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0, 0, 0, 1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0, 0, 1])
 
     def test_matrix_frac(self):
         """Test gradient for matrix_frac
@@ -155,8 +155,8 @@ class TestGrad(BaseTest):
         expr = matrix_frac(self.A, self.B)
         self.A.value = np.eye(2)
         self.B.value = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [2, 0, 0, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), [-1, 0, 0, -1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [2, 0, 0, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), [-1, 0, 0, -1])
 
         self.B.value = np.zeros((2, 2))
         self.assertAlmostEqual(expr.grad[self.A], None)
@@ -165,46 +165,46 @@ class TestGrad(BaseTest):
         expr = matrix_frac(self.x[:, None], self.A)
         self.x.value = [2, 3]
         self.A.value = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [4, 6])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [-4, -6, -6, -9])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [4, 6])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [-4, -6, -6, -9])
 
         expr = matrix_frac(self.x, self.A)
         self.x.value = [2, 3]
         self.A.value = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [4, 6])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [-4, -6, -6, -9])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [4, 6])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [-4, -6, -6, -9])
 
     def test_norm_nuc(self):
         """Test gradient for norm_nuc
         """
         expr = normNuc(self.A)
         self.A.value = [[10, 4], [4, 30]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1, 0, 0, 1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
 
     def test_log_det(self):
         """Test gradient for log_det
         """
         expr = log_det(self.A)
         self.A.value = 2*np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), 1.0/2*np.eye(2))
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), 1.0/2*np.eye(2))
 
-        mat = np.matrix([[1, 2], [3, 5]])
-        self.A.value = mat.T*mat
+        mat = np.array([[1, 2], [3, 5]])
+        self.A.value = mat.T.dot(mat)
         val = np.linalg.inv(self.A.value).T
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
         self.A.value = np.zeros((2, 2))
         self.assertAlmostEqual(expr.grad[self.A], None)
 
-        self.A.value = -np.matrix([[1, 2], [3, 4]])
+        self.A.value = -np.array([[1, 2], [3, 4]])
         self.assertAlmostEqual(expr.grad[self.A], None)
 
         K = Variable((8, 8))
         expr = log_det(K[[1,2]][:,[1,2]])
         K.value = np.eye(8)
         val = np.zeros((8,8))
-        val[[1,2],[1,2]] = 1
-        self.assertItemsAlmostEqual(expr.grad[K].todense(), val)
+        val[[1, 2], [1, 2]] = 1
+        self.assertItemsAlmostEqual(expr.grad[K].toarray(), val)
 
     def test_quad_over_lin(self):
         """Test gradient for quad_over_lin
@@ -212,7 +212,7 @@ class TestGrad(BaseTest):
         expr = quad_over_lin(self.x, self.a)
         self.x.value = [1, 2]
         self.a.value = 2
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [1, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 2])
         self.assertAlmostEqual(expr.grad[self.a], [-1.25])
 
         self.a.value = 0
@@ -222,7 +222,7 @@ class TestGrad(BaseTest):
         expr = quad_over_lin(self.A, self.a)
         self.A.value = np.eye(2)
         self.a.value = 2
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1, 0, 0, 1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
         self.assertAlmostEqual(expr.grad[self.a], [-0.5])
 
         expr = quad_over_lin(self.x, self.a) + quad_over_lin(self.y, self.a)
@@ -230,8 +230,8 @@ class TestGrad(BaseTest):
         self.a.value = 2
         self.y.value = [1, 2]
         self.a.value = 2
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [1, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.y].todense(), [1, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.y].toarray(), [1, 2])
         self.assertAlmostEqual(expr.grad[self.a], [-2.5])
 
     def test_max(self):
@@ -239,29 +239,29 @@ class TestGrad(BaseTest):
         """
         expr = max(self.x)
         self.x.value = [2, 1]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), [1, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), [1, 0])
 
         expr = max(self.A)
-        self.A.value = np.matrix([[1, 2], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0, 1, 0, 0])
+        self.A.value = np.array([[1, 2], [4, 3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 0, 0])
 
         expr = max(self.A, axis=0)
-        self.A.value = np.matrix([[1, 2], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), np.matrix([[0, 0], [1, 0], [0, 0], [0, 1]]))
+        self.A.value = np.array([[1, 2], [4, 3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), np.array([[0, 0], [1, 0], [0, 0], [0, 1]]))
 
         expr = max(self.A, axis=1)
-        self.A.value = np.matrix([[1, 2], [4, 3]])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), np.matrix([[0, 0], [0, 1], [1, 0], [0, 0]]))
+        self.A.value = np.array([[1, 2], [4, 3]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), np.array([[0, 0], [0, 1], [1, 0], [0, 0]]))
 
     def test_sigma_max(self):
         """Test sigma_max.
         """
         expr = sigma_max(self.A)
         self.A.value = [[1, 0], [0, 2]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0, 0, 0, 1])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0, 0, 1])
 
         self.A.value = [[1, 0], [0, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1, 0, 0, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 0])
 
     def test_sum_largest(self):
         """Test sum_largest.
@@ -269,10 +269,10 @@ class TestGrad(BaseTest):
         expr = sum_largest(self.A, 2)
 
         self.A.value = [[4, 3], [2, 1]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [1, 0, 1, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 1, 0])
 
         self.A.value = [[1, 2], [3, 0.5]]
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), [0, 1, 1, 0])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
 
     def test_abs(self):
         """Test abs.
@@ -280,7 +280,7 @@ class TestGrad(BaseTest):
         expr = abs(self.A)
         self.A.value = [[1, 2], [-1, 0]]
         val = np.zeros((4, 4)) + np.diag([1, 1, -1, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_linearize(self):
         """Test linearize method.
@@ -336,7 +336,7 @@ class TestGrad(BaseTest):
         expr = log(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) + np.diag([1/3, 1/4])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = log(self.x)
         self.x.value = [-1e-9, 4]
@@ -345,7 +345,7 @@ class TestGrad(BaseTest):
         expr = log(self.A)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag([1, 1/2, 1/3, 1/4])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_log1p(self):
         """Test domain for log1p.
@@ -363,7 +363,7 @@ class TestGrad(BaseTest):
         expr = log1p(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) + np.diag([1/4, 1/5])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = log1p(self.x)
         self.x.value = [-1e-9-1, 4]
@@ -372,7 +372,7 @@ class TestGrad(BaseTest):
         expr = log1p(self.A)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag([1/2, 1/3, 1/4, 1/5])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_entr(self):
         """Test domain for entr.
@@ -390,7 +390,7 @@ class TestGrad(BaseTest):
         expr = entr(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) + np.diag(-(np.log([3, 4]) + 1))
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = entr(self.x)
         self.x.value = [-1e-9, 4]
@@ -399,7 +399,7 @@ class TestGrad(BaseTest):
         expr = entr(self.A)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag(-(np.log([1, 2, 3, 4]) + 1))
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_exp(self):
         """Test domain for exp.
@@ -417,17 +417,17 @@ class TestGrad(BaseTest):
         expr = exp(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) + np.diag(np.exp([3, 4]))
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = exp(self.x)
         self.x.value = [-1e-9, 4]
         val = np.zeros((2, 2)) + np.diag(np.exp([-1e-9, 4]))
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = exp(self.A)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag(np.exp([1, 2, 3, 4]))
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_logistic(self):
         """Test domain for logistic.
@@ -445,17 +445,17 @@ class TestGrad(BaseTest):
         expr = logistic(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) + np.diag(np.exp([3, 4])/(1+np.exp([3, 4])))
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = logistic(self.x)
         self.x.value = [-1e-9, 4]
         val = np.zeros((2, 2)) + np.diag(np.exp([-1e-9, 4])/(1+np.exp([-1e-9, 4])))
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = logistic(self.A)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag(np.exp([1, 2, 3, 4])/(1+np.exp([1, 2, 3, 4])))
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_huber(self):
         """Test domain for huber.
@@ -474,17 +474,17 @@ class TestGrad(BaseTest):
         expr = huber(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) + np.diag([2, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = huber(self.x)
         self.x.value = [-1e-9, 4]
         val = np.zeros((2, 2)) + np.diag([0, 2])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = huber(self.A, M=3)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag([2, 4, 6, 6])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
     def test_kl_div(self):
         """Test domain for kl_div.
@@ -511,9 +511,9 @@ class TestGrad(BaseTest):
         self.x.value = [3, 4]
         y.value = [5, 8]
         val = np.zeros((2, 2)) + np.diag(np.log([3, 4]) - np.log([5, 8]))
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
         val = np.zeros((2, 2)) + np.diag([1 - 3/5, 1 - 4/8])
-        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
 
         expr = kl_div(self.x, y)
         self.x.value = [-1e-9, 4]
@@ -526,9 +526,9 @@ class TestGrad(BaseTest):
         self.B.value = [[5, 1], [3.5, 2.3]]
         div = (self.A.value/self.B.value).ravel(order='F')
         val = np.zeros((4, 4)) + np.diag(np.log(div))
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
         val = np.zeros((4, 4)) + np.diag(1 - div)
-        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
 
     def test_maximum(self):
         """Test domain for maximum.
@@ -555,26 +555,26 @@ class TestGrad(BaseTest):
         self.x.value = [3, 4]
         y.value = [5, -5]
         val = np.zeros((2, 2)) + np.diag([0, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
         val = np.zeros((2, 2)) + np.diag([1, 0])
-        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
 
         expr = maximum(self.x, y)
         self.x.value = [-1e-9, 4]
         y.value = [1, 4]
         val = np.zeros((2, 2)) + np.diag([0, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
         val = np.zeros((2, 2)) + np.diag([1, 0])
-        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
 
         expr = maximum(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3, 2.3]]
         div = (self.A.value/self.B.value).ravel(order='F')
         val = np.zeros((4, 4)) + np.diag([0, 1, 1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
         val = np.zeros((4, 4)) + np.diag([1, 0, 0, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
 
     def test_minimum(self):
         """Test domain for minimum.
@@ -601,26 +601,26 @@ class TestGrad(BaseTest):
         self.x.value = [3, 4]
         y.value = [5, -5]
         val = np.zeros((2, 2)) + np.diag([1, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
         val = np.zeros((2, 2)) + np.diag([0, 1])
-        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
 
         expr = minimum(self.x, y)
         self.x.value = [-1e-9, 4]
         y.value = [1, 4]
         val = np.zeros((2, 2)) + np.diag([1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
         val = np.zeros((2, 2)) + np.diag([0, 0])
-        self.assertItemsAlmostEqual(expr.grad[y].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
 
         expr = minimum(self.A, self.B)
         self.A.value = [[1, 2], [3, 4]]
         self.B.value = [[5, 1], [3, 2.3]]
         div = (self.A.value/self.B.value).ravel(order='F')
         val = np.zeros((4, 4)) + np.diag([1, 0, 1, 0])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
         val = np.zeros((4, 4)) + np.diag([0, 1, 0, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.B].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
 
     def test_power(self):
         """Test domain for power.
@@ -637,24 +637,24 @@ class TestGrad(BaseTest):
 
         expr = (self.x)**3
         self.x.value = [3, 4]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(),
-                                    np.matrix("27 0; 0 48"))
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(),
+                                    np.array([[27, 0], [0, 48]]))
 
         expr = (self.x)**3
         self.x.value = [-1e-9, 4]
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), np.matrix("0 0; 0 48"))
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), np.array([[0, 0], [0, 48]]))
 
         expr = (self.A)**2
         self.A.value = [[1, -2], [3, 4]]
         val = np.zeros((4, 4)) + np.diag([2, -4, 6, 8])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
         # Constant.
         expr = (self.a)**0
         self.assertAlmostEqual(expr.grad[self.a], 0)
 
         expr = (self.x)**0
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), np.zeros((2, 2)))
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), np.zeros((2, 2)))
 
     def test_partial_problem(self):
         """Test grad for partial minimization/maximization problems.
@@ -679,7 +679,7 @@ class TestGrad(BaseTest):
             self.x.value = [10, 10]
             grad = expr.grad
             self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a])
-            self.assertItemsAlmostEqual(grad[self.x].todense(), [0, 0, 0, 0])
+            self.assertItemsAlmostEqual(grad[self.x].toarray(), [0, 0, 0, 0])
 
             # Optimize over x.
             expr = partial_optimize(prob, opt_vars=[self.x])
@@ -694,7 +694,7 @@ class TestGrad(BaseTest):
             expr = partial_optimize(prob, opt_vars=[self.a])
             self.x.value = [0, 0]
             grad = expr.grad
-            self.assertItemsAlmostEqual(grad[self.x].todense(), dual_val)
+            self.assertItemsAlmostEqual(grad[self.x].toarray(), dual_val)
 
             # Optimize over x and a.
             expr = partial_optimize(prob, opt_vars=[self.x, self.a])
@@ -719,18 +719,18 @@ class TestGrad(BaseTest):
         expr = -(self.x)
         self.x.value = [3, 4]
         val = np.zeros((2, 2)) - np.diag([1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = -(self.A)
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 4)) - np.diag([1, 1, 1, 1])
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
         expr = self.A[0, 1]
         self.A.value = [[1, 2], [3, 4]]
         val = np.zeros((4, 1))
         val[2] = 1
-        self.assertItemsAlmostEqual(expr.grad[self.A].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
         z = Variable(3)
         expr = hstack([self.x, z])
@@ -738,20 +738,20 @@ class TestGrad(BaseTest):
         z.value = [1, 2, 3]
         val = np.zeros((2, 5))
         val[:, 0:2] = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         val = np.zeros((3, 5))
         val[:, 2:] = np.eye(3)
-        self.assertItemsAlmostEqual(expr.grad[z].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[z].toarray(), val)
 
         # cumsum
         expr = cumsum(self.x)
         self.x.value = [1, 2]
         val = np.ones((2, 2))
         val[1, 0] = 0
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
 
         expr = cumsum(self.x[:, None], axis=1)
         self.x.value = [1, 2]
         val = np.eye(2)
-        self.assertItemsAlmostEqual(expr.grad[self.x].todense(), val)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)

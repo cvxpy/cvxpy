@@ -33,10 +33,10 @@ class TestExamples(BaseTest):
         # fashion: P = {x : a_i'*x <= b_i, i=1,...,m} where x is in R^2
 
         # Generate the input data
-        a1 = np.matrix("2; 1")
-        a2 = np.matrix(" 2; -1")
-        a3 = np.matrix("-1;  2")
-        a4 = np.matrix("-1; -2")
+        a1 = np.array([2, 1])
+        a2 = np.array([2, -1])
+        a3 = np.array([-1, 2])
+        a4 = np.array([-1, -2])
         b = np.ones(4)
 
         # Create and solve the model
@@ -326,17 +326,17 @@ class TestExamples(BaseTest):
 
     def test_log_det(self):
         # Generate data
-        x = np.matrix("0.55  0.0;"
-                      "0.25  0.35;"
-                      "-0.2   0.2;"
-                      "-0.25 -0.1;"
-                      "-0.0  -0.3;"
-                      "0.4  -0.2").T
+        x = np.array([[0.55, 0.0],
+                      [0.25, 0.35],
+                      [-0.2, 0.2],
+                      [-0.25, -0.1],
+                      [-0.0, -0.3],
+                      [0.4, -0.2]]).T
         (n, m) = x.shape
 
         # Create and solve the model
-        A = cvx.Variable((n, n));
-        b = cvx.Variable((n, 1));
+        A = cvx.Variable((n, n))
+        b = cvx.Variable(n)
         obj = cvx.Maximize(cvx.log_det(A))
         constraints = []
         for i in range(m):
@@ -354,7 +354,7 @@ class TestExamples(BaseTest):
         n = 100  # 10000
         m = 10  # 100
         pbar = (np.ones((n, 1)) * .03 +
-                np.matrix(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
+                np.array(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
 
         F = sp.rand(m, n, density=0.01)
         F.data = np.ones(len(F.data))
@@ -646,7 +646,7 @@ class TestExamples(BaseTest):
         np.random.seed(1)
         m = 5
         n = 2
-        X = np.matrix(np.ones((m, n)))
+        X = np.ones((m, n))
         w = cvx.Variable(n)
 
         expr2 = [cvx.log_sum_exp(cvx.hstack([0, X[i, :]*w])) for i in range(m)]
