@@ -61,12 +61,12 @@ class TestDgp2Dcp(BaseTest):
         self.assertAlmostEqual(dcp.variables()[0].value, 0.0)
 
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertAlmostEquals(dgp.value, 1.0)
-        self.assertAlmostEquals(x.value, 1.0)
+        self.assertAlmostEqual(dgp.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 1.0)
-        self.assertAlmostEquals(x.value, 1.0)
+        self.assertAlmostEqual(dgp.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
 
     def test_basic_gp(self):
         x, y, z = cvxpy.Variable((3,), pos=True)
@@ -90,13 +90,13 @@ class TestDgp2Dcp(BaseTest):
         dcp = dgp2dcp.reduce()
         opt = dcp.solve()
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertAlmostEquals(dgp.value, 6.0)
-        self.assertAlmostEquals(x.value, 1.0)
-        self.assertAlmostEquals(y.value, 4.0)
+        self.assertAlmostEqual(dgp.value, 6.0)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 6.0)
-        self.assertAlmostEquals(x.value, 1.0)
+        self.assertAlmostEqual(dgp.value, 6.0)
+        self.assertAlmostEqual(x.value, 1.0)
 
     def test_prod(self):
         X = np.arange(12).reshape((4, 3))
@@ -171,13 +171,13 @@ class TestDgp2Dcp(BaseTest):
         dcp = dgp2dcp.reduce()
         opt = dcp.solve()
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertAlmostEquals(dgp.value, 6.0)
-        self.assertAlmostEquals(x.value, 1.0)
-        self.assertAlmostEquals(y.value, 4.0)
+        self.assertAlmostEqual(dgp.value, 6.0)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 6.0)
-        self.assertAlmostEquals(x.value, 1.0)
+        self.assertAlmostEqual(dgp.value, 6.0)
+        self.assertAlmostEqual(x.value, 1.0)
 
     def test_minimum(self):
         x = cvxpy.Variable(pos=True)
@@ -192,9 +192,9 @@ class TestDgp2Dcp(BaseTest):
         
         dgp = cvxpy.Problem(obj, constr)
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 1.0 / (2.0 + 6.0))
-        self.assertAlmostEquals(x.value, 1.0)
-        self.assertAlmostEquals(y.value, 4.0)
+        self.assertAlmostEqual(dgp.value, 1.0 / (2.0 + 6.0))
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
 
     def test_min(self):
         x = cvxpy.Variable(pos=True)
@@ -209,9 +209,9 @@ class TestDgp2Dcp(BaseTest):
         
         dgp = cvxpy.Problem(obj, constr)
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 1.0 / (2.0 + 6.0))
-        self.assertAlmostEquals(x.value, 1.0)
-        self.assertAlmostEquals(y.value, 4.0)
+        self.assertAlmostEqual(dgp.value, 1.0 / (2.0 + 6.0))
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
 
     def test_sum_largest(self):
         self.skipTest("Enable test once sum_largest is implemented.")
@@ -224,13 +224,13 @@ class TestDgp2Dcp(BaseTest):
         dcp.solve()
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         opt = 6.0
-        self.assertAlmostEquals(dgp.value, opt)
-        self.assertAlmostEquals((x[0] * x[1] * x[2] * x[3]).value, 16,
+        self.assertAlmostEqual(dgp.value, opt)
+        self.assertAlmostEqual((x[0] * x[1] * x[2] * x[3]).value, 16,
                                 places=2)
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, opt)
-        self.assertAlmostEquals((x[0] * x[1] * x[2] * x[3]).value, 16,
+        self.assertAlmostEqual(dgp.value, opt)
+        self.assertAlmostEqual((x[0] * x[1] * x[2] * x[3]).value, 16,
                                 places=2)
 
         # An unbounded problem.
@@ -242,14 +242,14 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         opt = dcp.solve()
-        self.assertEquals(dcp.value, -float("inf"))
+        self.assertEqual(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertAlmostEquals(dgp.value, 0.0)
-        self.assertAlmostEquals(dgp.status, "unbounded")
+        self.assertAlmostEqual(dgp.value, 0.0)
+        self.assertAlmostEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 0.0)
-        self.assertAlmostEquals(dgp.status, "unbounded")
+        self.assertAlmostEqual(dgp.value, 0.0)
+        self.assertAlmostEqual(dgp.status, "unbounded")
 
         # Another unbounded problem.
         x = cvxpy.Variable(2, pos=True)
@@ -258,14 +258,14 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         opt = dcp.solve()
-        self.assertEquals(dcp.value, -float("inf"))
+        self.assertEqual(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertAlmostEquals(dgp.value, 0.0)
-        self.assertAlmostEquals(dgp.status, "unbounded")
+        self.assertAlmostEqual(dgp.value, 0.0)
+        self.assertAlmostEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, 0.0)
-        self.assertAlmostEquals(dgp.status, "unbounded")
+        self.assertAlmostEqual(dgp.value, 0.0)
+        self.assertAlmostEqual(dgp.status, "unbounded")
 
         # Composition with posynomials.
         x = cvxpy.Variable((4,), pos=True)
@@ -280,22 +280,22 @@ class TestDgp2Dcp(BaseTest):
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
         # opt = 3 * sqrt(4) * sqrt(4) + (4 * 4 + 0.5 * 4 * epsilon) = 28
         opt = 28.0
-        self.assertAlmostEquals(dgp.value, opt, places=2)
-        self.assertAlmostEquals((x[0] * x[1]).value, 16.0, places=2)
-        self.assertAlmostEquals(x[3].value, 0.0, places=2)
+        self.assertAlmostEqual(dgp.value, opt, places=2)
+        self.assertAlmostEqual((x[0] * x[1]).value, 16.0, places=2)
+        self.assertAlmostEqual(x[3].value, 0.0, places=2)
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertAlmostEquals(dgp.value, opt, places=2)
-        self.assertAlmostEquals((x[0] * x[1]).value, 16.0, places=2)
-        self.assertAlmostEquals(x[3].value, 0.0, places=2)
+        self.assertAlmostEqual(dgp.value, opt, places=2)
+        self.assertAlmostEqual((x[0] * x[1]).value, 16.0, places=2)
+        self.assertAlmostEqual(x[3].value, 0.0, places=2)
 
     def test_div(self):
       x = cvxpy.Variable(pos=True)
       y = cvxpy.Variable(pos=True)
       p = cvxpy.Problem(cvxpy.Minimize(x * y), [y / 3  <= x, y >= 1])
-      self.assertAlmostEquals(p.solve(gp=True), 1.0 / 3.0)
-      self.assertAlmostEquals(y.value, 1.0)
-      self.assertAlmostEquals(x.value, 1.0 / 3.0)
+      self.assertAlmostEqual(p.solve(gp=True), 1.0 / 3.0)
+      self.assertAlmostEqual(y.value, 1.0)
+      self.assertAlmostEqual(x.value, 1.0 / 3.0)
 
     def test_geo_mean(self):
         x = cvxpy.Variable(3, pos=True)
@@ -305,18 +305,18 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         dcp.solve()
-        self.assertEquals(dcp.value, -float("inf"))
+        self.assertEqual(dcp.value, -float("inf"))
         dgp.unpack(dgp2dcp.retrieve(dcp.solution))
-        self.assertEquals(dgp.value, 0.0)
-        self.assertEquals(dgp.status, "unbounded")
+        self.assertEqual(dgp.value, 0.0)
+        self.assertEqual(dgp.status, "unbounded")
         dgp._clear_solution()
         dgp.solve(gp=True)
-        self.assertEquals(dgp.value, 0.0)
-        self.assertEquals(dgp.status, "unbounded")
+        self.assertEqual(dgp.value, 0.0)
+        self.assertEqual(dgp.status, "unbounded")
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(error.DGPError, "Problem does not follow "
+        with self.assertRaisesRegex(error.DGPError, "Problem does not follow "
           "DGP rules. However, the problem does follow DCP rules. "
           "Consider calling this function with `gp=False`."):
             problem.solve(gp=True)
@@ -328,7 +328,7 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
             [])
-        with self.assertRaisesRegexp(error.DCPError, "Problem does not follow "
+        with self.assertRaisesRegex(error.DCPError, "Problem does not follow "
           "DCP rules. However, the problem does follow DGP rules. "
           "Consider calling this function with `gp=True`."):
             problem.solve()
