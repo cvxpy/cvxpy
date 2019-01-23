@@ -54,8 +54,8 @@ def upper_tri_to_full(n):
                 val_arr.append(1.0)
             count += 1
 
-    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                         (n*n, entries)).tocsc()
+    return sp.csc_matrix((val_arr, (row_arr, col_arr)),
+                         (n*n, entries))
 
 
 class Variable(Leaf):

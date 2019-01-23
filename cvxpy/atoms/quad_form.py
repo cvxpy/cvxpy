@@ -102,8 +102,8 @@ class QuadForm(Atom):
                                self.args[1])
 
     def _grad(self, values):
-        x = np.matrix(values[0])
-        P = np.matrix(values[1])
+        x = np.array(values[0])
+        P = np.array(values[1])
         D = 2 * np.dot(P, x.T)
         return [sp.csc_matrix(D.A.ravel(order='F')).T]
 

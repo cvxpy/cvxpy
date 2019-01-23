@@ -27,7 +27,7 @@ class TestSemidefiniteVariable(BaseTest):
     def setUp(self):
         self.X = Variable((2, 2), PSD=True)
         self.Y = Variable((2, 2))
-        self.F = np.matrix([[1, 0], [0, -1]])
+        self.F = np.array([[1, 0], [0, -1]])
 
     def test_symm(self):
         """Test that results are symmetric.

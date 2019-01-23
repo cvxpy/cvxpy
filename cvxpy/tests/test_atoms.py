@@ -411,7 +411,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(cvxpy.sum(Variable(2)).curvature, s.AFFINE)
         self.assertEqual(cvxpy.sum(Variable((2, 1)), keepdims=True).shape, (1, 1))
         # Mixed curvature.
-        mat = np.mat("1 -1")
+        mat = np.array([[1, -1]])
         self.assertEqual(cvxpy.sum(mat*square(Variable(2))).curvature, s.UNKNOWN)
 
         # Test with axis argument.
@@ -692,11 +692,11 @@ class TestAtoms(BaseTest):
         """Test the bmat atom.
         """
         v_np = np.ones((3, 1))
-        expr = bmat([[v_np, v_np], [np.zeros((2, 1)), np.mat([1, 2]).T]])
+        expr = np.vstack([np.hstack([v_np, v_np]), np.hstack([np.zeros((2, 1)), np.array([[1, 2]]).T])])
         self.assertEqual(expr.shape, (5, 2))
-        const = np.bmat([[v_np, v_np],
-                         [np.zeros((2, 1)), np.mat([1, 2]).T]])
-        self.assertItemsAlmostEqual(expr.value, const)
+        const = np.vstack([np.hstack([v_np, v_np]),
+                         np.hstack([np.zeros((2, 1)), np.array([[1, 2]]).T])])
+        self.assertItemsAlmostEqual(expr, const)
 
     def test_conv(self):
         """Test the conv atom.

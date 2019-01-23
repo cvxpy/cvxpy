@@ -151,7 +151,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(var.name(), "x.T")
         self.assertEqual(var.shape, (1, 2))
 
-        x.save_value(np.matrix([1, 2]).T)
+        x.save_value(np.array([[1, 2]]).T)
         self.assertEqual(var.value[0, 0], 1)
         self.assertEqual(var.value[0, 1], 2)
 
@@ -269,8 +269,9 @@ class TestExpressions(BaseTest):
         m, n = 10, 5
         A = np.random.randn(m, n) + 1j * np.random.randn(m, n)  # a random complex matrix
         A = np.dot(A.T.conj(), A)  # a random Hermitian positive definite matrix
-        A = np.bmat([[np.real(A), -np.imag(A)],
-                     [np.imag(A), np.real(A)]])
+        A = np.vstack([np.hstack([np.real(A), -np.imag(A)]),
+                     np.hstack([np.imag(A), np.real(A)])])
+
         p = Parameter(shape=(2*n, 2*n), PSD=True)
         p.value = A
         self.assertItemsAlmostEqual(p.value, A)

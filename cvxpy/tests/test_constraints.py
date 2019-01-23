@@ -144,13 +144,13 @@ class TestConstraints(BaseTest):
         assert constr.dual_value is None
         with self.assertRaises(ValueError):
             constr.value()
-        self.A.save_value(np.matrix("2 -1; 1 2"))
-        self.B.save_value(np.matrix("1 0; 0 1"))
+        self.A.save_value(np.array([[2, -1], [1, 2]]))
+        self.B.save_value(np.array([[1, 0], [0, 1]]))
         assert constr.value()
         self.assertAlmostEqual(constr.violation(), 0)
         self.assertAlmostEqual(constr.residual, 0)
 
-        self.B.save_value(np.matrix("3 0; 0 3"))
+        self.B.save_value(np.array([[3, 0], [0, 3]]))
         assert not constr.value()
         self.assertAlmostEqual(constr.violation(), 1)
         self.assertAlmostEqual(constr.residual, 1)
@@ -181,10 +181,10 @@ class TestConstraints(BaseTest):
         assert constr.dual_value is None
         with self.assertRaises(ValueError):
             constr.value()
-        self.B.save_value(np.matrix("2 -1; 1 2"))
-        self.A.save_value(np.matrix("1 0; 0 1"))
+        self.B.save_value(np.array([[2, -1], [1, 2]]))
+        self.A.save_value(np.array([[1, 0], [0, 1]]))
         assert constr.value()
-        self.A.save_value(np.matrix("3 0; 0 3"))
+        self.A.save_value(np.array([[3, 0], [0, 3]]))
         assert not constr.value()
 
         with self.assertRaises(Exception) as cm:

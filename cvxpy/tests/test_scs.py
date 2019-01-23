@@ -88,19 +88,19 @@ class TestSCS(BaseTest):
         """Test complex matrices.
         """
         # Complex-valued matrix
-        K = np.matrix(np.random.rand(2,2) + 1j * np.random.rand(2,2) ) #  example matrix
+        K = np.array(np.random.rand(2, 2) + 1j * np.random.rand(2, 2))  # example matrix
         n1 = la.svdvals(K).sum()  # trace norm of K
 
         # Dual Problem
-        X = cvx.Variable((2,2), complex=True)
-        Y = cvx.Variable((2,2), complex=True)
-        Z = cvx.Variable((2,2))
+        X = cvx.Variable((2, 2), complex=True)
+        Y = cvx.Variable((2, 2), complex=True)
+        Z = cvx.Variable((2, 2))
         # X, Y >= 0 so trace is real
         objective = cvx.Minimize(
             cvx.real(0.5 * cvx.trace(X) + 0.5 * cvx.trace(Y))
         )
         constraints = [
-            cvx.bmat([[X, -K.H], [-K, Y]]) >> 0,
+            cvx.bmat([[X, -K.conj().T], [-K, Y]]) >> 0,
             X >> 0,
             Y >> 0,
         ]

@@ -129,7 +129,7 @@ class AffAtom(Atom):
             None
         )
         shape = (offset, self.size)
-        stacked_grad = sp.coo_matrix((V, (J, I)), shape=shape).tocsc()
+        stacked_grad = sp.csc_matrix((V, (J, I)), shape=shape)
         # Break up into per argument matrices.
         grad_list = []
         start = 0
