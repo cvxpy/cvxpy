@@ -17,6 +17,10 @@ env:
       COVERAGE="true"
       DEPLOY_PYPI="true"
       PYPI_SERVER="https://upload.pypi.org/legacy/"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" INSTALL_ATLAS="true"
+      NUMPY_VERSION="1.14" SCIPY_VERSION="1.1.0"
+      COVERAGE="true"
+      DEPLOY_PYPI="false"
 sudo: required
 install: source continuous_integration/install.sh
 script:
