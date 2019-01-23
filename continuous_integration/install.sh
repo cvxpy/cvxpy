@@ -24,7 +24,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
                 numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
         conda install -c conda-forge --yes lapack
-        conda install -c cvxgrp --yes ecos scs multiprocess
+        conda install -c conda-forge --yes ecos scs multiprocess
         conda install -c default --yes flake8
 
         # Install GLPK.
