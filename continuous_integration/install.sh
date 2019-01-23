@@ -42,7 +42,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         CVXOPT_BUILD_GLPK=1
         CVXOPT_GLPK_LIB_DIR=/usr/local/lib
         CVXOPT_GLPK_INC_DIR=/usr/local/include
-        conda install -c cvxgrp --yes cvxopt
+        conda install -c conda-forge --yes cvxopt
 
     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
@@ -54,7 +54,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
-        conda install -c cvxgrp --yes ecos scs multiprocess
+        conda install -c conda-forge --yes ecos scs multiprocess
         conda install -c default --yes flake8=3.5.0
     fi
 
