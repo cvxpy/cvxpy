@@ -16,7 +16,7 @@ def pypi_version(test=False):
 
 def conda_version(python_version, operating_system):
     #
-    #   python_version must be one of {2.7, 3.5, 3.6}
+    #   python_version must be one of {2.7, 3.5, 3.6, 3.7}
     #
     #   operating system must be one of {linux, osx, win}
     #
@@ -33,4 +33,6 @@ def conda_version(python_version, operating_system):
         if operating_system in fs[3] and pyvers in fs[4]:
             versions.append(fs[2])
     versions.sort(key=StrictVersion)
+    if len(versions) == 0:
+        verions = ['0.0.0']
     return versions[-1]
