@@ -4,7 +4,7 @@ os:
   - linux
 env:
   matrix:
-    - DISTRIB="conda" PYTHON_VERSION="2.7.10" CVXOPT="true"
+    - DISTRIB="conda" PYTHON_VERSION="2.7" CVXOPT="true"
       NUMPY_VERSION="1.14" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI="false"

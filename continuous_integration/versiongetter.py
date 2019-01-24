@@ -20,7 +20,7 @@ def conda_version(python_version, operating_system):
     #
     #   operating system must be one of {linux, osx, win}
     #
-    pyvers_dict = {'2.7.10': 'py27', '3.5': 'py35', '3.6': 'py36', '3.7': 'py37'}
+    pyvers_dict = {'2.7': 'py27', '3.5': 'py35', '3.6': 'py36', '3.7': 'py37'}
     pyvers = pyvers_dict[python_version]
     url = "https://api.anaconda.org/package/cvxgrp/cvxpy"
     r = requests.get(url)
