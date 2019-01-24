@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Back-End Reductions &#8212; CVXPY 1.0.12 documentation</title>
+    <title>Back-End Reductions &#8212; CVXPY 1.0.14 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.12',
+        VERSION:     '1.0.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -66,7 +66,7 @@ ready for to be solved.</p>
 <h2><a class="toc-backref" href="#id1">Dcp2Cone</a><a class="headerlink" href="#dcp2cone" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="descname">Dcp2Cone</code><span class="sig-paren">(</span><em>canon_methods=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="descname">Dcp2Cone</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
 <p>Reduce DCP problems to a conic form.</p>
 <p>This reduction takes as input (minimization) DCP problems and converts
@@ -91,7 +91,7 @@ arguments are affine.</p>
 <h2><a class="toc-backref" href="#id2">Qp2SymbolicQp</a><a class="headerlink" href="#qp2symbolicqp" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="descname">Qp2SymbolicQp</code><span class="sig-paren">(</span><em>canon_methods=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="descname">Qp2SymbolicQp</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
 <p>Reduces a quadratic problem to a problem that consists of affine
 expressions and symbolic quadratic forms.</p>

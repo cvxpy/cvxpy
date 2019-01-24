@@ -6,13 +6,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Index &#8212; CVXPY 1.0.12 documentation</title>
+    <title>Index &#8212; CVXPY 1.0.14 documentation</title>
     <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0.12',
+        VERSION:     '1.0.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -82,7 +82,7 @@
 </li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__ge__">__ge__() (cvxpy.expressions.expression.Expression method)</a>
 </li>
-      <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction.__init__">__init__ (cvxpy.reductions.reduction.Reduction attribute)</a>
+      <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction.__init__">__init__() (cvxpy.reductions.reduction.Reduction method)</a>
 </li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__le__">__le__() (cvxpy.expressions.expression.Expression method)</a>
 </li>
@@ -133,11 +133,15 @@
 </li>
         <li><a href="api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">(cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone method)</a>, <a href="api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">[1]</a>
 </li>
+        <li><a href="api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.accepts">(cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp method)</a>
+</li>
         <li><a href="api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">(cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp method)</a>, <a href="api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">[1]</a>
 </li>
         <li><a href="api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts">(cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing method)</a>
 </li>
         <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction.accepts">(cvxpy.reductions.reduction.Reduction method)</a>
+</li>
+        <li><a href="api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.accepts">(in module cvxpy.reductions.qp2quad_form.qp2symbolic_qp)</a>
 </li>
       </ul></li>
       <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.add_expr.AddExpression">AddExpression (class in cvxpy.atoms.affine.add_expr)</a>
@@ -146,6 +150,8 @@
 
       <ul>
         <li><a href="api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">(cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone method)</a>, <a href="api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">[1]</a>
+</li>
+        <li><a href="api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.apply">(cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp method)</a>
 </li>
         <li><a href="api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply">(cvxpy.reductions.eval_params.EvalParams method)</a>
 </li>
@@ -232,14 +238,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">Dcp2Cone (class in cvxpy.reductions.dcp2cone.dcp2cone)</a>, <a href="api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">[1]</a>
 </li>
+      <li><a href="api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp">Dgp2Dcp (class in cvxpy.reductions.dgp2dcp.dgp2dcp)</a>
+</li>
       <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.diag.diag">diag() (in module cvxpy.atoms.affine.diag)</a>
 </li>
       <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.diff.diff">diff() (in module cvxpy.atoms.affine.diff)</a>
 </li>
-      <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.DivExpression">DivExpression (class in cvxpy.atoms.affine.binary_operators)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.DivExpression">DivExpression (class in cvxpy.atoms.affine.binary_operators)</a>
+</li>
       <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.domain">domain (cvxpy.atoms.atom.Atom attribute)</a>
 
       <ul>
@@ -269,6 +277,8 @@
       <li><a href="api_reference/cvxpy.atoms.affine.html#cumsum.expr">expr (cumsum attribute)</a>
 </li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression">Expression (class in cvxpy.expressions.expression)</a>
+</li>
+      <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.eye_minus_inv">eye_minus_inv (class in cvxpy.atoms.eye_minus_inv)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -340,6 +350,12 @@
 </li>
       <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_convex">is_atom_convex() (cvxpy.atoms.atom.Atom method)</a>
 </li>
+      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_log_log_affine">is_atom_log_log_affine() (cvxpy.atoms.atom.Atom method)</a>
+</li>
+      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_log_log_concave">is_atom_log_log_concave() (cvxpy.atoms.atom.Atom method)</a>
+</li>
+      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_atom_log_log_convex">is_atom_log_log_convex() (cvxpy.atoms.atom.Atom method)</a>
+</li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_concave">is_concave() (cvxpy.expressions.expression.Expression method)</a>
 </li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_constant">is_constant() (cvxpy.expressions.expression.Expression method)</a>
@@ -372,7 +388,23 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_decr">is_decr() (cvxpy.atoms.atom.Atom method)</a>
 </li>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_dgp">is_dgp() (cvxpy.expressions.expression.Expression method)</a>
+
+      <ul>
+        <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.objective.Maximize.is_dgp">(cvxpy.problems.objective.Maximize method)</a>
+</li>
+        <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.objective.Minimize.is_dgp">(cvxpy.problems.objective.Minimize method)</a>
+</li>
+        <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dgp">(cvxpy.problems.problem.Problem method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.is_incr">is_incr() (cvxpy.atoms.atom.Atom method)</a>
+</li>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_log_log_affine">is_log_log_affine() (cvxpy.expressions.expression.Expression method)</a>
+</li>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_log_log_concave">is_log_log_concave() (cvxpy.expressions.expression.Expression method)</a>
+</li>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_log_log_convex">is_log_log_convex() (cvxpy.expressions.expression.Expression method)</a>
 </li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_nonneg">is_nonneg() (cvxpy.expressions.expression.Expression method)</a>
 </li>
@@ -524,6 +556,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.one_minus_pos">one_minus_pos (class in cvxpy.atoms)</a>
+</li>
       <li><a href="api_reference/cvxpy.reductions.html#Solution.opt_val">opt_val (Solution attribute)</a>
 </li>
   </ul></td>
@@ -538,6 +572,8 @@
 </li>
       <li><a href="api_reference/cvxpy.transforms.html#cvxpy.transforms.partial_optimize">partial_optimize() (cvxpy.transforms method)</a>
 </li>
+      <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pf_eigenvalue.pf_eigenvalue">pf_eigenvalue (class in cvxpy.atoms.pf_eigenvalue)</a>
+</li>
       <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.Pnorm">Pnorm (class in cvxpy.atoms.pnorm)</a>
 </li>
       <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.pnorm.pnorm">pnorm() (in module cvxpy.atoms.pnorm)</a>
@@ -551,6 +587,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem">Problem (class in cvxpy.problems.problem)</a>
+</li>
+      <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.prod.prod">prod() (in module cvxpy.atoms.prod)</a>
 </li>
       <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter.project">project() (cvxpy.expressions.constants.parameter.Parameter method)</a>
 
@@ -594,6 +632,8 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction.reduce">reduce() (cvxpy.reductions.reduction.Reduction method)</a>
+</li>
       <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction">Reduction (class in cvxpy.reductions.reduction)</a>
 </li>
       <li><a href="api_reference/cvxpy.reductions.html#Chain.reductions">reductions (Chain attribute)</a>
@@ -607,6 +647,10 @@
       <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.register_solve">register_solve() (cvxpy.problems.problem.Problem class method)</a>
 </li>
       <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.reshape.reshape">reshape (class in cvxpy.atoms.affine.reshape)</a>
+</li>
+      <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.eye_minus_inv.resolvent">resolvent() (in module cvxpy.atoms.eye_minus_inv)</a>
+</li>
+      <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.reduction.Reduction.retrieve">retrieve() (cvxpy.reductions.reduction.Reduction method)</a>
 </li>
   </ul></td>
 </tr></table>

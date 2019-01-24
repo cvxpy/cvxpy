@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cvxpy.atoms.geo_mean &#8212; CVXPY 1.0.12 documentation</title>
+    <title>cvxpy.atoms.geo_mean &#8212; CVXPY 1.0.14 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '1.0.12',
+        VERSION:     '1.0.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,20 +43,17 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="k">import</span> <span class="n">Atom</span>
@@ -71,7 +68,7 @@
 
 <span class="sd">    .. math::</span>
 
-<span class="sd">        \\left(x_1^{p_1} \cdots x_n^{p_n} \\right)^{\\frac{1}{\mathbf{1}^Tp}}</span>
+<span class="sd">        \\left(x_1^{p_1} \\cdots x_n^{p_n} \\right)^{\\frac{1}{\\mathbf{1}^Tp}}</span>
 
 <span class="sd">    The powers ``p`` can be a ``list``, ``tuple``, or ``numpy.array`` of nonnegative</span>
 <span class="sd">    ``int``, ``float``, or ``Fraction`` objects with nonzero sum.</span>
@@ -81,15 +78,15 @@
 
 <span class="sd">    .. math::</span>
 
-<span class="sd">        x_1^{1/n} \cdots x_n^{1/n}.</span>
+<span class="sd">        x_1^{1/n} \\cdots x_n^{1/n}.</span>
 
-<span class="sd">    The geometric mean includes an implicit constraint that :math:`x_i \geq 0`</span>
+<span class="sd">    The geometric mean includes an implicit constraint that :math:`x_i \\geq 0`</span>
 <span class="sd">    whenever :math:`p_i &gt; 0`. If :math:`p_i = 0`, :math:`x_i` will be unconstrained.</span>
 
 <span class="sd">    The only exception to this rule occurs when</span>
 <span class="sd">    ``p`` has exactly one nonzero element, say, ``p_i``, in which case</span>
 <span class="sd">    ``geo_mean(x, p)`` is equivalent to ``x_i`` (without the nonnegativity constraint).</span>
-<span class="sd">    A specific case of this is when :math:`x \in \mathbf{R}^1`.</span>
+<span class="sd">    A specific case of this is when :math:`x \\in \\mathbf{R}^1`.</span>
 
 
 <span class="sd">    .. note::</span>
@@ -98,12 +95,12 @@
 <span class="sd">        i.e., fractional, **approximation** must be made.</span>
 
 <span class="sd">        Internally, ``geo_mean`` immediately computes an approximate normalized</span>
-<span class="sd">        weight vector :math:`w \\approx p/\mathbf{1}^Tp`</span>
+<span class="sd">        weight vector :math:`w \\approx p/\\mathbf{1}^Tp`</span>
 <span class="sd">        and the ``geo_mean`` atom is represented as</span>
 
 <span class="sd">        .. math::</span>
 
-<span class="sd">            x_1^{w_1} \cdots x_n^{w_n},</span>
+<span class="sd">            x_1^{w_1} \\cdots x_n^{w_n},</span>
 
 <span class="sd">        where the elements of ``w`` are ``Fraction`` objects that sum to exactly 1.</span>
 
@@ -207,7 +204,7 @@
 <span class="sd">        A rational approximation of ``p/sum(p)``.</span>
 <span class="sd">    approx_error : float</span>
 <span class="sd">        The error in approximating ``p/sum(p)`` with ``w``, given by</span>
-<span class="sd">        :math:`\|p/\mathbf{1}^T p - w \|_\infty`</span>
+<span class="sd">        :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_denom</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
@@ -250,6 +247,7 @@
 
         <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;x and p must have the same number of elements.&#39;</span><span class="p">)</span>
@@ -333,6 +331,16 @@
 
     <span class="k">def</span> <span class="nf">is_atom_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the atom concave?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the atom log-log convex?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 

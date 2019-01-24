@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Expressions &#8212; CVXPY 1.0.12 documentation</title>
+    <title>Expressions &#8212; CVXPY 1.0.14 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.12',
+        VERSION:     '1.0.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -90,7 +90,7 @@ expressions (e.g., the sum of two expressions) and constraints.</p>
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__eq__">
 <code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__eq__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Zero : Creates an equality constraint <code class="docutils literal"><span class="pre">self</span> <span class="pre">==</span> <span class="pre">other</span></code>.</p>
+<dd><p>Equality : Creates a constraint <code class="docutils literal"><span class="pre">self</span> <span class="pre">==</span> <span class="pre">other</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -102,7 +102,7 @@ expressions (e.g., the sum of two expressions) and constraints.</p>
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.__le__">
 <code class="descname">__le__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__le__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__le__" title="Permalink to this definition">¶</a></dt>
-<dd><p>NonPos : Creates an inequality constraint.</p>
+<dd><p>Inequality : Creates an inequality constraint <code class="docutils literal"><span class="pre">self</span> <span class="pre">&lt;=</span> <span class="pre">other</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -265,17 +265,51 @@ value is missing.</td>
 <dl class="method">
 <dt id="cvxpy.expressions.expression.Expression.is_dcp">
 <code class="descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks whether the constraint is DCP.</p>
+<dd><p>Checks whether the Expression is DCP.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the constraint is DCP, False otherwise.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the Expression is DCP, False otherwise.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.expression.Expression.is_dgp">
+<code class="descname">is_dgp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dgp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the Expression is log-log DCP.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the Expression is log-log DCP, False otherwise.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.expression.Expression.is_log_log_affine">
+<code class="descname">is_log_log_affine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the expression affine?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.expression.Expression.is_log_log_concave">
+<code class="descname">is_log_log_concave</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_concave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_concave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the expression log-log concave?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.expressions.expression.Expression.is_log_log_convex">
+<code class="descname">is_log_log_convex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_convex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_convex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the expression log-log convex?</p>
 </dd></dl>
 
 <dl class="method">
@@ -339,7 +373,7 @@ value is missing.</td>
 <h2><a class="toc-backref" href="#id2">Leaf</a><a class="headerlink" href="#leaf" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cvxpy.expressions.leaf.Leaf">
-<em class="property">class </em><code class="descclassname">cvxpy.expressions.leaf.</code><code class="descname">Leaf</code><span class="sig-paren">(</span><em>shape</em>, <em>value=None</em>, <em>nonneg=False</em>, <em>nonpos=False</em>, <em>complex=False</em>, <em>imag=False</em>, <em>symmetric=False</em>, <em>diag=False</em>, <em>PSD=False</em>, <em>NSD=False</em>, <em>hermitian=False</em>, <em>boolean=False</em>, <em>integer=False</em>, <em>sparsity=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cvxpy.expressions.leaf.</code><code class="descname">Leaf</code><span class="sig-paren">(</span><em>shape</em>, <em>value=None</em>, <em>nonneg=False</em>, <em>nonpos=False</em>, <em>complex=False</em>, <em>imag=False</em>, <em>symmetric=False</em>, <em>diag=False</em>, <em>PSD=False</em>, <em>NSD=False</em>, <em>hermitian=False</em>, <em>boolean=False</em>, <em>integer=False</em>, <em>sparsity=None</em>, <em>pos=False</em>, <em>neg=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.expressions.expression.Expression</span></code></a></p>
 <p>A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.</p>
 <p>A leaf may carry <em>attributes</em> that constrain the set values permissible
@@ -374,6 +408,8 @@ length of shape.</li>
 <li><strong>integer</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable integer? The semantics are the same as the
 boolean argument.</li>
 <li><strong>sparsity</strong> (<em>list of tuplewith</em>) – Fixed sparsity pattern for the variable.</li>
+<li><strong>pos</strong> (<em>bool</em>) – Is the variable positive?</li>
+<li><strong>neg</strong> (<em>bool</em>) – Is the variable negative?</li>
 </ul>
 </td>
 </tr>

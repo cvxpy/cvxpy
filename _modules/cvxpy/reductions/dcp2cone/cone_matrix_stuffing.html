@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cvxpy.reductions.dcp2cone.cone_matrix_stuffing &#8212; CVXPY 1.0.12 documentation</title>
+    <title>cvxpy.reductions.dcp2cone.cone_matrix_stuffing &#8212; CVXPY 1.0.14 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../../',
-        VERSION:     '1.0.12',
+        VERSION:     '1.0.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,28 +43,22 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Copyright 2013 Steven Diamond</span>
 
-<span class="sd">This file is part of CVXPY.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
 
-<span class="sd">CVXPY is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
 
-<span class="sd">CVXPY is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
-
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with CVXPY.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="k">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="k">import</span> <span class="n">Minimize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.matrix_stuffing</span> <span class="k">import</span> <span class="n">extract_mip_idx</span><span class="p">,</span> <span class="n">MatrixStuffing</span>
-<span class="kn">from</span> <span class="nn">cvxpy.utilities.coeff_extractor</span> <span class="k">import</span> <span class="n">CoeffExtractor</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cvx_attr2constr</span> <span class="k">import</span> <span class="n">convex_attributes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.utilities</span> <span class="k">import</span> <span class="n">are_args_affine</span>
 
@@ -88,19 +82,17 @@
                 <span class="ow">and</span> <span class="ow">not</span> <span class="n">convex_attributes</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
                 <span class="ow">and</span> <span class="n">are_args_affine</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="ConeMatrixStuffing.stuffed_objective"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">[docs]</a>    <span class="k">def</span> <span class="nf">stuffed_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>
-        <span class="n">extractor</span> <span class="o">=</span> <span class="n">CoeffExtractor</span><span class="p">(</span><span class="n">inverse_data</span><span class="p">)</span>
-        <span class="c1"># Extract to c.T * x, store r</span>
-        <span class="n">C</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">get_coeffs</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+<div class="viewcode-block" id="ConeMatrixStuffing.stuffed_objective"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">[docs]</a>    <span class="k">def</span> <span class="nf">stuffed_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">extractor</span><span class="p">):</span>
+        <span class="c1"># Extract to c.T * x + r</span>
+        <span class="n">C</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">affine</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
 
-        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">todense</span><span class="p">())</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="n">boolean</span><span class="p">,</span> <span class="n">integer</span> <span class="o">=</span> <span class="n">extract_mip_idx</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">inverse_data</span><span class="o">.</span><span class="n">x_length</span><span class="p">,</span> <span class="n">boolean</span><span class="o">=</span><span class="n">boolean</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="n">integer</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">extractor</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">boolean</span><span class="o">=</span><span class="n">boolean</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="n">integer</span><span class="p">)</span>
 
         <span class="n">new_obj</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">0</span>
 
-        <span class="n">inverse_data</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">new_obj</span><span class="p">,</span> <span class="n">x</span></div></div>
+        <span class="k">return</span> <span class="n">new_obj</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div></div>
 </pre></div>
 
           </div>

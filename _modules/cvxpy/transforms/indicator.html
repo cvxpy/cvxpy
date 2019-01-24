@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cvxpy.transforms.indicator &#8212; CVXPY 1.0.12 documentation</title>
+    <title>cvxpy.transforms.indicator &#8212; CVXPY 1.0.14 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '1.0.12',
+        VERSION:     '1.0.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -63,7 +63,7 @@
 
 <div class="viewcode-block" id="indicator"><a class="viewcode-back" href="../../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator">[docs]</a><span class="k">class</span> <span class="nc">indicator</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An expression representing the convex function I(constraints) = 0</span>
-<span class="sd">       if constraints hold, +\infty otherwise.</span>
+<span class="sd">       if constraints hold, +infty otherwise.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -137,7 +137,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A numpy matrix or a scalar.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span>
