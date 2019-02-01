@@ -18,6 +18,7 @@ import cvxpy.settings as s
 from cvxpy.error import DCPError, SolverError
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
+from cvxpy.reductions.solvers.symbolic_chain import construct_symbolic_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 
 # TODO(akshayka): This is a hack. Fix this if possible.
@@ -67,7 +68,8 @@ class Problem(u.Canonical):
         self._value = None
         self._status = None
         self._solution = None
-        # The solving chain with which to solve the problem
+        # The symbolic and solving chains to canonicalize and solve the problem
+        self._symbolic_chain = None
         self._solving_chain = None
         self._cached_chain_key = None
         # List of separable (sub)problems
@@ -368,20 +370,50 @@ class Problem(u.Canonical):
                 return self._parallel_solve(solver, ignore_dcp, warm_start,
                                             verbose, **kwargs)
 
+        # Check if chain already exists
         chain_key = (solver, gp)
         if chain_key != self._cached_chain_key:
             try:
-                self._solving_chain = construct_solving_chain(self,
-                                                              solver=solver,
-                                                              gp=gp)
+                # Create symbolic chain and canonicalize problem into symbolic one
+                self._symbolic_chain = construct_symbolic_chain(self, gp=gp)
+                self._symbolic_problem, self._symbolic_inverse_data = \
+                    self._symbolic_chain.apply(self)
+
+                # Create solving chain
+                self._solving_chain = construct_solving_chain(self._symbolic_problem,
+                                                              solver=solver)
+                # Canonicalize symbolic problem
+                self._symbolic_problem, self._symbolic_inverse_data = \
+                    self._symbolic_chain.apply(self)
             except Exception as e:
                 raise e
         self._cached_chain_key = chain_key
 
-        data, inverse_data = self._solving_chain.apply(self)
-        solver_output = self._solving_chain.solve_via_data(
-          self, data, warm_start, verbose, kwargs)
-        self.unpack_results(solver_output, self._solving_chain, inverse_data)
+        # Get data for solving chain
+        data, inverse_data = self._solving_chain.apply(self._symbolic_problem)
+
+        # Solve via data
+        numeric_solution = self._solving_chain.solve_via_data(self, data,
+                                                              warm_start,
+                                                              verbose, kwargs)
+
+        # Unpack results (this does not use the unpack_results function)
+        symbolic_solution = self._solving_chain.invert(numeric_solution,
+                                                       inverse_data)
+        solution = self._symbolic_chain.invert(symbolic_solution,
+                                               self._symbolic_inverse_data)
+        try:
+            self.unpack(solution)
+        except ValueError:
+            raise SolverError(
+                "Solver '%s' failed. " % self._solving_chain.solver.name() +
+                "Try another solver or solve with verbose=True for more "
+                "information. Try recentering the problem data around 0 and "
+                "rescaling to reduce the dynamic range."
+            )
+        self._solver_stats = SolverStats(self._solution.attr,
+                                         self._solving_chain.solver.name())
+
         return self.value
 
     def _parallel_solve(self,
@@ -494,35 +526,35 @@ class Problem(u.Canonical):
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution, chain, inverse_data):
-        """Updates the problem state given the solver results.
-
-        Updates problem.status, problem.value and value of
-        primal and dual variables.
-
-        Parameters
-        __________
-        solution : object
-            The solution returned by applying the chain to the problem
-            and invoking the solver on the resulting data.
-        chain : SolvingChain
-            A solving chain that was used to solve the problem.
-        inverse_data : list
-            The inverse data returned by applying the chain to the problem.
-        """
-        solution = chain.invert(solution, inverse_data)
-        try:
-            self.unpack(solution)
-        except ValueError:
-            raise SolverError(
-                "Solver '%s' failed. " % chain.solver.name() +
-                "Try another solver or solve with verbose=True for more "
-                "information. Try recentering the problem data around 0 and "
-                "rescaling to reduce the dynamic range."
-            )
-        self._solver_stats = SolverStats(self._solution.attr,
-                                         chain.solver.name())
-
+    #  def unpack_results(self, solution, chain, inverse_data):
+    #      """Updates the problem state given the solver results.
+    #
+    #      Updates problem.status, problem.value and value of
+    #      primal and dual variables.
+    #
+    #      Parameters
+    #      __________
+    #      solution : object
+    #          The solution returned by applying the chain to the problem
+    #          and invoking the solver on the resulting data.
+    #      chain : SolvingChain
+    #          A solving chain that was used to solve the problem.
+    #      inverse_data : list
+    #          The inverse data returned by applying the chain to the problem.
+    #      """
+    #      solution = chain.invert(solution, inverse_data)
+    #      try:
+    #          self.unpack(solution)
+    #      except ValueError:
+    #          raise SolverError(
+    #              "Solver '%s' failed. " % chain.solver.name() +
+    #              "Try another solver or solve with verbose=True for more "
+    #              "information. Try recentering the problem data around 0 and "
+    #              "rescaling to reduce the dynamic range."
+    #          )
+    #      self._solver_stats = SolverStats(self._solution.attr,
+    #                                       chain.solver.name())
+    #
     def __str__(self):
         if len(self.constraints) == 0:
             return str(self.objective)

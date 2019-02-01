@@ -1,11 +1,8 @@
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
-from cvxpy.error import DCPError, DGPError, SolverError
-from cvxpy.problems.objective import Maximize
-from cvxpy.reductions import (Chain, ConeMatrixStuffing, Dcp2Cone, EvalParams,
-                              FlipObjective, Dgp2Dcp, Qp2SymbolicQp, QpMatrixStuffing,
-                              CvxAttr2Constr, Complex2Real)
-from cvxpy.reductions.complex2real import complex2real
+from cvxpy.error import SolverError
+from cvxpy.reductions import (Chain, ConeMatrixStuffing, EvalParams,
+                              QpMatrixStuffing)
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -38,10 +35,6 @@ def construct_solving_chain(problem, solver=None, gp=False):
 
     Raises
     ------
-    DCPError
-        Raised if the problem is not DCP and `gp` is False.
-    DGPError
-        Raised if the problem is not DGP and `gp` is True.
     SolverError
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
@@ -54,15 +47,12 @@ def construct_solving_chain(problem, solver=None, gp=False):
         candidates = slv_def.INSTALLED_SOLVERS
 
     reductions = []
-    #  if problem.parameters():
-    #      reductions += [EvalParams()]
+    if problem.parameters():
+        reductions += [EvalParams()]
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
-    if complex2real.accepts(problem):
-        reductions += [Complex2Real()]
     if gp:
-        reductions += [Dgp2Dcp()]
         if solver is not None and solver not in slv_def.CONIC_SOLVERS:
             raise SolverError(
               "When `gp=True`, `solver` must be a conic solver "
@@ -71,49 +61,29 @@ def construct_solving_chain(problem, solver=None, gp=False):
         elif solver is None:
             candidates = slv_def.INSTALLED_CONIC_SOLVERS
 
-    if not gp and not problem.is_dcp():
-        append = ""
-        if problem.is_dgp():
-            append = (" However, the problem does follow DGP rules. "
-                      "Consider calling this function with `gp=True`.")
-        raise DCPError("Problem does not follow DCP rules." + append)
-    elif gp and not problem.is_dgp():
-        append = ""
-        if problem.is_dcp():
-            append = (" However, the problem does follow DCP rules. "
-                      "Consider calling this function with `gp=False`.")
-        raise DGPError("Problem does not follow DGP rules." + append)
-
-    # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
-    if type(problem.objective) == Maximize:
-        reductions.append(FlipObjective())
-
     # Conclude the chain with one of the following:
-    #   (1) Qp2SymbolicQp --> QpMatrixStuffing --> [a QpSolver],
-    #   (2) Dcp2Cone --> ConeMatrixStuffing --> [a ConicSolver]
+    #   (1) QpMatrixStuffing --> [a QpSolver],
+    #   (2) ConeMatrixStuffing --> [a ConicSolver]
     #
     # First, attempt to canonicalize the problem to a linearly constrained QP.
     candidate_qp_solvers = [s for s in slv_def.QP_SOLVERS if s in candidates]
     # Consider only MIQP solvers if problem is integer
     if problem.is_mixed_integer():
         candidate_qp_solvers = [
-          s for s in candidate_qp_solvers if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
+          s for s in candidate_qp_solvers
+          if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
     if candidate_qp_solvers and qp2symbolic_qp.accepts(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        reductions += [CvxAttr2Constr(),
-                       Qp2SymbolicQp()]
-
-        if problem.parameters():
-            reductions += [EvalParams()]
 
         reductions += [QpMatrixStuffing(),
                        solver_instance]
 
         return SolvingChain(reductions=reductions)
 
-    candidate_conic_solvers = [s for s in slv_def.CONIC_SOLVERS if s in candidates]
+    candidate_conic_solvers = [s for s in slv_def.CONIC_SOLVERS
+                               if s in candidates]
     if problem.is_mixed_integer():
         candidate_conic_solvers = \
             [s for s in candidate_conic_solvers if
@@ -128,7 +98,6 @@ def construct_solving_chain(problem, solver=None, gp=False):
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
 
-    # Attempt to canonicalize the problem to a cone program.
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
     # and exponential atoms.
@@ -155,15 +124,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
-            # Canonicalize
-            reductions += [Dcp2Cone(),
-                           CvxAttr2Constr()]
 
-            # Fill parameters
-            if problem.parameters():
-                reductions += [EvalParams()]
-
-            # Add matrices
             reductions += [ConeMatrixStuffing(),
                            solver_instance]
             return SolvingChain(reductions=reductions)
