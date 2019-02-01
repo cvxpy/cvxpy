@@ -54,8 +54,8 @@ def construct_solving_chain(problem, solver=None, gp=False):
         candidates = slv_def.INSTALLED_SOLVERS
 
     reductions = []
-    if problem.parameters():
-        reductions += [EvalParams()]
+    #  if problem.parameters():
+    #      reductions += [EvalParams()]
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
@@ -103,9 +103,14 @@ def construct_solving_chain(problem, solver=None, gp=False):
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [CvxAttr2Constr(),
-                       Qp2SymbolicQp(),
-                       QpMatrixStuffing(),
+                       Qp2SymbolicQp()]
+
+        if problem.parameters():
+            reductions += [EvalParams()]
+
+        reductions += [QpMatrixStuffing(),
                        solver_instance]
+
         return SolvingChain(reductions=reductions)
 
     candidate_conic_solvers = [s for s in slv_def.CONIC_SOLVERS if s in candidates]
@@ -150,8 +155,16 @@ def construct_solving_chain(problem, solver=None, gp=False):
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
+            # Canonicalize
             reductions += [Dcp2Cone(),
-                           CvxAttr2Constr(), ConeMatrixStuffing(),
+                           CvxAttr2Constr()]
+
+            # Fill parameters
+            if problem.parameters():
+                reductions += [EvalParams()]
+
+            # Add matrices
+            reductions += [ConeMatrixStuffing(),
                            solver_instance]
             return SolvingChain(reductions=reductions)
 
