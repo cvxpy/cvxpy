@@ -372,6 +372,7 @@ class Problem(u.Canonical):
 
         # Check if chain already exists
         chain_key = (solver, gp)
+
         if chain_key != self._cached_chain_key:
             try:
                 # Create symbolic chain and canonicalize problem into symbolic one
@@ -379,17 +380,15 @@ class Problem(u.Canonical):
                 self._symbolic_problem, self._symbolic_inverse_data = \
                     self._symbolic_chain.apply(self)
 
-                # Create solving chain
-                self._solving_chain = construct_solving_chain(self._symbolic_problem,
-                                                              solver=solver)
-                # Canonicalize symbolic problem
-                self._symbolic_problem, self._symbolic_inverse_data = \
-                    self._symbolic_chain.apply(self)
             except Exception as e:
                 raise e
         self._cached_chain_key = chain_key
 
-        # Get data for solving chain
+        # Create solving chain (maybe with new solver)
+        self._solving_chain = construct_solving_chain(self._symbolic_problem,
+                                                      solver=solver)
+
+        # Apply solving chain to get data
         data, inverse_data = self._solving_chain.apply(self._symbolic_problem)
 
         # Solve via data

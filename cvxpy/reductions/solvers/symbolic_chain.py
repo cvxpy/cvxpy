@@ -58,7 +58,7 @@ def construct_symbolic_chain(problem, solver=None, gp=False):
 
     # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
     if type(problem.objective) == Maximize:
-        reductions.append(FlipObjective())
+        reductions += [FlipObjective()]
 
     # Conclude the chain with either a symbolic QP or a symbolic conic program
 
