@@ -158,6 +158,11 @@ class SolvingChain(Chain):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
 
+    def concatenate_with(self, chain):
+        """Create and return a new Solving Chain by concatenating `chain` with this instance."""
+        # Construct combined chain from the two
+        return SolvingChain(reductions=chain.reductions + self.reductions)
+
     def solve(self, problem, warm_start, verbose, solver_opts):
         """Solves the problem by applying the chain.
 
