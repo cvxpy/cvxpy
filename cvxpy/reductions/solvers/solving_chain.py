@@ -3,7 +3,6 @@ from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import SolverError
 from cvxpy.reductions import (Chain, ConeMatrixStuffing, EvalParams,
                               QpMatrixStuffing)
-from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def
@@ -72,7 +71,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
         candidate_qp_solvers = [
           s for s in candidate_qp_solvers
           if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
-    if candidate_qp_solvers and qp2symbolic_qp.accepts(problem):
+    if candidate_qp_solvers and QpMatrixStuffing.accepts(problem):
         solver = sorted(candidate_qp_solvers,
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]

@@ -225,7 +225,7 @@ class TestExamples(BaseTest):
         risk = cvx.quad_form(x, sigma)
 
         objective = cvx.Maximize(expected_return - gamma*risk)
-        p = cvx.Problem(objective, [sum(x) == 1])
+        p = cvx.Problem(objective, [cvx.sum(x) == 1])
         result = p.solve()
 
         # The optimal expected return.

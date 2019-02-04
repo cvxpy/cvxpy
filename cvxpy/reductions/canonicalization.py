@@ -79,16 +79,7 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if isinstance(expr, Expression) and not expr.variables():
-            # Parameterized expressions are evaluated in a subsequent
-            # reduction.
-            if expr.parameters():
-                param = CallbackParam(lambda: expr.value, expr.shape)
-                return param, []
-            # Non-parameterized expressions are evaluated immediately.
-            else:
-                return Constant(expr.value), []
-        elif type(expr) in self.canon_methods:
+        if type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
         else:
             return expr.copy(args), []
