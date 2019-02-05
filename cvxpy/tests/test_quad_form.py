@@ -100,10 +100,8 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
             prob.solve()
-        self.assertEqual(str(cm.exception),
-                         "Problem does not follow DCP rules. However, "
-                         "the problem does follow DGP rules. Consider "
-                         "calling this function with `gp=True`.")
+        self.assertTrue("Problem does not follow DCP rules."
+                        in str(cm.exception))
 
     def test_non_psd(self):
         """Test error when P is symmetric but not definite.
@@ -117,10 +115,8 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
             prob.solve()
-        self.assertEqual(str(cm.exception),
-                         "Problem does not follow DCP rules. However, "
-                         "the problem does follow DGP rules. Consider "
-                         "calling this function with `gp=True`.")
+        self.assertTrue("Problem does not follow DCP rules."
+                        in str(cm.exception))
 
     def test_obj_eval(self):
         """Test case where objective evaluation differs from result.
