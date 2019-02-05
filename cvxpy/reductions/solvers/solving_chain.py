@@ -19,7 +19,8 @@ def construct_solving_chain(problem, candidates):
     problem : Problem
         The problem for which to build a chain.
     candidates : dict
-        Dictionary of candidate solvers divided in qp_solvers and conic_solvers.
+        Dictionary of candidate solvers divided in qp_solvers
+        and conic_solvers.
 
     Returns
     -------
@@ -42,7 +43,6 @@ def construct_solving_chain(problem, candidates):
     # Conclude the chain with one of the following:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    #
 
     # First, attempt to canonicalize the problem to a linearly constrained QP.
     if candidates['qp_solvers'] and QpMatrixStuffing.accepts(problem):
