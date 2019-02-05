@@ -8,7 +8,7 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def
 
 
-def construct_solving_chain(problem, solver=None, gp=False):
+def construct_solving_chain(problem, candidates):
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -18,14 +18,8 @@ def construct_solving_chain(problem, solver=None, gp=False):
     ----------
     problem : Problem
         The problem for which to build a chain.
-    solver : string
-        The name of the solver with which to terminate the chain. If no solver
-        is supplied (i.e., if solver is None), then the targeted solver may be
-        any of those that are installed. If the problem is variable-free,
-        then this parameter is ignored.
-    gp : bool
-        If True, the problem is parsed as a Disciplined Geometric Program
-        instead of as a Disciplined Convex Program.
+    candidates : dict
+        Dictionary of candidate solvers divided in qp_solvers and conic_solvers.
 
     Returns
     -------
@@ -38,61 +32,28 @@ def construct_solving_chain(problem, solver=None, gp=False):
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
-    if solver is not None:
-        if solver not in slv_def.INSTALLED_SOLVERS:
-            raise SolverError("The solver %s is not installed." % solver)
-        candidates = [solver]
-    else:
-        candidates = slv_def.INSTALLED_SOLVERS
-
     reductions = []
     if problem.parameters():
         reductions += [EvalParams()]
     if len(problem.variables()) == 0:
         reductions += [ConstantSolver()]
         return SolvingChain(reductions=reductions)
-    if gp:
-        if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-            raise SolverError(
-              "When `gp=True`, `solver` must be a conic solver "
-              "(received '%s'); try calling `solve()` with `solver=cvxpy.ECOS`."
-              % solver)
-        elif solver is None:
-            candidates = slv_def.INSTALLED_CONIC_SOLVERS
 
     # Conclude the chain with one of the following:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
     #
+
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    candidate_qp_solvers = [s for s in slv_def.QP_SOLVERS if s in candidates]
-    # Consider only MIQP solvers if problem is integer
-    if problem.is_mixed_integer():
-        candidate_qp_solvers = [
-          s for s in candidate_qp_solvers
-          if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
-    if candidate_qp_solvers and QpMatrixStuffing.accepts(problem):
-        solver = sorted(candidate_qp_solvers,
+    if candidates['qp_solvers'] and QpMatrixStuffing.accepts(problem):
+        solver = sorted(candidates['qp_solvers'],
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-
         reductions += [QpMatrixStuffing(),
                        solver_instance]
-
         return SolvingChain(reductions=reductions)
 
-    candidate_conic_solvers = [s for s in slv_def.CONIC_SOLVERS
-                               if s in candidates]
-    if problem.is_mixed_integer():
-        candidate_conic_solvers = \
-            [s for s in candidate_conic_solvers if
-             slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
-        if not candidate_conic_solvers and \
-                not candidate_qp_solvers:
-            raise SolverError("Problem is mixed-integer, but candidate "
-                              "QP/Conic solvers (%s) are not MIP-capable." %
-                              [candidate_qp_solvers, candidate_conic_solvers])
-    if not candidate_conic_solvers:
+    if not candidates['conic_solvers']:
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
@@ -118,12 +79,11 @@ def construct_solving_chain(problem, solver=None, gp=False):
     # increases the number of constraints in our problem.
     has_constr = len(cones) > 0 or len(problem.constraints) > 0
 
-    for solver in sorted(candidate_conic_solvers,
+    for solver in sorted(candidates['conic_solvers'],
                          key=lambda s: slv_def.CONIC_SOLVERS.index(s)):
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
-
             reductions += [ConeMatrixStuffing(),
                            solver_instance]
             return SolvingChain(reductions=reductions)
@@ -131,7 +91,7 @@ def construct_solving_chain(problem, solver=None, gp=False):
     raise SolverError("Either candidate conic solvers (%s) do not support the "
                       "cones output by the problem (%s), or there are not "
                       "enough constraints in the problem." % (
-                          candidate_conic_solvers,
+                          candidates['conic_solvers'],
                           ", ".join([cone.__name__ for cone in cones])))
 
 

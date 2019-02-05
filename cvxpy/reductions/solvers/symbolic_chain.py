@@ -15,6 +15,9 @@ def construct_symbolic_chain(problem, candidates, gp=False):
     ----------
     problem : Problem
         The problem for which to build a chain.
+    candidates : dict
+        Dictionary of candidate solvers divided in qp_solvers
+        and conic_solvers.
     gp : bool
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
@@ -60,13 +63,13 @@ def construct_symbolic_chain(problem, candidates, gp=False):
         reductions += [FlipObjective()]
 
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if candidate_qp_solvers and qp2symbolic_qp.accepts(problem):
+    if candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem):
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp()]
         return Chain(reductions=reductions)
 
     # Canonicalize it to conic problem.
-    if not candidate_conic_solvers:
+    if not candidates['conic_solvers']:
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)

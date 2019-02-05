@@ -327,46 +327,55 @@ class Problem(u.Canonical):
 
         if chain_key != self._cached_chain_key:
             try:
-                # Create symbolic chain
-                self._symbolic_chain = construct_symbolic_chain(self,
-                                                                solver=solver,
-                                                                gp=gp)
+                # Find candidate solvers
+                candidate_solvers = self._find_candidate_solvers(solver=solver,
+                                                                 gp=gp)
+
+                # Create symbolic chain and canonicalize problem
+                # into symbolic one
+                self._symbolic_chain = \
+                    construct_symbolic_chain(self, candidate_solvers, gp=gp)
+                self._symbolic_problem, self._symbolic_inverse_data = \
+                    self._symbolic_chain.apply(self)
+
                 # Create solving chain
-                self._solving_chain = construct_solving_chain(self,
-                                                              solver=solver)
+                self._solving_chain = \
+                    construct_solving_chain(self._symbolic_problem,
+                                            candidate_solvers)
             except Exception as e:
                 raise e
+
         self._cached_chain_key = chain_key
+
+        # Apply solving chain to get data
+        data, solving_inverse_data = \
+            self._solving_chain.apply(self._symbolic_problem)
 
         # Construct combined chain from the two
         solving_chain = \
             self._solving_chain.concatenate_with(self._symbolic_chain)
+        inverse_data = self._symbolic_inverse_data + solving_inverse_data
 
-        # Apply solving chain to get data
-        data, inv_data = solving_chain.apply(self)
-
-        return data, solving_chain, inv_data
+        return data, solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
-                                problem,
                                 solver=None,
                                 gp=False):
         """
-        Find candiate solvers. If solver is not None, it checks if the
-        specified solved is compatible with the problem passed.
+        Find candiate solvers for the current problem. If solver
+        is not None, it checks if the specified solved is compatible
+        with the problem passed.
 
         Parameters
         ----------
-        problem : Problem
-            The problem for which to build a chain.
         gp : bool
             If True, the problem is parsed as a Disciplined Geometric Program
             instead of as a Disciplined Convex Program.
         solver : string
-            The name of the solver with which to solve the problem. If no solver
-            is supplied (i.e., if solver is None), then the targeted solver may be
-            any of those that are installed. If the problem is variable-free,
-            then this parameter is ignored.
+            The name of the solver with which to solve the problem. If no
+            solver is supplied (i.e., if solver is None), then the targeted
+            solver may be any of those that are installed. If the problem
+            is variable-free, then this parameter is ignored.
 
         Returns
         -------
@@ -390,11 +399,8 @@ class Problem(u.Canonical):
                 raise SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:
                 candidates['conic_solvers'] += [solver]
-            elif solver in slv_def.QP_SOLVERS:
+            if solver in slv_def.QP_SOLVERS:
                 candidates['qp_solvers'] += [solver]
-            else:
-                raise SolverError('The solver %s not recognized as QP nor conic solver.' %
-                                  solver)
         else:
             candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
                                         if s in slv_def.QP_SOLVERS]
@@ -406,13 +412,14 @@ class Problem(u.Canonical):
             if solver is not None and solver not in slv_def.CONIC_SOLVERS:
                 raise SolverError(
                   "When `gp=True`, `solver` must be a conic solver "
-                  "(received '%s'); try calling `solve()` with `solver=cvxpy.ECOS`."
-                  % solver)
+                  "(received '%s'); try calling " % solver +
+                  " `solve()` with `solver=cvxpy.ECOS`."
+                  )
             elif solver is None:
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         # Check if we found MIP compatible solvers
-        if problem.is_mixed_integer():
+        if self.is_mixed_integer():
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
@@ -422,9 +429,9 @@ class Problem(u.Canonical):
             if not candidates['conic_solvers'] and \
                     not candidates['qp_solvers']:
                 raise SolverError("Problem is mixed-integer, but candidate "
-                                  "QP/Conic solvers (%s) are not MIP-capable." %
-                                  [candidates['qp_solvers'],
-                                   candidates['conic_solvers']])
+                                  "QP/Conic solvers (%s) are not MIP-capable."
+                                  % [candidates['qp_solvers'],
+                                     candidates['conic_solvers']])
 
         # Return candidate qp and conic solvers
         return candidates
@@ -480,17 +487,21 @@ class Problem(u.Canonical):
 
         if chain_key != self._cached_chain_key:
             try:
+                # Find candidate solvers
+                candidate_solvers = self._find_candidate_solvers(solver=solver,
+                                                                 gp=gp)
+
                 # Create symbolic chain and canonicalize problem
                 # into symbolic one
-                self._symbolic_chain = construct_symbolic_chain(self,
-                                                                solver=solver,
-                                                                gp=gp)
+                self._symbolic_chain = \
+                    construct_symbolic_chain(self, candidate_solvers, gp=gp)
                 self._symbolic_problem, self._symbolic_inverse_data = \
                     self._symbolic_chain.apply(self)
 
                 # Create solving chain
-                self._solving_chain = construct_solving_chain(self._symbolic_problem,
-                                                              solver=solver)
+                self._solving_chain = \
+                    construct_solving_chain(self._symbolic_problem,
+                                            candidate_solvers)
             except Exception as e:
                 raise e
 

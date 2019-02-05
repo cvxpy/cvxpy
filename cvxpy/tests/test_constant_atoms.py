@@ -26,6 +26,8 @@ from cvxpy.error import SolverError
 import cvxpy.interface as intf
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
+from cvxpy.reductions.solvers.symbolic_chain import construct_symbolic_chain
 import numpy as np
 import numpy.linalg as LA
 import math
@@ -268,7 +270,14 @@ def check_solver(prob, solver_name):
     try:
         if solver_name == ROBUST_CVXOPT:
             solver_name = CVXOPT
-        chain = construct_solving_chain(prob, solver=solver_name)
+
+        # Find candidate solvers
+        candidates = prob._find_candidate_solvers(solver=solver_name)
+        # Create symbolic chain
+        construct_symbolic_chain(prob, candidates)
+        # Create solving chain
+        construct_solving_chain(prob, candidates)
+        #  chain = construct_solving_chain(prob, solver=solver_name)
         return True
     except SolverError:
         return False
