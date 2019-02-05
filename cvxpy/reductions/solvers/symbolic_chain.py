@@ -5,10 +5,10 @@ from cvxpy.reductions import (Chain, Dcp2Cone,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
-from cvxpy.reductions.solvers import defines as slv_def
+#  from cvxpy.reductions.solvers import defines as slv_def
 
 
-def construct_symbolic_chain(problem, solver=None, gp=False):
+def construct_symbolic_chain(problem, candidates, gp=False):
     """Build a symbolic chain from a problem to its symbolic form.
 
     Parameters
@@ -31,21 +31,6 @@ def construct_symbolic_chain(problem, solver=None, gp=False):
     DGPError
         Raised if the problem is not DGP and `gp` is True.
     """
-    if solver is not None:
-        if solver not in slv_def.INSTALLED_SOLVERS:
-            raise SolverError("The solver %s is not installed." % solver)
-        candidates = [solver]
-    else:
-        candidates = slv_def.INSTALLED_SOLVERS
-
-    if gp:
-        if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-            raise SolverError(
-              "When `gp=True`, `solver` must be a conic solver "
-              "(received '%s'); try calling `solve()` with `solver=cvxpy.ECOS`."
-              % solver)
-        elif solver is None:
-            candidates = slv_def.INSTALLED_CONIC_SOLVERS
 
     reductions = []
     if len(problem.variables()) == 0:
@@ -55,12 +40,14 @@ def construct_symbolic_chain(problem, solver=None, gp=False):
     if gp:
         reductions += [Dgp2Dcp()]
 
+    # Check DCP
     if not gp and not problem.is_dcp():
         append = ""
         append = (" However, the problem does follow DGP rules. "
                   "Consider calling this function with `gp=True`.")
         raise DCPError("Problem does not follow DCP rules." + append)
 
+    # Check DGP
     elif gp and not problem.is_dgp():
         append = ""
         if problem.is_dcp():
@@ -72,32 +59,13 @@ def construct_symbolic_chain(problem, solver=None, gp=False):
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    # Conclude the chain with either a symbolic QP or a symbolic conic program
-
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    candidate_qp_solvers = [s for s in slv_def.QP_SOLVERS if s in candidates]
-    # Consider only MIQP solvers if problem is integer
-    if problem.is_mixed_integer():
-        candidate_qp_solvers = [
-          s for s in candidate_qp_solvers
-          if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
     if candidate_qp_solvers and qp2symbolic_qp.accepts(problem):
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp()]
         return Chain(reductions=reductions)
 
-    # Canonicalize to conic otherwise
-    candidate_conic_solvers = [s for s in slv_def.CONIC_SOLVERS
-                               if s in candidates]
-    if problem.is_mixed_integer():
-        candidate_conic_solvers = \
-            [s for s in candidate_conic_solvers if
-             slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
-        if not candidate_conic_solvers and \
-                not candidate_qp_solvers:
-            raise SolverError("Problem is mixed-integer, but candidate "
-                              "QP/Conic solvers (%s) are not MIP-capable." %
-                              [candidate_qp_solvers, candidate_conic_solvers])
+    # Canonicalize it to conic problem.
     if not candidate_conic_solvers:
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "

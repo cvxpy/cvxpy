@@ -21,6 +21,7 @@ from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.symbolic_chain import construct_symbolic_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers.solving_chain import SolvingChain
+from cvxpy.reductions.solvers import defines as slv_def
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -338,18 +339,95 @@ class Problem(u.Canonical):
         self._cached_chain_key = chain_key
 
         # Construct combined chain from the two
-        solving_chain = self._solving_chain.concatenate_with(self._symbolic_chain)
+        solving_chain = \
+            self._solving_chain.concatenate_with(self._symbolic_chain)
 
         # Apply solving chain to get data
         data, inv_data = solving_chain.apply(self)
 
-        #  try:
-        #      solving_chain = construct_solving_chain(self, solver)
-        #  except Exception as e:
-        #      raise e
-        #  data, inv_data = solving_chain.apply(self)
-
         return data, solving_chain, inv_data
+
+    def _find_candidate_solvers(self,
+                                problem,
+                                solver=None,
+                                gp=False):
+        """
+        Find candiate solvers. If solver is not None, it checks if the
+        specified solved is compatible with the problem passed.
+
+        Parameters
+        ----------
+        problem : Problem
+            The problem for which to build a chain.
+        gp : bool
+            If True, the problem is parsed as a Disciplined Geometric Program
+            instead of as a Disciplined Convex Program.
+        solver : string
+            The name of the solver with which to solve the problem. If no solver
+            is supplied (i.e., if solver is None), then the targeted solver may be
+            any of those that are installed. If the problem is variable-free,
+            then this parameter is ignored.
+
+        Returns
+        -------
+        dict
+            A dictionary of compatible solvers divided in `qp_solvers`
+            and `conic_solvers`.
+
+        Raises
+        ------
+        SolverError
+            Raised if the problem is not DCP and `gp` is False.
+        DGPError
+            Raised if the problem is not DGP and `gp` is True.
+        """
+        # Initialize candidates dictionary
+        candidates = {'qp_solvers': [],
+                      'conic_solvers': []}
+
+        if solver is not None:
+            if solver not in slv_def.INSTALLED_SOLVERS:
+                raise SolverError("The solver %s is not installed." % solver)
+            if solver in slv_def.CONIC_SOLVERS:
+                candidates['conic_solvers'] += [solver]
+            elif solver in slv_def.QP_SOLVERS:
+                candidates['qp_solvers'] += [solver]
+            else:
+                raise SolverError('The solver %s not recognized as QP nor conic solver.' %
+                                  solver)
+        else:
+            candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
+                                        if s in slv_def.QP_SOLVERS]
+            candidates['conic_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
+                                           if s in slv_def.CONIC_SOLVERS]
+
+        # If gp we must have only conic solvers
+        if gp:
+            if solver is not None and solver not in slv_def.CONIC_SOLVERS:
+                raise SolverError(
+                  "When `gp=True`, `solver` must be a conic solver "
+                  "(received '%s'); try calling `solve()` with `solver=cvxpy.ECOS`."
+                  % solver)
+            elif solver is None:
+                candidates['qp_solvers'] = []  # No QP solvers allowed
+
+        # Check if we found MIP compatible solvers
+        if problem.is_mixed_integer():
+            candidates['qp_solvers'] = [
+                s for s in candidates['qp_solvers']
+                if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
+            candidates['conic_solvers'] = [
+                s for s in candidates['conic_solvers']
+                if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
+            if not candidates['conic_solvers'] and \
+                    not candidates['qp_solvers']:
+                raise SolverError("Problem is mixed-integer, but candidate "
+                                  "QP/Conic solvers (%s) are not MIP-capable." %
+                                  [candidates['qp_solvers'],
+                                   candidates['conic_solvers']])
+
+        # Return candidate qp and conic solvers
+        return candidates
 
     def _solve(self,
                solver=None,
@@ -569,9 +647,9 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
 
-        if symbolic_chain:
+        if symbolic_chain is not None:
             # Invert the symbolic chain if passed
-            if not symbolic_inverse_data:
+            if symbolic_inverse_data is None:
                 raise ValueError("You need to pass `symbolic_inverse_data` together with `symbolic chain`.")
             solution = self._symbolic_chain.invert(solution, symbolic_inverse_data)
 
