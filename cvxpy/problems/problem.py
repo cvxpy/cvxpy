@@ -288,7 +288,8 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver, gp=False):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, a chain of reductions, called a
+        When a problem is solved, a chain of reductions combining a symbolic
+        reduction chain :class:`~cvxpy.reductions.chain.Chain` and a
         :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
         compiles it to some low-level representation that is compatible with
         the targeted solver. This method returns that low-level representation.
