@@ -283,7 +283,7 @@ class SCS(ConicSolver):
         import scs
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if warm_start and solver_cache is not None and \
-           self.name in solver_cache:
+           self.name() in solver_cache:
             args["x"] = solver_cache[self.name()]["x"]
             args["y"] = solver_cache[self.name()]["y"]
             args["s"] = solver_cache[self.name()]["s"]
