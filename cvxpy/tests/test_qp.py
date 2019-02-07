@@ -440,14 +440,18 @@ class TestQp(BaseTest):
         """Test solve parametric problem vs full problem"""
         x = Variable()
         a = 10
-        b_vec = [-10, -2., 2., 3., 10.]
+        #  b_vec = [-10, -2., 2., 3., 10.]
+        b_vec = [-10, -2.]
 
         for solver in self.solvers:
+        #  for solver in ["SCS"]:
 
             # Solve from scratch with no parameters
+            print("Explicit parameter values")
             x_full = []
             obj_full = []
             for b in b_vec:
+                print("b = %.2f" % b)
                 obj = Minimize(a * (x ** 2) + b * x)
                 constraints = [0 <= x, x <= 1]
                 prob = Problem(obj, constraints)
@@ -456,6 +460,7 @@ class TestQp(BaseTest):
                 obj_full += [prob.value]
 
             # Solve parametric
+            print("Varying parameters")
             x_param = []
             obj_param = []
             b = Parameter()
@@ -463,11 +468,14 @@ class TestQp(BaseTest):
             constraints = [0 <= x, x <= 1]
             prob = Problem(obj, constraints)
             for b_value in b_vec:
+                print("b = %.2f" % b_value)
                 b.value = b_value
                 prob.solve(solver=solver)
                 x_param += [x.value]
                 obj_param += [prob.value]
 
+            print(x_full)
+            print(x_param)
             for i in range(len(b_vec)):
                 self.assertItemsAlmostEqual(x_full[i], x_param[i], places=3)
                 self.assertAlmostEqual(obj_full[i], obj_param[i])

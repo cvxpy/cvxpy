@@ -497,12 +497,18 @@ class Problem(u.Canonical):
 
         self._construct_chains(solver=solver, gp=gp)
 
+        print("Intermediate problem before solve")
+        print(self._intermediate_problem)
+
         data, solving_inverse_data = \
             self._solving_chain.apply(self._intermediate_problem)
 
         solution = self._solving_chain.solve_via_data(self, data,
                                                       warm_start,
                                                       verbose, kwargs)
+
+        print("Intermediate problem after solve")
+        print(self._intermediate_problem)
 
         full_chain = \
             self._solving_chain.prepend(self._intermediate_chain)
