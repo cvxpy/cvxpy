@@ -113,14 +113,17 @@ class SolvingChain(Chain):
     """
 
     def __init__(self, problem=None, reductions=[]):
-        super(SolvingChain, self).__init__(problem=problem, reductions=reductions)
+        super(SolvingChain, self).__init__(problem=problem,
+                                           reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
 
-    def concatenate_with(self, chain):
-        """Create and return a new Solving Chain by concatenating `chain` with this instance."""
-        # Construct combined chain from the two
+    def prepend(self, chain):
+        """
+        Create and return a new SolvingChain by concatenating
+        chain with this instance.
+        """
         return SolvingChain(reductions=chain.reductions + self.reductions)
 
     def solve(self, problem, warm_start, verbose, solver_opts):

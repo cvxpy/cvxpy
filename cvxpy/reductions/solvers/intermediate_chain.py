@@ -5,11 +5,12 @@ from cvxpy.reductions import (Chain, Dcp2Cone,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
-#  from cvxpy.reductions.solvers import defines as slv_def
 
 
-def construct_symbolic_chain(problem, candidates, gp=False):
-    """Build a symbolic chain from a problem to its symbolic form.
+def construct_intermediate_chain(problem, candidates, gp=False):
+    """
+    Builds a chain that rewrites a problem into an intermediate
+    representation suitable for numeric reductions.
 
     Parameters
     ----------
@@ -25,7 +26,7 @@ def construct_symbolic_chain(problem, candidates, gp=False):
     Returns
     -------
     Chain
-        A Chain that can be used to convert the problem to symbolic form.
+        A Chain that can be used to convert the problem to an intermediate form.
 
     Raises
     ------
@@ -43,14 +44,12 @@ def construct_symbolic_chain(problem, candidates, gp=False):
     if gp:
         reductions += [Dgp2Dcp()]
 
-    # Check DCP
     if not gp and not problem.is_dcp():
         append = ""
         append = (" However, the problem does follow DGP rules. "
                   "Consider calling this function with `gp=True`.")
         raise DCPError("Problem does not follow DCP rules." + append)
 
-    # Check DGP
     elif gp and not problem.is_dgp():
         append = ""
         if problem.is_dcp():
