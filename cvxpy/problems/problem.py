@@ -444,10 +444,11 @@ class Problem(u.Canonical):
                 self._solving_chain = \
                     construct_solving_chain(self._intermediate_problem,
                                             candidate_solvers)
+
+                self._cached_chain_key = chain_key
+
             except Exception as e:
                 raise e
-
-        self._cached_chain_key = chain_key
 
     def _solve(self,
                solver=None,
