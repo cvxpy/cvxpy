@@ -20,7 +20,6 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
-from cvxpy.reductions.solvers.solving_chain import SolvingChain
 from cvxpy.reductions.solvers import defines as slv_def
 
 # TODO(akshayka): This is a hack. Fix this if possible.
@@ -497,18 +496,12 @@ class Problem(u.Canonical):
 
         self._construct_chains(solver=solver, gp=gp)
 
-        print("Intermediate problem before solve")
-        print(self._intermediate_problem)
-
         data, solving_inverse_data = \
             self._solving_chain.apply(self._intermediate_problem)
 
         solution = self._solving_chain.solve_via_data(self, data,
                                                       warm_start,
                                                       verbose, kwargs)
-
-        print("Intermediate problem after solve")
-        print(self._intermediate_problem)
 
         full_chain = \
             self._solving_chain.prepend(self._intermediate_chain)

@@ -33,3 +33,11 @@ def replace_quad_form(expr, idx, quad_forms):
     expr.args[idx] = placeholder
     quad_forms[placeholder.id] = (expr, idx, quad_form)
     return quad_forms
+
+
+def restore_quad_forms(expr, quad_forms):
+    for idx, arg in enumerate(expr.args):
+        if isinstance(arg, Variable) and arg.id in quad_forms:
+            expr.args[idx] = quad_forms[arg.id][2]
+        else:
+            restore_quad_forms(arg, quad_forms)
