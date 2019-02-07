@@ -18,6 +18,8 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 import scipy.special
 import numpy as np
 
+# TODO(akshayka): DGP support.
+
 
 class huber(Elementwise):
     """The Huber function
@@ -26,8 +28,8 @@ class huber(Elementwise):
 
         \\operatorname{Huber}(x, M) =
             \\begin{cases}
-                2M|x|-M^2 & \\text{for } |x| \geq |M| \\\\
-                      |x|^2 & \\text{for } |x| \leq |M|.
+                2M|x|-M^2 & \\text{for } |x| \\geq |M| \\\\
+                      |x|^2 & \\text{for } |x| \\leq |M|.
             \\end{cases}
 
     :math:`M` defaults to 1.
@@ -75,6 +77,11 @@ class huber(Elementwise):
         """Is the composition non-increasing in argument idx?
         """
         return self.args[idx].is_nonpos()
+
+    def is_quadratic(self):
+        """Quadratic if x is affine.
+        """
+        return self.args[0].is_affine()
 
     def get_data(self):
         """Returns the parameter M.

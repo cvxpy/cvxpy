@@ -24,25 +24,27 @@ if [[ "$DISTRIB" == "conda" ]]; then
                 numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
         conda install -c conda-forge --yes lapack
-        conda install -c cvxgrp --yes ecos scs multiprocess
-        conda install -c anaconda --yes flake8
+        conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c default --yes flake8
 
         # Install GLPK.
-        wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
-        tar -zxvf glpk-4.60.tar.gz
-        cd glpk-4.60
-        sudo ./configure
-        sudo make
-        sudo make check
-        sudo make install
-        sudo ldconfig
-        cd ..
+        if [[ "$CVXOPT" == "true" ]]; then
+            wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
+            tar -zxvf glpk-4.60.tar.gz
+            cd glpk-4.60
+            sudo ./configure
+            sudo make
+            sudo make check
+            sudo make install
+            sudo ldconfig
+            cd ..
 
-        # Install CVXOPT with GLPK bindings.
-        CVXOPT_BUILD_GLPK=1
-        CVXOPT_GLPK_LIB_DIR=/usr/local/lib
-        CVXOPT_GLPK_INC_DIR=/usr/local/include
-        conda install -c cvxgrp --yes cvxopt
+            # Install CVXOPT with GLPK bindings.
+            CVXOPT_BUILD_GLPK=1
+            CVXOPT_GLPK_LIB_DIR=/usr/local/lib
+            CVXOPT_GLPK_INC_DIR=/usr/local/include
+            conda install -c conda-forge --yes cvxopt
+        fi
 
     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
@@ -54,8 +56,8 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
-        conda install -c cvxgrp --yes ecos scs multiprocess
-        conda install -c anaconda --yes flake8
+        conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c default --yes flake8=3.5.0
     fi
 
 

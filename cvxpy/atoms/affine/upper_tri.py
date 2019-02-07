@@ -53,6 +53,16 @@ class upper_tri(AffAtom):
         rows, cols = self.args[0].shape
         return (rows*(cols-1)//2, 1)
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Vectorized strictly upper triagonal entries.

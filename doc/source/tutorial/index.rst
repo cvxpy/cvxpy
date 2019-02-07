@@ -9,4 +9,5 @@ Tutorial
     intro/index
     dcp/index
     functions/index
+    dgp/index
     advanced/index

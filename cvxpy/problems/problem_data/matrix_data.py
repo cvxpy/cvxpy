@@ -177,9 +177,10 @@ class MatrixData(object):
             vert_offset += np.prod(constr.shape, dtype=int)
         # Convert the constraints into a matrix and vector offset
         # and add them to the matrix cache.
+        expr_list = [con.expr for con in active_constr]
         if len(active_constr) > 0:
             V, I, J, const_vec = canonInterface.get_problem_matrix(
-                active_constr,
+                expr_list,
                 self.sym_data.var_offsets,
                 constr_offsets
             )

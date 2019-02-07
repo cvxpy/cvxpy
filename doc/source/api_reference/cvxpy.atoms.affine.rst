@@ -88,12 +88,19 @@ kron
 .. autoclass:: cvxpy.atoms.affine.kron.kron
     :show-inheritance:
 
+.. _matmul:
+
+matmul
+--------------------------------
+
+.. autofunction:: cvxpy.atoms.affine.binary_operators.matmul
+
 .. _multiply:
 
 multiply
 -------------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.multiply.multiply
+.. autoclass:: cvxpy.atoms.affine.binary_operators.multiply
     :show-inheritance:
 
 .. _promote:

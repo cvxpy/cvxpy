@@ -21,7 +21,7 @@ from scipy.special import xlogy
 
 
 class kl_div(Elementwise):
-    """:math:`x\log(x/y) - x + y`
+    """:math:`x\\log(x/y) - x + y`
 
     """
 

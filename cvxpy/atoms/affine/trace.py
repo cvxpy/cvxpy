@@ -49,6 +49,16 @@ class trace(AffAtom):
         """
         return tuple()
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Sum the diagonal entries of the linear expression.

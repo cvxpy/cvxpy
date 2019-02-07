@@ -18,12 +18,9 @@ from cvxpy.atoms import QuadForm
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy import problems
-from cvxpy.reductions import InverseData
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
 class QpMatrixStuffing(MatrixStuffing):
@@ -45,21 +42,14 @@ class QpMatrixStuffing(MatrixStuffing):
                         for c in problem.constraints)
                 and are_args_affine(problem.constraints))
 
-    def stuffed_objective(self, problem, inverse_data):
-        # We need to copy the problem because we are changing atoms in the
-        # expression tree
-        problem_copy = problems.problem.Problem(
-                                Minimize(problem.objective.expr.tree_copy()),
-                                [con.tree_copy() for con in problem.constraints])
-        inverse_data_of_copy = InverseData(problem_copy)
-        extractor = CoeffExtractor(inverse_data_of_copy)
-        # extract to x.T * P * x + q.T * x, store r
-        P, q, r = extractor.quad_form(problem_copy.objective.expr)
+    def stuffed_objective(self, problem, extractor):
+        # extract to x.T * P * x + q.T * x + r
+        # TODO need to copy objective?
+        P, q, r = extractor.quad_form(problem.objective.expr)
 
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
-        x = Variable(inverse_data.x_length, boolean=boolean, integer=integer)
+        x = Variable(extractor.N, boolean=boolean, integer=integer)
         new_obj = QuadForm(x, P) + q.T*x
 
-        inverse_data.r = r
-        return new_obj, x
+        return new_obj, x, r

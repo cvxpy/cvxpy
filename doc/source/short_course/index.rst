@@ -1,7 +1,7 @@
 CVXPY Short Course
 ==================
 
-Convex optimization is easy using CVXPY!
+Convex optimization is simple using CVXPY.
 We have developed a 
 `short course <https://stanford.edu/~boyd/papers/cvx_short_course.html>`_
 that teaches how to use Python and CVXPY,

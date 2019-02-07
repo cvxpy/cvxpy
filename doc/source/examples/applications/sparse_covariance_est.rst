@@ -38,9 +38,9 @@ where :math:`Y` is the sample covariance of :math:`y_1,\dots,y_N`, and
 Generate problem data
 ---------------------
 
-.. code:: 
+.. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy as np
     import scipy as scipy
     
@@ -54,15 +54,15 @@ Generate problem data
     N = 1000
     
     # Create sparse, symmetric PSD matrix S
-    A = np.mat(np.random.randn(n, n))  # Unit normal gaussian distribution.
+    A = np.random.randn(n, n)  # Unit normal gaussian distribution.
     A[scipy.sparse.rand(n, n, 0.85).todense().nonzero()] = 0  # Sparsen the matrix.
-    Strue = A*A.T + 0.05 * np.matrix(np.eye(n))  # Force strict pos. def.
+    Strue = A.dot(A.T) + 0.05 * np.eye(n)  # Force strict pos. def.
     
     # Create the covariance matrix associated with S.
     R = np.linalg.inv(Strue)
     
     # Create samples y_i from the distribution with covariance R. 
-    y_sample = scipy.linalg.sqrtm(R) * np.matrix(np.random.randn(n, N))
+    y_sample = scipy.linalg.sqrtm(R).dot(np.random.randn(n, N))
     
     # Calculate the sample covariance matrix.
     Y = np.cov(y_sample)
@@ -70,7 +70,7 @@ Generate problem data
 Solve for several :math:`\alpha` values
 ---------------------------------------
 
-.. code:: 
+.. code:: python
 
     # The alpha values for each attempt at generating a sparse inverse cov. matrix.
     alphas = [10, 2, 1]
@@ -81,21 +81,21 @@ Solve for several :math:`\alpha` values
     # Solve the optimization problem for each value of alpha.
     for alpha in alphas:
         # Create a variable that is constrained to the positive semidefinite cone.
-        S = cvx.Variable(shape=(n,n), PSD=True)
+        S = cp.Variable(shape=(n,n), PSD=True)
         
         # Form the logdet(S) - tr(SY) objective. Note the use of a set
         # comprehension to form a set of the diagonal elements of S*Y, and the
         # native sum function, which is compatible with cvxpy, to compute the trace.
         # TODO: If a cvxpy trace operator becomes available, use it!
-        obj = cvx.Maximize(cvx.log_det(S) - sum([(S*Y)[i, i] for i in range(n)]))
+        obj = cp.Maximize(cp.log_det(S) - sum([(S*Y)[i, i] for i in range(n)]))
         
         # Set constraint.
-        constraints = [cvx.sum(cvx.abs(S)) <= alpha]
+        constraints = [cp.sum(cp.abs(S)) <= alpha]
         
         # Form and solve optimization problem
-        prob = cvx.Problem(obj, constraints)
-        prob.solve()
-        if prob.status != cvx.OPTIMAL:
+        prob = cp.Problem(obj, constraints)
+        prob.solve(solver=cp.CVXOPT)
+        if prob.status != cp.OPTIMAL:
             raise Exception('CVXPY Error')
     
         # If the covariance matrix R is desired, here is how it to create it.
@@ -108,20 +108,20 @@ Solve for several :math:`\alpha` values
         # Store this S in the list of results for later plotting.
         Ss += [S]
     
-        print 'Completed optimization parameterized by alpha =', alpha
+        print('Completed optimization parameterized by alpha = {}, obj value = {}'.format(alpha, obj.value))
 
 
 .. parsed-literal::
 
-    Completed optimization parameterized by alpha = 10
-    Completed optimization parameterized by alpha = 2
-    Completed optimization parameterized by alpha = 1
+    Completed optimization parameterized by alpha = 10, obj value = -16.167608186713004
+    Completed optimization parameterized by alpha = 2, obj value = -22.545759632606043
+    Completed optimization parameterized by alpha = 1, obj value = -26.989407069609157
 
 
 Result plots
 ------------
 
-.. code:: 
+.. code:: python
 
     import matplotlib.pyplot as plt
     
@@ -151,7 +151,7 @@ Result plots
 
 .. parsed-literal::
 
-    <matplotlib.figure.Figure at 0x10ba7bc50>
+    <Figure size 432x288 with 0 Axes>
 
 
 

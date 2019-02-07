@@ -26,7 +26,7 @@ class geo_mean(Atom):
 
     .. math::
 
-        \\left(x_1^{p_1} \cdots x_n^{p_n} \\right)^{\\frac{1}{\mathbf{1}^Tp}}
+        \\left(x_1^{p_1} \\cdots x_n^{p_n} \\right)^{\\frac{1}{\\mathbf{1}^Tp}}
 
     The powers ``p`` can be a ``list``, ``tuple``, or ``numpy.array`` of nonnegative
     ``int``, ``float``, or ``Fraction`` objects with nonzero sum.
@@ -36,15 +36,15 @@ class geo_mean(Atom):
 
     .. math::
 
-        x_1^{1/n} \cdots x_n^{1/n}.
+        x_1^{1/n} \\cdots x_n^{1/n}.
 
-    The geometric mean includes an implicit constraint that :math:`x_i \geq 0`
+    The geometric mean includes an implicit constraint that :math:`x_i \\geq 0`
     whenever :math:`p_i > 0`. If :math:`p_i = 0`, :math:`x_i` will be unconstrained.
 
     The only exception to this rule occurs when
     ``p`` has exactly one nonzero element, say, ``p_i``, in which case
     ``geo_mean(x, p)`` is equivalent to ``x_i`` (without the nonnegativity constraint).
-    A specific case of this is when :math:`x \in \mathbf{R}^1`.
+    A specific case of this is when :math:`x \\in \\mathbf{R}^1`.
 
 
     .. note::
@@ -53,12 +53,12 @@ class geo_mean(Atom):
         i.e., fractional, **approximation** must be made.
 
         Internally, ``geo_mean`` immediately computes an approximate normalized
-        weight vector :math:`w \\approx p/\mathbf{1}^Tp`
+        weight vector :math:`w \\approx p/\\mathbf{1}^Tp`
         and the ``geo_mean`` atom is represented as
 
         .. math::
 
-            x_1^{w_1} \cdots x_n^{w_n},
+            x_1^{w_1} \\cdots x_n^{w_n},
 
         where the elements of ``w`` are ``Fraction`` objects that sum to exactly 1.
 
@@ -162,7 +162,7 @@ class geo_mean(Atom):
         A rational approximation of ``p/sum(p)``.
     approx_error : float
         The error in approximating ``p/sum(p)`` with ``w``, given by
-        :math:`\|p/\mathbf{1}^T p - w \|_\infty`
+        :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
     def __init__(self, x, p=None, max_denom=1024):
@@ -205,6 +205,7 @@ class geo_mean(Atom):
 
         if p is None:
             p = [1]*n
+        self.p = p
 
         if len(p) != n:
             raise ValueError('x and p must have the same number of elements.')
@@ -288,6 +289,16 @@ class geo_mean(Atom):
 
     def is_atom_concave(self):
         """Is the atom concave?
+        """
+        return True
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
         """
         return True
 

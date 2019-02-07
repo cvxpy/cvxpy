@@ -12,21 +12,21 @@ The code below solves a simple optimization problem in CVXPY:
 
 .. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
 
     # Create two scalar optimization variables.
-    x = cvx.Variable()
-    y = cvx.Variable()
+    x = cp.Variable()
+    y = cp.Variable()
 
     # Create two constraints.
     constraints = [x + y == 1,
                    x - y >= 1]
 
     # Form objective.
-    obj = cvx.Minimize((x - y)**2)
+    obj = cp.Minimize((x - y)**2)
 
     # Form and solve problem.
-    prob = cvx.Problem(obj, constraints)
+    prob = cp.Problem(obj, constraints)
     prob.solve()  # Returns the optimal value.
     print("status:", prob.status)
     print("optimal value", prob.value)
@@ -60,12 +60,12 @@ constraints, create a new problem.
 .. code:: python
 
     # Replace the objective.
-    prob2 = cvx.Problem(cvx.Maximize(x + y), prob.constraints)
+    prob2 = cp.Problem(cp.Maximize(x + y), prob.constraints)
     print("optimal value", prob2.solve())
 
     # Replace the constraint (x + y == 1).
-    constraints = [x + y <= 3] + prob.constraints[1:]
-    prob2 = cvx.Problem(prob.objective, constraints)
+    constraints = [x + y <= 3] + prob2.constraints[1:]
+    prob3 = cp.Problem(prob2.objective, constraints)
     print("optimal value", prob2.solve())
 
 ::
@@ -83,18 +83,18 @@ problem variables are not updated.
 
 .. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
 
-    x = cvx.Variable()
+    x = cp.Variable()
 
     # An infeasible problem.
-    prob = cvx.Problem(cvx.Minimize(x), [x >= 1, x <= 0])
+    prob = cp.Problem(cp.Minimize(x), [x >= 1, x <= 0])
     prob.solve()
     print("status:", prob.status)
     print("optimal value", prob.value)
 
     # An unbounded problem.
-    prob = cvx.Problem(cvx.Minimize(x))
+    prob = cp.Problem(cp.Minimize(x))
     prob.solve()
     print("status:", prob.status)
     print("optimal value", prob.value)
@@ -154,16 +154,16 @@ vectors, or matrices, meaning they are 0, 1, or 2 dimensional.
 .. code:: python
 
     # A scalar variable.
-    a = cvx.Variable()
+    a = cp.Variable()
 
     # Vector variable with shape (5,).
-    x = cvx.Variable(5)
+    x = cp.Variable(5)
 
     # Matrix variable with shape (5, 1).
-    x = cvx.Variable((5, 1))
+    x = cp.Variable((5, 1))
 
     # Matrix variable with shape (4, 7).
-    A = cvx.Variable((4, 7))
+    A = cp.Variable((4, 7))
 
 You can use your numeric library of choice to construct matrix and
 vector constants. For instance, if ``x`` is a CVXPY Variable in the
@@ -182,7 +182,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
 
     # Solves a bounded least-squares problem.
 
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy
 
     # Problem data.
@@ -193,10 +193,10 @@ Here's an example of a CVXPY problem with vectors and matrices:
     b = numpy.random.randn(m)
 
     # Construct the problem.
-    x = cvx.Variable(n)
-    objective = cvx.Minimize(cvx.sum_squares(A*x - b))
+    x = cp.Variable(n)
+    objective = cp.Minimize(cp.sum_squares(A*x - b))
     constraints = [0 <= x, x <= 1]
-    prob = cvx.Problem(objective, constraints)
+    prob = cp.Problem(objective, constraints)
 
     print("Optimal value", prob.solve())
     print("Optimal var")
@@ -237,13 +237,13 @@ as those specified when the parameter was created.
 .. code:: python
 
     # Positive scalar parameter.
-    m = cvx.Parameter(nonneg=True)
+    m = cp.Parameter(nonneg=True)
 
     # Column vector parameter with unknown sign (by default).
-    c = cvx.Parameter(5)
+    c = cp.Parameter(5)
 
     # Matrix parameter with negative entries.
-    G = cvx.Parameter((4, 7), nonpos=True)
+    G = cp.Parameter((4, 7), nonpos=True)
 
     # Assigns a constant value to G.
     G.value = -numpy.ones((4, 7))
@@ -253,18 +253,18 @@ You can initialize a parameter with a value. The following code segments are equ
 .. code:: python
 
     # Create parameter, then assign value.
-    rho = cvx.Parameter(nonneg=True)
+    rho = cp.Parameter(nonneg=True)
     rho.value = 2
 
     # Initialize parameter with a value.
-    rho = cvx.Parameter(nonneg=True, value=2)
+    rho = cp.Parameter(nonneg=True, value=2)
 
 Computing trade-off curves is a common use of parameters. The example below
 computes a trade-off curve for a LASSO problem.
 
 .. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy
     import matplotlib.pyplot as plt
 
@@ -275,13 +275,13 @@ computes a trade-off curve for a LASSO problem.
     A = numpy.random.randn(n, m)
     b = numpy.random.randn(n)
     # gamma must be nonnegative due to DCP rules.
-    gamma = cvx.Parameter(nonneg=True)
+    gamma = cp.Parameter(nonneg=True)
 
     # Construct the problem.
-    x = cvx.Variable(m)
-    error = cvx.sum_squares(A*x - b)
-    obj = cvx.Minimize(error + gamma*cvx.norm(x, 1))
-    prob = cvx.Problem(obj)
+    x = cp.Variable(m)
+    error = cp.sum_squares(A*x - b)
+    obj = cp.Minimize(error + gamma*cp.norm(x, 1))
+    prob = cp.Problem(obj)
 
     # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
     sq_penalty = []
@@ -294,7 +294,7 @@ computes a trade-off curve for a LASSO problem.
         # Use expr.value to get the numerical value of
         # an expression in the problem.
         sq_penalty.append(error.value)
-        l1_penalty.append(cvx.norm(x, 1).value)
+        l1_penalty.append(cp.norm(x, 1).value)
         x_values.append(x.value)
 
     plt.rc('text', usetex=True)

@@ -88,7 +88,7 @@ class TestMIPVariable(BaseTest):
         self.assertAlmostEqual(self.x_bool.value, 0, places=4)
 
         # Matrix Bool in objective.
-        C = np.matrix([[0, 1, 0], [1, 1, 1]]).T
+        C = np.array([[0, 1, 0], [1, 1, 1]]).T
         obj = cvx.Minimize(cvx.sum_squares(self.A_bool - C))
         p = cvx.Problem(obj,[])
         result = p.solve(solver=solver)

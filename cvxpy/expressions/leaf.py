@@ -74,6 +74,10 @@ class Leaf(expression.Expression):
         boolean argument.
     sparsity : list of tuplewith
         Fixed sparsity pattern for the variable.
+    pos : bool
+        Is the variable positive?
+    neg : bool
+        Is the variable negative?
     """
 
     __metaclass__ = abc.ABCMeta
@@ -83,7 +87,7 @@ class Leaf(expression.Expression):
                  symmetric=False, diag=False, PSD=False,
                  NSD=False, hermitian=False,
                  boolean=False, integer=False,
-                 sparsity=None):
+                 sparsity=None, pos=False, neg=False):
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif len(shape) > 2:
@@ -101,6 +105,7 @@ class Leaf(expression.Expression):
 
         # Process attributes.
         self.attributes = {'nonneg': nonneg, 'nonpos': nonpos,
+                           'pos': pos, 'neg': neg,
                            'complex': complex, 'imag': imag,
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
@@ -196,15 +201,36 @@ class Leaf(expression.Expression):
         """
         return True
 
+    def is_log_log_convex(self):
+        """Is the expression log-log convex?
+        """
+        return self.is_pos()
+
+    def is_log_log_concave(self):
+        """Is the expression log-log concave?
+        """
+        return self.is_pos()
+
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
-        return self.attributes['nonneg'] or self.attributes['boolean']
+        return (self.attributes['nonneg'] or self.attributes['pos'] or
+                self.attributes['boolean'])
 
     def is_nonpos(self):
         """Is the expression nonpositive?
         """
-        return self.attributes['nonpos']
+        return self.attributes['nonpos'] or self.attributes['neg']
+
+    def is_pos(self):
+        """Is the expression positive?
+        """
+        return self.attributes['pos']
+
+    def is_neg(self):
+        """Is the expression negative?
+        """
+        return self.attributes['neg']
 
     def is_hermitian(self):
         """Is the Leaf hermitian?
@@ -267,9 +293,9 @@ class Leaf(expression.Expression):
 
         if self.attributes['nonpos'] and self.attributes['nonneg']:
             return 0*val
-        elif self.attributes['nonpos']:
+        elif self.attributes['nonpos'] or self.attributes['neg']:
             return np.minimum(val, 0.)
-        elif self.attributes['nonneg']:
+        elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
         elif self.attributes['imag']:
             return np.imag(val)
@@ -290,18 +316,27 @@ class Leaf(expression.Expression):
                 val = np.diag(val)
             return sp.diags([val], [0])
         elif self.attributes['hermitian']:
-            return (val + np.conj(val).T)/2
+            return (val + np.conj(val).T)/2.
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
-            val = (val + val.T)/2
+            if val.dtype.kind in 'ib':
+                val = val.astype(np.float)
+            val = val + val.T
+            val /= 2.
             if self.attributes['symmetric']:
                 return val
             w, V = LA.eigh(val)
             if self.attributes['PSD']:
-                w = np.maximum(w, 0)
+                bad = w < 0
+                if not bad.any():
+                    return val
+                w[bad] = 0
             else:  # NSD
-                w = np.minimum(w, 0)
-            return V.dot(np.diag(w)).dot(V.T)
+                bad = w > 0
+                if not bad.any():
+                    return val
+                w[bad] = 0
+            return (V * w).dot(V.T)
         else:
             return val
 
@@ -373,8 +408,12 @@ class Leaf(expression.Expression):
             if not close_enough:
                 if self.attributes['nonneg']:
                     attr_str = 'nonnegative'
+                elif self.attributes['pos']:
+                    attr_str = 'positive'
                 elif self.attributes['nonpos']:
                     attr_str = 'nonpositive'
+                elif self.attributes['neg']:
+                    attr_str = 'negative'
                 elif self.attributes['diag']:
                     attr_str = 'diagonal'
                 elif self.attributes['PSD']:

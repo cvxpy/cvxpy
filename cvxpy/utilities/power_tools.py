@@ -434,12 +434,12 @@ def dyad_completion(w):
 
 
 def approx_error(a_orig, w_approx):
-    """ Return the :math:`\ell_\infty` norm error from approximating the vector a_orig/sum(a_orig)
+    """ Return the :math:`\\ell_\\infty` norm error from approximating the vector a_orig/sum(a_orig)
         with the weight vector w_approx.
 
         That is, return
 
-        .. math:: \|a/\mathbf{1}^T a - w_{\mbox{approx}} \|_\infty
+        .. math:: \\|a/\\mathbf{1}^T a - w_{\\mbox{approx}} \\|_\\infty
 
 
         >>> e = approx_error([1, 1, 1], [Fraction(1,3), Fraction(1,3), Fraction(1,3)])

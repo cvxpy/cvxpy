@@ -22,5 +22,8 @@ from numpy import eye
 def quad_over_lin_canon(expr, args):
     affine_expr = args[0]
     y = args[1]
-    t = Variable(affine_expr.shape)
-    return SymbolicQuadForm(t, eye(affine_expr.size)/y, expr), [affine_expr == t]
+    if isinstance(affine_expr, Variable):
+        return SymbolicQuadForm(affine_expr, eye(affine_expr.size)/y, expr), []
+    else:
+        t = Variable(affine_expr.shape)
+        return SymbolicQuadForm(t, eye(affine_expr.size)/y, expr), [affine_expr == t]

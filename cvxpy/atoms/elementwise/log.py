@@ -19,7 +19,7 @@ import numpy as np
 
 
 class log(Elementwise):
-    """Elementwise :math:`\log x`.
+    """Elementwise :math:`\\log x`.
     """
 
     def __init__(self, x):
@@ -44,6 +44,16 @@ class log(Elementwise):
 
     def is_atom_concave(self):
         """Is the atom concave?
+        """
+        return True
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return False
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
         """
         return True
 

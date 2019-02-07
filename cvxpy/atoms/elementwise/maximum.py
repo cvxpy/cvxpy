@@ -60,6 +60,16 @@ class maximum(Elementwise):
         """
         return False
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
@@ -86,8 +96,8 @@ class maximum(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        max_vals = np.matrix(self.numeric(values))
-        unused = np.matrix(np.ones(max_vals.shape), dtype=bool)
+        max_vals = self.numeric(values)
+        unused = np.ones(max_vals.shape, dtype=bool)
         grad_list = []
         for idx, value in enumerate(values):
             rows = self.args[idx].size

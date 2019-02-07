@@ -21,7 +21,7 @@ import scipy.sparse as sp
 
 
 class lambda_max(Atom):
-    """ Maximum eigenvalue; :math:`\lambda_{\max}(A)`.
+    """ Maximum eigenvalue; :math:`\\lambda_{\\max}(A)`.
     """
 
     def __init__(self, A):

@@ -628,13 +628,13 @@ class TestProblem(BaseTest):
 
     # Test vector LP problems.
     def test_vector_lp(self):
-        c = Constant(numpy.matrix([1, 2]).T).value
+        c = Constant(numpy.array([[1, 2]]).T).value
         p = Problem(cvx.Minimize(c.T*self.x), [self.x[:,None] >= c])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
-        A = Constant(numpy.matrix([[3, 5], [1, 2]]).T).value
+        A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
         I = Constant([[1, 0], [0, 1]])
         p = Problem(cvx.Minimize(c.T*self.x + self.a),
                     [A*self.x >= [-1, 1],
@@ -666,7 +666,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, T)
 
         T = Constant(numpy.ones((2, 3))*2).value
-        c = Constant(numpy.matrix([3, 4]).T).value
+        c = Constant(numpy.array([[3, 4]]).T).value
         p = Problem(cvx.Minimize(1), [self.A >= T*self.C,
                                   self.A == self.B, self.C == T.T])
         result = p.solve(solver=cvx.ECOS)
@@ -897,7 +897,7 @@ class TestProblem(BaseTest):
                 self.assertAlmostEqual(p.constraints[2].dual_value, 0, places=acc)
 
                 T = numpy.ones((2, 3))*2
-                c = numpy.matrix([3, 4]).T
+                c = numpy.array([[3, 4]]).T
                 p = Problem(cvx.Minimize(1),
                             [self.A >= T*self.C,
                             self.A == self.B,
@@ -1049,7 +1049,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
-        c = numpy.matrix([1, -1]).T
+        c = numpy.array([[1, -1]]).T
         p = Problem(cvx.Minimize(c.T * cvx.vstack([cvx.square(a), cvx.sqrt(b)])),
                     [a == 2,
                      b == 16])
@@ -1093,7 +1093,7 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 13)
 
-        c = numpy.matrix([1, -1]).T
+        c = numpy.array([[1, -1]]).T
         p = Problem(cvx.Minimize(c.T * cvx.hstack([cvx.square(a).T, cvx.sqrt(b).T]).T),
                     [a == 2,
                      b == 16])
@@ -1110,13 +1110,13 @@ class TestProblem(BaseTest):
 
     # Test variable transpose.
     def test_transpose(self):
-        p = Problem(cvx.Minimize(cvx.sum(self.x)), [self.x[None,:] >= numpy.matrix([1, 2])])
+        p = Problem(cvx.Minimize(cvx.sum(self.x)), [self.x[None,:] >= numpy.array([[1, 2]])])
         result = p.solve()
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         p = Problem(cvx.Minimize(cvx.sum(self.C)),
-                    [numpy.matrix([1, 1])*self.C.T >= numpy.matrix([0, 1, 2])])
+                    [numpy.array([[1, 1]])*self.C.T >= numpy.array([[0, 1, 2]])])
         result = p.solve()
         value = self.C.value
 
@@ -1136,17 +1136,17 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, -2)
 
-        c = numpy.matrix([1, -1]).T
+        c = numpy.array([[1, -1]]).T
         p = Problem(cvx.Minimize(cvx.maximum(c.T, 2, 2 + c.T)[0,1]))
         result = p.solve()
         self.assertAlmostEqual(result, 2)
 
-        c = numpy.matrix([[1, -1, 2], [1, -1, 2]]).T
+        c = numpy.array([[1, -1, 2], [1, -1, 2]]).T
         p = Problem(cvx.Minimize(cvx.sum(cvx.maximum(c, 2, 2 + c).T[:, 0])))
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
-        c = numpy.matrix([[1, -1, 2], [1, -1, 2]]).T
+        c = numpy.array([[1, -1, 2], [1, -1, 2]]).T
         p = Problem(cvx.Minimize(cvx.sum(cvx.square(c.T).T[:, 0])))
         result = p.solve()
         self.assertAlmostEqual(result, 6)
@@ -1160,7 +1160,7 @@ class TestProblem(BaseTest):
     def test_multiplication_on_left(self):
         """Test multiplication on the left by a non-constant.
         """
-        c = numpy.matrix([1, 2]).T
+        c = numpy.array([[1, 2]]).T
         p = Problem(cvx.Minimize(c.T*self.A*c), [self.A >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 18)
@@ -1292,7 +1292,7 @@ class TestProblem(BaseTest):
         p = Problem(obj, [self.x == 5])
         result = p.solve()
         self.assertAlmostEqual(result, 10)
-        self.assertItemsAlmostEqual(expr.value.todense(), [5, 10])
+        self.assertItemsAlmostEqual(expr.value.toarray(), [5, 10])
 
         # Test promotion.
         c = [[1, -1], [2, -2]]
@@ -1323,14 +1323,14 @@ class TestProblem(BaseTest):
 
         # Test vector to matrix.
         x = Variable(4)
-        mat = numpy.matrix([[1, -1], [2, -2]]).T
-        vec = numpy.matrix([1, 2, 3, 4]).T
-        vec_mat = numpy.matrix([[1, 2], [3, 4]]).T
+        mat = numpy.array([[1, -1], [2, -2]]).T
+        vec = numpy.array([[1, 2, 3, 4]]).T
+        vec_mat = numpy.array([[1, 2], [3, 4]]).T
         expr = cvx.reshape(x, (2, 2))
         obj = cvx.Minimize(cvx.sum(mat*expr))
         prob = Problem(obj, [x[:,None] == vec])
         result = prob.solve()
-        self.assertAlmostEqual(result, numpy.sum(mat*vec_mat))
+        self.assertAlmostEqual(result, numpy.sum(mat.dot(vec_mat)))
 
         # Test on matrix to vector.
         c = [1, 2, 3, 4]
@@ -1345,8 +1345,8 @@ class TestProblem(BaseTest):
 
         # Test matrix to matrix.
         expr = cvx.reshape(self.C, (2, 3))
-        mat = numpy.matrix([[1, -1], [2, -2]])
-        C_mat = numpy.matrix([[1, 4], [2, 5], [3, 6]])
+        mat = numpy.array([[1, -1], [2, -2]])
+        C_mat = numpy.array([[1, 4], [2, 5], [3, 6]])
         obj = cvx.Minimize(cvx.sum(mat*expr))
         prob = Problem(obj, [self.C == C_mat])
         result = prob.solve()
@@ -1355,7 +1355,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(expr.value, C_mat)
 
         # Test promoted expressions.
-        c = numpy.matrix([[1, -1], [2, -2]]).T
+        c = numpy.array([[1, -1], [2, -2]]).T
         expr = cvx.reshape(c*self.a, (1, 4))
         obj = cvx.Minimize(expr*[1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
@@ -1707,3 +1707,24 @@ class TestProblem(BaseTest):
         problem = cvx.Problem(objective, constraints)
         problem.solve()
         self.assertItemsAlmostEqual(x.value, [1, 1])
+
+    def test_pnorm_axis(self):
+        """Test pnorm with axis != 0.
+        """
+        b = numpy.arange(2)
+        X = cvx.Variable(shape=(2, 10))
+        expr = cvx.pnorm(X, p=2, axis=1) - b
+        con = [expr <= 0]
+        obj = cvx.Maximize(cvx.sum(X))
+        prob = cvx.Problem(obj, con)
+        result = prob.solve(solver='ECOS')
+        self.assertItemsAlmostEqual(expr.value, numpy.zeros(2))
+
+        b = numpy.arange(10)
+        X = cvx.Variable(shape=(10, 2))
+        expr = cvx.pnorm(X, p=2, axis=1) - b
+        con = [expr <= 0]
+        obj = cvx.Maximize(cvx.sum(X))
+        prob = cvx.Problem(obj, con)
+        result = prob.solve(solver='ECOS')
+        self.assertItemsAlmostEqual(expr.value, numpy.zeros(10))

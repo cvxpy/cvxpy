@@ -1,3 +1,9 @@
+import distutils.sysconfig
+import distutils.version
+import os
+import platform
+import sys
+
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
@@ -7,10 +13,33 @@ class build_ext_cvxpy(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
         # Prevent numpy from thinking it is still in its setup process:
-        __builtins__.__NUMPY_SETUP__ = False
+        # `__builtins__` can be a dict
+        # see https://docs.python.org/2/reference/executionmodel.html
+        if isinstance(__builtins__, dict):
+            __builtins__['__NUMPY_SETUP__'] = False
+        else:
+            __builtins__.__NUMPY_SETUP__ = False
+
         import numpy
         self.include_dirs.append(numpy.get_include())
 
+
+def is_platform_mac():
+    return sys.platform == 'darwin'
+
+
+# For mac, ensure extensions are built for macos 10.9 when compiling on a
+# 10.9 system or above, overriding distutils behaviour which is to target
+# the version that python was built for. This may be overridden by setting
+# MACOSX_DEPLOYMENT_TARGET before calling setup.py. This behavior is
+# motivated by Apple dropping support for libstdc++.
+if is_platform_mac():
+    if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
+        current_system = distutils.version.LooseVersion(platform.mac_ver()[0])
+        python_target = distutils.version.LooseVersion(
+            distutils.sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET'))
+        if python_target < '10.9' and current_system >= '10.9':
+            os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
 canon = Extension(
     '_cvxcore',
@@ -26,7 +55,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.0.9',
+    version='1.0.14',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
@@ -42,9 +71,8 @@ setup(
                       "multiprocess",
                       "fastcache",
                       "six",
-                      "toolz",
                       "numpy >= 1.14",
-                      "scipy >= 0.19"],
+                      "scipy >= 1.1.0"],
     setup_requires=["numpy >= 1.14"],
     use_2to3=True,
 )

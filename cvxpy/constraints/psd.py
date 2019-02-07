@@ -22,7 +22,7 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class PSD(Constraint):
-    """A constraint of the form :math:`\\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0`
+    """A constraint of the form :math:`\\frac{1}{2}(X + X^T) \\succcurlyeq_{S_n^+} 0`
 
     Applying a ``PSD`` constraint to a two-dimensional expression ``X``
     constrains its symmetric part to be positive semidefinite: i.e.,
@@ -30,7 +30,7 @@ class PSD(Constraint):
 
     .. math::
 
-        z^T(X + X^T)z \geq 0,
+        z^T(X + X^T)z \\geq 0,
 
     for all :math:`z`.
 
@@ -63,6 +63,9 @@ class PSD(Constraint):
         """A PSD constraint is DCP if the constrained expression is affine.
         """
         return self.args[0].is_affine()
+
+    def is_dgp(self):
+        return False
 
     @property
     def residual(self):

@@ -30,7 +30,7 @@ class conv(AffAtom):
 
     .. math::
 
-        c_k = \\sum_{i+j=k} a_ib_j, \quad k=0, \ldots, n+m-2.
+        c_k = \\sum_{i+j=k} a_ib_j, \\quad k=0, \\ldots, n+m-2.
 
     Parameters
     ----------
@@ -40,6 +40,7 @@ class conv(AffAtom):
         A 1D vector or a 2D column vector.
     """
     # TODO work with right hand constant.
+    # TODO(akshayka): make DGP-compatible
 
     def __init__(self, lh_expr, rh_expr):
         super(conv, self).__init__(lh_expr, rh_expr)

@@ -44,28 +44,39 @@ For example, the following code solves a least-squares problem with box constrai
     # `constraint.dual_value`.
     print(constraints[0].dual_value)
 
-This short script is a basic example of what CVXPY can do. See the
-:doc:`library of examples </examples/index>` for applications to machine
-learning, control, finance, and more. For a guided tour of CVXPY, check out the
-:doc:`tutorial </tutorial/index>`, and consult the :doc:`API reference
-</api_reference/cvxpy>` for documentation about public symbols.
+This short script is a basic example of what CVXPY can do; in addition
+to convex programming, CVXPY also supports a generalization of geometric
+programming.
 
-----------
+For a guided tour of CVXPY, check out the :doc:`tutorial
+</tutorial/index>`. Browse the :doc:`library of examples
+</examples/index>` for applications to machine learning, control, finance, and
+more. 
 
-CVXPY was designed and implemented by Steven Diamond, with input and
-contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
-and many others; it was inspired by the MATLAB package `CVX
-<http://cvxr.com/cvx/>`_.  Version 1.0 of CVXPY brings the API closer to NumPy
-and the architecture closer to software compilers, making it easy for
-developers to write custom problem transformations and target custom solvers.
-Be aware that CVXPY 1.0 is not backwards compatible with previous versions
-of CVXPY. For more details, see :ref:`updates`, which includes instructions
-for migrating from previous versions of CVXPY.
+**News.**
+
+* CVXPY v1.0.11 supports
+  `disciplined geometric programming <https://web.stanford.edu/~boyd/papers/dgp.html>`_,
+  which lets you formulate geometric programs and log-log convex programs.
+  See the :doc:`tutorial </tutorial/dgp/index>` for more information.
+
+* Version 1.0 of CVXPY brings the API closer to NumPy
+  and the architecture closer to software compilers, making it easy for
+  developers to write custom problem transformations and target custom solvers.
+  CVXPY 1.0 is not backwards compatible with previous versions
+  of CVXPY. For more details, see :ref:`updates`, which includes instructions
+  for migrating from previous versions of CVXPY.
 
 CVXPY relies on the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Additional solvers are supported, but must be installed separately. For
 background on convex optimization, see the book `Convex Optimization
 <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
+
+CVXPY was designed and implemented by Steven Diamond, with input and
+contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
+and many others; it was inspired by the MATLAB package `CVX
+<http://cvxr.com/cvx/>`_. 
+
 
 
 .. _OSQP: https://osqp.org/

@@ -45,7 +45,7 @@ Reduction
 ------------------------------------------
 
 .. autoclass:: cvxpy.reductions.reduction.Reduction
-    :members:
+    :members: __init__, accepts, reduce, retrieve, apply, invert
     :show-inheritance:
 
 Chain

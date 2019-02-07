@@ -124,12 +124,12 @@ class AffAtom(Atom):
                                                  self.get_data())
         # Get the matrix representation of the function.
         V, I, J, _ = canonInterface.get_problem_matrix(
-            [lu.create_eq(fake_expr)],
+            [fake_expr],
             var_offsets,
             None
         )
         shape = (offset, self.size)
-        stacked_grad = sp.coo_matrix((V, (J, I)), shape=shape).tocsc()
+        stacked_grad = sp.csc_matrix((V, (J, I)), shape=shape)
         # Break up into per argument matrices.
         grad_list = []
         start = 0

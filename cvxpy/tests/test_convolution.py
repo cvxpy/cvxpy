@@ -105,8 +105,8 @@ class TestConvolution(BaseTest):
         """
         import numpy as np
         N = 5
-        y = np.asmatrix(np.random.randn(N, 1))
-        h = np.asmatrix(np.random.randn(2, 1))
+        y = np.random.randn(N, 1)
+        h = np.random.randn(2, 1)
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))

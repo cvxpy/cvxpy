@@ -84,7 +84,6 @@ CVXPY has the following dependencies:
 
 * Python 2.7 or Python 3.4
 * `setuptools`_ >= 1.4
-* `toolz`_
 * `six <https://pythonhosted.org/six/>`_
 * `fastcache <https://github.com/pbrady/fastcache>`_
 * `multiprocess`_
@@ -96,7 +95,7 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, `toolz`_, six, fastcache, and
+CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, six, fastcache, and
 `multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually,
 as will `Swig`_ . Once you’ve installed these dependencies:
 
@@ -167,11 +166,17 @@ CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which inclu
 Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
 See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
 
+Install with CPLEX support
+---------------------------
+
+CVXPY supports the CPLEX solver.
+Simply install CPLEX such that you can ``import cplex`` in Python.
+See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _multiprocess: https://github.com/uqfoundation/multiprocess/
-.. _toolz: http://github.com/pytoolz/toolz/
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos

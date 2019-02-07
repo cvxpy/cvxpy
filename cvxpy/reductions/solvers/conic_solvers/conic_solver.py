@@ -159,7 +159,7 @@ class ConicSolver(Solver):
 
         Returns
         -------
-        SciPy CSR matrix
+        SciPy CSC matrix
             A sparse matrix
         """
         val_arr = []
@@ -170,7 +170,7 @@ class ConicSolver(Solver):
             val_arr.append(np.float64(1.0))
             row_arr.append(spacing*var_row + offset)
             col_arr.append(var_row)
-        return sp.coo_matrix((val_arr, (row_arr, col_arr)), shape).tocsr()
+        return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
     def format_constr(self, problem, constr, exp_cone_order):
         """
@@ -196,38 +196,44 @@ class ConicSolver(Solver):
             The constraint to format.
 
         Returns:
-          (SciPy CSR sparse matrix, NumPy 1D array)
+          (SciPy CSC sparse matrix, NumPy 1D array)
         """
         coeffs, offsets = [], []
         for arg in constr.args:
             coeff, offset = ConicSolver.get_coeff_offset(arg)
-            coeffs.append(coeff.tocsr())
+            coeffs.append(coeff)
             offsets.append(offset)
         height = sum(c.shape[0] for c in coeffs)
 
         if type(constr) in [NonPos, Zero]:
             # Both of these constraints have but a single argument.
             # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
-            return coeffs[0], -offsets[0]
+            return coeffs[0].tocsc(), -offsets[0]
         elif type(constr) == SOC:
             # Group each t row with appropriate X rows.
-            mat_arr = []
-            offset = np.zeros(height, dtype=np.float64)
-            if constr.axis == 0:
-                gap = constr.args[1].shape[0] + 1
-            else:
-                gap = constr.args[1].shape[1] + 1
-            for i in range(constr.args[0].size):
-                offset[i*gap] = offsets[0][i]
-                mat_arr.append(coeffs[0][i, :])
-                if constr.axis == 0:
-                    offset[i*gap+1:(i+1)*gap] = offsets[1][
-                        i*(gap-1):(i+1)*(gap-1)]
-                    mat_arr.append(coeffs[1][i*(gap-1):(i+1)*(gap-1), :])
-                else:
-                    offset[i*gap+1:(i+1)*gap] = offsets[1][i::gap-1]
-                    mat_arr.append(coeffs[1][i::gap-1, :])
-            return -sp.vstack(mat_arr), offset
+            assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+
+            # Interleave the rows of coeffs[0] and coeffs[1]:
+            #     coeffs[0][0, :]
+            #     coeffs[1][0:gap-1, :]
+            #     coeffs[0][1, :]
+            #     coeffs[1][gap-1:2*(gap-1), :]
+            X_coeff = coeffs[1].tocoo()
+            # Because of a bug in scipy versions <= 1.20, `reshape`
+            # occasionally overflows if indices are int32s.
+            X_coeff.row = X_coeff.row.astype(np.int64)
+            X_coeff.col = X_coeff.col.astype(np.int64)
+            reshaped = X_coeff.reshape((coeffs[0].shape[0], -1))
+            stacked = -sp.hstack([coeffs[0], reshaped])
+            stacked.row = stacked.row.astype(np.int64)
+            stacked.col = stacked.col.astype(np.int64)
+            stacked = stacked.reshape(
+              (coeffs[0].shape[0] + X_coeff.shape[0], coeffs[0].shape[1]))
+
+            offset = np.hstack([
+              np.expand_dims(offsets[0], 1),
+              offsets[1].reshape((offsets[0].shape[0], -1))]).ravel()
+            return stacked.tocsc(), offset
         elif type(constr) == ExpCone:
             for i, coeff in enumerate(coeffs):
                 mat = ConicSolver.get_spacing_matrix(
@@ -236,7 +242,7 @@ class ConicSolver(Solver):
                                                 exp_cone_order[i])
                 offsets[i] = mat*offsets[i]
                 coeffs[i] = -mat*coeffs[i]
-            return sum(coeffs), sum(offsets)
+            return sum(coeffs).tocsc(), sum(offsets)
         else:
             # subclasses must handle PSD constraints.
             raise ValueError("Unsupported constraint type.")

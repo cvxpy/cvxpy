@@ -27,42 +27,45 @@ subject to :math:`x_i \succeq 0` and :math:`\sum_{i=1}^N x_i = P`
 This form is also very straightforward to put into DCP format and thus
 can be simply solved using CVXPY.
 
-.. code:: ipython3
+.. code:: python
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
-    
     import numpy as np
-    import cvxpy as cvx
+    import cvxpy as cp
 
-.. code:: ipython3
+.. code:: python
 
-    def water_filling(n,a,sum_x=1):
-      '''
-    Boyd and Vandenberghe, Convex Optimization, example 5.2 page 145
-    Water-filling.
+    def water_filling(n, a, sum_x=1):
+        '''
+        Boyd and Vandenberghe, Convex Optimization, example 5.2 page 145
+        Water-filling.
       
-    This problem arises in information theory, in allocating power to a set of
-    n communication channels in order to maximise the total channel capacity.
-    The variable x_i represents the transmitter power allocated to the ith channel, 
-    and log(α_i+x_i) gives the capacity or maximum communication rate of the channel. 
-    The objective is to minimise -∑log(α_i+x_i) subject to the constraint ∑x_i = 1 
-      '''
-      # Declare variables and parameters
-      x = cvx.Variable(shape=(n,1))
-      alpha = cvx.Parameter(n,nonneg=True)
-      alpha.value = a
-      # Choose objective function. Interpret as maximising the total communication rate of all the channels
-      obj = cvx.Maximize(cvx.sum(cvx.log(alpha + x)))
-      # Declare constraints
-      constraints = [x >= 0, cvx.sum(x) - sum_x == 0]
-      # Solve
-      prob = cvx.Problem(obj, constraints)
-      prob.solve()
-      if(prob.status=='optimal'):
-        return prob.status,prob.value,x.value
-      else:
-        return prob.status,np.nan,np.nan
+        This problem arises in information theory, in allocating power to a set of
+        n communication channels in order to maximise the total channel capacity.
+        The variable x_i represents the transmitter power allocated to the ith channel, 
+        and log(α_i+x_i) gives the capacity or maximum communication rate of the channel. 
+        The objective is to minimise -∑log(α_i+x_i) subject to the constraint ∑x_i = 1 
+        '''
+        
+        # Declare variables and parameters
+        x = cp.Variable(shape=n)
+        alpha = cp.Parameter(n, nonneg=True)
+        alpha.value = a
+    
+        # Choose objective function. Interpret as maximising the total communication rate of all the channels
+        obj = cp.Maximize(cp.sum(cp.log(alpha + x)))
+    
+        # Declare constraints
+        constraints = [x >= 0, cp.sum(x) - sum_x == 0]
+          
+        # Solve
+        prob = cp.Problem(obj, constraints)
+        prob.solve()
+        if(prob.status=='optimal'):
+            return prob.status, prob.value, x.value
+        else:
+            return prob.status, np.nan, np.nan
 
 Example
 -------
@@ -74,36 +77,34 @@ The function outputs whether the problem status, the maximum
 communication rate and the power allocation required is achieved with
 this maximum communication rate.
 
-.. code:: ipython3
+.. code:: python
 
     # As an example, we will solve the water filling problem with 3 buckets, each with different α
     np.set_printoptions(precision=3) 
-    buckets=3
-    alpha = np.array([0.8,1.0,1.2])
+    buckets = 3
+    alpha = np.array([0.8, 1.0, 1.2])
 
-.. code:: ipython3
+.. code:: python
 
-    stat,prob,x=water_filling(buckets,alpha)
-    print('Problem status: ',stat)
-    print('Optimal communication rate = %.4g '%prob)
-    print('Transmitter powers:\n', x)
+    stat, prob, x = water_filling(buckets, alpha)
+    print('Problem status: {}'.format(stat))
+    print('Optimal communication rate = {:.4g} '.format(prob))
+    print('Transmitter powers:\n{}'.format(x))
 
 
 .. parsed-literal::
 
-    Problem status:  optimal
+    Problem status: optimal
     Optimal communication rate = 0.863 
     Transmitter powers:
-     [[ 0.533]
-     [ 0.333]
-     [ 0.133]]
+    [0.533 0.333 0.133]
 
 
 To illustrate the water filling principle, we will plot
 :math:`\alpha_i + x_i` and check that this level is flat where power has
 been allocated:
 
-.. code:: ipython3
+.. code:: python
 
     import matplotlib
     import matplotlib.pylab as plt
@@ -113,7 +114,7 @@ been allocated:
     
     axis = np.arange(0.5,buckets+1.5,1)
     index = axis+0.5
-    X = np.asarray(x).flatten()
+    X = x.copy()
     Y = alpha + X
     
     # to include the last data point as a step, we need to repeat it

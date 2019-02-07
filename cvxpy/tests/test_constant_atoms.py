@@ -53,7 +53,7 @@ if MOSEK in INSTALLED_SOLVERS:
     SOLVERS_TO_TRY.append(MOSEK)
     SOLVER_TO_TOL[MOSEK] = 1e-6
 
-v_np = np.matrix([-1., 2, -2]).T
+v_np = np.array([-1., 2, -2]).T
 
 # Defined here to be used in KNOWN_SOLVER_ERRORS
 log_sum_exp_axis_0 = lambda x: log_sum_exp(x, axis=0, keepdims=True)
@@ -90,8 +90,8 @@ atoms = [
         (kl_div, tuple(), [math.e, 1], Constant([1])),
         (kl_div, tuple(), [math.e, math.e], Constant([0])),
         (kl_div, (2,), [[math.e, 1], 1], Constant([1, 0])),
-        (lambda x: kron(np.matrix("1 2; 3 4"), x), (4, 4), [np.matrix("5 6; 7 8")],
-            Constant(np.kron(np.matrix("1 2; 3 4").A, np.matrix("5 6; 7 8").A))),
+        (lambda x: kron(np.array([[1, 2], [3, 4]]), x), (4, 4), [np.array([[5, 6], [7, 8]])],
+            Constant(np.kron(np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])))),
         (lambda_max, tuple(), [[[2, 0], [0, 1]]], Constant([2])),
         (lambda_max, tuple(), [[[2, 0, 0], [0, 3, 0], [0, 0, 1]]], Constant([3])),
 

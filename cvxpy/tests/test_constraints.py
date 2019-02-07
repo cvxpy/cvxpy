@@ -46,11 +46,11 @@ class TestConstraints(BaseTest):
     #     constr = 2*self.x >= self.x
     #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
 
-    def test_zero(self):
-        """Test the Zero class.
+    def test_equality(self):
+        """Test the Equality class.
         """
         constr = self.x == self.z
-        self.assertEqual(constr.name(), "x + -z == 0")
+        self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.shape, (2,))
         # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         # Test value and dual_value.
@@ -90,11 +90,11 @@ class TestConstraints(BaseTest):
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
-    def test_nonpos(self):
-        """Test the NonPos class.
+    def test_inequality(self):
+        """Test the Inequality class.
         """
         constr = self.x <= self.z
-        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.shape, (2,))
         # Test value and dual_value.
         assert constr.dual_value is None
@@ -144,13 +144,13 @@ class TestConstraints(BaseTest):
         assert constr.dual_value is None
         with self.assertRaises(ValueError):
             constr.value()
-        self.A.save_value(np.matrix("2 -1; 1 2"))
-        self.B.save_value(np.matrix("1 0; 0 1"))
+        self.A.save_value(np.array([[2, -1], [1, 2]]))
+        self.B.save_value(np.array([[1, 0], [0, 1]]))
         assert constr.value()
         self.assertAlmostEqual(constr.violation(), 0)
         self.assertAlmostEqual(constr.residual, 0)
 
-        self.B.save_value(np.matrix("3 0; 0 3"))
+        self.B.save_value(np.array([[3, 0], [0, 3]]))
         assert not constr.value()
         self.assertAlmostEqual(constr.violation(), 1)
         self.assertAlmostEqual(constr.residual, 1)
@@ -181,10 +181,10 @@ class TestConstraints(BaseTest):
         assert constr.dual_value is None
         with self.assertRaises(ValueError):
             constr.value()
-        self.B.save_value(np.matrix("2 -1; 1 2"))
-        self.A.save_value(np.matrix("1 0; 0 1"))
+        self.B.save_value(np.array([[2, -1], [1, 2]]))
+        self.A.save_value(np.array([[1, 0], [0, 1]]))
         assert constr.value()
-        self.A.save_value(np.matrix("3 0; 0 3"))
+        self.A.save_value(np.array([[3, 0], [0, 3]]))
         assert not constr.value()
 
         with self.assertRaises(Exception) as cm:
@@ -196,7 +196,7 @@ class TestConstraints(BaseTest):
         """Test the >= operator.
         """
         constr = self.z >= self.x
-        self.assertEqual(constr.name(), "x + -z <= 0")
+        self.assertEqual(constr.name(), "x <= z")
         self.assertEqual(constr.shape, (2,))
 
         # Incompatible dimensions

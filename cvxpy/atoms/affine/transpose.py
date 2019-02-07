@@ -36,6 +36,16 @@ class transpose(AffAtom):
     def numeric(self, values):
         return np.transpose(values[0], axes=self.axes)
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     def is_symmetric(self):
         """Is the expression symmetric?
         """

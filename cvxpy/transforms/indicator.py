@@ -21,7 +21,7 @@ import numpy as np
 
 class indicator(Expression):
     """An expression representing the convex function I(constraints) = 0
-       if constraints hold, +\infty otherwise.
+       if constraints hold, +infty otherwise.
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ class indicator(Expression):
         Returns:
             A numpy matrix or a scalar.
         """
-        if all(cons.value for cons in self.args):
+        if all(cons.value() for cons in self.args):
             return 0
         else:
             return np.infty

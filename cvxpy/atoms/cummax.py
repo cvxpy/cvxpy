@@ -20,7 +20,7 @@ import numpy as np
 
 
 class cummax(AxisAtom):
-    """:math:`\max_{i,j}\{X_{i,j}\}`.
+    """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
     """
 
     def __init__(self, x, axis=None):
@@ -57,7 +57,7 @@ class cummax(AxisAtom):
             A NumPy ndarray or None.
         """
         # Grad: 1 for a largest index.
-        value = np.matrix(value).A.ravel(order='F')
+        value = np.array(value).ravel(order='F')
         idx = np.argmax(value)
         D = np.zeros((value.size, 1))
         D[idx] = 1

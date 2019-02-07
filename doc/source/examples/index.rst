@@ -3,11 +3,16 @@
 Examples
 ========
 
-These examples show many different ways to use CVXPY. The :ref:`basic` section
-shows how to solve some common optimization problems in CVXPY. The
-:ref:`machine-learning` section is a tutorial covering convex methods in
-machine learning. The :ref:`advanced-python` and :ref:`applications` sections
-contains more complex examples aimed at experts in convex optimization.
+These examples show many different ways to use CVXPY.
+
+* The :ref:`basic` section shows how to solve some common optimization problems
+  in CVXPY.
+* The :ref:`machine-learning` section is a tutorial covering convex methods in
+  machine learning.
+* The :ref:`advanced-python` and :ref:`applications` sections contains
+  more complex examples aimed at experts in convex optimization.
+* The :ref:`dgp-examples` section contains an interactive tutorial on :ref:`disciplined
+  geometric programming <dgp>` and various examples of DGP problems.
 
 .. _basic:
 
@@ -76,3 +81,13 @@ Advanced Applications
 - :doc:`Sizing of clock meshes <applications/clock_mesh>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb>`_
 - :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
 - :doc:`Water filling <applications/water_filling_BVex5.2>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
+
+.. _dgp-examples:
+
+Disciplined Geometric Programming
+---------------------------------------
+- :doc:`DGP fundamentals <dgp/dgp_fundamentals>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb>`_
+- :doc:`Maximizing the volume of a box <dgp/max_volume_box>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb>`_
+- :doc:`Power control <dgp/power_control>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb>`_
+- :doc:`Perron-Frobenius matrix completion <dgp/pf_matrix_completion>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb>`_
+- :doc:`Rank-one nonnegative matrix factorization <dgp/rank_one_nmf>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb>`_

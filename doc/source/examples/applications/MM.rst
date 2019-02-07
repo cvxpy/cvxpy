@@ -39,9 +39,9 @@ gradient ascent reduces to the :math:`x` and :math:`y` updates
 The following CVXPY script implements the method of multipliers and uses
 it to solve an optimization problem.
 
-.. code:: 
+.. code:: python
 
-    from cvxpy import *
+    import cvxpy as cp
     import numpy as np
     np.random.seed(1)
     
@@ -51,29 +51,29 @@ it to solve an optimization problem.
     n = 20
     m = 10
     A = np.random.randn(m,n)
-    b = np.random.randn(m,1)
+    b = np.random.randn(m)
     
     # Initialize problem.
-    x = Variable(shape=(n,1))
-    f = norm(x, 1)
+    x = cp.Variable(shape=n)
+    f = cp.norm(x, 1)
     
     # Solve with CVXPY.
-    Problem(Minimize(f), [A*x == b]).solve()
-    print "Optimal value from CVXPY", f.value
+    cp.Problem(cp.Minimize(f), [A*x == b]).solve()
+    print("Optimal value from CVXPY: {}".format(f.value))
     
     # Solve with method of multipliers.
     resid = A*x - b
-    y = Parameter(shape=(m,1)); y.value = np.zeros(m)
-    aug_lagr = f + y.T*resid + (rho/2)*sum_squares(resid)
+    y = cp.Parameter(shape=(m)); y.value = np.zeros(m)
+    aug_lagr = f + y.T*resid + (rho/2)*cp.sum_squares(resid)
     for t in range(MAX_ITERS):
-        Problem(Minimize(aug_lagr)).solve()
+        cp.Problem(cp.Minimize(aug_lagr)).solve()
         y.value += rho*resid.value
         
-    print "Optimal value from method of multipliers", f.value
+    print("Optimal value from method of multipliers: {}".format(f.value))
 
 
 .. parsed-literal::
 
-    Optimal value from CVXPY 5.57311224497
-    Optimal value from method of multipliers 5.57276155042
+    Optimal value from CVXPY: 5.5905035557463005
+    Optimal value from method of multipliers: 5.572761551213633
 

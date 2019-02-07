@@ -37,6 +37,11 @@ def constant():
     return constants.Constant
 
 
+def parameter():
+    from cvxpy.expressions import constants
+    return constants.Parameter
+
+
 def variable():
     from cvxpy.expressions import variable
     return variable.Variable
@@ -45,6 +50,11 @@ def variable():
 def index():
     from cvxpy.atoms.affine import index
     return index.index
+
+
+def special_index():
+    from cvxpy.atoms.affine import index
+    return index.special_index
 
 
 def indicator():

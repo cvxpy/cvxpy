@@ -52,7 +52,7 @@ def psd_coeff_offset(problem, c):
 
     :param problem: the cvxpy Problem in which "c" arises.
     :param c: a cvxpy Constraint defining a linear matrix inequality
-      "B + \sum_j A[j] * z[j] >=_{PSD} 0".
+      "B + sum_j A[j] * z[j] >=_{PSD} 0".
     :return: (G, h) such that "c" holds at "z" iff "G * z <=_{PSD} b"
       (where the PSD cone is reshaped into a subset of R^N with N = dim ** 2).
 
@@ -134,7 +134,7 @@ class MOSEK(ConicSolver):
            object describes membership in the exponential cone.
 
         :return: a large matrix "coeff" and a vector of constants "offset" such
-          that every Constraint in "constraints" holds at z \in R^n iff
+          that every Constraint in "constraints" holds at z in R^n iff
           "coeff * z <=_K offset", where K is a product of cones supported by
           mosek and cvxpy (the zero cone, the nonnegative orthant,
           the second order cone, and the exponential cone). The nature of K
@@ -147,7 +147,7 @@ class MOSEK(ConicSolver):
             all linear inequalities, etc...).
 
             (2) This function cannot be used with linear matrix inequalities.
-            It will throw an error if any Constraint c \in constraints defines an LMI.
+            It will throw an error if any Constraint c in constraints defines an LMI.
         """
         if not constraints:
             return None, None
@@ -239,8 +239,14 @@ class MOSEK(ConicSolver):
                 Gs.append(G_vec)
                 hs.append(h_vec)
 
-        data[s.G] = sp.sparse.vstack(tuple(Gs))
-        data[s.H] = np.hstack(tuple(hs))
+        if Gs:
+            data[s.G] = sp.sparse.vstack(tuple(Gs))
+        else:
+            data[s.G] = sp.sparse.csc_matrix((0, 0))
+        if hs:
+            data[s.H] = np.hstack(tuple(hs))
+        else:
+            data[s.H] = np.array([])
         inv_data['is_LP'] = (len(psd_constr) + len(exp_constr) + len(soc_constr)) == 0
 
         return data, inv_data
@@ -265,9 +271,13 @@ class MOSEK(ConicSolver):
         # Parse all user-specified parameters (override default logging
         # parameters if applicable).
         kwargs = sorted(solver_opts.keys())
+        save_file = None
         if 'mosek_params' in kwargs:
             self._handle_mosek_params(task, solver_opts['mosek_params'])
             kwargs.remove('mosek_params')
+        if 'save_file' in kwargs:
+            save_file = solver_opts['save_file']
+            kwargs.remove('save_file')
         if 'bfs' in kwargs:
             kwargs.remove('bfs')
         if kwargs:
@@ -403,6 +413,8 @@ class MOSEK(ConicSolver):
 
         task.putclist(np.arange(len(c)), c)
         task.putobjsense(mosek.objsense.minimize)
+        if save_file:
+            task.writedata(save_file)
         task.optimize()
 
         if verbose:
@@ -490,26 +502,30 @@ class MOSEK(ConicSolver):
             primal_vars = None
             dual_vars = None
 
+        # Store computation time
+        attr = {}
+        attr[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
+
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
         env.__exit__(None, None, None)
 
-        return Solution(status, opt_val, primal_vars, dual_vars, attr={})
+        return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     @staticmethod
     def recover_dual_variables(task, sol, inverse_data):
         """
         A cvxpy Constraint "constr" views itself as
-            affine_expression(z) \in K.
+            affine_expression(z) in K.
         The "apply(...)" function represents constr as
             G * z <=_K h
         for appropriate arrays (G, h).
         After adding slack variables, constr becomes
-            G * z + s == h, s \in K.
+            G * z + s == h, s in K.
         From "apply(...)" and "solve_via_data(...)", one will find
             affine_expression(z) == h - G * z == s.
         As a result, the dual variable suitable for "constr" is
-        the conic dual variable to the constraint "s \in K".
+        the conic dual variable to the constraint "s in K".
 
         Mosek documentation refers to conic dual variables as follows:
             zero cone: 'y'

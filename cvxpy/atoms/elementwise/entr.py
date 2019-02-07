@@ -18,9 +18,11 @@ from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 from scipy.special import xlogy
 
+# TODO(akshayka): DGP support.
+
 
 class entr(Elementwise):
-    """Elementwise :math:`-x\log x`.
+    """Elementwise :math:`-x\\log x`.
     """
 
     def __init__(self, x):

@@ -23,6 +23,7 @@ from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
+import scipy.sparse as sp
 
 
 class CvxPyDomainError(Exception):
@@ -63,6 +64,16 @@ class QuadForm(Atom):
         """
         return self.args[1].is_nsd()
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
@@ -90,8 +101,11 @@ class QuadForm(Atom):
                                self.args[0],
                                self.args[1])
 
-    def _grad(self):
-        return self.args[1] * self.args[0]
+    def _grad(self, values):
+        x = np.array(values[0])
+        P = np.array(values[1])
+        D = 2 * np.dot(P, x.T)
+        return [sp.csc_matrix(D.A.ravel(order='F')).T]
 
     def shape_from_args(self):
         return tuple() if self.args[0].ndim == 0 else (1, 1)

@@ -46,7 +46,7 @@ class Constraint(u.Canonical):
             self.constr_id = lu.get_id()
         else:
             self.constr_id = constr_id
-        self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
+        self._construct_dual_variables(args)
         super(Constraint, self).__init__()
 
     def __str__(self):
@@ -59,6 +59,9 @@ class Constraint(u.Canonical):
         """
         return "%s(%s)" % (self.__class__.__name__,
                            repr(self.args[0]))
+
+    def _construct_dual_variables(self, args):
+        self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
 
     @property
     def shape(self):
@@ -96,6 +99,17 @@ class Constraint(u.Canonical):
         """
         return NotImplemented
 
+    @abc.abstractmethod
+    def is_dgp(self):
+        """Checks whether the constraint is DGP.
+
+        Returns
+        -------
+        bool
+            True if the constraint is DGP, False otherwise.
+        """
+        return NotImplemented
+
     @abc.abstractproperty
     def residual(self):
         """The residual of the constraint.
@@ -117,7 +131,7 @@ class Constraint(u.Canonical):
 
         .. math::
 
-            ||\Pi(v) - v||_2^2
+            ||\\Pi(v) - v||_2^2
 
         where :math:`v` is the value of the constrained expression and
         :math:`\\Pi` is the projection operator onto the constraint's domain .

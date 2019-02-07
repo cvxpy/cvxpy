@@ -38,6 +38,16 @@ class reshape(AffAtom):
         self._shape = shape
         super(reshape, self).__init__(expr)
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Reshape the value.

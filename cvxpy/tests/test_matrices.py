@@ -86,13 +86,13 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(self.x == v, (2,))
         self.assertExpression(v == self.x, (2,))
         # Matrix
-        A = numpy.matrix(numpy.arange(8).reshape((4, 2)))
+        A = numpy.arange(8).reshape((4, 2))
         self.assertExpression(A*self.x, (4,))
-        self.assertExpression((A.T*A) * self.x, (2,))
+        self.assertExpression((A.T.dot(A)) * self.x, (2,))
         if PY35:
             self.assertExpression(self.x.__rmatmul__(A), (4,))
         # PSD inequalities.
-        A = numpy.matrix(numpy.ones((2, 2)))
+        A = numpy.ones((2, 2))
         self.assertExpression(A << self.A, (2, 2))
         self.assertExpression(A >> self.A, (2, 2))
 
@@ -144,7 +144,7 @@ class TestMatrices(unittest.TestCase):
     def test_scipy_sparse(self):
         """Test scipy sparse matrices."""
         # Constants.
-        A = numpy.matrix(numpy.arange(8).reshape((4, 2)))
+        A = numpy.arange(8).reshape((4, 2))
         A = sp.csc_matrix(A)
         A = sp.eye(2).tocsc()
         key = (slice(0, 1, None), slice(None, None, None))
@@ -156,7 +156,7 @@ class TestMatrices(unittest.TestCase):
 
         # Linear ops.
         var = Variable((4, 2))
-        A = numpy.matrix(numpy.arange(8).reshape((4, 2)))
+        A = numpy.arange(8).reshape((4, 2))
         A = sp.csc_matrix(A)
         B = sp.hstack([A, A])
         self.assertExpression(var + A, (4, 2))

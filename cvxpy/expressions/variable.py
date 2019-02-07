@@ -54,8 +54,8 @@ def upper_tri_to_full(n):
                 val_arr.append(1.0)
             count += 1
 
-    return sp.coo_matrix((val_arr, (row_arr, col_arr)),
-                         (n*n, entries)).tocsc()
+    return sp.csc_matrix((val_arr, (row_arr, col_arr)),
+                         (n*n, entries))
 
 
 class Variable(Leaf):
@@ -69,8 +69,10 @@ class Variable(Leaf):
             self.id = var_id
         if name is None:
             self._name = "%s%d" % (s.VAR_PREFIX, self.id)
-        else:
+        elif isinstance(name, str):
             self._name = name
+        else:
+            raise TypeError("Variable name %s must be a string." % name)
 
         self._value = None
         super(Variable, self).__init__(shape, **kwargs)

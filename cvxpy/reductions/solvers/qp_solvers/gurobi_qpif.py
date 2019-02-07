@@ -30,17 +30,17 @@ class GUROBI(QpSolver):
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
-                  6: s.SOLVER_ERROR,
+                  4: s.INFEASIBLE_INACCURATE,
+                  6: s.INFEASIBLE,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
                   # TODO could be anything.
                   # means time expired.
-                  9: s.OPTIMAL_INACCURATE,
+                  9: s.SOLVER_ERROR,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
+                  13: s.OPTIMAL_INACCURATE}
 
     def name(self):
         return s.GUROBI
@@ -68,7 +68,7 @@ class GUROBI(QpSolver):
             x = np.array([x_grb[i].X for i in range(n)])
 
             primal_vars = {
-                inverse_data.id_map.keys()[0]:
+                list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
@@ -121,7 +121,7 @@ class GUROBI(QpSolver):
                          lb=-grb.GRB.INFINITY,
                          vtype=vtype)
         model.update()
-        x = model.getVars()
+        x = np.array(model.getVars(), copy=False)
 
         # Add equality constraints: iterate over the rows of A
         # adding each row into the model
@@ -129,7 +129,7 @@ class GUROBI(QpSolver):
             for i in range(A.shape[0]):
                 start = A.indptr[i]
                 end = A.indptr[i+1]
-                variables = [x[j] for j in A.indices[start:end]]  # Get nnz
+                variables = x[A.indices[start:end]]
                 coeff = A.data[start:end]
                 expr = grb.LinExpr(coeff, variables)
                 model.addConstr(expr, grb.GRB.EQUAL, b[i])
@@ -141,7 +141,7 @@ class GUROBI(QpSolver):
             for i in range(F.shape[0]):
                 start = F.indptr[i]
                 end = F.indptr[i+1]
-                variables = [x[j] for j in F.indices[start:end]]  # Get nnz
+                variables = x[F.indices[start:end]]
                 coeff = F.data[start:end]
                 expr = grb.LinExpr(coeff, variables)
                 model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])

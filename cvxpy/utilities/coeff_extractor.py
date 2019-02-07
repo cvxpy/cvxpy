@@ -23,7 +23,6 @@ import scipy.sparse as sp
 
 import cvxpy
 from cvxpy.cvxcore.python import canonInterface
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import replace_quad_forms
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP
@@ -58,8 +57,8 @@ class CoeffExtractor(object):
 
         Parameters
         ----------
-        expr : Expression
-            The expression to process.
+        expr : Expression or list of Expressions.
+            The expression(s) to process.
 
         Returns
         -------
@@ -68,17 +67,21 @@ class CoeffExtractor(object):
         NumPy.ndarray
             The offset vector b of shape (np.prod(expr.shape,)).
         """
-        if not expr.is_affine():
-            raise ValueError("Expression is not affine")
-        s, _ = expr.canonical_form
-        V, I, J, b = canonInterface.get_problem_matrix([lu.create_eq(s)],
+        if isinstance(expr, list):
+            expr_list = expr
+        else:
+            expr_list = [expr]
+        size = sum([e.size for e in expr_list])
+        op_list = [e.canonical_form[0] for e in expr_list]
+        V, I, J, b = canonInterface.get_problem_matrix(op_list,
                                                        self.id_map)
-        A = sp.csr_matrix((V, (I, J)), shape=(expr.size, self.N))
+        A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
         return A, b.flatten()
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
-        # TODO(akshayka): What are the assumptions on the affine expression
-        # supplied to this method?
+        """ Assumes quadratic forms all have variable arguments.
+            Affine expressions can be anything.
+        """
 
         # Extract affine data.
         affine_problem = cvxpy.Problem(Minimize(affine_expr), [])

@@ -120,6 +120,21 @@ class Atom(Expression):
         """
         return self.is_atom_concave() and self.is_atom_convex()
 
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return False
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return False
+
+    def is_atom_log_log_affine(self):
+        """Is the atom log-log affine?
+        """
+        return self.is_atom_log_log_concave() and self.is_atom_log_log_convex()
+
     @abc.abstractmethod
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
@@ -161,6 +176,40 @@ class Atom(Expression):
                 if not (arg.is_affine() or
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+
+    @clru_cache(maxsize=100)
+    def is_log_log_convex(self):
+        """Is the expression log-log convex?
+        """
+        # Verifies DGP composition rule.
+        if self.is_log_log_constant():
+            return True
+        elif self.is_atom_log_log_convex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_log_log_affine() or
+                        (arg.is_log_log_convex() and self.is_incr(idx)) or
+                        (arg.is_log_log_concave() and self.is_decr(idx))):
+                    return False
+            return True
+        else:
+            return False
+
+    @clru_cache(maxsize=100)
+    def is_log_log_concave(self):
+        """Is the expression log-log concave?
+        """
+        # Verifies DGP composition rule.
+        if self.is_log_log_constant():
+            return True
+        elif self.is_atom_log_log_concave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_log_log_affine() or
+                        (arg.is_log_log_concave() and self.is_incr(idx)) or
+                        (arg.is_log_log_convex() and self.is_decr(idx))):
                     return False
             return True
         else:
@@ -213,6 +262,11 @@ class Atom(Expression):
 
     @property
     def value(self):
+        if any([p.value is None for p in self.parameters()]):
+            return None
+        return self._value_impl()
+
+    def _value_impl(self):
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
@@ -228,7 +282,7 @@ class Atom(Expression):
                 # But if the atom is constant with non-constant
                 # arguments it doesn't depend on its arguments,
                 # so it isn't None.
-                arg_val = arg.value
+                arg_val = arg._value_impl()
                 if arg_val is None and not self.is_constant():
                     return None
                 else:

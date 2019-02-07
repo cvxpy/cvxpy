@@ -31,7 +31,10 @@ def power_canon(expr, args):
     elif p == 1:
         return affine_expr, []
     elif p == 2:
-        t = Variable(affine_expr.shape)
-        return SymbolicQuadForm(t, np.eye(t.size), expr), [affine_expr == t]
+        if isinstance(affine_expr, Variable):
+            return SymbolicQuadForm(affine_expr, np.eye(affine_expr.size), expr), []
+        else:
+            t = Variable(affine_expr.shape)
+            return SymbolicQuadForm(t, np.eye(t.size), expr), [affine_expr == t]
     raise ValueError("non-constant quadratic forms can't be raised to a power "
                      "greater than 2.")

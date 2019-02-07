@@ -19,7 +19,7 @@ import numpy as np
 
 
 class logistic(Elementwise):
-    """:math:`\log(1 + e^{x})`
+    """:math:`\\log(1 + e^{x})`
 
     This is a special case of log(sum(exp)) that is evaluates to a vector rather
     than to a scalar which is useful for logistic regression.

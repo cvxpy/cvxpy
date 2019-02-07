@@ -45,8 +45,8 @@ def log_det_canon(expr, args):
 
     .. math::
 
-       \det(A) >= \det(D) + \det([D, Z; Z^T, A])/\det(D)
-               >= \det(D)
+       \\det(A) >= \\det(D) + \\det([D, Z; Z^T, A])/\\det(D)
+               >= \\det(D)
 
     because (Z^TD^{-1})D(D^{-1}Z) is a feasible D, Z that achieves
     det(A) = det(D) and the objective maximizes det(D).

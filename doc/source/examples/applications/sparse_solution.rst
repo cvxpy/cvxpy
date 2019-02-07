@@ -69,9 +69,9 @@ This algorithm is described in papers:
 Generate problem data
 ---------------------
 
-.. code:: 
+.. code:: python
 
-    import cvxpy as cvx
+    import cvxpy as cp
     import numpy as np
     
     # Fix random number generator so we can repeat the experiment.
@@ -86,44 +86,46 @@ Generate problem data
     
     # Construct a feasible set of inequalities.
     # (This system is feasible for the x0 point.)
-    A  = np.matrix(np.random.randn(m, n))
-    x0 = np.matrix(np.random.randn(n, 1))
-    b  = A*x0 + np.random.random((m, 1))
+    A  = np.random.randn(m, n)
+    x0 = np.random.randn(n)
+    b  = A.dot(x0) + np.random.random(m)
 
 :math:`\ell_1`-norm heuristic
 -----------------------------
 
-.. code:: 
+.. code:: python
 
     # Create variable.
-    x_l1 = cvx.Variable(shape=(n,1))
+    x_l1 = cp.Variable(shape=n)
     
     # Create constraint.
     constraints = [A*x_l1 <= b]
     
     # Form objective.
-    obj = cvx.Minimize(cvx.norm(x_l1, 1))
+    obj = cp.Minimize(cp.norm(x_l1, 1))
     
     # Form and solve problem.
-    prob = cvx.Problem(obj, constraints)
+    prob = cp.Problem(obj, constraints)
     prob.solve()
-    print "status:", prob.status
+    print("status: {}".format(prob.status))
     
     # Number of nonzero elements in the solution (its cardinality or diversity).
     nnz_l1 = (np.absolute(x_l1.value) > delta).sum()
-    print 'Found a feasible x in R^{} that has {} nonzeros.'.format(n, nnz_l1)
+    print('Found a feasible x in R^{} that has {} nonzeros.'.format(n, nnz_l1))
+    print("optimal objective value: {}".format(obj.value))
 
 
 .. parsed-literal::
 
     status: optimal
     Found a feasible x in R^50 that has 40 nonzeros.
+    optimal objective value: 28.582394099513873
 
 
 Iterative log heuristic
 -----------------------
 
-.. code:: 
+.. code:: python
 
     # Do 15 iterations, allocate variable to hold number of non-zeros
     # (cardinality of x) for each run.
@@ -131,37 +133,36 @@ Iterative log heuristic
     nnzs_log = np.array(())
     
     # Store W as a positive parameter for simple modification of the problem.
-    W = cvx.Parameter(shape=(n, 1), nonneg=True); 
-    x_log = cvx.Variable(shape=(n,1))
+    W = cp.Parameter(shape=n, nonneg=True); 
+    x_log = cp.Variable(shape=n)
     
     # Initial weights.
-    W.value = np.ones((n, 1));
+    W.value = np.ones(n);
     
     # Setup the problem.
-    obj = cvx.Minimize( W.T*cvx.abs(x_log) ) # sum of elementwise product
+    obj = cp.Minimize( W.T*cp.abs(x_log) ) # sum of elementwise product
     constraints = [A*x_log <= b]
-    prob = cvx.Problem(obj, constraints)
+    prob = cp.Problem(obj, constraints)
     
     # Do the iterations of the problem, solving and updating W.
     for k in range(1, NUM_RUNS+1):
         # Solve problem.
         # The ECOS solver has known numerical issues with this problem
         # so force a different solver.
-        prob.solve(solver=cvx.CVXOPT)
+        prob.solve(solver=cp.CVXOPT)
         
         # Check for error.
-        if prob.status != cvx.OPTIMAL:
+        if prob.status != cp.OPTIMAL:
             raise Exception("Solver did not converge!")
     
         # Display new number of nonzeros in the solution vector.
         nnz = (np.absolute(x_log.value) > delta).sum()
         nnzs_log = np.append(nnzs_log, nnz);
-        print ('Iteration {}: Found a feasible x in R^{}' + \
-               ' with {} nonzeros...').format(k, n, nnz)
+        print('Iteration {}: Found a feasible x in R^{}'
+              ' with {} nonzeros...'.format(k, n, nnz))
     
         # Adjust the weights elementwise and re-iterate
-        W.value = np.ones((n, 1))  \
-                  /(delta*np.ones((n, 1)) + np.absolute(x_log.value))
+        W.value = np.ones(n)/(delta*np.ones(n) + np.absolute(x_log.value))
 
 
 .. parsed-literal::
@@ -190,7 +191,7 @@ The following code plots the result of the :math:`\ell_1`-norm
 heuristic, as well as the result for each iteration of the log
 heuristic.
 
-.. code:: 
+.. code:: python
 
     import matplotlib.pyplot as plt
     
