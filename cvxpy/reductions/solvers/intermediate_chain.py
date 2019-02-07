@@ -75,4 +75,3 @@ def construct_intermediate_chain(problem, candidates, gp=False):
     reductions += [Dcp2Cone(),
                    CvxAttr2Constr()]
     return Chain(reductions=reductions)
-
