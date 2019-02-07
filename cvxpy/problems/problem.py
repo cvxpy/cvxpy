@@ -338,7 +338,7 @@ class Problem(u.Canonical):
                                 gp=False):
         """
         Find candiate solvers for the current problem. If solver
-        is not None, it checks if the specified solved is compatible
+        is not None, it checks if the specified solver is compatible
         with the problem passed.
 
         Parameters
@@ -622,8 +622,7 @@ class Problem(u.Canonical):
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution,
-                       chain, inverse_data):
+    def unpack_results(self, solution, chain, inverse_data):
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of
