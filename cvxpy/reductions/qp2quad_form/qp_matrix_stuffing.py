@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms import QuadForm
-from cvxpy.constraints import NonPos, Zero
+from cvxpy.constraints import NonPos, Zero, Equality, Inequality
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
@@ -33,12 +33,13 @@ class QpMatrixStuffing(MatrixStuffing):
        affine arguments.
     """
 
-    def accepts(self, problem):
+    @staticmethod
+    def accepts(problem):
         return (type(problem.objective) == Minimize
                 and problem.objective.is_quadratic()
                 and problem.is_dcp()
                 and not convex_attributes(problem.variables())
-                and all(type(c) == Zero or type(c) == NonPos
+                and all(type(c) in [Zero, NonPos, Equality, Inequality]
                         for c in problem.constraints)
                 and are_args_affine(problem.constraints))
 

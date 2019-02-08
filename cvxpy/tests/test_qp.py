@@ -435,3 +435,42 @@ class TestQp(BaseTest):
         result2 = prob.solve(warm_start=False)
         self.assertAlmostEqual(result, result2)
         pass
+
+    def test_parametric(self):
+        """Test solve parametric problem vs full problem"""
+        x = Variable()
+        a = 10
+        #  b_vec = [-10, -2., 2., 3., 10.]
+        b_vec = [-10, -2.]
+
+        for solver in self.solvers:
+
+            # Solve from scratch with no parameters
+            x_full = []
+            obj_full = []
+            for b in b_vec:
+                obj = Minimize(a * (x ** 2) + b * x)
+                constraints = [0 <= x, x <= 1]
+                prob = Problem(obj, constraints)
+                prob.solve(solver=solver)
+                x_full += [x.value]
+                obj_full += [prob.value]
+
+            # Solve parametric
+            x_param = []
+            obj_param = []
+            b = Parameter()
+            obj = Minimize(a * (x ** 2) + b * x)
+            constraints = [0 <= x, x <= 1]
+            prob = Problem(obj, constraints)
+            for b_value in b_vec:
+                b.value = b_value
+                prob.solve(solver=solver)
+                x_param += [x.value]
+                obj_param += [prob.value]
+
+            print(x_full)
+            print(x_param)
+            for i in range(len(b_vec)):
+                self.assertItemsAlmostEqual(x_full[i], x_param[i], places=3)
+                self.assertAlmostEqual(obj_full[i], obj_param[i])

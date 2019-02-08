@@ -267,7 +267,6 @@ class GUROBI(Solver):
         results_dict = {}
         try:
             model.optimize()
-            print(model)
             results_dict["primal objective"] = model.ObjVal
             results_dict["x"] = np.array([v.X for v in variables])
 

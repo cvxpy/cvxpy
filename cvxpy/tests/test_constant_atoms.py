@@ -268,12 +268,15 @@ def check_solver(prob, solver_name):
     try:
         if solver_name == ROBUST_CVXOPT:
             solver_name = CVXOPT
-        chain = construct_solving_chain(prob, solver=solver_name)
+
+        prob._construct_chains(solver=solver_name)
+
         return True
     except SolverError:
         return False
     except:
         raise
+
 
 # Tests numeric version of atoms.
 def run_atom(atom, problem, obj_val, solver, verbose=False):
@@ -283,7 +286,8 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
         print(problem.objective)
         print(problem.constraints)
         print("solver", solver)
-    if check_solver(problem, solver) and not (atom, solver) in KNOWN_SOLVER_ERRORS:
+    if check_solver(problem, solver) and \
+            not (atom, solver) in KNOWN_SOLVER_ERRORS:
         tolerance = SOLVER_TO_TOL[solver]
 
         try:

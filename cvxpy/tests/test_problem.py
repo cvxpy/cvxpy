@@ -838,7 +838,8 @@ class TestProblem(BaseTest):
             warnings.simplefilter("ignore")
             with self.assertRaises(Exception) as cm:
                 Problem(cvx.Minimize(cvx.quad_form(self.x, [[-1, 0], [0, 9]]))).solve()
-            self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+            self.assertTrue("Problem does not follow DCP rules."
+                            in str(cm.exception))
 
         P = [[4, 0], [0, 9]]
         p = Problem(cvx.Minimize(cvx.quad_form(self.x, P)), [self.x >= 1])
@@ -1055,7 +1056,8 @@ class TestProblem(BaseTest):
                      b == 16])
         with self.assertRaises(Exception) as cm:
             p.solve()
-        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+        self.assertTrue("Problem does not follow DCP rules."
+                        in str(cm.exception))
 
     # Test the hstack atom.
     def test_hstack(self):
@@ -1099,7 +1101,8 @@ class TestProblem(BaseTest):
                      b == 16])
         with self.assertRaises(Exception) as cm:
             p.solve()
-        self.assertEqual(str(cm.exception), "Problem does not follow DCP rules.")
+        self.assertTrue("Problem does not follow DCP rules."
+                        in str(cm.exception))
 
     def test_bad_objective(self):
         """Test using a cvxpy expression as an objective.

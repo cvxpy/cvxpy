@@ -17,9 +17,7 @@ limitations under the License.
 from cvxpy import problems
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
-from cvxpy.expressions.constants import Constant
 from cvxpy.reductions import InverseData, Reduction, Solution
-from cvxpy.expressions.constants import CallbackParam
 
 
 class Canonicalization(Reduction):
@@ -79,15 +77,8 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if isinstance(expr, Expression) and not expr.variables():
-            # Parameterized expressions are evaluated in a subsequent
-            # reduction.
-            if expr.parameters():
-                param = CallbackParam(lambda: expr.value, expr.shape)
-                return param, []
-            # Non-parameterized expressions are evaluated immediately.
-            else:
-                return Constant(expr.value), []
+        if isinstance(expr, Expression) and expr.is_constant():
+            return expr, []
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
         else:

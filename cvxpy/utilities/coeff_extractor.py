@@ -1,4 +1,5 @@
 """
+
 Copyright 2016 Jaehyun Park, 2017 Robin Verschueren, 2017 Akshay Agrawal
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,8 @@ import scipy.sparse as sp
 import cvxpy
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.utilities.replace_quad_forms import replace_quad_forms
+from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
+                                                restore_quad_forms)
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP
 from cvxpy.problems.objective import Minimize
 
@@ -142,6 +144,8 @@ class CoeffExtractor(object):
         # the coefficients.
         coeffs, constant = self.extract_quadratic_coeffs(root.args[0],
                                                          quad_forms)
+        # Restore expression.
+        restore_quad_forms(root.args[0], quad_forms)
 
         # Sort variables corresponding to their starting indices, in ascending
         # order.
