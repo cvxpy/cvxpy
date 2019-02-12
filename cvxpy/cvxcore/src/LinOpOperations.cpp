@@ -600,7 +600,11 @@ std::vector<Matrix> get_index_mat(LinOp &lin) {
 	/* If slice is empty, return empty matrix */
 	if (coeffs.rows () == 0 ||  coeffs.cols() == 0) {
 		return build_vector(coeffs);
-	}
+    // Special case for scalars.
+	} else if (coeffs.rows() * coeffs.cols() == 1) {
+    Matrix coeffs = sparse_eye(1);
+    return build_vector(coeffs);
+  }
 
 	/* Set the index coefficients by looping over the column selection
 	 * first to remain consistent with CVXPY. */
