@@ -40,17 +40,16 @@ required to be PSD (instead of also Toeplitz)
 
 import cvxpy as cp
 import numpy as np
-import cvxopt
 
 # create data P
-P = cp.Parameter(3,3)
-Z = cp.semidefinite(3)
+P = cp.Parameter((3,3))
+Z = cp.Variable((3,3), PSD=True)
 
 objective = cp.Minimize( cp.lambda_max(P) - cp.lambda_min(P - Z) )
 prob = cp.Problem(objective, [Z >= 0])
-P.value = cvxopt.matrix(np.matrix('4 1 3; 1 3.5 0.8; 3 0.8 1'))
+P.value = np.matrix('4 1 3; 1 3.5 0.8; 3 0.8 1')
 prob.solve()
-print "optimal value =", prob.value
+print("optimal value =", prob.value)
 
 
 # [ 4,     1+2*j,     3-j       ; ...
