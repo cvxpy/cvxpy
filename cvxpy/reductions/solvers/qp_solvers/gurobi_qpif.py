@@ -150,8 +150,7 @@ class GUROBI(QpSolver):
         # Define objective
         obj = grb.QuadExpr()
         if P.count_nonzero():  # If there are any nonzero elms in P
-            for i in range(P.nnz):
-                obj.add(.5*P.data[i]*x[P.row[i]]*x[P.col[i]])
+            obj.addTerms(0.5*P.data, vars=list(x[P.row]), vars2=list(x[P.col]))
         obj.add(grb.LinExpr(q, x))  # Add linear part
         model.setObjective(obj)  # Set objective
         model.update()
