@@ -118,16 +118,7 @@ class Complex2Real(Reduction):
         return real_out, imag_out
 
     def canonicalize_expr(self, expr, real_args, imag_args, real2imag, leaf_map):
-        if isinstance(expr, Expression) and not expr.variables():
-            # Parameterized expressions are evaluated in a subsequent
-            # reduction.
-            if expr.parameters():
-                return NotImplemented
-            # Non-parameterized expressions are evaluated immediately.
-            else:
-                return elim_cplx_methods[Constant](Constant(expr.value),
-                                                   real_args, imag_args, real2imag)
-        elif type(expr) in elim_cplx_methods:
+        if type(expr) in elim_cplx_methods:
             # Only canonicalize a variable/constant/parameter once.
             if len(expr.args) == 0 and expr in leaf_map:
                 return leaf_map[expr]

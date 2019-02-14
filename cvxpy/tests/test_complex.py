@@ -228,6 +228,17 @@ class TestComplex(BaseTest):
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
 
+    def test_params(self):
+        """Test with parameters.
+        """
+        p = cvx.Parameter(imag=True, value=1j)
+        x = Variable(2, complex=True)
+        prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(p*x) <= 2])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 4*np.sqrt(2))
+        val = np.ones(2)*np.sqrt(2)
+        self.assertItemsAlmostEqual(x.value, val + 1j*val)
+
     def test_abs(self):
         """Test with absolute value.
         """

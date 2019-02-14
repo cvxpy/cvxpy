@@ -298,7 +298,7 @@ class Leaf(expression.Expression):
         elif self.attributes['nonneg'] or self.attributes['pos']:
             return np.maximum(val, 0.)
         elif self.attributes['imag']:
-            return np.imag(val)
+            return np.imag(val)*1j
         elif self.attributes['complex']:
             return val.astype(np.complex)
         elif self.attributes['boolean']:

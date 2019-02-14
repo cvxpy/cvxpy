@@ -32,7 +32,7 @@ from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.affine.binary_operators import (MulExpression,
                                                  multiply,
                                                  DivExpression)
-from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.zero import Zero
 from cvxpy.constraints.psd import PSD
@@ -47,6 +47,7 @@ from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
     hermitian_canon, quad_canon, lambda_sum_largest_canon, norm_nuc_canon, matrix_frac_canon)
 from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import variable_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import constant_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import param_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.zero_canon import zero_canon
 
 
@@ -77,6 +78,7 @@ CANON_METHODS = {
     real: real_canon,
     Variable: variable_canon,
     Constant: constant_canon,
+    Parameter: param_canon,
     Zero: zero_canon,
     PSD: hermitian_canon,
 
