@@ -415,6 +415,25 @@ class TestComplex(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, 4.0)
 
+
+    def test_special_idx(self):
+        """Test with special index.
+        """
+        c = [0, 1]
+        n = len(c)
+        # Create optimization variables.
+        f = cvx.Variable((n, n), hermitian=True)
+        # Create constraints.
+        constraints = [f >> 0]
+        for k in range(1, n):
+            indices = [(i * n) + i - (n - k) for i in range(n - k, n)]
+            constraints += [cvx.sum(cvx.vec(f)[indices]) == c[n - k]]
+        # Form objective.
+        obj = cvx.Maximize(c[0] - cvx.real(cvx.trace(f)))
+        # Form and solve problem.
+        prob = cvx.Problem(obj, constraints)
+        sol = prob.solve()
+
     def test_validation(self):
         """Test that complex arguments are rejected.
         """

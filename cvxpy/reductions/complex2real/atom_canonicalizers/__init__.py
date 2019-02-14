@@ -23,7 +23,7 @@ from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
 from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.index import index
+from cvxpy.atoms.affine.index import index, special_index
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.hstack import Hstack
@@ -58,6 +58,7 @@ CANON_METHODS = {
     diag: separable_canon,
     Hstack: separable_canon,
     index: separable_canon,
+    special_index: separable_canon,
     Promote: separable_canon,
     reshape: separable_canon,
     Sum: separable_canon,
