@@ -284,11 +284,10 @@ class GUROBI(Solver):
                     else:
                         vals.append(0)
                 results_dict["y"] = -np.array(vals)
-
-            results_dict["status"] = self.STATUS_MAP.get(model.Status,
-                                                         s.SOLVER_ERROR)
         except Exception:
-            results_dict["status"] = s.SOLVER_ERROR
+            pass
+        results_dict["status"] = self.STATUS_MAP.get(model.Status,
+                                                     s.SOLVER_ERROR)
 
         if results_dict["status"] == s.SOLVER_ERROR and model.SolCount:
             results_dict["status"] = s.OPTIMAL_INACCURATE
