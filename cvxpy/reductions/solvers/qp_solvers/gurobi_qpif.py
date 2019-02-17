@@ -159,10 +159,14 @@ class GUROBI(QpSolver):
 
         # Define objective
         obj = grb.QuadExpr()
-        if P.count_nonzero():  # If there are any nonzero elms in P
-            obj.addTerms(0.5*P.data, vars=list(x[P.row]), vars2=list(x[P.col]))
-        obj.add(grb.LinExpr(q, x))  # Add linear part
-        model.setObjective(obj)  # Set objective
+        if hasattr(model, '_v811_setMObjective'):
+            model._v811_setMObjective(0.5 * P, q)
+        else:
+            if P.count_nonzero():  # If there are any nonzero elms in P
+                obj.addTerms(0.5*P.data, vars=list(x[P.row]),
+                             vars2=list(x[P.col]))
+            obj.add(grb.LinExpr(q, x))  # Add linear part
+            model.setObjective(obj)  # Set objective
         model.update()
 
         # Set verbosity and other parameters
