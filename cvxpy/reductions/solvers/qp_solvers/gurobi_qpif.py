@@ -123,37 +123,50 @@ class GUROBI(QpSolver):
         model.update()
         x = np.array(model.getVars(), copy=False)
 
-        # Add equality constraints: iterate over the rows of A
-        # adding each row into the model
         if A.shape[0] > 0:
-            for i in range(A.shape[0]):
-                start = A.indptr[i]
-                end = A.indptr[i+1]
-                variables = x[A.indices[start:end]]
-                coeff = A.data[start:end]
-                expr = grb.LinExpr(coeff, variables)
-                model.addConstr(expr, grb.GRB.EQUAL, b[i])
+            if hasattr(model, '_v811_addMConstrs'):
+                # We can pass all of A == b at once
+                sense = np.repeat(grb.GRB.EQUAL, A.shape[0])
+                model._v811_addMConstrs(A, sense, b)
+            else:
+                # Add equality constraints: iterate over the rows of A
+                # adding each row into the model
+                for i in range(A.shape[0]):
+                    start = A.indptr[i]
+                    end = A.indptr[i+1]
+                    variables = x[A.indices[start:end]]
+                    coeff = A.data[start:end]
+                    expr = grb.LinExpr(coeff, variables)
+                    model.addConstr(expr, grb.GRB.EQUAL, b[i])
         model.update()
 
-        # Add inequality constraints: iterate over the rows of F
-        # adding each row into the model
         if F.shape[0] > 0:
-            for i in range(F.shape[0]):
-                start = F.indptr[i]
-                end = F.indptr[i+1]
-                variables = x[F.indices[start:end]]
-                coeff = F.data[start:end]
-                expr = grb.LinExpr(coeff, variables)
-                model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])
+            if hasattr(model, '_v811_addMConstrs'):
+                # We can pass all of F <= g at once
+                sense = np.repeat(grb.GRB.LESS_EQUAL, F.shape[0])
+                model._v811_addMConstrs(F, sense, g)
+            else:
+                # Add inequality constraints: iterate over the rows of F
+                # adding each row into the model
+                for i in range(F.shape[0]):
+                    start = F.indptr[i]
+                    end = F.indptr[i+1]
+                    variables = x[F.indices[start:end]]
+                    coeff = F.data[start:end]
+                    expr = grb.LinExpr(coeff, variables)
+                    model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])
         model.update()
 
         # Define objective
         obj = grb.QuadExpr()
-        if P.count_nonzero():  # If there are any nonzero elms in P
-            for i in range(P.nnz):
-                obj.add(.5*P.data[i]*x[P.row[i]]*x[P.col[i]])
-        obj.add(grb.LinExpr(q, x))  # Add linear part
-        model.setObjective(obj)  # Set objective
+        if hasattr(model, '_v811_setMObjective'):
+            model._v811_setMObjective(0.5 * P, q)
+        else:
+            if P.count_nonzero():  # If there are any nonzero elms in P
+                obj.addTerms(0.5*P.data, vars=list(x[P.row]),
+                             vars2=list(x[P.col]))
+            obj.add(grb.LinExpr(q, x))  # Add linear part
+            model.setObjective(obj)  # Set objective
         model.update()
 
         # Set verbosity and other parameters

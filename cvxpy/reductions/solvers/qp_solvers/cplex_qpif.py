@@ -123,23 +123,29 @@ class CPLEX(QpSolver):
                                       model.variables.type.integer)
 
         # Add constraints
+        lin_expr, rhs = [], []
         for i in range(n_eq):  # Add equalities
             start = A.indptr[i]
             end = A.indptr[i+1]
-            row = [[A.indices[start:end].tolist(),
-                   A.data[start:end].tolist()]]
-            model.linear_constraints.add(lin_expr=row,
-                                         senses=["E"],
-                                         rhs=[b[i]])
+            lin_expr.append([A.indices[start:end].tolist(),
+                             A.data[start:end].tolist()])
+            rhs.append(b[i])
+        if lin_expr:
+            model.linear_constraints.add(lin_expr=lin_expr,
+                                         senses=["E"] * len(lin_expr),
+                                         rhs=rhs)
 
+        lin_expr, rhs = [], []
         for i in range(n_ineq):  # Add inequalities
             start = F.indptr[i]
             end = F.indptr[i+1]
-            row = [[F.indices[start:end].tolist(),
-                   F.data[start:end].tolist()]]
-            model.linear_constraints.add(lin_expr=row,
-                                         senses=["L"],
-                                         rhs=[g[i]])
+            lin_expr.append([F.indices[start:end].tolist(),
+                             F.data[start:end].tolist()])
+            rhs.append(g[i])
+        if lin_expr:
+            model.linear_constraints.add(lin_expr=lin_expr,
+                                         senses=["L"] * len(lin_expr),
+                                         rhs=rhs)
 
         # Set quadratic Cost
         if P.count_nonzero():  # Only if quadratic form is not null
