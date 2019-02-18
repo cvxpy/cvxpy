@@ -16,8 +16,6 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.constraints import Equality, Zero, NonPos, PSD
