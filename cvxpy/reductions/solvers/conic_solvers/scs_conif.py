@@ -157,7 +157,7 @@ class SCS(ConicSolver):
         """
         if isinstance(constr, PSD):
             expr = constr.expr
-            triangularized_expr = scaled_lower_tri(expr)
+            triangularized_expr = scaled_lower_tri(expr + expr.T)/2
             extractor = CoeffExtractor(InverseData(problem))
             A_prime, b_prime = extractor.affine(triangularized_expr)
             # SCS requests constraints to be formatted as

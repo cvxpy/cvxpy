@@ -186,6 +186,23 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
         # assert time > time2
 
+    def test_psd_constraint(self):
+        """Test PSD constraint.
+        """
+        s = cvx.Variable((2, 2))
+        obj= cvx.Maximize(cvx.minimum(s[0,1], 10))
+        const = [s>>0, cvx.diag(s)==np.ones(2)]
+        prob = cvx.Problem(obj, const)
+        r = prob.solve(solver=cvx.SCS)
+        s = s.value
+        print(const[0].residual)
+        print("value", r)
+        print("s", s)
+        print("eigs",np.linalg.eig(s + s.T)[0])
+        eigs = np.linalg.eig(s + s.T)[0]
+        self.assertEqual(np.all(eigs >= 0), True)
+
+
     # def test_kl_div(self):
     #     """Test the kl_div atom.
     #     """

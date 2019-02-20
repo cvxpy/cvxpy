@@ -314,8 +314,9 @@ class TestComplex(BaseTest):
             value = cvx.sum_largest(eigs, 2).value
             X = Variable(P.shape, complex=True)
             prob = Problem(cvx.Minimize(cvx.lambda_sum_largest(X, 2)), [X == P])
-            result = prob.solve(solver=cvx.SCS, eps=1e-6)
+            result = prob.solve(solver=cvx.SCS, eps=1e-8, verbose=True)
             self.assertAlmostEqual(result, value, places=3)
+            self.assertItemsAlmostEqual(X.value, P, places=3)
 
             value = cvx.sum_smallest(eigs, 2).value
             X = Variable(P.shape, complex=True)

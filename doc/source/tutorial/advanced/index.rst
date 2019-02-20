@@ -155,7 +155,7 @@ The first way is to use
 The second way is to create a positive semidefinite cone constraint using the ``>>`` or ``<<`` operator.
 If ``X`` and ``Y`` are ``n`` by ``n`` variables,
 the constraint ``X >> Y`` means that :math:`z^T(X - Y)z \geq 0`, for all :math:`z \in \mathcal{R}^n`.
-In other words, :math:`X + X^T` is positive semidefinite.
+In other words, :math:`(X - Y) + (X - Y)^T` is positive semidefinite.
 The constraint does not require that ``X`` and ``Y`` be symmetric.
 Both sides of a postive semidefinite cone constraint must be square matrices and affine.
 
