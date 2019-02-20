@@ -71,8 +71,8 @@ setup(
                       "multiprocess",
                       "fastcache",
                       "six",
-                      "numpy >= 1.14",
+                      "numpy >= 1.15",
                       "scipy >= 1.1.0"],
-    setup_requires=["numpy >= 1.14"],
+    setup_requires=["numpy >= 1.15"],
     use_2to3=True,
 )
