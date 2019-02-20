@@ -29,7 +29,7 @@ def quad_over_lin_canon(expr, args):
     # where y+t is the scalar part of the second-order
     # cone constraint.
     constraints = [SOC(
-                        t=y+t,
-                        X=hstack([y-t, 2*x.flatten()]), axis=0
-                        ), y >= 0]
+                       t=y+t,
+                       X=hstack([y-t, 2*x.flatten()]), axis=0
+                      )]
     return t, constraints
