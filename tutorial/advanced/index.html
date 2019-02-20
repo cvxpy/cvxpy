@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.0.14 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.0.16 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.14',
+        VERSION:     '1.0.16',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -172,7 +172,7 @@ The first way is to use
 <p>The second way is to create a positive semidefinite cone constraint using the <code class="docutils literal"><span class="pre">&gt;&gt;</span></code> or <code class="docutils literal"><span class="pre">&lt;&lt;</span></code> operator.
 If <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code> are <code class="docutils literal"><span class="pre">n</span></code> by <code class="docutils literal"><span class="pre">n</span></code> variables,
 the constraint <code class="docutils literal"><span class="pre">X</span> <span class="pre">&gt;&gt;</span> <span class="pre">Y</span></code> means that <span class="math">\(z^T(X - Y)z \geq 0\)</span>, for all <span class="math">\(z \in \mathcal{R}^n\)</span>.
-In other words, <span class="math">\(X + X^T\)</span> is positive semidefinite.
+In other words, <span class="math">\((X - Y) + (X - Y)^T\)</span> is positive semidefinite.
 The constraint does not require that <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code> be symmetric.
 Both sides of a postive semidefinite cone constraint must be square matrices and affine.</p>
 <p>The following code shows how to constrain matrix expressions to be positive or negative
