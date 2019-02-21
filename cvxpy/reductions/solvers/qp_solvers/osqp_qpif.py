@@ -65,9 +65,10 @@ class OSQP(QpSolver):
         lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
         data['l'] = lA
 
-        # Default to eps_abs = eps_rel = 1e-4 instead of 1e-3.
+        # Overwrite defaults eps_abs=eps_rel=1e-4, max_iter=4000
         solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-4)
         solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-4)
+        solver_opts['max_iter'] = solver_opts.get('max_iter', 10000)
 
         if solver_cache is not None and self.name() in solver_cache:
             # Use cached data.
