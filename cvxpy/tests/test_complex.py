@@ -430,10 +430,9 @@ class TestComplex(BaseTest):
         rho=cvx.Variable((2,2),complex=True)
         Id=np.identity(2)
         obj=cvx.Maximize(0)
-        cons=[A@rho==Id]
+        cons=[A*rho==Id]
         prob=cvx.Problem(obj,cons)
         prob.solve()
-        print('Feasibility for sparse matrix:', prob.status, 'value of rho:', rho.value, sep='\n')
         rho_sparse = rho.value
         # infeasible here, which is wrong!
 
@@ -441,10 +440,9 @@ class TestComplex(BaseTest):
         rho=cvx.Variable((2,2),complex=True)
         Id=np.identity(2)
         obj=cvx.Maximize(0)
-        cons=[A.toarray()@rho==Id]
+        cons=[A.toarray()*rho==Id]
         prob=cvx.Problem(obj,cons)
         prob.solve()
-        print('Feasibility for numpy array:', prob.status, 'value of rho:', rho.value, sep='\n')
         self.assertItemsAlmostEqual(rho.value, rho_sparse)
 
     def test_special_idx(self):

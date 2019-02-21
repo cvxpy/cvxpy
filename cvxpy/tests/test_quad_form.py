@@ -80,6 +80,21 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         self.assertAlmostEqual(prob.solve(), 5)
 
+        # Here are our QP factors
+        A = cvxpy.Constant(sp.eye(4))
+        c = np.matrix(np.ones(4)).reshape((1,4))
+
+        # Here is our optimization variable
+        x = cvxpy.Variable(4)
+
+        # And the QP problem setup
+        function = cvxpy.quad_form(x, A) - c * x
+        objective = cvxpy.Minimize(function)
+        problem = cvxpy.Problem(objective)
+
+        problem.solve()
+        self.assertEqual(len(function.value), 1)
+
     def test_param_quad_form(self):
         """Test quad form with a parameter.
         """
