@@ -451,7 +451,6 @@ class Problem(u.Canonical):
 
     def _solve(self,
                solver=None,
-               ignore_dcp=False,
                warm_start=True,
                verbose=False,
                parallel=False, gp=False, **kwargs):
@@ -464,10 +463,6 @@ class Problem(u.Canonical):
         ----------
         solver : str, optional
             The solver to use. Defaults to ECOS.
-        ignore_dcp : bool, optional
-            TODO(akshayka): This option will probably be eliminated.
-            Overrides the default of raising an exception if the problem is not
-            DCP.
         warm_start : bool, optional
             Should the previous solver result be used to warm start?
         verbose : bool, optional
@@ -492,7 +487,7 @@ class Problem(u.Canonical):
             from cvxpy.transforms.separable_problems import get_separable_problems
             self._separable_problems = (get_separable_problems(self))
             if len(self._separable_problems) > 1:
-                return self._parallel_solve(solver, ignore_dcp, warm_start,
+                return self._parallel_solve(solver, warm_start,
                                             verbose, **kwargs)
 
         self._construct_chains(solver=solver, gp=gp)
@@ -514,7 +509,6 @@ class Problem(u.Canonical):
 
     def _parallel_solve(self,
                         solver=None,
-                        ignore_dcp=False,
                         warm_start=False,
                         verbose=False, **kwargs):
         """Solves a DCP compliant optimization problem in parallel.
@@ -526,9 +520,6 @@ class Problem(u.Canonical):
         ----------
         solver : str, optional
             The solver to use. Defaults to ECOS.
-        ignore_dcp : bool, optional
-            Overrides the default of raising an exception if the problem is not
-            DCP.
         warm_start : bool, optional
             Should the previous solver result be used to warm start?
         verbose : bool, optional
@@ -549,7 +540,6 @@ class Problem(u.Canonical):
             primal values, and dual values.
             """
             opt_value = problem.solve(solver=solver,
-                                      ignore_dcp=ignore_dcp,
                                       warm_start=warm_start,
                                       verbose=verbose,
                                       parallel=False, **kwargs)
