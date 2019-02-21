@@ -154,7 +154,7 @@ class Expression(u.Canonical):
             return self.__is_constant
         except AttributeError:
             self.__is_constant = (len(self.variables()) == 0 or
-                                  self.is_zero() or 0 in self.shape)
+                                  0 in self.shape)
             return self.__is_constant
 
     def is_affine(self):

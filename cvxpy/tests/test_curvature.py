@@ -50,7 +50,7 @@ class TestCurvature(object):
         assert_equals((self.aff - self.ccv).curvature, self.cvx.curvature)
 
     def test_sign_mult(self):
-        assert_equals((self.zero * self.cvx).curvature, self.const.curvature)
+        assert_equals((self.zero * self.cvx).curvature, self.aff.curvature)
         assert_equals((self.neg*self.cvx).curvature, self.ccv.curvature)
         assert_equals((self.neg*self.ccv).curvature, self.cvx.curvature)
         assert_equals((self.neg*self.unknown_curv).curvature, self.unknown_curv.curvature)

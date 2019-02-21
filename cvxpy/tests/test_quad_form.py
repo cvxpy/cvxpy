@@ -129,3 +129,20 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
         prob.solve()
         self.assertAlmostEqual(prob.value, prob.objective.value)
+
+    def test_zero_term(self):
+        """Test a quad form multiplied by zero.
+        """
+        data_norm = np.random.random(5)
+        M = np.random.random(5*2).reshape((5, 2))
+        c = cvxpy.Variable(M.shape[1])
+        lopt = 0
+        laplacian_matrix = np.ones((2, 2))
+        design_matrix = cvxpy.Constant(M)
+        objective = cvxpy.Minimize(
+            cvxpy.sum_squares(design_matrix * c - data_norm) +
+            lopt * cvxpy.quad_form(c, laplacian_matrix)
+        )
+        constraints = [(M[0] * c) == 1] # (K * c) >= -0.1]
+        prob = cvxpy.Problem(objective, constraints)
+        prob.solve()
