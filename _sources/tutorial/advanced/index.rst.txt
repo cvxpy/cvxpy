@@ -621,7 +621,16 @@ Here is the complete list of solver options.
 
 `OSQP`_ options:
 
-See `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_.
+``'max_iters'``
+    maximum number of iterations (default: 10,000).
+
+``'eps_abs'``
+    absolute accuracy (default: 1e-4).
+
+``'eps_rel'``
+    relative accuracy (default: 1e-4).
+
+For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_.
 
 `ECOS`_ options:
 
@@ -699,7 +708,7 @@ See `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_
     maximum number of iterations (default: 2500).
 
 ``'eps'``
-    convergence tolerance (default: 1e-3).
+    convergence tolerance (default: 1e-4).
 
 ``'alpha'``
     relaxation parameter (default: 1.8).
