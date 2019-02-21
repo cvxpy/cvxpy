@@ -77,6 +77,7 @@ class AffAtom(Atom):
     def is_pwl(self):
         return all(arg.is_pwl() for arg in self.args)
 
+    #TODO is this right?
     @clru_cache(maxsize=100)
     def is_psd(self):
         """Is the expression a positive semidefinite matrix?

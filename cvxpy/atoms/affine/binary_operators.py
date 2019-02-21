@@ -321,6 +321,18 @@ class multiply(MulExpression):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
+    def is_psd(self):
+        """Is the expression a positive semidefinite matrix?
+        """
+        return (self.args[0].is_psd() and self.args[1].is_psd()) or \
+               (self.args[0].is_nsd() and self.args[1].is_nsd())
+
+    def is_nsd(self):
+        """Is the expression a negative semidefinite matrix?
+        """
+        return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
+               (self.args[0].is_nsd() and self.args[1].is_psd())
+
     @staticmethod
     def graph_implementation(arg_objs, shape, data=None):
         """Multiply the expressions elementwise.

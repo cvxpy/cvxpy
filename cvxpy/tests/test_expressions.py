@@ -286,6 +286,13 @@ class TestExpressions(BaseTest):
             p = Parameter((2, 2), NSD=True, value=[[1, 0], [0, -1]])
         self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
 
+        # Test arithmetic.
+        p = Parameter(shape=(2, 2), PSD=True)
+        self.assertTrue((2*p).is_psd())
+        self.assertTrue((p + p).is_psd())
+        self.assertTrue((-p).is_nsd())
+        self.assertTrue(((-2)*(-p)).is_psd())
+
     # Test the Parameter class on bad inputs.
     def test_parameters_failures(self):
         p = Parameter(name='p')
