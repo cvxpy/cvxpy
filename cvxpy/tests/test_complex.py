@@ -21,6 +21,7 @@ from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+import scipy.sparse as sp
 import sys
 PY35 = sys.version_info >= (3, 5)
 
@@ -416,6 +417,35 @@ class TestComplex(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, 4.0)
 
+    def test_sparse(self):
+        """Test problem with complex sparse matrix.
+        """
+        # define sparse matrix [[0, 1j],[-1j,0]]
+        row=np.array([0,1])
+        col=np.array([1,0])
+        data=np.array([1j,-1j])
+        A=sp.csr_matrix((data, (row, col)), shape=(2, 2))
+
+        # Feasibility with sparse matrix
+        rho=cvx.Variable((2,2),complex=True)
+        Id=np.identity(2)
+        obj=cvx.Maximize(0)
+        cons=[A@rho==Id]
+        prob=cvx.Problem(obj,cons)
+        prob.solve()
+        print('Feasibility for sparse matrix:', prob.status, 'value of rho:', rho.value, sep='\n')
+        rho_sparse = rho.value
+        # infeasible here, which is wrong!
+
+        # Feasibility with numpy array: just replace A with A.toarray()
+        rho=cvx.Variable((2,2),complex=True)
+        Id=np.identity(2)
+        obj=cvx.Maximize(0)
+        cons=[A.toarray()@rho==Id]
+        prob=cvx.Problem(obj,cons)
+        prob.solve()
+        print('Feasibility for numpy array:', prob.status, 'value of rho:', rho.value, sep='\n')
+        self.assertItemsAlmostEqual(rho.value, rho_sparse)
 
     def test_special_idx(self):
         """Test with special index.

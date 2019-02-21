@@ -179,8 +179,9 @@ class TestInterfaces(BaseTest):
         # Sign
         self.sign_for_intf(interface)
 
-    # Test cvxopt sparse interface.
     def test_scipy_sparse(self):
+        """Test cvxopt sparse interface.
+        """
         interface = intf.get_matrix_interface(sp.csc_matrix)
         # const_to_matrix
         mat = interface.const_to_matrix([1, 2, 3])
@@ -201,8 +202,6 @@ class TestInterfaces(BaseTest):
         mat = interface.const_to_matrix([[1, 2, 3], [3, 4, 5]])
         mat = interface.reshape(mat, (6, 1))
         self.assertEqual(interface.index(mat, (4, 0)), 4)
-        mat = interface.const_to_matrix(1, convert_scalars=True)
-        self.assertEqual(type(interface.reshape(mat, (1, 1))), type(mat))
         # Test scalars.
         scalar = interface.scalar_matrix(1, (1, 1))
         self.assertEqual(type(scalar), np.ndarray)
@@ -218,6 +217,15 @@ class TestInterfaces(BaseTest):
         self.assertEqual(intf.scalar_value(mat), 1.0)
         # Sign
         self.sign_for_intf(interface)
+        # Complex
+        # define sparse matrix [[0, 1j],[-1j,0]]
+        row=np.array([0,1])
+        col=np.array([1,0])
+        data=np.array([1j,-1j])
+        A=sp.csr_matrix((data, (row, col)), shape=(2, 2))
+        mat = interface.const_to_matrix(A)
+        self.assertEquals(mat[0,1], 1j)
+        self.assertEquals(mat[1,0], -1j)
 
     def test_conversion_between_intf(self):
         """Test conversion between every pair of interfaces.
