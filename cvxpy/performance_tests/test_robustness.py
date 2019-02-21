@@ -101,5 +101,5 @@ class TestProblem(unittest.TestCase):
         Z = Variable((rows+cols, rows+cols))
         prob = Problem(Minimize(0.5*at.trace(Z)),
                        [X[0, 0] >= 1, Z[0:rows, rows:rows+cols] == X, Z >> 0, Z == Z.T])
-        prob.solve(solver="SCS")
+        prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(prob.value, 1.0)
