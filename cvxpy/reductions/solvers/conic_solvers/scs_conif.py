@@ -288,6 +288,7 @@ class SCS(ConicSolver):
             args["y"] = solver_cache[self.name()]["y"]
             args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
+        # Default to eps = 1e-4 instead of 1e-3.
         solver_opts['eps'] = solver_opts.get('eps', 1e-4)
         results = scs.solve(
             args,
