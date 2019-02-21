@@ -39,6 +39,7 @@ def construct_intermediate_chain(problem, candidates, gp=False):
     reductions = []
     if len(problem.variables()) == 0:
         return Chain(reductions=reductions)
+    # TODO Reduce boolean constraints.
     if complex2real.accepts(problem):
         reductions += [Complex2Real()]
     if gp:

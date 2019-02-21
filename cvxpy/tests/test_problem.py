@@ -1731,3 +1731,25 @@ class TestProblem(BaseTest):
         prob = cvx.Problem(obj, con)
         result = prob.solve(solver='ECOS')
         self.assertItemsAlmostEqual(expr.value, numpy.zeros(10))
+
+    def test_bool_constr(self):
+        """Test constraints that evaluate to booleans.
+        """
+        pass
+
+    # def test_len_zero(self):
+    #     """Test expressions with length zero.
+    #     """
+    #     # Dimension zero always makes things zero.
+    #     n = 0
+
+    #     x = cvx.Variable((n,))
+    #     cvx.Parameter((n,))
+
+    #     a = numpy.zeros((n,))
+    #     expr = cvx.hstack([x, a])
+    #     self.assertEqual(expr.shape, (1,))
+    #     obj = cvx.Minimize(cvx.sum(expr))
+    #     prob = cvx.Problem(obj, [x == 2])
+    #     result = prob.solve()
+    #     self.assertAlmostEqual(result, 2)

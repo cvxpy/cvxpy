@@ -1088,4 +1088,3 @@ class TestExpressions(BaseTest):
 
         expr = pnorm(3 * self.y ** 2, 1)
         self.assertEqual(expr.is_pwl(), False)
-

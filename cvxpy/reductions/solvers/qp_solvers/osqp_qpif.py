@@ -65,6 +65,10 @@ class OSQP(QpSolver):
         lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
         data['l'] = lA
 
+        # Default to eps_abs = eps_rel = 1e-4 instead of 1e-3.
+        solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-4)
+        solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-4)
+
         if solver_cache is not None and self.name() in solver_cache:
             # Use cached data.
             solver, old_data, results = solver_cache[self.name()]
