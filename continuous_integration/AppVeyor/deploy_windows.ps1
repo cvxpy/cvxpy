@@ -9,7 +9,11 @@ cd ..
 If ($UPDATE_CONDA -eq "True") {
     conda install --yes conda-build
     conda install --yes anaconda-client
-    conda config --set anaconda_upload yes
+    conda config --set anaconda_upload yes 
+    conda config --add channels cvxgrp
+    # ^ That line provides us with a limited version of SCS, for the sole purpose of building the conda
+    # recipe. The standard suite of cvxpy tests will fail with this build, because this version of SCS
+    # cant solve SDPs of order > 2.               
     conda build --token=$env:CONDA_UPLOAD_TOKEN --user=$env:CONDA_USER --python=$env:PYTHON_VERSION .
 }
 
