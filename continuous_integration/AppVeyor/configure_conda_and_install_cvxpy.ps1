@@ -5,25 +5,24 @@ conda activate testenv
 conda install --yes lapack ecos multiprocess
 conda install --yes scs
 # ^ There is actually no Windows version of SCS on conda-forge, or oxfordcontrol.
+#	So in principle, the last install command above wont do anything. I'm
+#   leaving it as is, because it serves as a reminder of the following facts:
 #
-#   When we eventually install cvxpy from source, pip processes dependencies
-#	by finding a Windows-compatible version of SCS on pypi. 
-#
-#   There is a version of SCS on the cvxgrp conda channel, but that version
+#   (1) There is a version of SCS on the cvxgrp conda channel, but that version
 #   doesn't link properly with MKL upon installation (which causes SCS to
 #   fail on all SDP tests with matrix variables of order > 2). We wouldnt 
 #   want to install that version of SCS here, since we havent run cvxpy's
 #   test-suite yet.
 #
-#   Im leaving this statement as-is. For now it serves as a reminder that
-#   proper conda Windows support likely requires a conda version of SCS
-#   that comes with linked BLAS and LAPACK libraries.
+#   (2) When we eventually install cvxpy from source, pip processes dependencies
+#	by finding a Windows-compatible version of SCS on pypi. When it does this,
+#	it ends up installing a properly linked instance of SCS version >= 2.0. 
 #
-#   We * can * still get partial conda+Windows support, by running conda-build
-#	with the cvxgrp channel (so that it grabs the poorly linked SCS 1.2.6).
-#   Users wont be able to run the cvxpy tests without upgrading SCS, but they
-#   should be able to at least install cvxpy. Alternatively we could just remove
-#	SCS as a build and run requirement from the Windows conda recipe.
+#   When we need to create the cvxpy conda package (for uploading to the cvxgrp
+#   conda channel) we will settle for the poorly linked version of SCS in
+#   point (1) above. Users wont be able to run the cvxpy tests without upgrading
+#   SCS, but they will be able to install cvxpy, and use scs for LP/SOCP/EXP cone
+#   programs.
 #
 conda install -c anaconda --yes flake8
 python setup.py install
