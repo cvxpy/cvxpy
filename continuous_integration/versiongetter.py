@@ -41,6 +41,7 @@ def update_conda(python_version, operating_system):
     local_version = cvxpy.__version__
     return StrictVersion(local_version) > StrictVersion(most_recent_remote)
 
+
 def update_pypi_wheel(python_version, operating_system, server):
     url = server + '/cvxpy/json'
     r = requests.get(url)
