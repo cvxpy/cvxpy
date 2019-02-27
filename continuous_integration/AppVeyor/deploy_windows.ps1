@@ -1,4 +1,4 @@
-﻿conda activate $env:ENV_NAME
+﻿conda activate testenv
 conda install --yes requests
 
 # Update the Windows binary hosted on Anaconda
