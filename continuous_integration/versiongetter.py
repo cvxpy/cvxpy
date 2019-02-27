@@ -45,12 +45,17 @@ def update_pypi_wheel(python_version, operating_system, server):
     url = server + '/cvxpy/json'
     r = requests.get(url)
     data = r.json()
-    relevant_versions = ['0.0.0']
-    for version in data['releases']:
-        if operating_system in data['releases'][version][0]['filename']:
-            relevant_versions.append(version)
-    relevant_versions.sort(key=StrictVersion)
-    most_recent_remote = relevant_versions[-1]
-    import cvxpy
-    local_version = cvxpy.__version__
-    return StrictVersion(local_version) > StrictVersion(most_recent_remote)
+    if r.ok:
+        relevant_versions = ['0.0.0']
+        for version in data['releases']:
+            if operating_system in data['releases'][version][0]['filename']:
+                relevant_versions.append(version)
+        relevant_versions.sort(key=StrictVersion)
+        most_recent_remote = relevant_versions[-1]
+        import cvxpy
+        local_version = cvxpy.__version__
+        return StrictVersion(local_version) > StrictVersion(most_recent_remote)
+    else:
+        # There is a good chance that the input URL is malformed, but there is no
+        # harm in trying to upload anyway.
+        return True

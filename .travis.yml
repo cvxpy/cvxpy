@@ -22,7 +22,7 @@ env:
       COVERAGE="false"
       DEPLOY_PYPI="false"
 sudo: required
-install: source continuous_integration/Travis/install.sh
+install: source continuous_integration/Travis/install_dependencies.sh
 script:
   - bash continuous_integration/Travis/test_script.sh
   - flake8 .
