@@ -44,8 +44,8 @@ def update_conda(python_version, operating_system):
 def update_pypi_wheel(python_version, operating_system, server):
     url = server + '/cvxpy/json'
     r = requests.get(url)
-    data = r.json()
     if r.ok:
+        data = r.json()
         relevant_versions = ['0.0.0']
         for version in data['releases']:
             if operating_system in data['releases'][version][0]['filename']:
