@@ -1,9 +1,10 @@
-conda config --add channels conda-forge oxfordcontrol
+conda config --add channels conda-forge
+conda config --add channels oxfordcontrol
 conda create -n testenv --yes python=$env:PYTHON_VERSION mkl=2018.0.3 pip nose numpy scipy
 conda activate testenv
-conda install -c conda-forge --yes lapack ecos multiprocess
-conda install -c conda-forge --yes scs
-# ^ There is actually no Windows version of SCS on conda-forge.
+conda install --yes lapack ecos multiprocess
+conda install --yes scs
+# ^ There is actually no Windows version of SCS on conda-forge, or oxfordcontrol.
 #
 #   When we eventually install cvxpy from source, pip processes dependencies
 #	by finding a Windows-compatible version of SCS on pypi. 
@@ -22,7 +23,7 @@ conda install -c conda-forge --yes scs
 #	with the cvxgrp channel (so that it grabs the poorly linked SCS 1.2.6).
 #   Users wont be able to run the cvxpy tests without upgrading SCS, but they
 #   should be able to at least install cvxpy. Alternatively we could just remove
-#	SCS as a build and run requirement from the conda recipe (at least for Windows).
+#	SCS as a build and run requirement from the Windows conda recipe.
 #
 conda install -c anaconda --yes flake8
 python setup.py install
