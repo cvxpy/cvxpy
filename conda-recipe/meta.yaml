@@ -21,7 +21,6 @@ requirements:
     - multiprocess
     - numpy >=1.14
     - scipy >=0.15
-    - libgcc
     - lapack
     - mkl
 
@@ -35,7 +34,6 @@ requirements:
     - six
     - numpy >=1.9
     - scipy >=0.15
-    - libgcc
     - lapack
     - mkl
 
