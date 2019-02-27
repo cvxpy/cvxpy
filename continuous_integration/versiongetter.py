@@ -36,3 +36,10 @@ def conda_version(python_version, operating_system):
     if len(versions) == 0:
         versions = ['0.0.0']
     return versions[-1]
+
+
+def should_update_conda(python_version, operating_system):
+    import cvxpy
+    most_recent_remote = conda_version(python_version, operating_system)
+    local_version = cvxpy.__version__
+    return StrictVersion(local_version) > StrictVersion(most_recent_remote)
