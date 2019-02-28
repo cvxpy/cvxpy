@@ -1,6 +1,0 @@
-dimensions of X: (5, 4)
-dimensions of sum(X): (1, 1)
-dimensions of A*X: (3, 4)
-sum(X) is a scalar: True
-A*X is a vector: False
-Incompatible dimensions (3, 5) (5, 4)

@@ -21,6 +21,7 @@ managing your own environment, you can instead install CVXPY with
 2. Install ``cvxpy`` with ``conda``.
 
    ::
+
       conda config --add channels conda-forge
       conda install -c cvxgrp cvxpy
 
