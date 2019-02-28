@@ -51,7 +51,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
              -O miniconda.sh
         chmod +x miniconda.sh && ./miniconda.sh -b
         export PATH=/Users/travis/miniconda3/bin:$PATH
-        conda --yes update conda
+        conda update --yes conda
         # Configure the conda environment and put it in the path using the
         # provided versions
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
