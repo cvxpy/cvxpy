@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: cvxpy
+Version: 1.0.18
+Summary: A domain-specific language for modeling convex optimization problems in Python.
+Home-page: http://github.com/cvxgrp/cvxpy/
+Author: Steven Diamond, Eric Chu, Stephen Boyd
+Author-email: stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu
+License: Apache License, Version 2.0
+Description: UNKNOWN
+Platform: UNKNOWN

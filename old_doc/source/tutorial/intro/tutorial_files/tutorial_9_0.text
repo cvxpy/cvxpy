@@ -1,0 +1,4 @@
+status: infeasible
+optimal value inf
+status: unbounded
+optimal value -inf
