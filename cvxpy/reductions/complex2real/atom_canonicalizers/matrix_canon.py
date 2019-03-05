@@ -91,6 +91,13 @@ def quad_canon(expr, real_args, imag_args, real2imag):
     return expr.copy([vec, matrix]), None
 
 
+def quad_over_lin_canon(expr, real_args, imag_args, real2imag):
+    """Convert quad_over_lin to real.
+    """
+    matrix = bmat([real_args[0], imag_args[0]])
+    return expr.copy([matrix, real_args[1]]), None
+
+
 def matrix_frac_canon(expr, real_args, imag_args, real2imag):
     """Convert matrix_frac to real.
     """
