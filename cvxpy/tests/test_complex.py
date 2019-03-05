@@ -409,7 +409,6 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 0, places=3)
         self.assertItemsAlmostEqual(X.value, P, places=3)
 
-
     def test_hermitian(self):
         """Test Hermitian variables.
         """
