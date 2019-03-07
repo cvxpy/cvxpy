@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Install &#8212; CVXPY 1.0.18 documentation</title>
+    <title>Install &#8212; CVXPY 1.0.20 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.18',
+        VERSION:     '1.0.20',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,15 +46,44 @@
 <p><em>Note</em>: Version 1.0 of CVXPY is incompatible with previous versions in minor
 ways. See <a class="reference internal" href="../updates/index.html#updates"><span class="std std-ref">What’s New in 1.0</span></a> for how to update legacy code to a form that’s
 compatible with 1.0.</p>
-<div class="section" id="mac-os-x-and-linux">
-<h2>Mac OS X and Linux<a class="headerlink" href="#mac-os-x-and-linux" title="Permalink to this headline">¶</a></h2>
-<p>CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend using
-Anaconda for installation, as we find that most users prefer to let Anaconda
-manage dependencies and environments for them. If you are comfortable with
-managing your own environment, you can instead install CVXPY with
-<a class="reference internal" href="#pip-installation"><span class="std std-ref">pip</span></a>.</p>
+<div class="section" id="mac-os-x-windows-and-linux">
+<h2>Mac OS X, Windows, and Linux<a class="headerlink" href="#mac-os-x-windows-and-linux" title="Permalink to this headline">¶</a></h2>
+<p>CVXPY supports both Python 2 and Python 3 on OS X, Windows, and Linux. We recommend using
+pip for installation. You may want to isolate
+your installation in a <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">virtualenv</a>.
+If you prefer Anaconda to pip, see the
+<a class="reference internal" href="#anaconda-installation"><span class="std std-ref">Anaconda installation guide</span></a>.</p>
+<ol class="arabic simple">
+<li>Install <code class="docutils literal"><span class="pre">cvxpy</span></code>.</li>
+</ol>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li>Test the installation with <code class="docutils literal"><span class="pre">nose</span></code>.</li>
+</ol>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">nose</span>
+<span class="n">nosetests</span> <span class="n">cvxpy</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="other-platforms">
+<h2>Other Platforms<a class="headerlink" href="#other-platforms" title="Permalink to this headline">¶</a></h2>
+<p>The CVXPY installation process on other platforms is less automated and less well tested. Check <a class="reference external" href="https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms">this page</a> for instructions for your platform.</p>
+</div>
+<div class="section" id="anaconda">
+<span id="anaconda-installation"></span><h2>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h2>
+<p>CVXPY can be installed on all platforms with <a class="reference external" href="https://pip.pypa.io/">pip</a>. We recommend isolating
+your installation in a <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">virtualenv</a>.
+After activating the environment, simply execute:</p>
 <ol class="arabic">
 <li><p class="first">Install <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
+</li>
+<li><p class="first">(Windows only) Download the <a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Visual Studio C++ compiler for Python</a>.</p>
 </li>
 <li><p class="first">Install <code class="docutils literal"><span class="pre">cvxpy</span></code> with <code class="docutils literal"><span class="pre">conda</span></code>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
@@ -68,43 +97,6 @@ managing your own environment, you can instead install CVXPY with
 <blockquote>
 <div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">nose</span>
 <span class="n">nosetests</span> <span class="n">cvxpy</span>
-</pre></div>
-</div>
-</div></blockquote>
-</div>
-<div class="section" id="windows">
-<h2>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h2>
-<p>CVXPY supports Python 2 (with Anaconda and pip) and Python 3 (with pip) on Windows.
-We recommend using
-Anaconda for installation, as we find that most users prefer to let Anaconda
-manage dependencies and environments for them. If you are comfortable with
-managing your own environment or need Python 3, you can instead install CVXPY with
-<a class="reference internal" href="#pip-installation"><span class="std std-ref">pip</span></a>.</p>
-<ol class="arabic simple">
-<li>Download and install the <a class="reference external" href="https://www.continuum.io/downloads">latest version of Anaconda</a>.</li>
-<li>Download the <a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Visual Studio C++ compiler for Python</a>.</li>
-<li>Install CVXPY from the Anaconda prompt by running the following command:</li>
-</ol>
-<blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">cvxgrp</span> <span class="n">cvxpy</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p>4. From the console, run <code class="docutils literal"><span class="pre">nosetests</span> <span class="pre">cvxpy</span></code>.
-If all the tests pass, your installation was successful.</p>
-</div>
-<div class="section" id="other-platforms">
-<h2>Other Platforms<a class="headerlink" href="#other-platforms" title="Permalink to this headline">¶</a></h2>
-<p>The CVXPY installation process on other platforms is less automated and less well tested. Check <a class="reference external" href="https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms">this page</a> for instructions for your platform.</p>
-</div>
-<div class="section" id="pip">
-<span id="pip-installation"></span><h2>Pip<a class="headerlink" href="#pip" title="Permalink to this headline">¶</a></h2>
-<p>CVXPY can be installed on all platforms with <a class="reference external" href="https://pip.pypa.io/">pip</a>. We recommend isolating
-your installation in a <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">virtualenv</a>.
-After activating the environment, simply execute:</p>
-<blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -227,10 +219,9 @@ See the <a class="reference external" href="https://www.ibm.com/support/knowledg
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Install</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#mac-os-x-and-linux">Mac OS X and Linux</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#windows">Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mac-os-x-windows-and-linux">Mac OS X, Windows, and Linux</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#other-platforms">Other Platforms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pip">Pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#anaconda">Anaconda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-from-source">Install from source</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cvxopt-support">Install with CVXOPT support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-elemental-support">Install with Elemental support</a></li>
