@@ -47,10 +47,8 @@ Anaconda
 
    ::
 
-      conda config --add channels conda-forge
       conda config --add channels oxfordcontrol
-      conda config --add channels cvxgrp
-      conda install cvxpy
+      conda install -c cvxgrp cvxpy
 
 4. Test the installation with ``nose``.
 
