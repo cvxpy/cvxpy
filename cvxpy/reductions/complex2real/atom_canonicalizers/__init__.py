@@ -19,7 +19,7 @@ from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
                          upper_tri, conj, imag, real,
                          norm1, norm_inf, Pnorm,
                          sigma_max, lambda_max, lambda_sum_largest,
-                         log_det, QuadForm, MatrixFrac)
+                         log_det, QuadForm, MatrixFrac, quad_over_lin)
 from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
@@ -44,7 +44,8 @@ from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (separab
                                                                          binary_canon)
 from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
-    hermitian_canon, quad_canon, lambda_sum_largest_canon, norm_nuc_canon, matrix_frac_canon)
+    hermitian_canon, quad_canon, lambda_sum_largest_canon, norm_nuc_canon, matrix_frac_canon,
+    quad_over_lin_canon)
 from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import variable_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import constant_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import param_canon
@@ -93,6 +94,7 @@ CANON_METHODS = {
     normNuc: norm_nuc_canon,
     sigma_max: hermitian_canon,
     QuadForm: quad_canon,
+    quad_over_lin: quad_over_lin_canon,
     MatrixFrac: matrix_frac_canon,
     lambda_sum_largest: lambda_sum_largest_canon,
 }

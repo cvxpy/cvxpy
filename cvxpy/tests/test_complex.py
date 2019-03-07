@@ -389,6 +389,26 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cvx.SCS, eps=1e-5, max_iters=7500)
         self.assertAlmostEqual(result, value, places=3)
 
+    def test_quad_over_lin(self):
+        """Test quad_over_lin atom.
+        """
+        P = np.array([[10, 1j], [-1j, 10]])
+        X = Variable((2, 2), complex=True)
+        b = 1
+        y = Variable(complex=False)
+
+        value = cvx.quad_over_lin(P, b).value
+        expr = cvx.quad_over_lin(X, y)
+        prob = Problem(cvx.Minimize(expr), [X == P, y == b])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6, max_iters=7500, verbose=True)
+        self.assertAlmostEqual(result, value, places=3)
+
+        expr = cvx.quad_over_lin(X - P, y)
+        prob = Problem(cvx.Minimize(expr), [y == b])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6, max_iters=7500, verbose=True)
+        self.assertAlmostEqual(result, 0, places=3)
+        self.assertItemsAlmostEqual(X.value, P, places=3)
+
     def test_hermitian(self):
         """Test Hermitian variables.
         """
@@ -473,7 +493,7 @@ class TestComplex(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cvx.quad_over_lin(x, x)
-        self.assertEqual(str(cm.exception), "Arguments to quad_over_lin cannot be complex.")
+        self.assertEqual(str(cm.exception), "The second argument to quad_over_lin cannot be complex.")
 
         with self.assertRaises(Exception) as cm:
             cvx.sum_largest(x, 2)
