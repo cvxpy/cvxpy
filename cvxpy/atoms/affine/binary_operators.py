@@ -299,10 +299,10 @@ class DivExpression(multiply):
     def numeric(self, values):
         """Divides numerator by denominator.
         """
-        if sp.issparse(values[1]):
-            return np.divide(values[0], values[1].todense().A)
-        else:
-            return np.divide(values[0], values[1])
+        for i in range(2):
+            if sp.issparse(values[i]):
+                values[i] = values[i].todense().A
+        return np.divide(values[0], values[1])
 
     def is_quadratic(self):
         return self.args[0].is_quadratic() and self.args[1].is_constant()
