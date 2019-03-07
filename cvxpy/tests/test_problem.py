@@ -1783,3 +1783,16 @@ class TestProblem(BaseTest):
     #     prob = cvx.Problem(obj, [x == 2])
     #     result = prob.solve()
     #     self.assertAlmostEqual(result, 2)
+
+    def test_pos(self):
+        """Test the pos and neg attributes.
+        """
+        x = cvx.Variable(pos=True)
+        prob = cvx.Problem(cvx.Minimize(x))
+        result = prob.solve()
+        self.assertAlmostEqual(x.value, 0)
+
+        x = cvx.Variable(neg=True)
+        prob = cvx.Problem(cvx.Maximize(x))
+        result = prob.solve()
+        self.assertAlmostEqual(x.value, 0)
