@@ -62,16 +62,15 @@ Install from source
 
 CVXPY has the following dependencies:
 
-* Python 2.7 or Python 3.4
-* `setuptools`_ >= 1.4
+* Python 2.7, 3.4, 3.5, 3.6, or 3.7.
 * `six <https://pythonhosted.org/six/>`_
 * `fastcache <https://github.com/pbrady/fastcache>`_
 * `multiprocess`_
 * `OSQP`_
 * `ECOS`_ >= 2
 * `SCS`_ >= 1.1.3
-* `NumPy`_ >= 1.8
-* `SciPy`_ >= 0.15
+* `NumPy`_ >= 1.15
+* `SciPy`_ >= 1.1.0
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
