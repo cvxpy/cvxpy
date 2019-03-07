@@ -55,6 +55,8 @@ class CVXOPT(Solver):
         """Imports the solver.
         """
         import cvxopt
+        import cvxopt.solvers
+        import cvxopt.matrix
         cvxopt  # For flake8
 
     def matrix_intf(self):
