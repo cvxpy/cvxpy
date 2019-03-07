@@ -13,7 +13,7 @@ Mac OS X, Windows, and Linux
 CVXPY supports both Python 2 and Python 3 on OS X, Windows, and Linux. We recommend using
 pip for installation. You may want to isolate
 your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
-If you prefer Anaconda to pip, see the 
+If you prefer `Anaconda`_ to `pip`_, see the 
 :ref:`Anaconda installation guide <anaconda-installation>`.
 
 1. Install ``cvxpy``.
@@ -37,9 +37,7 @@ The CVXPY installation process on other platforms is less automated and less wel
 Anaconda
 ----------------
 
-CVXPY can be installed on all platforms with `pip`_. We recommend isolating
-your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
-After activating the environment, simply execute:
+`Anaconda`_ is an alternative to `pip`_ that combines package and environment management.
 
 1. Install `Anaconda`_.
 
