@@ -59,6 +59,7 @@ class TestProblem(unittest.TestCase):
     def test_large_sum(self):
         """Test large number of variables summed.
         """
+        self.skipTest("Too slow.")
         for n in [10, 20, 30, 40, 50]:
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))
@@ -84,6 +85,7 @@ class TestProblem(unittest.TestCase):
     def test_sdp(self):
         """Test a problem with semidefinite cones.
         """
+        self.skipTest("Too slow.")
         a = sp.rand(100, 100, .1, random_state=1)
         a = a.todense()
         X = Variable((100, 100))
@@ -94,6 +96,7 @@ class TestProblem(unittest.TestCase):
     def test_large_sdp(self):
         """Test for bug where large PSD caused integer overflow in cvxcore.
         """
+        self.skipTest("Too slow.")
         SHAPE = (256, 256)
         rows = SHAPE[0]
         cols = SHAPE[1]
