@@ -7,75 +7,57 @@ Install
 ways. See :ref:`updates` for how to update legacy code to a form that's
 compatible with 1.0.
 
-Mac OS X and Linux
-------------------
+Mac OS X, Windows, and Linux
+----------------------------
 
-CVXPY supports both Python 2 and Python 3 on OS X and Linux. We recommend using
-Anaconda for installation, as we find that most users prefer to let Anaconda
-manage dependencies and environments for them. If you are comfortable with
-managing your own environment, you can instead install CVXPY with
-:ref:`pip <pip-installation>`.
+CVXPY supports both Python 2 and Python 3 on OS X, Windows, and Linux. We recommend using
+pip for installation. You may want to isolate
+your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
+If you prefer Anaconda to pip, see the 
+:ref:`Anaconda installation guide <anaconda-installation>`.
 
-1. Install `Anaconda`_.
-
-2. Install ``cvxpy`` with ``conda``.
-
-   ::
-
-      conda config --add channels conda-forge
-      conda install -c cvxgrp cvxpy
-
-3. Test the installation with ``nose``.
-
+1. Install ``cvxpy``.
   ::
 
-       conda install nose
-       nosetests cvxpy
+      pip install cvxpy
 
-
-Windows
--------
-
-CVXPY supports Python 2 (with Anaconda and pip) and Python 3 (with pip) on Windows.
-We recommend using
-Anaconda for installation, as we find that most users prefer to let Anaconda
-manage dependencies and environments for them. If you are comfortable with
-managing your own environment or need Python 3, you can instead install CVXPY with
-:ref:`pip <pip-installation>`.
-
-1. Download and install the `latest version of Anaconda <https://www.continuum.io/downloads>`_.
-
-2. Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
-
-3. Install CVXPY from the Anaconda prompt by running the following command:
-
+2. Test the installation with ``nose``.
   ::
 
-      conda config --add channels conda-forge
-      conda install -c cvxgrp cvxpy
-
-4. From the console, run ``nosetests cvxpy``.
-If all the tests pass, your installation was successful.
-
+      pip install nose
+      nosetests cvxpy
 
 Other Platforms
 ---------------
 
 The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
 
-.. _pip-installation:
+.. _anaconda-installation:
 
-Pip
+Anaconda
 ----------------
 
 CVXPY can be installed on all platforms with `pip`_. We recommend isolating
 your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
 After activating the environment, simply execute:
 
+1. Install `Anaconda`_.
+
+2. (Windows only) Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
+
+3. Install ``cvxpy`` with ``conda``.
+
+   ::
+
+      conda config --add channels conda-forge
+      conda install -c cvxgrp cvxpy
+
+4. Test the installation with ``nose``.
+
   ::
 
-      pip install cvxpy
-
+       conda install nose
+       nosetests cvxpy
 
 Install from source
 -------------------
