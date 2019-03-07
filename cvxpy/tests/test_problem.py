@@ -1275,6 +1275,36 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
+        c = cvx.Constant([[1, -1], [2, -2]])
+        expr = self.A/(1/c)
+        obj = cvx.Minimize(cvx.norm_inf(expr))
+        p = Problem(obj, [self.A == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
+
+        # Test with a sparse matrix.
+        import scipy.sparse as sp
+        interface = intf.get_matrix_interface(sp.csc_matrix)
+        c = interface.const_to_matrix([1, 2])
+        c = cvx.Constant(c)
+        expr = self.x[:, None]/(1/c)
+        obj = cvx.Minimize(cvx.norm_inf(expr))
+        p = Problem(obj, [self.x == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, 10])
+
+        # Test promotion.
+        c = [[1, -1], [2, -2]]
+        c = cvx.Constant(c)
+        expr = self.a/(1/c)
+        obj = cvx.Minimize(cvx.norm_inf(expr))
+        p = Problem(obj, [self.a == 5])
+        result = p.solve()
+        self.assertAlmostEqual(result, 10)
+        self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
+
     def test_multiply(self):
         """Tests problems with multiply.
         """
