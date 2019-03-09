@@ -253,8 +253,8 @@ class Expression(u.Canonical):
     def is_quadratic(self):
         """Is the expression quadratic?
         """
-        # Defaults to false
-        return False
+        # Defaults to is constant.
+        return self.is_constant()
 
     def is_symmetric(self):
         """Is the expression symmetric?
@@ -265,8 +265,8 @@ class Expression(u.Canonical):
     def is_pwl(self):
         """Is the expression piecewise linear?
         """
-        # Defaults to false
-        return False
+        # Defaults to constant.
+        return self.is_constant()
 
     def is_qpwa(self):
         """Is the expression quadratic of piecewise affine?

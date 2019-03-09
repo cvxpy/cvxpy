@@ -1,4 +1,5 @@
 """
+
 Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -474,3 +475,14 @@ class TestQp(BaseTest):
             for i in range(len(b_vec)):
                 self.assertItemsAlmostEqual(x_full[i], x_param[i], places=3)
                 self.assertAlmostEqual(obj_full[i], obj_param[i])
+
+    def test_square_param(self):
+        """Test issue arising with square plus parameter.
+        """
+        a = Parameter(value=1)
+        b = Variable()
+
+        obj = Minimize(b ** 2 + abs(a))
+        prob = Problem(obj)
+        prob.solve()
+        self.assertAlmostEqual(obj.value, 1.0)

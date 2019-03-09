@@ -73,6 +73,7 @@ class TestProblem(unittest.TestCase):
     def test_large_square(self):
         """Test large number of variables squared.
         """
+        self.skipTest("Too slow.")
         for n in [10, 20, 30, 40, 50]:
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))

@@ -12,7 +12,7 @@ class TestDgp2Dcp(BaseTest):
     def test_unconstrained_monomial(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
-        prod = x * y 
+        prod = x * y
         dgp = cvxpy.Problem(cvxpy.Minimize(prod), [])
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
 
@@ -23,7 +23,7 @@ class TestDgp2Dcp(BaseTest):
         self.assertIsInstance(dcp.objective.expr.args[1], cvxpy.Variable)
         opt = dcp.solve()
         # dcp is solved in log-space, so it is unbounded below
-        # (since the OPT for dgp is 0 + epsilon). 
+        # (since the OPT for dgp is 0 + epsilon).
         self.assertEqual(opt, -float("inf"))
         self.assertEqual(dcp.status, "unbounded")
 
@@ -441,7 +441,7 @@ class TestDgp2Dcp(BaseTest):
         X = cvxpy.Variable((3, 3), pos=True)
         obj = cvxpy.Minimize(cvxpy.pf_eigenvalue(X))
         known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1], [2, 0], [2, 1]]))
-        constr = [ 
+        constr = [
           X[known_indices] == [1.0, 1.9, 0.8, 3.2, 5.9],
           X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
         ]
