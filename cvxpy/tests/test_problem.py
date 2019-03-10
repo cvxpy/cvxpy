@@ -30,6 +30,7 @@ from cvxpy.tests.base_test import BaseTest
 from numpy import linalg as LA
 import numpy
 import sys
+import pickle
 # Solvers.
 import scs
 import ecos
@@ -1796,3 +1797,14 @@ class TestProblem(BaseTest):
         prob = cvx.Problem(cvx.Maximize(x))
         result = prob.solve()
         self.assertAlmostEqual(x.value, 0)
+
+    def test_pickle(self):
+        """Test pickling and unpickling problems.
+        """
+        prob = cvx.Problem(cvx.Minimize(2*self.a + 3),
+                           [self.a >= 1])
+        prob_str = pickle.dumps(prob)
+        new_prob = pickle.loads(prob_str)
+        result = new_prob.solve()
+        self.assertAlmostEqual(result, 5.0)
+        self.assertAlmostEqual(new_prob.variables()[0].value, 1.0)
