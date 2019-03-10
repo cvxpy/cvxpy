@@ -16,12 +16,14 @@ your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
 If you prefer `Anaconda`_ to `pip`_, see the 
 :ref:`Anaconda installation guide <anaconda-installation>`.
 
-1. Install ``cvxpy``.
+1. (Windows only) Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
+
+2. Install ``cvxpy``.
   ::
 
       pip install cvxpy
 
-2. Test the installation with ``nose``.
+3. Test the installation with ``nose``.
   ::
 
       pip install nose
