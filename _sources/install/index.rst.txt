@@ -148,11 +148,16 @@ Simply install cylp (you will need the Cbc sources which includes `Cgl <https://
 See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
 
 Install with CPLEX support
----------------------------
+--------------------------
 
 CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can ``import cplex`` in Python.
 See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
+
+Install with SDPT3 support
+--------------------------
+
+The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows you to model problems with CVXPY and solve them with SDPT3.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
