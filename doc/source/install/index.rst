@@ -87,12 +87,34 @@ as will `Swig`_ . Once you’ve installed these dependencies:
 
        python setup.py install
 
-Install with CVXOPT support
----------------------------
+Install with CVXOPT and GLPK support
+------------------------------------
 
 CVXPY supports the `CVXOPT`_ solver.
-Simply install CVXOPT such that you can ``import cvxopt`` in Python.
-See the `CVXOPT`_ website for installation instructions.
+Additionally, through CVXOPT, CVXPY supports the `GLPK`_ solver. On `most
+platforms <http://cvxopt.org/install/index.html#installing-a-pre-built-package>`_,
+`CVXOPT`_ comes with GLPK bundled. On such platforms, installing CVXPY with
+
+  ::
+
+      pip install cvxpy[glpk]
+
+should suffice to get support for both CVXOPT and GLPK.
+
+On other platforms, to install CVXPY and its dependencies with GLPK support, follow these instructions:
+
+1. Install `GLPK <https://www.gnu.org/software/glpk/>`_. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.
+
+2. Install `CVXOPT`_ with GLPK bindings.
+
+    ::
+
+      CVXOPT_BUILD_GLPK=1
+      CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
+      CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
+      pip install cvxopt
+
+3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
 Install with Elemental support
 ------------------------------
@@ -121,25 +143,6 @@ Install with XPRESS support
 CVXPY supports the XPRESS solver.
 Simply install XPRESS such that you can ``import xpress`` in Python.
 See the `XPRESS <http://www.fico.com/en/products/fico-xpress-optimization-suite>`_ website for installation instructions.
-
-Install with GLPK support
--------------------------
-
-CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindings. To install CVXPY and its dependencies with GLPK support, follow these instructions:
-
-1. Install `GLPK <https://www.gnu.org/software/glpk/>`_. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.
-
-2. Install `CVXOPT`_ with GLPK bindings.
-
-    ::
-
-      CVXOPT_BUILD_GLPK=1
-      CVXOPT_GLPK_LIB_DIR=/path/to/glpk-X.X/lib
-      CVXOPT_GLPK_INC_DIR=/path/to/glpk-X.X/include
-      pip install cvxopt
-
-3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
-
 
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
@@ -174,3 +177,4 @@ The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows yo
 .. _cvxcore: https://github.com/jacklzhu/cvxcore
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/
+.. _GLPK: https://www.gnu.org/software/glpk/
