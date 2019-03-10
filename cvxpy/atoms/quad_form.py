@@ -57,7 +57,8 @@ class QuadForm(Atom):
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return self.args[1].is_psd()
+        return self.args[1].is_psd() or \
+            self.args[1].is_hermitian()
 
     def is_atom_concave(self):
         """Is the atom concave?
