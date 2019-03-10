@@ -128,11 +128,35 @@ as will <a class="reference external" href="http://www.swig.org/">Swig</a> . Onc
 </li>
 </ol>
 </div>
-<div class="section" id="install-with-cvxopt-support">
-<h2>Install with CVXOPT support<a class="headerlink" href="#install-with-cvxopt-support" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-with-cvxopt-and-glpk-support">
+<h2>Install with CVXOPT and GLPK support<a class="headerlink" href="#install-with-cvxopt-and-glpk-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> solver.
-Simply install CVXOPT such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">cvxopt</span></code> in Python.
-See the <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> website for installation instructions.</p>
+Additionally, through CVXOPT, CVXPY supports the <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a> solver. On <a class="reference external" href="http://cvxopt.org/install/index.html#installing-a-pre-built-package">most
+platforms</a>,
+<a class="reference external" href="http://cvxopt.org/">CVXOPT</a> comes with GLPK bundled. On such platforms, installing CVXPY with</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="p">[</span><span class="n">glpk</span><span class="p">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>should suffice to get support for both CVXOPT and GLPK.</p>
+<p>On other platforms, to install CVXPY and its dependencies with GLPK support, follow these instructions:</p>
+<ol class="arabic">
+<li><p class="first">Install <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a>. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.</p>
+</li>
+<li><p class="first">Install <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">CVXOPT_GLPK_LIB_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">lib</span>
+<span class="n">CVXOPT_GLPK_INC_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">include</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Follow the standard installation procedure to install CVXPY and its remaining dependencies.</p>
+</li>
+</ol>
 </div>
 <div class="section" id="install-with-elemental-support">
 <h2>Install with Elemental support<a class="headerlink" href="#install-with-elemental-support" title="Permalink to this headline">¶</a></h2>
@@ -157,26 +181,6 @@ See the <a class="reference external" href="https://www.mosek.com/">MOSEK</a> we
 <p>CVXPY supports the XPRESS solver.
 Simply install XPRESS such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
 See the <a class="reference external" href="http://www.fico.com/en/products/fico-xpress-optimization-suite">XPRESS</a> website for installation instructions.</p>
-</div>
-<div class="section" id="install-with-glpk-support">
-<h2>Install with GLPK support<a class="headerlink" href="#install-with-glpk-support" title="Permalink to this headline">¶</a></h2>
-<p>CVXPY supports the GLPK solver, but only if CVXOPT is installed with GLPK bindings. To install CVXPY and its dependencies with GLPK support, follow these instructions:</p>
-<ol class="arabic">
-<li><p class="first">Install <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a>. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.</p>
-</li>
-<li><p class="first">Install <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
-<blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
-<span class="n">CVXOPT_GLPK_LIB_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">lib</span>
-<span class="n">CVXOPT_GLPK_INC_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">include</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
-</pre></div>
-</div>
-</div></blockquote>
-</li>
-<li><p class="first">Follow the standard installation procedure to install CVXPY and its remaining dependencies.</p>
-</li>
-</ol>
 </div>
 <div class="section" id="install-with-cbc-clp-cgl-support">
 <h2>Install with Cbc (Clp, Cgl) support<a class="headerlink" href="#install-with-cbc-clp-cgl-support" title="Permalink to this headline">¶</a></h2>
@@ -225,12 +229,11 @@ See the <a class="reference external" href="https://www.ibm.com/support/knowledg
 <li class="toctree-l2"><a class="reference internal" href="#other-platforms">Other Platforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#anaconda">Anaconda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-from-source">Install from source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#install-with-cvxopt-support">Install with CVXOPT support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-cvxopt-and-glpk-support">Install with CVXOPT and GLPK support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-elemental-support">Install with Elemental support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-gurobi-support">Install with GUROBI support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-mosek-support">Install with MOSEK support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-xpress-support">Install with XPRESS support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#install-with-glpk-support">Install with GLPK support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cbc-clp-cgl-support">Install with Cbc (Clp, Cgl) support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cplex-support">Install with CPLEX support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-sdpt3-support">Install with SDPT3 support</a></li>
