@@ -350,16 +350,6 @@ class TestComplex(BaseTest):
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
-        # Solve a problem with complex variable
-        b = np.arange(3) + 3j*(np.arange(3) + 10)
-        x = Variable(3, complex=True)
-        value = cvx.quad_form(b, P).value
-        q_param = Parameter(shape=P.shape, value=P, hermitian=True)
-        prob = Problem(cvx.Minimize(cvx.quad_form(x, q_param)), [x == b])
-        result = prob.solve()
-        normalization = max(abs(result), abs(value))
-        self.assertAlmostEqual(result / normalization, value / normalization, places=5)
-
         # Solve a problem with an imaginary variable
         b = 3j*(np.arange(3) + 10)
         x = Variable(3, imag=True)
