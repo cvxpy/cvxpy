@@ -17,6 +17,7 @@ limitations under the License.
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
                                                               dims_to_solver_dict)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution
 import numpy as np
 
@@ -27,6 +28,7 @@ class CBC(SCS):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # Map of GLPK MIP status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,
