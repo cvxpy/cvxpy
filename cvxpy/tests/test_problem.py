@@ -1276,8 +1276,8 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
-        c = cvx.Constant([[1, -1], [2, -2]])
-        expr = self.A/(1/c)
+        c = cvx.Constant([[1., -1], [2, -2]])
+        expr = self.A/(1./c)
         obj = cvx.Minimize(cvx.norm_inf(expr))
         p = Problem(obj, [self.A == 5])
         result = p.solve()

@@ -153,12 +153,13 @@ class TestSolvers(BaseTest):
             prob = Problem(Minimize(norm(self.x, 1)), [self.x == Variable(2, boolean=True)])
             for i in range(2):
                 # Some cut-generators seem to be buggy for now -> set to false
-                prob.solve(solver=CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
-                           MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
-                           KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True,
-                           LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
-                           RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False,
-                           ProbingCuts=True, SimpleRoundingCuts=True)
+                # prob.solve(solver=CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
+                #            MIRCuts2=True, TwoMIRCuts=True, ResidualCapacityCuts=True,
+                #            KnapsackCuts=True, FlowCoverCuts=True, CliqueCuts=True,
+                #            LiftProjectCuts=True, AllDifferentCuts=False, OddHoleCuts=True,
+                #            RedSplitCuts=False, LandPCuts=False, PreProcessCuts=False,
+                #            ProbingCuts=True, SimpleRoundingCuts=True)
+                prob.solve(solver=CBC, verbose=True, maximumSeconds=100)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
         else:
             with self.assertRaises(Exception) as cm:
