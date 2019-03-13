@@ -25,7 +25,7 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 import cvxpy.settings as s
 
@@ -179,7 +179,7 @@ class ConicSolver(Solver):
             Linear inequalities: (A, b) such that A * x <= b,
             Second order cone: (A, b) such that A * x <=_{SOC} b,
             Exponential cone: (A, b) such that A * x <=_{EXP} b,
-            Semidefinite cone: NOT IMPLEMENTED.
+            Semidefinite cone: (A, b) such that A * x <=_{SDP} b,
 
         The CVXPY standard for the exponential cone is:
             K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
@@ -243,6 +243,9 @@ class ConicSolver(Solver):
                 offsets[i] = mat*offsets[i]
                 coeffs[i] = -mat*coeffs[i]
             return sum(coeffs).tocsc(), sum(offsets)
+        elif type(constr) == PSD:
+            # Sign flipped relative to NonPos, Zero.
+            return -coeffs[0].tocsc(), offsets[0]
         else:
             # subclasses must handle PSD constraints.
             raise ValueError("Unsupported constraint type.")
@@ -289,14 +292,6 @@ class ConicSolver(Solver):
                 inverse_data[Solver.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return failure_solution(status)

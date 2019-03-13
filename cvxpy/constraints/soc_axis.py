@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
-import cvxpy.utilities.performance_utils as pu
 from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.utilities import format_axis
 
 
 class SOC_Axis(SOC):

@@ -16,12 +16,13 @@ limitations under the License.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, PSD
+from cvxpy.constraints import Zero, NonPos, SOC, PSD
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConicSolver,
+                                                                 ConeDims)
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import get_kktsolver
 import scipy.sparse as sp
@@ -83,6 +84,36 @@ class CVXOPT(ECOS):
                     return False
         return True
 
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+        data = {}
+        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
+            problem.objective.args[0])
+        data[s.C] = data[s.C].ravel()
+        inv_data[s.OFFSET] = data[s.OFFSET][0]
+
+        constr_map = group_constraints(problem.constraints)
+        data[ConicSolver.DIMS] = ConeDims(constr_map)
+
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        data[s.A], data[s.B] = self.group_coeff_offset(
+            problem, constr_map[Zero], ECOS.EXP_CONE_ORDER)
+
+        # Order and group nonlinear constraints.
+        neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[PSD]
+        inv_data[self.NEQ_CONSTR] = neq_constr
+        data[s.G], data[s.H] = self.group_coeff_offset(
+            problem, neq_constr, ECOS.EXP_CONE_ORDER)
+
+        return data, inv_data
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -136,6 +167,8 @@ class CVXOPT(ECOS):
         data[s.H] = intf.dense2cvxopt(data[s.H])
 
         # Apply any user-specific options.
+        # Silence solver.
+        solver_opts["show_progress"] = verbose
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
             solver_opts["maxiters"] = solver_opts["max_iters"]

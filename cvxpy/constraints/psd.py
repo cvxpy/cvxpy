@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
-import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.utilities.performance_utils as pu
 from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.constraint import Constraint
 
