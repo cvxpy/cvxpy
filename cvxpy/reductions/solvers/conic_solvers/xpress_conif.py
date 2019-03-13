@@ -29,8 +29,8 @@ def makeMstart(A, n, ifCol):
     # Construct mstart using nonzero column indices in A
     mstart = np.bincount(A.nonzero()[ifCol])
     mstart = np.concatenate((np.array([0], dtype=np.int64),
-                                mstart,
-                                np.array([0] * (n - len(mstart)), dtype=np.int64)))
+                             mstart,
+                             np.array([0] * (n - len(mstart)), dtype=np.int64)))
     mstart = np.cumsum(mstart)
 
     return mstart
@@ -146,7 +146,7 @@ class XPRESS(SCS):
 
         c = data[s.C]  # objective coefficients
 
-        dims = data[s.DIMS]  # contains number of columns, rows, etc.
+        dims = dims_to_solver_dict(data[s.DIMS])  # contains number of columns, rows, etc.
 
         nrowsEQ = dims[s.EQ_DIM]
         nrowsLEQ = dims[s.LEQ_DIM]
