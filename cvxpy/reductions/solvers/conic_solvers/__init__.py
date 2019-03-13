@@ -21,4 +21,3 @@ from .scs_conif import SCS
 from .cvxopt_conif import CVXOPT
 from .glpk_conif import GLPK
 from .cbc_conif import CBC
-from .elemental_conif import Elemental
