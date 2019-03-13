@@ -35,6 +35,7 @@ class CPLEX(QpSolver):
                   4: s.INFEASIBLE,
                   10: s.USER_LIMIT,
                   101: s.OPTIMAL,
+                  102: s.OPTIMAL,
                   103: s.INFEASIBLE,
                   107: s.USER_LIMIT,
                   118: s.UNBOUNDED}
