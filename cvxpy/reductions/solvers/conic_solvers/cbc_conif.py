@@ -18,7 +18,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
                                                               dims_to_solver_dict)
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 import numpy as np
 
 
@@ -87,19 +87,11 @@ class CBC(SCS):
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            return Solution(status, opt_val, primal_vars, None, {})
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-        dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         # Import basic modelling tools of cylp

@@ -43,11 +43,12 @@ class TestSolvers(BaseTest):
         # feastol, abstol, reltol, feastol_inacc, abstol_inacc, and reltol_inacc for tolerance values
         # max_iters for the maximum number of iterations,
         EPS = 1e-4
-        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
         for i in range(2):
             prob.solve(solver=cvx.ECOS, feastol=EPS, abstol=EPS, reltol=EPS,
                        feastol_inacc=EPS, abstol_inacc=EPS, reltol_inacc=EPS,
                        max_iters=20, verbose=True, warm_start=True)
+        self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_ecos_bb_options(self):
@@ -59,11 +60,12 @@ class TestSolvers(BaseTest):
         # absolute tolerance between upper and lower bounds (default: 1e-6)
         # 'mi_rel_eps'
         EPS = 1e-4
-        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)),
+        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0),
                        [self.x == cvx.Variable(2, boolean=True)])
         for i in range(2):
             prob.solve(solver=cvx.ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
                        mi_rel_eps=1e-5, verbose=True, warm_start=True)
+        self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_scs_options(self):
@@ -74,10 +76,11 @@ class TestSolvers(BaseTest):
         # If opts is missing, then the algorithm uses default settings.
         # USE_INDIRECT = True
         EPS = 1e-4
-        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
         for i in range(2):
             prob.solve(solver=cvx.SCS, max_iters=50, eps=EPS, alpha=EPS,
                        verbose=True, normalize=True, use_indirect=False)
+        self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_cvxopt_options(self):
@@ -96,11 +99,12 @@ class TestSolvers(BaseTest):
         # number of iterative refinement steps when solving KKT equations (default: 0 if the problem has no second-order cone or matrix inequality constraints; 1 otherwise).
         if cvx.CVXOPT in cvx.installed_solvers():
             EPS = 1e-7
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             for i in range(2):
                 prob.solve(solver=cvx.CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
                             max_iters=20, verbose=True, kktsolver="chol",
                             refinement=2, warm_start=True)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
     def test_cvxopt_glpk(self):
@@ -108,9 +112,9 @@ class TestSolvers(BaseTest):
         """
         # Either the problem is solved or GLPK is not installed.
         if cvx.GLPK in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.GLPK)
-            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -136,10 +140,10 @@ class TestSolvers(BaseTest):
         if cvx.GLPK_MI in cvx.installed_solvers():
             bool_var = cvx.Variable(boolean=True)
             int_var = cvx.Variable(integer=True)
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)),
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0),
                            [self.x == bool_var, bool_var == 0])
             prob.solve(solver=cvx.GLPK_MI, verbose=True)
-            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertAlmostEqual(bool_var.value, 0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
@@ -167,8 +171,9 @@ class TestSolvers(BaseTest):
         """Test a basic LP with CPLEX.
         """
         if cvx.CPLEX in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1), [self.x == 0])
             prob.solve(solver=cvx.CPLEX)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -224,9 +229,9 @@ class TestSolvers(BaseTest):
         """Test a basic SOCP with CPLEX.
         """
         if cvx.CPLEX in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.CPLEX)
-            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -444,8 +449,9 @@ class TestSolvers(BaseTest):
         """Test a basic LP with Gurobi.
         """
         if cvx.GUROBI in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.GUROBI)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -501,9 +507,9 @@ class TestSolvers(BaseTest):
         """Test a basic SOCP with Gurobi.
         """
         if cvx.GUROBI in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.GUROBI)
-            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -591,8 +597,9 @@ class TestSolvers(BaseTest):
         """Test a basic LP with Mosek.
         """
         if cvx.MOSEK in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.MOSEK)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -622,9 +629,9 @@ class TestSolvers(BaseTest):
         """Test a basic SOCP with Mosek.
         """
         if cvx.MOSEK in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.MOSEK)
-            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -809,8 +816,9 @@ class TestSolvers(BaseTest):
         """Test a basic LP with Xpress.
         """
         if cvx.XPRESS in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.XPRESS)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -840,9 +848,9 @@ class TestSolvers(BaseTest):
         """Test a basic SOCP with Xpress.
         """
         if cvx.XPRESS in cvx.installed_solvers():
-            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2)), [self.x == 0])
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.XPRESS)
-            self.assertAlmostEqual(prob.value, 0)
+            self.assertAlmostEqual(prob.value, 1.0)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
             # Example from http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
@@ -904,10 +912,11 @@ class TestSolvers(BaseTest):
         """
         from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
                                                       INSTALLED_SOLVERS)
-        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+        prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
                 prob.solve(solver=solver)
+                self.assertAlmostEqual(prob.value, 1.0)
                 self.assertItemsAlmostEqual(self.x.value, [0, 0])
             else:
                 with self.assertRaises(Exception) as cm:

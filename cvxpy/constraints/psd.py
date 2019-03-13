@@ -92,36 +92,3 @@ class PSD(Constraint):
         obj, constraints = self.args[0].canonical_form
         dual_holder = PSD(obj, constr_id=self.id)
         return (None, constraints + [dual_holder])
-
-    def format(self, eq_constr, leq_constr, dims, solver):
-        """Formats PSD constraints as inequalities for the solver.
-
-        Parameters
-        ----------
-        eq_constr : list
-            A list of the equality constraints in the canonical problem.
-        leq_constr : list
-            A list of the inequality constraints in the canonical problem.
-        dims : dict
-            A dict with the dimensions of the conic constraints.
-        solver : str
-            The solver being called.
-        """
-        new_leq_constr = self.__format
-
-        # 0 <= A
-        leq_constr += new_leq_constr
-        # Update dims.
-        dims[s.PSD_DIM].append(self.shape[0])
-
-    @pu.lazyprop
-    def __format(self):
-        """Internal version of format with cached results.
-
-        Returns
-        -------
-        tuple
-            (equality constraints, inequality constraints)
-        """
-        leq_constr = lu.create_geq(self.expr, constr_id=self.constr_id)
-        return [leq_constr]

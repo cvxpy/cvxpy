@@ -21,7 +21,7 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
                                                               dims_to_solver_dict)
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from scipy.sparse import dok_matrix
 
@@ -68,7 +68,7 @@ class GUROBI(SCS):
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
-            if type(constr) not in GUROBI.SUPPORTED_CONSTRAINTS:
+            if type(constr) not in self.SUPPORTED_CONSTRAINTS:
                 return False
             for arg in constr.args:
                 if not arg.is_affine():
@@ -99,7 +99,7 @@ class GUROBI(SCS):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[GUROBI.VAR_ID]: solution['primal']}
             if not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
@@ -112,13 +112,9 @@ class GUROBI(SCS):
                     inverse_data[GUROBI.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
+            return failure_solution(status)
 
         return Solution(status, opt_val, primal_vars, dual_vars, {})
 
@@ -233,12 +229,11 @@ class GUROBI(SCS):
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
         except Exception:
             pass
+        solution[s.SOLVE_TIME] = model.Runtime
         solution["status"] = self.STATUS_MAP.get(model.Status,
                                                  s.SOLVER_ERROR)
-
         if solution["status"] == s.SOLVER_ERROR and model.SolCount:
             solution["status"] = s.OPTIMAL_INACCURATE
-        solution[s.SOLVE_TIME] = model.Runtime
 
         return solution
 

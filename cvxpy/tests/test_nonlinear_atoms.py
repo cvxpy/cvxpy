@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import cvxpy as cvx
-import cvxpy.atoms.elementwise.log as cvxlog
 from cvxpy.tests.base_test import BaseTest
 import math
 import numpy as np
@@ -94,9 +93,6 @@ class TestNonlinearAtoms(BaseTest):
         constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
         klprob = cvx.Problem(cvx.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
-        if cvx.CVXOPT in cvx.installed_solvers():
-            result = klprob.solve(solver=cvx.CVXOPT, verbose=True)
-            self.assertItemsAlmostEqual(v_prob.value, npSPriors)
         result = klprob.solve(solver=cvx.SCS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
         result = klprob.solve(solver=cvx.ECOS, verbose=True)
@@ -112,9 +108,6 @@ class TestNonlinearAtoms(BaseTest):
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
             p.solve(solver=cvx.ECOS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
-            if cvx.CVXOPT in cvx.installed_solvers():
-                p.solve(solver=cvx.CVXOPT, verbose=True)
-                self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
@@ -126,9 +119,6 @@ class TestNonlinearAtoms(BaseTest):
             x = cvx.Variable(n)
             obj = cvx.Minimize(cvx.sum(cvx.exp(x)))
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
-            if cvx.CVXOPT in cvx.installed_solvers():
-                p.solve(solver=cvx.CVXOPT, verbose=True)
-                self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
             p.solve(solver=cvx.ECOS, verbose=True)
@@ -142,49 +132,7 @@ class TestNonlinearAtoms(BaseTest):
             x = cvx.Variable(n)
             obj = cvx.Maximize(cvx.sum(cvx.log(x)))
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
-            if cvx.CVXOPT in cvx.installed_solvers():
-                p.solve(solver=cvx.CVXOPT, verbose=True)
-                self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=cvx.ECOS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=2)
-
-    def test_key_error(self):
-        """Test examples that caused key error.
-        """
-        if cvx.CVXOPT in cvx.installed_solvers():
-            x = cvx.Variable()
-            u = -cvx.exp(x)
-            prob = cvx.Problem(cvx.Maximize(u), [x == 1])
-            prob.solve(verbose=True, solver=cvx.CVXOPT)
-            prob.solve(verbose=True, solver=cvx.CVXOPT)
-
-            ###########################################
-
-            import numpy as np
-
-            kD = 2
-            Sk = cvx.Variable((kD, kD), PSD=True)
-            Rsk = cvx.Parameter((kD, kD))
-            mk = cvx.Variable((kD, 1))
-            musk = cvx.Parameter((kD, 1))
-
-            logpart = -0.5*cvx.log_det(Sk)+0.5*cvx.matrix_frac(mk, Sk)+(kD/2.)*np.log(2*np.pi)
-            linpart = mk.T*musk-0.5*cvx.trace(Sk*Rsk)
-            obj = logpart-linpart
-            prob = cvx.Problem(cvx.Minimize(obj), [Sk == Sk.T])
-            musk.value = np.ones((2, 1))
-            covsk = np.diag([0.3, 0.5])
-            Rsk.value = covsk+(musk.value*musk.value.T)
-            prob.solve(verbose=True, solver=cvx.CVXOPT)
-            print("second solve")
-            prob.solve(verbose=False, solver=cvx.CVXOPT)
-
-    # def test_kl_div(self):
-    #     """Test the kl_div atom.
-    #     """
-    #     self.assertEqual(kl_div(0, 0).value, 0)
-    #     self.assertEqual(kl_div(1, 0).value, np.inf)
-    #     self.assertEqual(kl_div(0, 1).value, np.inf)
-    #     self.assertEqual(kl_div(-1, -1).value, np.inf)

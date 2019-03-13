@@ -19,7 +19,7 @@ from cvxpy.constraints import SOC
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
                                                               dims_to_solver_dict)
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from collections import namedtuple
 from scipy.sparse import dok_matrix
@@ -88,7 +88,7 @@ class CPLEX(SCS):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[CPLEX.VAR_ID]: solution['primal']}
             if not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
@@ -101,15 +101,9 @@ class CPLEX(SCS):
                     inverse_data[CPLEX.NEQ_CONSTR])
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import cplex
@@ -218,10 +212,10 @@ class CPLEX(SCS):
 
         solution = {}
         start_time = model.get_time()
-        solve_time = -1
+        solution[s.SOLVE_TIME] = -1
         try:
             model.solve()
-            solve_time = model.get_time() - start_time
+            solution[s.SOLVE_TIME] = model.get_time() - start_time
             solution["value"] = model.solution.get_objective_value()
             solution["primal"] = np.array(model.solution.get_values(variables))
             solution["status"] = self._get_status(model)
@@ -241,11 +235,10 @@ class CPLEX(SCS):
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
         except Exception:
-            if solve_time < 0.0:
-                solve_time = model.get_time() - start_time
+            if solution[s.SOLVE_TIME] < 0.0:
+                solution[s.SOLVE_TIME] = model.get_time() - start_time
             solution["status"] = s.SOLVER_ERROR
 
-        solution[s.SOLVE_TIME] = solve_time
         return solution
 
     def _handle_solve_status(self, model, solstat):

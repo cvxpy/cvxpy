@@ -230,26 +230,9 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(prob.value, 0)
         self.assertAlmostEqual(prob.status, s.OPTIMAL)
 
-        if s.CVXOPT in INSTALLED_SOLVERS:
-            import cvxopt
-            from cvxpy.problems.problem_data.problem_data import ProblemData
-            from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_OLD
-            prob = Problem(cvx.Minimize(cvx.norm(self.x) + 3))
-            args, chain, inv = prob.get_problem_data(s.CVXOPT)
-            solver = CVXOPT_OLD()
-            data = solver.get_problem_data(args['objective'], args['constraints'],
-                                           {s.CVXOPT: ProblemData()})
-            dims = data["dims"]
-            self.assertEqual(dims["q"], [3])
-            # NumPy ndarrays, not cvxopt matrices.
-            self.assertEqual(type(data["c"]), cvxopt.matrix)
-            self.assertEqual(type(data["A"]), cvxopt.spmatrix)
-            self.assertEqual(data["c"].size, (3, 1))
-            self.assertEqual(data["A"].size, (0, 3))
-            self.assertEqual(data["G"].size, (3, 3))
-
-    # Test silencing and enabling solver messages.
     def test_verbose(self):
+        """Test silencing and enabling solver messages.
+        """
         import sys
         import os
         import tempfile

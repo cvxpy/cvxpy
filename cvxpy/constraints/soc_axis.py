@@ -41,36 +41,6 @@ class SOC_Axis(SOC):
     def __str__(self):
         return "SOC_Axis(%s, %s, %s)" % (self.t, self.X, self.axis)
 
-    def format(self, eq_constr, leq_constr, dims, solver):
-        """Formats SOC constraints as inequalities for the solver.
-
-        Parameters
-        ----------
-        eq_constr : list
-            A list of the equality constraints in the canonical problem.
-        leq_constr : list
-            A list of the inequality constraints in the canonical problem.
-        dims : dict
-            A dict with the dimensions of the conic constraints.
-        solver : str
-            The solver being called.
-        """
-        leq_constr += self.__format[1]
-        # Update dims.
-        for cone_size in self.size:
-            dims[s.SOC_DIM].append(cone_size[0])
-
-    @pu.lazyprop
-    def __format(self):
-        """Internal version of format with cached results.
-
-        Returns
-        -------
-        tuple
-            (equality constraints, inequality constraints)
-        """
-        return ([], format_axis(self.t, self.x_elems[0], self.axis))
-
     def num_cones(self):
         """The number of elementwise cones.
         """

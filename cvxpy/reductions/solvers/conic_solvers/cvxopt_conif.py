@@ -14,28 +14,49 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
-from cvxpy.problems.problem_data.problem_data import ProblemData
+from cvxpy.constraints import SOC, PSD
+from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
-from .conic_solver import ConeDims, ConicSolver
+from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.compr_matrix import compress_matrix
+from cvxpy.reductions.solvers.kktsolver import get_kktsolver
+import scipy.sparse as sp
+import scipy
+import numpy as np
 
 
-class CVXOPT(ConicSolver):
+# Utility method for formatting a ConeDims instance into a dictionary
+# that can be supplied to ecos.
+def dims_to_solver_dict(cone_dims):
+    cones = {
+        "l": int(cone_dims.nonpos),
+        "q": [int(v) for v in cone_dims.soc],
+        "s": [int(v) for v in cone_dims.psd],
+    }
+    return cones
+
+
+class CVXOPT(ECOS):
     """An interface for the CVXOPT solver.
     """
 
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
-                                                                 ExpCone,
                                                                  PSD]
 
     # Map of CVXOPT status to CVXPY status.
-    STATUS_MAP = {'optimal': s.OPTIMAL,
-                  'infeasible': s.INFEASIBLE,
-                  'unbounded': s.UNBOUNDED,
-                  'solver_error': s.SOLVER_ERROR}
+    STATUS_MAP = {"optimal": s.OPTIMAL,
+                  "infeasible": s.INFEASIBLE,
+                  "primal infeasible": s.INFEASIBLE,
+                  "unbounded": s.UNBOUNDED,
+                  "dual infeasible": s.UNBOUNDED,
+                  "unknown": s.SOLVER_ERROR,
+                  "solver_error": s.SOLVER_ERROR}
 
     def name(self):
         """The name of the solver.
@@ -62,44 +83,218 @@ class CVXOPT(ConicSolver):
                     return False
         return True
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = solution['status']
+
+        primal_vars = None
+        dual_vars = None
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            eq_dual = utilities.get_dual_values(
+                solution[s.EQ_DUAL],
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            leq_dual = utilities.get_dual_values(
+                solution[s.INEQ_DUAL],
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, {})
+        else:
+            return failure_solution(status)
+
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+        import cvxopt
+        import cvxopt.solvers
+        # Save original cvxopt solver options.
+        old_options = cvxopt.solvers.options.copy()
+        # Save old data in case need to use robust solver.
+        data[s.DIMS] = dims_to_solver_dict(data[s.DIMS])
+        # User chosen KKT solver option.
+        kktsolver = self.get_kktsolver_opt(solver_opts)
+        # Cannot have redundant rows unless using robust LDL kktsolver.
+        if kktsolver != s.ROBUST_KKTSOLVER:
+            # Will detect infeasibility.
+            if self.remove_redundant_rows(data) == s.INFEASIBLE:
+                return {s.STATUS: s.INFEASIBLE}
+        # Convert A, b, G, h, c to CVXOPT matrices.
+        data[s.C] = intf.dense2cvxopt(data[s.C])
+        var_length = data[s.C].size[0]
+        if data[s.A] is None:
+            data[s.A] = np.zeros((0, var_length))
+            data[s.B] = np.zeros((0, 1))
+        data[s.A] = intf.sparse2cvxopt(data[s.A])
+        data[s.B] = intf.dense2cvxopt(data[s.B])
+        if data[s.G] is None:
+            data[s.G] = np.zeros((0, var_length))
+            data[s.H] = np.zeros((0, 1))
+        data[s.G] = intf.sparse2cvxopt(data[s.G])
+        data[s.H] = intf.dense2cvxopt(data[s.H])
+
+        # Apply any user-specific options.
+        # Rename max_iters to maxiters.
+        if "max_iters" in solver_opts:
+            solver_opts["maxiters"] = solver_opts["max_iters"]
+        for key, value in solver_opts.items():
+            cvxopt.solvers.options[key] = value
+
+        # Always do 1 step of iterative refinement after solving KKT system.
+        if "refinement" not in cvxopt.solvers.options:
+            cvxopt.solvers.options["refinement"] = 1
+
+        try:
+            if kktsolver == s.ROBUST_KKTSOLVER:
+                # Get custom kktsolver.
+                kktsolver = get_kktsolver(data[s.G],
+                                          data[s.DIMS],
+                                          data[s.A])
+            results_dict = cvxopt.solvers.conelp(data[s.C],
+                                                 data[s.G],
+                                                 data[s.H],
+                                                 data[s.DIMS],
+                                                 data[s.A],
+                                                 data[s.B],
+                                                 kktsolver=kktsolver)
+        # Catch exceptions in CVXOPT and convert them to solver errors.
+        except ValueError:
+            results_dict = {"status": "unknown"}
+
+        # Restore original cvxopt solver options.
+        self._restore_solver_options(old_options)
+
+        # Construct solution.
+        solution = {}
+        status = self.STATUS_MAP[results_dict['status']]
+        solution[s.STATUS] = status
+        if solution[s.STATUS] in s.SOLUTION_PRESENT:
+            primal_val = results_dict['primal objective']
+            solution[s.VALUE] = primal_val + data[s.OFFSET]
+            solution[s.PRIMAL] = results_dict['x']
+            solution[s.EQ_DUAL] = results_dict['y']
+            solution[s.INEQ_DUAL] = results_dict['z']
+            # Need to multiply duals by Q and P_leq.
+            if "Q" in data:
+                y = results_dict['y']
+                # Test if all constraints eliminated.
+                if y.size[0] == 0:
+                    dual_len = data["Q"].size[0]
+                    solution[s.EQ_DUAL] = cvxopt.matrix(0., (dual_len, 1))
+                else:
+                    solution[s.EQ_DUAL] = data["Q"]*y
+            if "P_leq" in data:
+                leq_len = data[s.DIMS][s.LEQ_DIM]
+                P_rows = data["P_leq"].size[0]
+                new_len = P_rows + solution[s.INEQ_DUAL].size[0] - leq_len
+                new_dual = cvxopt.matrix(0., (new_len, 1))
+                z = solution[s.INEQ_DUAL][:leq_len]
+                # Test if all constraints eliminated.
+                if z.size[0] == 0:
+                    new_dual[:P_rows] = 0
+                else:
+                    new_dual[:P_rows] = data["P_leq"] * z
+                new_dual[P_rows:] = solution[s.INEQ_DUAL][leq_len:]
+                solution[s.INEQ_DUAL] = new_dual
+
+            for key in [s.PRIMAL, s.EQ_DUAL, s.INEQ_DUAL]:
+                solution[key] = intf.cvxopt2dense(solution[key])
+        return solution
+
+    @staticmethod
+    def remove_redundant_rows(data):
+        """Remove redundant constraints from A and G.
+
+        Parameters
+        ----------
+        data : dict
+            All the problem data.
 
         Returns
         -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
+        str
+            A status indicating if infeasibility was detected.
         """
-        data = {}
-        objective, _ = problem.objective.canonical_form
-        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        data["objective"] = objective
-        data["constraints"] = constraints
-        data[ConicSolver.DIMS] = ConeDims(
-            group_constraints(problem.constraints))
-        variables = problem.variables()[0]
-        data[s.BOOL_IDX] = [t[0] for t in variables.boolean_idx]
-        data[s.INT_IDX] = [t[0] for t in variables.integer_idx]
+        # Extract data.
+        dims = data[s.DIMS]
+        A = data[s.A]
+        G = data[s.G]
+        b = data[s.B]
+        h = data[s.H]
+        # Remove redundant rows in A.
+        if A is not None:
+            # The pivoting improves robustness.
+            Q, R, P = scipy.linalg.qr(A.todense(), pivoting=True)
+            rows_to_keep = []
+            for i in range(R.shape[0]):
+                if np.linalg.norm(R[i, :]) > 1e-10:
+                    rows_to_keep.append(i)
+            R = R[rows_to_keep, :]
+            Q = Q[:, rows_to_keep]
+            # Invert P from col -> var to var -> col.
+            Pinv = np.zeros(P.size, dtype='int')
+            for i in range(P.size):
+                Pinv[P[i]] = i
+            # Rearrage R.
+            R = R[:, Pinv]
+            A = R
+            b_old = b
+            b = Q.T.dot(b)
+            # If b is not in the range of Q,
+            # the problem is infeasible.
+            if not np.allclose(b_old, Q.dot(b)):
+                return s.INFEASIBLE
+            dims[s.EQ_DIM] = int(b.shape[0])
+            data["Q"] = intf.dense2cvxopt(Q)
+        # Remove obviously redundant rows in G's <= constraints.
+        if G is not None:
+            G = G.tocsr()
+            G_leq = G[:dims[s.LEQ_DIM], :]
+            h_leq = h[:dims[s.LEQ_DIM]].ravel()
+            G_other = G[dims[s.LEQ_DIM]:, :]
+            h_other = h[dims[s.LEQ_DIM]:].ravel()
+            G_leq, h_leq, P_leq = compress_matrix(G_leq, h_leq)
+            dims[s.LEQ_DIM] = int(h_leq.shape[0])
+            data["P_leq"] = intf.sparse2cvxopt(P_leq)
+            G = sp.vstack([G_leq, G_other])
+            h = np.hstack([h_leq, h_other])
+        # Convert A, b, G, h to CVXOPT matrices.
+        data[s.A] = A
+        data[s.G] = G
+        data[s.B] = b
+        data[s.H] = h
+        return s.OPTIMAL
 
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
+    @staticmethod
+    def _restore_solver_options(old_options):
+        import cvxopt.solvers
+        for key, value in list(cvxopt.solvers.options.items()):
+            if key in old_options:
+                cvxopt.solvers.options[key] = old_options[key]
+            else:
+                del cvxopt.solvers.options[key]
 
-        # Order and group constraints.
-        eq_constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[CVXOPT.EQ_CONSTR] = eq_constr
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        soc_constr = [c for c in problem.constraints if type(c) == SOC]
-        sdp_constr = [c for c in problem.constraints if type(c) == PSD]
-        exp_constr = [c for c in problem.constraints if type(c) == ExpCone]
-        inv_data[CVXOPT.NEQ_CONSTR] = leq_constr + soc_constr + sdp_constr + exp_constr
-        return data, inv_data
+    @staticmethod
+    def get_kktsolver_opt(solver_opts):
+        """Returns the KKT solver selected by the user.
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        from cvxpy.problems.solvers.cvxopt_intf import CVXOPT as CVXOPT_OLD
-        solver = CVXOPT_OLD()
-        return solver.solve(
-            data["objective"],
-            data["constraints"],
-            {self.name(): ProblemData()},
-            warm_start,
-            verbose,
-            solver_opts)
+        Removes the KKT solver from solver_opts.
+
+        Parameters
+        ----------
+        solver_opts : dict
+            Additional arguments for the solver.
+
+        Returns
+        -------
+        str or None
+            The KKT solver chosen by the user.
+        """
+        if "kktsolver" in solver_opts:
+            kktsolver = solver_opts["kktsolver"]
+            del solver_opts["kktsolver"]
+        else:
+            kktsolver = 'chol'
+        return kktsolver
