@@ -8,7 +8,7 @@ Skaf, 4/24/2008.
 
 Topic References:
 
--  Section 7.1.1, Boyd & Vandenberghe "Convex Optimization"
+-  Section 7.1.1, Boyd & Vandenberghe “Convex Optimization”
 
 Introduction
 ------------
@@ -27,7 +27,7 @@ A good heuristic for estimating :math:`R` is to solve the problem
 .. math::
 
    \begin{array}{ll}
-       \mbox{minimize}   & \log \det(S) - \mbox{tr}(SY) \\
+       \mbox{maximize}   & \log \det(S) - \mbox{tr}(SY) \\
        \mbox{subject to} & \sum_{i=1}^n \sum_{j=1}^n |S_{ij}| \le \alpha \\
                          & S \succeq 0,
        \end{array}
