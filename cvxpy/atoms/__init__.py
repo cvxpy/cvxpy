@@ -27,7 +27,7 @@ from cvxpy.atoms.matrix_frac import matrix_frac
 from cvxpy.atoms.matrix_frac import MatrixFrac
 from cvxpy.atoms.max import max
 from cvxpy.atoms.min import min
-from cvxpy.atoms.norm import norm
+from cvxpy.atoms.norm import norm, norm2
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.norm_nuc import normNuc
