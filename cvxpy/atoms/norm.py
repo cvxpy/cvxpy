@@ -31,9 +31,13 @@ def norm(x, p=2, axis=None):
     Parameters
     ----------
     x : Expression or numeric constant
-        The value to take the norm of.
+        The value to take the norm of.  If `x` is 2D and `axis` is None,
+        this function constructs a matrix norm.
     p : int or str, optional
-        The type of norm.
+        The type of norm. Valid options include any positive integer,
+        'fro' (for frobenius), 'nuc' (sum of singular values), np.inf or
+        'inf' (infinity norm).
+    axis : The axis along which to apply the norm, if any.
 
     Returns
     -------
@@ -64,3 +68,20 @@ def norm(x, p=2, axis=None):
             return norm_inf(x, axis)
         else:
             return pnorm(x, p, axis)
+
+
+def norm2(x, axis=None):
+    """The 2-norm of x.
+
+    Parameters
+    ----------
+    x : Expression or numeric constant
+        The value to take the norm of.  If `x` is 2D and `axis` is None,
+        this function constructs a matrix norm.
+
+    Returns
+    -------
+    Expression
+        An Expression representing the norm.
+    """
+    return norm(x, p=2, axis=axis)

@@ -136,7 +136,7 @@ norm1
 norm2
 --------------------------
 
-.. autoclass:: cvxpy.atoms.norm2.norm2
+.. autofunction:: cvxpy.atoms.norm.norm2
     :show-inheritance:
 
 .. _norm-inf:
