@@ -19,7 +19,7 @@ These examples show many different ways to use CVXPY.
 Basic Examples
 --------------
 
-- :doc:`Total variation in-painting <applications/tv_inpainting>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
+- `Least-squares <basic/least_squares>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
 
 - `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
@@ -27,9 +27,11 @@ Basic Examples
 
 - `Worst-case risk analysis <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb>`_
 
+- `Model fitting <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
+
 - `Optimal advertising <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_ad.ipynb>`_
 
-- `Model fitting <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
+- :doc:`Total variation in-painting <applications/tv_inpainting>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
 
 .. _machine-learning:
