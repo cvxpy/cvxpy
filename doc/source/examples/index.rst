@@ -19,7 +19,7 @@ These examples show many different ways to use CVXPY.
 Basic Examples
 --------------
 
-- `Least-squares <basic/least_squares>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
+- :doc:`Least-squares <basic/least_squares>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
 
 - `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
