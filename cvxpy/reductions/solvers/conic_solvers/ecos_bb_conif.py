@@ -65,19 +65,13 @@ class ECOS_BB(ECOS):
         """
         status = self.STATUS_MAP[solution['info']['exitFlag']]
 
-        # Timing data
-        attr = {}
-        attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
-        attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
-        attr[s.NUM_ITERS] = solution["info"]["iter"]
-
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pcost']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {
                 inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
             }
-            return Solution(status, opt_val, primal_vars, None, None)
+            return Solution(status, opt_val, primal_vars, {}, {})
         else:
             return failure_solution(status)
 
