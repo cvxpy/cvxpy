@@ -21,6 +21,8 @@ Basic Examples
 
 - :doc:`Least-squares <basic/least_squares>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
 
+- :doc:`Linear program <basic/linear_program>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/linear_program.ipynb>`_
+
 - `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
 - `Portfolio optimization <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_

@@ -57,6 +57,27 @@ class ECOS_BB(ECOS):
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         return data, inv_data
 
+    def invert(self, solution, inverse_data):
+        """Returns solution to original problem, given inverse_data.
+        """
+        status = self.STATUS_MAP[solution['info']['exitFlag']]
+
+        # Timing data
+        attr = {}
+        attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
+        attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
+        attr[s.NUM_ITERS] = solution["info"]["iter"]
+
+        if status in s.SOLUTION_PRESENT:
+            primal_val = solution['info']['pcost']
+            opt_val = primal_val + inverse_data[s.OFFSET]
+            primal_vars = {
+                inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
+            }
+            return Solution(status, opt_val, primal_vars, None, None)
+        else:
+            return failure_solution(status)
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
