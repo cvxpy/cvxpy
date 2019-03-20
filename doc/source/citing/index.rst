@@ -34,7 +34,7 @@ Please use the following BibTeX citations:
 
 If you use CVXPY's support for disciplined geometric programming, please
 cite the `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_
-and use following BibTeX citation:
+and use the following BibTeX citation:
 
 ::
 

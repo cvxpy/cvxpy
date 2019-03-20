@@ -82,13 +82,13 @@ class TestNonOptimal(BaseTest):
 
         # Here are our QP factors
         A = cvxpy.Constant(sp.eye(4))
-        c = np.matrix(np.ones(4)).reshape((1,4))
+        c = np.ones(4).reshape((1,4))
 
         # Here is our optimization variable
         x = cvxpy.Variable(4)
 
         # And the QP problem setup
-        function = cvxpy.quad_form(x, A) - c * x
+        function = cvxpy.quad_form(x, A) - cvxpy.matmul(c, x)
         objective = cvxpy.Minimize(function)
         problem = cvxpy.Problem(objective)
 
