@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 from .conic_solver import ConicSolver
+import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
                                                     dims_to_solver_dict, ECOS)
+from cvxpy.reductions.solution import failure_solution, Solution
 
 
 class ECOS_BB(ECOS):
