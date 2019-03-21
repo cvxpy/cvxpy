@@ -27,6 +27,8 @@ Basic Examples
 
 - :doc:`Second-order cone program <basic/socp>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/socp.ipynb>`_
 
+- :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sdp.ipynb>`_
+
 - `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
 - `Portfolio optimization <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
