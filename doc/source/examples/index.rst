@@ -23,6 +23,8 @@ Basic Examples
 
 - :doc:`Linear program <basic/linear_program>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/linear_program.ipynb>`_
 
+- :doc:`Quadratic program <basic/linear_program>` `[.ipynb] <http://nbviewer.ipython.org/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/quadratic_program.ipynb>`_
+
 - `Control <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
 - `Portfolio optimization <http://nbviewer.ipython.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_

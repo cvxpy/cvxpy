@@ -2,7 +2,7 @@
 Linear program
 ==============
 
-A linear program is an optimization problem with linear objective and
+A linear program is an optimization problem with a linear objective and
 affine inequality constraints. A common standard form is the following:
 
 .. math::
