@@ -52,7 +52,7 @@ changing :math:`d_i` would change the optimal value.
 Example
 -------
 
-In the following code, we solve a quadratic program with CVXPY.
+In the following code, we solve a SOCP with CVXPY.
 
 .. code:: python
 
@@ -60,7 +60,7 @@ In the following code, we solve a quadratic program with CVXPY.
     import cvxpy as cp
     import numpy as np
     
-    # Generate a random feasible SOCP program.
+    # Generate a random feasible SOCP.
     m = 3
     n = 10
     p = 5
